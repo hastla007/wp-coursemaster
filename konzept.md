@@ -785,8 +785,37 @@ Für jede Entscheidung ein kurzes ADR (Architecture Decision Record) mit **Konte
 
 ### 28.7 Offene Fragen für die nächste Entscheidung
 
-1. Soll die erste öffentliche Free-Version **alle** P0-Zusatzfeatures (Notizen, Aufgabenabgabe, Vorlagen) enthalten, oder zuerst ausschließlich fachneutrale Parität und vollständigen Basis-Kursfluss?
+1. **Entschieden:** Zuerst vollständige fachneutrale LearnBoating-Parität und betriebsfähiger Basis-Lernfluss; zusätzliche P0-Wettbewerbsfunktionen erst **danach**. Diese Frage ist geschlossen.
 2. Werden Kursanbieter primär auf **einer** WordPress-Website mit vielen Trainern arbeiten oder sollen Multisite-/Agentur-Szenarien schon in v1 vollständig unterstützt werden?
 3. Sollen Lernende Zertifikate und Kompetenznachweise dauerhaft verifizieren können, auch wenn ein Pro-Abonnement ausläuft? Die bereits festgelegten Lese-/Exportrechte müssen dabei gewahrt bleiben.
 
 **Umsetzung:** Die operative, priorisierte und abharkbare Liste befindet sich weiterhin in `TODO-WETTBEWERBSANALYSE.md`. Die zusätzlichen Architektur-/Qualitätsaufgaben dort verweisen auf dieses Kapitel; die bereits dokumentierten Wettbewerbsfunktionen bleiben erhalten.
+
+## 29. Verbindliche Release-Strategie: Parität vor zusätzlichen P0-Funktionen
+
+**Auftraggeberentscheidung:** Zuerst wird die **vollständige fachneutrale LearnBoating-Funktionsparität** erreicht und abgenommen. **Erst danach** werden zusätzliche P0-Wettbewerbsfunktionen umgesetzt. Diese Entscheidung ersetzt abweichende Prioritätsinterpretationen in den Kapiteln 11, 24, 27 und 28. „P0“ kennzeichnet künftig die fachliche Wichtigkeit, **nicht automatisch die Zugehörigkeit zum ersten Release**.
+
+### 29.1 Verbindliche Reihenfolge
+
+| Stufe | Inhalt | Freigabebedingung |
+|---|---|---|
+| **R0 – Bestandsaufnahme und Verträge** | Quellinventar, fachneutrale Paritätsmatrix, Ausschluss aller Fachmodule, Lizenz-/Abhängigkeitsprüfung, Architektur-ADRs, Golden-Master-Tests | Gate A bestanden |
+| **R1 – Course Captain Free: Paritätsrelease** | Universelle Kurse/Lektionen, Autorenbasis zum Erstellen und Veröffentlichen, fachneutraler Lernkern, Smarttrainer, Fragenbank, Fehlertraining, Favoriten, Videos/Medien, Prüfungen, Lernfortschritt, Zugänge, Import/Export **soweit im fachneutralen Quellumfang vorhanden** | Gates B und C bestanden, **100 % der als fachneutral klassifizierten Quellfunktionen** in der Paritätsmatrix abgenommen; keine ausgeschlossenen Fachmodule |
+| **R2 – Zusätzliche P0-Wettbewerbsfunktionen** | Persönliche Lernnotizen, universelle Text-/Datei-Aufgabenabgaben, neutrale Kursvorlagen/Demokurse sowie **über die Paritätsbasis hinausgehende** Kurs-/Quiz-Builder-Verbesserungen | R1 vollständig abgenommen; jedes Feature mit eigenem UX-, Sicherheits- und Regressionstest |
+| **R3 – Pro und weitere P1-Integrationen** | Gradebook, Tutorbewertung, Frontend-Builder, Mehrtrainer, Zertifikatsdesigner, erweiterte Kompetenzmatrix, Commerce und Suite-Adapter | Stabiler Free-Kern; abhängige R2-Funktionen vorhanden; Pro-/Contract-Tests bestanden |
+| **R4 – Nachfragebasierte Erweiterungen** | Gamification, SCORM/xAPI/H5P/LTI, zusätzliche Coaching- und Aktivitätstypen | Separater Produktentscheid und technische Prüfung |
+
+**Präzisierung:** R1 enthält **alle für die fachneutrale Parität notwendigen Basisfunktionen**, auch wenn diese einen einfachen Kurs-/Quiz-Editor erfordern. R2 enthält ausschließlich **zusätzliche** Funktionen oder Komfortverbesserungen, die nicht zur nachgewiesenen Parität gehören. Sollte eine vermeintliche R2-Funktion bereits im fachneutralen LearnBoating-Bestand vorhanden sein, wird **ihr paritätsrelevanter Teil in R1 vorgezogen**; die Paritätsmatrix entscheidet, nicht der Name des Features.
+
+### 29.2 Stop-/Go-Regeln
+
+1. **Kein Start der R2-Implementierung vor R1-Abnahme**; R2-Ideen dürfen zuvor analysiert und spezifiziert, aber nicht als Ersatz für Paritätsarbeit entwickelt werden.
+2. **Keine öffentliche Paritätszusage ohne Nachweis:** Für jede fachneutrale Funktion sind Quellreferenz, Zielimplementierung, neutrale E2E-/Regressionstests und Abnahmestatus dokumentiert.
+3. **Keine Fachmodule:** Die Ausschlussliste aus Kapitel 26 gilt für alle Stufen.
+4. **Keine automatische Pro-Verschiebung:** R3 ist eine Planungsstufe; Lizenzierung und bestehende Pro-Zusagen aus Kapitel 5 bleiben als Zielarchitektur erhalten. Termine werden erst nach Aufwandsschätzung festgelegt.
+5. **Keine stillschweigende Streichung:** Wird eine Quellfunktion als fachneutral klassifiziert, kann sie nur per dokumentierter Entscheidung aus der Paritätsmatrix ausgeschlossen werden.
+6. **Statusführung:** `TODO-WETTBEWERBSANALYSE.md` führt die operativen Checklisten nach R0–R4; ein abgehaktes Planungs-/Konzepttask bedeutet nicht, dass die Funktion implementiert ist.
+
+### 29.3 Nächster verbindlicher Meilenstein
+
+Die nächste Umsetzungseinheit ist **R0: vollständige fachneutrale Paritätsmatrix samt Golden-Master-Tests und Ausschlussprüfung**. Erst mit diesem Nachweis kann der Umfang von R1 endgültig eingefroren und geschätzt werden.
