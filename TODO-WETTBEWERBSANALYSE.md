@@ -618,6 +618,10 @@ Aus den tatsächlich gelesenen `konzept.md`-Dateien von Form Captain, Workflow C
 
 Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `API.md`; Affiliate Captain `docs/CONTRACT.md`, `docs/IMPORT-EXPORT.md`; License Captain `docs/CLIENT-INTEGRATION.md`, `docs/RELEASE-READINESS.md`; Captain Pro `docs/ARCHITECTURE.md`. **Nur übertragbare Muster, keine Implementierungs- oder Kompatibilitätsbehauptung.** Neu `R0-36…40`, `R1-40…42`, `R3-18…19`. Alle Tasks offen.
 
+### Konsistenz- und Abhängigkeitsprüfung (Konzept Kapitel 46)
+
+**Statischer Stand:** 111 eindeutige R-Tasks (R0 40 / R1 42 / R2 7 / R3 19 / R4 3), keine nicht existierenden R-IDs in den ausgewiesenen direkten Voraussetzungen gefunden. **Nicht geprüft:** vollständige fachliche Deduplizierung, transitive Zyklen und Code-/Testabdeckung. Ähnliche Tasks zu Settings, Migration, Integrationsstatus und Release-Evidenz sind als **Spezifikation (R0) → Umsetzung (R1/R3) → Abnahme** zu behandeln, nicht als parallele Implementierungen. Die Konflikte um Gruppen-/Zertifikats-Edition wurden in Kapitel 46 redaktionell aufgelöst; Detailabnahme bleibt R0-29. Neue Tasks nur mit Delta-Beleg und eindeutiger DoD. Nächster Schritt R0-01.
+
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
 - [ ] **LearnBoating-Paritätsmatrix abschließen:** alle fachneutralen Funktionen, Quellkomponenten, Übernahmestrategien, Regressionstests und Abnahmekriterien inventarisieren. Fachmodule ausdrücklich ausschließen.
