@@ -1459,3 +1459,28 @@ Jeder neue Task muss (a) ein konkretes bisher nicht abgedecktes Verhalten belege
 ### 47.2 Arbeitssteuerung
 
 Die bereits existierenden Tasks decken diese Deltas überwiegend ab. Daher werden **keine neuen IDs** nur für diese vier Services angelegt. Die bestehende To-do-Liste erhält eine explizite Prüfschablone. Vollständige Codeinventur, echte Integrationstests, Architekturbeschluss und Referenzkurs-Fixtures bleiben offene Arbeit.
+
+## 48. LearnBoating-Codeabgleich III – Plugin-Bootstrap, Zugriff, Medien, Gruppen und Fragen
+
+**Quellbasis:** `hastla007/learnboating`, direkt abgerufene PHP-Dateien des Standardbranches; im Plugin-Header `bootspruefung-learning/bootspruefung-learning.php` steht Version **0.14.0**, `Requires at least: 7.0`, `Requires PHP: 8.1`. Diese Quellversion und Mindestanforderungen sind **keine automatisch beschlossenen Course-Captain-Zielwerte**. Die verwendete GitHub-Schnittstelle bietet hier keinen vollständigen rekursiven Tree-Export; daher ist diese Inventur **nicht als vollständige Dateiliste** auszugeben.
+
+| Direkt geprüfter Quellpfad unter `bootspruefung-learning/` | Tatsächliche Codeoberflächen | Fachneutraler Ziel-/Testvertrag | Prüflücke |
+|---|---|---|---|
+| `src/Plugin.php` | `boot`, `registerHooks`, `maybeMigrate`, `scheduleMigration`, `cronMigration`, `runMigration`, `hourly`, `dropTablesOnSiteDelete`, `orphanSiteTables` | Lifecycle, Cron, Upgrade und Multisite-Site-Löschung mit kontrolliertem Cleanup | Registrierte Hooks, Fehler-/Recovery-Pfade, tatsächliche Migrationsklassen und Integrationstests auslesen |
+| `src/Learning/Services/AccessService.php` | `can`, `scope`, `limits`, `unlockTimes`, `freeRule`, `entitled`, `groupFreeRules`, `groupDripRules` | Zugriff je Kurs/Feature/Quelle mit Free-Regeln, Drip, Zeitfenster und Gruppenregeln | RBAC, Objektberechtigung, geschützte Medien, Ablauf-/Race-/Cachefälle durchtesten |
+| `src/Content/Media/MediaStorage.php` | `privateBaseDir`, `protectedDir`, `store`, `resolve`, `relocateAll`, `quarantineMedia`, `protectDir`, `writeHtaccess` | Private Paket-/Lösungsdateien und geschützte Medien mit Hosting-Konfigurationscheck und Zugriffsschutz | Nginx/Apache/externes Storage, URL-Bypass, Dateipfade und Fehlkonfigurationen prüfen |
+| `src/Infrastructure/NamedLock.php` | `acquire`, `release`, `with`, `toPrimary`, `dbName` | Datenbankgestützte Locks für Seats/Prüfungen und andere kritische Operationen | Lock-Timeout, Primary/Replica, Multisite und Crash/Parallelität testen |
+| `src/Commerce/GroupService.php` | `invite`, `join`, `joinLocked`, `removeMember`, `releaseUser`, `regenerateToken`, `grantMember`, `occupying` | Neutrale Gruppen-/Seat-/Claim-/Grant-Basis Free; erweiterte Verwaltung nach Editionsvertrag | Invite-Races, Seat-Limits, Tokenrotation, Mitgliedsentzug und Edition im Detail nachweisen |
+| `src/Learning/Services/QuestionPresenter.php` | `preload`, `present`, `token`, `verify`, `evaluate`, `modelAnswer`, `shuffle` | Neutrale Fragenauslieferung und Antwortprüfung; keine vorzeitige Lösungsoffenlegung | Tokenbindung, Shuffle-Reproduzierbarkeit, Bewertung, Berechtigungen und Leak-Tests |
+| `src/Content/Repositories/ContentRepository.php` | `courses`, `modules`, `questionsForModules`, `revision`, `answers`, `examRule`, `blueprints`, `paperQuestions` | Revisionierte Kurs-/Fragen-/Prüfungsdaten, stabile Referenzen und Snapshots | DB-Tabellen, Import-Revisionssemantik, Prüfungs-Snapshot und Datenbankindizes prüfen |
+| `src/Settings/Settings.php` | `all`, `get`, `register`, `sanitize` | Typisierte und validierte Settings nach Kapitel 43 | Alle Optionskeys/Defaults/Capabilities/Overrides systematisch abgleichen |
+| `src/Infrastructure/RequestMemo.php` | `register`, `scope`, `get`, `forget`, `leave`, `ownRoute` | Request-lokaler Cache mit korrekter Invalidierung bei Grant-/Statusänderungen | Cross-user-Leak, Stale-Access und verschachtelte Request-Kontexte testen |
+
+**Weitere dokumentierte, noch nicht dateiweise verifizierte Bereiche** aus [LearnBoating README](https://github.com/hastla007/learnboating/blob/main/README.md): Mitgliedschafts-Block/Shortcode und PDF-Schutz, Login-Härtung, externe Videoeinwilligung, WP-CLI Import/Rollback/Reconcile, stündlicher Wartungslauf, Zahlungs-Dispute-Webhooks, Prüfungsanmeldungsinfos, Content-Builder/JSON-Schemas, Test-Suites und Browserflows. Diese sind als **Inventur-Kandidaten** zu behandeln, nicht als bereits codegeprüfte Implementierung. Domain-spezifische Prüfungsstellen, Bootsregeln und Geräte-Simulation nicht blind portieren.
+
+### 48.1 Vorläufige Paritätsmatrix und Nachweisstatus
+
+- **Direkt dateiweise geprüft:** 4 Services in Kapitel 47 und 9 weitere PHP-Dateien in diesem Kapitel sowie Plugin-Header/Composer-Datei; dokumentationsbasierte Hinweise auf weitere Komponenten sind davon getrennt.
+- **Noch nicht vollständig inventarisiert:** sämtliche REST-Controller und Routen, Admin-/Frontend-Dateien, DB-Migrationsklassen/Tabellen, alle WP-Cron-Jobs, Datenschutzexport/-löschung, Medienauslieferungscontroller, Testdateien und Quellgeneratoren. GitHub-Code-Suche lieferte in diesem Durchgang keine Treffer; sie ist kein Nachweis für das Fehlen solcher Dateien.
+- **Für jedes Modul erforderlich:** exakter Pfad, Quellcommit, öffentliche Aufrufer, Datenobjekte, Rechte, Status-/Fehlerübergänge, fachneutraler Zielbaustein, Free/Pro/R3, vorhandene Task-ID, reproduzierbarer Test, Entscheidung `reuse/abstract/replace/exclude_domain_specific/unknown`.
+- **R0-GATE bleibt gesperrt**, solange `unknown`-Fälle und Quellabdeckung nicht geklärt sind. Das Dokument ist eine wachsende Teilinventur, kein behaupteter vollständiger Dateibaum.
