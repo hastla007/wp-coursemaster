@@ -167,7 +167,7 @@
 - [ ] **SEAM-003** Schnittstellen für verifizierte Completion, Prüfung und Zertifikat gegenüber bloßer Zahlung/Check-in abgrenzen.
 - [ ] **SEAM-004** Suite-UX-Konventionen für Adminnavigation, Statussprache, Setup, Lernenden- und Trainerpfad definieren.
 - [ ] **SEAM-005** Vertragsversionen, Capability-/Objektzugriff, Datenschutzscopes, Log-Retention und Deinstallationsverhalten festlegen.
-- [ ] **SEAM-006** Referenzconnector-Reihenfolge, Pending-Eskalation, Gastkonto-Verknüpfung und Suite-Navigationsmuster entscheiden.
+- [ ] **SEAM-006** Verbleibende Entscheidungen: Pending-Eskalation, Gastkonto-Verknüpfung und Suite-Navigationsmuster. **Referenzconnector-Reihenfolge ist entschieden: Voucher Captain und WooCommerce zuerst (Kapitel 32).**
 
 ### R3 – Nahtlose Suite-Prozesse bauen und abnehmen
 
@@ -183,3 +183,33 @@
 - [ ] **SEAM-110** Dokumentierte Betriebsrezepte, Screens/Leerzustände, Fehlerkatalog und Betreiberhandbuch bereitstellen.
 
 **Freigabekriterium:** Kein Partnerplugin erforderlich für den Free-Lernkern; alle Zustandsübergänge autorisiert und nachvollziehbar; keine doppelte Einschreibung, Auszahlung, Zertifikatsausstellung oder Review-Einladung; keine Kompetenzzusage aus Zahlung oder Ticket; sichere Rückabwicklung; reproduzierbare E2E-Nachweise.
+
+## Verbindliche Entscheidung: R3 beginnt mit Voucher Captain + WooCommerce (Konzept Kapitel 32)
+
+> **Freigaberegel:** Keine R3-Connector-Implementierung vor vollständiger R1-Parität **und** abgeschlossener R2-P0-Stufe. WooCommerce und Voucher Captain bleiben optional; Free funktioniert eigenständig.
+
+### R0 – Vorbereitende Spezifikation (noch keine Connector-Implementierung)
+
+- [ ] **R3-FIRST-001** WooCommerce-Produkt-/Variations-/Paket-zu-Kurs-Mapping, Kursgrant-Quelle, Bestellpositionsreferenz und Statusmatrix dokumentieren.
+- [ ] **R3-FIRST-002** Voucher-Connector-Vertrag gegen aktuelle `wp-couponmaster/CONNECTORS.md` und realen API-Stand verifizieren; direkter Kurs-Einlösekanal, Reservierung, Commit, Release und Refund spezifizieren.
+- [ ] **R3-FIRST-003** Gastkauf-Identitätsverifikation, Mehrfach-Grants, Teilrefund, Chargeback, Parallelität, Duplicate-Callbacks und kombinierte Woo-/Voucher-Käufe entscheiden.
+- [ ] **R3-FIRST-004** Kompatibilitätsmatrix für WooCommerce HPOS/Classic, Blocks-/Classic-Checkout, Pluginversionen und Installationskombinationen festlegen.
+
+### R3.1 – WooCommerce-Connector zuerst implementieren und abnehmen
+
+- [ ] **R3-FIRST-101** WooCommerce-Produktzuordnung, Kaufbestätigung, idempotente Enrollment-Grants und widerrufbare Zugänge umsetzen.
+- [ ] **R3-FIRST-102** Storno, Teilrefund, Chargeback, Bestellstatuswechsel, Retry/Backfill, Gastkonto und historische Lernnachweise E2E testen.
+
+### R3.2 – Voucher-Captain-Connector implementieren und abnehmen
+
+- [ ] **R3-FIRST-103** Direkte Kurseinlösung mit Voucher-Reserve/Commit/Release, Grant und kompensierenden Fehlerpfaden integrieren.
+- [ ] **R3-FIRST-104** Mehrfachnutzung, Kurs-/Platzpakete, doppelte und parallele Einlösungen, Timeout und Refund E2E prüfen.
+
+### R3.3 – Gemeinsames Integrations-Gate
+
+- [ ] **R3-FIRST-105** WooCommerce allein, Voucher allein (soweit vertraglich möglich), beide gemeinsam und beide deaktiviert testen; Doppel-Grant bei kombinierter Bestellung verhindern.
+- [ ] **R3-FIRST-106** Sicherheits-/Datenschutz-/Kompatibilitäts-/Upgrade-/Backup-/Recovery-Gates mit dokumentierten Nachweisen bestehen.
+- [ ] **R3-FIRST-107** Admin-Diagnose und Lernendenstatus für `pending/active/expired/revoked/failed`, Support- und Wiederanlaufpfade abnehmen.
+- [ ] **R3-FIRST-108** Weitere Suite-Connectoren erst nach diesem Referenzpaket nach Abhängigkeit und Nutzen priorisieren; bestehende SUITE-/SEAM-Aufgaben erhalten.
+
+**Status:** Strategische Entscheidung dokumentiert; sämtliche Implementierungs- und Testaufgaben bleiben offen.
