@@ -104,6 +104,46 @@
   - **Ergebnis/Definition of Done:** CI-Matrix, PHP-/JS-Checks, Unit/Integration/E2E, SAST, Dependency-Scan, Paket-Signierung und Releaseartefakte definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R0-19 · Öffentliche API- und Erweiterungsverträge inventarisieren**
+  - **Voraussetzung:** R0-02,R0-08.
+  - **Ergebnis/Definition of Done:** Alle Hooks, Filter, REST-Routen, Shortcodes, Blocks, CLI-Kommandos und geplanten Events mit Versionierung, Auth, Fehlercodes und Deprecation-Policy tabellarisch spezifiziert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-20 · WordPress-Kompatibilität und Konfliktmatrix festlegen**
+  - **Voraussetzung:** R0-14,R0-18.
+  - **Ergebnis/Definition of Done:** Unterstützte WP-/PHP-/DB-Versionen, Multisite-Grenze, Cache-/Security-/SEO-/Theme-/Woo-Kombinationen und Testinstallationen beschlossen.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-21 · Cache-, Nebenläufigkeits- und Konsistenzregeln entscheiden**
+  - **Voraussetzung:** R0-06,R0-09.
+  - **Ergebnis/Definition of Done:** Invalidierung bei Grants/Refunds/Revisionen, Objektcache, HTTP/CDN-Cache, Locks, Race- und stale-read-Verhalten mit Negativtests spezifiziert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-22 · Kursvalidierung und Veröffentlichungsfreigabe definieren**
+  - **Voraussetzung:** R0-08,R0-11.
+  - **Ergebnis/Definition of Done:** Fehlende Lektionen, ungültige Fragen, nicht lizenzierte Medien, unvollständige Prüfungsregeln und Preview/Publish-Blocker mit Autoren-UX dokumentiert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-23 · Revisionen laufender Kurse und Lernender entscheiden**
+  - **Voraussetzung:** R0-06,R0-08.
+  - **Ergebnis/Definition of Done:** Kursupdate bei laufendem Versuch, gelöschter Lektion, umsortierten Inhalten, Mastery, Zertifikaten und Migrations-/Grandfathering-Policy spezifiziert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-24 · Anforderungs-Traceability und Task-Definition-of-Ready einführen**
+  - **Voraussetzung:** R0-12.
+  - **Ergebnis/Definition of Done:** Jeder FLOW/CORE/PAR/LB-Fall einer Task, einem Test und Gate zugeordnet; Template für Inputs, Dateien, Negativfälle, Abnahme, Reviewer und offene Fragen verbindlich.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-25 · Mandanten-/Mehrsprachigkeits-/Locale-Grenzen klären**
+  - **Voraussetzung:** R0-07,R0-15.
+  - **Ergebnis/Definition of Done:** Single-Site-Scope, Multisite-Nichtumfang, Locale-Fallback, Sprachversionen und gemischte Kurs-/Fragensprachen als ADR dokumentiert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R0-26 · Accessibility- und UX-Abnahme mit Nutzertests planen**
+  - **Voraussetzung:** R0-11,R0-15.
+  - **Ergebnis/Definition of Done:** Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
 - [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
 
 ### R1 – Standalone Free und vollständige neutrale Parität
@@ -228,6 +268,36 @@
   - **Ergebnis/Definition of Done:** Installationsguide, Admin-/Autoren-/Lernendenhilfe, Troubleshooting, Privacy-Hinweise, API- und Release-Doku fertig.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R1-25 · Cache- und Zustandskonsistenz implementieren**
+  - **Voraussetzung:** R1-02,R1-13.
+  - **Ergebnis/Definition of Done:** Grant-/Refund-/Kursrevisionen invalidieren Cache sicher; private Antworten nie öffentlich zwischengespeichert; Paralleltests grün.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R1-26 · Kurs-Publish-Validator und Fehlerführung bauen**
+  - **Voraussetzung:** R1-04,R1-05,R1-06,R1-08.
+  - **Ergebnis/Definition of Done:** Autoren sehen konkrete Blocker/Warnungen; ungültige Kurse/Prüfungen werden nicht veröffentlicht; Preview testbar.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R1-27 · Kursänderungen während laufender Lernprozesse testen**
+  - **Voraussetzung:** R1-08,R1-10,R1-15.
+  - **Ergebnis/Definition of Done:** Versuche bleiben revisionsfest, Fortschritt bleibt konsistent, archivierte Inhalte und Zertifikate nachvollziehbar.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R1-28 · Öffentliche API-/Block-/Shortcode-Verträge absichern**
+  - **Voraussetzung:** R1-03,R1-14,R1-16.
+  - **Ergebnis/Definition of Done:** Versionierung, Permissions, Fehlerformate, Sanitization, Deprecation- und Contract-Tests für freigegebene Einstiegspunkte.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R1-29 · Echte Autoren- und Lernenden-Usability-Abnahme**
+  - **Voraussetzung:** R1-16,R1-19,R1-26.
+  - **Ergebnis/Definition of Done:** Referenzaufgaben durchgespielt; Tastatur, Screenreader, mobile Prüfungen und Fehlerbehebung mit dokumentierten Befunden.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R1-30 · Konflikt- und Interoperabilitätstests**
+  - **Voraussetzung:** R1-17,R1-22,R1-28.
+  - **Ergebnis/Definition of Done:** Themes, Objektcache, REST-Security, Mail-/Cache-Plugins und unterstützte Versionen in Matrix getestet; Konflikte dokumentiert.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
 ### R2 – Zusätzliche universelle P0-Funktionen
@@ -261,6 +331,11 @@
   - **Voraussetzung:** R2-02,R2-03,R2-04.
   - **Ergebnis/Definition of Done:** Notizen/Abgaben/Vorlagen mit Export, Eraser, Rechte- und Datenmigrations-Tests abgeschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-07 · Kursänderungs- und Autorenproduktivität messen**
+  - **Voraussetzung:** R2-04,R1-29.
+  - **Ergebnis/Definition of Done:** Vorlage, Duplikation und Fragenbearbeitung mit messbaren Autoren-Referenzflows, Fehlerquoten und Regression abgenommen.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
 - [ ] **R2-GATE · R2-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R2-Release-Gate.
 
@@ -321,6 +396,16 @@
   - **Ergebnis/Definition of Done:** WP/Woo/Partner-/Pro-Versionen, Deaktivierung, Rollback, Downgrade und Mischversionsfälle getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R3-12 · Event- und Connector-Vertragskompatibilität absichern**
+  - **Voraussetzung:** R3-01,R3-06.
+  - **Ergebnis/Definition of Done:** Schema-Evolution, Retry/Replay, deaktivierte Partner, Webhook-Signaturen und Versionshandshake durch Contract-Tests nachgewiesen.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
+- [ ] **R3-13 · Kauf-/Einlöse-UX über Plugin-Grenzen testen**
+  - **Voraussetzung:** R3-03,R3-05.
+  - **Ergebnis/Definition of Done:** Guest/Claim/Seat/Refund/Voucher-Abläufe ohne Medienbruch, doppelte Mails oder widersprüchliche Zustände E2E abgenommen.
+  - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
+
 - [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
 
 ### R4 – Nur nach Nachfrage und eigener Freigabe
@@ -350,6 +435,16 @@
 - **Fehlertoleranz:** Abgebrochene Jobs, Offline-/Netzwerkunterbrechungen, Zeitüberschreitung, Datenbank-Race, Quota/Storage-Full, E-Mail-Ausfall und Plugin-Konflikte als explizite negative Tests erfassen.
 - **Release-Sicherheit:** Keine Produktivdaten in CI; Testdaten anonymisieren. Sicherheitskritische Secrets nie in Logs/Exporten; Versions- und Rollbackhinweise pro Release.
 - **Reihenfolge:** Ergänzende Tasks sind Teil ihrer Phase und vor dem jeweiligen Gate zu erledigen; ihre Nummer ist eine stabile ID, keine Freigabe zum Überspringen von Abhängigkeiten.
+
+### Expertenreview – verbindliches Task-Splitting vor Implementierung
+
+**Simulierte Rollen:** WordPress-/LMS-Chefarchitekt, LMS-Produktstrategin und Principal Engineering Lead. Beschlüsse: Parität statt Feature-Creep in R1, reale Nutzbarkeit als Abnahme, jedes Arbeitspaket einzeln testbar. Dies ist kein Nachweis einer externen Expertenbeauftragung.
+
+**Definition of Ready je Implementierungs-Task:** (1) konkrete User-Story/Fehlerfall und Nichtumfang; (2) betroffene Codepfade oder begründete Neuanlage; (3) Daten-/API-/Rechtevertrag; (4) positive und negative Testfälle; (5) Migration/Recovery/Accessibility/Privacy, soweit relevant; (6) Abhängigkeiten; (7) geschätzte Größe und Zerlegung, wenn nicht in einem kleinen PR testbar; (8) Reviewer. Unklare Aufgaben vor Bearbeitung in `<ID>.1`, `<ID>.2` usw. aufteilen, mit eigenen Checkboxen und DoDs.
+
+**Definition of Done:** Implementierung, automatisierte Tests, Review, Doku, Security-/Privacy-Check und Regressionsnachweis mit Commitreferenz. Keine „fertig“-Markierung allein wegen Konzeption oder Code-Merge ohne Abnahme.
+
+**Offene Entscheidungen aus der Review:** konkrete WP-Versionen, erlaubte Cache-Konfigurationen, Multi-Locale-Policy, Rollout laufender Kursrevisionen, Mindestumfang öffentlicher APIs und quantitative UX-/Performance-Ziele. Diese Entscheidungen gehören in die genannten R0-Tasks, nicht als ungeprüfte Produktbehauptung.
 
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
