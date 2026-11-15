@@ -626,6 +626,10 @@ Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `
 
 **Code geprüft, aber nur Teilinventur:** `LearningService.php` (Smarttrainer, Fortschritt, Favoriten, Rate-Limits), `ExamService.php` (Sitzung/Timeout/Abbruch/Fehlerzustände), `ImportService.php` (Preview, Batch, Resume, Rollback, verwaiste Locks), `EntitlementService.php` (Grant-Quellen, Verlängerung, selektiver Entzug). Vollständige Pfade und Methodenbelege in Kapitel 47. Die bestehenden Tasks **R0-01…04, R0-23, R0-38, R1-13, R1-15, R1-27, R1-41, R1-42** müssen die dortigen Einzelverträge ausdrücklich abdecken. **Nicht erledigt:** Vollinventur, genaue Daten-/API-/State-Mapping, Tests und Gate A. Keine zusätzlichen Task-IDs, um Dopplungen zu vermeiden.
 
+### LearnBoating-Codeabgleich III – weitere direkt geprüfte Dateien (Konzept Kapitel 48)
+
+Dateiweise geprüft: Plugin-Bootstrap und Composer, `Plugin.php`, `AccessService.php`, `MediaStorage.php`, `NamedLock.php`, `GroupService.php`, `QuestionPresenter.php`, `ContentRepository.php`, `Settings.php`, `RequestMemo.php`. Referenzmodule und Abnahmedeltas in Kapitel 48. **Verbindliche Nacharbeit innerhalb bestehender R0-01…04:** vollständige rekursive Quellbaum-/Commitinventur, alle REST-/Admin-/Frontend-/Migration-/Cron-/Privacy-/Test-Dateien, Methodenaufrufer, Status-/DB-/Rechte-Mapping und `unknown`-Auflösung. **R1-Nachweise:** Seat-/Invite-Races, Exam-Token/Shuffle, private Medien und Webserver-Konfiguration, Request-Cache-Invalidierung, Cron-/Upgrade-Retry. Code-Suche ohne Treffer ist kein Negativnachweis. Aufgaben bleiben offen, keine zusätzlichen IDs.
+
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
 - [ ] **LearnBoating-Paritätsmatrix abschließen:** alle fachneutralen Funktionen, Quellkomponenten, Übernahmestrategien, Regressionstests und Abnahmekriterien inventarisieren. Fachmodule ausdrücklich ausschließen.
