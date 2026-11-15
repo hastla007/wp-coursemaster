@@ -144,6 +144,31 @@
   - **Ergebnis/Definition of Done:** Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
+- [ ] **R0-27 · Settings-Register mit Feldverträgen erstellen**
+  - **Voraussetzung:** R0-07,R0-11,R0-24.
+  - **Ergebnis/Definition of Done:** Alle Kapitel-43-Felder haben Key, Typ, Scope, Default, Capability, Validierung, Edition, Migration, Audit und Tests.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-28 · Global-/Kurs-/Prüfungs-Vererbung spezifizieren**
+  - **Voraussetzung:** R0-08,R0-23,R0-27.
+  - **Ergebnis/Definition of Done:** Override-Priorität, Snapshots, laufende Versuche, Reset und konfliktfreie Default-Änderung als Zustandsmatrix.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-29 · Free-/Pro-Konflikte Gruppen und Zertifikate auflösen**
+  - **Voraussetzung:** R0-04,R0-11,R0-27.
+  - **Ergebnis/Definition of Done:** Free Seat/Claim und Basisnachweis vertraglich abgrenzen; Pro Gruppen-UX/Designer und Lizenzablauf getestet.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-30 · Admin-Menü, Setup und Einstellungs-UX abnehmen**
+  - **Voraussetzung:** R0-15,R0-22,R0-26,R0-27.
+  - **Ergebnis/Definition of Done:** Menübaum, Tab-Screens, Hilfetexte, Validierungsfehler, Risk-Confirmations und Tastaturabläufe als prüfbare Wireframes.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-31 · Datenschutz- und Sicherheitsdefaults für Admin-Settings prüfen**
+  - **Voraussetzung:** R0-17,R0-27.
+  - **Ergebnis/Definition of Done:** Retention-Entscheidungen, Medien/Consent, Secret-Handling, RBAC, Audit, Export/Reset und Testmatrix freigegeben.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
 - [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
 
 ### R1 – Standalone Free und vollständige neutrale Parität
@@ -298,6 +323,36 @@
   - **Ergebnis/Definition of Done:** Themes, Objektcache, REST-Security, Mail-/Cache-Plugins und unterstützte Versionen in Matrix getestet; Konflikte dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
+- [ ] **R1-31 · Settings-Storage, Migration und Berechtigungen**
+  - **Voraussetzung:** R1-02,R1-03,R0-27.
+  - **Ergebnis/Definition of Done:** Versionierte Optionen, Typvalidierung, Capabilities, sichere Defaults, Upgrade- und Negativtests.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-32 · Setup-Assistent und globale Einstellungs-Tabs**
+  - **Voraussetzung:** R1-05,R1-31,R0-30.
+  - **Ergebnis/Definition of Done:** Resumierbarer Wizard, feldnahe Fehler, Tab-Save/Reset, ungespeicherte Warnung, Accessibility.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-33 · Kurs-/Prüfungs-Overrides und Snapshot-Policy**
+  - **Voraussetzung:** R1-08,R1-27,R1-31,R0-28.
+  - **Ergebnis/Definition of Done:** Vererbung, Preview, Änderung laufender Versuche und historische Auswertung getestet.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-34 · Rollen-, Datenschutz-, Medien- und Mail-Settings anbinden**
+  - **Voraussetzung:** R1-17,R1-21,R1-31,R0-31.
+  - **Ergebnis/Definition of Done:** UI und serverseitige Wirkung inklusive Audit, Consent, Opt-out, Redaction und Permissions geprüft.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-35 · Gruppen- und Basiszertifikatsverwaltung Free abnehmen**
+  - **Voraussetzung:** R1-13,R1-27,R0-29.
+  - **Ergebnis/Definition of Done:** Seat/Claim-UI, Basisnachweis, Widerruf/Verifikation, Lizenzunabhängigkeit und E2E-Tests grün.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-36 · Admin-Settings-Regression und Migrationstests**
+  - **Voraussetzung:** R1-32,R1-33,R1-34,R1-35.
+  - **Ergebnis/Definition of Done:** Reset, invalid inputs, Downgrade, WP-Werte-Vererbung, Multisite-Grenzen und Security/Accessibility getestet.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
 ### R2 – Zusätzliche universelle P0-Funktionen
@@ -406,6 +461,16 @@
   - **Ergebnis/Definition of Done:** Guest/Claim/Seat/Refund/Voucher-Abläufe ohne Medienbruch, doppelte Mails oder widersprüchliche Zustände E2E abgenommen.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
+- [ ] **R3-14 · Woo-/Voucher-Settings und Partnerdiagnose**
+  - **Voraussetzung:** R3-03,R3-05,R1-36.
+  - **Ergebnis/Definition of Done:** Nur bei vorhandenem Connector sichtbare Settings; Mapping, Failure-Recovery, Dedupe und Rechte geprüft.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
+- [ ] **R3-15 · Pro-Admin-Settings und Lizenzrückfall**
+  - **Voraussetzung:** R3-08,R1-35.
+  - **Ergebnis/Definition of Done:** Pro-Gruppen/Designer/Reminder separat, Lizenzablauf ohne Verlust von Free-Grants oder Nachweisprüfung.
+  - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
+
 - [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
 
 ### R4 – Nur nach Nachfrage und eigener Freigabe
@@ -445,6 +510,10 @@
 **Definition of Done:** Implementierung, automatisierte Tests, Review, Doku, Security-/Privacy-Check und Regressionsnachweis mit Commitreferenz. Keine „fertig“-Markierung allein wegen Konzeption oder Code-Merge ohne Abnahme.
 
 **Offene Entscheidungen aus der Review:** konkrete WP-Versionen, erlaubte Cache-Konfigurationen, Multi-Locale-Policy, Rollout laufender Kursrevisionen, Mindestumfang öffentlicher APIs und quantitative UX-/Performance-Ziele. Diese Entscheidungen gehören in die genannten R0-Tasks, nicht als ungeprüfte Produktbehauptung.
+
+### Betreiber-Admin-Settings – Expertenbeschluss (Konzept Kapitel 43)
+
+Die Einstellungs-Matrix in Kapitel 43 ist das verbindliche R0-Prüfregister. Neu: `R0-27…31`, `R1-31…36`, `R3-14…15`. **Keine Implementierung und kein Task-Abschluss durch die Review.** Alle Settings müssen einem eindeutigen Scope, Default, Validierungs- und Rechtevertrag folgen; sensible Settings nie ungeprüft exportieren. R1 enthält die Free-Basis für Gruppenplätze und Zertifikatsnachweise; R3 optionale Partner-/Pro-Settings.
 
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
