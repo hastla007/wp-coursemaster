@@ -122,3 +122,36 @@
 - [ ] **R4:** Gamification, SCORM/xAPI/H5P/LTI und Coaching nur nach Nachfrage-/Sicherheitsprüfung.
 
 > **Ausnahmeregel:** Eine Funktion, die bereits **fachneutral in LearnBoating existiert**, gehört mit ihrem paritätsrelevanten Umfang nach **R1**, auch wenn sie in der Wettbewerbs-To-do-Liste unter R2 genannt ist. Der zusätzliche Funktionsausbau bleibt R2.
+
+## Captain-Suite-Vollständigkeitsabgleich – operative Aufgaben (Konzept Kapitel 30)
+
+> **Reihenfolge ist bindend:** R0/R1 = vollständige fachneutrale LearnBoating-Parität; R2 = zusätzliche P0-Wettbewerbsfunktionen; **R3 erst danach** = optionale Suite-Integrationen und Course-Captain-Pro. Aufgaben dieser Sektion dürfen zuvor spezifiziert, aber nicht vor R1/R2 als Ersatz für die priorisierte Entwicklung implementiert werden. Keine Änderungen an Schwesterrepositories.
+
+### R0 – Schnittstellen inventarisieren (nur Dokumentation/Architektur)
+
+- [ ] **SUITE-001** Schnittstellenbestand aller acht Partner anhand aktueller Quellen und Quellcode-Versionen verifizieren; Konzept-/Implementierungsstatus je API markieren.
+- [ ] **SUITE-002** Ownership- und Datenflussmatrix (Lernen, Formulare, Reviews, Voucher, Tickets, Verkäufe, Lizenzen, Workflows) verbindlich freigeben.
+- [ ] **SUITE-003** Event-Envelope v1, versionierte Commands/Queries, Capability- und Fehlercodes sowie Idempotenz-/Replay-Verträge spezifizieren.
+- [ ] **SUITE-004** Integrationszustände, Mindestversionen, Datenschutz, Secrets, Audit und Diagnose-UX definieren.
+- [ ] **SUITE-005** Course-Captain-Pro-Produkt-/Add-on-Grenzen mit Captain Pro und License Captain abgleichen; **keine** Softwarelizenz mit Lernzugang gleichsetzen.
+
+### R3 – Optionale Connectoren nach Parität und zusätzlichen P0-Funktionen
+
+- [ ] **SUITE-101 Workflow Captain:** Event-Provider für Enrollment, Lektion, Assessment, Kursabschluss, Zertifikate; idempotente Commands, Outbox, Retry/Replay, Contract-Tests.
+- [ ] **SUITE-102 Form Captain:** sicherer Kurs-/Lektionskontext, Lernendenreferenz, Entry-Zuordnung, Feldmapping, Berechtigungs- und Datenschutztests.
+- [ ] **SUITE-103 Review Captain:** verifizierte Completion-/Experience-ID, Opt-in/Opt-out, Deduplizierung, Widerruf, Einladungsregel und E2E-Test.
+- [ ] **SUITE-104 Voucher Captain:** Connector gemäß `CONNECTORS.md` mit Reserve/Commit/Kompensation, Kurs-Entitlement, Storno/Refund und Parallelitätstests.
+- [ ] **SUITE-105 Pass Captain:** Ticket-/Event-zu-Kurs-Mapping, Enrollment, Storno, Teilrefund, Check-in-Abgrenzung und Rollback.
+- [ ] **SUITE-106 Affiliate Captain:** versionierter Verkaufs-/Refund-Adapter gemäß `docs/CONTRACT.md`, Autoritätsquelle je Verkauf, Doppelprovisionsschutz, Rückbuchungen.
+- [ ] **SUITE-107 WP License Captain:** Pro-Client/Updater, Status-/Grace-Regeln, signierte Updates, Lizenzserver-Ausfall, Free-Unabhängigkeit und Release-Nachweis.
+- [ ] **SUITE-108 Captain Pro:** separates Course-Captain-Pro-Add-on, Feature-Registry, Paketierung, Produktschlüssel, Lizenz-/Upgrade- und Deaktivierungstests.
+- [ ] **SUITE-109 Admin-Diagnose:** Integrationsübersicht mit Zustand, Version, Vertrag, Test, Fehlerprotokoll, sicherem Retry und Supportexport.
+- [ ] **SUITE-110 Rezeptvorlagen:** Lernen→Workflow, Kurs→Form, Abschluss→Review, Voucher→Kurs, Pass→Kurs, Affiliate→Verkauf, Pro→Lizenz als reproduzierbare E2E-Tests.
+- [ ] **SUITE-111 Dokumentationspaket:** SDK, Beispiel-Connector, API-Referenz, Datenfluss, Fehlerkatalog, Migration, Deinstallation, Datenschutz, Betriebsanleitung und CI-Matrix.
+
+### R4 – Nur nach separater Freigabe
+
+- [ ] **SUITE-201** Multisite-/Cross-Site-Connectoren mit signierten Webhooks, Replay-Schutz, Schlüsselrotation und Site-scoped Idempotenz.
+- [ ] **SUITE-202** Erweiterte Agentur-/CRM-/Mitgliedersystem-Connectoren nach validiertem Bedarf.
+
+**Definition of Done pro Integration:** Öffentliche API versioniert, Partner optional/deaktivierbar, keine direkten Fremdtabellen, keine Doppelzustellung/-provision, Rechte/Datenschutz nachgewiesen, Ausfall/Retry/Refund/Upgrade getestet, Free ohne Suite weiter funktionsfähig. **Alle Aufgaben offen; kein Implementierungsstatus behauptet.**
