@@ -155,3 +155,31 @@
 - [ ] **SUITE-202** Erweiterte Agentur-/CRM-/Mitgliedersystem-Connectoren nach validiertem Bedarf.
 
 **Definition of Done pro Integration:** Öffentliche API versioniert, Partner optional/deaktivierbar, keine direkten Fremdtabellen, keine Doppelzustellung/-provision, Rechte/Datenschutz nachgewiesen, Ausfall/Retry/Refund/Upgrade getestet, Free ohne Suite weiter funktionsfähig. **Alle Aufgaben offen; kein Implementierungsstatus behauptet.**
+
+## Expertenbeschlüsse: Nahtlose Captain Suite (Konzept Kapitel 31)
+
+**Status:** Simulierte Fachdebatte; die folgenden Aufgaben sind **offen und nicht implementiert**. Keine Änderung an anderen Repositories. Reihenfolge R0/R1 → R2 → R3 → R4 bleibt verbindlich.
+
+### R0 – Dokumentieren und entscheiden, keine vorgezogene Suite-Implementierung
+
+- [ ] **SEAM-001** Zugangsgründe und Enrollment-Zustandsmaschine mit Mehrfach-Grants, Ablauf, Widerruf, Refund und Audit spezifizieren.
+- [ ] **SEAM-002** Saga-/Kompensationsvertrag für Kauf, Voucher, Pass und Enrollment: persistierter Zwischenzustand, Timeout, Retry, manuelle Klärung, Korrelations-ID.
+- [ ] **SEAM-003** Schnittstellen für verifizierte Completion, Prüfung und Zertifikat gegenüber bloßer Zahlung/Check-in abgrenzen.
+- [ ] **SEAM-004** Suite-UX-Konventionen für Adminnavigation, Statussprache, Setup, Lernenden- und Trainerpfad definieren.
+- [ ] **SEAM-005** Vertragsversionen, Capability-/Objektzugriff, Datenschutzscopes, Log-Retention und Deinstallationsverhalten festlegen.
+- [ ] **SEAM-006** Referenzconnector-Reihenfolge, Pending-Eskalation, Gastkonto-Verknüpfung und Suite-Navigationsmuster entscheiden.
+
+### R3 – Nahtlose Suite-Prozesse bauen und abnehmen
+
+- [ ] **SEAM-101** Enrollment-Grants pro Quelle mit `pending/active/expired/revoked/failed`, eindeutiger Quellreferenz und mehreren gleichzeitig gültigen Zugängen.
+- [ ] **SEAM-102** Gutschein-/Verkaufs-/Ticket-Prozesse mit idempotenten Commands, Bestätigung, Kompensation, Storno und Refund-End-to-End testen.
+- [ ] **SEAM-103** Completion→Workflow/Review mit Outbox, Deduplizierung, Consent, Zertifikatsrevision und sicheren Retries testen.
+- [ ] **SEAM-104** Kontextgebundene Formulare mit scoped Lernenden-/Kursreferenz und IDOR-/Datenschutztests integrieren.
+- [ ] **SEAM-105** Admin-Integrationsübersicht mit Partnerstatus, Kompatibilität, Diagnose, Wiederholung, Supportexport und hilfreichen Fehlermeldungen.
+- [ ] **SEAM-106** Lernenden-UX Kauf/Einlösung→Mein Lernen→Prüfung→Nachweis inklusive Pending-, Offline-, Refund- und Wiederaufnahmezuständen testen.
+- [ ] **SEAM-107** Trainer-UX Kurs→Zugangsquelle→Einschreibung→Ergebnis→Automation/Review mit Rollenrechten und Accessibility prüfen.
+- [ ] **SEAM-108** Kompatibilitätsmatrix, Upgrade/Downgrade, Partner-Deaktivierung, Lizenzserver-Ausfall, parallele Refunds und Backup-Restore in CI nachweisen.
+- [ ] **SEAM-109** Metriken und Warnungen: Zeit bis Zugang, verwaiste Pending-Grants, Retry-Erfolg, doppelte Seiteneffekte, Supportfälle, End-to-End-Erfolgsquote.
+- [ ] **SEAM-110** Dokumentierte Betriebsrezepte, Screens/Leerzustände, Fehlerkatalog und Betreiberhandbuch bereitstellen.
+
+**Freigabekriterium:** Kein Partnerplugin erforderlich für den Free-Lernkern; alle Zustandsübergänge autorisiert und nachvollziehbar; keine doppelte Einschreibung, Auszahlung, Zertifikatsausstellung oder Review-Einladung; keine Kompetenzzusage aus Zahlung oder Ticket; sichere Rückabwicklung; reproduzierbare E2E-Nachweise.
