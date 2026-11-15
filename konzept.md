@@ -1374,3 +1374,17 @@ Jede Einstellung erhält im R0-Settings-Register: stabilen Key/Namespace, Datent
 ### 43.5 Freigabe- und Konfliktfragen
 
 Vor R1 entscheiden: genaue Free-Gruppen-UI, Umfang der Basiszertifikate, konkrete Prüfungsvorgaben, Kurs-Overrides und ihre Snapshots, Standardrollen, Retention-Policies, Admin-Capabilities, WordPress-Kompatibilität, Migrations-/Reset-Verhalten und Accessibility. R3-Connector-Settings werden erst mit realen Partner-APIs und Tests freigegeben. Keine Implementierung durch diese Dokumentation.
+
+## 44. Quervergleich anderer Captain-Konzepte – nur LMS-relevante Deltas
+
+**Tatsächlich eingesehene Quellen (Konzeptdokumentation, nicht Implementierungsnachweis):** [Form Captain](https://github.com/hastla007/wp-formmaster/blob/main/konzept.md) (§6/6.1/6.2: Admin, Settings, SEO), [Workflow Captain](https://github.com/hastla007/wp-workflowmaster/blob/main/konzept.md) (§5, §8, §9, §15, §18: Providerverträge, Status, Rechte, Fallback und Release), [Review Captain](https://github.com/hastla007/wp-reviewmaster/blob/main/konzept.md) (§7.5, §8.9, §11, §18: Queue-/Connector-Diagnose, Privacy und SEO). Andere Suite-Repositories wurden nicht vollständig geprüft; aus nicht gelesenen Konzepten wird keine Vollständigkeit abgeleitet.
+
+| Übertragbares Muster | Course-Captain-Konsequenz | Abgrenzung | Operative Tasks |
+|---|---|---|---|
+| Form/Review: SEO-Zuständigkeit und Yoast-Kompatibilität | Öffentliche Katalog-/Kursseiten indexierbar nach Rechteklasse; private Lektionen, Prüfungen, Lernstände, Grants und Medien bleiben privat; keine doppelte Canonical-/Schema-/Sitemap-Ausgabe | Kein eigenes SEO-Plugin, kein blindes `noindex` als Zugriffsschutz | R0-33, R1-37 |
+| Workflow: Event-/Action-Provider mit Versionen | Course als unabhängiger Event-Provider; versionierte Metadaten, Rechte, Fehler und Retry-Verträge | Workflow Captain nicht für nativen Course-Abschluss nötig | R0-34, R3-16, R3-17 |
+| Workflow/Review: Queue und Correlation-ID | Betreiber sieht wartende/fehlgeschlagene Grants, Imports, Events; sichere Retry/Reconcile-Aktionen mit Audit | Kein Zugriff auf fremde Plugin-Datenbanken/Logs | R0-34, R1-38, R3-16 |
+| Form/Workflow: Setup und WordPress.org-Release | Installations-, Demo-, Readme-, Übersetzungs-, Lizenz-, Update-/Rollback- und Support-Gates | Keine fremden Formular-/Workflow-Vorlagen übernehmen | R0-35, R1-39 |
+| Review/Workflow: Datenschutz und Provider-Fallback | Bei Plugin-/Vertragsausfall kein Fatal und keine doppelte Geschäftsaktion; Diagnosen ohne Secrets/PII | Keine Pflicht zu WooCommerce/Workflow/Review für R1 Free | R3-17 |
+
+**Prioritätsbeschluss:** Zuerst die Quellkonzept-Deltas und die öffentliche/private SEO-Grenze in R0 festlegen; anschließend Free-Betrieb und Installationsfähigkeit in R1 absichern; Providerstatus/Fallback erst mit R3-Partnern implementieren. Bereits vorhandene Architektur-/Security-Tasks gelten weiter, die neuen Tasks ergänzen nur bisher nicht explizit prüfbare Ergebnisse. **Kein Code geändert, keine Tests ausgeführt.**
