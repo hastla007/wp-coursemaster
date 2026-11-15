@@ -248,3 +248,16 @@
 - [ ] **CORE-SPEC-010** Offene Datenschutz-/Rechts-/Betriebsentscheidungen zu Identitätsprüfung, Claim-Fristen, Refund, Datenaufbewahrung und Verifikation vor Implementierung explizit abzeichnen.
 
 **Verbindliche Defaults:** kein Grant allein durch E-Mail; getrennte Käufer-/Lernendenidentität; Widerruf nur der betroffenen Quellberechtigung; Refund löscht weder Lernhistorie noch Zertifikat; Lizenzablauf beeinträchtigt historische Verifikation nicht. **Status:** ausschließlich konzeptionell dokumentiert, keine Implementierung.
+
+## R0-Vertiefung: Rollen, Datenmodell und LearnBoating-Paritätsinventar (Konzept 36–38)
+
+- [ ] **R0-RBAC-001** Capability-Slugs, Default-WP-Rollen, Meta-Cap-Mapping, Objektbeziehung und Site-Scope anhand Kapitel 36 finalisieren; Autorisierungsfixtures für jede Rolle/Aktion.
+- [ ] **R0-RBAC-002** Rechteprüfung für REST, Admin, AJAX, Editor, Medien, Upload, Cron, CLI, Webhooks und Exporte zentral spezifizieren; IDOR, CSRF, Privilege-Escalation und Rollenwechsel testen.
+- [ ] **R0-DATA-001** Jede Entität aus Kapitel 37 auf CPT/Meta vs eigene Tabelle abbilden; Schlüssel, Indizes, Unique Constraints, FK-Strategie und Storage-Owner dokumentieren.
+- [ ] **R0-DATA-002** Versionierte API-/Eventschemas, Transaktionsgrenzen, Dedupe, Compare-and-swap, Outbox, Migration, Dry-run, Recovery und Privacy Export/Eraser als ADRs festlegen.
+- [ ] **R0-PAR-001** Vollständiges tatsächliches LearnBoating-Quellinventar erheben: Dateien/Module, Screens, REST/AJAX, Cron, Datenobjekte, Importer und Tests mit Commitnachweis; **kein Haken ohne Codebeleg**.
+- [ ] **R0-PAR-002** Jede Originalfunktion als `reuse/abstract/replace/exclude_domain_specific/unknown` klassifizieren; Domain-spezifische Inhalte und Regeln ausdrücklich ausnehmen.
+- [ ] **R0-PAR-003** Für `PAR-01…PAR-12` Golden-Master-Fixtures, Regression, Rechte-, Performance- und Migrationstests sowie konkrete R1-Akzeptanz verlinken.
+- [ ] **R0-GATE-001** Gate A erst bei vollständigem Quellinventar und aufgelösten Unknowns freigeben; R1-Gates B/C erst nach tatsächlicher Free-Parität, keine R2-/R3-Vorziehung.
+
+**Status:** Kapitel 36–38 sind spezifizierte Architektur- und Inventarschablonen. Die Codeinventur und Tests bleiben offen; keine Implementierung.
