@@ -715,3 +715,78 @@ Vor verbindlicher Feinspezifikation und Release-Planung die aktuellen Versionen 
 5. **Für jede Funktion:** vorhandenen LearnBoating-/Suite-Bestand prüfen, Datenhoheit und Sicherheit festlegen, Free/Pro-Grenze gegen Kapitel 5 abgleichen, UX-/API-/E2E-Abnahme definieren und Aufwand schätzen.
 
 **Pflegehinweis:** `TODO-WETTBEWERBSANALYSE.md` bleibt die operative, abharkbare Umsetzungsliste. Dieses Kapitel ist die fachliche Zielbeschreibung; Änderungen an Status oder Reihenfolge in der To-do-Liste ändern nicht stillschweigend die Anforderungen.
+
+## 28. Ergebnis der simulierten Drei-Experten-Review – Architektur, Didaktik und Produktsteuerung
+
+**Status:** Verbindliche Ergänzung zu den bestehenden Kapiteln 1–27. Die drei Perspektiven sind **simulierte Fachrollen**, keine extern engagierten oder interviewten Personen. Die vorliegenden Vorschläge wurden anhand der vorhandenen Konzept- und To-do-Dateien diskutiert; sie sind **keine Aussage über bereits implementierten Code**. Bei Konflikten gelten die Ausschlussregeln aus Kapitel 26 und die Priorität der fachneutralen LearnBoating-Parität.
+
+### 28.1 Moderierte Streitpunkte und Entscheidungen
+
+| Perspektive | Kritische Frage | Gemeinsamer Beschluss |
+|---|---|---|
+| WordPress-Architektur | Wie bleiben Prüfungen und Lernstände korrekt, wenn Inhalte nachträglich bearbeitet werden? | Versionierte, unveränderliche Veröffentlichungs-/Prüfungsreferenzen und explizite Migrationsregeln |
+| Lernwissenschaft | Wann bedeuten „abgeschlossen“, „gelernt“ und „bestanden“ wirklich unterschiedliche Dinge? | Drei getrennte, erklärbare Fortschrittsdimensionen mit konfigurierbaren, versionierten Kriterien |
+| Produktstrategie | Gefährden zusätzliche Wettbewerbsfunktionen die Veröffentlichung? | Paritäts-Gate vor Zusatzmodulen; P0-Backlog in Muss-vor-Release und unmittelbar-danach aufteilen |
+| Architektur vs. Produkt | Muss jede Suite-Integration von Anfang an funktionieren? | Eigenständiger Free-Kern; Adapter einzeln nach Vertrags-, Ausfall- und Rückwärtstests freigeben |
+| Didaktik vs. Technik | Soll die Smarttrainer-Logik sofort verbessert werden? | Zuerst beobachtbare Verhaltensparität; neue Algorithmen erst nach separater Evaluation und Versionierung |
+| Produkt vs. Didaktik | Sind Gamification und KI notwendig, um wettbewerbsfähig zu sein? | Nein; keine v1-Pflicht, zuerst echte Lernqualität und Autoren-UX messen |
+
+### 28.2 ADR-Register: Architekturentscheidungen vor Implementierung
+
+Für jede Entscheidung ein kurzes ADR (Architecture Decision Record) mit **Kontext, Optionen, Entscheidung, Folgen, Migrationspfad, Testbeweis und Datum** erstellen. Folgende ADRs sind Pflicht:
+
+1. **ADR-001 Inhaltsspeicherung:** CPT/Block-Editor vs. Custom Tables vs. Hybrid; Revisionen, Suche, WP-REST, WP-CLI und Rechte berücksichtigen.
+2. **ADR-002 Lern- und Prüfungsdaten:** Tabellen für Versuche, Antworten, Lernzustände, Zugänge und Audit-Ereignisse; Indizes, eindeutige Schlüssel, Retention.
+3. **ADR-003 Inhaltsrevisionen:** Veröffentlichte Kurs-/Fragenrevisionen erhalten stabile IDs; abgeschlossene Prüfungen referenzieren unveränderliche Snapshots. Korrekturen erfolgen als neue Revision.
+4. **ADR-004 Activity-Provider:** stabile Schnittstelle für Rendern, Validieren, Antworten, Bewerten, Fortschritt und Berechtigungen; keine Fachmodule im Core.
+5. **ADR-005 Smarttrainer-Portierung:** fachneutrale Golden-Master-Tests, versionierte Regeln, nachvollziehbare Fälligkeit, keine stille Neubewertung alter Lernhistorie.
+6. **ADR-006 Background Jobs:** Queue/Outbox, Idempotenzschlüssel, Retry mit Backoff, Dead-Letter-Ansicht, WP-Cron-Fallback und Wiederanlauf.
+7. **ADR-007 Lizenz-/Produktzugang:** strikt getrennte Zustände für Course-Captain-Pro-Lizenz und Lernenden-Einschreibung; Graceful Degradation.
+8. **ADR-008 Rollen und Datenschutz:** capabilities statt bloßer Rollenchecks, Datenexport/-löschung, Aufbewahrung und Einwilligungs-/Rechtsgrundlagen je Datenkategorie.
+
+### 28.3 Verbindliche Daten- und Zustandsinvarianten
+
+- **Prüfungsintegrität:** Start eines Versuchs fixiert Fragen-/Antwortversionen, Reihenfolge, Zeitlimit, Bewertungsregeln und ggf. Zufalls-Seed; spätere Autorenänderungen ändern keine abgeschlossenen Resultate.
+- **Idempotenz:** Wiederholte Antwortübertragung, Prüfungseinreichung, Einschreibung und Eventzustellung erzeugen keine doppelten Ergebnisse oder Berechtigungen.
+- **Zugriffsrechte:** Bei jeder Lese-/Schreibaktion gelten Objektberechtigungen und Kurszugang; direkte Objekt-IDs erlauben keinen Zugriff auf fremde Daten.
+- **Konsistente Zustandsübergänge:** `draft → published → archived` für Content; definierte Versuchszustände (`created → in_progress → submitted → evaluated` sowie `expired/cancelled`); Übergänge sind serverseitig validiert.
+- **Fortschritt:** `completion` (bearbeitet), `mastery` (wiederholt/beherrscht) und `assessment` (nachgewiesen) bleiben getrennt; keine automatische Kompetenzzusage allein durch Videoaufrufe.
+- **Rückwärtskompatibilität:** Schema- und Algorithmusversionen sind nachvollziehbar; Rollback- und Wiederanlauftests sind Release-Gates.
+- **Quelltrennung:** LearnBoating ist ausschließlich Referenz/Portierungsquelle; keine Änderungen am Referenzrepository, keine Laufzeitabhängigkeit, keine fachspezifischen Altmodule.
+
+### 28.4 Pädagogische Abnahmeregeln und Autoren-UX
+
+1. **Abschlussregeln je Activity:** z. B. Ansicht, explizite Bestätigung, Quiz-Mindestpunktzahl, Tutorfreigabe oder kombinierte Bedingungen; Status und Begründung sichtbar.
+2. **Bewertungstransparenz:** Teilpunkte, Mehrfachversuche, Fragerandomisierung, Bestehensschwellen, Bewertungsrevisionen und manuelle Korrekturen sind eindeutig dokumentiert; Änderungen mit Audit-Eintrag.
+3. **Aufgaben-Workflow:** `draft/submitted/returned/graded`; Upload-Typen, Dateigrößen, Malware-/MIME-Prüfung, private Speicherung, Wiedereinreichung und Rückmeldungen.
+4. **Kompetenznachweise:** Lernzielzuordnung auf Frage-/Activity-Ebene; Nachweise nennen Quelle, Zeitpunkt, Version und Gültigkeit. Bei fehlenden Nachweisen keine erfundene Beherrschungsquote.
+5. **Autoren-UX-Test:** Mindestens drei unterschiedliche neutrale Kursfälle (Selbstlernkurs, Prüfungsvorbereitung, Onboarding) mit Kursstruktur, Video, 50 Fragen, einer Aufgabe und einer Prüfung erstellen; Zeit, Fehler, Verständlichkeit und Tastaturbedienung erfassen.
+6. **Lernenden-UX-Test:** Anmeldung, Fortsetzen, fällige Wiederholung, Prüfungspause/Wiederaufnahme, Ergebnisansicht und Datenexport auf Desktop/Mobil einschließlich Screenreader- und Tastaturpfaden testen.
+
+### 28.5 Free-/Pro- und Suite-Integrationsregeln
+
+- **Free ist eigenständig:** Kurse, Lektionen, Basisquiz, fachneutraler Smarttrainer und persönlicher Fortschritt funktionieren ohne Pro, WooCommerce oder Suite-Plugins.
+- **Pro erweitert den Betrieb:** Mehrtrainer, Frontend-Autorenworkflow, Gradebook, komplexe Zertifikate, Gruppen/Commerce und erweiterte Auswertungen; jede Edition-Zuordnung vor Release mit Kapitel 5 abgleichen.
+- **Keine Daten-Duplikate:** Course Captain ist System of Record für Lern- und Prüfungsergebnisse; Zahlungs-, Gutschein- und Review-Daten bleiben bei ihren jeweiligen Eigentümern.
+- **Adapter-Abnahme:** Contract-Tests, deaktivierte/fehlende Partnerplugins, Zeitüberschreitungen, Event-Duplikate, Rückruf-/Retry-Verhalten und Upgrade-Matrix prüfen.
+- **Keine Sperre durch Lizenzserver:** Pro-Lizenzfehler dürfen weder Free-Lernen noch bestehende Lernhistorien blockieren.
+
+### 28.6 Release-Zuschnitt und messbare Gates
+
+**Gate A – Portierbarkeit:** Inventar aller fachneutralen Quellfunktionen, Lizenz-/Abhängigkeitsprüfung, dokumentierte Ausschlüsse und ausführbare Referenztests.
+
+**Gate B – Free-Lernfluss:** Ein neutraler Kurs kann erstellt, veröffentlicht, eingeschrieben, gelernt, wiederholt und geprüft werden; Ergebnis und Fortschritt bleiben nach Inhaltsänderung konsistent.
+
+**Gate C – Betriebsreife:** Rollen-/IDOR-Tests, CSRF/Nonce, Upload-Sicherheit, Datenschutzexport/-löschung, WP-/PHP-Kompatibilität, Upgrade/Rollback, Performance-Baseline, Accessibility und Backup-Restore bestanden.
+
+**Gate D – Erweiterungen:** P0-Zusatzfunktionen werden einzeln nach Nutzen, Abhängigkeiten und Aufwand freigegeben. P1-Pro-Module erst nach stabiler Free-Basis; P2 nur bei validierter Nachfrage.
+
+**Messgrößen (Ziele, noch keine gemessenen Resultate):** Quote erfolgreicher Kurs-Erstellungen, Zeit bis zum ersten veröffentlichten Kurs, Abschlussquote des Referenzkurses, Fehlerquote bei Prüfungsabgabe, wiederherstellbare Jobs, Supportanfragen je 100 aktive Installationen und Free→Pro-Konversion. Vor dem Launch Baselines und Messmethode festlegen; keine erfundenen Zielerreichungen ausweisen.
+
+### 28.7 Offene Fragen für die nächste Entscheidung
+
+1. Soll die erste öffentliche Free-Version **alle** P0-Zusatzfeatures (Notizen, Aufgabenabgabe, Vorlagen) enthalten, oder zuerst ausschließlich fachneutrale Parität und vollständigen Basis-Kursfluss?
+2. Werden Kursanbieter primär auf **einer** WordPress-Website mit vielen Trainern arbeiten oder sollen Multisite-/Agentur-Szenarien schon in v1 vollständig unterstützt werden?
+3. Sollen Lernende Zertifikate und Kompetenznachweise dauerhaft verifizieren können, auch wenn ein Pro-Abonnement ausläuft? Die bereits festgelegten Lese-/Exportrechte müssen dabei gewahrt bleiben.
+
+**Umsetzung:** Die operative, priorisierte und abharkbare Liste befindet sich weiterhin in `TODO-WETTBEWERBSANALYSE.md`. Die zusätzlichen Architektur-/Qualitätsaufgaben dort verweisen auf dieses Kapitel; die bereits dokumentierten Wettbewerbsfunktionen bleiben erhalten.
