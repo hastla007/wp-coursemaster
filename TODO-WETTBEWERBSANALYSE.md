@@ -4,6 +4,266 @@
 >
 > **Leitplanken:** Universell für alle Kursanbieter; zuerst fachneutrale Funktionsparität zu LearnBoating; vorhandene Lernlogik bevorzugt wiederverwenden; **keine** boots-, funk- oder navigationsspezifischen Module; LearnBoating und andere Captain-Repositories bleiben unverändert.
 
+## VERBINDLICHER SCHRITT-FÜR-SCHRITT-UMSETZUNGSPLAN (führender Arbeitsindex)
+
+**Arbeitsregel:** Diese Aufgabenliste ist der operative Ausführungsplan. `konzept.md` ist die fachliche/technische Spezifikation. Die bisherigen P0/P1/P2-, FLOW-, CORE-, PAR- und LB-Aufgaben weiter unten sind **Anforderungs- und Nachweisregister**, keine konkurrierende Abarbeitungsreihenfolge. Neue Umsetzungstätigkeiten werden zuerst hier als einzeln prüfbare Task ergänzt und mit dem Anforderungsregister verknüpft. **Kein Task gilt als erledigt, weil er nur dokumentiert wurde.**
+
+**Abarbeitung:** immer die erste offene Aufgabe wählen, deren Voraussetzungen erfüllt sind; nötige Entscheidungen, Dateien und Tests konkret dokumentieren; erst nach überprüftem DoD abhaken. Eine Phase startet erst nach bestandenem Gate der vorherigen Phase. Wo mehrere Teilaufgaben entstehen, unter dem jeweiligen Task Untertasks mit eigenen Akzeptanzkriterien ergänzen, nicht stillschweigend überspringen. Für jedes Ticket erfassen: Status, Abhängigkeiten, Code-/Dokupfade, Testkommando, Ergebnis, Commit und Reviewer. **R0 ist ausschließlich Inventur/Spezifikation; kein Implementierungsstart ohne Freigabe.**
+
+**Interpretation:** `R0-GATE`, `R1-GATE`, `R2-GATE`, `R3-GATE` sind harte Voraussetzungen. Release-Nummern sind Reihenfolge, keine Zeitversprechen. WooCommerce ist R3.1, Voucher Captain R3.2, gemeinsames Gate R3.3, weitere Integrationen R3.4. Free bleibt ohne Partner vollständig nutzbar. Externe LMS-Wettbewerber werden nicht namentlich genannt oder verlinkt.
+
+### R0 – Bestandsaufnahme und umsetzungsreife Architektur
+
+- [ ] **R0-01 · Repository- und Versionsbasis erfassen**
+  - **Voraussetzung:** keine.
+  - **Ergebnis/Definition of Done:** LearnBoating-Commit, Course-Captain-Stand, Verzeichnis-/Modulkarte und Quellrechte dokumentiert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-02 · Originalfunktionen vollständig inventarisieren**
+  - **Voraussetzung:** R0-01.
+  - **Ergebnis/Definition of Done:** Jede UI-, PHP-, Daten-, API-, Cron-, Import-, Test- und Commerce-Funktion mit Quellpfad erfasst.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-03 · Jede Originalfunktion klassifizieren**
+  - **Voraussetzung:** R0-02.
+  - **Ergebnis/Definition of Done:** Jede Funktion reuse/abstract/replace/exclude_domain_specific; keine unknown.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-04 · R1/R3-Grenze je Funktion entscheiden**
+  - **Voraussetzung:** R0-03.
+  - **Ergebnis/Definition of Done:** Neutrale Kernfunktionen R1, konkrete Woo/Voucher/Ticket-Adapter R3; keine Pflichtabhängigkeiten.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-05 · Golden-Master-Fixtures festlegen**
+  - **Voraussetzung:** R0-03.
+  - **Ergebnis/Definition of Done:** Quelltest, Fixture, erwartete Resultate und Regression pro neutralem Bereich referenziert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-06 · Datenmodell-ADR finalisieren**
+  - **Voraussetzung:** R0-02.
+  - **Ergebnis/Definition of Done:** Entitäten, CPT/Tabellen, Indizes, Uniques, Revisions-/Migration-/Rollbackregeln beschlossen.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-07 · RBAC-/IDOR-Matrix finalisieren**
+  - **Voraussetzung:** R0-06.
+  - **Ergebnis/Definition of Done:** WP-Capabilities, Rollen, Objekt-Scope, REST/Admin/Medien/CLI/Export-Matrix beschlossen.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-08 · Kurs-, Activity- und Prüfungsverträge finalisieren**
+  - **Voraussetzung:** R0-06.
+  - **Ergebnis/Definition of Done:** Activity-Provider, Bewertung, Completion/Mastery/Competency, Snapshots, Versionen spezifiziert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-09 · Identity-/Seat-/Grant-Zustandsautomaten finalisieren**
+  - **Voraussetzung:** R0-06, R0-07.
+  - **Ergebnis/Definition of Done:** Claim, Quellen, Mehrfachgrants, Suspend/Expire/Refund, Race Conditions und Privacy festgelegt.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-10 · Content-Import und Medien-Sicherheit finalisieren**
+  - **Voraussetzung:** R0-06.
+  - **Ergebnis/Definition of Done:** Paketformat, Rechte, Dry-run, Revisionen, Rollback, Protected Files, Consent spezifiziert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-11 · Free-/Pro-Matrix und UX-Flows finalisieren**
+  - **Voraussetzung:** R0-03, R0-08.
+  - **Ergebnis/Definition of Done:** Jede Funktion und jeder Admin-/Learner-Screen eindeutig einer Edition/Phase zugeordnet.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-12 · Tests, Gates und R1-Backlog abgleichen**
+  - **Voraussetzung:** R0-05, R0-07, R0-08, R0-09, R0-10, R0-11.
+  - **Ergebnis/Definition of Done:** 55 FLOW + 12 CORE, Traceability, Akzeptanzfälle und Risiken ohne unzugeordnete Pflichtfunktion.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
+
+### R1 – Standalone Free und vollständige neutrale Parität
+
+- [ ] **R1-01 · Plugin-Bootstrap und Lifecycle**
+  - **Voraussetzung:** R0-GATE.
+  - **Ergebnis/Definition of Done:** Plugin aktivierbar/deaktivierbar, Mindestversionen, Upgrade/Uninstall-Policy, keine Suite-Pflicht.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-02 · Storage, Migration und Repositories**
+  - **Voraussetzung:** R1-01.
+  - **Ergebnis/Definition of Done:** Schema versioniert; sichere Install/Upgrade/Backfill-Tests; keine verlorenen Lernstände.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-03 · Capabilities und zentralen Policy-Service**
+  - **Voraussetzung:** R1-02.
+  - **Ergebnis/Definition of Done:** Alle Server-Einstiege nutzen Objekt-/Site-Rechte; negative IDOR-Tests grün.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-04 · Kurs-/Modul-/Lektionsmodell**
+  - **Voraussetzung:** R1-02, R1-03.
+  - **Ergebnis/Definition of Done:** Neutrale Kursstruktur, Revisionen, Entwurf/Publikation/Archiv, Zuordnungen.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-05 · WP-native Autorenoberfläche**
+  - **Voraussetzung:** R1-04.
+  - **Ergebnis/Definition of Done:** Kurs- und Lektionseditor, Preview, Reihenfolge, Validierung und Accessibility.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-06 · Fragenbank und neutrale Fragetypen**
+  - **Voraussetzung:** R1-04.
+  - **Ergebnis/Definition of Done:** Single/Multi/Open/weitere belegte Typen, Revisionen, Medien und Feedback.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-07 · Activity-Provider und Lernmedien**
+  - **Voraussetzung:** R1-04, R1-06.
+  - **Ergebnis/Definition of Done:** Versionierte Activity-Verträge, Video/Schritte/Downloads, externe Medien-Consent.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-08 · Prüfungsblueprints und Versuche**
+  - **Voraussetzung:** R1-06, R1-07.
+  - **Ergebnis/Definition of Done:** Zufalls-/feste Prüfungen, Timer, immutable Snapshots, idempotente Abgabe.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-09 · Bewertung und Ergebnisanzeige**
+  - **Voraussetzung:** R1-08.
+  - **Ergebnis/Definition of Done:** Richtig/Falsch/Teilpunkte nach belegter Regel, Ergebnis-/Retake-UX, Audit.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-10 · Fortschritt, Completion, Mastery, Competency**
+  - **Voraussetzung:** R1-07, R1-09.
+  - **Ergebnis/Definition of Done:** Getrennte Zustände, Resume, Revisionsschutz, Datenschutz.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-11 · Karteikarten, Favoriten und Fehlertraining**
+  - **Voraussetzung:** R1-06, R1-10.
+  - **Ergebnis/Definition of Done:** Alle belegten neutralen Lern- und Wiederholungsfunktionen mit Persistenz.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-12 · Smarttrainer und Wiederholungsplanung**
+  - **Voraussetzung:** R1-10, R1-11.
+  - **Ergebnis/Definition of Done:** Belegte Algorithmen/Intervalle als neutrale Regeln; deterministische Tests.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-13 · Standalone-Free-Zugänge und Gruppenplätze**
+  - **Voraussetzung:** R1-03, R1-04.
+  - **Ergebnis/Definition of Done:** Kostenlose/manuelle/zeitgesteuerte Grants, Seat/Claim, Mehrfachzugang, kein Woo.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-14 · Zugriffsschutz und geschützte Inhalte**
+  - **Voraussetzung:** R1-13, R1-07.
+  - **Ergebnis/Definition of Done:** Page/Block/Shortcode/API/Medien/Download-Gates, Schutz gegen Direktzugriff.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-15 · Import/Export/Dry-run/Rollback**
+  - **Voraussetzung:** R1-04, R1-06.
+  - **Ergebnis/Definition of Done:** Neutrale Paketpipeline, Provenienz, Rights, Wiederholung, Revisionen, Recovery.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-16 · Lernoberfläche und responsive Navigation**
+  - **Voraussetzung:** R1-05, R1-07, R1-08, R1-10, R1-11, R1-12, R1-13.
+  - **Ergebnis/Definition of Done:** Kurskatalog, Kursraum, Activity, Prüfung, Fortschritt, Profile, Tastatur/Mobil.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-17 · Datenschutz, Diagnose und Wartungsjobs**
+  - **Voraussetzung:** R1-02, R1-14, R1-15.
+  - **Ergebnis/Definition of Done:** Export/Eraser, Retention, Cron-Recovery, Audit, Health-Checks, Security.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-18 · R1-Golden-Master- und E2E-Abnahme**
+  - **Voraussetzung:** R1-01, R1-02, R1-03, R1-04, R1-05, R1-06, R1-07, R1-08, R1-09, R1-10, R1-11, R1-12, R1-13, R1-14, R1-15, R1-16, R1-17.
+  - **Ergebnis/Definition of Done:** Alle neutralen Originalfunktionen nachgewiesen; Free ohne Woo/Suite/Pro, Gates B/C bestanden.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
+
+### R2 – Zusätzliche universelle P0-Funktionen
+
+- [ ] **R2-01 · Private Lernnotizen**
+  - **Voraussetzung:** R1-GATE.
+  - **Ergebnis/Definition of Done:** Notizen pro Lektion, Suche, Export/Löschung, Rechte- und E2E-Tests.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-02 · Text-/Dateiaufgaben**
+  - **Voraussetzung:** R2-01.
+  - **Ergebnis/Definition of Done:** Sichere Abgabe, Upload, Status, Feedback, Retakes und Objektberechtigung.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-03 · Kursvorlagen und neutrale Demos**
+  - **Voraussetzung:** R2-01.
+  - **Ergebnis/Definition of Done:** Duplikation, Starter-Templates, kein Fremd-/Fachcontent, Importtests.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-04 · Verbesserter Builder-Workflow**
+  - **Voraussetzung:** R2-02, R2-03.
+  - **Ergebnis/Definition of Done:** Direkte Fragenanlage, Preview, Duplikation, Revisionen, Keyboard-UX.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-05 · R2-Abnahme und Free-/Pro-Check**
+  - **Voraussetzung:** R2-01, R2-02, R2-03, R2-04.
+  - **Ergebnis/Definition of Done:** P0-Neuheiten getestet, keine Regression oder vorgezogene Suite-Abhängigkeit.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-GATE · R2-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R2-Release-Gate.
+
+### R3 – Optionale Connectoren und Pro
+
+- [ ] **R3-01 · Öffentliche Connector-Schnittstelle absichern**
+  - **Voraussetzung:** R2-GATE.
+  - **Ergebnis/Definition of Done:** Versionierte Events/Commands/Queries, Idempotenz, Outbox, Partnererkennung, Diagnose.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-02 · WooCommerce R3.1 – Mapping und Checkout**
+  - **Voraussetzung:** R3-01.
+  - **Ergebnis/Definition of Done:** Produkte/Varianten/Orders/Guest/Seats zu Grant-Quellen; HPOS/API-Verträge.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-03 · WooCommerce R3.1 – Refund und Recovery**
+  - **Voraussetzung:** R3-02.
+  - **Ergebnis/Definition of Done:** Teilrefund/Chargeback/Out-of-order/Reconcile, E2E- und Security-Tests.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-04 · Voucher Captain R3.2 – Reserve/Grant/Commit**
+  - **Voraussetzung:** R3-03.
+  - **Ergebnis/Definition of Done:** Code-Claim, eindeutiger Einlöseweg, Fehlerkompensation, Dedupe.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-05 · Voucher Captain R3.2 – Konflikt-/Race-Tests**
+  - **Voraussetzung:** R3-04.
+  - **Ergebnis/Definition of Done:** Parallelität, Doppelgrant, Rückabwicklung, Woo+Voucher-Kombination.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-06 · R3.3 – Gemeinsames Integrations-Gate**
+  - **Voraussetzung:** R3-03, R3-05.
+  - **Ergebnis/Definition of Done:** Standalone-Free, beide Adapter, Upgrade/Deactivate/Retry, Privacy, Suite UX grün.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-07 · R3.4 – Weitere Suite-Connectoren**
+  - **Voraussetzung:** R3-GATE.
+  - **Ergebnis/Definition of Done:** Workflow/Form/Review/Pass/Affiliate/License einzeln nach Contracts und Tests.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-08 · Pro-Funktionen und Lizenzverhalten**
+  - **Voraussetzung:** R3-GATE.
+  - **Ergebnis/Definition of Done:** Funktionsmatrix, Gradebook/Zertifikatsdesigner nach Freigabe; Lizenzablauf ohne Verlust historischer Nachweise.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-09 · R3-Abnahme und Kompatibilitätsmatrix**
+  - **Voraussetzung:** R3-07, R3-08.
+  - **Ergebnis/Definition of Done:** Versionsfenster, Partnerstatus, Rollback, E2E, Performance, dokumentierte Freigabe.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
+
+### R4 – Nur nach Nachfrage und eigener Freigabe
+
+- [ ] **R4-01 · Erweiterungsbedarf und Freigabe**
+  - **Voraussetzung:** R3-GATE.
+  - **Ergebnis/Definition of Done:** Multisite, Gamification, SCORM/xAPI/H5P/LTI und Agency nach Evidenz priorisiert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R4-02 · Einzelne freigegebene R4-Features umsetzen**
+  - **Voraussetzung:** R4-01.
+  - **Ergebnis/Definition of Done:** Pro Feature eigener Contract, Security/Privacy, Migration, Tests und Release-Gate.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R4-GATE · R4-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Einzel-Gates je Feature.
+
+---
+
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
 - [ ] **LearnBoating-Paritätsmatrix abschließen:** alle fachneutralen Funktionen, Quellkomponenten, Übernahmestrategien, Regressionstests und Abnahmekriterien inventarisieren. Fachmodule ausdrücklich ausschließen.
