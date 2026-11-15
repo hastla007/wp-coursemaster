@@ -74,6 +74,36 @@
   - **Ergebnis/Definition of Done:** 55 FLOW + 12 CORE, Traceability, Akzeptanzfälle und Risiken ohne unzugeordnete Pflichtfunktion.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R0-13 · Support- und Betriebskonzept**
+  - **Voraussetzung:** R0-07,R0-09.
+  - **Ergebnis/Definition of Done:** Supportrollen, sichere Diagnose, Datenkorrektur, Audit- und Eskalationsregeln samt Testfällen dokumentiert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-14 · Nichtfunktionale Qualitätsziele**
+  - **Voraussetzung:** R0-02,R0-06.
+  - **Ergebnis/Definition of Done:** Performancebudgets für große Fragenbanken/gleichzeitige Prüfungen, Lastprofile, Browser-/PHP-/WP-Matrix und Messverfahren festgelegt.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-15 · Barrierefreiheit und Internationalisierung spezifizieren**
+  - **Voraussetzung:** R0-11.
+  - **Ergebnis/Definition of Done:** WCAG-Ziel, Tastatur-/Screenreader-/Kontrastfälle, Übersetzbarkeit, RTL, Zeitzonen, Datums-/Zahlenformate und Sprachwechsel definiert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-16 · Backup, Recovery und Deployment planen**
+  - **Voraussetzung:** R0-06,R0-10.
+  - **Ergebnis/Definition of Done:** Upgrade-/Rollback-/Restore-Runbook, Backup-Konsistenz, Staging, Secret-Handling und Recovery-Tests beschrieben.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-17 · Threat Model und Datenschutz-Folgenabschätzung prüfen**
+  - **Voraussetzung:** R0-07,R0-09.
+  - **Ergebnis/Definition of Done:** Datenflüsse, Schutzbedarf, Abuse Cases, Prüfungsintegrität, Consent, Lösch-/Exportfristen und DPIA-Bedarf bewertet.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R0-18 · Release- und Qualitätsautomatisierung festlegen**
+  - **Voraussetzung:** R0-05,R0-12.
+  - **Ergebnis/Definition of Done:** CI-Matrix, PHP-/JS-Checks, Unit/Integration/E2E, SAST, Dependency-Scan, Paket-Signierung und Releaseartefakte definiert.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
 - [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
 
 ### R1 – Standalone Free und vollständige neutrale Parität
@@ -168,6 +198,36 @@
   - **Ergebnis/Definition of Done:** Alle neutralen Originalfunktionen nachgewiesen; Free ohne Woo/Suite/Pro, Gates B/C bestanden.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R1-19 · Mehrsprachigkeit und Accessibility umsetzen**
+  - **Voraussetzung:** R1-05,R1-16.
+  - **Ergebnis/Definition of Done:** Lernraum/Admin per Tastatur bedienbar, übersetzbare Strings, Locale/RTL/Screenreader- und Responsive-Tests grün.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-20 · Prüfungsintegrität und Wiederaufnahme absichern**
+  - **Voraussetzung:** R1-08,R1-09.
+  - **Ergebnis/Definition of Done:** Serverzeit/Timeout, Verbindungsabbruch, Doppelabgabe, Browser-Reload, Offline-Grenzen, Replay und Manipulationsschutz getestet.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-21 · Benachrichtigungen und E-Mail-Vorlagen**
+  - **Voraussetzung:** R1-13,R1-17.
+  - **Ergebnis/Definition of Done:** Einladung, Claim, Ablauf, Abschluss, Fehler und Opt-out mit WP-Mail, Rate-Limits, Datenschutz und Test-Mail-Sink.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-22 · Skalierung und Lasttests**
+  - **Voraussetzung:** R1-17,R1-20.
+  - **Ergebnis/Definition of Done:** Große Kurs-/Fragenmengen, parallele Prüfungen, Query-/Index-Analyse, Job-Backlog und Performancebudgets nachgewiesen.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-23 · Upgrade-, Restore- und Uninstall-Proben**
+  - **Voraussetzung:** R1-15,R1-17.
+  - **Ergebnis/Definition of Done:** Migration von Vorversionen, Backup-Restore, Plugin-Deaktivierung, sichere Datenaufbewahrung und explizite Uninstall-Policy getestet.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R1-24 · Dokumentation, Onboarding und Support**
+  - **Voraussetzung:** R1-16,R1-21.
+  - **Ergebnis/Definition of Done:** Installationsguide, Admin-/Autoren-/Lernendenhilfe, Troubleshooting, Privacy-Hinweise, API- und Release-Doku fertig.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
 ### R2 – Zusätzliche universelle P0-Funktionen
@@ -195,6 +255,11 @@
 - [ ] **R2-05 · R2-Abnahme und Free-/Pro-Check**
   - **Voraussetzung:** R2-01, R2-02, R2-03, R2-04.
   - **Ergebnis/Definition of Done:** P0-Neuheiten getestet, keine Regression oder vorgezogene Suite-Abhängigkeit.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R2-06 · Zusätzliche Funktionen auf Lizenz- und Datenschutzgrenzen prüfen**
+  - **Voraussetzung:** R2-02,R2-03,R2-04.
+  - **Ergebnis/Definition of Done:** Notizen/Abgaben/Vorlagen mit Export, Eraser, Rechte- und Datenmigrations-Tests abgeschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
 - [ ] **R2-GATE · R2-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R2-Release-Gate.
@@ -246,6 +311,16 @@
   - **Ergebnis/Definition of Done:** Versionsfenster, Partnerstatus, Rollback, E2E, Performance, dokumentierte Freigabe.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R3-10 · Integrations-Monitoring und Support-Recovery**
+  - **Voraussetzung:** R3-03,R3-05.
+  - **Ergebnis/Definition of Done:** Connector-Health, Fehlerevent-Queue, Reconcile-UI, manuelle Reparatur und Alarmierung ohne Datenleck geprüft.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
+- [ ] **R3-11 · Vertrags- und Upgrade-Kompatibilität testen**
+  - **Voraussetzung:** R3-06,R3-09.
+  - **Ergebnis/Definition of Done:** WP/Woo/Partner-/Pro-Versionen, Deaktivierung, Rollback, Downgrade und Mischversionsfälle getestet.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
 - [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
 
 ### R4 – Nur nach Nachfrage und eigener Freigabe
@@ -260,9 +335,21 @@
   - **Ergebnis/Definition of Done:** Pro Feature eigener Contract, Security/Privacy, Migration, Tests und Release-Gate.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
+- [ ] **R4-03 · R4-Dokumentation und Migrationsfreigabe**
+  - **Voraussetzung:** R4-02.
+  - **Ergebnis/Definition of Done:** Feature-Gate, Update-/Rollback-Anleitung, Datenschutz- und Sicherheitsreview pro freigegebener Erweiterung.
+  - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
+
 - [ ] **R4-GATE · R4-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Einzel-Gates je Feature.
 
 ---
+
+### Ergänzende Steuerungsregeln für die Umsetzung
+
+- **Gates sind nicht bloße Checkboxen:** R0-GATE verlangt Quellinventar, ADRs, Testplan, Datenschutz-/Sicherheitsentscheidungen, Betriebs- und Qualitätsbudgets. R1-GATE verlangt außerdem Accessibility, i18n, Last-, Upgrade-/Restore- und Supportnachweise. R2-/R3-Gates schließen Integrations-/Privacy-Regression ein.
+- **Fehlertoleranz:** Abgebrochene Jobs, Offline-/Netzwerkunterbrechungen, Zeitüberschreitung, Datenbank-Race, Quota/Storage-Full, E-Mail-Ausfall und Plugin-Konflikte als explizite negative Tests erfassen.
+- **Release-Sicherheit:** Keine Produktivdaten in CI; Testdaten anonymisieren. Sicherheitskritische Secrets nie in Logs/Exporten; Versions- und Rollbackhinweise pro Release.
+- **Reihenfolge:** Ergänzende Tasks sind Teil ihrer Phase und vor dem jeweiligen Gate zu erledigen; ihre Nummer ist eine stabile ID, keine Freigabe zum Überspringen von Abhängigkeiten.
 
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
