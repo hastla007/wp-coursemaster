@@ -381,3 +381,240 @@ Migrationsassistent für bestehende learnboating-Installationen (optional, keine
 - [WP License Captain](https://github.com/hastla007/wp-license), [Captain Pro – Architektur](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md), [Captain Pro – Tarife](https://github.com/hastla007/captain-pro/blob/main/docs/TARIFE.md), [Captain Pro – Release](https://github.com/hastla007/captain-pro/blob/main/docs/RELEASE.md)
 
 **Repository-Regel:** Dieses Dokument darf im Zielprojekt weiterentwickelt werden. `learnboating` und die übrigen bestehenden Plugins sind Referenzen; jede spätere Änderung dort ist ein separates Vorhaben und nicht durch dieses Konzept autorisiert.
+
+
+---
+
+# Ergänzung: Suiteweiter Vollständigkeitsabgleich und verbindliche v1-Spezifikation (15.11.2026)
+
+Diese Ergänzung basiert auf einem erneuten Abgleich mit den Konzepten von Workflow Captain, Form Captain, Review Captain, Ticket Captain, Voucher Captain, Affiliate Captain sowie der Captain-Pro-Architektur. Sie **ergänzt** die Abschnitte 1–14; bei widersprüchlichen Aussagen gelten die ausdrücklich als „verbindlich“ bezeichneten Entscheidungen unten. Funktionen sind geplante Anforderungen, nicht bereits implementiert.
+
+## 15. Wettbewerbsbild, Nutzerreisen und Produktgrenzen
+
+### 15.1 Marktanforderungen statt bloßer Featureliste
+
+Als Vergleichskategorien für die spätere Wettbewerbsprüfung dienen LearnDash, Tutor LMS, LifterLMS, LearnPress, Sensei LMS, MasterStudy und Moodle. Vor einer Preis- oder Featurebehauptung sind deren **aktuelle offizielle** Dokumentation, Editionen und Lizenzbedingungen zu prüfen. Keine unbelegten Preis- oder Marktführerbehauptungen.
+
+| Marktanforderung | Course-Captain-Antwort | Priorität |
+|---|---|---|
+| Schneller Kurseinstieg ohne Fachwissen | Setup-Assistent, Beispielkurs, visuelles Curriculum, Vorschau | P0 |
+| Lernmotivation statt reiner Videoablage | Smarttrainer, Fehlertraining, Wiederholungsfälligkeit, Zielanzeige | P0 |
+| Flexible Prüfungen | Wiederverwendbare Fragenbank, Prüfungsregeln, stabile Sessions | P0 |
+| Eigenes Branding und WordPress-Nähe | Theme-kompatible Blocks, Layout- und Typografie-Einstellungen | P0 |
+| Monetarisierung ohne Lock-in | Optional WooCommerce, manuelle/freie Einschreibung | P1 |
+| Organisationen und Schulungen | Gruppen, Tutorrollen, Sitzplätze, Reports, Zertifikate | P1 |
+| Datenhoheit | Export, Löschung, nachvollziehbare Revisionen, lokale Daten | P0 |
+| Plattformökosystem | Öffentliche Verträge und optionale Captain-Adapter | P0/P1 |
+
+**Positionierung:** Nicht „alles wie jede LMS-Plattform“, sondern **LMS + intelligentem Wissenstraining + Prüfungsengine + Captain-Suite-Automation**. Kein Versprechen amtlicher Zertifizierungen oder rechtssicherer Compliance-Schulungsnachweise ohne fachliche Prüfung.
+
+### 15.2 End-to-End-Nutzerreisen als verbindliche Abnahme
+
+1. **Einzeltrainer:** installieren → Einrichtungsassistent → Kurs anlegen → Module/Lektionen sortieren → Quiz hinzufügen → Vorschau als Lernender → kostenlos veröffentlichen → Testnutzer einschreiben → Fortschritt prüfen.
+2. **Lernender:** Kurs finden → anmelden → Lektion bearbeiten → Fragen trainieren → falsche Antworten wiederholen → Prüfung starten/fortsetzen → Ergebnis sehen → später fällige Wiederholung absolvieren.
+3. **Akademie:** Team/Kohorte anlegen → Plätze vergeben → Einladungen annehmen → Kurszugang aktivieren → Tutor prüft offene Aufgabe → Fortschrittsbericht → Zertifikat ausstellen.
+4. **Shopbetreiber:** WooCommerce-Produkt zuordnen → bestätigter Kauf → genau ein Grant pro Referenz → Refund → betroffenen Grant widerrufen, sonstige Grants erhalten.
+5. **Suite-Nutzer:** Kursabschluss → dauerhaftes, minimiertes Ereignis → Workflow-Captain-Aktion → optional neutrale Review-Anfrage nach verifiziertem Lern-/Kurs-Erlebnis; kein Versand ohne Berechtigung.
+6. **Administrator bei Ausfall:** Queuefehler sehen → Ursache und Retry prüfen → Jobs gefahrlos erneut ausführen → Audit/Datenschutz einhalten.
+
+## 16. Einrichtung, Admin-Navigation und UX-Spezifikation
+
+### 16.1 Setup-Assistent (Free)
+
+Schritte: (1) Website-/Kurszweck und Standardsprache, (2) Permalink und Katalogseite, (3) Einschreibungsmodus öffentlich/kostenlos/manuell, (4) Lern-/Prüfungsdefaults, (5) Benachrichtigung und Datenschutz, (6) Demo-Kurs erstellen oder überspringen, (7) Bereitschaftsprüfung mit konkreten Fehlermeldungen. **Keine** Lizenzabfrage oder WooCommerce-Pflicht. Erneuter Aufruf ohne Datenverlust; Setup-Fortschritt separat speichern.
+
+### 16.2 Einstellungen mit getrennten Tabs
+
+| Tab | Einstellungen und Regeln |
+|---|---|
+| Allgemein | Sprache, Kurskatalog, Standardrollen, Zeit-/Datumsformat aus WordPress erben |
+| Kursdarstellung | Farben/Typografie nur als scoped Tokens, Karten, Breadcrumbs, Theme-Kompatibilität |
+| Lernen | Smarttrainer-Strategie, Wiederholungsintervalle, Fortschrittsregeln, Default-Fragensets |
+| Prüfungen | Timer, Versuche, Feedbackfreigabe, Bestehensregeln, Default-Frageselektion |
+| Einschreibung | Öffentlicher/kostenloser/manueller Zugang, Kurs- und Rollenrechte |
+| E-Mails | Absender aus WP erben, Templates, Testmail, Erinnerungen mit Opt-out |
+| Datenschutz | Retention je Datenart, Export, Löschung, Datenminimierung |
+| Rollen & Rechte | Capability-Matrix, Kursbesitz, Tutorzugriff, Hochrisikoaktionen |
+| Erweitert | Importlimits, Queue, Wartung, Debug mit zeitlichem Ablauf und Redaction |
+
+Pro Tab separat speichern; ungespeicherte Änderungen warnen; feldnahe Validierung und Reset **nur des aktuellen Tabs**. Import/Export, Integrationssecrets, Pro-Lizenz und Diagnose erhalten eigene Seiten statt versteckter Einstellungen. Keine globalen WP-Optionen unnötig duplizieren.
+
+### 16.3 Konkrete Screen-Spezifikation
+
+- **Dashboard:** Setup-Checkliste, aktive Kurse, eingeschriebene Lernende, offene Bewertungen, letzte Abschlüsse, Queue-/Importwarnungen; Free/Pro-Funktionen klar gekennzeichnet, keine blockierenden Upsell-Popups.
+- **Kursliste:** Suchfeld, Statusfilter, Bulk-Archivierung mit Bestätigung, „Kurs erstellen“, „Vorschau“, „Duplizieren“.
+- **Kurseditor:** linke Curriculum-Navigation, mittlerer Lektionen-/Quiz-Editor, rechte Metadaten/Veröffentlichung, Autosave und Revisionen; Drag-and-drop **plus** Tastaturalternative.
+- **Frageneditor:** Fragetyp, Fragetext, Medien, Antworten, Korrektheitsregeln, Erklärungen, Zuordnungen, Vorschau, Warnung bei veröffentlichter Revision.
+- **Prüfungseditor:** Blueprint, Zeit-/Punktregeln, Fragemenge, verfügbare Poolgröße, Vorschau der Auswertung und Fehlermeldungen bei unlösbaren Konfigurationen.
+- **Lernraum:** Kurskopf, Fortschritt, Fortsetzen-Button, Kapitelbaum, Tastaturbedienung, klare Zustände „gesperrt“, „fällig“, „abgeschlossen“.
+- **Prüfung:** sichtbarer Timer, Speicherrückmeldung, Frage-Navigation, Markierung, Abgabebestätigung, sichere Wiederaufnahme.
+- **Systemstatus:** Plugin-/Vertragsversionen, DB-Schema, Cron, letzte Jobs, REST, Dateischutz, Update-/Lizenzstatus, anonymisierter Diagnoseexport.
+
+**Design-Gate:** Responsiv bei 320/375/768/1024/1440 px, Kontrast und Fokus, keine ausschließlich farbcodierten Zustände, Screenreader-Ankündigung bei Antwort-/Speicherstatus, reduzierte Animation. WCAG 2.2 AA als Ziel und dokumentierte manuelle Prüfungen.
+
+## 17. Rollen, Rechte, Mandanten- und Inhaltszugriff
+
+**Vorgeschlagene Rollen:** Administrator (technische Konfiguration), Course Manager (alle fachlichen Kurse), Instructor (eigene Kurse und zugewiesene Lernende), Tutor/Assessor (zugewiesene Bewertungen), Learner (eigene Lernaktivität). WordPress-Rollen sind Bündel, **Capabilities** sind die eigentliche Autorisierung.
+
+| Capability (Vorschlag) | Admin | Manager | Instructor | Tutor | Learner |
+|---|---|---|---|---|---|
+| \`cc_manage_settings\` | Ja | Nein | Nein | Nein | Nein |
+| \`cc_manage_courses\` | Ja | Ja | Eigene | Nein | Nein |
+| \`cc_publish_courses\` | Ja | Ja | Nach Freigabe | Nein | Nein |
+| \`cc_manage_question_bank\` | Ja | Ja | Eigene/Zugeordnete | Lesen | Nein |
+| \`cc_grade_assessments\` | Ja | Ja | Zugeordnete | Zugeordnete | Nein |
+| \`cc_manage_enrollments\` | Ja | Ja | Zugeordnete | Nein | Nein |
+| \`cc_view_course_reports\` | Ja | Ja | Zugeordnete | Zugeordnete | Eigene |
+| \`cc_manage_integrations\` | Ja | Ggf. delegiert | Nein | Nein | Nein |
+
+Jede Entscheidung verlangt zusätzlich Objekt-/Kurs-/Gruppen-Ownership. Ein Tutor darf **nicht** alle Teilnehmerdaten der Website lesen. Ein Lernender darf niemals Ergebnis-/Antwort-IDs anderer Nutzer abfragen, auch nicht über direkte Downloads oder Reports. Kurswechsel und Rollenänderung entziehen Zugriff unmittelbar; serverseitige Prüfung in allen APIs. Benutzerdefinierte Rollen dürfen mit WordPress-Rollenverwaltung koexistieren; Deaktivierung darf fremde Rollen nicht zerstören.
+
+## 18. Verbindlicher öffentlicher Integrationsvertrag v1
+
+Wie bei Form und Workflow Captain muss die Integrationsarchitektur **vor** Adapterentwicklung feststehen. Folgende Namen sind **neue, vorgeschlagene Course-Captain-Verträge**, nicht bestehende Hooks.
+
+- \`COURSE_CAPTAIN_CONTRACT_VERSION = '1.0.0'\`, Registrierung nach \`course_captain_loaded_v1\`; inkompatible Major-Version → Adapter deaktivieren und \`incompatible_contract\` im Systemstatus.
+- Read-API: \`course_captain_get_course_v1(course_id, scope)\`, \`course_captain_get_enrollment_v1(user_id, course_id, scope)\`, \`course_captain_get_completion_v1(user_id, course_id, scope)\`.
+- Write-API: \`course_captain_grant_access_v1(payload, context)\`, \`course_captain_revoke_access_v1(source, reference_id, context)\`, \`course_captain_enroll_v1(payload, context)\`. Rückgabe \`success/code/reference_id/request_id\` oder \`WP_Error\`; klare Fehlercodes \`forbidden\`, \`invalid_scope\`, \`duplicate\`, \`not_found\`, \`incompatible_contract\`, \`retryable\`.
+- Ereignisse **nach erfolgreichem Commit**: \`course_captain_enrollment_created_v1\`, \`course_captain_enrollment_revoked_v1\`, \`course_captain_lesson_completed_v1\`, \`course_captain_assessment_submitted_v1\`, \`course_captain_assessment_passed_v1\`, \`course_captain_course_completed_v1\`, \`course_captain_certificate_issued_v1\`.
+- Payload nur \`event_id\`, \`event_version\`, \`site_id\`, \`course_id\`, \`user_ref\`, \`source\`, \`reference_id\`, \`occurred_at\`, \`correlation_id\`, \`idempotency_key\` und notwendige Statuswerte; keine kompletten WP-User, E-Mail-Adressen, Prüfungsantworten, Tokens oder Zahlungsdaten.
+- **Outbox-Muster:** Ereignis und Zustandswechsel konsistent speichern; Queue übernimmt nach Commit, markiert ausgelieferte Events, retryt mit Backoff und Dead-Letter-Status. PHP-Hooks dürfen nicht allein die einzige zuverlässige Zustellung sein. Event-Consumer deduplizieren \`event_id\`.
+- **Aktionen:** vor jeder Ausführung Kurs-/Benutzerberechtigung, Providervertrag, Lizenzstatus und Eingabeschema prüfen. Erfolgreiche Fachaktion nie zurückrollen, nur weil ein optionaler Connector nicht erreichbar ist.
+- **Schnittstellenbesitz:** nur Course Captain ändert Enrollment, Lernstand und Resultat; andere Plugins geben geprüfte Befehle ab. Für pluginübergreifende Jobs eindeutig festlegen, ob Course Captain oder Workflow Captain den Versand verantwortet. Keine parallelen Standard-Automationen.
+
+### 18.1 Connector-SDK für individuelle Projekte
+
+Separate lokale WordPress-Connector-Plugins dürfen Events abonnieren, neue Lernaktivitäten/Importquellen registrieren und freigegebene Kursgrants beantragen. Vertrag: Provider-ID, Version, Capability-Matrix, JSON-Schema, Timeout, Idempotenz, Diagnosestatus, Retry und Uninstall. Externe Installationen nur über signierte, scoped REST-/Webhook-Verträge mit Replay-Schutz, HMAC/Signaturrotation, Zeitstempel, Nonce und Egress-Allowlist. Kein dynamisches \`eval\`, keine freien PHP-Callbacks aus dem Admin, keine beliebigen Webhook-URLs ohne SSRF-Schutz.
+
+### 18.2 Suite-Integrationsrezepte mit Ownership
+
+| Auslöser | Besitzer des Ereignisses | Course-Captain-Aktion | Schutzbedingung |
+|---|---|---|---|
+| Form-Captain-Bewerbung freigegeben | Form Captain | Enrollment nach expliziter Zuordnung | Einreichung ≠ automatische Freigabe |
+| WooCommerce-Kauf bestätigt | WooCommerce | Kursgrant | Zahlungsstatus, Item-Referenz, HPOS |
+| Voucher eingelöst | Voucher Captain | Kursgrant | tatsächliche bestätigte Einlösung, kein bloßer Kauf |
+| Pass-Captain-Teilnahme bestätigt | Ticket Captain | Kurs-/Workshopabschluss oder Grant | Check-in/Teilnahme statt Ticketkauf |
+| Kurs bestanden | Course Captain | Workflow-Event, optional Zertifikat | Prüfungs-Snapshot und Status final |
+| Kurs abgeschlossen | Course Captain | optional Review-Captain-Erlebnis | eindeutige experience_id, Empfängerberechtigung, neutraler Versand |
+| Kursverkauf vermittelt | Affiliate Captain/WooCommerce | keine Lernstandsänderung; Provision separat | kein Provisionstrigger aus Quiz |
+| Pro-Lizenz abgelaufen | Captain-Pro-Client | neue Pro-Aktionen pausieren | vorhandene Lern-/Kursdaten erhalten |
+
+**Review-Regel:** Kursabschluss ist nur dann ein verifiziertes Erlebnis, wenn Course Captain die tatsächliche Teilnahme/Abschlussbedingung serverseitig belegt. \`experience_id\` gehört Course Captain; keine Sterne-Vorauswahl, keine Review-Anfrage abhängig von der Punktzahl, kein Versand ohne Kontaktresolver/Opt-out-Prüfung.
+
+## 19. Benachrichtigungen, Kommunikation und Lernmotivation
+
+**Free:** transaktionale Mails bei Einschreibung, Einladung zu manuell freigegebenem Kurs, Abschluss und sicherheitsrelevanter Zugangsänderung (je nach Bedarf); HTML und Klartext, übersetzbare Templates, Testmail, Status und Fehlerprotokoll ohne PII. **Pro:** optionale Erinnerungen an fällige Wiederholungen, Drip-Freigaben, Fristen, Tutor-Aufgaben und Kursablauf, Kohortenkommunikation.
+
+- Trennung transaktional / optional werblich; Kommunikationspräferenzen und Abmeldemöglichkeit für nicht notwendige Nachrichten.
+- Ruhezeiten, Zeitzone des Lernenden soweit vorhanden, Frequency-Caps, Deduplizierung, erneute Berechtigungsprüfung direkt vor Versand.
+- Queue-basiert, bei Cron-Ausfall sichtbare Warnung, Retry und Abbruch; keine Mails nach Widerruf/Opt-out oder Benutzerlöschung.
+- Gamification (Abzeichen, Lernserien, Punkte) als **optionales Folgefeature**, standardmäßig ohne manipulative Rankings und ohne öffentliche Anzeige persönlicher Leistung.
+
+## 20. Datenschutz, rechtliche Grenzen und Sicherheit – konkrete Matrix
+
+| Datenart | Besitzer | Export/Löschung/Retention |
+|---|---|---|
+| Benutzerprofil | WordPress | WP-Privacy-Exporter/-Eraser, WP-Account-Regeln |
+| Einschreibungen, Kurszugänge | Course Captain | Export, Widerruf, Löschung/Anonymisierung nach konfigurierbarer Frist |
+| Antworten und Smarttrainerhistorie | Course Captain | persönlicher Export, Löschung; historische aggregierte Statistik nur anonym |
+| Prüfungssnapshots, Zertifikate | Course Captain | revisionssicher nach Betreiberzweck, dokumentierte Lösch-/Widerrufsregeln |
+| Shop-Bestellungen und Zahlungen | WooCommerce | keine Duplikate von Karten-/Steuerdaten |
+| Formularantworten | Form Captain | nur Referenzen und freigegebene Statuswerte in Course Captain |
+| Gutschein-/Ticket-/Review-/Affiliate-Daten | jeweiliges Plugin | keine vollständigen Kopien |
+| Lizenzaktivierung | Captain-Pro-Client / License Captain | keine Kursinhalte oder Lernendendaten übertragen |
+| Diagnoselogs/Queue | Course Captain | kurze konfigurierbare Fristen, PII/Secrets standardmäßig maskiert |
+
+**Zusätzliche Vorgaben:** Verzeichnis-/Medienfreigaben dürfen keine privaten PDFs oder Lösungen über öffentliche Upload-URLs leaken. Bei Zertifikatsverifikation minimaler öffentlicher Datensatz, opt-in/konfigurierbare Sichtbarkeit, Widerruf und Rate-Limit. Minderjährige: keine pauschale Altersprüfung erfinden; für konkrete Schul-/Kinderangebote Datenschutz, Rollen, Eltern-/Betreiberpflichten und Rechtsgrundlage gesondert klären. Datenverarbeitung in EU/DACH: DSGVO, AV-Verträge mit Videodiensten/Mailprovidern, Cookie-/Einwilligungspflichten, Fernabsatz- und Verbraucherinformation für digitale Kursverkäufe vor Launch fachlich prüfen. **Keine Rechtsberatung oder pauschale Konformitätszusage.**
+
+**Bedrohungsmodell:** IDOR bei Ergebnissen/Dateien, CSRF bei Grants, XSS in WYSIWYG/Import, ZIP-Bomben, SSRF bei Medienimport/Webhooks, Brute Force/Rate Limits, Prüfungsspoofing, Token-Leaks, Race Conditions bei Seats und parallelen Prüfungsantworten, Backup-Replay bei Events. Für jede Bedrohung ein automatisierter Negativtest und dokumentierte Abwehr.
+
+## 21. SEO, Auffindbarkeit und externe Inhaltsstandards
+
+- Öffentliche Kursdetailseiten erhalten saubere Permalinks, Titel, Metabeschreibung, OpenGraph, Breadcrumbs und kanonische URLs; geschützte Lektionen, Prüfungsversuche, Ergebnis- und Teilnehmerseiten **noindex**, ohne vertrauliche Inhalte im HTML auszugeben.
+- Yoast SEO und andere SEO-Plugins behalten die Zuständigkeit für Canonical, Sitemaps und Meta-Tags. Keine doppelten Tags oder konkurrierenden JSON-LD-Blöcke. Course Captain ergänzt nur kompatibel, soweit vom Betreiber aktiviert und semantisch korrekt.
+- \`Course\`-/\`LearningResource\`-/\`BreadcrumbList\`-Schema nur für tatsächlich sichtbare, belegbare Daten; keine erfundenen Bewertungen, Preise oder Abschlüsse. Google-Rich-Result-Eignung getrennt von Schema.org-Gültigkeit prüfen.
+- Mehrsprachige Kursinhalte: WordPress-Sprache im UI, Kurs-/Lektionssprache im Content, i18n-Strings, RTL-Fähigkeit; Übersetzungsplugin-Kompatibilität in Testmatrix. Pro-Kurs-Multilingual-Varianten erst nach Modellentscheidung.
+- SCORM, xAPI, LTI und H5P **nicht als v1-Kompatibilität behaupten**. Als Folgeintegration nur mit Sicherheits-, Datenschutz-, Import-/Tracking- und Lizenzprüfung. Generische Lernaktivitäten können später ein entsprechendes Provider-SDK nutzen.
+
+## 22. Betriebsmodell, Observability, Backup und Migrationsregeln
+
+### 22.1 Queue- und Fehlerzustände
+
+Jobs \`queued → running → succeeded\` bzw. \`retry_wait → failed/dead_letter/cancelled\`. Jede Aufgabe besitzt eindeutige Job-ID, Source-Referenz, maximale Versuche, Backoff, Zeitbudget, Lock/Lease und sicheren manuellen Retry. Keine persönlichen Antworten in Logs. Reconciliation für WooCommerce-Grants, ausstehende Prüfungen, Gruppenplätze und Ereignis-Outbox. WP-Cron-Fallback mit Hinweis auf echten System-Cron bei wenig Traffic.
+
+### 22.2 Updates und Wiederherstellung
+
+- Migrationen auf DB-Schema-Version, wiederanlaufbar und mit Wartungszustand; alte Daten **nie** vor erfolgreicher Prüfung löschen. Backups vor destruktiven Migrationen empfehlen und Restore-Prozedur dokumentieren.
+- Nach Datenbank-Restore: Reconciliation von Grants, Session-Fristen, Importbatches, Event-Outbox und externen Bestellreferenzen; **keine** alten E-Mails, Zertifikate oder Review-Einladungen doppelt versenden.
+- Plugin-Deaktivierung: keine Datenlöschung, geplante Jobs stoppen; Pro-Deaktivierung pausiert Pro-Worker. Deinstallation: Daten standardmäßig erhalten, vollständige Löschung nur nach gesonderter, bestätigter Betreiberoption und Datenschutzprüfung.
+- Versionen von Core, Pro, Datenbankschema, Content-Package, REST-API und Connectorvertrag getrennt führen. Release-Notizen mit Migrations-/Rollback-Hinweisen.
+
+### 22.3 Performance-Budgets als zu messende Ziele
+
+**Ziele, keine belegten Benchmarks:** Bei 10.000 Lernenden, 100 Kursen und 100.000 Fragen soll die Kursübersicht ohne N+1-Abfragen und mit indexgestützten Paginationen funktionieren. Für eine typische Lernfrage p95 REST-Serverzeit < 300 ms bei definierter Testhardware/Last, Kurs-Hub p95 < 500 ms bei warmem Cache; endgültige Grenzwerte nach reproduzierbarem Lasttest freigeben. Batch-Import großer Pakete ohne PHP-Timeout, paginierte Exporte, keine Volltabellenscans für Dashboard-KPIs. Cache-Schlüssel enthalten Site, User, Kurs, Revision und Access-Scope; bei Grant-/Content-Änderung invalidieren.
+
+## 23. QA-Matrix, Release-Gates und messbare Produktziele
+
+### 23.1 Testfälle
+
+| Testebene | Pflichtfälle |
+|---|---|
+| Unit | Smarttrainer-Stufen, zeitliche Fälligkeit, Bewertung aller Fragetypen, Teilgrenzen, Zugangsstatus, Capabilities |
+| DB/Integration | Migration, Revisions-Snapshots, parallele Antworten/Grants, Gruppen-Sitzplätze, Rollback, Wiederanlauf |
+| REST/Security | Gast, falscher User, Tutor fremder Kurs, abgelaufener Token, Rate-Limit, CSRF, SSRF, ZIP-Traversal, XSS |
+| WordPress | Neuinstallation, Upgrade, Deaktivierung, Reaktivierung, Uninstall, Multisite explizit nicht unterstützt |
+| UI/E2E | Admin-Kursbau, Lernfluss, mobile Prüfung, Tastatur, Screenreader, Consent, fehlendes JS |
+| Commerce | WooCommerce HPOS/Legacy, Classic/Blocks, Paid/Zero-Total, Pending/Refund/Partial Refund, doppelte Hooks |
+| Suite | jeder Adapter fehlt/aktiv/inkompatibel, Doppelereignis, Queue-Ausfall, Lizenzende, falsche Eventreihenfolge |
+| Backup/Restore | Restore vor/ nach Eventversand, keine Doppel-Mails/-Grants, gültige Session-/Tokenregeln |
+| Release | reproduzierbares ZIP, WordPress.org-Readme, GPL-/Dependency-Review, Übersetzungen, Lizenzsignaturen, Updates |
+
+### 23.2 Release-Gates
+
+- [ ] Free ohne Pro/WooCommerce/andere Captain-Plugins installierbar und produktiv nutzbar.
+- [ ] Admin kann einen **vollständigen** Kurs ohne externen Import anlegen.
+- [ ] Lernen/Smarttrainer/Prüfung und Ergebnis auf Mobil/Desktop funktionieren und bestehen Negativtests.
+- [ ] Pro-Entitlements, Ablauf/Offline-Cache, Downgrade, Updates und Datenbestand entsprechen Captain-Pro-Vertrag.
+- [ ] Jeder Suite-Adapter hat Ownership-, Idempotenz-, Fehler-, Retry- und Privacy-Tests.
+- [ ] Admin-Screens, SEO-/Yoast-Kompatibilität, Barrierefreiheit, Übersetzungen und Datenschutz geprüft.
+- [ ] Datenmigrationen, Backup/Restore, Importrollback und Cron-Ausfall dokumentiert und getestet.
+- [ ] Supporthandbuch, Troubleshooting, öffentliche API, Changelog, Security-Disclosure, Lizenz-/Urheberrechtsinventar vorhanden.
+- [ ] learnboating und alle Referenz-Repositories unverändert; Koexistenz auf derselben WordPress-Site getestet.
+
+### 23.3 Messbare Erfolgskriterien (nach Launch)
+
+Aktivierung → erster veröffentlichter Kurs; Anteil erfolgreich abgeschlossener Setup-Assistenten; Kurs-Erstellung ohne Supportkontakt; Lernsession-Fortsetzungsrate; Quiz-Abschlussrate; Anteil erfolgreich verarbeiteter Outbox-Events; Supportfälle je 100 Installationen; Crash-/REST-Fehlerquote; p95-Performance. Messung **lokal und datensparsam**, Telemetrie nach außen nur nach expliziter Zustimmung, keine verdeckte Nutzerverfolgung.
+
+## 24. Priorisierte zusätzliche Umsetzungsliste
+
+### P0 – vor Coding / vor Free-Release
+- [ ] Lizenz- und Abhängigkeitsinventar für übernommene learnboating-Komponenten erstellen.
+- [ ] Kurs-/Fragen-/Prüfungsmodell und UI-Editor als verbindliche ADR festlegen.
+- [ ] Konkrete Capability-/Ownership-Matrix, Import-/Medienbedrohungsmodell und Retention-Matrix abnehmen.
+- [ ] Course-Captain-Vertrag v1 mit Schemas, Fehlercodes, Outbox und API-Tests definieren.
+- [ ] Setup-Assistent, Demo-Kurs, Kurseditor, Frageneditor, Prüfungseditor und Lernraum umsetzen.
+- [ ] Yoast-/Theme-/Gutenberg-/Accessibility- und WordPress-Privacy-Integration testen.
+- [ ] Systemstatus, Queue/Retry, Backup/Restore und Import-Rollback implementieren.
+
+### P1 – Pro-Release und Suite
+- [ ] Pro-Feature-Registry und Lizenzprodukt im bestehenden Captain-Pro-Build einrichten.
+- [ ] WooCommerce-, Voucher-, Workflow-, Form-, Pass-, Review- und Affiliate-Adapter nach Vertrag priorisieren.
+- [ ] Gruppen/Seats, Zertifikate, Reports, Drip-Learning und Tutorbewertungen liefern.
+- [ ] Preis- und Tarifentscheidung samt Produktseite, Featurevergleich und Updatepfad dokumentieren.
+- [ ] Connector-SDK und mindestens ein unabhängiges Beispiel-Connector-Plugin testen.
+
+### P2 – bewusst nach v1
+- [ ] Offline-/PWA-Synchronisierung, komplexe Simulationen, SCORM/xAPI/LTI/H5P, KI-Hilfen, Mehrsprachigkeitsvarianten und Migration persönlicher learnboating-Lernstände gesondert spezifizieren.
+- [ ] Echte Wettbewerbs-/Preisprüfung und Betreiberinterviews in datierten Entscheidungsvorlagen aktualisieren.
+
+## 25. Zusätzliche Quellen für diesen Abgleich
+
+- [Workflow Captain – Integrationsmodell, Admin, Ausführung, Suite](https://github.com/hastla007/wp-workflowmaster/blob/main/konzept.md)
+- [Form Captain – Vertrag v1, Setup, WooCommerce-Fragebogen, UI](https://github.com/hastla007/wp-formmaster/blob/main/konzept.md)
+- [Review Captain – Erlebnis-IDs, Privacy, Connectoren, SEO](https://github.com/hastla007/wp-reviewmaster/blob/main/konzept.md)
+- [Ticket Captain – Berechtigungen, Security und Release-Gates](https://github.com/hastla007/wp-passmaster/blob/main/CONCEPT.md)
+- [Voucher Captain – DACH-/EU-Anforderungen](https://github.com/hastla007/wp-couponmaster/blob/main/SCOPE.md)
+- [Affiliate Captain – Integrations-/WP-Konventionen](https://github.com/hastla007/wpaffiliatemaster)
+- [Captain Pro – Architektur, Feature-Gating, Release](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md)
+
+**Hinweis zum Umfang:** Diese Ergänzung definiert fehlende Konzepte, keine stillschweigende Verpflichtung, alle P2-Funktionen in v1 zu liefern. Neue API-Namen sind Vorschläge bis zur verbindlichen Implementierung und zum Abnahmetest.
