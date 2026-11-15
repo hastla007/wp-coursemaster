@@ -1266,3 +1266,9 @@ Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behaup
 Die **führende, schrittweise abzuarbeitende Aufgabenliste** steht in [`TODO-WETTBEWERBSANALYSE.md`](TODO-WETTBEWERBSANALYSE.md), Abschnitt **„VERBINDLICHER SCHRITT-FÜR-SCHRITT-UMSETZUNGSPLAN“**. Jede Aufgabe hat eine stabile ID, Voraussetzungen, Definition of Done und Nachweispflicht. Ältere P0/P1/P2-/FLOW-/CORE-/LB-Abschnitte dienen als Anforderungsregister und dürfen die Release-Reihenfolge nicht überschreiben.
 
 **Harte Gates:** R0 vollständige codebelegte Inventur und ADRs → R1 neutrale LearnBoating-Parität in standalone Free → R2 zusätzliche P0-Funktionen → R3 WooCommerce, Voucher, übrige Suite/Pro → R4 ausschließlich nach Nachfrage und Freigabe. Bei ungeklärter Quelle, fehlendem Test oder nicht erfülltem DoD bleibt die Aufgabe offen. Keine Implementierung ist durch die Erstellung dieses Plans erfolgt.
+
+## 41. Zusätzliche verbindliche Qualitäts- und Betriebsanforderungen
+
+Der operative Aufgabenindex in `TODO-WETTBEWERBSANALYSE.md` enthält ergänzende Tasks `R0-13…R0-18`, `R1-19…R1-24`, `R2-06`, `R3-10…R3-11` und `R4-03`. Sie schließen bisher unterrepräsentierte Aspekte ab: Betriebs-/Supportkonzept, Performance und Skalierung, Barrierefreiheit, Mehrsprachigkeit, Prüfungsintegrität, sichere E-Mail-Kommunikation, Bedrohungsmodell, Datenschutz, Backup/Restore, Upgrade/Downgrade, CI-/Security-Checks, Monitoring, Dokumentation und kompatible Releases.
+
+**Freigaberegel:** Diese Punkte sind keine optionalen Nacharbeiten; ihre DoDs und negativen Tests sind vor den jeweiligen Release-Gates zu erfüllen. Bei Fehlern, Netzunterbrechung, doppelten Events, konkurrierenden Aktionen, vollen Speichern, Mail-Ausfall oder Plugin-Deaktivierung müssen Datenintegrität und sichere Wiederherstellung belegt werden. Keine Annahme, dass Tests oder Implementierungen bereits existieren.
