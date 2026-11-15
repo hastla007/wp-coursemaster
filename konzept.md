@@ -951,9 +951,40 @@ Für **jeden** Connector: Ownership-Tabelle, Datenflussdiagramm, öffentliche AP
 
 ### 31.7 Noch zu klärende Entscheidungen
 
-1. Welche **Zugangsquellen** sollen zuerst als R3-Referenzconnectoren freigegeben werden (empfohlen: Voucher und WooCommerce, danach Pass)?
+1. **Entschieden:** Die ersten R3-Referenzintegrationen sind **Voucher Captain und WooCommerce**. Weitere Connectoren folgen nach Abhängigkeiten und separater Abnahme; die Reihenfolge nach dem ersten Integrationspaket bleibt offen.
 2. Wie lange bleibt ein **Pending-Grant** vor Eskalation bestehen? Vorgangsspezifisch konfigurieren und durch Tests begründen.
 3. Welches **Captain-Suite-Navigationsmuster** gilt produktübergreifend? Gemeinsame Designkonventionen ja; ein zentrales Pflichtplugin nein.
 4. Wie werden **Gastkäufer** sicher mit bestehenden WordPress-Lernenden verknüpft, ohne Accounts anhand unbestätigter E-Mail-Adressen zusammenzuführen?
 
 **Prioritätsregel:** Alle R3-Integrationsarbeiten bleiben nach R1-Parität und R2-Zusatz-P0; die Dokumentation und Schnittstelleninventur dürfen bereits in R0 stattfinden. Dieses Kapitel ergänzt Kapitel 30 um fachliche Zustands- und UX-Verträge und ersetzt keine der dortigen Partnerintegrationen.
+
+## 32. Verbindlicher R3-Start: Voucher Captain und WooCommerce zuerst
+
+**Auftraggeberentscheidung:** Die erste R3-Integrationswelle für Course Captain umfasst **Voucher Captain und WooCommerce**. Diese Festlegung konkretisiert Kapitel 30 und 31 und hat bei widersprechenden Empfehlungen Vorrang. **Unverändert bindend:** R0/R1 vollständige fachneutrale LearnBoating-Parität → R2 zusätzliche P0-Funktionen → **erst dann** R3-Integrationen. Die Dokumentation darf vorher vorbereitet werden; Implementierung und Freigabe der beiden Connectoren erst in R3.
+
+### 32.1 Umfang und klare Zuständigkeiten
+
+- **Course Captain:** Kurskatalog, Lernendenidentität, Kurszugang/Grants, Lernfortschritt, Prüfung, Zertifikate und deren unveränderliche Nachweise. Kurszugang ist keine Softwarelizenz.
+- **WooCommerce:** Produkt, Warenkorb, Checkout, Bestellung, Zahlung, Refund, Steuern und Bestellstatus. Course Captain speichert nur notwendige Bestell-/Positionsreferenzen und den daraus abgeleiteten Grant.
+- **Voucher Captain:** Gutscheinausstellung, Code-/Wertprüfung, Reservierung, Commit, Freigabe, Einlösungsledger und Refund-Semantik. Course Captain speichert weder Gutschein-Geheimcodes noch Guthaben oder ein zweites Voucher-Ledger.
+- **Optionale Installation:** WooCommerce und Voucher Captain sind **keine** Voraussetzungen für Course Captain Free; die beiden Integrationen sind unabhängig aktivierbar, sofern ihr jeweiliger fachlicher Pfad vollständig unterstützt wird. Ein Voucher-Connector darf WooCommerce nicht stillschweigend voraussetzen, falls der dokumentierte Voucher-Vertrag einen direkten Kurs-Einlösekanal vorsieht.
+
+### 32.2 Zwei Referenzabläufe und Konfliktfälle
+
+**A – WooCommerce-Kursverkauf:** Admin ordnet Produkt/Variation einem Kurs oder definierten Kurspaket zu → bestätigter, konfigurierter Bestellstatus erzeugt einen **idempotenten** Grant je zulässiger Bestellposition und Lernendem → `Mein Lernen` zeigt den Kurs → Storno, Teilrefund, Chargeback und spätere Statuskorrektur betreffen ausschließlich die entsprechenden Grants. Gastkauf-Identität muss vor Grant-Aktivierung sicher bestätigt/zugeordnet sein; E-Mail-Gleichheit allein genügt nicht.
+
+**B – Voucher-Einlösung für einen Kurs:** Kurs-Einlösekanal gemäß aktuellem `wp-couponmaster/CONNECTORS.md` → Gutschein prüfen/reservieren → Grant idempotent erzeugen → Einlösung committen. Bei Fehler/Timeout zwischen den Schritten erfolgt dokumentierte Kompensation oder ein nachvollziehbarer `pending`-Fall mit sicherem Retry. Für mehrfach einlösbare Guthaben, Kursgruppen, mehrere Plätze und Teilrefunds sind Einheiten und Zuordnung ausdrücklich festzulegen.
+
+**Doppelquellen-Schutz:** Wenn ein WooCommerce-Kauf gleichzeitig Voucher Captain als Zahlungsmittel/Rabatt nutzt, entstehen nicht zwei ungewollte Einschreibungen. Eindeutige Ownership pro Bestellposition und Grant-Quelle; unabhängige gültige Grants dürfen koexistieren. Doppelte Webhooks, parallele Calls und Backfill müssen dieselben fachlichen Ergebnisse liefern.
+
+### 32.3 R3-Abnahmereihenfolge
+
+1. **R3.0 Vertrags-Freeze:** WooCommerce HPOS/Classic und Blocks-/Classic-Checkout-Szenarien, Voucher-Connector-API, Mindestversionen, Product-to-Course-Mapping, Berechtigungen, Gastkonto-Regeln, Refund-Matrix und Installationsvarianten dokumentieren.
+2. **R3.1 WooCommerce-Connector:** Produktzuordnung, Grant/Revocation, Retry/Backfill, Adminstatus, End-to-End-Tests mit Bestellung, Zahlung, Teilrefund und Storno.
+3. **R3.2 Voucher-Captain-Connector:** Direkte Kurseinlösung, Reserve/Commit/Release, Kompensation, Duplikat-/Parallelitätstests und optionaler gemeinsamer WooCommerce-Pfad.
+4. **R3.3 Gemeinsame Abnahme:** WooCommerce allein, Voucher allein (soweit dessen Vertrag/Installation dies erlaubt), beide zusammen, beide deaktiviert, Version inkompatibel, Upgrade, Backup-Restore, Lizenzserver offline, Refund nach Kursbeginn; Free bleibt ohne beide vollständig nutzbar.
+5. **R3.4 Weitere Suite-Connectoren:** Workflow, Form, Review, Pass, Affiliate, License/Pro werden anschließend anhand Abhängigkeiten und Nutzen priorisiert; **keine** automatische Verschiebung ihrer Dokumentationsaufgaben in R1/R2.
+
+**Go/No-Go:** Kein doppelter Kurszugang aufgrund derselben Quelloperation, kein verlorener Kauf-/Einlösezustand, nachvollziehbarer Refund/Widerruf, keine Löschung historischer Lernnachweise, sichere Identitätszuordnung, kein direkter Fremdtabellenzugriff, dokumentierter Betreiber-Recovery-Pfad und bestandene End-to-End-Tests.
+
+**Quellen:** [Voucher-Connector-Vertrag](https://github.com/hastla007/wp-couponmaster/blob/main/CONNECTORS.md), [Course-Captain-Suite-Matrix](#30-captain-suite-gesamtabgleich-integrationslandkarte-und-vollständiger-aufgabenvertrag). Die Details der realen APIs und der WooCommerce-Kompatibilität sind vor der Implementierung erneut zu prüfen.
