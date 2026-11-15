@@ -616,7 +616,7 @@ Aus den tatsächlich gelesenen `konzept.md`-Dateien von Form Captain, Workflow C
 
 ### Erweiterter Suite-Quellenabgleich (Konzept Kapitel 45)
 
-Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `API.md`; Affiliate Captain `docs/CONTRACT.md`, `docs/IMPORT-EXPORT.md`; WP License Captain `docs/CLIENT-INTEGRATION.md`, `docs/RELEASE-READINESS.md`; Captain Pro `docs/ARCHITECTURE.md`. **Nur übertragbare Muster, keine Implementierungs- oder Kompatibilitätsbehauptung.** Neu `R0-36…40`, `R1-40…42`, `R3-18…19`. Alle Tasks offen.
+Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `API.md`; Affiliate Captain `docs/CONTRACT.md`, `docs/IMPORT-EXPORT.md`; License Captain `docs/CLIENT-INTEGRATION.md`, `docs/RELEASE-READINESS.md`; Captain Pro `docs/ARCHITECTURE.md`. **Nur übertragbare Muster, keine Implementierungs- oder Kompatibilitätsbehauptung.** Neu `R0-36…40`, `R1-40…42`, `R3-18…19`. Alle Tasks offen.
 
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
@@ -747,7 +747,7 @@ Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `
 - [ ] **SUITE-104 Voucher Captain:** Connector gemäß `CONNECTORS.md` mit Reserve/Commit/Kompensation, Kurs-Entitlement, Storno/Refund und Parallelitätstests.
 - [ ] **SUITE-105 Pass Captain:** Ticket-/Event-zu-Kurs-Mapping, Enrollment, Storno, Teilrefund, Check-in-Abgrenzung und Rollback.
 - [ ] **SUITE-106 Affiliate Captain:** versionierter Verkaufs-/Refund-Adapter gemäß `docs/CONTRACT.md`, Autoritätsquelle je Verkauf, Doppelprovisionsschutz, Rückbuchungen.
-- [ ] **SUITE-107 WP License Captain:** Pro-Client/Updater, Status-/Grace-Regeln, signierte Updates, Lizenzserver-Ausfall, Free-Unabhängigkeit und Release-Nachweis.
+- [ ] **SUITE-107 License Captain:** Pro-Client/Updater, Status-/Grace-Regeln, signierte Updates, Lizenzserver-Ausfall, Free-Unabhängigkeit und Release-Nachweis.
 - [ ] **SUITE-108 Captain Pro:** separates Course-Captain-Pro-Add-on, Feature-Registry, Paketierung, Produktschlüssel, Lizenz-/Upgrade- und Deaktivierungstests.
 - [ ] **SUITE-109 Admin-Diagnose:** Integrationsübersicht mit Zustand, Version, Vertrag, Test, Fehlerprotokoll, sicherem Retry und Supportexport.
 - [ ] **SUITE-110 Rezeptvorlagen:** Lernen→Workflow, Kurs→Form, Abschluss→Review, Voucher→Kurs, Pass→Kurs, Affiliate→Verkauf, Pro→Lizenz als reproduzierbare E2E-Tests.
