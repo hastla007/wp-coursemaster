@@ -1272,3 +1272,15 @@ Die **führende, schrittweise abzuarbeitende Aufgabenliste** steht in [`TODO-WET
 Der operative Aufgabenindex in `TODO-WETTBEWERBSANALYSE.md` enthält ergänzende Tasks `R0-13…R0-18`, `R1-19…R1-24`, `R2-06`, `R3-10…R3-11` und `R4-03`. Sie schließen bisher unterrepräsentierte Aspekte ab: Betriebs-/Supportkonzept, Performance und Skalierung, Barrierefreiheit, Mehrsprachigkeit, Prüfungsintegrität, sichere E-Mail-Kommunikation, Bedrohungsmodell, Datenschutz, Backup/Restore, Upgrade/Downgrade, CI-/Security-Checks, Monitoring, Dokumentation und kompatible Releases.
 
 **Freigaberegel:** Diese Punkte sind keine optionalen Nacharbeiten; ihre DoDs und negativen Tests sind vor den jeweiligen Release-Gates zu erfüllen. Bei Fehlern, Netzunterbrechung, doppelten Events, konkurrierenden Aktionen, vollen Speichern, Mail-Ausfall oder Plugin-Deaktivierung müssen Datenintegrität und sichere Wiederherstellung belegt werden. Keine Annahme, dass Tests oder Implementierungen bereits existieren.
+
+## 42. Simulierte Drei-Experten-Lückenprüfung: ergänzende Umsetzungsaufträge
+
+**Rollen:** WordPress-/LMS-Chefarchitekt, LMS-Produktstrategin/Learning-Experience-Expertin, Principal Engineering Lead für Qualität und Delivery. Diese Diskussion ist eine simulierte Rollenreview, keine echte externe Expertenberatung. Maßgeblich bleibt die operative Checkliste.
+
+**Architekt:** Ohne definierte WordPress-Kompatibilitätsmatrix, öffentliche API-/Hook-Verträge, Cache-Invalidierung, Race-/Konsistenzregeln und Versionierungsstrategie entstehen Sicherheits- und Wartungsrisiken. Ergänzt: `R0-19…21`, `R0-25`, `R1-25`, `R1-28`, `R1-30`, `R3-12`.
+
+**LMS-Produktstrategin:** Vollständige Features reichen nicht; Autoren benötigen verlässliche Publish-Validierung, Lernende revisionsfeste Prüfungen und verständliche Abläufe. Accessibility/Usability müssen in reale Abnahmen münden. Ergänzt: `R0-22…23`, `R0-26`, `R1-26…27`, `R1-29`, `R2-07`, `R3-13`.
+
+**Engineering Lead:** Große Tasks ohne Definition of Ready, testbare Unterpakete und Traceability sind nicht ausführbar. Ergänzt: `R0-24` und verbindliche Task-Splitting-/DoD-Regeln in der To-do-Liste.
+
+**Konsens und Gegenprüfung:** R1 bleibt auf die belegte fachneutrale LearnBoating-Parität begrenzt; reale Nutzbarkeit und Integrität sind Teil der Paritätsabnahme, keine zusätzlichen Marktfeatures. Erweiterte Autorenproduktivität gehört nach R2, Woo/Voucher-Connectoren nach R3. Neue Aufgaben sind erst nach Codeprüfung und Tests als abgeschlossen markierbar. Offene Architektur-/Produktentscheidungen sind explizite R0-Abhängigkeiten. Es wurde kein Programmcode verändert.
