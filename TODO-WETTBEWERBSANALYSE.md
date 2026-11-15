@@ -213,3 +213,31 @@
 - [ ] **R3-FIRST-108** Weitere Suite-Connectoren erst nach diesem Referenzpaket nach Abhängigkeit und Nutzen priorisieren; bestehende SUITE-/SEAM-Aufgaben erhalten.
 
 **Status:** Strategische Entscheidung dokumentiert; sämtliche Implementierungs- und Testaufgaben bleiben offen.
+
+## Produktentscheidungen und vollständiger Prozesskatalog (Konzept Kapitel 33–34)
+
+**Entschieden:** Gemeinsames Suite-Gesamtdashboard **vorerst zurückgestellt**, kein Releaseblocker. **Automatische Partnererkennung** verbindlich, aber keine automatische Aktivierung, Konfiguration oder Datenfreigabe. R0/R1 Parität → R2 P0 → R3 WooCommerce und Voucher zuerst → weitere Integrationen.
+
+### R0 – Konzept- und Testdesign
+
+- [ ] **FLOW-001** Für alle IDs `ID-01…06`, `LEARN-01…10`, `ACCESS-01…09`, `COMMERCE-01…10`, `SUITEFLOW-01…10`, `OPS-01…10` aus Kapitel 34 Owner, Trigger, Vorbedingungen, Zustände, Auth, Events, UI, Fehler, Retry, Audit und Abnahmetest ausarbeiten.
+- [ ] **FLOW-002** Testmatrix je Szenario: Happy Path, Ablehnung, Duplicate, Parallelität, Timeout, Partnerausfall, Retry, Widerruf und Recovery; Nichtanwendbarkeit begründen.
+- [ ] **FLOW-003** Fachentscheidungen einholen: Refund nach Lernbeginn, Gastkonto-/Platzzuweisung, Grant-Timeout, Zertifikatsverifikation nach Lizenzablauf, Retention, Membership, Trainerrollen.
+- [ ] **FLOW-004** Priorität und Release-Zuordnung jeder Katalog-ID prüfen: neutrale LearnBoating-Parität nach R1, zusätzliche P0 nach R2, Suite-Connectoren nach R3, Cross-Site nach R4.
+- [ ] **FLOW-005** Partnererkennung spezifizieren: Plugin-Status, Version, Feature-Discovery, Vertragskompatibilität, explizites Opt-in, RBAC, Fehlerdiagnose und Deaktivierung.
+- [ ] **FLOW-006** Gemeinsames Suite-Dashboard als **später zu prüfende Option** notieren; keine Implementierung oder Gate-Abhängigkeit ohne neue Entscheidung.
+
+### R1/R2 – Fachliche Kernabläufe gemäß verbindlicher Release-Reihenfolge
+
+- [ ] **FLOW-101** Neutrale Lern-, Prüfungs-, Fortschritts-, Zertifikats-, Zugangs- und Autorenabläufe aus `LEARN`, `ID` und `ACCESS` mit R1-Paritätsmatrix verknüpfen und abnehmen.
+- [ ] **FLOW-102** Zusätzliche Notiz-, Aufgaben-, Vorlagen- und Builder-Abläufe nur in R2 umsetzen, sofern nicht nachweislich R1-Parität.
+
+### R3 – WooCommerce/Voucher zuerst, danach übrige Suite
+
+- [ ] **FLOW-201** Alle `COMMERCE-01…10` als reproduzierbare Vertrags- und End-to-End-Tests für WooCommerce und Voucher implementieren.
+- [ ] **FLOW-202** Alle `SUITEFLOW-01…10` nach Referenzintegrationen einzeln als optionale Connector-Abnahme prüfen; keine Doppelprovision, kein doppelter Grant, keine falsche Kompetenz.
+- [ ] **FLOW-203** Alle `OPS-01…10` über Standalone- und Connector-Matrix testen, inklusive Deaktivierung, Upgrade, Sicherheit, Datenschutz, Last und Recovery.
+- [ ] **FLOW-204** Automatische Partnererkennung und optionale Integrationsoberfläche bauen: kompatibel/inaktiv/fehlend/fehlerhaft, Verbindungsprüfung, manuelles Opt-in, kein Pflicht-Suite-Kern.
+- [ ] **FLOW-205** Kundenreisen für Käufer, Lernende, Trainer und Betreiber inklusive Statusmeldungen und Fehlerbehebung visuell spezifizieren und per E2E abnehmen.
+
+**Definition of Done:** Jede Prozess-ID besitzt einen dokumentierten Owner, Zustandsautomaten, Fehler-/Kompensationspfad und Testnachweis; keine automatischen Datenfreigaben; Dashboard zurückgestellt; R1/R2 nicht durch Suite-Arbeiten verdrängen.
