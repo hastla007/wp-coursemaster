@@ -988,3 +988,106 @@ Für **jeden** Connector: Ownership-Tabelle, Datenflussdiagramm, öffentliche AP
 **Go/No-Go:** Kein doppelter Kurszugang aufgrund derselben Quelloperation, kein verlorener Kauf-/Einlösezustand, nachvollziehbarer Refund/Widerruf, keine Löschung historischer Lernnachweise, sichere Identitätszuordnung, kein direkter Fremdtabellenzugriff, dokumentierter Betreiber-Recovery-Pfad und bestandene End-to-End-Tests.
 
 **Quellen:** [Voucher-Connector-Vertrag](https://github.com/hastla007/wp-couponmaster/blob/main/CONNECTORS.md), [Course-Captain-Suite-Matrix](#30-captain-suite-gesamtabgleich-integrationslandkarte-und-vollständiger-aufgabenvertrag). Die Details der realen APIs und der WooCommerce-Kompatibilität sind vor der Implementierung erneut zu prüfen.
+
+## 33. Produktentscheidungen: Suite-Erkennung und zurückgestelltes Gesamtdashboard
+
+**Entscheidung 1:** Ein gemeinsames Captain-Suite-Gesamtdashboard ist **optional für eine spätere Produktentscheidung**, kein R0–R3-Releaseblocker und kein Pflichtplugin. Course Captain behält ein eigenständiges Dashboard und eigene Navigation. Einheitliche Bezeichnungen, Kontextlinks und UX-Konventionen bleiben erwünscht.
+
+**Entscheidung 2:** Course Captain soll vorhandene Captain-Produkte **automatisch und sicher erkennen**, ohne sie selbst zu installieren, zu aktivieren oder zu konfigurieren. Erkennung umfasst `not_installed`, `inactive`, `active_compatible`, `active_incompatible`, `needs_configuration`, `connected`, `degraded` und `failed`; das ist **kein** Ersatz für die explizite Freigabe eines Datenaustauschs. Capability-Discovery nur über dokumentierte öffentliche Version-/Feature-APIs; keine Annahme aufgrund eines Slugs allein. Pro Partner: erkannte Version, Vertrag, unterstützte Funktionen, Voraussetzungen, Aktivierungs-/Deaktivierungssteuerung, Diagnose, Hilfe und Datenschutzinformation. Bei fehlendem oder deaktiviertem Partner keine fatalen Fehler; ohne Nutzerfreigabe keine personenbezogene Synchronisierung.
+
+**Reihenfolge:** In R0 dokumentieren; Free-R1/R2 nicht von Suite-Partnern abhängig machen; optionale Integrationsoberfläche und echte Connectoren in R3 nach Kapitel 32. Dashboard-Idee erst nach separater Entscheidung bewerten.
+
+## 34. End-to-End-Prozesskatalog: sämtliche relevanten Course-/Suite-Lebenszyklen
+
+Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behauptung, jede denkbare externe Plugin-Kombination abschließend zu kennen. Für jeden Ablauf gelten: **Trigger → Identität/Autorisierung → verantwortliches System → persistierter Zustandsübergang → Event/Bestätigung → UI-Rückmeldung → Fehler/Retry/Kompensation → Audit/Datenschutz → Test.** Wo die Gegenstelle noch nicht verifiziert ist, bleibt der Connector-Vertrag offen. **R0/R1 → R2 → R3** bleibt unverändert.
+
+### 34.1 Identität, Rollen und Einstieg (ID)
+
+| ID | Ablauf und Regel | Kritischer Ausnahme-/Abnahmetest |
+|---|---|---|
+| ID-01 | Bestehender WP-Nutzer meldet sich an, erhält ausschließlich eigene Kurse | Rollenwechsel, gesperrter Nutzer, fremde Kurs-ID: kein IDOR |
+| ID-02 | Gast kauft Kurs: verifizierte Einladung/Account-Zuordnung vor aktivem Zugang | Gleiche E-Mail eines fremden Accounts führt nie zu automatischer Übernahme |
+| ID-03 | Käufer erwirbt für andere Person oder mehrere Plätze; Käufer ≠ Lernender | Jede Platzzuweisung einmalig, Einwilligung/Identität geprüft |
+| ID-04 | Trainer, Autor, Tutor, Shop-Manager, Admin besitzen getrennte Objekt-/Site-Rechte | Keine implizite Eskalation über Woo-/Suite-Rolle |
+| ID-05 | Accountzusammenführung, E-Mail-Wechsel, Nutzerlöschung oder Sperre | Grants, Lernhistorie und Prüfungsnachweise konsistent; Datenschutz-/Retention-Regel |
+| ID-06 | Multisite/Cross-Site-Identität nur nach R4-Entscheidung | Keine standortübergreifende Identitätsgleichsetzung allein per E-Mail |
+
+### 34.2 Kurs- und Lernlebenszyklus (LEARN)
+
+| ID | Ablauf und Regel | Kritischer Ausnahme-/Abnahmetest |
+|---|---|---|
+| LEARN-01 | Kurs erstellen → Entwurf → Prüfung → veröffentlichen → aktualisieren/archivieren | Unveränderliche Revision für laufende Prüfungsversuche; Draft nicht öffentlich |
+| LEARN-02 | Lektion/Video/Datei/Activity bearbeiten, freigeben und absolvieren | Zugangsprüfung für Medien; keine fremden Uploads |
+| LEARN-03 | Lernfortschritt speichern, unterbrechen, fortsetzen, Gerätewechsel | Doppelte/verspätete Requests verändern Fortschritt nicht rückwärts |
+| LEARN-04 | Quiz/Prüfung starten, Antworten speichern, Zeitlimit, Abgabe, Bewertung | Serverzeit, Versuchssnapshot, Retry, Netzwerkabbruch, parallele Tabs |
+| LEARN-05 | Prüfung nicht bestanden, Wiederholung, Versuchslimit, Sperrfrist | Kein Umgehen durch URL-/REST-Manipulation |
+| LEARN-06 | Smarttrainer, Karteikarten, Favoriten, Fehlertraining, Wiederholungsplan | Neutraler LearnBoating-Paritätsnachweis und unabhängige Mastery |
+| LEARN-07 | Completion, Mastery, Competency separat berechnen | Zahlung/Check-in/Anwesenheit ist kein Kompetenznachweis |
+| LEARN-08 | Zertifikat ausstellen, verifizieren, korrigieren, widerrufen | Stabile Nachweis-ID, revisionssichere Historie, kein Doppelzertifikat |
+| LEARN-09 | Lernnotizen, Aufgabenabgabe, Trainerfeedback, Vorlagen | Zusätzliche P0-Funktionen nur R2, soweit nicht R1-Parität |
+| LEARN-10 | Kurs löschen/archivieren oder Inhalte importieren/rollback | Referenzintegrität, Nachweisaufbewahrung, Dry-run, Konfliktbericht |
+
+### 34.3 Enrollment und Zugangsquellen (ACCESS)
+
+| ID | Ablauf und Regel | Kritischer Ausnahme-/Abnahmetest |
+|---|---|---|
+| ACCESS-01 | Kostenloser, manueller, administrativer oder Einladungskurszugang | Nur autorisierte Quelle; Audit und Widerruf |
+| ACCESS-02 | Kauf-/Voucher-/Ticket-/Mitgliedschaftsgrant hinzufügen | Pro Quelle stabile Referenz und idempotenter Grant |
+| ACCESS-03 | Mehrere gültige Grants für denselben Kurs | Widerruf einer Quelle sperrt andere nicht |
+| ACCESS-04 | Grant pending → active/failed/expired/revoked | Nur erlaubte Übergänge, Timeout-/Retry-/Recovery-Pfad |
+| ACCESS-05 | Ablaufdatum, Verlängerung, Pause, Reaktivierung | Zeitgrenzen/Zeitzonen, keine doppelte Verlängerung |
+| ACCESS-06 | Rückerstattung nach Kursbeginn oder nach Zertifikat | Zukunftszugang entziehen, historische Ergebnisse nicht löschen |
+| ACCESS-07 | Paket/Bündel/mehrere Plätze oder Teilwiderruf | Zuordnung pro Position/Platz/Teilnehmer eindeutig |
+| ACCESS-08 | Gesperrter Kurs, eingeschränkte Lektion, geschützte Downloads | Rechteprüfung bei jedem Zugriff, auch REST und Medien |
+| ACCESS-09 | Quelle/Partner deaktiviert oder inkompatibel | Bestehende Grants nach expliziter Betreiberpolicy; kein stiller Massenwiderruf |
+
+### 34.4 WooCommerce und Voucher – verbindliche erste R3-Welle (COMMERCE)
+
+| ID | Ablauf und Regel | Kritischer Ausnahme-/Abnahmetest |
+|---|---|---|
+| COMMERCE-01 | Woo-Produkt/Variation → Kurs/Paket; Kauf → Zahlung bestätigt → Grant | HPOS/Classic, Checkout Blocks/Classic, doppelte Hooks |
+| COMMERCE-02 | Bestellung pending/on-hold/failed/cancelled/completed | Keine Freischaltung vor definierter Bestätigung; spätere Statuswechsel |
+| COMMERCE-03 | Gastbestellung, Käufer ≠ Lernender, Mehrfachmenge | Identitätsverifikation, Platzzuweisung, keine E-Mail-Übernahme |
+| COMMERCE-04 | Woo-Storno, Teil-/Vollrefund, Chargeback, Reversal | Nur betroffene Positions-Grants; Ledger bei Woo |
+| COMMERCE-05 | Gutschein für Kurs: validate/reserve → grant → commit | Kompensation bei Timeout, Retry und konkurrierender Einlösung |
+| COMMERCE-06 | Gutschein mehrfach/mit Guthaben/Plätzen, Ablauf, ungültig | Einheit/Restwert bleibt Voucher-Eigentum |
+| COMMERCE-07 | Woo-Bestellung mit Voucher-Rabatt oder Voucher-Zahlung | Eine autoritative Kauf-/Grant-Quelle, kein doppelter Zugang |
+| COMMERCE-08 | Gratisbestellung, 100%-Rabatt, erneuter Kauf, Upgrade | Explizite Freischaltpolicy, bestehende Grants nicht überschreiben |
+| COMMERCE-09 | Produkt-/Kursmapping nach Verkauf geändert oder gelöscht | Historische Bestellposition bleibt korrekt zuordenbar |
+| COMMERCE-10 | Partnerausfall zwischen Reservierung, Grant und Commit | Persistenter Zwischenzustand, sichere Wiederholung/Supportreparatur |
+
+### 34.5 Übrige Suite-Connectoren – spätere R3-Wellen (SUITEFLOW)
+
+| ID | Ablauf und Regel | Kritischer Ausnahme-/Abnahmetest |
+|---|---|---|
+| SUITEFLOW-01 | Workflow: Enrollment, Lektion, Prüfung, Completion, Zertifikat als Event | Outbox, Dedupe, Replay, fehlender Workflow-Partner |
+| SUITEFLOW-02 | Workflow-Action: autorisiertes Enroll/Revoke oder Benachrichtigung | Rechte, Idempotenz, keine Event-/Action-Schleife |
+| SUITEFLOW-03 | Form: kursgebundenes Formular, Aufgabenreferenz, Trainerantwort | Context-Scopes, IDOR, Upload-Schutz, Entry-Eigentum bei Form |
+| SUITEFLOW-04 | Review: Abschluss → verifiziertes Erlebnis → Einladung | Consent, Opt-out, Dedupe, Widerruf, keine Bewertungsmanipulation |
+| SUITEFLOW-05 | Pass: Event-/Ticketkauf → Kursgrant; Storno → Grantwiderruf | Check-in ist nicht Completion; Teilrefund/Platztransfer |
+| SUITEFLOW-06 | Affiliate: Sale/Refund über autoritative Quelle | Woo-Adapter und Course-Adapter niemals doppelt provisionieren |
+| SUITEFLOW-07 | License/Pro: Lizenz aktiv, grace, abgelaufen, Server offline | Free-Lernen/Historie unabhängig; Pro-Funktion kontrolliert |
+| SUITEFLOW-08 | Kombinierte Rezepte: Kauf → Kurs → Prüfung → Workflow → Review | Korrelation, Reihenfolge, Einwilligung, doppelte Ereignisse |
+| SUITEFLOW-09 | Partnerinstallationen automatisch erkennen und einzeln aktivieren | Fehlend/inaktiv/inkompatibel/konfigurationsbedürftig korrekt anzeigen |
+| SUITEFLOW-10 | Partner-Upgrade, Downgrade, Deaktivierung, Neuaktivierung | Contract-Handshake, Recovery, keine Datenkorruption |
+
+### 34.6 Querschnitt: Datenschutz, Sicherheit, Betrieb (OPS)
+
+| ID | Ablauf und Regel | Kritischer Ausnahme-/Abnahmetest |
+|---|---|---|
+| OPS-01 | WP-Datenexport, Lösch-/Anonymisierungsantrag, Retention | Jedes Plugin bearbeitet eigene Daten; Rechtsgrundlagen und Audit |
+| OPS-02 | Rollen-/Objektzugriff, REST-Nonce/Auth, Webhook-Signatur | IDOR, CSRF, Replay, SSRF, Rate Limit, Secret-Rotation |
+| OPS-03 | Event verspätet, doppelt, out-of-order oder verloren | Idempotenz, Sequenz-/Versionsprüfung, Outbox-Replay |
+| OPS-04 | Parallelität: zwei Zahlungen, zwei Refunds, zwei Einlösungen | Atomare Zustandsübergänge, keine doppelten Side-Effects |
+| OPS-05 | Job/Queue/DB/Netzwerk/Partner offline | Backoff, Dead-letter/Quarantäne, manuelle Reparatur, Alarm |
+| OPS-06 | Admin-Diagnose, Healthcheck, Fehler-/Supportexport | Datenminimierung, RBAC, Korrelation, kein Secret-Leak |
+| OPS-07 | Installation, Update, Migration, Deinstallation, Rollback | Datenbankversionen, Backup/Restore, bestehende Nachweise |
+| OPS-08 | Übersetzungen, Accessibility, Responsive, E-Mail/Benachrichtigung | Lokalisierung, Tastatur/Screenreader, Opt-out, Zustellfehler |
+| OPS-09 | Leistung: große Kurskataloge, Prüfungen, Masseneinschreibungen | Query-/Index-Budget, Last-/Parallelitätstest, Queue-Grenzen |
+| OPS-10 | Standalone-Free ohne Partner und ohne Lizenzserver | Alle R1-Kernfunktionen und Lernhistorie weiterhin nutzbar |
+
+### 34.7 Testabdeckung und offene Geschäftsentscheidungen
+
+- **Coverage-Regel:** Jede Katalog-ID wird in der To-do-Liste als Spezifikations-/Testauftrag geführt. Für jede Kombination von Zuständen sind mindestens Erfolgsfall, Ablehnung, Wiederholung, Parallelität, Partnerausfall und Wiederanlauf zu bewerten; **nicht anwendbar** mit Begründung markieren. Ein Szenario gilt erst als abgeschlossen, wenn Owner, Vorbedingungen, Zustandsübergänge, UI-Feedback, Audit und automatisierter oder begründet manueller Test dokumentiert sind.
+- **Verantwortungsregel:** Partnerkonzepte sind keine Implementierungsbelege. Vor jedem R3-Connector den aktuellen öffentlichen API-Vertrag und tatsächlichen Code gegenprüfen; bei fehlender Schnittstelle eine Anforderung dokumentieren, keine heimliche Fremdrepo-Änderung.
+- **Offene Entscheidungen:** Refund-Policy nach begonnenem Kurs; Nachweis-/Zertifikatsverifikation nach Lizenzablauf; Identität bei Gastkauf; Käufer-/Teilnehmertrennung; Paket-/Platz-Einheiten; Pending-Timeout; Mitgliedschafts-Entitlement; Trainerrollen/Multisite; Datenretention je Objekt; genaue R3-Wellen nach Woo/Voucher. Bis zur Entscheidung sichere Defaults: kein ungeprüfter Grant, keine Account-Zusammenführung per E-Mail, keine automatische Nachweislöschung, keine automatische Kompetenzvergabe.
