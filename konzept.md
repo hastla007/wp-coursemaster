@@ -1152,3 +1152,69 @@ Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behaup
 | CORE-12 | Connector wird deaktiviert und später reaktiviert | Keine stillen Massenwiderrufe, Reconciliation ohne Duplikate |
 
 **Noch zu konkretisieren (R0):** WP-Capability-Matrix pro Objekt; endgültige Identitäts-Claim-UX und Fristen; Gruppenplatz-Umbuchungsregeln; tatsächliche Woo-/Voucher-Status- und Revisionsverträge; rechtliche Refund-/Retention-Policy je Markt; genaue Zertifikatsfelder und Privacy-Defaults; Support-/Timeout-SLAs. Diese Punkte dürfen nicht als implementiert oder abschließend juristisch geprüft gelten.
+
+## 36. R0-Spezifikation: WordPress-Capabilities, Objektrechte und Datenschutzgrenzen
+
+**Status:** Architekturvorgabe, nicht implementiert. Rollen sind frei kombinierbare Berechtigungsbündel; jede Operation prüft **Capability + Objektbeziehung + Site-Kontext + Status**. WP-Administrator ist nicht gleich automatischer Kursinhaltseigentümer; `manage_options` wird nicht als allgemeine LMS-Autorisierung missbraucht.
+
+| Aktion / Ressource | Lernender | Käufer | Trainer | Autor | Kursmanager | Site-Admin |
+|---|---|---|---|---|---|---|
+| Eigene Einschreibungen/Fortschritte lesen | eigen | nein* | zugewiesen, nur nötige Übersicht | nein | im verwalteten Kurs, minimiert | nur zweckgebunden |
+| Eigene Prüfung starten/abgeben | eigen + active Grant | nein | nein | nein | nein | nein |
+| Prüfungsantworten/Versuchsdaten lesen | eigen, soweit freigegeben | nein | nur zugewiesene Bewertung | nein | autorisiert, auditpflichtig | Supportfall, auditpflichtig |
+| Kursinhalt erstellen/bearbeiten | nein | nein | nur explizite Zusatzberechtigung | eigene/zugewiesene | verwaltete | explizite Capability |
+| Kurs veröffentlichen/archivieren | nein | nein | nein | nur mit Freigaberecht | verwaltete | explizite Capability |
+| Teilnehmer einladen/Plätze zuweisen | nein | gekaufte unzugewiesene Plätze | nur explizite Kursbefugnis | nein | verwaltete | Supportfall |
+| Grant manuell erstellen/widerrufen | nein | nein | nein | nein | verwaltete, nach Policy | explizite Capability + Audit |
+| Zertifikat ausstellen/korrigieren/widerrufen | nein | nein | bewerten, nicht allein widerrufen | nein | autorisierte Freigabe | explizite Capability + Grund |
+| Integrationen/Secrets konfigurieren | nein | nein | nein | nein | nein | eigene Integrations-Capability |
+| Datenschutzexport/-löschung auslösen | eigene Anfrage | eigene Daten | nein | nein | nein | befugte Datenschutzrolle |
+
+* Käufer erhält nur Bestell-, Platz- und Einladungsstatus, **nicht** Lernleistungen anderer Personen. Ein Nutzer mit mehreren Rollen erhält Zugriff ausschließlich im jeweils zulässigen Objektkontext.
+
+**Vorgeschlagene Capability-Gruppen (vor Implementierung zu finalisieren):** `cc_view_own_learning`, `cc_manage_own_seats`, `cc_edit_courses`, `cc_publish_courses`, `cc_manage_enrollments`, `cc_grade_assigned`, `cc_manage_certificates`, `cc_view_course_reports`, `cc_manage_integrations`, `cc_manage_settings`, `cc_export_personal_data`. Die tatsächlichen Slugs, WP-Meta-Cap-Mappings und Default-Rollenzuweisungen werden in R0 durch ADR freigegeben. **Deny by default**, insbesondere bei fehlender Objektzuweisung, inaktivem Grant, fremder Site, Gastzugriff oder deaktiviertem Connector.
+
+**Prüfpunkte:** REST-Route, Admin-Post/AJAX, Block-Editor, Shortcode, Medien-Download, Datei-Upload, Webhook, Cron und CLI durchlaufen denselben serverseitigen Autorisierungsservice; Nonces ersetzen keine Rechteprüfung. Cross-site-Daten bleiben R4. Reports aggregieren/minimieren; alle Einsichten in fremde Prüfungs-/Personendaten sind zweckgebunden und auditiert.
+
+## 37. R0-Datenmodell und Transaktionsgrenzen – fachlicher Entwurf
+
+**Keine endgültige Tabellenentscheidung:** WordPress-native Post-/Meta-Strukturen für redaktionelle Inhalte sind zu bevorzugen, wo angemessen; transaktionale Datensätze mit Eindeutigkeit, Konkurrenzschutz und großen Volumina benötigen einen begründeten eigenen Storage-Entwurf. Keine DB-Implementierung vor ADR und Migrationsplan.
+
+| Entität | Pflichtschlüssel / Beziehungen | Invarianten |
+|---|---|---|
+| `Course`, `CourseRevision` | site_id, course_id, revision_id, status | Veröffentlichte Prüfungsreferenzen sind revisionsfest |
+| `Lesson`, `Activity`, `Question`, `QuestionRevision` | course_revision_id, activity_id, question_revision_id | Neutraler Providervertrag; keine fachdomänenspezifischen Felder im Kern |
+| `AssessmentBlueprint`, `Attempt`, `AttemptSnapshot`, `Answer` | learner_id, course_revision_id, attempt_id, snapshot_id | Versuchssnapshot nach Start unveränderlich; Abgabe idempotent |
+| `LearningProgress`, `MasteryState`, `CompetencyEvidence` | learner_id, activity_id, revision, updated_at | Completion ≠ Mastery ≠ Competency; monotone/versionsichere Updates |
+| `BuyerReference`, `Seat`, `Claim` | source_system, external_buyer_id, order_line_id, seat_id, token_hash | E-Mail keine Primäridentität; Claim einmalig, zeitlich begrenzt |
+| `Grant`, `GrantEvent` | site_id, learner_id, course_id, grant_source_key, revision, state | Unique source key; effektiver Zugang aus aktiven Quellen |
+| `Certificate`, `CertificateRevision`, `VerificationToken` | learner_id, course_revision_id, evidence_snapshot_id, certificate_id | Korrektur/Widerruf historisiert, Verifikation datensparsam |
+| `IntegrationConnection`, `InboxEvent`, `OutboxEvent`, `Job` | connector_id, contract_version, event_id, correlation_id | Dedupe, Wiederholung, Quarantäne, kein Secret in Logs |
+| `AuditRecord`, `RetentionRule` | actor, action, object, reason, timestamp, site_id | Manipulationserschwerung, Zweckbindung, definierte Löschfristen |
+
+**Technische Vorgaben:** WordPress-User-ID nur innerhalb der Site eindeutig interpretieren; externe IDs immer mit Source und Scope. UTC für Zeitstempel; explizite Zeitzone in UI. Eindeutigkeit für `grant_source_key`, `event_id + connector_id`, `attempt_id + submission_revision`, `certificate_id` und einmalige Claims. DB-Transaktionen/Compare-and-swap für konkurrierende Statuswechsel; keine Verlass auf WP-Cron als garantierte Sofortzustellung. Schema-/API-Versionierung, Backfill, Dry-run, Rollback-/Forward-Fix-Strategie, Indizes, Lösch- und Exportpfade vor R1.
+
+**Dateneigentum:** Woo besitzt Bestellungen/Refunds; Voucher Guthaben/Redemption; License Softwarelizenz; Course besitzt Grant, Lernfortschritt, Prüfungsversuche und Zertifikate. Keine redundanten Vollkopien fremder Datensätze. API-Verträge enthalten `schema_version`, `source`, `source_event_id`, `occurred_at`, `correlation_id`, `object_scope` und minimalen Payload. Partnerdetails erst nach echtem Codeabgleich fixieren.
+
+## 38. R0-Paritätsinventar: verbindliche Prüfschablone statt unbelegter Vollständigkeit
+
+**Wichtig:** Die folgende Liste ist eine **vorläufige, aus den bisherigen Konzeptentscheidungen abgeleitete Prüfschablone**. Sie ist **keine** Funktion-für-Funktion-Auditierung des LearnBoating-Codes und darf nicht als abgeschlossene 100-%-Parität ausgegeben werden. Jede Zeile braucht Codepfad, Version/Commit, UI-Nachweis, Datenstruktur, Abhängigkeiten, Wiederverwendungsentscheidung, Testfixture und R1-Akzeptanz.
+
+| Inventar-ID | Neutraler Funktionsbereich | R0-Nachweis / R1-Abnahme |
+|---|---|---|
+| PAR-01 | Kurskatalog, Kursstruktur, Freigabe | Alle sichtbaren Kurs-/Lektionszustände und Zugriffspfade |
+| PAR-02 | Lektionen, Medien, Videos, Downloads | Vollständige Wiedergabe-/Zugriffsszenarien und Rechte |
+| PAR-03 | Fragenbank, Quiz, Auswertung | Fragetypen, Antwortlogik, Bewertungsgrenzen und Revisionsverhalten |
+| PAR-04 | Zeitprüfungen und Prüfungsversuche | Zeitlimit, Wiederholung, Snapshot, Abbruch, Doppelabgabe |
+| PAR-05 | Karteikarten und Favoriten | Erstellen, Speichern, Filtern, Wiederfinden, Berechtigung |
+| PAR-06 | Fehlertraining und Smarttrainer | Fehlerstatus, Wiederholungsintervalle, Mastery-Logik |
+| PAR-07 | Lernfortschritt und Completion | Persistenz, Resume, Reset, Berichte und Migration |
+| PAR-08 | Nutzer-/Kurszugang und Entitlements | Standalone-Free, Quelle, Laufzeit, Mehrfachzugang |
+| PAR-09 | Content-Import, Export und Rollback | Validierung, Preview, atomare/kompensierbare Rücknahme |
+| PAR-10 | WP-Admin-Autorenworkflow und Darstellung | Editoren, Vorschau, Veröffentlichung, Responsive/Accessibility |
+| PAR-11 | REST-/AJAX-Endpunkte, Cron und Events | Vertrag, Rechte, Idempotenz, Versionen, Hintergrundjobs |
+| PAR-12 | Datenmigration und Regression | Golden Master, Fixture, Altbestandsdaten, Prüfungsnachweise |
+
+**Klassifizierung pro Originalfunktion:** `reuse` (mit Lizenz-/Qualitätsprüfung), `abstract` (fachneutralisieren), `replace` (mit nachvollziehbarer Begründung), `exclude_domain_specific` (Boot/Funk/Navigation/amtliche Prüfungsinhalte), `unknown` (blockiert R0-Gate A). Funktionen, die LearnBoating neutral bereits hat, gehören nach R1 und dürfen nicht als R2-Neuheit verschoben werden. Jede Paritätsbehauptung benötigt Quellbeleg und automatisierten oder begründet manuellen Regressionstest.
+
+**R0 Gate A:** 100 % der identifizierten Originalfunktionen klassifiziert; alle `unknown` aufgelöst; neutraler Golden Master definiert; ADRs zu Rollen, Datenmodell, Identität und Revisionslogik akzeptiert. **R1 Gate B/C:** Jede neutrale Funktion nachweislich abgenommen; Free ohne Suite/Woo/Lizenz lauffähig. R2/R3 bleiben nachgeordnet.
