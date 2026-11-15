@@ -261,3 +261,13 @@
 - [ ] **R0-GATE-001** Gate A erst bei vollständigem Quellinventar und aufgelösten Unknowns freigeben; R1-Gates B/C erst nach tatsächlicher Free-Parität, keine R2-/R3-Vorziehung.
 
 **Status:** Kapitel 36–38 sind spezifizierte Architektur- und Inventarschablonen. Die Codeinventur und Tests bleiben offen; keine Implementierung.
+
+## R0-Quellabgleich LearnBoating – erste belegte Dokumenteninventur (Konzept Kapitel 39)
+
+- [x] **LB-AUDIT-001 – Einstieg und Quelllandkarte:** LearnBoating-`README.md`, `konzept-wp-lernplugin.md`, `schema/README.md` und `docs/schnittstellen-erweiterungen.md` lesend ausgewertet; 15 zusätzliche Prüffälle `LB-01…LB-15` in Kapitel 39 erfasst. **Nur Dokumentenabgleich, kein Implementierungsnachweis.**
+- [ ] **LB-AUDIT-002 – Codeevidenz:** Für jeden `LB-01…LB-15` aktuelle Dateien/Klassen/Methoden, Commit, tatsächlichen Status und Testbelege erfassen; unzutreffende oder nur geplante README-Aussagen kennzeichnen.
+- [ ] **LB-AUDIT-003 – Vollständigkeit:** Gesamtes `bootspruefung-learning/`, `tools/content-build/`, `schema/`, `tests/` und alle API-/Cron-/UI-Pfade systematisch inventarisieren; weitere Funktionsfamilien nachtragen.
+- [ ] **LB-AUDIT-004 – Neutralität:** Jede Codefunktion als `reuse/abstract/replace/exclude_domain_specific/unknown` mit Lizenz-/Contentrechten, Abhängigkeiten und Aufwand klassifizieren.
+- [ ] **LB-AUDIT-005 – R1/R3-Schnitt:** Generische Free-Kernfunktion nach R1; konkrete Woo-, Voucher- und Ticketadapter nach R3 gemäß bereits verbindlicher Reihenfolge. R1 muss standalone funktionieren.
+- [ ] **LB-AUDIT-006 – Golden Master:** Bestehende Integration-/E2E-/Importtests auf neutrale Fixtures abbilden, Regressionslücken und neue Tests für Zugänge, Seats, Medien, Privacy und Fehlerfälle schließen.
+- [ ] **LB-AUDIT-007 – Gate A:** R0 nicht abschließen, bevor alle Quellfunktionen codebasiert nachgewiesen und `unknown` aufgelöst sind; keine Aussage „100 % Parität“ allein aus der README.
