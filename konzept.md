@@ -21,7 +21,7 @@ Course Captain ist ein **vollständig themenneutrales, WordPress-natives LMS** f
 
 Die Bedienung soll so gut sein wie das bestehende Lernsystem in `learnboating`, jedoch **ohne feste Fachdomäne**. Nicht nur Strings umbenennen: Datenmodell, Eingabeeditoren, Bewertung, Veröffentlichungsworkflow, Berechtigungen und externe Schnittstellen müssen domänenneutral gestaltet werden.
 
-**Zielkunden:** Kursanbieter, Online-Akademien, Coaches, interne Weiterbildungsabteilungen, Agenturen und WooCommerce-Shops. **Keine** Bootsführerschein-, Funk-, Navigation-, Prüfungsausschuss- oder amtliche Prüfungsspeziallogik im generischen Produkt. Ein zukünftiges Fachpaket könnte solche Module über die öffentlichen Verträge bereitstellen; es gehört nicht in Core.
+**Zielkunden:** Kursanbieter, Online-Akademien, Coaches, interne Weiterbildungsabteilungen, Agenturen und WooCommerce-Shops. **Verbindlicher Ausschluss:** Alle branchenspezifischen Altmodule, Fachprüfungsregeln, Geräteemulationen, Spezialmedien und Spezial-Workflows der Referenzanwendung werden nicht in Course Captain portiert. Es werden ausschließlich fachneutrale Lernfunktionen übernommen.
 
 ### Verbindliche Architekturentscheidungen
 
@@ -48,8 +48,8 @@ Der Bestand enthält ein produktnahes WP-Lernplugin (`bootspruefung-learning/`),
 | `CollectionService.php`: Favoriten, eigene Sammlungen und Fehlerfragen | **Übernehmen** | Generische Lernlisten, Kurszuordnung, Berechtigungsprüfung |
 | `Exams/Services/ExamService.php`: Zeitlimit, Session-Snapshot, feste/zufällige Bögen, Teilgrenzen, Wiederaufnahme, idempotente Antwortspeicherung | **Übernehmen / generalisieren** | Generischer Quiz-/Exam-Blueprint, freie Bestehensgrenzen und Fragetypen; keine amtlichen Regeln |
 | `Trainers/VideoService.php`: Videolektionen, Fortschritt, Schrittgalerien, Fragen pro Video | **Übernehmen** | Universelle Lektionstypen und Medienprovider, Untertitel/Datenschutz |
-| `Trainers/TrainerService.php`: Navigations- und Praxisaufgaben | **Nur Muster übernehmen** | Generische Fallstudien, freie Antworten, Selbsteinschätzung und praktische Aufgaben; feste 7-von-9-Navigationswertung entfernen |
-| Funktext, Vokabeln, Funkszenarien, Gerätesimulation | **Nicht als Fachmodule übernehmen** | Allgemeine Karteikarten, Dialog-/Rollenspiel-Trainer und optional erweiterbarer interaktiver Simulationstyp |
+| `Trainers/TrainerService.php`: fachgebundene Praxisaufgaben | **Fachmodule nicht übernehmen** | Nur unabhängig nutzbare Muster für freie Antworten, Selbsteinschätzung und praktische Aufgaben; sämtliche fachspezifischen Bewertungsregeln verwerfen |
+| Fachgebundene Dialoge, Wortschätze und Gerätesimulationen | **Nicht übernehmen** | Nur universelle Lernkarten und frei definierbare Dialog-/Szenarioaktivitäten als eigenständige, themenneutrale Funktion |
 | `Content/Package/Package.php`, `ImportService.php`: JSON/ZIP-Pakete, Schemaprüfung, Preview, Batch-Import, Freigabe, Rollback, Medienprüfung | **Übernehmen / neu versionieren** | Neutraler Package Contract v1, keine Boots-Schemata; sichere Importverarbeitung |
 | `Infrastructure/Database/Schema.php`: normalisierte Content-, Lern-, Rechte- und Audit-Tabellen | **Als Architekturvorbild** | Neuer `cc_`-Tabellensatz, keine Umbenennung bestehender `bp_`-Tabellen |
 | `Commerce/EntitlementService.php`: Quellenreferenzen, Laufzeiten, Status, manuelle Grants, Idempotenz | **Übernehmen / generalisieren** | Rechte auf Kurse, Bundles und ggf. Inhalte statt Boots-Featurecodes |
@@ -59,7 +59,7 @@ Der Bestand enthält ein produktnahes WP-Lernplugin (`bootspruefung-learning/`),
 | `Mobile/` mit Bearer-Sessions, Idempotenz, REST-Fehlern | **API-Muster übernehmen** | Generischer Namespace `course-captain/v1`; keine alte `boatingschool/v1`-API übernehmen |
 | `Frontend/Router.php` mit App-Shell im aktiven Theme | **Übernehmen / anpassen** | Konfigurierbarer Pfad `/lernen/`, Blocks, zugängliche Fallbacks |
 | Audit-, Site-Health-, Wartungs-, Import-, Sicherheits- und E2E-Tests | **Als Test-/Architekturvorbild** | Präfixe und Szenarien neu, Tests der alten Anwendung nicht ungeprüft wiederverwenden |
-| Prüfungsausschüsse, Bootsprüfungsanmeldung, SRC/UBI/SBF/SKN/FKN, Navigationskarten, Kurswasser-Theme, spezielle Shoptexte | **Nicht übernehmen** | Keine entsprechende Core-Datenstruktur und keine Bootsprüfungssprache |
+| Branchenspezifische Prüfungsanmeldung, offizielle Prüfungsbezeichnungen, Spezialkarten, Referenz-Theme und Shoptexte | **Vollständig ausschließen** | Keine entsprechenden Core-Tabellen, Fachfelder, Assets, UI-Texte, Defaults, Demoinhalte oder Legacy-Endpunkte |
 
 **Übernahmeprinzip:** Algorithmus und Tests als Referenz, dann mit eigenen Klassen, IDs, Abstraktionen, Migrationsregeln und sauberer Lizenz-/Copyright-Prüfung portieren. Die neue Anwendung darf **parallel** mit learnboating auf einer WordPress-Installation laufen: unterschiedliche Namespaces, Tabellen, REST-Routen, Hooks, Slugs, Optionen, WP-CLI-Commands und Assets.
 
@@ -121,7 +121,7 @@ Kurskacheln mit Fortsetzen, Lernziel, sichtbarem Fortschritt und letzten Aktivit
 
 ### 4.4 Medientraining, Praxis, Szenarien
 
-Videolektionen mit Untertiteln, Zeitposition, Lektionenfortschritt und eingebundenen Quizfragen. Lernkarten, Bildgalerien, Übungsabläufe, Fallstudien, Schrittfürschritt-Anleitungen und frei beantwortbare Praxisaufgaben mit Musterlösung. Fachspezifische Simulationen nur über ein **erweiterbares, sicheres Activity-Provider-Interface**. Keine hartcodierten Geräte-, Navigations- oder Funkprotokolle.
+Videolektionen mit Untertiteln, Zeitposition, Lektionenfortschritt und eingebundenen Quizfragen. Lernkarten, Bildgalerien, Übungsabläufe, Fallstudien, Schrittfürschritt-Anleitungen und frei beantwortbare Praxisaufgaben mit Musterlösung. Das **erweiterbare, sichere Activity-Provider-Interface** enthält ausschließlich fachneutrale Verträge. Keine Portierung alter Fachsimulatoren, Fachprotokolle oder Spezialbewertungen.
 
 ### 4.5 Zertifikate und Lernnachweise
 
@@ -211,7 +211,7 @@ Mehrplatz-Kauf, Unterrichtsgruppe, Einladungen mit Ablauf, Gruppenadmin, Teilnah
 
 ### Verhältnis zu learnboating
 
-- Die vorhandenen `learnboating-voucher-connector`- und `learnboating-affiliate-connector`-Schnittstellen sind **nur Referenzmuster**. Keine alten `bootspruefung_*`-Hooks oder `boatingschool/v1`-Routen in Course Captain.
+- Vorhandene Voucher-/Affiliate-Connectoren aus dem Referenzprojekt sind **nur Architekturvorbilder**. Keine Legacy-Hooks, Legacy-REST-Routen oder alten Fachkennungen in Course Captain.
 - Kein automatisches Lesen oder Mutieren von `bp_*`-Tabellen. Ein gesondertes, optionales **Import-/Migrationswerkzeug** könnte später mit Vorschau, Zuordnung, Zustimmung, Backup und Rollback Inhalte migrieren. Keine Vermischung persönlicher Lernstände ohne dokumentierte Identitäts- und Datenschutzentscheidung.
 
 ## 9. Technischer Aufbau
@@ -308,7 +308,7 @@ Neues, domainneutrales Package-Schema `course-captain/v1` für Kurse, Hierarchie
 
 ### Frontend-Screens
 
-Kurskatalog → Kursdetail → Einschreibung/Kaufhinweis → „Mein Lernen“ → Kurs-Hub → Lektion/Video → Lernmodus/Smarttrainer → Quiz/Prüfung → Ergebnis → ggf. Zertifikat. Keine verpflichtende Verwendung des Theme `kurswasser`; aktive Themes respektieren, eigene Styles kapseln, Blocks und Shortcodes vorsehen, offene Kursseiten SEO-kompatibel. Frontend weiterhin bedienbar, wenn JavaScript nicht geladen werden kann (mindestens aussagekräftiger Fallback).
+Kurskatalog → Kursdetail → Einschreibung/Kaufhinweis → „Mein Lernen“ → Kurs-Hub → Lektion/Video → Lernmodus/Smarttrainer → Quiz/Prüfung → Ergebnis → ggf. Zertifikat. Kein Theme oder Design der Referenzanwendung übernehmen; aktive WordPress-Themes respektieren, eigene Styles kapseln, Blocks und Shortcodes vorsehen, offene Kursseiten SEO-kompatibel. Frontend weiterhin bedienbar, wenn JavaScript nicht geladen werden kann (mindestens aussagekräftiger Fallback).
 
 ## 11. Roadmap und Abnahme
 
@@ -324,7 +324,7 @@ Kurskatalog → Kursdetail → Einschreibung/Kaufhinweis → „Mein Lernen“ �
 - Admin-Kurs-/Lektions-/Fragen-/Quiz-Builder, öffentliche und manuell freigegebene Kurse.
 - Lernraum, Benutzerkonto, Lernmodus, Smarttrainer, Favoriten, Video, Quiz/Prüfung, serverseitige Auswertung.
 - Progress/Prüfungsrevisionen, Sicherheits- und Datenschutzwerkzeuge, Block/Shortcode, Übersetzungen.
-- Content-Package-Grundformat, Import/Export, Admin-Preview/Dry-run und Rollback; Testpaket ohne Bootsbezug.
+- Content-Package-Grundformat, Import/Export, Admin-Preview/Dry-run und Rollback; ausschließlich generische Testpakete, beispielsweise Sprachen, IT, Mitarbeiter-Onboarding und Weiterbildung.
 - REST/API-Vertrag und für Integrationen nutzbare Free-Grants/Events, ohne externe Pflichtplugins.
 
 ### Phase 2 – Course Captain Pro v1.0
@@ -350,7 +350,7 @@ Migrationsassistent für bestehende learnboating-Installationen (optional, keine
 
 ## 12. Konkrete Entwickler-Abnahmekriterien („Definition of Done“)
 
-1. **Domänenneutral:** Kein harter Verweis auf Bootsprüfungen, SBF, SRC, UBI, Navigation, amtliche Prüfer oder eine fachliche Punkteskala in Core-Code, Datenmodell, UI, Datenpaketen oder Tests.
+1. **Domänenneutral:** Keine branchenspezifischen Altmodule, Fachterminologie, Prüfungsnormen, Bewertungsmaßstäbe, Datenfelder, Assets, Demos oder Legacy-Routen in Core, Pro, UI, Datenpaketen oder Tests. Historische Quellpfade sind ausschließlich in internen Quellen-/Portierungsnotizen zulässig.
 2. **Gleichwertiger Lernfluss:** Kursübersicht, Lernmodus, Favoriten/Fehlerfragen, Smarttrainer, fällige Wiederholung, Prüfungssimulation, Videos/Quiz und persönlicher Fortschritt sind in den generischen Anwendungsfällen funktionsfähig.
 3. **Eigener Content-Editor:** Ein Admin kann ohne GitHub oder Importpaket einen Kurs mit Video, Fragen, Quiz und Bestehensregeln veröffentlichen und testen.
 4. **Datenintegrität:** Änderungen an veröffentlichten Fragen/Reihenfolge/Regeln beeinflussen gespeicherte Prüfungssnapshots nicht; derselbe Grant/Answer-Request erzeugt keinen doppelten Datensatz.
@@ -368,7 +368,7 @@ Migrationsassistent für bestehende learnboating-Installationen (optional, keine
 - Umfang und Zeitpunkt von Kurs-Gruppen, bezahlten Kursen und Zertifikaten; dieser Entwurf ordnet sie Pro zu.
 - Supportumfang und Datenmodell für mehrsprachige Kurse und bestehende Übersetzungsplugins.
 - Falls Migration aus learnboating später benötigt: nur Content oder auch Nutzer-/Fortschrittsdaten, ID-Abgleich, Rechte und gesetzliche Aufbewahrung.
-- Bewusst **kein** 1:1-Port der Bootsfachtrainer; zukünftige Branchenmodule getrennt konzipieren.
+- **Verbindlich:** Keine Portierung fachgebundener Alttrainer oder Spezialmodule. Neue Aktivitäten müssen aus neutralen Anforderungen heraus konzipiert und unabhängig vom Referenzthema getestet werden.
 
 ## 14. Primärquellen im Captain-Ökosystem
 
@@ -618,3 +618,50 @@ Aktivierung → erster veröffentlichter Kurs; Anteil erfolgreich abgeschlossene
 - [Captain Pro – Architektur, Feature-Gating, Release](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md)
 
 **Hinweis zum Umfang:** Diese Ergänzung definiert fehlende Konzepte, keine stillschweigende Verpflichtung, alle P2-Funktionen in v1 zu liefern. Neue API-Namen sind Vorschläge bis zur verbindlichen Implementierung und zum Abnahmetest.
+
+
+## 26. Verbindliche Entscheidung: vollständige Entfernung aller fachgebundenen Altbestandteile
+
+**Produktentscheidung (bestätigt):** Course Captain richtet sich universell an **alle Kursanbieter**. Die erste Entwicklungspriorität ist **vollständige Parität der fachneutralen LearnBoating-Lernfunktionen**; bewährte technische Logik soll möglichst weitgehend wiederverwendet werden. **Fachgebundene Altbestandteile werden ausdrücklich ausgeschlossen.** Diese Entscheidung hat Vorrang vor älteren, weiter gefassten Paritätsformulierungen in diesem Dokument.
+
+### 26.1 Klare Trennlinie: Was „Parität“ bedeutet
+
+- **Übernehmen:** generische Kursstruktur, Lektionen, Medien, Lernfragen, Karteikarten, Favoriten, Fehlertraining, Smarttrainer, Wiederholungsintervalle, Prüfungsengine, Prüfungs-Snapshots, Lernfortschritt, Ergebnisse, Zugangsrechte, Gruppenmechanismen, Import/Export, Sicherheits- und Wartungsmechanismen.
+- **Abstrahieren:** fachspezifisch benannte Klassen, Datenfelder und Zustandsmaschinen, **sofern** darunter eine unabhängig sinnvolle generische Funktion liegt; deren Verhalten mit neutralen Referenzfällen testen.
+- **Nicht übernehmen:** Fachfragenbanken, amtliche Prüfungsprofile, branchenspezifische Trainer, Spezialprotokolle, Geräteabbildungen, Karten-/Spezialmedien, Prüfungsanmeldungen, Fachbegriffe, Logos, Designs, Demo-Daten, Fachprodukte, Spezialbewertungen und Fach-Connectoren.
+- **Nicht künstlich ersetzen:** Ein entfallenes Fachmodul erzeugt **keine** Pflicht, sofort einen gleich großen universellen Simulator zu bauen. Allgemeine Dialog-, Fallstudien- oder Aktivitätstypen werden nur umgesetzt, wenn sie einen eigenständigen universellen Nutzen haben.
+- **Quellenbelege zulässig:** Der Projektname \`learnboating\` und originale GitHub-Quellpfade dürfen **nur** in Dokumentation, Herkunfts-/Lizenzinventar und Portierungsmatrix erscheinen, nicht in ausgelieferten Produkttexten, Produktcode, REST-URLs, Datenbankschemas, Demokursen oder öffentlichen Assets.
+
+### 26.2 Ausschlussliste und neutrale Zielkomponenten
+
+| Altbestandteil | Entscheidung | Ziel in Course Captain |
+|---|---|---|
+| Fachbezogene Dialog-/Kommunikationstrainer | Entfällt | Universelle Dialogaktivität nur bei unabhängigem Bedarf |
+| Fachbezogene Geräte- und Ablauf-Simulationen | Entfällt | Kein entsprechendes Pflichtfeature |
+| Fachkarten, Kartenaufgaben und spezielle Bewertungsschwellen | Entfällt | Generische Bild-/Fallstudienfragen ohne feste Fachbewertung |
+| Amtliche Prüfungsordnungen und Prüfungstermine | Entfällt | Konfigurierbare Quiz-/Prüfungsregeln, ohne amtliche Profile |
+| Fachgebundene Lehrpläne und Lernpakete | Entfällt | Neutrales Kurs-/Content-Package-v1 |
+| Fachgebundene Kursprodukte, Shoptexte und Themes | Entfällt | Eigener Course-Captain-Katalog und WordPress-Theme-Integration |
+| Fachgebundene REST-Routen, Hooks, Tabellen und Rollen | Entfällt | \`course-captain/v1\`, \`course_captain_*\`, \`cc_*\`, generische Capabilities |
+| Allgemeine Lern-, Quiz-, Medien- und Zugangsservices | Portieren | Neue fachneutrale Services mit Verhaltenstests |
+
+### 26.3 Verbindlicher Portierungsablauf
+
+1. **Inventar:** Jede Klasse, Datenbanktabelle, REST-Route, Datei, jedes Asset und jeder Test erhält das Kennzeichen \`reuse\`, \`abstract\`, \`exclude\` oder \`reference_only\`.
+2. **Abhängigkeitsanalyse:** Wenn ein generischer Service auf ausgeschlossene Fachmodule verweist, Abhängigkeit durch neutrales Interface ersetzen oder den nicht benötigten Teil entfernen.
+3. **Verhaltenssicherung:** Vor Änderungen neutrale Golden-Master-/Regressionstests für Lernstufen, Fälligkeiten, Bewertungsregeln, Session-Snapshots, Idempotenz und Rechte anlegen.
+4. **Portierung:** Nur freigegebene Komponenten in eigene Namespaces und Tabellen übertragen; niemals das Referenz-Repository verändern oder es zur Runtime-Abhängigkeit machen.
+5. **Neutrale Testdaten:** Ausschließlich fachneutrale Beispielkurse, z. B. „Grundlagen der Tabellenkalkulation“, „Sprachvokabeln“, „Mitarbeiter-Onboarding“, „Projektmanagement“.
+6. **Negativprüfung:** CI-Suche nach verbotenen Legacy-Namen, fachgebundenen Tabellen, Hooks, URLs, Medien, Texten und Paketfeldern in allen ausgelieferten Artefakten. Eine Allowlist gilt nur für interne Quellen-/Migrationsdokumentation.
+7. **Paritätsabnahme:** Fachneutrale LearnBoating-Funktion gilt erst als portiert, wenn universeller Anwendungsfall, automatisierte Regression, API-/Rechteprüfung und UI-E2E bestehen. Ausgeschlossene Fachmodule zählen **nicht** als fehlende Parität.
+
+### 26.4 Zusätzliche Release-Gates
+
+- [ ] Kein branchenspezifisches Altmodul oder zugehöriges Asset im Core-/Pro-Release-ZIP.
+- [ ] Keine fachgebundenen Demo-Fragen, offiziellen Prüfungsprofile oder hartcodierten Fachbewertungsschwellen.
+- [ ] Kein Legacy-Namespace, keine Legacy-REST-Route, kein Legacy-Hook, keine Legacy-Tabelle und keine Legacy-Option.
+- [ ] Kein Abhängigkeitsfehler durch entfernte Fachmodule.
+- [ ] Alle wiederverwendeten generischen Lernfunktionen besitzen neutrale Referenztests und dokumentierten Paritätsstatus.
+- [ ] \`learnboating\` und sämtliche anderen Referenz-Repositories bleiben unverändert.
+
+**Konsequenz für die Roadmap:** Zuerst fachneutralen Bestand inventarisieren und portieren; ausgeschlossene Fachmodule werden **nicht** durch gleichwertige Fachnachbauten ersetzt. Kurs-Builder, generische Lernaktivitäten und Captain-Suite-Integration bleiben Bestandteil der universellen Zielarchitektur.
