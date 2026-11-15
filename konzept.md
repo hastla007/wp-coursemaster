@@ -6,7 +6,7 @@
 **Repository:** `hastla007/wp-coursemaster`  
 **Free-Plugin / Slug / Textdomain:** `course-captain`  
 **Pro-Add-on:** `course-captain-pro`, vorgesehen in `hastla007/captain-pro/addons/course-captain-pro/`  
-**Lizenzprodukt:** `course-captain-pro` (im WP License Captain-Produktkatalog neu anzulegen)  
+**Lizenzprodukt:** `course-captain-pro` (im License Captain-Produktkatalog neu anzulegen)  
 **Entitlement-Präfix:** `course.`  
 **Lernbereich:** `/lernen/` (änderbar; stabile Permalinks / Block- und Shortcode-Einbindung)  
 **Quellreferenz:** `hastla007/learnboating` – nur analysieren, **nicht verändern**.
@@ -26,7 +26,7 @@ Die Bedienung soll so gut sein wie das bestehende Lernsystem in `learnboating`, 
 ### Verbindliche Architekturentscheidungen
 
 - Free ist ein dauerhaft sinnvoll nutzbares, eigenständiges Plugin für WordPress.org. **Keine Lizenzprüfung, kein Updater für Premium, keine künstlichen Kurs-/Teilnehmerlimits in Free.** Bereits freie Funktionen werden nicht nachträglich entzogen.
-- Pro ist **ein separates** Premium-Add-on mit eigener Lizenz und Updater über den bestehenden Captain-Pro-Kernel und WP License Captain. Käufer brauchen keinen eigenen Lizenzserver. Der Server selbst bleibt ein separat verkauftes Produkt.
+- Pro ist **ein separates** Premium-Add-on mit eigener Lizenz und Updater über den bestehenden Captain-Pro-Kernel und License Captain. Käufer brauchen keinen eigenen Lizenzserver. Der Server selbst bleibt ein separat verkauftes Produkt.
 - Lernende sind WordPress-User; Lernstände bleiben in der WordPress-Datenbank. Das System funktioniert ohne WooCommerce, andere Captain-Plugins und Fremd-Cloud.
 - Kurse und Entitlements gehören Course Captain. WooCommerce gehört der Kauf; Voucher Captain gehört der Gutschein; Pass Captain gehört das Ticket; Workflow Captain orchestriert optionale Abläufe. **Keine direkten Fremdtabellenzugriffe.**
 - Einheitliche API-first-Architektur mit PHP-Service-Layer, versionierter WordPress-REST-API und gut zugänglichem Gutenberg-/Frontend-UI.
@@ -147,7 +147,7 @@ Videolektionen mit Untertiteln, Zeitposition, Lektionenfortschritt und eingebund
 
 ## 6. Lizenzierung: Captain-Suite-Standard
 
-WP License Captain (`hastla007/wp-license`) ist der separate Lizenz**server**; das Add-on in `captain-pro` enthält ausschließlich den eingebauten **Client**. Nicht als Pro-Nutzen bewerben und kein eigener Lizenzserver beim Kunden voraussetzen.
+License Captain (`hastla007/wp-license`) ist der separate Lizenz**server**; das Add-on in `captain-pro` enthält ausschließlich den eingebauten **Client**. Nicht als Pro-Nutzen bewerben und kein eigener Lizenzserver beim Kunden voraussetzen.
 
 | Eigenschaft | Vorgabe |
 |---|---|
@@ -202,7 +202,7 @@ Mehrplatz-Kauf, Unterrichtsgruppe, Einladungen mit Ablauf, Gruppenadmin, Teilnah
 | **Pass/Ticket Captain** (`wp-passmaster`) | Live-Training, Termine, Tickets, Workshop-Abschlussnachweise | Pass besitzt Buchung/Ticket/Check-in; Course Captain berechnet Lernerfolg |
 | **Affiliate Captain** (`wpaffiliatemaster`) | Attribution beim Kursverkauf, Provisionen nach bestätigter Bestellung | Affiliate besitzt Partner/Provision; Course Captain speichert keine Provisionen |
 | **Review Captain** (`wp-reviewmaster`) | Kursbewertung und optionale Anfrage nach bestätigtem Abschluss | Review besitzt Bewertung, Moderation und externe Plattformen |
-| **WP License Captain** (`wp-license`) | Pro-Add-on-Lizenz über Captain-Pro-Client, keine Lernendenlizenz | Lizenzserver besitzt Add-on-Lizenzen; Course Captain besitzt Kursfreigaben |
+| **License Captain** (`wp-license`) | Pro-Add-on-Lizenz über Captain-Pro-Client, keine Lernendenlizenz | Lizenzserver besitzt Add-on-Lizenzen; Course Captain besitzt Kursfreigaben |
 | **Captain Pro** (`captain-pro`) | `course-captain-pro` als weiterer Build-/Release-Eintrag | Add-on-Kernel, Lizenzclient, FeatureRegistry und ZIP-Auslieferung |
 
 **Adapter-Handshake:** Provider-Identität + Semver, `supports(action/event)`, Eingabeschéma, Capability-Prüfung, idempotente `reference_id`, normiertes Resultat / `WP_Error`. Hook-Namen zuerst im Core-Vertrag `docs/API.md` festlegen; obige Events sind **Vorschläge**, keine vorhandenen WordPress-Hooks.
@@ -378,7 +378,7 @@ Migrationsassistent für bestehende learnboating-Installationen (optional, keine
 - [Learnboating-Erweiterungen](https://github.com/hastla007/learnboating/blob/main/docs/schnittstellen-erweiterungen.md)
 - [Workflow Captain](https://github.com/hastla007/wp-workflowmaster/blob/main/konzept.md), [Form Captain](https://github.com/hastla007/wp-formmaster/blob/main/konzept.md), [Review Captain](https://github.com/hastla007/wp-reviewmaster/blob/main/konzept.md)
 - [Ticket Captain](https://github.com/hastla007/wp-passmaster/blob/main/CONCEPT.md), [Voucher Captain](https://github.com/hastla007/wp-couponmaster), [Affiliate Captain](https://github.com/hastla007/wpaffiliatemaster)
-- [WP License Captain](https://github.com/hastla007/wp-license), [Captain Pro – Architektur](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md), [Captain Pro – Tarife](https://github.com/hastla007/captain-pro/blob/main/docs/TARIFE.md), [Captain Pro – Release](https://github.com/hastla007/captain-pro/blob/main/docs/RELEASE.md)
+- [License Captain](https://github.com/hastla007/wp-license), [Captain Pro – Architektur](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md), [Captain Pro – Tarife](https://github.com/hastla007/captain-pro/blob/main/docs/TARIFE.md), [Captain Pro – Release](https://github.com/hastla007/captain-pro/blob/main/docs/RELEASE.md)
 
 **Repository-Regel:** Dieses Dokument darf im Zielprojekt weiterentwickelt werden. `learnboating` und die übrigen bestehenden Plugins sind Referenzen; jede spätere Änderung dort ist ein separates Vorhaben und nicht durch dieses Konzept autorisiert.
 
@@ -842,7 +842,7 @@ Die nächste Umsetzungseinheit ist **R0: vollständige fachneutrale Paritätsmat
 | **Voucher Captain** | Gutscheinwert, Reservierung, Einlösung, Refund-Ledger bleiben bei Voucher Captain | Separater Connector gemäß `CONNECTORS.md`: Validierung → Reservierung → idempotente Einschreibung/Entitlement → Commit oder kompensierende Freigabe; eindeutige Zuordnung pro Kurs/Platz, Rücknahme bei Storno/Refund, keine Code-/Guthaben-Kopie im LMS | R3 |
 | **Pass Captain** | Event, Termin, Kontingent, Ticket, Check-in bleiben bei Pass Captain | Optionales Mapping von Event-/Ticketstatus zu Kurs-/Kohortenzugang; Ticket-Storno und Rückerstattung widerrufen nur die vertraglich verknüpften Zugänge; Check-in ist **nicht** automatisch Lernkompetenz oder Kursabschluss | R3/R4 |
 | **Affiliate Captain** | Attribution, Partner, Provisionen, Auszahlung, Refund-Korrektur bleiben bei Affiliate Captain | Bei **eigenständigem** Course-Verkauf optional versionierte Sale-/Refund-Meldung gemäß `docs/CONTRACT.md`; bei WooCommerce-Verkauf keine doppelte Meldung aus Course Captain; stabile Quell-/Bestell-/Positions-IDs und Idempotenz; keine Provisionstabellen im LMS | R3 |
-| **WP License Captain** | Lizenzserver verkauft/aktiviert Softwarelizenzen und stellt Updates bereit; **nicht** Lernzugänge | Course-Captain-Pro-Client/Updater mit getrennten Entitlements, Status/Grace-Handling, signierten Updates, Offline-/Ausfallverhalten und Release-Tests; Free ohne Lizenzserverabhängigkeit | R3 |
+| **License Captain** | Lizenzserver verkauft/aktiviert Softwarelizenzen und stellt Updates bereit; **nicht** Lernzugänge | Course-Captain-Pro-Client/Updater mit getrennten Entitlements, Status/Grace-Handling, signierten Updates, Offline-/Ausfallverhalten und Release-Tests; Free ohne Lizenzserverabhängigkeit | R3 |
 | **Captain Pro** | Separates Premium-Add-on je Produkt, Lizenzclient und Feature-Registry | Course-Captain-Pro als eigenständiges Add-on **erst nach Architektur-/Produktschlüssel-/Repository-Freigabe**; Free-Kern enthält keine Pro-Lizenzlogik; Paketierung, Aktivierungs-/Deaktivierungs-/Upgrade-Tests; vorhandene Add-on-Liste nicht als fertige Course-Integration ausgeben | R3 |
 
 ### 30.3 Öffentlicher Course-Captain-Vertrag – Spezifikationspflicht
@@ -876,7 +876,7 @@ Für **jeden** Connector: Ownership-Tabelle, Datenflussdiagramm, öffentliche AP
 - [Voucher Captain – Connector-Vertrag](https://github.com/hastla007/wp-couponmaster/blob/main/CONNECTORS.md)
 - [Affiliate Captain – öffentlicher Vertrag](https://github.com/hastla007/wpaffiliatemaster/blob/main/docs/CONTRACT.md)
 - [Pass Captain – README](https://github.com/hastla007/wp-passmaster/blob/main/README.md)
-- [WP License Captain – Release-Gates](https://github.com/hastla007/wp-license/blob/main/docs/RELEASE-READINESS.md)
+- [License Captain – Release-Gates](https://github.com/hastla007/wp-license/blob/main/docs/RELEASE-READINESS.md)
 - [Captain Pro – Add-on-Architektur](https://github.com/hastla007/captain-pro/blob/main/README.md)
 
 **Abgrenzung:** Die Dokumente der Schwesterprojekte enthalten teils Pläne und teils Implementierungsstände. Diese Matrix macht daraus **Course-Captain-Anforderungen**, nicht Behauptungen, dass Integrationen schon existieren.
@@ -1396,7 +1396,7 @@ Vor R1 entscheiden: genaue Free-Gruppen-UI, Umfang der Basiszertifikate, konkret
 - [Pass Captain – Betrieb](https://github.com/hastla007/wp-passmaster/blob/main/docs/OPERATIONS.md) und [Tests](https://github.com/hastla007/wp-passmaster/blob/main/docs/TESTING.md): Schema-Upgrades mit Lock, Admin/Cron/CLI-Trigger, Restore-Runbook, echte DB-Parallelität und Lastprofile.
 - [Voucher Captain – API](https://github.com/hastla007/wp-couponmaster/blob/main/API.md): in-process PHP v1, Reserve/Commit/Release, idempotente Einlösung, stabile Fehlercodes und Konfliktfälle.
 - [Affiliate Captain – Vertrag](https://github.com/hastla007/wpaffiliatemaster/blob/main/docs/CONTRACT.md) und [Import/Export](https://github.com/hastla007/wpaffiliatemaster/blob/main/docs/IMPORT-EXPORT.md): versionierte externe Verkaufsquellen, keine doppelte Provision, Dry-run, Batch-/Resume-Import und Fehlerberichte.
-- [WP License Captain – Client-Integration](https://github.com/hastla007/wp-license/blob/main/docs/CLIENT-INTEGRATION.md) und [Release-Readiness](https://github.com/hastla007/wp-license/blob/main/docs/RELEASE-READINESS.md): kein Lizenzclient im Free-Kern, getrennte Add-on-Updates, reale Release-Evidenz statt Checkbox ohne Test.
+- [License Captain – Client-Integration](https://github.com/hastla007/wp-license/blob/main/docs/CLIENT-INTEGRATION.md) und [Release-Readiness](https://github.com/hastla007/wp-license/blob/main/docs/RELEASE-READINESS.md): kein Lizenzclient im Free-Kern, getrennte Add-on-Updates, reale Release-Evidenz statt Checkbox ohne Test.
 - [Captain Pro – Architektur](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md): separate Add-ons, isolierte Clientbibliotheken/Namespaces, Free-Datenbestand bleibt bei Lizenzende unangetastet.
 
 | Quellmuster | Relevanz für Course Captain | Umsetzungstasks |
