@@ -169,6 +169,26 @@
   - **Ergebnis/Definition of Done:** Retention-Entscheidungen, Medien/Consent, Secret-Handling, RBAC, Audit, Export/Reset und Testmatrix freigegeben.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
+- [ ] **R0-32 · Suite-Konzeptabgleich als Traceability-Matrix**
+  - **Voraussetzung:** R0-19,R0-24.
+  - **Ergebnis/Definition of Done:** Form/Workflow/Review-Quellen mit Quellkapitel, Course-Relevanz, bestehender Abdeckung, Delta und explizitem Nichtumfang erfasst.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
+- [ ] **R0-33 · Kurs-SEO und öffentliche/private Grenzen spezifizieren**
+  - **Voraussetzung:** R0-20,R0-27.
+  - **Ergebnis/Definition of Done:** Katalog/Kurs/Lektion indexierbar nach Rechteklasse; Canonical, Sitemap, Schema, Yoast- und No-SEO-Fallback ohne private Leaks definiert.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
+- [ ] **R0-34 · Integrationsstatus und Support-Vertrag spezifizieren**
+  - **Voraussetzung:** R0-19,R0-21,R0-27.
+  - **Ergebnis/Definition of Done:** Provider-ID/Version/Contract, letzter Erfolg, Queue, Correlation-ID, Fehlercode, Retry-Rechte und Datenschutzklasse spezifiziert.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
+- [ ] **R0-35 · WordPress.org-/Distribution-Readiness festlegen**
+  - **Voraussetzung:** R0-18,R0-24.
+  - **Ergebnis/Definition of Done:** Plugin-Slug, Readme, Lizenz/Assets, Übersetzungen, Support, Paketbuild, Free/Pro-ZIPs und Update/Restore als Releasecheckliste.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
 - [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
 
 ### R1 – Standalone Free und vollständige neutrale Parität
@@ -353,6 +373,21 @@
   - **Ergebnis/Definition of Done:** Reset, invalid inputs, Downgrade, WP-Werte-Vererbung, Multisite-Grenzen und Security/Accessibility getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
+- [ ] **R1-37 · Kurs-SEO und Sichtbarkeit sicher umsetzen**
+  - **Voraussetzung:** R1-14,R1-28,R0-33.
+  - **Ergebnis/Definition of Done:** Öffentliche Kursseiten SEO-kompatibel; private Prüfungen, Profile, Medien und Grants nicht indexierbar oder per API abrufbar; Yoast-Konflikttests.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
+- [ ] **R1-38 · Betriebsdashboard mit sicheren Reparaturaktionen**
+  - **Voraussetzung:** R1-17,R1-24,R0-34.
+  - **Ergebnis/Definition of Done:** Cron/Jobs/Import/Grant-Fehler mit IDs und sicheren Retry/Reconcile-Aktionen, Rollen-/Dedupe-Tests, redigiertem Diagnoseexport.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
+- [ ] **R1-39 · Distribution- und Erstinstallationsabnahme**
+  - **Voraussetzung:** R1-23,R1-24,R1-30,R0-35.
+  - **Ergebnis/Definition of Done:** Free-ZIP Clean-Install, Upgrade, WordPress.org-Readme, i18n, Demo ohne Fremdinhalte, Support-Runbook und Deaktivierung geprüft.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
 ### R2 – Zusätzliche universelle P0-Funktionen
@@ -471,6 +506,16 @@
   - **Ergebnis/Definition of Done:** Pro-Gruppen/Designer/Reminder separat, Lizenzablauf ohne Verlust von Free-Grants oder Nachweisprüfung.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
+- [ ] **R3-16 · Gemeinsame Suite-Providerstatus-Anzeige**
+  - **Voraussetzung:** R3-10,R3-12,R0-34.
+  - **Ergebnis/Definition of Done:** Partnerstatus/Vertragsversion/letzte Ereignisannahme, Fehler- und Correlation-ID ohne Cross-Plugin-Datenzugriff und mit Berechtigungschecks.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
+- [ ] **R3-17 · Workflow-Captain-Fallback und Zuständigkeitsgrenzen**
+  - **Voraussetzung:** R3-12,R3-16.
+  - **Ergebnis/Definition of Done:** Native Course-Abläufe bleiben bei fehlendem/abgelaufenem Workflow erhalten; keine Doppelaktion, Retry/Disable/Versionstest.
+  - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
+
 - [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
 
 ### R4 – Nur nach Nachfrage und eigener Freigabe
@@ -514,6 +559,10 @@
 ### Betreiber-Admin-Settings – Expertenbeschluss (Konzept Kapitel 43)
 
 Die Einstellungs-Matrix in Kapitel 43 ist das verbindliche R0-Prüfregister. Neu: `R0-27…31`, `R1-31…36`, `R3-14…15`. **Keine Implementierung und kein Task-Abschluss durch die Review.** Alle Settings müssen einem eindeutigen Scope, Default, Validierungs- und Rechtevertrag folgen; sensible Settings nie ungeprüft exportieren. R1 enthält die Free-Basis für Gruppenplätze und Zertifikatsnachweise; R3 optionale Partner-/Pro-Settings.
+
+### Cross-Concept-Abgleich (Kapitel 44)
+
+Aus den tatsächlich gelesenen `konzept.md`-Dateien von Form Captain, Workflow Captain und Review Captain wurden nur LMS-relevante Muster übernommen: SEO-Zuständigkeiten, Integrations-/Providerstatus, Betriebsreparatur, Distribution und Fallback. Tasks `R0-32…35`, `R1-37…39`, `R3-16…17`. Nicht übernommen: Formular-/Review-/Workflow-Fachfunktionen. Dies ist ein **Konzeptvergleich**, keine Codeverifikation.
 
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
