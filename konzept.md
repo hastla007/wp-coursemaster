@@ -1260,3 +1260,9 @@ Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behaup
 - `https://github.com/hastla007/learnboating/blob/main/docs/schnittstellen-erweiterungen.md`
 
 **Status:** LB-01 bis LB-15 sind aus Repository-Dokumenten belegte **Prüfkandidaten**, keine bestätigten Codeimplementierungen. Nächster Pflichtschritt: konkrete Plugin-Klassen, REST-Routen, Datenbankmigrationen, Tests und tatsächliche Zustandsautomaten gegen den aktuellen Quellcommit abgleichen; weitere unentdeckte Funktionen ergänzen. Gate A bleibt offen.
+
+## 40. Operativer Umsetzungsplan und Aufgabensteuerung
+
+Die **führende, schrittweise abzuarbeitende Aufgabenliste** steht in [`TODO-WETTBEWERBSANALYSE.md`](TODO-WETTBEWERBSANALYSE.md), Abschnitt **„VERBINDLICHER SCHRITT-FÜR-SCHRITT-UMSETZUNGSPLAN“**. Jede Aufgabe hat eine stabile ID, Voraussetzungen, Definition of Done und Nachweispflicht. Ältere P0/P1/P2-/FLOW-/CORE-/LB-Abschnitte dienen als Anforderungsregister und dürfen die Release-Reihenfolge nicht überschreiben.
+
+**Harte Gates:** R0 vollständige codebelegte Inventur und ADRs → R1 neutrale LearnBoating-Parität in standalone Free → R2 zusätzliche P0-Funktionen → R3 WooCommerce, Voucher, übrige Suite/Pro → R4 ausschließlich nach Nachfrage und Freigabe. Bei ungeklärter Quelle, fehlendem Test oder nicht erfülltem DoD bleibt die Aufgabe offen. Keine Implementierung ist durch die Erstellung dieses Plans erfolgt.
