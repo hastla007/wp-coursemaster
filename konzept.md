@@ -1094,3 +1094,61 @@ Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behaup
 
 
 **Redaktionsregel:** Externe LMS-Wettbewerber werden in diesem Konzept weder namentlich genannt noch verlinkt. Marktanforderungen bleiben produktneutral. Eigene Captain-Suite-Projekte und die interne LearnBoating-Referenz bleiben als technische Quellen erhalten. Dies ersetzt keine rechtliche Prüfung.
+
+## 35. Verbindlicher fachlicher Referenzvertrag: Identität, Enrollment, Refund und Zertifikate
+
+**Status:** Verbindliche konzeptionelle Standardregeln und Abnahmekriterien, **keine Implementierung**. Vor Realisierung sind rechtliche/steuerliche Sonderfälle, reale Schnittstellen und Bestandsdaten zu validieren. Diese Regeln präzisieren Kapitel 30–34; die Reihenfolge R0 → R1 → R2 → R3 bleibt bestehen.
+
+### 35.1 Identität, Nutzer und Rollen
+
+- **Getrennte Rollen:** `buyer` (wirtschaftlicher Besteller), `learner` (berechtigter Lernender), `trainer` (zugewiesener Lehrender), `course_author` (Inhaltsbearbeiter), `course_manager` (Kursverwaltung), `site_admin` (technischer Betreiber). Es sind **fachliche Rollen**, nicht automatisch globale WordPress-Rollen; die konkrete Capability-Matrix ist in R0 zu definieren. Eine Person kann mehrere Rollen innehaben, ohne dass ihre Rechte automatisch kombiniert auf fremde Kursobjekte übertragen werden.
+- **Autoritative Identität:** WordPress-User-ID innerhalb einer Site; externer Käufer/Besteller wird zunächst als externe `source + external_subject_id` referenziert. E-Mail-Adresse dient zur Kommunikation/Einladung, **nie als alleiniger Beweis einer Identität** oder automatischer Accountverknüpfung.
+- **Gastkauf:** Bestellposition wird zunächst einer nicht personenbezogen offengelegten Claim-/Seat-Referenz zugeordnet; Aktivierung des persönlichen Grants erst nach bestätigtem Account-Claim über zeitlich begrenztes, einmal verwendbares, sicher gehashtes Token und geeignete Verifikation. Ein eingeloggter Käufer erhält den Lernzugang nur dann selbst, wenn die Bestellung tatsächlich ihm zugewiesen wurde.
+- **Kauf für Dritte / Gruppenplätze:** Käufer darf freie Plätze zuweisen, erneut einladen und – solange nach Policy zulässig – umverteilen, aber **nicht** Lernfortschritt, Antworten oder personenbezogene Prüfungsergebnisse anderer Personen einsehen. Lernende müssen die Zuweisung bestätigen; eindeutige Seat-ID, Kurs-ID, Order-Line-ID und Learner-ID nach Claim.
+- **Trainerzugriff:** ausschließlich zugewiesene Kurse/Gruppen und explizit freigegebene Lerninformationen; Autorenrechte verleihen keine Prüfungs- oder Bestellverwaltung. Jede API, Medienausgabe, Export- und Admin-Aktion prüft Capability **und** Objektzuordnung.
+- **Accountwechsel/Löschung:** E-Mail-Wechsel verändert keine Grants. Account-Merge nur nach expliziter sicherer Bestätigung und Audit. Löschanfragen unterscheiden gesetzlich aufzubewahrende Belege, minimal notwendige Prüfungsnachweise und löschbare Profile; keine pauschale irreversible Löschung durch Connectoren.
+
+### 35.2 Autoritativer Enrollment-/Grant-Vertrag
+
+- Course Captain ist **einzige fachliche Autorität** für Kurszugang. Eine externe Quelle meldet lediglich eine nachgewiesene Berechtigung; WooCommerce besitzt Bestell-/Refundstatus, Voucher Captain Guthaben/Einlösungen, License Captain Softwarelizenzen.
+- Pro Quellberechtigung ein unveränderlicher `grant_source_key` aus `source_system + source_object + source_line/seat + entitlement_revision`, site- und kursgebunden. Wiederholte Events erzeugen keinen zweiten Grant. Separate Quellen bleiben separate Grants.
+- Zustände: `pending_claim`, `pending_confirmation`, `active`, `suspended`, `expired`, `revoked`, `failed`. `suspended` ist reversibel; `revoked` endgültig für diese Quellrevision, erneuter Kauf/erneute Berechtigung erzeugt neue Revision.
+- Übergänge: neu → pending_claim/pending_confirmation; verifizierter Claim + gültiger Quellnachweis → active; active → suspended/expired/revoked; suspended → active/expired/revoked; pending → failed/revoked; failed → erneute Verarbeitung nur durch auditierten Retry mit gleicher Quellreferenz und nachgewiesenem Anspruch. Ungültige oder verspätete Ereignisse werden protokolliert, nicht blind angewendet.
+- **Effektiver Zugang:** mindestens ein gültiger `active` Grant für Lernenden/Kurs zur Zugriffszeit, sofern keine eigenständige übergeordnete Sicherheitssperre besteht. Ablauf/Widerruf eines Grants entzieht keine anderen gültigen Grants. Ablaufzeiten werden serverseitig in UTC gespeichert, in der UI lokal dargestellt.
+- **Kein stiller Widerruf bei Partnerausfall:** deaktivierter oder inkompatibler Connector löst nicht automatisch eine Massenrevokation aus. Neue externe Berechtigungen bleiben bis zur sicheren Bestätigung `pending`; bestehende Rechte folgen dokumentierter Betreiber-/Sicherheits-Policy.
+- **Reconciliation:** persistente Inbox/Outbox, Korrelation, Idempotenz, Wiederholung mit Backoff, Quarantäne nach Fehlergrenze, administrativ nachvollziehbare Reparatur. Keine Aktivierung allein aufgrund einer fehlgeschlagenen Reservierung oder eines ungeprüften Webhooks.
+
+### 35.3 Erstattungen, Stornos und Chargebacks
+
+- **Default-Policy:** Nach bestätigter vollständiger Erstattung/Storno/Chargeback wird **nur der betroffene Kauf-Grant** widerrufen; bei Teilrefund nur eindeutig betroffene Positionen/Plätze beziehungsweise nach dokumentierter mengenbezogener Regel. Solange eine Erstattung nur beantragt ist, bleibt der bisherige Status erhalten, sofern nicht eine gesonderte Fraud-/Sicherheitsregel eine auditable Sperre verlangt.
+- **Lernbeginn oder Kursabschluss ändern den Refund-Trigger nicht:** Wird der wirtschaftliche Anspruch rechtswirksam aufgehoben, endet der dadurch begründete zukünftige Zugang; Lernfortschritt, Prüfungsversuche und bereits ausgestellte Nachweise werden **nicht automatisch gelöscht oder rückwirkend umgeschrieben**.
+- **Zertifikate bleiben grundsätzlich verifizierbar:** Ein Refund allein ist **kein** fachlicher Widerrufsgrund. Bei nachgewiesenem Betrug, ungültiger Prüfung oder irrtümlicher Ausstellung gilt ein separater, begründeter Zertifikats-Widerrufsprozess.
+- **Race Conditions:** Zahlung und Refund out-of-order, mehrfach oder parallel: externe Source-Version/Status prüfen, atomaren Grant-Übergang und eindeutige Order-Line-/Seat-Zuordnung verwenden; keine Wiederaktivierung durch verspätetes `paid` nach endgültigem `refunded`.
+- **Offen für Betreiber-/Rechtsprüfung:** freiwillige Rückerstattung, gesetzlicher Widerruf, digitale Inhalte, Rückabwicklungsfristen, Teilmengen, Steuern und Archivierungsfristen werden nicht durch das LMS entschieden. WooCommerce/Shop bleibt wirtschaftliche Autorität.
+
+### 35.4 Prüfungen, Zertifikate und Lizenzablauf
+
+- **Nachweisquelle:** Ein Zertifikat referenziert eindeutigen Lernenden, Kurs-/Inhaltsrevision, Prüfungs-/Completion-Snapshot, Ausstellungszeit, Templateversion und signierten/geschützten Verifikationsschlüssel. Completion, Mastery und Competency bleiben unabhängig; ein Kauf oder Ticket-Check-in erzeugt keine Kompetenz.
+- **Zertifikatszustände:** `issued`, `corrected` (ersetzte Version mit Verweis), `revoked`. Korrektur überschreibt keinen historischen Nachweis. Widerruf nur mit berechtigtem Akteur, Grund, Zeit, Audit und sichtbarer Statusänderung.
+- **Verifikation:** öffentlich abrufbar nur minimale Nachweisinformation und nach bewusst festgelegter Privacy-Policy (z. B. status/issuer/course/date, Personenname nur mit geeigneter Freigabe); Token nicht erratbar, Rate-Limit, kein Verzeichnis fremder Lernender.
+- **Softwarelizenz abgelaufen:** Free-Kern, gespeicherte Lernhistorie und bestehende Zertifikats-Verifikation bleiben verfügbar. Eine Pro-Lizenz steuert nur neue Pro-Funktionen, nicht die Wahrheit historischer Prüfungsnachweise. Bei abgeschalteter Site ist keine Live-Verifikation garantiert; langfristiger externer Verifikationsdienst bleibt **separat zu entscheiden**, kein implizites Versprechen.
+- **Löschung/Aufbewahrung:** Retention und datenschutzkonforme Anonymisierung pro Datentyp vor Umsetzung festlegen; historische Auditbelege nur soweit rechtlich und technisch begründet. Keine unbegrenzte Aufbewahrung als stiller Default.
+
+### 35.5 Abnahmefälle und verbindliche offene Präzisierungen
+
+| Test-ID | Gegeben / Aktion | Erwartung |
+|---|---|---|
+| CORE-01 | Gast kauft mit E-Mail eines existierenden Dritten | Kein Zugriff und kein Account-Link ohne verifizierten Claim |
+| CORE-02 | Käufer erwirbt zehn Plätze und weist sie verschiedenen Lernenden zu | Zehn eindeutige Seat-/Claim-Zuordnungen; keine Einsicht in fremde Prüfungsantworten |
+| CORE-03 | Derselbe Woo-Hook oder Voucher-Callback kommt zehnmal | Exakt ein Quellgrant, keine Mehrfacheinlösung |
+| CORE-04 | Zwei Quellen gewähren denselben Kurs; eine wird widerrufen | Kurs bleibt über die zweite Quelle zugänglich |
+| CORE-05 | Teilrefund für eine von drei Positionen | Nur eindeutig zugehöriger Grant widerrufen |
+| CORE-06 | Refund nach Kursabschluss und Zertifikatsausstellung | Zugang aus dieser Quelle weg; Lernhistorie und Zertifikatsstatus unverändert |
+| CORE-07 | Refund kommt vor verspätetem Zahlungs-Event | Kein unbeabsichtigtes Re-Grant |
+| CORE-08 | Voucher-Reserve erfolgreich, Grant/Commit scheitert | Pending/Retry/Kompensation; kein Doppelverbrauch |
+| CORE-09 | Trainer ruft fremde Lernenden-/Kurs-ID über REST ab | Zugriff verweigert und sicher auditiert |
+| CORE-10 | Pro-Lizenz läuft ab | Free-Lernen, historische Ergebnisse und Zertifikatsverifikation funktionieren weiter |
+| CORE-11 | Zertifikat wird begründet widerrufen | Verifikation zeigt revoked; historischer Ausstellungsbeleg bleibt nachvollziehbar |
+| CORE-12 | Connector wird deaktiviert und später reaktiviert | Keine stillen Massenwiderrufe, Reconciliation ohne Duplikate |
+
+**Noch zu konkretisieren (R0):** WP-Capability-Matrix pro Objekt; endgültige Identitäts-Claim-UX und Fristen; Gruppenplatz-Umbuchungsregeln; tatsächliche Woo-/Voucher-Status- und Revisionsverträge; rechtliche Refund-/Retention-Policy je Markt; genaue Zertifikatsfelder und Privacy-Defaults; Support-/Timeout-SLAs. Diese Punkte dürfen nicht als implementiert oder abschließend juristisch geprüft gelten.
