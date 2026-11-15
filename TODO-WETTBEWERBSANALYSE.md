@@ -189,6 +189,31 @@
   - **Ergebnis/Definition of Done:** Plugin-Slug, Readme, Lizenz/Assets, Übersetzungen, Support, Paketbuild, Free/Pro-ZIPs und Update/Restore als Releasecheckliste.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
+- [ ] **R0-36 · Weitere Suite-Quellen und Vertragsdeltas nachweisen**
+  - **Voraussetzung:** R0-32,R0-19.
+  - **Ergebnis/Definition of Done:** Pass/Voucher/Affiliate/License/Captain-Pro-Dokumente mit Version/Quellpfad, LMS-Relevanz, vorhandenem Task, offenem Delta und Nichtumfang abgeglichen.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-37 · Schema-Upgrade unter Konkurrenz und Ausfall spezifizieren**
+  - **Voraussetzung:** R0-06,R0-16,R0-21.
+  - **Ergebnis/Definition of Done:** Lock-Strategie, Upgrade-Trigger, idempotente dbDelta-/Backfill-Schritte, unterbrochene Migration, Multisite-Scope und Rollback-Grenzen beschlossen.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-38 · Großimporte mit Dry-run, Batches und Resume spezifizieren**
+  - **Voraussetzung:** R0-10,R0-16,R0-21.
+  - **Ergebnis/Definition of Done:** Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback und Fehlerklassen definiert.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-39 · Free-/Pro-Lizenzclient-Grenze technisch fixieren**
+  - **Voraussetzung:** R0-11,R0-19,R0-29.
+  - **Ergebnis/Definition of Done:** Core ohne Lizenzbibliothek, Updater, Lizenzserverzugriff; Add-on eigener Build/Namespace, Feature-Flags, Upgrade/Downgrade, Lizenzende und Ausfallverhalten spezifiziert.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R0-40 · Vertrag für finanzielle Suite-Ereignisse abgrenzen**
+  - **Voraussetzung:** R0-09,R0-19,R0-34.
+  - **Ergebnis/Definition of Done:** Course meldet keine doppelte Provision/Kauftransaktion; Voucher/Order/Grant-Quellen und Fehlercodes/Idempotenz/Refund eindeutig zugeordnet.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
 - [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
 
 ### R1 – Standalone Free und vollständige neutrale Parität
@@ -388,6 +413,21 @@
   - **Ergebnis/Definition of Done:** Free-ZIP Clean-Install, Upgrade, WordPress.org-Readme, i18n, Demo ohne Fremdinhalte, Support-Runbook und Deaktivierung geprüft.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
+- [ ] **R1-40 · Datenbankmigration mit Lock und Wiederaufnahme testen**
+  - **Voraussetzung:** R1-02,R1-23,R0-37.
+  - **Ergebnis/Definition of Done:** Parallele Admin/Cron/CLI-Upgradeversuche, Crash, Retry, Backfill und Restore ohne doppelte Schemaaktionen oder Datenverlust getestet.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-41 · Großimport-Batchverarbeitung mit Fehlerreport**
+  - **Voraussetzung:** R1-15,R0-38.
+  - **Ergebnis/Definition of Done:** Dry-run vor Commit, Fortschritt/Resume, pro Objekt validierte Fehler, idempotenter Reimport, Rollback und Rechteprüfung E2E.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-42 · Parallelitäts- und Datenintegritäts-Lastprofil**
+  - **Voraussetzung:** R1-20,R1-22,R1-40.
+  - **Ergebnis/Definition of Done:** Gleichzeitige Enrollment-/Seat-/Attempt-/Completion-Operationen gegen echte DB, Unique-Invarianten, Deadlock-/Retry- und Messprotokoll.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
 ### R2 – Zusätzliche universelle P0-Funktionen
@@ -516,6 +556,16 @@
   - **Ergebnis/Definition of Done:** Native Course-Abläufe bleiben bei fehlendem/abgelaufenem Workflow erhalten; keine Doppelaktion, Retry/Disable/Versionstest.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
+- [ ] **R3-18 · Pro-Add-on-Build und Lizenzclient-Isolation**
+  - **Voraussetzung:** R3-08,R3-15,R0-39.
+  - **Ergebnis/Definition of Done:** Core-ZIP ohne Lizenzcode; Pro-ZIP mit isolierter Clientbibliothek; mehrere Captain-Add-ons parallel, Lizenzablauf/Serverausfall ohne Free-Datenverlust getestet.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R3-19 · Suite-Vertragsfehler und doppelte Finanzereignisse abnehmen**
+  - **Voraussetzung:** R3-03,R3-05,R3-12,R0-40.
+  - **Ergebnis/Definition of Done:** Voucher-Reserve/Commit/Release, Teilrefund, doppelte Kauf-/Affiliate-Events, Replay, inkompatible Version und Recovery mit konkreten E2E-Fixtures.
+  - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
 - [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
 
 ### R4 – Nur nach Nachfrage und eigener Freigabe
@@ -563,6 +613,10 @@ Die Einstellungs-Matrix in Kapitel 43 ist das verbindliche R0-Prüfregister. Neu
 ### Cross-Concept-Abgleich (Kapitel 44)
 
 Aus den tatsächlich gelesenen `konzept.md`-Dateien von Form Captain, Workflow Captain und Review Captain wurden nur LMS-relevante Muster übernommen: SEO-Zuständigkeiten, Integrations-/Providerstatus, Betriebsreparatur, Distribution und Fallback. Tasks `R0-32…35`, `R1-37…39`, `R3-16…17`. Nicht übernommen: Formular-/Review-/Workflow-Fachfunktionen. Dies ist ein **Konzeptvergleich**, keine Codeverifikation.
+
+### Erweiterter Suite-Quellenabgleich (Konzept Kapitel 45)
+
+Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `API.md`; Affiliate Captain `docs/CONTRACT.md`, `docs/IMPORT-EXPORT.md`; WP License Captain `docs/CLIENT-INTEGRATION.md`, `docs/RELEASE-READINESS.md`; Captain Pro `docs/ARCHITECTURE.md`. **Nur übertragbare Muster, keine Implementierungs- oder Kompatibilitätsbehauptung.** Neu `R0-36…40`, `R1-40…42`, `R3-18…19`. Alle Tasks offen.
 
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
