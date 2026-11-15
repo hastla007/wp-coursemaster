@@ -819,3 +819,64 @@ Für jede Entscheidung ein kurzes ADR (Architecture Decision Record) mit **Konte
 ### 29.3 Nächster verbindlicher Meilenstein
 
 Die nächste Umsetzungseinheit ist **R0: vollständige fachneutrale Paritätsmatrix samt Golden-Master-Tests und Ausschlussprüfung**. Erst mit diesem Nachweis kann der Umfang von R1 endgültig eingefroren und geschätzt werden.
+
+## 30. Captain-Suite-Gesamtabgleich: Integrationslandkarte und vollständiger Aufgabenvertrag
+
+**Zweck:** Course Captain bleibt ein universelles, eigenständiges LMS. Die folgenden Integrationen übernehmen **keine** Domänenlogik anderer Captain-Plugins in den Lernkern. Dieser Abgleich nutzt die Konzepte von Workflow, Form und Review Captain sowie README-/Vertrags-/Release-Unterlagen von License, Voucher, Pass, Affiliate und Captain Pro. **Quelle ist die Dokumentation, kein vollständiger Quellcode-Audit; alle Ziel-APIs sind vor Implementierung gegen den dann aktuellen Code zu validieren.**
+
+### 30.1 Verbindliche Reihenfolge und Geltungsbereich
+
+- **R0/R1:** Vollständige fachneutrale LearnBoating-Parität, inkl. erforderlicher generischer Entitlements und neutraler Lernereignisse; die nachstehenden Suite-Adapter sind **keine Voraussetzung** für R1. Öffentliche, minimal notwendige Erweiterungspunkte können im R1-Design berücksichtigt werden, ohne die Integration zu bauen.
+- **R2:** Zusätzliche P0-Wettbewerbsfunktionen nach vollständiger R1-Abnahme; keine Suite-Integration darf diese Reihenfolge umgehen.
+- **R3:** Optionale Suite-Connectoren, Pro-Integrationen und Automationsrezepte; nach Abhängigkeiten und Contract-Tests einzeln freigeben.
+- **R4:** Erweiterte Cross-Site-, Agentur-, Multisite- und Spezialprozesse nur bei bestätigtem Bedarf.
+- **Keine Fremdrepo-Änderung:** Anforderungen an Gegenstellen zunächst nur als offene Kompatibilitätsfragen dokumentieren. Anpassungen anderer Produkte benötigen einen separaten Auftrag.
+
+### 30.2 System-of-Record- und Integrationsmatrix
+
+| Partner | Eigentümerdaten / Grenzen | Course-Captain-Gegenvertrag (zu spezifizieren) | Zielphase |
+|---|---|---|---|
+| **Workflow Captain** | Workflows, Läufe, Automationszustand und Retry; Course Captain besitzt Lern- und Prüfungsdaten | Typisierte, versionierte Events `enrollment.created/revoked`, `lesson.completed`, `assessment.submitted/passed/failed`, `course.completed`, `certificate.issued/revoked`; optionale Actions `enroll/revoke` nur mit Rechten, Idempotenz und Audit; Event-ID, Site-ID, Objektversion, Korrelations-ID, minimale Payload, Replay/Outbox | R3 |
+| **Form Captain** | Formulare, Entries, Uploads und Aufbewahrung bleiben bei Form Captain | Privatsphärengeschützte Kurs-/Lektions-/Lernenden-Kontextauflösung, konfigurierbares Feldmapping, Berechtigungsprüfung, verifizierte Einreichungsreferenz, optionale Aufgabenübergabe nur über API und ausdrückliche Freigabe; keine direkten Tabellenzugriffe | R3 |
+| **Review Captain** | Bewertungen, Anfragen, Opt-out, Moderation und Plattformregeln bleiben bei Review Captain | Bestätigtes `course.completed`/Lernerlebnis mit stabiler Experience-ID; nur erforderliche Kontaktdaten nach Rechtsgrundlage/Einwilligung; Ausschluss bei Widerruf, Duplikaten und bereits angefragten Erlebnissen; Review-Einladung nicht im Course-Core | R3 |
+| **Voucher Captain** | Gutscheinwert, Reservierung, Einlösung, Refund-Ledger bleiben bei Voucher Captain | Separater Connector gemäß `CONNECTORS.md`: Validierung → Reservierung → idempotente Einschreibung/Entitlement → Commit oder kompensierende Freigabe; eindeutige Zuordnung pro Kurs/Platz, Rücknahme bei Storno/Refund, keine Code-/Guthaben-Kopie im LMS | R3 |
+| **Pass Captain** | Event, Termin, Kontingent, Ticket, Check-in bleiben bei Pass Captain | Optionales Mapping von Event-/Ticketstatus zu Kurs-/Kohortenzugang; Ticket-Storno und Rückerstattung widerrufen nur die vertraglich verknüpften Zugänge; Check-in ist **nicht** automatisch Lernkompetenz oder Kursabschluss | R3/R4 |
+| **Affiliate Captain** | Attribution, Partner, Provisionen, Auszahlung, Refund-Korrektur bleiben bei Affiliate Captain | Bei **eigenständigem** Course-Verkauf optional versionierte Sale-/Refund-Meldung gemäß `docs/CONTRACT.md`; bei WooCommerce-Verkauf keine doppelte Meldung aus Course Captain; stabile Quell-/Bestell-/Positions-IDs und Idempotenz; keine Provisionstabellen im LMS | R3 |
+| **WP License Captain** | Lizenzserver verkauft/aktiviert Softwarelizenzen und stellt Updates bereit; **nicht** Lernzugänge | Course-Captain-Pro-Client/Updater mit getrennten Entitlements, Status/Grace-Handling, signierten Updates, Offline-/Ausfallverhalten und Release-Tests; Free ohne Lizenzserverabhängigkeit | R3 |
+| **Captain Pro** | Separates Premium-Add-on je Produkt, Lizenzclient und Feature-Registry | Course-Captain-Pro als eigenständiges Add-on **erst nach Architektur-/Produktschlüssel-/Repository-Freigabe**; Free-Kern enthält keine Pro-Lizenzlogik; Paketierung, Aktivierungs-/Deaktivierungs-/Upgrade-Tests; vorhandene Add-on-Liste nicht als fertige Course-Integration ausgeben | R3 |
+
+### 30.3 Öffentlicher Course-Captain-Vertrag – Spezifikationspflicht
+
+**Event Envelope v1 (Vorschlag, nicht implementiert):** `event_id` (UUID), `event_type`, `schema_version`, `occurred_at` (UTC), `site_id`, `correlation_id`, `source_object_id`, `source_object_version`, `actor_id` (wenn zulässig), `payload` mit IDs/Status statt sensitiven Vollobjekten. Auslieferung über Source-Outbox oder nachholbare Abfrage; einmaliges `do_action` ist keine Zustellgarantie. Retry/Replay nur idempotent.
+
+**Commands/Queries v1 (Vorschlag):** `enroll_learner`, `revoke_enrollment`, `get_course_context`, `get_enrollment_status`, `verify_completion`, `verify_certificate`; jede Operation benötigt Capability-/Objektzugangsprüfung, dokumentierte Eingabe-/Ausgabeschemas, Status- und Fehlercodes, Idempotenz-/Konsistenzregeln, Datenschutz- und Auditregeln. Externe Connectoren greifen **niemals** auf interne Course-Tabellen zu.
+
+**Integrationszustände:** `not_installed`, `inactive`, `incompatible`, `needs_configuration`, `connected`, `degraded`, `failed`. Admin zeigt Version, Vertrag, letzte erfolgreiche Kommunikation, letzte Fehlerklasse, Test- und Retry-Aktion; keine Geheimnisse oder personenbezogenen Payloads in Logs.
+
+**Transport:** lokale WordPress-Hooks/Service-API nur auf derselben Installation; über Site-Grenzen ausschließlich authentifizierte, signierte, scoped REST-/Webhook-Verträge mit Zeitstempel, Replay-Schutz, Schlüsselrotation und expliziter Opt-in-Freigabe. Network-/Multisite-Semantik separat entscheiden.
+
+### 30.4 Verbindliche End-to-End-Rezepte für spätere Connector-Abnahme
+
+1. **Lernen → Workflow:** Lernender besteht Prüfung → Course speichert Ergebnis → Event wird genau einmal wirksam verarbeitet → Workflow versendet Nachricht; Retry/Duplikat/Timeout getestet.
+2. **Kurs → Form:** Lernender öffnet kontextgebundenes Formular → Course autorisiert Kurskontext → Form speichert Entry → Referenz erscheint beim berechtigten Tutor; unberechtigter Zugriff wird verweigert.
+3. **Abschluss → Review:** Bestätigter Kursabschluss → Review prüft Consent, Opt-out und Deduplizierung → höchstens eine Einladung je Experience-Policy; Widerruf wird berücksichtigt.
+4. **Voucher → Kurs:** Voucher-Reservierung → Kurszugang idempotent gewähren → Gutschein committen; bei Abbruch kompensieren; Refund/Teilrefund und Doppel-Callback testen.
+5. **Pass → Kurs:** Ticketkauf/Teilnahme → verknüpften Kurszugang gewähren; Ticketstorno → vertraglich festgelegten Zugang widerrufen; keine automatische Kompetenzzusage.
+6. **Affiliate → Verkauf:** Ein Verkauf wird genau einer autoritativen Verkaufsquelle zugerechnet; Storno/Chargeback korrigiert die Provisionsmeldung; WooCommerce-Adapter nicht doppelt zählen.
+7. **Pro → Lizenz:** Lizenzserver offline/abgelaufen, Free-Plugin aktiv, Pro deaktiviert oder aktualisiert → Free-Lernen und historische Ergebnisse bleiben verfügbar; Premiumfunktionen verhalten sich nach definierten Grace-Regeln.
+
+### 30.5 Dokumentations-, Test- und Freigabepaket
+
+Für **jeden** Connector: Ownership-Tabelle, Datenflussdiagramm, öffentliche API mit Version und Beispieldaten, Kompatibilitäts-/Mindestversionsmatrix, Feature-/Lizenzgrenze, Installations-/Deinstallationsablauf, Test mit fehlendem Partner, Rechte-/Datenschutzprüfung, Deduplikations- und Fehlerfalltests, Upgrade-/Rollback-Plan, Admin-Diagnose, Betreiberhandbuch und CI-Nachweis. **Keine Freigabe aufgrund bloßer Konzeptübereinstimmung.**
+
+**Quellunterlagen (Stand des Abgleichs):**
+- [Workflow Captain – Konzept](https://github.com/hastla007/wp-workflowmaster/blob/main/konzept.md)
+- [Form Captain – Konzept](https://github.com/hastla007/wp-formmaster/blob/main/konzept.md)
+- [Review Captain – Konzept](https://github.com/hastla007/wp-reviewmaster/blob/main/konzept.md)
+- [Voucher Captain – Connector-Vertrag](https://github.com/hastla007/wp-couponmaster/blob/main/CONNECTORS.md)
+- [Affiliate Captain – öffentlicher Vertrag](https://github.com/hastla007/wpaffiliatemaster/blob/main/docs/CONTRACT.md)
+- [Pass Captain – README](https://github.com/hastla007/wp-passmaster/blob/main/README.md)
+- [WP License Captain – Release-Gates](https://github.com/hastla007/wp-license/blob/main/docs/RELEASE-READINESS.md)
+- [Captain Pro – Add-on-Architektur](https://github.com/hastla007/captain-pro/blob/main/README.md)
+
+**Abgrenzung:** Die Dokumente der Schwesterprojekte enthalten teils Pläne und teils Implementierungsstände. Diese Matrix macht daraus **Course-Captain-Anforderungen**, nicht Behauptungen, dass Integrationen schon existieren.
