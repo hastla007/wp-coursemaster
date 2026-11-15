@@ -4,7 +4,7 @@
 >
 > **Leitplanken:** Universell für alle Kursanbieter; zuerst fachneutrale Funktionsparität zu LearnBoating; vorhandene Lernlogik bevorzugt wiederverwenden; **keine** boots-, funk- oder navigationsspezifischen Module; LearnBoating und andere Captain-Repositories bleiben unverändert.
 
-## P0 – Zuerst prüfen / Basis-Lücken schließen
+## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
 - [ ] **LearnBoating-Paritätsmatrix abschließen:** alle fachneutralen Funktionen, Quellkomponenten, Übernahmestrategien, Regressionstests und Abnahmekriterien inventarisieren. Fachmodule ausdrücklich ausschließen.
 - [ ] **Kurs-/Quiz-Builder im Admin prüfen und vervollständigen:** Fragen direkt in Lektionen erstellen, Vorschau, Duplizieren, Revisionen, barrierearme Bedienung.
@@ -81,10 +81,44 @@
 ### Produkt, Suite und Release – Gate C/D
 
 - [ ] **Release-Gates A–D verbindlich abnehmen:** Paritätsinventar, Free-Lernfluss, Betriebsreife, einzelne Erweiterungsfreigaben.
-- [ ] **P0 aufteilen:** Paritäts-/Basis-Mussfunktionen von ergänzenden Wettbewerbsfeatures unterscheiden; keine unbefristete v1.0-Verschiebung.
+- [x] **P0 aufteilen:** R1 enthält nur fachneutrale Parität und notwendige Basisfunktionen; zusätzliche P0-Wettbewerbsfeatures folgen in R2 (siehe Konzept Kapitel 29).
 - [ ] **Free-/Pro-Grenzen abgleichen:** mit Kapitel 5, keine Doppelimplementierung, Free unabhängig von Commerce und Lizenzserver.
 - [ ] **Suite-Contract-Tests:** fehlende Plugins, doppelte Events, Timeouts, Retry, Versionswechsel, eindeutige Datenhoheit.
 - [ ] **Messkonzept erstellen:** Zeit bis zur Kursveröffentlichung, Kursabschluss, Prüfungsfehler, Job-Wiederherstellung, Supportlast und Konversion mit Baselines.
-- [ ] **Drei offene Produktfragen entscheiden:** P0-Zusatzumfang bei Free-v1, Multisite-/Mehrtrainer-Fokus, dauerhafte Verifikation nach Pro-Ablauf.
+- [ ] **Verbleibende Produktfragen entscheiden:** Multisite-/Mehrtrainer-Fokus und dauerhafte Verifikation nach Pro-Ablauf. **P0-Zusatzumfang ist entschieden: R2 nach R1.**
 
 > **Status:** Kapitel 28 wurde nach einer simulierten Drei-Experten-Review ergänzt. Die Aufgaben sind **noch nicht implementiert**; `konzept.md` und diese Checkliste sind die einzigen geänderten Dateien.
+
+## Verbindlicher Release-Plan – beschlossen (Konzept Kapitel 29)
+
+**Entscheidung:** Erst **vollständige fachneutrale LearnBoating-Parität**, **danach zusätzliche P0-Wettbewerbsfunktionen**. P0 bedeutet Wichtigkeit, nicht automatisch Bestandteil des ersten Releases. Keine fachgebundenen Altmodule.
+
+### R0 – Inventar und Paritätsnachweis vorbereiten
+
+- [ ] Alle fachneutralen LearnBoating-Funktionen vollständig inventarisieren und fachgebundene Module ausschließen.
+- [ ] Paritätsmatrix mit Quellreferenz, Zielkomponente, neutralem Testfall und Abnahmestatus erstellen.
+- [ ] Golden-Master-Tests, Lizenz-/Abhängigkeitsinventar und Architektur-ADRs fertigstellen.
+- [ ] **Gate A abnehmen** und den exakten R1-Umfang einfrieren.
+
+### R1 – Free-Paritätsrelease (vor jeder zusätzlichen P0-Implementierung)
+
+- [ ] Fachneutralen Kurs-/Lernfluss einschließlich **notwendigem** Basis-Kurs-/Quiz-Editor implementieren.
+- [ ] Sämtliche fachneutralen Lernfunktionen aus der freigegebenen Paritätsmatrix portieren und testen (Smarttrainer, Prüfungen, Fortschritt, Medien usw.).
+- [ ] Inhaltsversionierung, Prüfungs-Snapshots, Rechte, Datenschutz, Upgrade und Backup-Restore prüfen.
+- [ ] **100 % der fachneutralen Paritätsmatrix abnehmen; Gates B und C bestehen.**
+- [ ] **R1 ausdrücklich freigeben**, bevor R2-Features implementiert werden.
+
+### R2 – Zusätzliche P0-Wettbewerbsfunktionen (erst nach R1)
+
+- [ ] Persönliche Lernnotizen, Suche/Export und optional Lernkarten aus Notizen.
+- [ ] Text-/Datei-Aufgabenabgaben mit sicherem Upload und Basisfeedback.
+- [ ] Neutrale Kursvorlagen, Demokurse und Duplizierungs-Komfortfunktionen.
+- [ ] Zusätzliche Kurs-/Quiz-Builder-UX, soweit **nicht** bereits für R1-Parität erforderlich.
+- [ ] Jedes R2-Feature einzeln auf Nutzen, Free-/Pro-Grenzen, UX, Sicherheit und Regression abnehmen.
+
+### R3/R4 – Danach
+
+- [ ] **R3:** Gradebook, Tutorbewertung, Frontend-Kurs-Builder, Mehrtrainer, Zertifikatsdesigner und Pro-/Suite-Adapter nach Abhängigkeiten planen.
+- [ ] **R4:** Gamification, SCORM/xAPI/H5P/LTI und Coaching nur nach Nachfrage-/Sicherheitsprüfung.
+
+> **Ausnahmeregel:** Eine Funktion, die bereits **fachneutral in LearnBoating existiert**, gehört mit ihrem paritätsrelevanten Umfang nach **R1**, auch wenn sie in der Wettbewerbs-To-do-Liste unter R2 genannt ist. Der zusätzliche Funktionsausbau bleibt R2.
