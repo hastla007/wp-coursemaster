@@ -880,3 +880,80 @@ Für **jeden** Connector: Ownership-Tabelle, Datenflussdiagramm, öffentliche AP
 - [Captain Pro – Add-on-Architektur](https://github.com/hastla007/captain-pro/blob/main/README.md)
 
 **Abgrenzung:** Die Dokumente der Schwesterprojekte enthalten teils Pläne und teils Implementierungsstände. Diese Matrix macht daraus **Course-Captain-Anforderungen**, nicht Behauptungen, dass Integrationen schon existieren.
+
+## 31. Moderierte Drei-Experten-Debatte: Nahtlose Suite-Erfahrung – beschlossene Ergänzungen
+
+**Methodik:** Simulierte Diskussion dreier idealtypischer Fachrollen (WordPress-/Integrationsarchitektur, LMS/Learning Experience, SaaS-Ökosystemstrategie), auf Basis der in Kapitel 30 verlinkten Schwesterkonzepte und öffentlichen Verträge. Kein externes Experteninterview, keine Code-Abnahme. Kapitel 29 bleibt **verbindlich**: R0/R1 Parität → R2 zusätzliche P0 → R3 Suite/Pro → R4 Spezialfunktionen.
+
+### 31.1 Kritische Diskussion und Konsens
+
+| Konflikt | Positionen und Einwand | Gemeinsamer Beschluss |
+|---|---|---|
+| Einheitliche Suite vs. eigenständige Plugins | Strategie fordert einen gemeinsamen Auftritt; Architektur warnt vor zentraler Abhängigkeit; LMS fordert nahtlosen Lernfluss | Gemeinsame **UX-Konventionen und Integrationsrezepte**, aber **kein zentraler Pflicht-Suite-Kern** und keine fremden Tabellenzugriffe |
+| Sofortiger Kurszugang vs. asynchrone Zahlung/Gutscheine | LMS fordert sichtbaren Zugang; Architektur weist auf Pending/Refund/Timeout hin | Course Captain führt einen **nachvollziehbaren Enrollment-/Entitlement-Zustand** mit Quellenbezug, Ablauf, Widerruf, Pending-Status und Wiederanlauf |
+| Automatisierung vs. fachliche Korrektheit | Produkt fordert End-to-End-Automation; LMS warnt vor falschen Kompetenznachweisen | Zahlung, Gutschein, Ticket und Check-in **gewähren höchstens Zugang**; Kursabschluss/Prüfung/Kompetenz nur durch Course-Captain-Lernregeln |
+| Events vs. Geschäftsprozesse | Architektur: Ein Event ist keine verteilte Transaktion; Produkt: Kunden erwarten vollständige Abläufe | Für mehrstufige Vorgänge **Saga-/Kompensationsregeln** mit Status, Idempotenz, Timeout, Retry, manueller Klärung und auditierter Rücknahme |
+| Suite-weite Oberfläche vs. Datenschutz | UX will Kontextübernahme; Architektur fordert Datensparsamkeit | Kontext per kurzlebigem, scoped Referenz-/Tokenvertrag; keine ungeprüften E-Mail-/Personendaten in Eventpayloads |
+| Free vs. Integrationskomfort | Produkt will Upgrade-Pfad; LMS will keine kaputte Lernhistorie bei Lizenzende | Free-Kern und lokale Lernhistorie unabhängig; Pro/Suite deaktivierbar, ohne bestehende Nachweise zu verlieren |
+
+### 31.2 Verbindliches Enrollment-/Entitlement-Modell
+
+**Course Captain ist System of Record für Kurszugänge und Lernfortschritt;** WooCommerce, Voucher, Pass, Mitgliedschafts- und Projektconnectoren liefern lediglich **autorisierte Zugangsgründe**. Softwarelizenz (License Captain) ist strikt getrennt.
+
+- **Zugangsgrund:** `grant_id`, `site_id`, `learner_id`, `course_id`, `source_plugin`, `source_type`, `source_reference`, `idempotency_key`, `valid_from`, `valid_until`, `status`, `revocation_reason`, `created_at`, `updated_at`; personenbezogene Felder minimieren.
+- **Zustände:** `pending`, `active`, `expired`, `revoked`, `failed` mit serverseitig dokumentierten Übergängen; bei mehreren unabhängigen aktiven Grants bleibt der Kurszugang bestehen, wenn ein einzelner Grant widerrufen wird.
+- **Zugangsentscheidung:** Autorisierte Quelle, gültiger Grant, Kursstatus, Lernendenidentität und Objektberechtigung prüfen. Änderungen atomar/idempotent anwenden; Prüfungs- und Lernhistorien **nicht** mit Zugangsgründen löschen.
+- **Refund/Storno:** Rücknahme wirkt auf den **betroffenen Grant**, nicht pauschal auf den gesamten Kurs oder auf andere Zugangsquellen. Vergangene Prüfungsnachweise bleiben historisch nachvollziehbar; zukünftige Zugriffe folgen der Betreiberregel.
+- **Sichtbarkeit:** `Mein Lernen` zeigt verständliche Zustände wie „Zugang wird aktiviert“, „aktiv“, „abgelaufen“, „vorübergehend nicht verfügbar“ und einen zulässigen Wiederaufnahme-/Supportweg.
+
+### 31.3 Geschäftsprozess-Orchestrierung und Fehlerfälle
+
+1. **Verkauf/Einlösung:** Externe Quelle bestätigt die fachliche Berechtigung → Connector sendet versionierten Grant-Befehl → Course Captain bestätigt die persistierte Entscheidung → Quelle schließt Einlösung/Verkauf ab. Bei Teilausfall: kompensierende Freigabe/Rücknahme oder kontrollierter Pending-Zustand; niemals stilles Doppel-Grant.
+2. **Abschluss und Folgeaktionen:** Course Captain bewertet den Lernnachweis selbst → persistiert Completion/Assessment → publiziert Event via Outbox → Workflow/Review/Form reagieren optional. Doppelte oder verspätete Events dürfen keine mehrfachen Zertifikate, Nachrichten oder Review-Einladungen erzeugen.
+3. **Widerruf und Datenschutz:** Erstattungen, Ticketstorno, Entzug einer Einschreibung und Löschanfragen haben unterschiedliche Fachsemantik. Datenlöschung nach Rechtsgrundlage/Retention; Widerruf eines Zugangs ist **keine** automatische Löschung historischer Nachweise.
+4. **Konfliktbehandlung:** Ein eindeutiger Vorgangsschlüssel und Korrelations-ID verbindet die Schritte; bei Timeout, inkompatiblem Vertrag, deaktiviertem Plugin, abgelaufener Signatur und verwaistem Pending-Vorgang wird der Zustand angezeigt und sicher reparierbar gemacht.
+5. **Betrieb:** Automatische Wiederholungen nur für temporäre Fehler; permanente Validierungs-/Berechtigungsfehler benötigen Klärung. Manuelle Wiederholung prüft Rechte und verwendet denselben Idempotenzschlüssel.
+
+### 31.4 Nahtlose Suite-UX als überprüfbarer Vertrag
+
+- **Admin:** Course Captain → Integrationen: Karten je Partner mit Installation, Version, Kompatibilität, Konfiguration, letztem Test, Fehlerklasse und „Verbindung prüfen“. Fehlende Plugins zeigen Erklärung statt Fatal Error.
+- **Setup:** Standalone-Pfad ohne Suite; erkannte Partner als **optionale** Schritte, niemals erzwungene WooCommerce-/Lizenzinstallation.
+- **Lernendenpfad:** Kauf/Einlösung → eindeutige Bestätigung → `Mein Lernen` mit Kursstatus → Fortsetzen → Prüfung → Zertifikat; keine zweite Registrierung, wenn eine vertrauenswürdig verknüpfte WP-Identität vorliegt.
+- **Trainerpfad:** Kurs erstellen → Zugangsquelle wählen → Einschreibungen und ausstehende Aktivierungen sehen → Abschluss/Ergebnis prüfen → optionale Workflow-/Review-Regeln.
+- **Gestaltung:** Konsistente Captain-Menübenennung, Statussprache, Hilfe, Leer-/Fehlerzustände, responsive Ansichten und Accessibility; kein stiller Redirect zwischen fremden Adminseiten.
+- **Datenschutz:** Kurskontext nur über autorisierte Queries/kurzlebige Scopes, keine Offenlegung fremder Enrollment-/Form-/Review-Daten durch ID-Manipulation.
+
+### 31.5 Suiteweite Sicherheit, Kompatibilität und Betrieb
+
+**Vertragsprüfung:** semantische Major-Versionen, Mindest-/Höchstkompatibilität, Feature-Discovery und explizite `incompatible`-Zustände. Lokale Hooks nur innerhalb einer Site; Cross-Site-Verbindungen später signiert, scoped und replaygeschützt. Alle Commands mit Capability-/Objektprüfung, Nonce wo passend, Audit und Rate Limits.
+
+**Datenhoheit:** Course Captain besitzt Course/Enrollment/Assessment/Completion/Certificate; Voucher besitzt Gutscheinwert und Ledger; Pass Ticket/Check-in; Affiliate Attribution/Provision; Form Entry; Review Anfrage/Review; Workflow Ausführung; License Softwarelizenz. Kein Connector schreibt direkt in fremde Tabellen.
+
+**Beobachtbarkeit:** Korrelations-ID über Event, Connector, Enrollment und Workflow-Lauf; strukturierte Fehlerklassen, datensparsame Logs, definierte Retention, sichere Diagnose- und Supportexporte, Alarmierung für dauerhaft hängende Pending-Vorgänge.
+
+**Upgrade/Deinstallation:** Tests für deaktivierten Partner, Downgrade, fehlende API, geänderte Payload, Wiederanlauf, Plugin-Reaktivierung, Netzwerkfehler, parallele Refunds, Backup/Restore und Lizenzserver-Ausfall. Kein Verlust der Free-Lernhistorie.
+
+### 31.6 Abnahmeszenarien und messbare Ziele
+
+| Szenario | Muss-Nachweis |
+|---|---|
+| Gutschein für Kurs | Einlösung und Einschreibung genau einmal; Abbruch/Refund sauber kompensiert |
+| Ticket mit Kurs | Ticketstatus beeinflusst nur den zugehörigen Grant; Check-in ergibt keine Kompetenz |
+| WooCommerce und Affiliate | Genau eine Verkaufsquelle; keine Doppelprovision bei Course-/Woo-Event |
+| Prüfung bestanden | Lernnachweis gespeichert; Workflow-Event nachholbar; Zertifikat nicht doppelt |
+| Review nach Abschluss | Nur verifiziertes Erlebnis, Consent/Opt-out geprüft, keine Mehrfacheinladung |
+| Form im Kurs | Autorisierter Kontext; unbefugte Lernenden-/Kurs-IDs werden abgewiesen |
+| Lizenzserver/Partner offline | Free-Lernen weiter möglich; Integrationsstatus erklärt Ausfall |
+| Mehrere Grants | Widerruf eines Gutscheins sperrt nicht anderen gültigen Zugang |
+| Datenschutzanfrage | Zuständigkeiten und Export-/Löschpfade je Datenquelle dokumentiert |
+
+**Zu messende Produktziele (keine Istwerte):** Zeit zwischen bestätigtem Kauf und sichtbarem Kurszugang, Anteil verwaister Pending-Grants, erfolgreiche Wiederanläufe, doppelte Side-Effects (Ziel: null), Supportfälle je Integrationspfad, Abschluss des Lernenden-End-to-End-Flows ohne manuelle Adminhilfe. Schwellenwerte erst nach Baseline/Lasttest festlegen.
+
+### 31.7 Noch zu klärende Entscheidungen
+
+1. Welche **Zugangsquellen** sollen zuerst als R3-Referenzconnectoren freigegeben werden (empfohlen: Voucher und WooCommerce, danach Pass)?
+2. Wie lange bleibt ein **Pending-Grant** vor Eskalation bestehen? Vorgangsspezifisch konfigurieren und durch Tests begründen.
+3. Welches **Captain-Suite-Navigationsmuster** gilt produktübergreifend? Gemeinsame Designkonventionen ja; ein zentrales Pflichtplugin nein.
+4. Wie werden **Gastkäufer** sicher mit bestehenden WordPress-Lernenden verknüpft, ohne Accounts anhand unbestätigter E-Mail-Adressen zusammenzuführen?
+
+**Prioritätsregel:** Alle R3-Integrationsarbeiten bleiben nach R1-Parität und R2-Zusatz-P0; die Dokumentation und Schnittstelleninventur dürfen bereits in R0 stattfinden. Dieses Kapitel ergänzt Kapitel 30 um fachliche Zustands- und UX-Verträge und ersetzt keine der dortigen Partnerintegrationen.
