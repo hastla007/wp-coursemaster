@@ -665,3 +665,53 @@ Aktivierung → erster veröffentlichter Kurs; Anteil erfolgreich abgeschlossene
 - [ ] \`learnboating\` und sämtliche anderen Referenz-Repositories bleiben unverändert.
 
 **Konsequenz für die Roadmap:** Zuerst fachneutralen Bestand inventarisieren und portieren; ausgeschlossene Fachmodule werden **nicht** durch gleichwertige Fachnachbauten ersetzt. Kurs-Builder, generische Lernaktivitäten und Captain-Suite-Integration bleiben Bestandteil der universellen Zielarchitektur.
+
+
+## 27. Wettbewerbsanalyse – freigegebene Ergänzungen aus der To-do-Liste
+
+**Entscheidung:** Die in `TODO-WETTBEWERBSANALYSE.md` erfassten Funktionskandidaten sind als **verbindlich zu berücksichtigende Produktanforderungen bzw. Evaluierungsaufträge** in diesem Konzept aufgenommen. **P0/P1/P2 sind vorläufige Planungsprioritäten, keine Zusage, dass sämtliche Funktionen bereits in v1.0 umgesetzt werden.** Die fachneutrale LearnBoating-Parität und die Ausschlussregeln aus Kapitel 26 haben Vorrang. Bestehende Konzeptelemente werden erweitert statt doppelt implementiert.
+
+### 27.1 P0 – Universeller Lernkern und Autoren-UX
+
+| Funktion | Anforderung und Abnahmekriterium | Vorläufiger Umfang |
+|---|---|---|
+| Fachneutrale LearnBoating-Parität | Vollständige Quell-/Ziel-/Testmatrix; fachgebundene Module ausgeschlossen; Regressionen für Smarttrainer, Prüfung und Rechte | Free-Lernkern, soweit in Kapitel 5 geregelt |
+| Integrierter Kurs- und Quiz-Builder | Fragen direkt aus Lektionen anlegen, Kursvorschau, Duplizieren, Revisionen, Tastaturbedienung; WordPress-Admin bleibt vollwertig | Free |
+| Persönliche Lernnotizen | Private Notizen je Lektion, Suche und Export; Umwandlung in Lernkarten optional; Zugriffsschutz und Datenexport | Free |
+| Aufgabenabgabe | Generische Text- und Datei-Einreichung als Activity; sichere Uploads, Abgabestatus, grundlegende Rückmeldung; vorhandene Praxisaufgabenlogik zuerst prüfen | Free-Basis |
+| Kursvorlagen und Demokurse | Kursduplikation und importierbare neutrale Vorlagen für Onboarding, Sprachen, IT und Weiterbildung; kein Fach-Altinhalt | Free |
+
+### 27.2 P1 – Professionelle Lehr- und Betriebsfunktionen
+
+| Funktion | Anforderung und Abnahmekriterium | Vorläufiger Umfang |
+|---|---|---|
+| Gradebook / Notenbuch | Aggregierte Kursübersicht über Quiz, Prüfungen, Aufgaben und manuelle Bewertungen; Export, Rechteprüfung, keine zweite Ergebnis-Wahrheit | Pro |
+| Tutorbewertung | Bewertungsraster, Kommentare, Wiedereinreichungen, Auditierbarkeit, Benachrichtigungen | Pro |
+| Frontend-Kurs-Builder | Kurs-/Lektions-/Quizpflege für berechtigte Trainer ohne WP-Admin; Entwürfe, Medien, Revisionen und sichere Berechtigungsgrenzen | Pro |
+| Mehrere Trainer pro Kurs | Rollen, Verantwortlichkeiten, Kursfreigaben und nachvollziehbare Änderungen | Pro |
+| Visueller Zertifikatsdesigner | Vorlagen, Logo, Signatur, dynamische Felder, eindeutige Nachweis-ID, Online-Verifikation und Widerruf; keine amtlichen Versprechen | Pro |
+| Kompetenzmatrix | Lernziele, Bearbeitungsfortschritt, Wissensbeherrschung und nachgewiesene Kompetenz getrennt darstellen; versionierbare Bewertungsgrundlagen | Basisdaten fachneutral, erweiterte Auswertung Pro |
+| Kursdiskussion und Trainerfragen | Lektionenbezogene Fragen, Moderation, Anti-Spam, Privatsphäre und Benachrichtigungen; Integration vor Doppelentwicklung prüfen | P1, genaue Edition offen |
+| Interaktive Medienaktivitäten | Bild-Hotspots, Fragen in Videos, Matching, Sortierung und neutrale Szenarien über Activity-Provider; kein Nachbau ausgeschlossener Fachsimulatoren | Basis nach Parität, Erweiterungen Pro |
+| Kurs-Bundles und Mitgliedschaften | Bündel, zeitliche Zugänge und optionale Abonnements über vorhandene Entitlement-/WooCommerce-Verträge; kein WooCommerce-Zwang für Free | Pro |
+| Kursbewertungen | Review-Captain-Anbindung über öffentliche Verträge; keine doppelte Datenhaltung; ohne Suite-Plugin kein Funktionsausfall des Lernkerns | Optionaler Pro-/Suite-Adapter |
+
+### 27.3 P2 – Optionale, nachfrageabhängige Erweiterungen
+
+- **Gamification:** Badges, Punkte und Streaks nur nach UX- und Lernwirksamkeitsprüfung; keine Belohnung bloßen Durchklickens.
+- **SCORM, xAPI, H5P und LTI:** Lizenz-, Sicherheits-, Interoperabilitäts- und Wartungsprüfung vor Zusage einer Import- oder Runtime-Unterstützung.
+- **Erweiterte Kohorten-/Coaching-Funktionen:** erst nach validiertem Bedarf; vorhandene Gruppen-/Trainerfunktionen nicht duplizieren.
+
+### 27.4 Verbindliche Wettbewerbsvalidierung
+
+Vor verbindlicher Feinspezifikation und Release-Planung die aktuellen Versionen von **LearnDash, Tutor LMS, LifterLMS, Sensei LMS, LearnPress und MasterStudy LMS** anhand ihrer offiziellen Dokumentation und möglichst eigener Testinstallationen vergleichen. Pro Funktion dokumentieren: tatsächliche Verfügbarkeit (Free/Pro/Add-on), Version/Prüfdatum, UX, Zugriffsrechte, Performance, Barrierefreiheit, Quellenlink, Course-Captain-Abdeckung und Entwicklungsaufwand. Ein neutraler Referenzkurs mit 10 Lektionen, 50 Fragen, einer Aufgabe und einer Prüfung dient als reproduzierbarer Vergleichsfall.
+
+### 27.5 Reihenfolge, Abhängigkeiten und Entscheidungstore
+
+1. **Zuerst:** fachneutrale LearnBoating-Parität und die Portierungs-/Regressionstests aus Kapitel 26.
+2. **Danach bzw. parallel ohne Paritätsrisiko:** P0-Autoren-UX, Lernnotizen, Aufgabenabgabe und Kursvorlagen auf der generischen Activity-/Content-Architektur.
+3. **Anschließend:** P1-Funktionen in sinnvollen Abhängigkeiten: Aufgabenabgabe → Tutorbewertung → Gradebook; Kurs-Builder → Frontend-Builder/Mehrtrainer; Lernziele → Kompetenzmatrix; Zertifikatsdaten → Designer.
+4. **Nach Marktvalidierung:** P2-Erweiterungen. Keine Umsetzung nur deshalb, weil ein Wettbewerber die Funktion anbietet.
+5. **Für jede Funktion:** vorhandenen LearnBoating-/Suite-Bestand prüfen, Datenhoheit und Sicherheit festlegen, Free/Pro-Grenze gegen Kapitel 5 abgleichen, UX-/API-/E2E-Abnahme definieren und Aufwand schätzen.
+
+**Pflegehinweis:** `TODO-WETTBEWERBSANALYSE.md` bleibt die operative, abharkbare Umsetzungsliste. Dieses Kapitel ist die fachliche Zielbeschreibung; Änderungen an Status oder Reihenfolge in der To-do-Liste ändern nicht stillschweigend die Anforderungen.
