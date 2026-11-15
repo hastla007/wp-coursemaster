@@ -1435,3 +1435,27 @@ Vor R1 entscheiden: genaue Free-Gruppen-UI, Umfang der Basiszertifikate, konkret
 ### 46.3 Optimierung statt Featureinflation
 
 Jeder neue Task muss (a) ein konkretes bisher nicht abgedecktes Verhalten belegen, (b) bestehende Task-IDs nennen, (c) eine testbare Abnahme ergänzen und (d) in die verbindliche Release-Reihenfolge passen. Querschnittsthemen nicht als zweite Implementierung anlegen. Der nächste operative Schritt ist **R0-01** mit tatsächlichem Repository-/Versionsbaseline und danach die Codeinventur, nicht weitere theoretische Funktionssammlung.
+
+## 47. LearnBoating-Codeabgleich II – vier zentrale PHP-Services (Teilinventur)
+
+**Prüfumfang:** Tatsächlich eingesehene Dateien aus `hastla007/learnboating` auf dem zum Abrufzeitpunkt verfügbaren Standardbranch. Dieser Abschnitt dokumentiert **Codeoberflächen und fachliche Prüfverträge**, keine vollständige Quellinventur, keine dynamische Laufzeitprüfung und keine getestete Course-Captain-Implementierung. Die Aufgaben R0-01…R0-04 bleiben offen.
+
+| Quellpfad | Codebelege (Methoden) | Course-Captain-Zielvertrag | Vorhandene Aufgaben | Noch erforderlicher Nachweis |
+|---|---|---|---|---|
+| `bootspruefung-learning/src/Learning/Services/LearningService.php` | `next`, `reveal`, `answer`, `courseProgress`, `topicSummary`, `moduleGates`, `setFavorite`, `reviewInterval`, `dueAt`, `spaced`, `wrongIds`, `blockedByRunningExam`, `rateLimit` | Fachneutraler Smarttrainer mit Wiederholung, Modulfreigabe, Favoriten/Fehlertraining, Prüfungsisolation und Missbrauchsschutz | R0-02…04, R1-08…12, R1-27 | Request-/Antwortschema, persistierte Felder, Algorithmus, Rollen, Negative-/Race-Tests |
+| `bootspruefung-learning/src/Exams/Services/ExamService.php` | `start`, `startLockName`, `saveAnswer`, `setFlag`, `reveal`, `submit`, `abort`, `expireRunning`, `markBroken`, `evaluate`, `resultView`, `assertBeforeDeadline` | Prüfungs-Snapshot und Zustandsautomat für Start, Save, Abgabe, Timeout, Abbruch, beschädigte Sitzung und parallele Requests | R0-02…04, R0-23, R1-10…12, R1-27, R1-42 | Genaue Transitionen, NamedLock-Implementierung, Timeouts, Fehlercodes, Daten-/Rollback-Tests |
+| `bootspruefung-learning/src/Content/Import/ImportService.php` | `createFromZip`, `validate`, `preview`, `previewProgress`, `approve`, `runStep`, `restoreActive`, `rollback`, `releaseAbandonedLock`, `rightsSummary` | Import-Pipeline mit Rechten/Provenienz, Vorschau, Batches, Resume, Recovery und Rollback | R0-02…04, R0-38, R1-15, R1-41 | Dateigrenzen, ZIP-/Path-Traversal-Schutz, Validierungsberichte, Lock- und Recovery-Failures |
+| `bootspruefung-learning/src/Commerce/EntitlementService.php` | `itemReference`, `apply`, `transition`, `restackExtensions`, `grantFromReference`, `revokeReference`, `grantManual`, `expireDue`, `search` | Mehrere unabhängige Grant-Quellen, Gültigkeit, idempotente Freischaltung, selektiver Entzug und Verlängerung ohne Verlust anderer Rechte | R0-02…04, R0-09, R1-13, R1-25, R3-19 | Quellpriorität, Transaktionsgrenzen, historische Daten, Refund-/Race-Matrix |
+
+**Nicht als fachneutral übernehmen:** Boots-/Funk-/Navigationsinhalte, amtliche Prüfungsregeln, fachgebundene Kurskennungen, WooCommerce-spezifische `wc_item`-Referenzen im Free-Kern. Stattdessen stabile generische `source_type`-/`source_id`-Verträge und spätere Woo-Adapter.
+
+### 47.1 Nächste zwingende Codeinventur
+
+1. Repository-/Commit-/Versionstand fixieren (R0-01), dann vollständigen Datei-/Modulbaum mit Quell- und Zielverzeichnis erfassen.
+2. Repositories, Controller, REST-Routen, Permissions, Datenbankschema, Migrationsskripte, Media-/Access-Service, Job-/Cron-Code, Admin-/Frontend-Screens, Tests und Plugin-Bootstrap erfassen; für jedes Verhalten Status `reuse/abstract/replace/exclude_domain_specific/unknown` vergeben.
+3. Für die vier oben geprüften Services die konkreten Aufrufstellen, Zustandsübergänge, DB-Schreibpfade, Locks, Validierung und Fehlerrückgaben zeilen-/testfallbasiert nachtragen.
+4. Die R0-Paritätsmatrix gegen R1-Tasks und Gate A prüfen. **Kein Task als erledigt markieren**, bevor die gesamte Codeinventur und Abnahme vorliegt.
+
+### 47.2 Arbeitssteuerung
+
+Die bereits existierenden Tasks decken diese Deltas überwiegend ab. Daher werden **keine neuen IDs** nur für diese vier Services angelegt. Die bestehende To-do-Liste erhält eine explizite Prüfschablone. Vollständige Codeinventur, echte Integrationstests, Architekturbeschluss und Referenzkurs-Fixtures bleiben offene Arbeit.
