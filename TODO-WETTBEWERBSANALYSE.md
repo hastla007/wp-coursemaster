@@ -233,3 +233,18 @@
 **Definition of Done:** Jede Prozess-ID besitzt einen dokumentierten Owner, Zustandsautomaten, Fehler-/Kompensationspfad und Testnachweis; keine automatischen Datenfreigaben; Dashboard zurückgestellt; R1/R2 nicht durch Suite-Arbeiten verdrängen.
 
 **Redaktionsregel:** Keine Namen, Domains oder URLs konkurrierender LMS-Produkte in diesen Projektdateien; Funktionsanforderungen produktneutral formulieren. Interne Captain-Suite- und LearnBoating-Referenzen bleiben zulässig.
+
+## R0-Fachentscheidungen und konkrete Kernabnahme (Konzept Kapitel 35)
+
+- [ ] **CORE-SPEC-001** Buyer/Learner/Trainer/Author/Manager/Admin als fachliche Rollen in einer WP-Capability-/Objektzugriffsmatrix ausarbeiten; IDOR-/Medien-/REST-/Exporttests festlegen.
+- [ ] **CORE-SPEC-002** Gastkauf-Claim mit Einmal-Token, Verifikation, Ablauf, Wiederholung, Accountwechsel und Supportreparatur spezifizieren; keine E-Mail-basierte automatische Verknüpfung.
+- [ ] **CORE-SPEC-003** Gruppen-/Seat-Modell einschließlich Kauf für Dritte, Zuweisung, Transfer, Teilrefund, Datenschutz und Mengeninkonsistenzen spezifizieren.
+- [ ] **CORE-SPEC-004** Grant-Quelle, Idempotenzschlüssel, Statusautomat, effektiven Mehrfachzugang, Ablauf, Suspendierung, Widerruf und Reconciliation als versionierten Vertrag spezifizieren.
+- [ ] **CORE-SPEC-005** Refund-/Chargeback-/Storno-Matrix je Woo-Status, Position, Menge, Lernbeginn und Zertifikat erstellen; rechtliche und kaufmännische Freigabe dokumentieren.
+- [ ] **CORE-SPEC-006** Zertifikatsausstellung, Snapshot, Korrektur, Widerruf, öffentliche Minimalverifikation, Pro-Lizenzablauf und Retention präzisieren.
+- [ ] **CORE-SPEC-007** Alle zwölf `CORE-01…CORE-12` als reproduzierbare Sicherheits-, Integrations- und E2E-Abnahmetests mit Vorbedingungen, erwarteten DB-Zuständen und Auditspuren ausarbeiten.
+- [ ] **CORE-SPEC-008** Fachliche Regeln aus Kapitel 35 mit `ID`, `ACCESS`, `COMMERCE`, `LEARN`, `SUITEFLOW` und `OPS` aus Kapitel 34 sowie R0/R1/R2/R3-Gates verknüpfen; keine R3-Implementierung vor R1/R2.
+- [ ] **CORE-SPEC-009** Tatsächliche WooCommerce-/Voucher-API-Verträge, Versionen, Checkout/HPOS und Partner-Recovery vor R3 anhand des aktuellen Codes erneut prüfen.
+- [ ] **CORE-SPEC-010** Offene Datenschutz-/Rechts-/Betriebsentscheidungen zu Identitätsprüfung, Claim-Fristen, Refund, Datenaufbewahrung und Verifikation vor Implementierung explizit abzeichnen.
+
+**Verbindliche Defaults:** kein Grant allein durch E-Mail; getrennte Käufer-/Lernendenidentität; Widerruf nur der betroffenen Quellberechtigung; Refund löscht weder Lernhistorie noch Zertifikat; Lizenzablauf beeinträchtigt historische Verifikation nicht. **Status:** ausschließlich konzeptionell dokumentiert, keine Implementierung.
