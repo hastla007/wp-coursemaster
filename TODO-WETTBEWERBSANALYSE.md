@@ -31,15 +31,14 @@
 - [ ] **SCORM/xAPI/H5P/LTI:** tatsächliche Kundennachfrage, Sicherheits- und Lizenzfolgen sowie Import-/Laufzeitkompatibilität bewerten.
 - [ ] **Erweiterte Kohorten-/Coaching-Funktionen:** nur bei belegter Nachfrage priorisieren.
 
-## Konkurrenzvergleich – gezielt verifizieren
+## Anonymisierte Marktanforderungen – gezielt verifizieren
 
-- [ ] **LearnDash:** Quiz/Assignments, Gradebook, Gruppen, Zertifikate, Lernpfade und Preis-/Lizenzgrenzen anhand aktueller Produktdokumentation und Testinstallation vergleichen.
-- [ ] **Tutor LMS:** Frontend-Builder, mehrere Trainer, Content-Bank, Bundles, Memberships und Checkout praktisch testen.
-- [ ] **LifterLMS:** Kohorten, Coaching, Diskussionen, Notizen, Mitgliedschaften und Reports prüfen.
-- [ ] **Sensei LMS:** WordPress-Editor, Lernmodus, interaktive Videos, Lernkarten und Hotspots prüfen.
-- [ ] **LearnPress / MasterStudy LMS:** Kernumfang, Erweiterungen, Bedienbarkeit und Free-/Pro-Grenzen prüfen.
-- [ ] **Vergleichsmatrix erstellen:** Feature, Konkurrent, tatsächliche Verfügbarkeit (Free/Pro/Add-on), Course-Captain-Status (vorhanden/geplant/fehlt), Nutzen, Aufwand, Priorität, Quelle und Prüfdatum.
-- [ ] **Praxis-Benchmark:** Kurs mit 10 Lektionen, 50 Fragen, einer Aufgabe und einer Prüfung in jedem Produkt anlegen; Klicks, Zeit, UX, Accessibility und Performance dokumentieren.
+- [ ] **Prüfungen:** Quiz, Aufgaben, Gradebook, Gruppen, Zertifikate und Lernpfade produktneutral prüfen.
+- [ ] **Autorenfunktionen:** Frontend-Builder, mehrere Trainer, Content-Bank, Pakete, Mitgliedschaften und Checkout evaluieren.
+- [ ] **Lernerfahrung:** Kohorten, Coaching, Diskussionen, Notizen, interaktive Videos, Lernkarten und Hotspots anhand eigener Testfälle prüfen.
+- [ ] **Kernumfang:** Free-/Pro-Grenzen, Erweiterbarkeit, Bedienbarkeit, Performance und Barrierefreiheit bewerten.
+- [ ] **Anforderungsmatrix:** Funktion, Nutzerproblem, Bedarf, Course-Captain-Status, Nutzen, Aufwand und Priorität – ohne Fremdproduktnamen und URLs.
+- [ ] **Praxis-Benchmark:** Neutralen Referenzkurs mit 10 Lektionen, 50 Fragen, einer Aufgabe und einer Prüfung im eigenen System testen.
 
 ## Entscheidungstore vor Umsetzung
 
@@ -48,15 +47,6 @@
 - [ ] **Free/Pro-Grenzen einzeln entscheiden:** Free muss ein eigenständiges, vollwertiges LMS bleiben.
 - [ ] **P0 bedeutet Prüfung/Planung, nicht automatisch v1.0-Pflicht:** vollständige fachneutrale LearnBoating-Parität hat Vorrang.
 - [x] **Aufnahme ins Konzept freigegeben:** Funktionskandidaten und Evaluierungsaufträge in Kapitel 27 von `konzept.md` erfasst; Implementierungsumfang und Release-Zuordnung weiter prüfen.
-
-## Referenzseiten für die nächste Verifikation
-
-- https://www.learndash.com/
-- https://tutorlms.com/
-- https://lifterlms.com/
-- https://senseilms.com/
-- https://learnpresslms.com/
-- https://stylemixthemes.com/wordpress-lms-plugin/
 
 ## Expertenreview – zusätzliche verbindliche Arbeitsaufträge (Konzept Kapitel 28)
 
@@ -241,3 +231,5 @@
 - [ ] **FLOW-205** Kundenreisen für Käufer, Lernende, Trainer und Betreiber inklusive Statusmeldungen und Fehlerbehebung visuell spezifizieren und per E2E abnehmen.
 
 **Definition of Done:** Jede Prozess-ID besitzt einen dokumentierten Owner, Zustandsautomaten, Fehler-/Kompensationspfad und Testnachweis; keine automatischen Datenfreigaben; Dashboard zurückgestellt; R1/R2 nicht durch Suite-Arbeiten verdrängen.
+
+**Redaktionsregel:** Keine Namen, Domains oder URLs konkurrierender LMS-Produkte in diesen Projektdateien; Funktionsanforderungen produktneutral formulieren. Interne Captain-Suite- und LearnBoating-Referenzen bleiben zulässig.
