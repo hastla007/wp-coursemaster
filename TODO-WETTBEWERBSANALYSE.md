@@ -1,6 +1,6 @@
 # Course Captain – Wettbewerbsanalyse: To-do-Liste
 
-> **Status:** Recherche-Backlog, **keine** Änderung an `konzept.md` und **keine** automatische Freigabe für die Produkt-Roadmap. Prioritäten sind Vorschläge; Umsetzung und Free-/Pro-Zuordnung vorab prüfen.
+> **Status:** Vom Auftraggeber zur Aufnahme ins Konzept freigegeben und in **Kapitel 27 von `konzept.md`** aufgenommen. Diese Datei bleibt die operative Checkliste; offene Kästchen bedeuten **noch nicht umgesetzt**. Prioritäten und Editionen sind vorläufig und werden vor Implementierung konkretisiert.
 >
 > **Leitplanken:** Universell für alle Kursanbieter; zuerst fachneutrale Funktionsparität zu LearnBoating; vorhandene Lernlogik bevorzugt wiederverwenden; **keine** boots-, funk- oder navigationsspezifischen Module; LearnBoating und andere Captain-Repositories bleiben unverändert.
 
@@ -47,7 +47,7 @@
 - [ ] **Dopplungen vermeiden:** erst bestehende LearnBoating- und Captain-Suite-Funktionen prüfen.
 - [ ] **Free/Pro-Grenzen einzeln entscheiden:** Free muss ein eigenständiges, vollwertiges LMS bleiben.
 - [ ] **P0 bedeutet Prüfung/Planung, nicht automatisch v1.0-Pflicht:** vollständige fachneutrale LearnBoating-Parität hat Vorrang.
-- [ ] **Erst nach Freigabe** ausgewählte Punkte in `konzept.md` und die verbindliche Roadmap übertragen.
+- [x] **Aufnahme ins Konzept freigegeben:** Funktionskandidaten und Evaluierungsaufträge in Kapitel 27 von `konzept.md` erfasst; Implementierungsumfang und Release-Zuordnung weiter prüfen.
 
 ## Referenzseiten für die nächste Verifikation
 
