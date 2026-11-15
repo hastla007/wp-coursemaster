@@ -1284,3 +1284,93 @@ Der operative Aufgabenindex in `TODO-WETTBEWERBSANALYSE.md` enthält ergänzende
 **Engineering Lead:** Große Tasks ohne Definition of Ready, testbare Unterpakete und Traceability sind nicht ausführbar. Ergänzt: `R0-24` und verbindliche Task-Splitting-/DoD-Regeln in der To-do-Liste.
 
 **Konsens und Gegenprüfung:** R1 bleibt auf die belegte fachneutrale LearnBoating-Parität begrenzt; reale Nutzbarkeit und Integrität sind Teil der Paritätsabnahme, keine zusätzlichen Marktfeatures. Erweiterte Autorenproduktivität gehört nach R2, Woo/Voucher-Connectoren nach R3. Neue Aufgaben sind erst nach Codeprüfung und Tests als abgeschlossen markierbar. Offene Architektur-/Produktentscheidungen sind explizite R0-Abhängigkeiten. Es wurde kein Programmcode verändert.
+
+## 43. Simulierte Experten-Debatte: verbindliche Betreiber-Admin-Einstellungen
+
+**Review-Rollen:** WordPress-Plugin-Architekt, LMS-Produktmanagerin/Learning-Experience-Expertin, Security-/UX-Operations-Expertin. Simulierte fachliche Rollen, keine externe Beratung. Die Matrix ist eine **Planungsentscheidung**; technische Details und UX müssen in R0 validiert werden.
+
+### 43.1 Kontroverse und Konsens
+
+- **Architekt:** WordPress-Systemwerte erben, keine doppelte Konfiguration; alle Felder brauchen Typ, Validierung, Capability, Migration und versionierte Speicherung.
+- **Produktmanagerin:** Globale Defaults, Kurs-/Prüfungsüberschreibung und nutzerverständliche Vorschau trennen; seltene Betriebsoptionen nicht zwischen Alltagsregeln mischen.
+- **Security/Operations:** Deny-by-default, keine rückwirkende Änderung historischer Versuche, Warnung vor riskanten Umschaltungen, Secrets niemals im normalen Export, Audit und sichere Recovery.
+- **Konsens:** Globaler Default → expliziter Kurs-/Prüfungs-Override → unveränderlicher Snapshot bereits gestarteter Versuche und Nachweise. WP-Settings (Locale, Zeitzone, Absender) grundsätzlich erben. Nicht alle unten genannten Werte werden als freie Toggle angeboten: systemkritische Invarianten bleiben fest verdrahtete Sicherheitsregeln.
+- **Wichtige Editionsauflösung:** Der **neutrale Seat-/Claim-/Grant-Kern** muss R1 Free abdecken; erweiterte Gruppenorganisation kann Pro sein. **Nachweisausstellung/Verifikation** als fachlicher Kern unabhängig von Pro-Lizenz; erweiterter Zertifikatsdesigner optional Pro. Bestehende gegenteilige Kurzbezeichnungen in Kapitel 10 sind entsprechend präzisiert, ohne vorweggenommene Implementierungszusage.
+
+### 43.2 Admin-Menü und Bedienregeln
+
+**Course Captain → Übersicht, Kurse, Fragenbank, Quizzes & Prüfungen, Lernende, Gruppen (Grundfunktionen Free; Pro-Erweiterungen gekennzeichnet), Zertifikate (Basis Free; Designer Pro), Berichte, Inhalte importieren, Integrationen, Einstellungen, Systemstatus.** Pro-Lizenz nur bei aktivem Add-on. Einstellungen: Tabs Allgemein, Kursdarstellung, Lernen, Prüfungen, Einschreibung, Rollen & Rechte, Zertifikate, E-Mails, Datenschutz & Sicherheit, Erweitert. Integrationen, Diagnose, Import/Export und Pro-Lizenz bleiben eigene Bereiche.
+
+**UX-Vertrag:** Jede Einstellung hat Erklärung, Standard, Geltungsbereich, Abhängigkeit, Validierung und sichtbaren Effekt. Pro Tab speichern und zurücksetzen; Warnung bei ungespeicherten Änderungen; Bestätigung bei Risiko; Rollenprüfung serverseitig; Tastatur/Screenreader; keine irreführenden Pro-Sperren für Free-Kernfunktionen. Globales „Reset alles“ ohne Datensicherung verboten.
+
+### 43.3 Vollständige Einstellungs- und Entscheidungs-Matrix (Mindestumfang)
+
+| Tab | Einstellung | Vorgabe | Edition | Ebene | Schutz-/Validierungsregel |
+|---|---|---|---|---|---|
+| Allgemein | Lernbereich-Permalink | /lernen/ | Free | Global | Slug eindeutig; Rewrite-Regeln nur nach bestätigtem Speichern |
+| Allgemein | Kurskatalog-Seite | Bei Setup auswählen/erstellen | Free | Global | Existenz/Publish/Rechte prüfen; keine automatische Überschreibung |
+| Allgemein | Lernenden-Startseite | Mein Lernen | Free | Global | Seitenzuordnung und Fallback prüfen |
+| Allgemein | Sprache, Zeitzone, Datum | WordPress erben | Free | WP | Keine doppelten Optionen; pro Nutzer Locale falls verfügbar |
+| Allgemein | Öffentliche Kursindexierung | Öffentliche Katalogseiten indexierbar; private noindex | Free | Global/Kurs | Keine privaten Daten in SEO/Sitemap |
+| Allgemein | Deinstallation/Datenlöschung | Daten behalten, expliziter separater Löschvorgang | Free | System | Nie automatisch personenbezogene Lernhistorie entfernen |
+| Kursdarstellung | Layout/Breadcrumbs | Theme-kompatibel, Breadcrumbs an | Free | Global/Kurs | Scoped Styles; Theme-Tokens respektieren |
+| Kursdarstellung | Farben/Typografie | Theme erben | Free | Global | AA-Kontrast prüfen; keine harten globalen CSS-Overrides |
+| Kursdarstellung | Kurskarten/Sortierung | Manuelle Reihenfolge, Titel-Fallback | Free | Global | Leere Kurse nicht ungeprüft veröffentlichen |
+| Kursdarstellung | Medien/Externe Hosts | Extern erst nach Klick/Einwilligung | Free | Global/Medium | Keine stillschweigende externe Verbindung |
+| Lernen | Fortschrittsregel | Abschluss nur nach erfüllten Pflichtaktivitäten | Free | Global/Kurs | Fortschritt vs Mastery getrennt |
+| Lernen | Fortsetzen/Autosave | Aktiv | Free | Global | Idempotente Writes, sichere Wiederaufnahme |
+| Lernen | Smarttrainer/Wiederholung | Belegte neutrale Standardstrategie | Free | Global/Kurs | Algorithmen versioniert; kein ungeprüfter Lernwirksamkeitsclaim |
+| Lernen | Favoriten/Fehlertraining | Aktiv, privat | Free | Global/Kurs | Datenschutz und Export |
+| Lernen | Lektionsfreigabe/Drip | Sofort, ohne Zeitplan | Free | Global/Kurs | Zeitgesteuerte Free-Grants unabhängig von Pro-Marketing |
+| Lernen | Kursrevision bei aktiven Lernenden | Laufende Versuche behalten Snapshot | Free | System/Kurs | Änderungen mit Vorschau und expliziter Migrationsregel |
+| Prüfungen | Versuche | Unbegrenzt als neutraler Default | Free | Global/Prüfung | Kursregel kann begrenzen; keine Rückwirkung auf alte Versuche |
+| Prüfungen | Zeitlimit | Aus | Free | Global/Prüfung | Serverzeit maßgeblich; Timeout explizit |
+| Prüfungen | Bestehensgrenze | 70 % als änderbarer Vorschlagswert, nicht amtlich | Free | Global/Prüfung | Fragetyp-/Punktregeln vor Veröffentlichung validieren |
+| Prüfungen | Fragenreihenfolge | Mischen aus | Free | Global/Prüfung | Feste Bögen dürfen nicht unabsichtlich verändert werden |
+| Prüfungen | Feedback/Solutions | Nach Abgabe | Free | Global/Prüfung | Keine vorzeitige Lösungsoffenlegung |
+| Prüfungen | Abbruch/Wiederaufnahme | Sicher wiederaufnehmen | Free | Global/Prüfung | Snapshot, Ablaufzeit und Doppelabgabe testen |
+| Prüfungen | Ergebnisaufbewahrung | Nach Datenschutzpolicy, nicht pauschal löschen | Free | Global | Zertifikats-/Nachweiskonsistenz |
+| Einschreibung und Gruppen | Standard-Einschreibung | Manuell/Freigabe erforderlich | Free | Global/Kurs | Keine unbeabsichtigte öffentliche Freischaltung |
+| Einschreibung und Gruppen | Kostenlose Selbstanmeldung | Aus bis bewusst aktiviert | Free | Global/Kurs | Explizite Betreiberentscheidung |
+| Einschreibung und Gruppen | Standard-Zugangsdauer | Unbefristet für manuelle Grants | Free | Global/Kurs | Ablauf nur nach expliziter Policy |
+| Einschreibung und Gruppen | Gruppenplätze/Claim | Grundfunktion aktivierbar | Free | Global/Kurs | Seat-Zuordnung, Einladungen, keine E-Mail-Autoverknüpfung |
+| Einschreibung und Gruppen | Erweiterte Gruppenverwaltung | Aus, nur bei Pro-Verfügbarkeit | Pro | Global/Gruppe | Basis-Seat-Rechte dürfen ohne Pro nicht verschwinden |
+| Einschreibung und Gruppen | Entzug/Sperrung | Einzelgrant gezielt, mit Vorschau | Free | Objekt | Mehrfachgrants berücksichtigen; Fortschritt erhalten |
+| Rollen und Rechte | Standard-Lernendenrolle | WP Subscriber oder eigene minimal privilegierte Rolle nach ADR | Free | Global | Keine automatischen Admin-Rechte |
+| Rollen und Rechte | Trainer-/Autorenrechte | Least privilege; Kurs-Objektberechtigung | Free | Global/Objekt | Capabilities statt Rollennamen prüfen |
+| Rollen und Rechte | Rechteänderungen | Nur Administrator/autorisiert | Free | System | Nonce, Audit, IDOR-Tests |
+| Rollen und Rechte | Supportzugriff | Standardmäßig kein Zugriff auf private Antworten | Free | Global | Explizite Berechtigung und Audit |
+| Zertifikate | Automatische Ausstellung | Aus, erst bei definierten Abschlussregeln | Free | Global/Kurs | Historische Nachweise revisionsfest |
+| Zertifikate | Verifikation | Minimaldaten, Widerrufsstatus sichtbar | Free | Global/Nachweis | Keine E-Mail/PII in öffentlichen Links |
+| Zertifikate | Designvorlagen/Branding | Basisvorlage; Designer optional | Free/Pro | Global/Kurs | Designer in Pro, historische Verifikation nicht Pro-abhängig |
+| Zertifikate | Widerruf/Korrektur | Nur berechtigt, mit Grund und Audit | Free | Objekt | Keine stille Überschreibung |
+| E-Mails | Absender | WordPress erben | Free | Global | Testmail und SMTP-Konflikte berücksichtigen |
+| E-Mails | Transaktionale Ereignisse | Einschreibung/Einladung/Abschluss aktiv | Free | Global | Versand erst nach Zustandsprüfung; Dedupe |
+| E-Mails | Optionale Erinnerungen | Aus | Pro | Global/Kurs | Opt-out, Frequency Cap, Ruhezeiten |
+| E-Mails | Templates | Übersetzbare Standardvorlagen | Free | Global | HTML/Text, sichere Platzhalter, Vorschau |
+| E-Mails | Versandfehler | Retry begrenzt, anonymisierter Status | Free | System | Kein PII-Logging |
+| Datenschutz und Sicherheit | Datenexport/Löschung | WP Privacy API integriert | Free | System | Rechtliche Aufbewahrung gesondert prüfen |
+| Datenschutz und Sicherheit | Retention | Datenart-spezifisch, vor Löschung festlegen | Free | Global | Keine erfundene pauschale Frist |
+| Datenschutz und Sicherheit | Audit-Logging | Sicherheits-/Adminaktionen minimal protokollieren | Free | System | Redaction und Zugriffsschutz |
+| Datenschutz und Sicherheit | Geschützte Medien | Private Ablage + serverseitige Zugriffsprüfung | Free | System | Direktzugriff unter Apache/nginx testen |
+| Datenschutz und Sicherheit | Externe Medien | Consent vor Abruf | Free | Global/Medium | Consent-Revoke respektieren |
+| Datenschutz und Sicherheit | Login-Härtung | WP-/Security-Plugin-kompatibel, keine pauschalen Eingriffe | Free | System | Keine doppelte Lockout-Logik erzwingen |
+| Integrationen und Betrieb | Plugin-Erkennung | Automatisch, keine Pflichtintegration | Free | System | Capability/Version prüfen; keine stille Aktivierung |
+| Integrationen und Betrieb | WooCommerce | Nicht vorhanden bis R3.1 | Free Connector R3 | Integration | Produkte/Refund/HPOS nur nach Connector-Installation |
+| Integrationen und Betrieb | Voucher Captain | Nicht vorhanden bis R3.2 | Free Connector R3 | Integration | Genau ein Einlöseweg, Dedupe/Recovery |
+| Integrationen und Betrieb | Pro-Lizenz | Nur bei installiertem Pro | Pro | Eigene Seite | Free bleibt unabhängig |
+| Integrationen und Betrieb | Import-Dry-run/Rollback | Vorschau zwingend; Rollback verfügbar | Free | System | Keine unkontrollierten Live-Änderungen |
+| Integrationen und Betrieb | Queue/Jobs | Sichere Defaults, Retry begrenzt | Free | System | Cron-Ausfall anzeigen |
+| Integrationen und Betrieb | Diagnose/Debug | Debug aus; zeitlich begrenzt einschaltbar | Free | System | Secrets/PII redigieren; Ablauf erzwingen |
+| Integrationen und Betrieb | Einstellungen Import/Export | Nur sichere Nicht-Secret-Settings | Free | System | Schema-/Versionsvalidierung, Preview |
+| Integrationen und Betrieb | Zurücksetzen | Nur aktueller Tab, Bestätigung | Free | System | Kein Reset von Lernständen/Grants |
+
+**Einordnung:** „Free/Pro“ bedeutet Free-Basis mit Pro-Erweiterung, nicht Lizenzpflicht für die Kernfunktion. „Free Connector R3“ bedeutet optionaler Adapter, nicht Woo-/Voucher-Pflicht für R1. Die genannten Defaultwerte sind **Vorschläge**, die R0 anhand LearnBoating-Verhalten, UX-Tests und Datenschutz prüfen muss; insbesondere 70 % Bestehensgrenze ist kein amtlicher Standard. Retention-Zeiten sind erst nach Rechts-/Betreiberentscheidung festzulegen. Werte wie „geschützte Medien“ sind Sicherheitsinvarianten und dürfen nicht abschaltbar sein.
+
+### 43.4 Spezifikation pro Feld und Prüfpflicht
+
+Jede Einstellung erhält im R0-Settings-Register: stabilen Key/Namespace, Datentyp/Enum, zulässigen Wertebereich, Default und Vererbungsquelle, Edition/Release, Scope (WP/global/Kurs/Prüfung/Objekt), benötigte Capability, Sanitization/Validation, Persistenz/Migration, REST-/CLI-Sichtbarkeit, Nebenwirkungen bei Änderung, Audit-/Privacy-Klasse, UI-Hilfetext und positive/negative Tests. Einstellungen mit Secrets erhalten eigenen verschlüsselungs-/secret-store-konformen Konfigurationsweg und erscheinen nie in Export, REST-Responses oder Diagnose. Kein pauschales Versprechen von Verschlüsselung, bevor Plattform/Keymanagement entschieden sind.
+
+### 43.5 Freigabe- und Konfliktfragen
+
+Vor R1 entscheiden: genaue Free-Gruppen-UI, Umfang der Basiszertifikate, konkrete Prüfungsvorgaben, Kurs-Overrides und ihre Snapshots, Standardrollen, Retention-Policies, Admin-Capabilities, WordPress-Kompatibilität, Migrations-/Reset-Verhalten und Accessibility. R3-Connector-Settings werden erst mit realen Partner-APIs und Tests freigegeben. Keine Implementierung durch diese Dokumentation.
