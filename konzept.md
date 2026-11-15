@@ -1388,3 +1388,23 @@ Vor R1 entscheiden: genaue Free-Gruppen-UI, Umfang der Basiszertifikate, konkret
 | Review/Workflow: Datenschutz und Provider-Fallback | Bei Plugin-/Vertragsausfall kein Fatal und keine doppelte Geschäftsaktion; Diagnosen ohne Secrets/PII | Keine Pflicht zu WooCommerce/Workflow/Review für R1 Free | R3-17 |
 
 **Prioritätsbeschluss:** Zuerst die Quellkonzept-Deltas und die öffentliche/private SEO-Grenze in R0 festlegen; anschließend Free-Betrieb und Installationsfähigkeit in R1 absichern; Providerstatus/Fallback erst mit R3-Partnern implementieren. Bereits vorhandene Architektur-/Security-Tasks gelten weiter, die neuen Tasks ergänzen nur bisher nicht explizit prüfbare Ergebnisse. **Kein Code geändert, keine Tests ausgeführt.**
+
+## 45. Zweiter Suite-Konzeptabgleich – Pass, Voucher, Affiliate, License und Captain Pro
+
+**Geprüfte Quellunterlagen (Dokumente, keine Code-Audit-Bestätigung):**
+
+- [Pass Captain – Betrieb](https://github.com/hastla007/wp-passmaster/blob/main/docs/OPERATIONS.md) und [Tests](https://github.com/hastla007/wp-passmaster/blob/main/docs/TESTING.md): Schema-Upgrades mit Lock, Admin/Cron/CLI-Trigger, Restore-Runbook, echte DB-Parallelität und Lastprofile.
+- [Voucher Captain – API](https://github.com/hastla007/wp-couponmaster/blob/main/API.md): in-process PHP v1, Reserve/Commit/Release, idempotente Einlösung, stabile Fehlercodes und Konfliktfälle.
+- [Affiliate Captain – Vertrag](https://github.com/hastla007/wpaffiliatemaster/blob/main/docs/CONTRACT.md) und [Import/Export](https://github.com/hastla007/wpaffiliatemaster/blob/main/docs/IMPORT-EXPORT.md): versionierte externe Verkaufsquellen, keine doppelte Provision, Dry-run, Batch-/Resume-Import und Fehlerberichte.
+- [WP License Captain – Client-Integration](https://github.com/hastla007/wp-license/blob/main/docs/CLIENT-INTEGRATION.md) und [Release-Readiness](https://github.com/hastla007/wp-license/blob/main/docs/RELEASE-READINESS.md): kein Lizenzclient im Free-Kern, getrennte Add-on-Updates, reale Release-Evidenz statt Checkbox ohne Test.
+- [Captain Pro – Architektur](https://github.com/hastla007/captain-pro/blob/main/docs/ARCHITECTURE.md): separate Add-ons, isolierte Clientbibliotheken/Namespaces, Free-Datenbestand bleibt bei Lizenzende unangetastet.
+
+| Quellmuster | Relevanz für Course Captain | Umsetzungstasks |
+|---|---|---|
+| Pass: Migration/Lock und echte DB-Race-Tests | Course-Schema, Grants, Seats, Prüfungsversuche und Fortschritt dürfen bei konkurrierenden Requests nicht korrumpieren | R0-37, R1-40, R1-42 |
+| Affiliate: Dry-run, Batch, Resume und Fehlerreport | Kurs-/Fragenimport großer Pakete mit verständlichem Preview, Dedupe, Wiederaufnahme und Rollback | R0-38, R1-41 |
+| Voucher/Affiliate: öffentliche versionierte Geschäftsverträge | Kursfreischaltung von Kauf, Einlösung und Provision getrennt; Refund und Replay ohne doppelte Buchung | R0-40, R3-19 |
+| License/Captain Pro: strikt isolierte Lizenzclient-Schicht | Free enthält keine Lizenz-/Updater-Abhängigkeit; Add-on mit separatem Build und sicheren Downgrade-/Ausfallregeln | R0-39, R3-18 |
+| License: Release-Evidenz | Bereits bestehende Course-Release-Gates müssen echte Tests, Installations- und Upgradeprotokolle verlangen | R0-36, bestehende R0-35/R1-39 |
+
+**Bewusst nicht übernommen:** Ticket-Scanner, Saalpläne, Gutschein-Guthabenbuchhaltung, Affiliate-Provisionsledger oder Lizenzserver-Verkauf. Diese gehören zu ihren jeweiligen Fachplugins. Die Quellverträge sind bei R3 erneut gegen tatsächliche Plugin-Versionen und APIs zu prüfen; Dokumentation allein bestätigt keine lauffähige Integration.
