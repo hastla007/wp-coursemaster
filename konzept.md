@@ -1218,3 +1218,45 @@ Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behaup
 **Klassifizierung pro Originalfunktion:** `reuse` (mit Lizenz-/Qualitätsprüfung), `abstract` (fachneutralisieren), `replace` (mit nachvollziehbarer Begründung), `exclude_domain_specific` (Boot/Funk/Navigation/amtliche Prüfungsinhalte), `unknown` (blockiert R0-Gate A). Funktionen, die LearnBoating neutral bereits hat, gehören nach R1 und dürfen nicht als R2-Neuheit verschoben werden. Jede Paritätsbehauptung benötigt Quellbeleg und automatisierten oder begründet manuellen Regressionstest.
 
 **R0 Gate A:** 100 % der identifizierten Originalfunktionen klassifiziert; alle `unknown` aufgelöst; neutraler Golden Master definiert; ADRs zu Rollen, Datenmodell, Identität und Revisionslogik akzeptiert. **R1 Gate B/C:** Jede neutrale Funktion nachweislich abgenommen; Free ohne Suite/Woo/Lizenz lauffähig. R2/R3 bleiben nachgeordnet.
+
+## 39. LearnBoating-Quellabgleich I – belegte Repository-Dokumentation und Paritätsdeltas
+
+**Quellstand:** `hastla007/learnboating`, Standardbranch, Dokumente `README.md`, `konzept-wp-lernplugin.md`, `schema/README.md`, `docs/schnittstellen-erweiterungen.md`, geprüft am 15.11.2026. Dies ist eine **Dokumentations- und Schnittstelleninventur**, keine vollständige zeilenweise Implementierungsprüfung. Für jede Behauptung über tatsächlich vorhandenen Code sind im nächsten Schritt Klasse/Methode, Test und Commit zu belegen. Das LearnBoating-Repository bleibt unverändert.
+
+### 39.1 Konkrete zusätzliche R1-Prüffälle
+
+| ID | Beleg im LearnBoating-Repository | Neutrale Course-Captain-Abstraktion | Grenze / Nachweis |
+|---|---|---|---|
+| LB-01 | `README.md`: Woo-Produktzuordnung, bezahlte Orders, Reconcile und stündlicher Job | generischer Entitlement-/Reconciliation-Kern; Woo-Adapter **erst R3.1** | R1 darf nicht Woo voraussetzen; Order-spezifische Teile R3 |
+| LB-02 | `README.md`: „Zugang ohne Shop“, kostenlose Teilbereiche, zeitgesteuerte Freigaben | Free-/Manual-/Scheduled-Grant-Policies | R1 |
+| LB-03 | `README.md`: Gruppenlizenzen „Plätze je Stück“ | Seat-/Invitation-/Claim-Kern | R1, Shop-Verkauf erst R3 |
+| LB-04 | `README.md`: geschützte Seiten, Block, Shortcode, PDF/Private Storage | generische Access Guards und sicherer Medienzugriff | R1, keine Bootsbezeichnungen |
+| LB-05 | `README.md`: Login-Härtung, IP-Limits, Account-/Privacy-Flows | WP-konforme Schutzmaßnahmen und Datenschutzpfade | R1, kein pauschales XML-RPC-Abschalten ohne Kompatibilitätsprüfung |
+| LB-06 | `README.md`: Consent für externe Videos/Hosts | einwilligungsbewusste Medienausgabe | R1 |
+| LB-07 | `README.md`: Content-Paketimport, Dry-run, Rollback, Retention, Fehlerlog | versionierter neutraler Importer und Recovery | R1 |
+| LB-08 | `README.md`: Integrationstests, E2E Lern-/Admin-/Account-/Checkout-Flows | Golden-Master-/Regressionstestfamilien | R0/R1; Woo-Flows R3 |
+| LB-09 | `schema/README.md`: stabile Source-IDs, Hashes, Revisionen, Rights-/Publish-Status | Content-Provenienz, Rechteprüfung, revisionsfester Import | R1 |
+| LB-10 | `schema/README.md`: single/multi/open_text/chart_task | generisches Fragetyp-Providerkonzept | Freie Aufgaben generisch; bootspezifische Kartenprüfung ausgeschlossen |
+| LB-11 | `docs/schnittstellen-erweiterungen.md`: Voucher-Grant, Dedupe, Failure-Callback, zwei Einlösewege | fachneutraler Grant-/Saga-Vertrag | Kern R1; Voucher-Adapter R3.2, niemals zwei aktive Einlösewege |
+| LB-12 | `docs/schnittstellen-erweiterungen.md`: Ticketstatus-/Event-Schnittstellen | optionale Activity-/Event-Provider-Verträge | R3.4; kein Praxis-Ticket-Zwang |
+| LB-13 | `konzept-wp-lernplugin.md`: Snapshot-Konverter, Manifest, Importhistorie | versionierte Content-Pipeline und Quellmapping | R1, kein Laravel-Laufzeitzwang |
+| LB-14 | `konzept-wp-lernplugin.md`: Fragenrevisionen, feste und zufällige Prüfungen | Prüfungsblueprints, unveränderliche Versuche | R1; amtliche Bögen nur Daten, keine Domänenlogik |
+| LB-15 | `README.md`: Mitgliederrabatte, Zahlungsstreitfälle, Garantieanteile | optionale Commerce-Policies | R3; nicht Voraussetzung für Free |
+
+**Wichtige Release-Trennung:** Eine in LearnBoating vorhandene **generische Kernfunktion** gehört in R1; eine **konkrete Woo-/Voucher-/Ticket-Integration** wird trotz LearnBoating-Vorbild erst im bereits verbindlich festgelegten R3 umgesetzt. R1 stellt die nötigen neutralen Erweiterungspunkte bereit, ohne diese Partner zu benötigen. Weder R1 noch R2 dürfen durch Connectoren blockiert werden.
+
+### 39.2 Nicht als generischer Kern übernehmen
+
+- Bootsführerschein-, Funk-, Navigations- und amtliche Prüfungskataloge sowie deren Regelwerke, Prüfungsstellen und Anmeldedaten.
+- Fachspezifische Simulatorgeräte und vorgefertigte nautische Szenarien; **wiederverwendbar** sind lediglich generische Interaktions-/Activity-Provider, sofern sinnvoll.
+- Bootsbezogene Kurscodes, Shortcodes, PHP-Präfixe, Paketnamen und proprietäre Quellannahmen; ersetzen durch neutrale, versionierte Course-Captain-Verträge.
+- Rechteunklare Medien und Inhalte niemals ungeprüft übernehmen; Quellrechte, Lizenz und Provenienz sind vor Kopie/Veröffentlichung separat zu prüfen.
+
+### 39.3 Quellverweise und Evidenzstatus
+
+- `https://github.com/hastla007/learnboating/blob/main/README.md`
+- `https://github.com/hastla007/learnboating/blob/main/konzept-wp-lernplugin.md`
+- `https://github.com/hastla007/learnboating/blob/main/schema/README.md`
+- `https://github.com/hastla007/learnboating/blob/main/docs/schnittstellen-erweiterungen.md`
+
+**Status:** LB-01 bis LB-15 sind aus Repository-Dokumenten belegte **Prüfkandidaten**, keine bestätigten Codeimplementierungen. Nächster Pflichtschritt: konkrete Plugin-Klassen, REST-Routen, Datenbankmigrationen, Tests und tatsächliche Zustandsautomaten gegen den aktuellen Quellcommit abgleichen; weitere unentdeckte Funktionen ergänzen. Gate A bleibt offen.
