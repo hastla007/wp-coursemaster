@@ -622,6 +622,10 @@ Quellen: Pass Captain `docs/OPERATIONS.md`, `docs/TESTING.md`; Voucher Captain `
 
 **Statischer Stand:** 111 eindeutige R-Tasks (R0 40 / R1 42 / R2 7 / R3 19 / R4 3), keine nicht existierenden R-IDs in den ausgewiesenen direkten Voraussetzungen gefunden. **Nicht geprüft:** vollständige fachliche Deduplizierung, transitive Zyklen und Code-/Testabdeckung. Ähnliche Tasks zu Settings, Migration, Integrationsstatus und Release-Evidenz sind als **Spezifikation (R0) → Umsetzung (R1/R3) → Abnahme** zu behandeln, nicht als parallele Implementierungen. Die Konflikte um Gruppen-/Zertifikats-Edition wurden in Kapitel 46 redaktionell aufgelöst; Detailabnahme bleibt R0-29. Neue Tasks nur mit Delta-Beleg und eindeutiger DoD. Nächster Schritt R0-01.
 
+### LearnBoating-Codeabgleich II – vier Service-Dateien (Konzept Kapitel 47)
+
+**Code geprüft, aber nur Teilinventur:** `LearningService.php` (Smarttrainer, Fortschritt, Favoriten, Rate-Limits), `ExamService.php` (Sitzung/Timeout/Abbruch/Fehlerzustände), `ImportService.php` (Preview, Batch, Resume, Rollback, verwaiste Locks), `EntitlementService.php` (Grant-Quellen, Verlängerung, selektiver Entzug). Vollständige Pfade und Methodenbelege in Kapitel 47. Die bestehenden Tasks **R0-01…04, R0-23, R0-38, R1-13, R1-15, R1-27, R1-41, R1-42** müssen die dortigen Einzelverträge ausdrücklich abdecken. **Nicht erledigt:** Vollinventur, genaue Daten-/API-/State-Mapping, Tests und Gate A. Keine zusätzlichen Task-IDs, um Dopplungen zu vermeiden.
+
 ## P0 – Fachliche Wichtigkeit; Umsetzung strikt nach Release-Stufen R0–R2
 
 - [ ] **LearnBoating-Paritätsmatrix abschließen:** alle fachneutralen Funktionen, Quellkomponenten, Übernahmestrategien, Regressionstests und Abnahmekriterien inventarisieren. Fachmodule ausdrücklich ausschließen.
