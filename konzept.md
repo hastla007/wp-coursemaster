@@ -393,7 +393,7 @@ Diese Ergänzung basiert auf einem erneuten Abgleich mit den Konzepten von Workf
 
 ### 15.1 Marktanforderungen statt bloßer Featureliste
 
-Als Vergleichskategorien für die spätere Wettbewerbsprüfung dienen LearnDash, Tutor LMS, LifterLMS, LearnPress, Sensei LMS, MasterStudy und Moodle. Vor einer Preis- oder Featurebehauptung sind deren **aktuelle offizielle** Dokumentation, Editionen und Lizenzbedingungen zu prüfen. Keine unbelegten Preis- oder Marktführerbehauptungen.
+Marktanforderungen werden ausschließlich anonymisiert und funktionsbezogen geprüft. In diesen Projektdateien werden keine Namen, Marken, Domains oder Links konkurrierender LMS-Produkte geführt; unbelegte Preis- und Marktbehauptungen entfallen.
 
 | Marktanforderung | Course-Captain-Antwort | Priorität |
 |---|---|---|
@@ -704,7 +704,7 @@ Aktivierung → erster veröffentlichter Kurs; Anteil erfolgreich abgeschlossene
 
 ### 27.4 Verbindliche Wettbewerbsvalidierung
 
-Vor verbindlicher Feinspezifikation und Release-Planung die aktuellen Versionen von **LearnDash, Tutor LMS, LifterLMS, Sensei LMS, LearnPress und MasterStudy LMS** anhand ihrer offiziellen Dokumentation und möglichst eigener Testinstallationen vergleichen. Pro Funktion dokumentieren: tatsächliche Verfügbarkeit (Free/Pro/Add-on), Version/Prüfdatum, UX, Zugriffsrechte, Performance, Barrierefreiheit, Quellenlink, Course-Captain-Abdeckung und Entwicklungsaufwand. Ein neutraler Referenzkurs mit 10 Lektionen, 50 Fragen, einer Aufgabe und einer Prüfung dient als reproduzierbarer Vergleichsfall.
+Vor verbindlicher Feinspezifikation und Release-Planung Marktanforderungen anhand neutraler Funktionskategorien und eigener Testfälle validieren. Pro Funktion Nutzerbedarf, UX, Rechte, Performance, Barrierefreiheit, Course-Captain-Abdeckung und Aufwand dokumentieren, ohne fremde LMS-Produkte oder deren URLs zu nennen. Referenzfall: 10 Lektionen, 50 Fragen, eine Aufgabe und eine Prüfung.
 
 ### 27.5 Reihenfolge, Abhängigkeiten und Entscheidungstore
 
@@ -1091,3 +1091,6 @@ Dieser Katalog erfasst **fachlich relevante Szenariofamilien**, nicht die Behaup
 - **Coverage-Regel:** Jede Katalog-ID wird in der To-do-Liste als Spezifikations-/Testauftrag geführt. Für jede Kombination von Zuständen sind mindestens Erfolgsfall, Ablehnung, Wiederholung, Parallelität, Partnerausfall und Wiederanlauf zu bewerten; **nicht anwendbar** mit Begründung markieren. Ein Szenario gilt erst als abgeschlossen, wenn Owner, Vorbedingungen, Zustandsübergänge, UI-Feedback, Audit und automatisierter oder begründet manueller Test dokumentiert sind.
 - **Verantwortungsregel:** Partnerkonzepte sind keine Implementierungsbelege. Vor jedem R3-Connector den aktuellen öffentlichen API-Vertrag und tatsächlichen Code gegenprüfen; bei fehlender Schnittstelle eine Anforderung dokumentieren, keine heimliche Fremdrepo-Änderung.
 - **Offene Entscheidungen:** Refund-Policy nach begonnenem Kurs; Nachweis-/Zertifikatsverifikation nach Lizenzablauf; Identität bei Gastkauf; Käufer-/Teilnehmertrennung; Paket-/Platz-Einheiten; Pending-Timeout; Mitgliedschafts-Entitlement; Trainerrollen/Multisite; Datenretention je Objekt; genaue R3-Wellen nach Woo/Voucher. Bis zur Entscheidung sichere Defaults: kein ungeprüfter Grant, keine Account-Zusammenführung per E-Mail, keine automatische Nachweislöschung, keine automatische Kompetenzvergabe.
+
+
+**Redaktionsregel:** Externe LMS-Wettbewerber werden in diesem Konzept weder namentlich genannt noch verlinkt. Marktanforderungen bleiben produktneutral. Eigene Captain-Suite-Projekte und die interne LearnBoating-Referenz bleiben als technische Quellen erhalten. Dies ersetzt keine rechtliche Prüfung.
