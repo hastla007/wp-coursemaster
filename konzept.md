@@ -186,9 +186,9 @@ Eine allgemeine `Enrollment/Entitlement`-Service-API bewertet `user_id`, `course
 - Reconcile-Job und Admin-Dry-Run für verlorene Hooks; mehrfach ausgelöste Events bleiben idempotent.
 - **Kein** Zwang zu WooCommerce im Free; ohne Pro nur freie/manuell freigeschaltete Kurse.
 
-### Teams / Gruppen (Pro)
+### Teams / Gruppen (Free-Basis; erweiterte Verwaltung Pro)
 
-Mehrplatz-Kauf, Unterrichtsgruppe, Einladungen mit Ablauf, Gruppenadmin, Teilnahme- und Zugangsstatus, Rollen, Entlassung, Umbuchung, Freiplätze und Prüfung des tatsächlichen Seat-Limits unter atomarer Sperre. Keine E-Mail-Adressen unbefristet behalten; Gruppenaktivität darf nicht unbeabsichtigt alle individuellen Fortschritte löschen.
+**Free-Basis:** neutrale Gruppen-/Seat-/Claim-/Grant-Funktionen, Einladungen mit Ablauf, Teilnahme-/Zugangsstatus und atomare Seat-Limits ohne Kaufpflicht. **Pro-Erweiterung:** komplexe Gruppenorganisation, delegierte Gruppenadministration, Umbuchungs-/Massenverwaltung und Zusatzberichte. **WooCommerce-Mehrplatzkauf erst R3.1:** Zahlungs-/Refund-Adapter, kein Free-Kernzwang. Keine E-Mail-Adressen unbefristet behalten; Gruppenaktivität darf nicht unbeabsichtigt alle individuellen Fortschritte löschen.
 
 ## 8. Integration mit der Captain Suite
 
@@ -298,8 +298,8 @@ Neues, domainneutrales Package-Schema `course-captain/v1` für Kurse, Hierarchie
 | **Quizzes & Prüfungen** | Pool/Regeln, feste Bögen, Bewertung, Versuche |
 | **Lernende** | Kursfreigaben, Fortschritt, Ergebnisübersicht, manuelle Zuordnungen |
 | **Inhalte importieren** | ZIP-Import, Schema, Validierung, Vorschau, Publish, Rollback |
-| **Gruppen** *(Pro)* | Gruppen, Seats, Einladungen, Administratoren |
-| **Zertifikate** *(Pro)* | Vorlagen, Ausstellungen, Widerrufe |
+| **Gruppen** *(Free-Basis; Pro-Erweiterung)* | Free: Seat-/Claim-/Grant-Basis, Einladungen; Pro: delegierte Gruppenadministration und erweiterte Organisation |
+| **Zertifikate** *(Free-Basis; Pro-Designer)* | Free: Basisnachweis, Ausstellung, Widerruf und Verifikation; Pro: erweiterte Vorlagen und Branding |
 | **Berichte** | Basic im Free; Kohorten, CSV und weitere Auswertungen in Pro |
 | **Integrationen** | erkennbare Plugin-Verfügbarkeit, Verbindungs-/Fehlerstatus |
 | **Einstellungen** | Permalinks, Lernparameter, E-Mail, Datenschutz, Medien |
@@ -365,7 +365,7 @@ Migrationsassistent für bestehende learnboating-Installationen (optional, keine
 - Preis für Course Captain Pro bei `single/business/agency` (Site-Limits und Funktionsparität sind entschieden, Preis nicht).
 - Endgültiger Editor: hybride CPT-/Block-Architektur gegen vollständige Custom-Tables. **Empfehlung:** WordPress-CPTs für Kurs/Lektion, separate Tabellen für Fragen, Fortschritt und Prüfungsdaten.
 - Welche komplexen Fragetypen bereits Free v1.0 zuverlässig implementiert werden können (insbesondere Lückentext, Matching, Sortierung) – keine „funktioniert“-Zusage ohne E2E.
-- Umfang und Zeitpunkt von Kurs-Gruppen, bezahlten Kursen und Zertifikaten; dieser Entwurf ordnet sie Pro zu.
+- **Teilweise entschieden (Kapitel 43):** Free enthält neutrale Gruppen-/Seat-/Claim-/Grant-Basis sowie Basisnachweise mit Ausstellung/Widerruf/Verifikation. Pro enthält erweiterte Gruppenorganisation und Zertifikatsdesigner. **Bezahlte Kurse:** WooCommerce-Connector erst R3.1, Voucher-Connector erst R3.2. Detailumfang und UX-Abnahme bleiben in R0-29 offen.
 - Supportumfang und Datenmodell für mehrsprachige Kurse und bestehende Übersetzungsplugins.
 - Falls Migration aus learnboating später benötigt: nur Content oder auch Nutzer-/Fortschrittsdaten, ID-Abgleich, Rechte und gesetzliche Aufbewahrung.
 - **Verbindlich:** Keine Portierung fachgebundener Alttrainer oder Spezialmodule. Neue Aktivitäten müssen aus neutralen Anforderungen heraus konzipiert und unabhängig vom Referenzthema getestet werden.
@@ -787,7 +787,7 @@ Für jede Entscheidung ein kurzes ADR (Architecture Decision Record) mit **Konte
 
 1. **Entschieden:** Zuerst vollständige fachneutrale LearnBoating-Parität und betriebsfähiger Basis-Lernfluss; zusätzliche P0-Wettbewerbsfunktionen erst **danach**. Diese Frage ist geschlossen.
 2. Werden Kursanbieter primär auf **einer** WordPress-Website mit vielen Trainern arbeiten oder sollen Multisite-/Agentur-Szenarien schon in v1 vollständig unterstützt werden?
-3. Sollen Lernende Zertifikate und Kompetenznachweise dauerhaft verifizieren können, auch wenn ein Pro-Abonnement ausläuft? Die bereits festgelegten Lese-/Exportrechte müssen dabei gewahrt bleiben.
+3. **Entschieden (Kapitel 43):** Basisnachweise bleiben unabhängig vom Pro-Abonnement verifizierbar. R0-29 klärt die genaue Daten-/UX-Vertragsausgestaltung und die Prüfung historischer Nachweise.
 
 **Umsetzung:** Die operative, priorisierte und abharkbare Liste befindet sich weiterhin in `TODO-WETTBEWERBSANALYSE.md`. Die zusätzlichen Architektur-/Qualitätsaufgaben dort verweisen auf dieses Kapitel; die bereits dokumentierten Wettbewerbsfunktionen bleiben erhalten.
 
@@ -1408,3 +1408,30 @@ Vor R1 entscheiden: genaue Free-Gruppen-UI, Umfang der Basiszertifikate, konkret
 | License: Release-Evidenz | Bereits bestehende Course-Release-Gates müssen echte Tests, Installations- und Upgradeprotokolle verlangen | R0-36, bestehende R0-35/R1-39 |
 
 **Bewusst nicht übernommen:** Ticket-Scanner, Saalpläne, Gutschein-Guthabenbuchhaltung, Affiliate-Provisionsledger oder Lizenzserver-Verkauf. Diese gehören zu ihren jeweiligen Fachplugins. Die Quellverträge sind bei R3 erneut gegen tatsächliche Plugin-Versionen und APIs zu prüfen; Dokumentation allein bestätigt keine lauffähige Integration.
+
+## 46. Konsistenzprüfung und Entscheidungssteuerung (15.11.2026)
+
+### 46.1 Geprüfte Konsistenz und verbindliche Priorität
+
+- Die früheren widersprüchlichen Kurzangaben zu **Gruppen** und **Zertifikaten** in Kapiteln 7, 10, 13 und 28 wurden anhand des späteren Editionsbeschlusses in Kapitel 43 präzisiert. **Free:** Seat-/Claim-/Grant-Basis und Basisnachweise mit Ausstellung, Widerruf und Verifikation. **Pro:** erweiterte Gruppenorganisation und Zertifikatsdesigner. **R3:** WooCommerce-/Voucher-Kaufadapter. R0-29 validiert die genaue UI- und Funktionsgrenze anhand des tatsächlichen LearnBoating-Codes.
+- **Verbindliche Rangfolge bei historischen Formulierungen:** jüngere explizite Entscheidungen in Kapiteln 29, 32, 35, 43 und 46 sowie die Release-Gates des führenden To-do-Index; alte Produktideen und Tabellen sind keine gegenteiligen Freigaben. Die redaktionelle Korrektur ist keine Code- oder Feature-Abnahme.
+- **Strukturprüfung der führenden To-do-Liste:** 111 eindeutige R-IDs, davon R0=40, R1=42, R2=7, R3=19, R4=3. Bei der statischen Prüfung der ausgewiesenen Voraussetzungen wurden keine Referenzen auf fehlende R-IDs gefunden. Dies bestätigt **nicht** die fachliche Vollständigkeit oder eine zyklenfreie Abhängigkeitsgraphik.
+
+### 46.2 Entscheidungsregister vor R1
+
+| Entscheidung | Status | Nächster Schritt / Gate | Blockierte Folgearbeit |
+|---|---|---|---|
+| Vollständige LearnBoating-Codeparität | Offen: bisher nur dokumentationsbasiert | R0-01 bis R0-04; R0-GATE | R1-Funktionsversprechen |
+| Free-/Pro-Grenze Gruppen und Nachweise | Grundsatz beschlossen, Detail-UX offen | R0-29; R0-GATE | R1-35, R3-18 |
+| WP-Datenmodell, Migration und Multisite | Entwurf, noch nicht codebasiert entschieden | R0-06, R0-25, R0-37; R0-GATE | R1-02, R1-40 |
+| Globale Settings vs. Kurs-/Prüfungs-Overrides | Vertrag noch nicht abgenommen | R0-27, R0-28; R0-GATE | R1-31 bis R1-36 |
+| Identität, Grant-Quelle, Refund und Snapshot | Invarianten formuliert, E2E-Nachweis offen | R0-09, R0-23, R0-40; R0-GATE | R1-27, R3-19 |
+| Datenschutz-Retention, Rollen und Medien | Betreiber-/Rechtsentscheidungen offen | R0-17, R0-31; R0-GATE | R1-34 |
+| WordPress-/Plugin-Kompatibilität, SEO | Prüfmatrix und Zielversionen offen | R0-20, R0-33; R0-GATE | R1-37, R1-39 |
+| Release-/Support-/Wiederherstellungsgates | Evidenz vor Freigabe erforderlich | R0-18, R0-35; R1-GATE | Veröffentlichung |
+
+**Verantwortung:** Produktverantwortung entscheidet Scope/Edition/UX; Architekturverantwortung Daten/API/Migration; Security/Privacy-Verantwortung Datenschutz/Rechte; QA/Release-Verantwortung Testevidenz. Dies sind Rollen, keine bereits benannten oder beauftragten Personen. **Fälligkeit:** jeweils vor dem angegebenen Gate; kein Kalenderdatum ohne abgestimmten Zeitplan. Entscheidungen als ADR mit Datum, Alternativen, Konsequenzen und Abnahme dokumentieren.
+
+### 46.3 Optimierung statt Featureinflation
+
+Jeder neue Task muss (a) ein konkretes bisher nicht abgedecktes Verhalten belegen, (b) bestehende Task-IDs nennen, (c) eine testbare Abnahme ergänzen und (d) in die verbindliche Release-Reihenfolge passen. Querschnittsthemen nicht als zweite Implementierung anlegen. Der nächste operative Schritt ist **R0-01** mit tatsächlichem Repository-/Versionsbaseline und danach die Codeinventur, nicht weitere theoretische Funktionssammlung.
