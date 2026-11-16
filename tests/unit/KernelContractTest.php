@@ -12,6 +12,7 @@ namespace CourseCaptain\Tests\Unit;
 use CourseCaptain\Contract\Api;
 use CourseCaptain\Kernel\Capabilities;
 use CourseCaptain\Kernel\CronHooks;
+use CourseCaptain\Kernel\UninstallManifest;
 use CourseCaptain\Tests\Support\StorageKeyScanner;
 
 /**
@@ -98,7 +99,9 @@ final class KernelContractTest extends TestCase {
 		foreach ( StorageKeyScanner::own_keys( $files ) as $key => $locations ) {
 			$is_option = str_starts_with( $key, 'course_captain_' );
 			$is_cron   = in_array( $key, CronHooks::ALL, true );
-			if ( ! $is_option && ! $is_cron ) {
+			// E-207: meta keys carry `_ccap_` and must be in the uninstall manifest.
+			$is_meta = 1 === preg_match( '/^_?ccap_/', $key ) && in_array( $key, array_merge( UninstallManifest::post_meta(), UninstallManifest::user_meta() ), true );
+			if ( ! $is_option && ! $is_cron && ! $is_meta ) {
 				$violations[] = 'storage key ' . $key . ' (' . implode( ', ', $locations ) . ')';
 			}
 		}

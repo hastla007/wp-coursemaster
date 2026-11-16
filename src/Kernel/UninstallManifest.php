@@ -144,11 +144,16 @@ final class UninstallManifest {
 	public const USER_META = array();
 
 	/**
-	 * Post meta keys. None in R1-01.
+	 * Post meta keys (R1-04).
 	 *
 	 * @var list<string>
 	 */
-	public const POST_META = array();
+	public const POST_META = array(
+		'_ccap_activity_type',
+		'_ccap_activity_uid',
+		'_ccap_current_revision_id',
+		'_ccap_language',
+	);
 
 	/**
 	 * Own roles (R1-03).

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Policy\MetaCaps;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Policy\Roles;
@@ -136,7 +137,7 @@ final class PolicyFixtures {
 		$this->grant( $this->tut, $this->course_a );
 		$this->lock( $this->blk );
 
-		$this->rule_a     = $this->db->insert(
+		$this->rule_a = $this->db->insert(
 			'ccap_exam_rule',
 			array(
 				'uid'          => $this->db->uuid(),
@@ -147,7 +148,7 @@ final class PolicyFixtures {
 			),
 			array( 'created_at', 'updated_at' )
 		);
-		$rule_b           = $this->db->insert(
+		$rule_b       = $this->db->insert(
 			'ccap_exam_rule',
 			array(
 				'uid'          => $this->db->uuid(),
@@ -158,16 +159,8 @@ final class PolicyFixtures {
 			),
 			array( 'created_at', 'updated_at' )
 		);
-		$this->revision_a = $this->db->insert(
-			'ccap_course_revision',
-			array(
-				'course_id'      => $this->course_a,
-				'revision_no'    => 1,
-				'structure'      => '{}',
-				'structure_hash' => 'sha256:' . str_repeat( '0', 64 ),
-				'published_at'   => $this->db->now(),
-			)
-		);
+		// Publishing C-A already wrote revision 1 (CoursePublisher hook).
+		$this->revision_a = (int) ( CoursePublisher::current()->current_revision( $this->course_a )['id'] ?? 0 );
 
 		$this->session_l1           = $this->session( $this->l1, $this->course_a, $this->rule_a, 'in_progress' );
 		$this->session_l1_submitted = $this->session( $this->l1, $this->course_a, $this->rule_a, 'submitted' );

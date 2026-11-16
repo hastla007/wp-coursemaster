@@ -61,6 +61,11 @@ abstract class SchemaTestCase extends TestCase {
 		}
 		$wpdb->query( "DROP TABLE IF EXISTS `{$wpdb->prefix}ccap_foreign_probe`" );
 		$wpdb->query( 'SET FOREIGN_KEY_CHECKS = 1' );
+		// Own transactions (START TRANSACTION) commit the suite's outer transaction: remove own posts too.
+		$wpdb->query( "DELETE pm FROM `{$wpdb->postmeta}` pm JOIN `{$wpdb->posts}` p ON p.ID = pm.post_id WHERE p.post_type LIKE 'ccap\\_%'" );
+		$wpdb->query( "DELETE FROM `{$wpdb->posts}` WHERE post_type LIKE 'ccap\\_%' OR (post_type = 'revision' AND post_parent NOT IN (SELECT ID FROM (SELECT ID FROM `{$wpdb->posts}`) AS keep))" );
+		clean_post_cache( 0 );
+		wp_cache_flush();
 		// phpcs:enable
 		// DDL commits the test transaction: remove every own option, not only the schema ones.
 		foreach ( self::own_options() as $option ) {

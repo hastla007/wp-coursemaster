@@ -233,7 +233,7 @@
   - **Ergebnis/Definition of Done:** Alle Server-Einstiege nutzen Objekt-/Site-Rechte; negative IDOR-Tests grün.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-04 · Kurs-/Modul-/Lektionsmodell**
+- [x] **R1-04 · Kurs-/Modul-/Lektionsmodell** — erledigt 16.11.2026: Nachweis `docs/r1/R1-04-nachweis.md`; 5 CPTs (nur Kurs öffentlich, Slug `kurs`), stabile UIDs, Modulzuordnung/Reihenfolge, Veröffentlichen mit unveränderlicher Kursrevision, Archiv, Löschschutz, Bundles; GM-001/GM-003/LOC-001 grün; Unit 73, Integration 56, Multisite 65. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02, R1-03.
   - **Ergebnis/Definition of Done:** Neutrale Kursstruktur, Revisionen, Entwurf/Publikation/Archiv, Zuordnungen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T11:56:32+00:00\n"
+"POT-Creation-Date: 2026-11-16T12:09:15+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -44,6 +44,64 @@ msgstr ""
 msgid "Course Captain cannot be activated"
 msgstr ""
 
+#: src/Course/PostTypes.php:54
+msgid "Courses"
+msgstr ""
+
+#: src/Course/PostTypes.php:54
+msgid "Course"
+msgstr ""
+
+#: src/Course/PostTypes.php:70
+msgid "Modules"
+msgstr ""
+
+#: src/Course/PostTypes.php:70
+msgid "Module"
+msgstr ""
+
+#: src/Course/PostTypes.php:77
+msgid "Lessons"
+msgstr ""
+
+#: src/Course/PostTypes.php:77
+msgid "Lesson"
+msgstr ""
+
+#: src/Course/PostTypes.php:81
+msgid "Course FAQs"
+msgstr ""
+
+#: src/Course/PostTypes.php:81
+msgid "Course FAQ"
+msgstr ""
+
+#: src/Course/PostTypes.php:82
+msgid "Learning tips"
+msgstr ""
+
+#: src/Course/PostTypes.php:82
+msgid "Learning tip"
+msgstr ""
+
+#: src/Course/PostTypes.php:87
+msgctxt "post status"
+msgid "Archived"
+msgstr ""
+
+#. translators: %s: number of items
+#: src/Course/PostTypes.php:95
+#, php-format
+msgid "Archived <span class=\"count\">(%s)</span>"
+msgid_plural "Archived <span class=\"count\">(%s)</span>"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Course/PostTypes.php:101
+msgctxt "post status"
+msgid "Staged"
+msgstr ""
+
 #. translators: %s: comma-separated table names
 #: src/Kernel/Activator.php:70
 #, php-format
@@ -66,7 +124,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:305
+#: src/Kernel/Plugin.php:313
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 

@@ -11,6 +11,10 @@ namespace CourseCaptain\Kernel;
 
 use CourseCaptain\Contract\Api;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
+use CourseCaptain\Course\CoursePublisher;
+use CourseCaptain\Course\DeletionGuard;
+use CourseCaptain\Course\ObjectIdentity;
+use CourseCaptain\Course\PostTypes;
 use CourseCaptain\Policy\EscalationGuard;
 use CourseCaptain\Policy\Invalidation;
 use CourseCaptain\Policy\MetaCaps;
@@ -29,7 +33,7 @@ final class Plugin {
 	public const REWRITE_VERSION_OPTION = 'course_captain_rewrite_version';
 
 	/** Bump when own rewrite rules change. */
-	public const REWRITE_VERSION = '1';
+	public const REWRITE_VERSION = '2';
 
 	/**
 	 * Instance booted by WordPress.
@@ -182,6 +186,10 @@ final class Plugin {
 		add_action( CronHooks::HOURLY, array( CronHooks::class, 'run_hourly' ) );
 		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
 		MetaCaps::register();
+		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
+		ObjectIdentity::register();
+		CoursePublisher::register();
+		DeletionGuard::register();
 		Invalidation::register();
 		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );
