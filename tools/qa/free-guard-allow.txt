@@ -1,0 +1,3 @@
+# Free-guard allowlist (R0-18 §2.5, R0-39 §1.2).
+# Format: path | guard-id | reason | expires (YYYY-MM-DD)
+# Changes only with CODEOWNERS review (E-204, author != reviewer). G-7 is never allowable (FG-07).

@@ -91,7 +91,7 @@ final class UninstallManifest {
 	 * @var array<string, list<string>>
 	 */
 	public const DYNAMIC_OPTION_SUFFIXES = array(
-		'course_captain_settings_undo_'  => array(
+		'course_captain_settings_undo_' => array(
 			'general',
 			'display',
 			'learning',
@@ -161,6 +161,51 @@ final class UninstallManifest {
 	public const ROLES = array();
 
 	/**
+	 * Exact transient names.
+	 *
+	 * @return list<string>
+	 */
+	public static function transients(): array {
+		return self::TRANSIENTS;
+	}
+
+	/**
+	 * Network-wide user meta keys.
+	 *
+	 * @return list<string>
+	 */
+	public static function user_meta(): array {
+		return self::USER_META;
+	}
+
+	/**
+	 * Post meta keys.
+	 *
+	 * @return list<string>
+	 */
+	public static function post_meta(): array {
+		return self::POST_META;
+	}
+
+	/**
+	 * Own tables without the site prefix, children first.
+	 *
+	 * @return list<string>
+	 */
+	public static function tables(): array {
+		return self::TABLES;
+	}
+
+	/**
+	 * Own roles.
+	 *
+	 * @return list<string>
+	 */
+	public static function roles(): array {
+		return self::ROLES;
+	}
+
+	/**
 	 * Every exact option name including the expanded dynamic families.
 	 *
 	 * @return list<string>
@@ -184,9 +229,9 @@ final class UninstallManifest {
 	public static function covers( string $key ): bool {
 		$exact = array_merge(
 			self::all_option_names(),
-			self::TRANSIENTS,
-			self::USER_META,
-			self::POST_META,
+			self::transients(),
+			self::user_meta(),
+			self::post_meta(),
 			CronHooks::ALL,
 			Capabilities::PRIMITIVE
 		);
@@ -209,11 +254,11 @@ final class UninstallManifest {
 	public static function to_array(): array {
 		return array(
 			'options'      => self::all_option_names(),
-			'transients'   => self::TRANSIENTS,
-			'user_meta'    => self::USER_META,
-			'post_meta'    => self::POST_META,
-			'tables'       => self::TABLES,
-			'roles'        => self::ROLES,
+			'transients'   => self::transients(),
+			'user_meta'    => self::user_meta(),
+			'post_meta'    => self::post_meta(),
+			'tables'       => self::tables(),
+			'roles'        => self::roles(),
 			'capabilities' => Capabilities::PRIMITIVE,
 			'cron_hooks'   => CronHooks::ALL,
 		);

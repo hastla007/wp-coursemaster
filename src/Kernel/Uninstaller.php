@@ -51,7 +51,7 @@ final class Uninstaller {
 
 		// Network-wide user meta only when no site keeps its data (MS-R-13).
 		if ( array() !== $result && ! in_array( false, $result, true ) ) {
-			foreach ( UninstallManifest::USER_META as $meta_key ) {
+			foreach ( UninstallManifest::user_meta() as $meta_key ) {
 				delete_metadata( 'user', 0, $meta_key, '', true );
 			}
 		}
@@ -71,7 +71,7 @@ final class Uninstaller {
 	public static function uninstall_current_site(): bool {
 		CronHooks::unschedule_all();
 
-		foreach ( UninstallManifest::TRANSIENTS as $transient ) {
+		foreach ( UninstallManifest::transients() as $transient ) {
 			delete_transient( $transient );
 		}
 		delete_option( 'rewrite_rules' );
@@ -91,12 +91,12 @@ final class Uninstaller {
 		 */
 		do_action( 'course_captain_uninstall', $manifest );
 
-		foreach ( UninstallManifest::POST_META as $meta_key ) {
+		foreach ( UninstallManifest::post_meta() as $meta_key ) {
 			delete_post_meta_by_key( $meta_key );
 		}
 
 		Capabilities::remove_all();
-		foreach ( UninstallManifest::ROLES as $role ) {
+		foreach ( UninstallManifest::roles() as $role ) {
 			remove_role( $role );
 		}
 

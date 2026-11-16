@@ -218,7 +218,7 @@
 
 ### R1 – Standalone Free und vollständige neutrale Parität
 
-- [ ] **R1-01 · Plugin-Bootstrap und Lifecycle**
+- [x] **R1-01 · Plugin-Bootstrap und Lifecycle** — erledigt 16.11.2026: Nachweis `docs/r1/R1-01-nachweis.md`; phpcs 0/0, PHPStan L8 0 Fehler, Unit 49/355, Integration 14/93, Multisite 22/139, Free-Guard 0 Treffer (vom Koordinator nachgeprüft). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R0-GATE.
   - **Ergebnis/Definition of Done:** Plugin aktivierbar/deaktivierbar, Mindestversionen, Upgrade/Uninstall-Policy, keine Suite-Pflicht.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

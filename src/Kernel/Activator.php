@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Kernel;
 
+use Closure;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
 use Throwable;
 
@@ -22,11 +23,20 @@ defined( 'ABSPATH' ) || exit;
 final class Activator {
 
 	/**
+	 * Provides the environment snapshot (replaceable in tests).
+	 *
+	 * @var Closure(): EnvironmentSnapshot
+	 */
+	private Closure $environment;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param MigrationRunner $migrations Schema upgrade trigger point.
+	 * @param MigrationRunner                       $migrations  Schema upgrade trigger point.
+	 * @param (Closure(): EnvironmentSnapshot)|null $environment Snapshot provider; defaults to the live database probe.
 	 */
-	public function __construct( private MigrationRunner $migrations ) {
+	public function __construct( private MigrationRunner $migrations, ?Closure $environment = null ) {
+		$this->environment = $environment ?? static fn(): EnvironmentSnapshot => EnvironmentSnapshot::with_database();
 	}
 
 	/**
@@ -40,7 +50,7 @@ final class Activator {
 			self::abort( array( NetworkGuard::blocked_message() ) );
 		}
 
-		$failures = Requirements::evaluate( EnvironmentSnapshot::with_database() );
+		$failures = Requirements::evaluate( ( $this->environment )() );
 		if ( array() !== $failures ) {
 			$messages = array();
 			foreach ( $failures as $failure ) {
@@ -49,9 +59,10 @@ final class Activator {
 			self::abort( $messages );
 		}
 
-		// The activation error page re-runs this hook ("sandbox scraping"). It
-		// may report errors but must never write anything.
-		if ( defined( 'WP_SANDBOX_SCRAPING' ) && WP_SANDBOX_SCRAPING ) {
+		// The activation error page (plugins.php?action=error_scrape) re-runs this
+		// hook without arguments. It may report errors but must never write.
+		// Note: WP_SANDBOX_SCRAPING is defined on every activation and is no signal.
+		if ( self::is_error_scrape() ) {
 			return;
 		}
 
@@ -68,9 +79,22 @@ final class Activator {
 	}
 
 	/**
+	 * Whether the current request is the activation error page of WordPress.
+	 *
+	 * @return bool
+	 */
+	public static function is_error_scrape(): bool {
+		// WordPress verifies the nonce of this request itself (check_admin_referer in plugins.php).
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : '';
+		return is_admin() && 'error_scrape' === $action;
+	}
+
+	/**
 	 * Abort the activation with a readable message. WP-CLI turns this into exit code 1.
 	 *
-	 * @param list<string> $messages Translated messages.
+	 * @param string[] $messages Translated messages.
+	 * @phpstan-param list<string> $messages
 	 * @return never
 	 */
 	private static function abort( array $messages ): never {
@@ -87,6 +111,5 @@ final class Activator {
 				'back_link' => true,
 			)
 		);
-		exit; // wp_die() handlers in tests may return; never continue the activation.
 	}
 }

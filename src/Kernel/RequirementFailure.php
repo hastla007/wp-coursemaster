@@ -29,8 +29,9 @@ final readonly class RequirementFailure {
 	/**
 	 * Constructor.
 	 *
-	 * @param string       $code Stable `ccap_*` code (one of the constants).
-	 * @param list<string> $args Values for the message placeholders.
+	 * @param string   $code Stable `ccap_*` code (one of the constants).
+	 * @param string[] $args Values for the message placeholders.
+	 * @phpstan-param list<string> $args
 	 */
 	public function __construct(
 		public string $code,

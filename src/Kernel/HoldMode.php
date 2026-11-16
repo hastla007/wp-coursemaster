@@ -36,7 +36,8 @@ final class HoldMode {
 	/**
 	 * Constructor.
 	 *
-	 * @param list<string> $reasons Active reasons.
+	 * @param string[] $reasons Active reasons.
+	 * @phpstan-param list<string> $reasons
 	 */
 	public function __construct( array $reasons ) {
 		$this->reasons = array_values( array_unique( $reasons ) );

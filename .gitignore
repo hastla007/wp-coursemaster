@@ -5,7 +5,6 @@
 /.phpcs.cache
 /.phpunit.cache/
 /.phpunit.result.cache
-/tests/integration/wp-tests-config.php
 /tests/_output/
 *.log
 .DS_Store

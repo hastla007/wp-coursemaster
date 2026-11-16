@@ -8,6 +8,7 @@
 	<file>tests</file>
 
 	<exclude-pattern>tests/guards/fixtures/*</exclude-pattern>
+	<exclude-pattern>tests/unit/fixtures/*</exclude-pattern>
 	<exclude-pattern>vendor/*</exclude-pattern>
 	<exclude-pattern>node_modules/*</exclude-pattern>
 
@@ -51,6 +52,7 @@
 	</rule>
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<exclude-pattern>tests/integration/bootstrap.php</exclude-pattern>
+		<exclude-pattern>tests/integration/wp-tests-config.php</exclude-pattern>
 		<exclude-pattern>tests/unit/bootstrap.php</exclude-pattern>
 	</rule>
 	<rule ref="WordPress.WP.AlternativeFunctions">

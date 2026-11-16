@@ -19,15 +19,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Api {
 
-	/**
-	 * Feature keys supported by this build. Unknown keys are unsupported.
-	 *
-	 * Later tasks add their keys here (for example `certificates`); keys that
-	 * need the paid add-on are never listed in Free (E-38).
-	 *
-	 * @var list<string>
-	 */
-	private const FEATURES = array();
 
 	/**
 	 * Contract version (SemVer, not the plugin version; R0-19 §1.1 V-01).
@@ -45,6 +36,18 @@ final class Api {
 	 * @return bool
 	 */
 	public function supports( string $feature ): bool {
-		return in_array( $feature, self::FEATURES, true );
+		return in_array( $feature, self::features(), true );
+	}
+
+	/**
+	 * Feature keys supported by this build. Unknown keys are unsupported.
+	 *
+	 * Later tasks add their keys here (for example `certificates`); keys that
+	 * need the paid add-on are never listed in Free (E-38).
+	 *
+	 * @return list<string>
+	 */
+	private static function features(): array {
+		return array();
 	}
 }

@@ -22,7 +22,7 @@ final class NetworkGuard {
 	 *
 	 * WordPress passes `$network_wide = true` for "Network Activate" and for
 	 * `wp plugin activate --network`. The activation error page re-runs the
-	 * activation hook without arguments (sandbox scraping); inside the network
+	 * activation hook without arguments (`action=error_scrape`); inside the network
 	 * admin that run is refused as well.
 	 *
 	 * @param bool $network_wide Value passed to the activation hook.

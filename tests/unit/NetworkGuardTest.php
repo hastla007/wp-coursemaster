@@ -12,14 +12,12 @@ namespace CourseCaptain\Tests\Unit;
 use Brain\Monkey\Functions;
 use CourseCaptain\Kernel\HoldMode;
 use CourseCaptain\Kernel\NetworkGuard;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * R0-25 MS-R-01/02, E-49.
  *
  * @group R1-01
  */
-#[Group( 'R1-01' )]
 final class NetworkGuardTest extends TestCase {
 
 	/**
@@ -29,9 +27,6 @@ final class NetworkGuardTest extends TestCase {
 	 * @group MS-002
 	 * @group KOMP-001
 	 */
-	#[Group( 'MS-001' )]
-	#[Group( 'MS-002' )]
-	#[Group( 'KOMP-001' )]
 	public function test_MS_001_network_wide_activation_is_blocked(): void {
 		Functions\when( 'is_multisite' )->justReturn( true );
 		Functions\when( 'is_network_admin' )->justReturn( false );
@@ -45,7 +40,6 @@ final class NetworkGuardTest extends TestCase {
 	 *
 	 * @group MS-001
 	 */
-	#[Group( 'MS-001' )]
 	public function test_MS_001_sandbox_run_in_network_admin_is_blocked(): void {
 		Functions\when( 'is_multisite' )->justReturn( true );
 		Functions\when( 'is_network_admin' )->justReturn( true );
@@ -68,7 +62,6 @@ final class NetworkGuardTest extends TestCase {
 	 *
 	 * @group MS-003
 	 */
-	#[Group( 'MS-003' )]
 	public function test_MS_003_network_activate_link_is_removed(): void {
 		$links = NetworkGuard::filter_network_action_links(
 			array(
@@ -87,8 +80,6 @@ final class NetworkGuardTest extends TestCase {
 	 * @group MS-004
 	 * @group KOMP-001
 	 */
-	#[Group( 'MS-004' )]
-	#[Group( 'KOMP-001' )]
 	public function test_MS_004_forced_network_activation_starts_hold_mode(): void {
 		Functions\when( 'is_multisite' )->justReturn( true );
 		Functions\when( 'get_site_option' )->justReturn( array( 'course-captain/course-captain.php' => 1700000000 ) );
@@ -106,7 +97,6 @@ final class NetworkGuardTest extends TestCase {
 	 *
 	 * @group MS-004
 	 */
-	#[Group( 'MS-004' )]
 	public function test_MS_004_no_hold_mode_without_sitewide_entry(): void {
 		Functions\when( 'is_multisite' )->justReturn( true );
 		Functions\when( 'get_site_option' )->justReturn( array( 'other/other.php' => 1 ) );

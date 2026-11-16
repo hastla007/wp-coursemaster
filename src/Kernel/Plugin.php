@@ -100,7 +100,7 @@ final class Plugin {
 	/**
 	 * Activation hook callback.
 	 *
-	 * @param bool|mixed $network_wide Passed by WordPress; missing during sandbox scraping.
+	 * @param bool|mixed $network_wide Passed by WordPress; missing on the activation error page.
 	 * @return void
 	 */
 	public static function activate( $network_wide = false ): void {

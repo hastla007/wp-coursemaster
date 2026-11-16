@@ -12,21 +12,19 @@ namespace CourseCaptain\Tests\Unit;
 use CourseCaptain\Kernel\EnvironmentSnapshot;
 use CourseCaptain\Kernel\RequirementFailure;
 use CourseCaptain\Kernel\Requirements;
-use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\Group;
 
 /**
  * Platform matrix R0-20 §1.2 (E-08, E-58, E-195).
  *
  * @group R1-01
  */
-#[Group( 'R1-01' )]
 final class RequirementsTest extends TestCase {
 
 	/**
 	 * Codes of a failure list.
 	 *
-	 * @param list<RequirementFailure> $failures Failures.
+	 * @param RequirementFailure[] $failures Failures.
+	 * @phpstan-param list<RequirementFailure> $failures
 	 * @return list<string>
 	 */
 	private static function codes( array $failures ): array {
@@ -38,7 +36,6 @@ final class RequirementsTest extends TestCase {
 	 *
 	 * @group RC-047
 	 */
-	#[Group( 'RC-047' )]
 	public function test_RC_047_too_old_php_and_wordpress_are_reported(): void {
 		$failures = Requirements::evaluate( new EnvironmentSnapshot( '8.2.29', '6.9.1' ) );
 
@@ -53,7 +50,6 @@ final class RequirementsTest extends TestCase {
 	 *
 	 * @group RC-046
 	 */
-	#[Group( 'RC-046' )]
 	public function test_RC_046_lower_bound_passes(): void {
 		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.3.0', '7.0' ) ) );
 		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.5.1', '7.1.4' ) ) );
@@ -86,8 +82,8 @@ final class RequirementsTest extends TestCase {
 	 *
 	 * @param string $server   Server version string.
 	 * @param string $expected Expected support level.
+	 * @dataProvider database_versions
 	 */
-	#[DataProvider( 'database_versions' )]
 	public function test_database_support_levels( string $server, string $expected ): void {
 		self::assertSame( $expected, Requirements::database_support_level( $server ) );
 	}

@@ -2,15 +2,16 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
 	bootstrap="tests/integration/bootstrap.php"
-	cacheDirectory=".phpunit.cache"
+	cacheResultFile=".phpunit.cache/test-results"
 	colors="true"
 	executionOrder="random"
 	beStrictAboutOutputDuringTests="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	convertDeprecationsToExceptions="true"
 	failOnWarning="true"
-	failOnNotice="true"
-	failOnDeprecation="true"
-	failOnRisky="true"
-	failOnEmptyTestSuite="true">
+	failOnRisky="true">
 	<groups>
 		<exclude>
 			<group>ms-required</group>
