@@ -1,6 +1,6 @@
-# R0-26 · UX- und Accessibility-Abnahme mit Nutzertests (Entwurf)
+# R0-26 · UX- und Accessibility-Abnahme mit Nutzertests
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Produkt offen.** Task R0-26 ist **nicht** abgehakt. Dies ist ein Testplan. Es gibt noch keine Implementierung, keine Teilnehmenden und keine Messwerte. Alle Zahlen in den Spalten „Schwelle“ und „Zielzeit“ sind **Vorgaben**, keine Ergebnisse. Durchgeführt wird der Plan in **R1-29** (Voraussetzungen R1-16, R1-19, R1-26). Das Ergebnis geht in **R1-GATE** ein (Gates B/C, Konzept 28.6).
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Dies ist ein Testplan. Es gibt noch keine Implementierung, keine Teilnehmenden und keine Messwerte. Alle Zahlen in den Spalten „Schwelle“ und „Zielzeit“ sind **Vorgaben**, keine Ergebnisse. Durchgeführt wird der Plan in **R1-29** (Voraussetzungen R1-16, R1-19, R1-26). Das Ergebnis geht in **R1-GATE** ein (Gates B/C, Konzept 28.6).
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-26 (DoD: „Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert“), R1-29 (DoD: „Referenzaufgaben durchgespielt; Tastatur, Screenreader, mobile Prüfungen und Fehlerbehebung mit dokumentierten Befunden“), TODO-Punkte „Drei neutrale Autorentests“, „Lernenden-E2E und Accessibility“, „Praxis-Benchmark“, „Messkonzept erstellen“. Konzept Kap. 15.2 (E2E-Nutzerreisen 1, 2, 3, 6), 16.1/16.3, 23.3, 27.4, 28.4 Nr. 5/6, 28.6. `R0-11-free-pro-matrix-ux.md` (Screens A-01…A-18, L-01…L-21, Zustände Z-x, Flows 1–4). `R0-15-barrierefreiheit-i18n.md` (A11Y-001…112, §2.3 Zeitausgleich, §2.4 Matrix, §5). `R0-14-nichtfunktionale-ziele.md` §3 (Browser/Geräte). `R0-05-golden-master.md` §2 (`cc-fixture-neutral-v1`). `R0-22-kursvalidierung-publish.md` §2.3/§3 (Vorschau, Validierungspanel).
 **Abgrenzung:** Automatisierte A11Y-, E2E- und Golden-Master-Prüfungen gehören zu R1-18 und R1-19. Dieses Dokument regelt nur, was **Menschen** prüfen: Nutzertests mit Teilnehmenden und manuelle Expertendurchläufe mit Hilfstechnik (A11Y-102…104). Rechtliche Konformitätsaussagen trifft es nicht (vgl. R0-15, E-125). Telemetrie nach dem Launch (Kap. 23.3) wird hier nicht gebaut. §7 liefert nur die Baselines dafür.
@@ -11,24 +11,33 @@
 
 ## 0. Annahmen und Rahmen
 
-### 0.1 Annahmen aus `ENTSCHEIDUNGEN.md` (Empfehlungen, noch nicht beschlossen)
+### 0.1 Beschlussstand
 
-| ID | Annahme | Wirkung hier |
-|---|---|---|
-| **E-61** | Browser: die letzten zwei Hauptversionen von Chrome, Edge, Firefox und Safari, dazu Firefox ESR, iOS Safari und Android Chrome | Matrix §3 |
-| **E-126** | Zugesicherte Screenreader: NVDA und VoiceOver (macOS, iOS). TalkBack nur best effort, JAWS nicht zugesichert | Matrix §3. Befunde mit JAWS werden als S3 oder niedriger eingestuft (§4.4), außer sie zeigen einen Fehler, den auch NVDA/VO hat |
-| E-17, E-28 | Gruppenbesitzer verwalten ihre Gruppe selbst (Free). Einladungslink mit Option „nur eingeladene Adresse“ | Flow GV §1.5 |
-| E-96 | Basisnachweis als HTML- und Druckansicht (Free) | Aufgabe LE-T08 |
-| E-102 | Setup-Schritt 6 legt in R1 nur ein leeres Kursgerüst an | Aufgabe AD-T01 |
-| E-121 | Quell-Strings sind en_US, Deutsch ist die erste Übersetzung | Testsprache de_DE (D-26-09) |
-| E-122, E-123 | Zeitausgleich je Lernendem. Timer-Modi `strict`/`practice` | RK-2-Prüfung `strict`, Zeitausgleich in UX-075 |
-| E-72, E-75 | Auto-Abgabe nach Inaktivität (Option). Ablauf führt zu `evaluated` mit `end_reason=expired` | Wiederaufnahme-Aufgaben |
-| E-45 | Externe Medien nur per „Klick zum Laden“ | LE-T03 |
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). In dieses Dokument eingearbeitet:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01**, E-02 | Referenzkurse sind eigene, synthetische Inhalte (§0.2 Nr. 3); kein LB-Material |
+| **E-161 … E-171** (früher D-26-01 … D-26-11) | Rekrutierung, Budget, Teilnehmerzahl, Moderation, Autorenumfang, Schwellen, Aufzeichnung, Aufgabe, Sprache, Wiederholung, S2-Regel (§8) |
+| **E-168** | **abweichend von der früheren Empfehlung D-26-08:** Text-/Dateiaufgaben mit Bewertung kommen in R1 (R1-46). Jeder Referenzkurs enthält **eine Aufgabe** (§0.2 Nr. 1, §1.1); neue Aufgaben AU-T12, AU-T13, LE-T11, LE-T12 und Testfälle UX-016, UX-017, UX-036, UX-037 (neu, ohne LB-Vorbild); `RK-v1.1` entfällt |
+| **E-20** | Lösungserklärungen sind Pro: Die Tests laufen ohne Pro (§0.2 Nr. 4), Drehbücher enthalten keine Erklärungstexte, AU-T04 verlangt keine Erklärung; Lernende sehen richtig/falsch und nach Einstellung die richtige Antwort (E-147) |
+| **E-22**, **E-69** | Fragetypen „Zahl mit Toleranz“, Zuordnung, Sortieren, Lückentext in R1 Free: Typmix der Referenzkurse erweitert (§1.1), AU-T05, LE-T04, neuer Testfall UX-038 (neu, ohne LB-Vorbild) |
+| **E-27** | Zugang je Modul: AU-T11 enthält bei RK-2 eine Freischaltung nur für einzelne Module |
+| **E-45/E-45a** | externe Medien Default „immer laden“: AU-T03, LE-T03, UX-022 ohne Klick-Zustimmung; der Platzhalter „Klick zum Laden“ wird im Expertendurchlauf UX-080 mit umgestellter Einstellung geprüft |
+| **E-232** | Gruppenbesitzer sehen in Free keine Lernleistungen; Flow 3 enthält keine Fortschrittsaufgabe (Fortschrittseinsicht nur Pro als Opt-in, R3) |
+| **E-61**, **E-126** | Browser: die letzten zwei Hauptversionen von Chrome, Edge, Firefox und Safari, dazu Firefox ESR, iOS Safari und Android Chrome; zugesichert NVDA und VoiceOver (macOS, iOS), TalkBack best effort, JAWS nicht zugesichert (Befunde nur mit JAWS ≤ S3, außer NVDA/VO zeigen denselben Fehler) (§3, §4.4) |
+| E-17, E-28 | Gruppenbesitzer verwalten ihre Gruppe selbst (Free); Einladungslink mit Option „nur eingeladene Adresse“ (Flow GV §1.4) |
+| E-96 | Basisnachweis als HTML- und Druckansicht (Free) (LE-T08) |
+| E-102 | Setup legt in R1 nur ein leeres Kursgerüst an (AD-T01) |
+| E-121 | Quell-Strings en_US, Deutsch erste Übersetzung (Testsprache nach E-169) |
+| E-122, E-123 | Zeitausgleich je Lernendem; Timer-Modi `strict`/`practice` (RK-2-Prüfung `strict`, UX-075) |
+| E-72, E-75 | Auto-Abgabe nach Inaktivität (Option); Ablauf führt zu `evaluated` mit `end_reason=expired` (Wiederaufnahme-Aufgaben, UX-032) |
+| E-207 | Präfix `ccap_` für Plugin-Bezeichner; Testkonten `cc_fx_…` und Paketnamen `cc-fx-…` sind Testdaten und bleiben |
 
 ### 0.2 Zuschnitt und Abweichungen
 
-1. **Aufgabe (Abgabe) nicht in R1.** Konzept 27.4/28.4 und TODO verlangen Referenzkurse „mit einer Aufgabe“. Text- und Dateiaufgaben kommen aber erst mit **R2-02**, und R0-05 §2.2 schließt sie aus dem Golden Master aus. Die R1-Referenzkurse haben deshalb **10 Lektionen, 50 Fragen und 1 Prüfung**, ohne Aufgabe. Für R2-02 wird der Plan mit Paket `RK-v1.1` (je eine Aufgabe) und den Testfällen UX-1xx ergänzt. Das muss bestätigt werden (D-26-08).
-2. **Video ist Pflicht.** Konzept 28.4 Nr. 5 nennt „Video“. Jeder Referenzkurs hat deshalb ein internes Video mit WebVTT-Untertitel und ein externes Video mit Consent-Platzhalter.
+1. **Aufgabe (Abgabe) in R1 (E-168).** Konzept 27.4/28.4 und TODO verlangen Referenzkurse „mit einer Aufgabe“. Nach E-168 kommen Text- und Dateiaufgaben mit Bewertung in R1 (R1-46). Die R1-Referenzkurse haben deshalb **10 Lektionen, 50 Fragen, 1 Prüfung und 1 Aufgabe** (eine der 10 Lektionen ist die Aufgabe). Für Aufgaben gibt es kein LB-Vorbild; die zugehörigen Testaufgaben und Testfälle sind als neu gekennzeichnet. Voraussetzung für R1-29 ist damit zusätzlich R1-46.
+2. **Video ist Pflicht.** Konzept 28.4 Nr. 5 nennt „Video“. Jeder Referenzkurs hat deshalb ein internes Video mit WebVTT-Untertitel und ein externes Video. Die Testumgebung nutzt den Default „immer laden“ (E-45a); der Platzhalter „Klick zum Laden“ wird im Expertendurchlauf UX-080 geprüft.
 3. **Lernraum-Inhalte müssen verständlich sein.** Die Platzhaltertexte aus `cc-fixture-neutral-v1` („Welche Aussage trifft auf Konzept 1 zu?“) taugen für Golden Master, aber nicht für Nutzertests: Lernende könnten Fragen nur raten. Für die Tests gibt es eigene Referenzkurse (§1.1). Ihre Inhalte sind allgemein verständlich, fachneutral, ohne Bezug auf einen Fremdanbieter, unter CC0, und jede Frage ist aus dem Lektionstext beantwortbar. Für die technischen Regeln gilt R0-05 §2.1: Präfix `cc-fx-rk…`, Domains `example.test`, synthetische Medien, stabile `source_id`.
 4. **Edition:** Alle Aufgaben laufen in **Free ohne Pro, ohne WooCommerce und ohne Suite-Plugins** (Gate B, Kap. 28.5). Flow 5 (Pro) gehört zu R3.
 
@@ -44,8 +53,9 @@ Jeder Kurs hat dieselbe Grundmenge, damit die Messwerte vergleichbar bleiben. Di
 |---|---|---|---|
 | Slug / Arbeitstitel | `cc-fx-rk1` „Zeitmanagement im Alltag“ | `cc-fx-rk2` „Grundlagen der Tabellenkalkulation – Prüfungstraining“ | `cc-fx-rk3` „Einarbeitung bei der Beispiel GmbH“ (fiktiv, `example.test`) |
 | Struktur | 3 Module, 10 Lektionen (4/3/3) | 4 Module, 10 Lektionen (3/3/2/2) | 2 Module, 10 Lektionen (5/5), lineare Reihenfolge |
-| Activities | 7 × Text, 1 × Video intern + VTT, 1 × Video extern (Consent), 1 × Datei (PDF) | 6 × Text, 2 × Video intern + VTT, 1 × Text + Inline-Quiz (3 Fragen), 1 × Datei | 6 × Text mit „gelesen bestätigen“, 1 × Video intern + VTT, 1 × Video extern, 2 × Datei |
-| 50 Fragen (Typmix nach E-69) | 25 single, 10 multi, 6 true_false, 4 open_text, 5 flashcard | 28 single, 14 multi, 6 true_false, 2 open_text | 25 single, 10 multi, 10 true_false, 5 flashcard |
+| Activities | 6 × Text, 1 × Video intern + VTT, 1 × Video extern, 1 × Datei (PDF), **1 × Aufgabe (Text)** | 5 × Text, 2 × Video intern + VTT, 1 × Text + Inline-Quiz (3 Fragen), 1 × Datei, **1 × Aufgabe (Datei-Upload, z. B. Tabelle als PDF)** | 5 × Text mit „gelesen bestätigen“, 1 × Video intern + VTT, 1 × Video extern, 2 × Datei, **1 × Aufgabe (Text + Datei)** |
+| 50 Fragen (Typmix nach E-22, E-69) | 22 single, 9 multi, 5 true_false, 4 open_text, 5 flashcard, 2 matching, 2 ordering, 1 cloze | 22 single, 12 multi, 4 true_false, 2 open_text, **4 numeric_tolerance**, 2 matching, 2 ordering, 2 cloze | 25 single, 10 multi, 10 true_false, 5 flashcard |
+| Aufgabe (E-168) | max. 10 Punkte, Bestehen ab 6, Abschluss „bewertet“ | max. 20 Punkte, Bestehen ab 12, Abschluss „bestanden“, Allowlist PDF | max. 10 Punkte, ohne Bestehensgrenze, Abschluss „eingereicht“; Voraussetzung für den Abschlusscheck |
 | Medien in Fragen | 2 Bilder (1 mit Alt-Text, 1 dekorativ) | 3 Bilder mit Alt-Text, davon 1 Diagramm mit Textalternative | 1 Bild mit Alt-Text |
 | Prüfung | Abschlussquiz: 20 aus 50, ohne Zeitlimit, Grenze 70 %, Versuche unbegrenzt, Feedback sofort | Prüfung **`strict`**: Blueprint 30 aus 50 nach Modul (8/8/7/7), 45 min, Grenze 75 % gesamt und je Teil ≥ 60 %, 3 Versuche, Feedback nach Abgabe | Abschlusscheck: 15 feste Fragen, 20 min `practice`, Grenze 80 %, Voraussetzung: alle Lektionen bestätigt |
 | Zugang | Kostenlose Selbstanmeldung, Teilumfang „erste 3 Lektionen“ | Manuelle Freischaltung | Gruppe (Plätze 5), relativer Drip: Modul 2 ab Tag 1 |
@@ -54,10 +64,11 @@ Jeder Kurs hat dieselbe Grundmenge, damit die Messwerte vergleichbar bleiben. Di
 
 **Lieferform für die Autorentests:**
 
-- **Drehbuch (Papier/PDF, barrierefrei):** Texte, Fragen, Antworten und Erklärungen zum Kopieren, dazu die Soll-Konfiguration als Checkliste. Die Medien liegen in einem Ordner.
-- **Fragen-Teilpaket `rk<n>-q40`** im CC-Paketformat v1 (R0-10) mit 40 der 50 Fragen. 10 Fragen legt die Person selbst im Editor an (D-26-05). Kann das Paketformat keinen Import nur von Fragen, ist das ein Delta für R0-10. Ersatzweise enthält das Teilpaket den Kurs ohne Lektionen.
+- **Drehbuch (Papier/PDF, barrierefrei):** Texte, Fragen, Antworten und die Aufgabenstellung zum Kopieren, dazu die Soll-Konfiguration als Checkliste. Erklärungstexte entfallen, weil Free sie nicht ausliefert (E-20). Die Medien liegen in einem Ordner.
+- **Fragen-Teilpaket `rk<n>-q40`** im CC-Paketformat v1 (R0-10) mit 40 der 50 Fragen. 10 Fragen legt die Person selbst im Editor an (E-165). Kann das Paketformat keinen Import nur von Fragen, ist das ein Delta für R0-10. Ersatzweise enthält das Teilpaket den Kurs ohne Lektionen.
 - **Soll-Zustand `rk<n>-soll.json`:** Eine maschinenlesbare Liste der Pflichtmerkmale (Anzahl Lektionen, Fragen je Modul, Prüfungsparameter, Alt-Texte, Untertitel, Zugangsmodus). Ein Prüfskript `tools/ux/check-rk` (Vorschlag) vergleicht nach der Sitzung den veröffentlichten Kurs damit. Damit ist „Erfolg“ objektiv feststellbar (§2.4).
 - **Referenzstand für Lernendentests:** Das Team veröffentlicht alle drei Kurse vollständig nach Drehbuch. Lernende arbeiten **nie** mit Kursen aus Autorensitzungen.
+- **Vorbereitete Abgaben** (für AU-T13 und LE-T12): je Referenzkurs drei eingereichte Abgaben synthetischer Konten (eine gute, eine unvollständige, eine mit Datei) und ein Lernendenkonto mit zurückgegebener Abgabe samt Kommentar.
 
 ### 1.2 Referenzflow Autor (Flow 1, Kap. 15.2 Nr. 1, Kap. 28.4 Nr. 5)
 
@@ -67,16 +78,18 @@ Startzustand: Free ist installiert, Setup ist abgeschlossen, das Konto hat die R
 |---|---|---|---|---|
 | AU-T01 | „Lege den Kurs aus dem Drehbuch mit Titel, Beschreibung und Lernzielen an.“ | Kurs als Entwurf mit allen 3 Feldern | 4 min | A-03, A-04 |
 | AU-T02 | „Baue die Module und 10 Lektionen in der Reihenfolge des Drehbuchs auf. Eine Lektion steht an der falschen Stelle; verschiebe sie.“ | Struktur = Soll. Verschieben gelingt per Maus **oder** Tastatur (die Person wählt) | 15 min | A-04, A11Y-008 |
-| AU-T03 | „Füge das Video mit Untertiteln, das externe Video und die PDF-Datei ein.“ | Untertitelspur zugeordnet, externes Video mit Consent, PDF verknüpft | 8 min | A-04, A-06, A11Y-090/093 |
-| AU-T04 | „Lege diese drei Fragen an: eine mit einer richtigen Antwort, eine mit mehreren, eine Wahr/Falsch-Frage, je mit Erklärung.“ | 3 Fragen, Korrektheit = Soll, Erklärung gesetzt | 8 min (Frage 2/3 je ≤ 2 min) | A-07 |
-| AU-T05 | „Lege die übrigen sieben Fragen aus dem Drehbuch an, eine davon mit Bild.“ | 7 Fragen = Soll. Das Bild hat einen Alt-Text oder ist als dekorativ markiert | 14 min | A-07, A11Y-091/110 |
+| AU-T03 | „Füge das Video mit Untertiteln, das externe Video und die PDF-Datei ein.“ | Untertitelspur zugeordnet, externes Video eingebunden, PDF verknüpft | 8 min | A-04, A-06, A11Y-090/093 |
+| AU-T04 | „Lege diese drei Fragen an: eine mit einer richtigen Antwort, eine mit mehreren, eine Wahr/Falsch-Frage.“ | 3 Fragen, Korrektheit = Soll | 8 min (Frage 2/3 je ≤ 2 min) | A-07 |
+| AU-T05 | „Lege die übrigen sieben Fragen aus dem Drehbuch an, eine davon mit Bild.“ Darunter ist je Kurs eine Frage eines neuen Typs: RK-1 Zuordnung, RK-2 Rechenfrage mit erlaubter Abweichung (Zahl mit Toleranz, mit Einheit), RK-3 keine | 7 Fragen = Soll. Das Bild hat einen Alt-Text oder ist als dekorativ markiert. Die Frage des neuen Typs ist richtig bewertet (Zuordnungen bzw. Sollwert, Toleranz, Einheit = Soll) | 14 min | A-07, A11Y-091/110, E-22, E-69 |
 | AU-T06 | „Übernimm die restlichen 40 Fragen aus der bereitgestellten Datei.“ | Dry-run gesehen, Freigabe erteilt, 50 Fragen im Kurs | 6 min | A-13 (Flow 1 F1.6) |
 | AU-T07 | „Richte die Prüfung nach dem Drehbuch ein.“ | Prüfungsparameter = Soll. Bei RK-2: Blueprint, Teilgrenzen und Zeit korrekt | 10 min | A-08 |
 | AU-T08 | „Stelle ein, wer den Kurs nutzen darf, und schau ihn dir an, wie Lernende ihn sehen.“ | Zugangsmodus = Soll. Die Vorschau wurde in mindestens einer Persona geöffnet | 6 min | A-04, R0-22 §2.3 |
 | AU-T09 | „Veröffentliche den Kurs.“ Das Drehbuch hat **zwei eingebaute Fehler**: ein Bild ohne Alt-Text und bei RK-2 einen Blueprint, der mehr Fragen verlangt als ein Modul hat. | Die Person findet beide Blocker über das Validierungspanel, behebt sie und veröffentlicht | 8 min | R0-22 §3, F1.1, A11Y-031 |
 | AU-T10 | „Ändere im veröffentlichten Kurs eine Frage.“ | Die Person sieht den Revisionshinweis (F1.3) und erklärt im Nachgespräch richtig, was mit laufenden Versuchen passiert | 4 min | A-07, F1.3 |
-| AU-T11 | „Schreibe einen Testnutzer ein und prüfe dessen Fortschritt.“ | Grant aktiv, Fortschrittsansicht geöffnet | 5 min | A-09 (Kap. 15.2 Nr. 1) |
-| **AU-GES** | **Referenzkurs vollständig veröffentlicht** (T01–T09) | Prüfskript `check-rk`: alle Pflichtmerkmale erfüllt | **≤ 90 min Median, keine Person > 120 min** | Messkonzept „Zeit bis zur Kursveröffentlichung“ |
+| AU-T11 | „Schreibe einen Testnutzer ein und prüfe dessen Fortschritt.“ Bei RK-2: „… nur für die Module 1 und 2.“ (E-27) | Grant aktiv (bei RK-2 genau für Modul 1 und 2), Fortschrittsansicht geöffnet | 5 min | A-09 (Kap. 15.2 Nr. 1) |
+| AU-T12 | „Lege die Aufgabe aus dem Drehbuch an und stelle ein, wie sie bewertet wird.“ **(neu, ohne LB-Vorbild)** | Aufgabe = Soll: Aufgabenstellung, Abgabeart, Punkte, Bestehensgrenze, Abschlussregel; bei RK-2 Dateityp PDF | 6 min | A-04, R0-08 §2.5, R1-46 |
+| AU-T13 | „Drei Abgaben warten auf dich. Bewerte zwei und gib eine mit einem Hinweis zur Überarbeitung zurück.“ (vorbereitete Abgaben) **(neu, ohne LB-Vorbild)** | 2 Abgaben `graded` mit Punkten = Soll ± 0, 1 Abgabe `returned` mit Kommentar; die Person erklärt richtig, was der Lernende danach sieht | 8 min | R0-08 §2.5, R1-46 |
+| **AU-GES** | **Referenzkurs vollständig veröffentlicht** (T01–T09 und T12) | Prüfskript `check-rk`: alle Pflichtmerkmale erfüllt | **≤ 90 min Median, keine Person > 120 min** | Messkonzept „Zeit bis zur Kursveröffentlichung“ |
 
 Störfall in der Sitzung (Moderation löst aus): Während AU-T05 wird die Sitzung ungültig gemacht oder das Netz getrennt (F1.4). Erwartet wird, dass kein Text verloren geht und die Person ohne Hilfe weiterarbeitet (UX-012).
 
@@ -88,14 +101,16 @@ Startzustand: Die Referenzkurse sind veröffentlicht. Die Person hat ein frische
 |---|---|---|---|---|
 | LE-T01 | „Finde den Kurs zum Zeitmanagement und melde dich dafür an.“ (RK-1, angemeldet) | Grant `free_enrollment` aktiv | 3 min | L-01, L-02, L-03 |
 | LE-T02 | „Beginne mit dem Kurs und schließe die erste Lektion ab.“ | Completion für Lektion 1 | 3 min | L-04, L-05, L-06 |
-| LE-T03 | „Sieh dir das Video mit Untertiteln an und öffne danach das zweite Video.“ | Untertitel eingeschaltet. Das externe Video wurde per Consent geladen | 4 min | L-06, A11Y-090/093 |
-| LE-T04 | „Übe die Fragen zu Modul 1, bis dir das System etwas zum Wiederholen vorschlägt.“ (RK-2) | ≥ 10 Fragen im Smarttrainer beantwortet. Die Person nennt richtig, welche Fragen wiederholt werden | 8 min | L-07, L-08 |
+| LE-T03 | „Sieh dir das Video mit Untertiteln an und öffne danach das zweite Video.“ | Untertitel eingeschaltet. Das externe Video wurde abgespielt (Default „immer laden“, E-45a) | 4 min | L-06, A11Y-090/093 |
+| LE-T04 | „Übe die Fragen zu Modul 1, bis dir das System etwas zum Wiederholen vorschlägt.“ (RK-2; Modul 1 enthält je eine Zuordnungs-, Sortier-, Lückentext- und Rechenfrage) | ≥ 10 Fragen im Smarttrainer beantwortet. Die Person nennt richtig, welche Fragen wiederholt werden | 8 min | L-07, L-08 |
 | LE-T05 | „Übe die Fragen, die du falsch beantwortet hast.“ | Fehlertraining gestartet, ≥ 1 Frage beantwortet | 3 min | L-10 |
 | LE-T06 | „Starte die Prüfung und beantworte mindestens zehn Fragen. Markiere zwei, bei denen du unsicher bist.“ Danach bricht die Moderation ab: Tab schließen (Desktop) bzw. Flugmodus und App-Wechsel (mobil). „Setze die Prüfung fort und gib sie ab.“ | Die Prüfung wird **ohne Hilfe** fortgesetzt, keine Antwort fehlt, beide Markierungen sind noch da, Abgabe mit Bestätigung | Fortsetzen ≤ 1 min. Gesamt ≤ 30 min | L-12, L-13, F2.5, A11Y-074/075 |
 | LE-T07 | „Mach die Wiederholungen, die heute für dich fällig sind.“ (vorbereitetes Konto) | Modus „fällig“ gefunden, alle fälligen Fragen bearbeitet | 4 min | L-05, L-08 (Kap. 15.2 Nr. 2 „später fällige Wiederholung“) |
 | LE-T08 | „Finde dein Ergebnis, sieh nach, ob du einen Nachweis bekommen hast, und kopiere den Link zur Echtheitsprüfung.“ | Ergebnis gelesen. Die Person gibt richtig wieder, ob bestanden und welcher Teil schwach war. Verifikationslink kopiert und in einem privaten Fenster geöffnet | 4 min | L-14, L-15, L-16 |
 | LE-T09 | „Lade dir eine Übersicht deiner Ergebnisse und Daten herunter.“ | Export ausgelöst, Datei erhalten | 3 min | L-20 (Kap. 28.4 Nr. 6 „Datenexport“) |
 | LE-T10 | „Du hast den Kurs gestern abgebrochen. Mach dort weiter, wo du warst.“ (neu angemeldet, mobil) | Über „Fortsetzen“ an die richtige Lektion bzw. Position gekommen | 1 min | L-04, L-05 |
+| LE-T11 | „Bearbeite die Aufgabe und reiche sie ein.“ (RK-1 Text, RK-2 Datei-Upload) **(neu, ohne LB-Vorbild)** | Abgabe `submitted`; die Person weiß, dass sie danach nichts mehr ändern kann, und findet den Status „eingereicht“ | 6 min (ohne Schreibzeit) | L-06, R0-08 §2.5, R1-46 |
+| LE-T12 | „Deine Abgabe wurde zurückgegeben. Überarbeite sie, reiche sie erneut ein und sieh dir später die Bewertung an.“ (vorbereitetes Konto, Bewertung durch die Moderation) **(neu, ohne LB-Vorbild)** | Kommentar gefunden, zweite Fassung eingereicht, Punkte und Feedback richtig wiedergegeben | 5 min | R0-08 §2.5, R1-46 |
 | **LE-GES** | **Ende-zu-Ende:** Start, Lernen, Smarttrainer, Prüfung und Nachweis (T01–T08) | Alle kritischen Teilaufgaben (★ in §5) gelöst | Desktop ≤ 60 min, mobil ≤ 70 min (ohne Lesezeit des Kursinhalts, siehe §2.4) | Kap. 15.2 Nr. 2 |
 
 Wenn die Person die Prüfung nicht besteht, ist LE-T08 trotzdem erfüllbar: Gefragt ist das Ergebnis, nicht das Bestehen. Danach wird die Nachweisansicht an einem vorbereiteten Konto mit bestandener Prüfung gezeigt (LE-T08b).
@@ -204,7 +219,7 @@ Für jede Rolle gibt es ein Skript `docs/ux/skript-<rolle>.md` (Ablage in R1-29)
 | **S-A11Y** | **Hilfstechnik (Regel je Person):** Jede Person mit Hilfstechnik löst jede **kritische** Aufgabe ★ ihres Flows ohne sehende Hilfe (H2 ist nicht erlaubt, H1 nur zur Aufgabenklärung). Zeiten werden berichtet, gehen aber nicht in S-06…S-10 ein. SEQ-Median der Hilfstechnik-Gruppe ≥ 4,5 | Jede Verletzung ist ein Befund **S1** |
 | S-EXP | Expertendurchläufe A11Y-102/103 für alle zugesicherten Kombinationen (§3, Stufe „Z“) | Keine offenen Befunde S1 |
 
-Ist eine Schwelle verfehlt, entsteht ein Befund mit mindestens der Stufe nach §4.4. Die Schwellen S-06…S-10 sind vorläufig. Sie werden nach dem Praxis-Benchmark (UX-090) und dem Pilot (§4.2 Schritt 3) **einmal** überprüft und dann vor Runde 1 eingefroren (D-26-06). Danach dürfen sie nur der Auftraggeber ändern, mit Begründung im Bericht.
+Ist eine Schwelle verfehlt, entsteht ein Befund mit mindestens der Stufe nach §4.4. Die Schwellen S-06…S-10 sind vorläufig. Sie werden nach dem Praxis-Benchmark (UX-090) und dem Pilot (§4.2 Schritt 3) **einmal** überprüft und dann vor Runde 1 eingefroren (E-166; die dort genannten Werte – Erfolg ≥ 80 %, SUS ≥ 70, Referenzkurs ≤ 90 min Median, Setup ≤ 10 min, Fortsetzen ≤ 1 min – sind beschlossen und werden nicht gelockert). Danach dürfen sie nur der Auftraggeber ändern, mit Begründung im Bericht.
 
 ---
 
@@ -244,12 +259,12 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 | BR-09 | Tablet (iPadOS Safari, Querformat und Hochformat) | iPad | Autor (Kurs ansehen und Vorschau), Lernende | Expertendurchlauf (A11Y-054) |
 
 **Mobile Prüfungsläufe:** LE-T06 MUSS mindestens einmal auf BR-07 und einmal auf BR-08 mit echtem Netzabbruch laufen (R0-14 §3 „Prüfungsabläufe zusätzlich manuell auf einem echten iOS- und Android-Gerät“).
-**Testgeräte des Projekts (Vorschlag, Beschaffung D-26-02):** 1 Windows-11-Notebook mit NVDA, Firefox ESR, Chrome und Edge. 1 MacBook (Safari, VoiceOver). 1 iPhone mit aktuellem iOS und 1 iPhone mit iOS n−1 (älteres Modell). 1 Android-Mittelklasse-Gerät. 1 iPad. Personen mit Hilfstechnik nutzen bevorzugt ihr **eigenes** Gerät, weil die persönliche Konfiguration (Sprechgeschwindigkeit, Gesten, Lupe) Teil des Alltags ist.
+**Testgeräte des Projekts (Beschaffung aus dem Budget nach E-162):** 1 Windows-11-Notebook mit NVDA, Firefox ESR, Chrome und Edge. 1 MacBook (Safari, VoiceOver). 1 iPhone mit aktuellem iOS und 1 iPhone mit iOS n−1 (älteres Modell). 1 Android-Mittelklasse-Gerät. 1 iPad. Personen mit Hilfstechnik nutzen bevorzugt ihr **eigenes** Gerät, weil die persönliche Konfiguration (Sprechgeschwindigkeit, Gesten, Lupe) Teil des Alltags ist.
 
 ### 3.3 Testumgebung
 
 - Staging nach der **Ziel-Zeile** von R0-14 §3: PHP 8.5, WP 7.1.x, MariaDB 12.3, Apache, Objekt-Cache aus, Block-Theme Twenty Twenty-Five. AD-T03 läuft zusätzlich auf nginx.
-- Sprache de_DE (D-26-09), Zeitzone Europe/Berlin.
+- Sprache de_DE, zusätzlich eine Admin-Sitzung in en_US (E-169), Zeitzone Europe/Berlin.
 - Paket `cc-fx-rk-v1` mit idempotentem Loader (Muster R0-05 D-03), Reset-Skript je Sitzung (`tools/ux/reset-session <pNN>`, Vorschlag). Jede Person bekommt eine eigene, frisch zurückgesetzte Umgebung oder einen eigenen Kurs- und Kontonamensraum.
 - Mail-Sink (keine echten Mails), Admin-Werkzeug für Störfälle (Sitzung ungültig machen, Queuefehler erzeugen, Netzabbruch simulieren, nur auf Staging).
 - Keine Analyse- oder Fremd-Skripte (R0-14 FE-07). Aufzeichnung nur über die Konferenz- bzw. Testsoftware.
@@ -261,7 +276,7 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 ### 4.1 Einwilligung und Datenschutz
 
 - Schriftliche bzw. barrierefrei elektronische **Einwilligung** vor der Sitzung: Zweck, Aufzeichnung (Bildschirm und Ton, Gesicht nur auf Wunsch), Pseudonym `P-<Rolle>-<nn>`, Speicherort, Löschfrist, Widerruf jederzeit ohne Nachteil. Die Aufwandsentschädigung wird auch bei Abbruch gezahlt.
-- Aufzeichnungen werden **6 Monate nach R1-GATE gelöscht** (Vorschlag, D-26-07). Protokolle und Befunde bleiben pseudonym im Repo, **ohne Klarnamen, ohne Gesundheitsangaben** über „Hilfstechnik X“ hinaus.
+- Aufzeichnungen werden **6 Monate nach R1-GATE gelöscht** (E-167). Protokolle und Befunde bleiben pseudonym im Repo, **ohne Klarnamen, ohne Gesundheitsangaben** über „Hilfstechnik X“ hinaus.
 - Testkonten enthalten keine echten Personendaten (Domain `example.test`).
 - Bewertung durch R0-17 (Datenschutz), weil Angaben zur Hilfstechnik Rückschlüsse auf Gesundheit zulassen (Art. 9 DSGVO).
 
@@ -351,8 +366,8 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 | UX-001 | Kurs anlegen (AU-T01) | S-01 | BR-01…05 | A-03, A-04, R1-05 |
 | UX-002 | Curriculum aufbauen und umsortieren, mit Maus oder Tastatur (AU-T02) | S-01. Mit AT-06 per Tastatur ohne H2 | BR-01…05, AT-06 | A-04, A11Y-008 |
 | UX-003 | Medien mit Untertitel, externes Video, PDF (AU-T03) | S-01 | BR-01…05 | A-06, A11Y-090/093 |
-| UX-004 | Fragen anlegen, drei Typen (AU-T04). Zweite und dritte Frage je ≤ 2 min Median | S-01, Zeit | BR-01…05 | A-07, E-69 |
-| UX-005 | Sieben Fragen, davon eine mit Bild und Alt-Text (AU-T05) | S-01. 100 % der Bilder haben Alt-Text oder `decorative` | BR-01…05 | A-07, A11Y-091 |
+| UX-004 | Fragen anlegen, drei Typen (AU-T04). Zweite und dritte Frage je ≤ 2 min Median | S-01, Zeit | BR-01…05 | A-07 |
+| UX-005 | Sieben Fragen, davon eine mit Bild und Alt-Text und eine eines neuen Typs (AU-T05) | S-01. 100 % der Bilder haben Alt-Text oder `decorative`. Neuer Typ ohne Bewertungsfehler | BR-01…05 | A-07, A11Y-091, E-22, E-69 |
 | UX-006 | Fragenimport mit Dry-run (AU-T06) | S-01. Die Person beschreibt den Dry-run richtig | BR-01…05 | A-13, R1-15 |
 | UX-007 ★ | Prüfung konfigurieren (AU-T07). Bei RK-2 Blueprint und Teilgrenzen | S-02. 0 falsch gespeicherte Regeln | BR-01…05 | A-08, R1-08 |
 | UX-008 | Zugang einstellen und Vorschau als Lernender (AU-T08) | S-01. Die Person erkennt den Vorschaurahmen („nichts wird gespeichert“) | BR-01…05 | R0-22 §2.3, R1-26 |
@@ -363,6 +378,8 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 | UX-013 ★ | **Referenzkurs veröffentlicht** (AU-GES) | **S-06**: Median ≤ 90 min, Maximum ≤ 120 min, `check-rk` grün | alle Autoren | Kap. 27.4, 28.4 Nr. 5 |
 | UX-014 | SUS und SEQ Autor | S-04, S-05 | – | – |
 | UX-015 | Autorenflow mit Screenreader (Expertendurchlauf, A11Y-103) | S-EXP | AT-02, AT-03 | A11Y-031, A11Y-008 |
+| UX-016 | Aufgabe anlegen und Bewertung einstellen (AU-T12) **(neu, ohne LB-Vorbild)** | S-01. 0 falsch gespeicherte Bewertungsregeln | BR-01…05 | R0-08 §2.5, R1-46, E-168 |
+| UX-017 ★ | Abgaben bewerten und zurückgeben (AU-T13) **(neu, ohne LB-Vorbild)** | S-02. 0 Personen glauben, bewertet zu haben, obwohl die Abgabe noch `submitted` ist | BR-01…05, AT-06 | R0-08 §2.5, R1-46, E-168 |
 
 ### 5.2 Lernende
 
@@ -370,7 +387,7 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 |---|---|---|---|---|
 | UX-020 ★ | Kurs finden und selbst einschreiben (LE-T01) | S-02 | BR-01, BR-05, BR-07, BR-08, AT-01, AT-04, AT-06, AT-07 | L-01…L-03 |
 | UX-021 | Starten und erste Lektion abschließen (LE-T02) | S-01 | wie UX-020 | L-04…L-06, A11Y-021 |
-| UX-022 | Video mit Untertitel, externes Video per Consent (LE-T03) | S-01 | wie UX-020 | A11Y-063/090/093, E-45 |
+| UX-022 | Video mit Untertitel, externes Video (LE-T03) | S-01 | wie UX-020 | A11Y-063/090/093, E-45a |
 | UX-023 ★ | Smarttrainer: Fragen beantworten, Feedback verstehen (LE-T04) | S-02. Feedback richtig wiedergegeben. Mit Screenreader: Ansage „richtig/falsch“ verstanden (A11Y-024) | wie UX-020 | L-07, L-08, A11Y-022/024 |
 | UX-024 | Fehlertraining (LE-T05) | S-01 | wie UX-020 | L-10 |
 | UX-025 ★ | Prüfung starten, markieren, Timer verstehen (LE-T06, Teil 1) | S-02. Die Person nennt die Restzeit richtig. Mit Screenreader: Restzeit-Ansage abrufbar (A11Y-071) | wie UX-020 | L-12, L-13, A11Y-007/071 |
@@ -384,6 +401,9 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 | UX-033 ★ | **Ende-zu-Ende Lernende** (LE-GES) | **S-09** | alle Lernenden | Kap. 15.2 Nr. 2, 28.4 Nr. 6 |
 | UX-034 | SUS und SEQ Lernende | S-04, S-05 | – | – |
 | UX-035 | Hoch- und Querformat, Wechsel während der Prüfung | Kein Zustandsverlust, kein Befund ≥ S2 | BR-07, BR-09 | A11Y-054 |
+| UX-036 ★ | Aufgabe bearbeiten und einreichen, Text bzw. Datei (LE-T11) **(neu, ohne LB-Vorbild)** | S-02. 0 verlorene Entwürfe; Datei-Upload mit Tastatur und Screenreader bedienbar; Status „eingereicht“ richtig verstanden | BR-01, BR-05, BR-07, BR-08, AT-01, AT-04, AT-06 | R0-08 §2.5, R0-10 §4.5, R1-46 |
+| UX-037 | Rückgabe überarbeiten, Bewertung lesen (LE-T12) **(neu, ohne LB-Vorbild)** | S-01. Punkte und Feedback richtig wiedergegeben | BR-01, BR-07, AT-01 | R0-08 §2.5, R1-46 |
+| UX-038 ★ | Neue Fragetypen bedienen: Zuordnung und Sortieren per Maus, Touch **und** Tastatur, Lückentext, Zahl mit Dezimalkomma (in LE-T04) **(neu, ohne LB-Vorbild)** | S-02. Keine Person scheitert an der Bedienung (nur an der Fachfrage); mit Screenreader: Zuordnung und Reihenfolge werden angesagt | BR-01, BR-07, BR-08, AT-01, AT-04, AT-06 | R0-08 §3.1, E-22, E-69 |
 
 ### 5.3 Gruppenverwalter und Admin
 
@@ -419,6 +439,8 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 | UX-077 | Expertendurchlauf Flow 1 und 4 (AT-02, AT-03) | S-EXP | AT-02, AT-03 | A11Y-103 |
 | UX-078 | E-Mails (Zugang freigeschaltet, Einladung, Nachweis) mit Screenreader in einem Mailprogramm lesen | Kein Befund ≥ S2 | AT-01, AT-04 | A11Y-095 |
 | UX-079 | Druckansicht Nachweis (Expertendurchlauf) | Kein Befund ≥ S2 | BR-01, BR-05 | A11Y-096 |
+| UX-080 | Expertendurchlauf: externe Medien im Modus „Klick zum Laden“ (Einstellung umgestellt): Platzhalter, Dienstname, Tastaturbedienung, kein Request vor dem Klick | Kein Befund ≥ S2 | AT-01, AT-04, AT-06 | E-45a, R0-10 §5 |
+| UX-081 | Expertendurchlauf: Datei-Upload der Aufgabe und Bewertungsansicht mit NVDA und VoiceOver | S-EXP | AT-01…04 | R1-46, A11Y-102/103 |
 
 ### 5.5 Benchmark und Bericht
 
@@ -433,13 +455,13 @@ Ziel: jede Zeile aus E-61 kommt in mindestens einer **Nutzersitzung** oder einem
 
 | Nachweis | Task | Kriterium |
 |---|---|---|
-| Paket `cc-fx-rk-v1` (3 Referenzkurse, Drehbücher, Teilpakete `rk<n>-q40`, `rk<n>-soll.json`) | R1-29 (Erstellung), R1-15 (Importierbarkeit) | Loader idempotent, CC0, `check-rk` grün gegen den Referenzstand |
+| Paket `cc-fx-rk-v1` (3 Referenzkurse mit je einer Aufgabe, Drehbücher, Teilpakete `rk<n>-q40`, `rk<n>-soll.json`, vorbereitete Abgaben) | R1-29 (Erstellung), R1-15 (Importierbarkeit) | Loader idempotent, CC0, `check-rk` grün gegen den Referenzstand |
 | Skripte und Werkzeuge `tools/ux/check-rk`, `tools/ux/reset-session`, Störfall-Werkzeug (nur Staging) | R1-29 | Lauffähig in der Testumgebung §3.3 |
 | Delta Paketformat: Import nur von Fragen in einen bestehenden Kurs | R0-10 | ja/nein dokumentiert, sonst Ersatzweg §1.1 |
 | Automatisierte Gegenstücke zu UX-002, UX-012, UX-026, UX-061 (Störfälle) | R1-18, R1-19 | E2E grün (NFR-016) |
 | Datenschutzbewertung der Nutzertests | R0-17 | §4.1 bewertet |
-| Erweiterung `RK-v1.1` mit Aufgabe und UX-1xx | R2-02 | nach D-26-08 |
-| Wiederholung der Tests | R2-GATE, R3-GATE | nach D-26-10 |
+| Aufgabe in den Referenzkursen (statt `RK-v1.1`) | R1-29, R1-46 | nach E-168 in `cc-fx-rk-v1` enthalten |
+| Wiederholung der Tests | R2-GATE, R3-GATE | gezielt für geänderte Flows (E-170) |
 
 ---
 
