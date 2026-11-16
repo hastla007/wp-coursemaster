@@ -378,7 +378,7 @@
   - **Ergebnis/Definition of Done:** Resumierbarer Wizard, feldnahe Fehler, Tab-Save/Reset, ungespeicherte Warnung, Accessibility.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-33 · Kurs-/Prüfungs-Overrides und Snapshot-Policy**
+- [x] **R1-33 · Kurs-/Prüfungs-Overrides und Snapshot-Policy** — erledigt 16.11.2026: Nachweis `docs/r1/R1-33-nachweis.md`; Resolver `EffectiveSettings` (global → Kurs → Regel, Sperren, Leaf-Merge, Monotonie C-1, Nachteilsausgleich), Kurs-Metabox mit Vorschau, Prüfungsregeln speichern nur Overrides (`_format = 2`) und frieren aufgelöste Werte beim Veröffentlichen ein, Snapshot v2 mit Herkunft; Integration 319, Multisite 331. Offen: UI für Sperren, Override-Index/Sammel-Reset, Activity-/Gruppen-/Medien-Overrides. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08,R1-27,R1-31,R0-28.
   - **Ergebnis/Definition of Done:** Vererbung, Preview, Änderung laufender Versuche und historische Auswertung getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
@@ -388,7 +388,7 @@
   - **Ergebnis/Definition of Done:** UI und serverseitige Wirkung inklusive Audit, Consent, Opt-out, Redaction und Permissions geprüft.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-35 · Gruppen- und Basiszertifikatsverwaltung Free abnehmen**
+- [x] **R1-35 · Gruppen- und Basiszertifikatsverwaltung Free abnehmen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-35-nachweis.md`; Admin-Screens Gruppen (A-10: Gültigkeit, Eigentümer, Claim-Policy, Umbenennen, Mitglieder maskiert) und Zertifikate (A-11: Liste, CSV mit Pflichtgrund, manuelle Ausstellung, Korrektur/Widerruf, Basisvorlage mit Versionen, Slug-Historie 301); Integration 319, Multisite 331. Offen: Δ-7 Vorlagentabelle, Δ-10 `revision_kind`, Untergruppen/Kontingente, Wiedereinsetzung beendeter Gruppen, E2E. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-13,R1-27,R0-29.
   - **Ergebnis/Definition of Done:** Seat/Claim-UI, Basisnachweis, Widerruf/Verifikation, Lizenzunabhängigkeit und E2E-Tests grün.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
