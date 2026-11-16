@@ -452,3 +452,4 @@ Basis aus **Konzept 22.3** (Ziel, kein Messwert): 10 000 Lernende, 100 Kurse, 10
 | Datum | Quelle | Änderung am Entwurf |
 |---|---|---|
 | 16.11.2026 | R0-10 §1, §3, §4 | `cc_media.vector_source` entfällt; neues Feld `cc_media.access` (`public`/`protected`); `cc_import_batch.status` bekommt zusätzlich `activating`, `aborted` (gespeichert, nicht abgeleitet) und `superseded`. Offen für R0-23/R1-15: Wie bleiben Lektionen (CPT) bis zur Aktivierung auf dem alten Stand? |
+| 16.11.2026 | R0-08 §8.2 | Δ-1 `cc_source_map.uid` (UNIQUE, für jedes CPT-Objekt); Δ-2 `cc_exam_session.mode` + `quiz`, Spalte `activity_uid`; Δ-3 Punkte als Tausendstel (`points_milli`); Δ-4 `evaluation_no`; Δ-5 `end_reason` und Statusliste `in_progress/submitted/evaluated/cancelled/broken`; Δ-6 `cc_activity_progress.reason_code`, `rule_version`; Δ-7 Lernziele als Kurs-Meta in der Kursrevision |

@@ -49,7 +49,7 @@
   - **Ergebnis/Definition of Done:** WP-Capabilities, Rollen, Objekt-Scope, REST/Admin/Medien/CLI/Export-Matrix beschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-08 · Kurs-, Activity- und Prüfungsverträge finalisieren**
+- [ ] **R0-08 · Kurs-, Activity- und Prüfungsverträge finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-08-kurs-activity-pruefungsvertraege.md` (Kursstruktur, Activity-Provider-Interfaces, Fragetypen, Bewertung ohne festen Schwellenwert, Smarttrainer-Algorithmus belegt, Versuchsautomat, Snapshots); Entscheidung offen → E-67…E-77
   - **Voraussetzung:** R0-06.
   - **Ergebnis/Definition of Done:** Activity-Provider, Bewertung, Completion/Mastery/Competency, Snapshots, Versionen spezifiziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

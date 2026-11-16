@@ -144,3 +144,19 @@ Die technischen Punkte D-14-03 (kürzere Lock-Wartezeiten), D-14-04 (FULLTEXT-Su
 | E-64 | Paketsignaturen in R1? | **Nein**; das Feld wird im Format nur reserviert | R0-10 R10-D3 | R1-15 |
 | E-65 | Medien, die an einen Zugang gebunden sind | **Standardmäßig geschützt über PHP ausliefern** (LB: öffentlich in `uploads/`, nur die Frage gesperrt) | R0-10 R10-D4 | R1-14 |
 | E-66 | Fremd lizenzierte Inhalte im Kurs-Export | **Nur per Opt-in** mit Hinweis | R0-10 R10-D5 | R1-15 |
+
+## 13. Kurs-, Activity- und Prüfungsverträge (aus R0-08)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-67 | Hat eine Lektion in R1 genau eine Activity oder mehrere? | **1:1 in R1**, aber mit eigener `activity_uid`, damit 1:n später ohne Fortschrittsmigration möglich ist | R0-08 D-01 | R1-04, R1-07 |
+| E-68 | Laufen bewertete Quizze über denselben Versuchsautomaten wie Prüfungen? | **Ja** (`cc_exam_session`, Modus `quiz`); unbewertete Quizze nutzen die Lernmodus-Engine | R0-08 D-02 | R1-07, R1-08 |
+| E-69 | Fragetypen ohne LB-Beleg (Zuordnung, Sortieren, Lückentext; Konzept 3.3: Free) | **R1:** single, multi, true_false, open_text, flashcard; die übrigen **Free in R2** nach dem Paritäts-Gate | R0-08 D-03 | R1-06, R0-04 |
+| E-70 | Darf ein Abschluss zurückgenommen werden? (LB: der Client kann `completed=false` senden) | **Nur `manual_confirm` durch den Lernenden**; nachweisbasierte Abschlüsse nie; Reset durch die Kursverwaltung mit Audit | R0-08 D-04 | R1-10 |
+| E-71 | Zählt ein abgebrochener Versuch gegen `max_attempts`? | **Ja, wenn ein Limit gesetzt ist**; sonst könnte man Fragen durch Abbruch sichten | R0-08 D-05 | R1-08, R1-20 |
+| E-72 | Versuche ohne Zeitlimit, die nie abgegeben werden (LB: laufen unbegrenzt und sperren Fragen 24 h) | **Einstellung** „automatisch abgeben nach x Tagen Inaktivität“, standardmäßig aus | R0-08 D-06 | R1-08, R1-17 |
+| E-73 | Eigene Tabelle für Kompetenznachweise in R1? | **Nein**: abgeleitet aus Versuchen und Zertifikaten plus `competency_validity_days`; Tabelle erst mit manuellen bzw. externen Nachweisen | R0-08 D-07 | R1-10 |
+| E-74 | Nachbewertung fehlerhafter Fragen nach Abgabe | **Im Datenvertrag ab R1** (`evaluation_no`, Revision mit Audit), Oberfläche erst mit dem Gradebook (Pro); nie automatisch | R0-08 D-08 | R1-09 |
+| E-75 | `expired` als eigener Endzustand (Konzept 28.3) oder als `evaluated` mit `end_reason=expired` (LB)? | **`evaluated` mit `end_reason`** (LB-Parität); Konzept 28.3 wird redaktionell angepasst | R0-08 D-09 | R1-08 |
+| E-76 | Standard-Abschlussregel für Videos | **`manual_confirm`** als Standard; „≥ 90 % angesehen“ als Option mit Hinweis auf Selbstauskunft des Players | R0-08 D-10 | R1-07 |
+| E-77 | Teilpunkt-Strategien in R1 | **`all_or_nothing` und `proportional_penalty`**; `per_option` erst nach didaktischem Review | R0-08 D-11 | R1-06, R1-09 |
