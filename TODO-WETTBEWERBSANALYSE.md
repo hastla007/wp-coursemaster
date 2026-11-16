@@ -29,7 +29,7 @@
   - **Ergebnis/Definition of Done:** Jede Funktion reuse/abstract/replace/exclude_domain_specific; keine unknown.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-04 · R1/R3-Grenze je Funktion entscheiden**
+- [ ] **R0-04 · R1/R3-Grenze je Funktion entscheiden** — **Vorschlag fertig 16.11.2026:** `docs/r0/R0-04-r1-r3-grenze.md` (724 nicht-exclude-IDs in 37 Bausteinen, Prüfskript ohne Lücke; 25 Kopplungsstellen mit Entkopplungsvertrag); Entscheidung offen → E-05, E-07, E-10, E-14, E-16, E-24…E-27, E-32, E-53, E-54
   - **Voraussetzung:** R0-03.
   - **Ergebnis/Definition of Done:** Neutrale Kernfunktionen R1, konkrete Woo/Voucher/Ticket-Adapter R3; keine Pflichtabhängigkeiten.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

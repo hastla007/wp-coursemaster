@@ -35,7 +35,7 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 |---|---|---|---|---|
 | **E-14** | **Drip-Freischaltung:** Free oder Pro? (Kap. 5 sagt Pro, Kap. 38 verlangt LB-Parität in R1) | **Einfacher Drip** („Modul X Tage nach Zugangsbeginn“) **in Free**, Kampagnen und Gruppen-Drip in Pro | D/E3 | R0-04, R0-11 |
 | E-15 | Kostenloser Teilumfang eines Kurses (Schnupperbereich) | **R1 Free** | D/E4 | R0-11 |
-| **E-16** | **Kurs-FAQ und Lerntipps:** R1 Free oder erst R2? (Inventur A empfiehlt R1, Inventur D empfiehlt R2) | **Mechanik in R1 Free**, neutrale Starttexte erst mit R2-03. Das erfüllt die Parität ohne Content-Aufwand | A/E-A-05, D/E6 | R0-04 |
+| **E-16** | **Kurs-FAQ und Lerntipps:** R1 Free oder erst R2? (Inventur A empfiehlt R1, Inventur D empfiehlt R2) | **Mechanik in R1 Free**, neutrale Starttexte erst mit R2-03. Das erfüllt die Parität ohne Content-Aufwand. Die öffentliche Website-FAQ (INV-D-056) bleibt Sache von Theme bzw. Drittplugin | A/E-A-05, D/E6 | R0-04 |
 | E-17 | Gruppen: Verwaltung durch den Gruppenbesitzer | **In Free**, inklusive Gruppen ohne Kauf (manuell). Delegierte Verwaltung und Reporting in Pro | D/E5, B-Befund 2 | R0-29 |
 | E-18 | Rechtestatus mit Auslieferungssperre: Gilt er auch für eigene Inhalte? | **In R1 Free**, aber die Sperre greift **nur für importierte bzw. fremde Inhalte**, nicht für selbst erstellte | D/E7, C/E-C-07 | R0-10, R0-22 |
 | E-19 | Admin-Protokollansicht (Audit) | **R1 Free** | D/E8 | R0-13 |
@@ -43,8 +43,8 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-21 | Karteikarten: ein Modell oder zwei? | **Ein Karteikartentyp mit zwei Modi** (Selbsteinschätzung; „3× gewusst in Folge“), R1 Free | A/E-A-02 | R0-08 |
 | E-22 | Neutraler Fragetyp „Zahl mit Toleranz“ bzw. Fallstudie als Ersatz für den Navigationstrainer | **Nicht in R1**; höchstens Kandidat für R2/Pro, ohne Code aus NavigationCheck | A/E-A-03 | R0-08 |
 | E-23 | Prüfungsmodus „offiziell/verifiziert“ | **Streichen.** Stattdessen Prüfungsregel „freigegeben/Entwurf“ über den Publish-Validator, plus Kennzeichnung für verkürzte Prüfungen | A/E-A-04, D/E10 | R0-08, R0-22 |
-| E-24 | Erinnerung vor Zugangsablauf | **Pro**; Standard „nur an zahlende Käufer“ | B/D-9 | R0-11 |
-| E-25 | Kursbeziehungen und Mitgliederrabatt | Beziehung „enthält“ (Bundle) in **R2**; **Rabatt nicht übernehmen**, höchstens im Woo-Adapter (R3) | B/D-8, D/E9 | R0-04 |
+| E-24 | Erinnerung vor Zugangsablauf | **Pro**; Standard „nur an zahlende Käufer“. R1-21 umfasst in Free nur Status und Ablaufanzeige, keine Erinnerungsmails | B/D-9 | R0-11 |
+| E-25 | Kursbeziehungen und Mitgliederrabatt | Beziehung „enthält“ (Bundle) in **R2**. Ausnahme: Teilkurs-Relation, falls sie für die Parität nötig ist (INV-A-107/144, D-153), dann in R1; **Rabatt nicht übernehmen**, höchstens im Woo-Adapter (R3) | B/D-8, D/E9 | R0-04 |
 | E-26 | Abhängige Zusatz-Grants (Zusatzmodul läuft so lange wie der Basiskurs) | **Nur bei ausdrücklichem Upsell-Bedarf**, nicht in R1 | B/D-7 | R0-09 |
 | E-27 | Granularität des Zugangs | **Je Kurs**, mit wenigen neutralen Scopes (Ansicht, Download, Prüfung) | B/D-10 | R0-06, R0-09 |
 | E-28 | Einladungslinks für Gruppenplätze: übertragbar? Wer verliert bei Platzreduktion seinen Platz? | **LB-Regeln übernehmen**, plus Option „nur die eingeladene Adresse“ | B/D-11 | R0-09 |
@@ -108,3 +108,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-50 | Fixiert eine veröffentlichte Kursrevision auch die Fragenrevisionen? | **Nein:** nur Struktur und Regeln; Fragenrevisionen werden beim Start eines Versuchs fixiert. Feinschnitt in R0-23 | R0-06 D-4 | R0-08, R0-23 |
 | E-51 | Aufbewahrung von Lern- und Prüfungsdaten (E-44 deckt das nicht ab; Konzept 35.4 verbietet unbegrenzte Aufbewahrung als stillen Default) | **Änderbarer Default:** Lernstände bis Kontolöschung; Prüfungsversuche und Zertifikatsnachweise 10 Jahre; Rohantworten 2 Jahre nach Kursende. Bestätigung durch Betreiber/Recht | R0-06 D-5 | R0-17, R0-31 |
 | E-52 | Lastannahmen A-01…A-18 (10 000 Lernende, 100 Kurse, 100 000 Fragen, 500 gleichzeitige Prüfungen) | **Bestätigen** als Messbasis für R0-14 | R0-06 D-6 | R0-14, R1-22 |
+
+## 9. Phasen-Schnitt (aus R0-04)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-53 | Sind die WooCommerce- und Voucher-Connectoren Free oder Pro? (Kap. 5/6/7: Pro; Kap. 43.3: „Free Connector R3“) | **Pro** (Course Captain Pro). Free bleibt shopfrei und bietet nur die neutrale Grant-Schnittstelle. Begründung: Kap. 5/6/7 sind ausdrücklich, Kap. 43.3 ist eine Settings-Tabelle | R0-04 ED-6/W-06 | R0-11, R3-02, R3-04 |
+| E-54 | Dürfen R2-Zuordnungen ohne eigene R2-Task bestehen? (z. B. E-028, D-058, B-068) | **Nein.** Jede R2-Zuordnung bekommt eine Task in R2, oder sie wandert in den R4-Nachfragepool. Die Zuordnung erfolgt in R0-24 | R0-04 ED-9/W-12 | R0-24 |
