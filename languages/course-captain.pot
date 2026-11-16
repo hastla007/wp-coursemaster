@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T15:25:25+00:00\n"
+"POT-Creation-Date: 2026-11-16T15:44:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -18,6 +18,8 @@ msgstr ""
 #. Author of the plugin
 #: course-captain.php:3
 #: course-captain.php:9
+#: src/Admin/EditorScreens.php:52
+#: src/Admin/Notices.php:120
 msgid "Course Captain"
 msgstr ""
 
@@ -40,12 +42,168 @@ msgid "Course Captain requires PHP %1$s or newer. This site runs PHP %2$s. The p
 msgstr ""
 
 #: course-captain.php:91
-#: src/Kernel/Activator.php:124
+#: src/Kernel/Activator.php:125
 msgid "Course Captain cannot be activated"
 msgstr ""
 
 #: src/Access/ContentProtection.php:117
 msgid "This content is available to course participants."
+msgstr ""
+
+#: src/Admin/AuthoringRoutes.php:99
+msgid "Please log in."
+msgstr ""
+
+#. translators: %s: original title
+#: src/Admin/AuthoringService.php:171
+#, php-format
+msgid "%s (copy)"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:68
+#: src/Course/PostTypes.php:70
+msgid "Modules"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:69
+msgid "Publish revision"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:70
+msgid "Activity"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:86
+msgid "Modules of this course"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:86
+#: src/Course/PostTypes.php:70
+msgid "Module"
+msgstr ""
+
+#. translators: %d: lesson count
+#: src/Admin/EditorScreens.php:86
+#: src/Admin/EditorScreens.php:90
+msgid "Position"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:86
+#: src/Admin/EditorScreens.php:91
+msgid "Required"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:86
+msgid "Remove"
+msgstr ""
+
+#. translators: %d: lesson count
+#: src/Admin/EditorScreens.php:89
+#, php-format
+msgid "%d lesson"
+msgid_plural "%d lessons"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/EditorScreens.php:92
+msgid "Remove from course"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:106
+msgid "Add module"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:106
+msgid "— none —"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:112
+msgid "Changes apply to the draft. Learners keep their published revision until you publish again."
+msgstr ""
+
+#: src/Admin/EditorScreens.php:123
+msgid "Not published yet."
+msgstr ""
+
+#. translators: %d: revision number
+#: src/Admin/EditorScreens.php:123
+#, php-format
+msgid "Published revision: %d"
+msgstr ""
+
+#. translators: %d: revision number
+#: src/Admin/EditorScreens.php:124
+msgid "Kind of change"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:125
+msgid "Correction (no effect on progress)"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:126
+msgid "Content change"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:127
+msgid "Note for learners (optional)"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:128
+msgid "Publish a new revision when saving"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:140
+msgid "Activity type"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:145
+msgid "Settings (JSON)"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:146
+msgid "Completion rule"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:146
+msgid "Leave empty for the default rule of the type."
+msgstr ""
+
+#: src/Admin/EditorScreens.php:147
+msgid "The order of lessons in a module follows the \"Order\" field in the page attributes. Use \"Preview\" to see the lesson as a learner."
+msgstr ""
+
+#: src/Admin/EditorScreens.php:219
+msgid "Duplicate"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:236
+msgid "The item could not be duplicated."
+msgstr ""
+
+#. translators: %s: error details
+#: src/Admin/EditorScreens.php:266
+#, php-format
+msgid "Not saved: %s"
+msgstr ""
+
+#: src/Admin/Notices.php:123
+msgid "Remind me tomorrow"
+msgstr ""
+
+#: src/Admin/Notices.php:123
+msgid "Dismiss"
+msgstr ""
+
+#: src/Admin/Notices.php:148
+msgid "Error"
+msgstr ""
+
+#: src/Admin/Notices.php:148
+msgid "Warning"
+msgstr ""
+
+#: src/Admin/Notices.php:148
+msgid "Note"
 msgstr ""
 
 #: src/Course/PostTypes.php:54
@@ -54,14 +212,6 @@ msgstr ""
 
 #: src/Course/PostTypes.php:54
 msgid "Course"
-msgstr ""
-
-#: src/Course/PostTypes.php:70
-msgid "Modules"
-msgstr ""
-
-#: src/Course/PostTypes.php:70
-msgid "Module"
 msgstr ""
 
 #: src/Course/PostTypes.php:77
@@ -116,7 +266,7 @@ msgstr ""
 msgid "The database could not be prepared. Nothing else has been changed; please check the system status and try again."
 msgstr ""
 
-#: src/Kernel/Activator.php:123
+#: src/Kernel/Activator.php:124
 msgid "Course Captain cannot be activated:"
 msgstr ""
 
@@ -128,7 +278,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:331
+#: src/Kernel/Plugin.php:335
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 

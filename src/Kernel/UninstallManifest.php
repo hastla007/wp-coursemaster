@@ -141,7 +141,7 @@ final class UninstallManifest {
 	 *
 	 * @var list<string>
 	 */
-	public const USER_META = array();
+	public const USER_META = array( 'ccap_notice_state' );
 
 	/**
 	 * Post meta keys (R1-04).
@@ -153,6 +153,7 @@ final class UninstallManifest {
 		'_ccap_activity_type',
 		'_ccap_activity_uid',
 		'_ccap_completion_rule',
+		'_ccap_copied_from_uid',
 		'_ccap_current_revision_id',
 		'_ccap_language',
 		'_ccap_protected_course',

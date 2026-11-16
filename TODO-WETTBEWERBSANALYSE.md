@@ -238,7 +238,7 @@
   - **Ergebnis/Definition of Done:** Neutrale Kursstruktur, Revisionen, Entwurf/Publikation/Archiv, Zuordnungen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-05 · WP-native Autorenoberfläche**
+- [x] **R1-05 · WP-native Autorenoberfläche** — erledigt 16.11.2026: Nachweis `docs/r1/R1-05-nachweis.md`; Menü, Kursstruktur- und Veröffentlichungs-Panel, Lektions-Activity-Panel, Duplizieren mit `copied_from_uid`, REST-Routen mit HTTP-Varianten, gebündelte Hinweise (GM-140), beschriftete Felder (GM-141 Teil); Unit 85, Integration 134, Multisite 143. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04.
   - **Ergebnis/Definition of Done:** Kurs- und Lektionseditor, Preview, Reihenfolge, Validierung und Accessibility.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

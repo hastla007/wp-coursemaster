@@ -195,6 +195,9 @@ final class Plugin {
 		\CourseCaptain\Progress\CourseProgress::register();
 		\CourseCaptain\Access\ContentProtection::register();
 		\CourseCaptain\Settings\Settings::register();
+		\CourseCaptain\Admin\AuthoringRoutes::register();
+		\CourseCaptain\Admin\Notices::register();
+		\CourseCaptain\Admin\EditorScreens::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		EscalationGuard::register();
