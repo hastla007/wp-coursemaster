@@ -198,6 +198,7 @@ final class Plugin {
 		\CourseCaptain\Admin\AuthoringRoutes::register();
 		\CourseCaptain\Admin\Notices::register();
 		\CourseCaptain\Admin\EditorScreens::register();
+		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		EscalationGuard::register();

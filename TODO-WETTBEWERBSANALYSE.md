@@ -288,7 +288,7 @@
   - **Ergebnis/Definition of Done:** Page/Block/Shortcode/API/Medien/Download-Gates, Schutz gegen Direktzugriff.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-15 · Import/Export/Dry-run/Rollback**
+- [x] **R1-15 · Import/Export/Dry-run/Rollback** — erledigt 16.11.2026: Nachweis `docs/r1/R1-15-nachweis.md`; Paketvalidierung V1–V5 (+`requires`), Dry-run mit V6-Objektfehlern, Zustandsautomat mit Aktivierung, Archiv statt Löschen, Konflikte, Rollback über Paketkopie, Export; Unit 85, Integration 138, Multisite 147. Großimport/Medien/Blueprints mit R1-41. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04, R1-06.
   - **Ergebnis/Definition of Done:** Neutrale Paketpipeline, Provenienz, Rights, Wiederholung, Revisionen, Recovery.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T15:44:26+00:00\n"
+"POT-Creation-Date: 2026-11-16T15:56:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -256,6 +256,12 @@ msgctxt "post status"
 msgid "Staged"
 msgstr ""
 
+#. translators: %s: package ID
+#: src/Import/ImportService.php:648
+#, php-format
+msgid "Import %s"
+msgstr ""
+
 #. translators: %s: comma-separated table names
 #: src/Kernel/Activator.php:70
 #, php-format
@@ -278,7 +284,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:335
+#: src/Kernel/Plugin.php:336
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
