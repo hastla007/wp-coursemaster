@@ -293,7 +293,7 @@
   - **Ergebnis/Definition of Done:** Neutrale Paketpipeline, Provenienz, Rights, Wiederholung, Revisionen, Recovery.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-16 · Lernoberfläche und responsive Navigation**
+- [x] **R1-16 · Lernoberfläche und responsive Navigation** — erledigt 16.11.2026: Nachweis `docs/r1/R1-16-nachweis.md`; Katalog (GM-001), Mein Lernen mit Zugangsstatus (GM-091) und Fortsetzen, Kursraum mit Sperrgründen, Lernenden-REST, Blöcke/Shortcodes, Lernbereich ohne JS, Browser-Prüfung 390 px; Unit 85, Integration 144, Multisite 153. Interaktive Lektions-/Prüfungs-UI mit R1-19/R1-20. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-05, R1-07, R1-08, R1-10, R1-11, R1-12, R1-13.
   - **Ergebnis/Definition of Done:** Kurskatalog, Kursraum, Activity, Prüfung, Fortschritt, Profile, Tastatur/Mobil.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

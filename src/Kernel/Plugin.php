@@ -34,7 +34,7 @@ final class Plugin {
 	public const REWRITE_VERSION_OPTION = 'course_captain_rewrite_version';
 
 	/** Bump when own rewrite rules change. */
-	public const REWRITE_VERSION = '3';
+	public const REWRITE_VERSION = '4';
 
 	/**
 	 * Instance booted by WordPress.
@@ -199,6 +199,8 @@ final class Plugin {
 		\CourseCaptain\Admin\Notices::register();
 		\CourseCaptain\Admin\EditorScreens::register();
 		\CourseCaptain\Import\ImportService::register();
+		\CourseCaptain\Learner\LearnerRoutes::register();
+		\CourseCaptain\Learner\LearningArea::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		EscalationGuard::register();

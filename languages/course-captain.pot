@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T15:56:48+00:00\n"
+"POT-Creation-Date: 2026-11-16T16:14:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -51,6 +51,7 @@ msgid "This content is available to course participants."
 msgstr ""
 
 #: src/Admin/AuthoringRoutes.php:99
+#: src/Learner/LearnerRoutes.php:114
 msgid "Please log in."
 msgstr ""
 
@@ -284,7 +285,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:336
+#: src/Kernel/Plugin.php:338
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -322,10 +323,148 @@ msgstr ""
 msgid "The database connection must support the utf8mb4 character set."
 msgstr ""
 
+#: src/Learner/LearningArea.php:108
+#: src/Learner/LearningArea.php:133
+msgid "My learning"
+msgstr ""
+
+#: src/Learner/LearningArea.php:120
+msgid "This course is not available."
+msgstr ""
+
+#: src/Learner/LearningArea.php:133
+msgid "Skip to content"
+msgstr ""
+
+#: src/Learner/LearningArea.php:145
+msgid "You are not enrolled in any course yet."
+msgstr ""
+
+#: src/Learner/LearningArea.php:151
+msgid "Progress:"
+msgstr ""
+
+#: src/Learner/LearningArea.php:151
+msgid "Course progress"
+msgstr ""
+
+#. translators: %d: percent
+#: src/Learner/LearningArea.php:151
+#: src/Learner/LearningArea.php:219
+#, php-format
+msgid "%d %% completed"
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LearningArea.php:153
+#, php-format
+msgid "Continue: %s"
+msgstr ""
+
+#: src/Learner/LearningArea.php:169
+msgid "Course contents"
+msgstr ""
+
+#. translators: %s: course
+#: src/Learner/LearningArea.php:221
+#, php-format
+msgid "Open %s in the learning area"
+msgstr ""
+
+#: src/Learner/LearningArea.php:237
+msgid "Go to the learning area"
+msgstr ""
+
+#: src/Learner/LearningArea.php:288
+msgid "Access active"
+msgstr ""
+
+#: src/Learner/LearningArea.php:289
+msgid "Partial access"
+msgstr ""
+
+#: src/Learner/LearningArea.php:290
+msgid "Access pending"
+msgstr ""
+
+#: src/Learner/LearningArea.php:291
+msgid "Access suspended"
+msgstr ""
+
+#: src/Learner/LearningArea.php:292
+msgid "Access expired"
+msgstr ""
+
+#: src/Learner/LearningArea.php:293
+msgid "No access"
+msgstr ""
+
+#. translators: %s: date
+#: src/Learner/LearningArea.php:308
+#, php-format
+msgid "Available from %s"
+msgstr ""
+
+#: src/Learner/LearningArea.php:311
+msgid "Locked: no access"
+msgstr ""
+
+#: src/Learner/LearningArea.php:312
+msgid "Locked: not part of the preview"
+msgstr ""
+
+#: src/Learner/LearningArea.php:313
+msgid "Locked: not yet released"
+msgstr ""
+
+#: src/Learner/LearningArea.php:314
+msgid "Locked: complete the previous steps first"
+msgstr ""
+
+#: src/Learner/LearningArea.php:315
+msgid "Locked during your running exam"
+msgstr ""
+
+#: src/Learner/LearningArea.php:317
+msgid "Locked"
+msgstr ""
+
+#: src/Learner/LearningArea.php:327
+msgid "completed"
+msgstr ""
+
+#: src/Learner/LearningArea.php:327
+msgid "in progress"
+msgstr ""
+
+#: src/Learner/LearningArea.php:327
+msgid "not started"
+msgstr ""
+
 #: src/Storage/Database.php:302
 msgid "Invalid identifier."
 msgstr ""
 
 #: src/Storage/Migrator.php:171
 msgid "Course Captain is updating its database. Please try again in a few seconds."
+msgstr ""
+
+#: blocks/course-catalog/block.json
+msgctxt "block title"
+msgid "Course catalog"
+msgstr ""
+
+#: blocks/course-catalog/block.json
+msgctxt "block description"
+msgid "List of published courses."
+msgstr ""
+
+#: blocks/learning-link/block.json
+msgctxt "block title"
+msgid "Learning area link"
+msgstr ""
+
+#: blocks/learning-link/block.json
+msgctxt "block description"
+msgid "Button to the learning area."
 msgstr ""
