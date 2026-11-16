@@ -43,6 +43,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-29 | Kein Wiederaufleben nach Refund; neuer Kauf = neue Grant-Revision mit Audit | nein |
 | E-30 | R3.1 mit Kontopflicht; Claim-Token später (bewusste Abweichung von CORE-SPEC-002) | nein |
 | E-31 | **Gutscheinziel kann beides sein:** neutrales Course-Captain-Zugangsangebot **oder** WooCommerce-Produkt. Folge: Voucher-Connector (R3.2) unterstützt zwei Zieltypen; R0-40 und R3-04 müssen beide Wege spezifizieren | **ja** (erweitert) |
+| E-32 | Keine Geld-zurück-Garantie; Kern sendet nur ein neutrales Nutzungsereignis | nein |
+| E-33 | **Deutsche Shop-Rechtspflichten und PayPal/Klarna-Webhooks werden wie in LB übernommen** (Widerrufsbutton, Bestellknopf, Preisangaben, Rechtstexte in Mails, OSS-Schwelle, Zahlungs-Dispute). Wegen E-01 Clean Room als Neuimplementierung nach Verhalten; Ort: WooCommerce-Adapter R3.1 (Pro, E-53). Folge: R0-04 BS-Z und R3-02/R3-03 erweitern; juristische Prüfung durch den Betreiber | **ja** |
+| E-34 | **Woo-Produkte werden automatisch aus Kursen/Modulen angelegt und gepflegt** (R3.1). Folge: Produkt-Sync mit Konfliktregeln (manuelle Änderungen am Produkt, Löschung, Preis) in R3-02 spezifizieren | **ja** |
+| E-35 | Gutschein-Storno entzieht nur den Voucher-Grant; Lernhistorie bleibt | nein |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
@@ -328,7 +332,7 @@ Technisch festgelegt: Der Monitor-Schlüssel wird nur noch im Header akzeptiert,
 
 ## 23. Threat Model und Datenschutz (aus R0-17)
 
-Hauptrestrisiko ist die **Prüfungsintegrität**: Fragen und Antworten können über den Lernmodus gesammelt und nach der Abgabe weitergegeben werden. Das lässt sich bremsen (E-146, E-147), aber nicht verhindern; Course Captain verspricht kein Proctoring. **Klarstellung zu E-46:** Wegen E-10 hat der Free-Kern keine Login- bzw. Reset-Limits. Fail-closed gilt dort für Claim, Einlösen, Einladungen und Datenschutzanträge. Login und Reset folgen erst mit dem optionalen Härtungsmodul.
+Hauptrestrisiko ist die **Prüfungsintegrität**: Fragen und Antworten können über den Lernmodus gesammelt und nach der Abgabe weitergegeben werden. Das lässt sich bremsen (E-146, E-147), aber nicht verhindern; Course Captain verspricht kein Proctoring. **Klarstellung zu E-46 (aktualisiert nach Beschluss E-10 „Härtung im Kern“):** Fail-closed gilt im Free-Kern für Login, Passwort-Reset, Registrierung, Claim, Einlösen, Einladungen und Datenschutzanträge. Siehe R0-31 §3.4.
 
 | ID | Frage | Empfehlung | Herkunft | Blockiert |
 |---|---|---|---|---|
@@ -475,3 +479,63 @@ Technische Korrekturen aus R0-27 (T27-1…8) sind übernommen, u. a. Optionsname
 | E-222 | Gruppen-Grundfunktion standardmäßig an? | **Aus**, im Setup-Assistenten aktivierbar | R0-27 D27-8 | R1-21, R1-31 |
 | E-223 | Automatischer Datenexport nach bestätigtem Datenschutzantrag | **An** (LB-Parität), Download-Link an die bestätigte Adresse | R0-27 D27-9 | R1-21, R1-31 |
 | E-224 | Content-Security-Policy für Course-Captain-Antworten | **Erzwingen (`enforce`)**, Umschalten auf `report_only` mit Bestätigung | R0-27 D27-10 | R1-21, R1-31 |
+
+## 34. Settings-Vererbung (aus R0-28)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-225 | Wirkt eine globale Sperre auch auf bereits veröffentlichte Prüfungsregeln? | **Ab dem nächsten Versuchsstart**; laufende Versuche bleiben unverändert | R0-28 D28-1 | R1-33 |
+| E-226 | Sammel-Reset von Kurs-Overrides auf „erben“ in R1? | **Ja**, nur in Entwürfen, mit Rückgängig | R0-28 D28-2 | R1-33 |
+| E-227 | Geerbte Werte bei einer neuen Prüfungsregel-Version neu auflösen? | **Ja**, Änderung wird im Veröffentlichungs-Diff angezeigt | R0-28 D28-3 | R1-33 |
+| E-228 | Importierte Prüfungsregeln: Werte erben oder explizit übernehmen? | **Explizit übernehmen**, damit die Prüfung gleich bleibt | R0-28 D28-4 | R1-33 |
+| E-229 | Kurs-Ebene für Prüfungseinstellungen (`exams.*`)? (Widerspruch R0-08 §4.5 / R0-27) | **Nicht in R1**: Prüfungseinstellungen nur global und je Prüfungsregel | R0-28 D28-5 | R1-33 |
+| E-230 | Gehören Sperren zum Tab-Reset und zum Settings-Export? | **Ja** | R0-28 D28-6 | R1-33 |
+
+## 35. Gruppen und Zertifikate Free/Pro (aus R0-29)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-231 | Gruppen-Auswertung in Free (E-17: Reporting Pro; R0-07/R0-19 sehen einen Gruppenbericht in R1) | **Nur ein Gruppenfilter im Basisbericht** in Free; eigene Gruppenberichte in Pro | R0-29 D29-1 | R1-35, R1-44, R3-08 |
+| **E-232** | Dürfen Gruppenbesitzer/Delegierte den Lernfortschritt der Mitglieder sehen? (Konzept 35.1: Käufer sieht keine Lernleistungen) | **Nur in Pro als Opt-in-Gruppeneinstellung**, nur Fortschritt und Abschluss, nie Antworten oder Punkte | R0-29 D29-2 | R1-35, R1-44, R3-08 |
+| E-233 | Massenimport: Konten anlegen oder Plätze direkt zuweisen? | **Nur Einladungen erzeugen**, keine Konten | R0-29 D29-3 | R1-35, R1-44, R3-08 |
+| E-234 | Umbuchen eines Platzes ohne neuen Claim (Pro) | **Nur innerhalb derselben Stammgruppe** | R0-29 D29-4 | R1-35, R1-44, R3-08 |
+| E-235 | Sammel-Neuausstellung von Zertifikaten (Pro) | **Layout-Revision**; der alte Link bleibt gültig und zeigt die neue Fassung | R0-29 D29-5 | R1-35, R1-44, R3-08 |
+| E-236 | Öffentliche Verifikation: Initialen und Ergebnis anzeigen? | **Nein**, weder Initialen noch Ergebnis (präzisiert E-97) | R0-29 D29-6 | R1-35, R1-44, R3-08 |
+| E-237 | Wer ernennt Delegierte einer Gruppe (Pro)? | **Besitzer und Admins** | R0-29 D29-7 | R1-35, R1-44, R3-08 |
+| E-238 | PDF-Technik und externer Verifikationsdienst | **Kein externer Dienst.** Findet der Technik-Spike keine Bibliothek für getaggte PDFs, liefert Pro kein PDF (HTML/Druck bleibt) | R0-29 D29-8 | R1-35, R1-44, R3-08 |
+
+## 36. Datenschutz- und Sicherheitsdefaults (aus R0-31)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-239** | Phase und Task für das Härtungsmodul (Beschluss E-10) | **Neue Task R1-45 „Härtungsmodul“ in Free** | R0-31 D31-1 | R1-34, R1-45 |
+| E-240 | Standardmodus der Härtungsfunktionen | **`auto`**: hält sich vollständig zurück, wenn ein Security-Plugin erkannt wird; sonst aktiv. Je Funktion `auto | force | off` | R0-31 D31-2 | R1-34, R1-45 |
+| E-241 | Umfang über E-10 hinaus | **Registrierungslimit und Geräte-Cookie ja**; Schutz gegen User-Enumeration nur als Opt-in | R0-31 D31-3 | R1-34, R1-45 |
+| E-242 | Notausgang, wenn das Login fail-closed sperrt | **Konstante `COURSE_CAPTAIN_HARDENING` in wp-config.php** schaltet ab; bekannte Geräte (Cookie) dürfen weiter | R0-31 D31-4 | R1-34, R1-45 |
+| E-243 | Fristen für Daten ohne bisherige Regel | **Beendete Grants 10 Jahre, entfernte Plätze 365 Tage, geschlossene Gruppen 3 Jahre, aufgehobene Lernsperren 30 Tage, Exportdateien 24 h** | R0-31 D31-5 | R1-34, R1-45 |
+| E-244 | Definition „Kursende“ (Fristbeginn in E-51) | **Späterer von: letzter aktiver Grant endet oder letzte Aktivität im Kurs** | R0-31 D31-6 | R1-34, R1-45 |
+| E-245 | Frist über den Default hinaus verlängern | **Nur mit Pflichtbegründung und Audit** | R0-31 D31-7 | R1-34, R1-45 |
+| E-246 | Consent-Kategorie für externe Medien (R0-10 konfigurierbar, R0-27 ohne Feld) | **Neues Feld `privacy.consent_category`**, Default `marketing` | R0-31 D31-8 | R1-34, R1-45 |
+
+## 37. Kurs-SEO (aus R0-33)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-247 | Öffentliche, von Suchmaschinen indexierbare Lektionen in R1? | **Nein**; Schnupperzugang (E-15) erfordert Login | R0-33 D33-1 | R1-37 |
+| E-248 | Strukturierte Daten (schema.org Course) standardmäßig? | **Aus**, einschaltbar | R0-33 D33-2 | R1-37 |
+| E-249 | Kurs-Sichtbarkeit „nicht gelistet“ | **Einführen**, Default „gelistet“ | R0-33 D33-3 | R1-37 |
+| E-250 | URL eines archivierten Kurses | **404** | R0-33 D33-4 | R1-37 |
+| E-251 | Öffentliche Kategorie-/Schlagwort-Archive in R1? | **Nein** | R0-33 D33-5 | R1-37 |
+| E-252 | Trainername auf der Kursseite und im Schema | **Standardmäßig aus**, je Kurs einschaltbar | R0-33 D33-6 | R1-37 |
+| E-253 | Fremde Suchindex-Plugins (z. B. Relevanssi) | **Course-Captain-Typen über deren Filter ausschließen** plus Systemstatus-Warnung; Relevanssi getestet, andere best effort | R0-33 D33-7 | R1-37 |
+
+## 38. Integrationsstatus (aus R0-34)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-254 | Lesende Integrationsanzeige in R1: Systemstatus (E-185) oder Unterseite „Integrationen“ (E-202)? | **Unterseite schon in R1, nur lesend** | R0-34 D34-1 | R1-38, R3-10, R3-16 |
+| E-255 | Wer darf den Integrationsstatus sehen? | **Auch `cc_support` und Kursmanager** (lesend) | R0-34 D34-2 | R1-38, R3-10, R3-16 |
+| E-256 | Partner ohne veröffentlichten Vertrag bzw. nicht installierte Partner anzeigen? | **Erkannte Partner anzeigen**, mit Hinweis „kein Vertrag verfügbar“; nicht installierte nicht bewerben (E-100) | R0-34 D34-3 | R1-38, R3-10, R3-16 |
+| E-257 | Alarm-Mail an Admins, wenn eine Integration `failed` ist (R3) | **Ja**, gebündelt höchstens einmal je 24 h | R0-34 D34-5 | R1-38, R3-10, R3-16 |
+| E-258 | Offene (noch nicht zugestellte) Zustellungen und Aufbewahrungsfristen | **Offene Zustellungen höchstens 30 Tage**, danach Dead-Letter mit Grund `retention` | R0-34 D34-6 | R1-38, R3-10, R3-16 |
+| E-259 | Übernahme einer Course-Aktion durch einen Partner (z. B. Workflow übernimmt einen Mailtyp) | **Erst in R3**, nur mit sichtbarem Hinweis im Admin und Abschaltmöglichkeit | R0-34 D34-8 | R1-38, R3-10, R3-16 |

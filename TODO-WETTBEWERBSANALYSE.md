@@ -149,12 +149,12 @@
   - **Ergebnis/Definition of Done:** Alle Kapitel-43-Felder haben Key, Typ, Scope, Default, Capability, Validierung, Edition, Migration, Audit und Tests.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-28 · Global-/Kurs-/Prüfungs-Vererbung spezifizieren**
+- [ ] **R0-28 · Global-/Kurs-/Prüfungs-Vererbung spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-28-settings-vererbung.md` (Rangfolge, Fixierungszeitpunkte, Snapshot-Regeln, Zustandsmatrix für Default-Änderungen, Reset/Export, INH-001…048); Entscheidung offen → E-225…E-230
   - **Voraussetzung:** R0-08,R0-23,R0-27.
   - **Ergebnis/Definition of Done:** Override-Priorität, Snapshots, laufende Versuche, Reset und konfliktfreie Default-Änderung als Zustandsmatrix.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-29 · Free-/Pro-Konflikte Gruppen und Zertifikate auflösen**
+- [ ] **R0-29 · Free-/Pro-Konflikte Gruppen und Zertifikate auflösen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-29-gruppen-zertifikate-editionen.md` (GF-01…16/GP-01…08, CF-01…14/CP-01…06, Datenvertrag vollständig in Free, Lizenzablauf-Matrix, GRP/CRT-Tests); Entscheidung offen → E-231…E-238
   - **Voraussetzung:** R0-04,R0-11,R0-27.
   - **Ergebnis/Definition of Done:** Free Seat/Claim und Basisnachweis vertraglich abgrenzen; Pro Gruppen-UX/Designer und Lizenzablauf getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
@@ -164,7 +164,7 @@
   - **Ergebnis/Definition of Done:** Menübaum, Tab-Screens, Hilfetexte, Validierungsfehler, Risk-Confirmations und Tastaturabläufe als prüfbare Wireframes.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-31 · Datenschutz- und Sicherheitsdefaults für Admin-Settings prüfen**
+- [ ] **R0-31 · Datenschutz- und Sicherheitsdefaults für Admin-Settings prüfen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-31-privacy-security-defaults.md` (43 Defaults geprüft, 44 Datenarten mit Fristen, Härtungsmodul nach E-10, PSD-001…064); Entscheidung offen → E-239…E-246
   - **Voraussetzung:** R0-17,R0-27.
   - **Ergebnis/Definition of Done:** Retention-Entscheidungen, Medien/Consent, Secret-Handling, RBAC, Audit, Export/Reset und Testmatrix freigegeben.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
@@ -174,12 +174,12 @@
   - **Ergebnis/Definition of Done:** Form/Workflow/Review-Quellen mit Quellkapitel, Course-Relevanz, bestehender Abdeckung, Delta und explizitem Nichtumfang erfasst.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-33 · Kurs-SEO und öffentliche/private Grenzen spezifizieren**
+- [ ] **R0-33 · Kurs-SEO und öffentliche/private Grenzen spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-33-kurs-seo.md` (6 SEO-Klassen, 27 Seitentypen, Schema, Yoast/Rank Math/ohne, 26 Leak-Kanäle, SEO-001…052); Entscheidung offen → E-247…E-253
   - **Voraussetzung:** R0-20,R0-27.
   - **Ergebnis/Definition of Done:** Katalog/Kurs/Lektion indexierbar nach Rechteklasse; Canonical, Sitemap, Schema, Yoast- und No-SEO-Fallback ohne private Leaks definiert.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-34 · Integrationsstatus und Support-Vertrag spezifizieren**
+- [ ] **R0-34 · Integrationsstatus und Support-Vertrag spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-34-integrationsstatus-support.md` (IntegrationStatus v1, Oberfläche Integrationen, Support-Aktionen IA-01…09, Diagnose-Export, INT-001…052); Entscheidung offen → E-254…E-259
   - **Voraussetzung:** R0-19,R0-21,R0-27.
   - **Ergebnis/Definition of Done:** Provider-ID/Version/Contract, letzter Erfolg, Queue, Correlation-ID, Fehlercode, Retry-Rechte und Datenschutzklasse spezifiziert.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
