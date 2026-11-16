@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/integration/bootstrap.php"
+	cacheDirectory=".phpunit.cache"
+	colors="true"
+	executionOrder="random"
+	beStrictAboutOutputDuringTests="true"
+	failOnWarning="true"
+	failOnNotice="true"
+	failOnDeprecation="true"
+	failOnRisky="true"
+	failOnEmptyTestSuite="true">
+	<php>
+		<env name="WP_TESTS_MULTISITE" value="1" force="true"/>
+	</php>
+	<groups>
+		<exclude>
+			<group>ms-excluded</group>
+		</exclude>
+	</groups>
+	<testsuites>
+		<testsuite name="integration">
+			<directory>tests/integration</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

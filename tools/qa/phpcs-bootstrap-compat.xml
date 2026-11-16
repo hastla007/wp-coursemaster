@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ruleset name="Course Captain bootstrap compatibility">
+	<description>The main plugin file must parse on old PHP so that a too old PHP gets a notice instead of a fatal error (R0-35 §3.2, RC-047).</description>
+
+	<file>../../course-captain.php</file>
+
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+
+	<config name="testVersion" value="7.0-"/>
+	<rule ref="PHPCompatibility"/>
+</ruleset>
