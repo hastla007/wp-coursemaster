@@ -59,6 +59,14 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-45 | **Externe Medien werden ohne Klick-Einwilligung direkt geladen.** Hinweis: Das widerspricht R0-10 §5, R0-17 (Consent) und R0-31 (Privacy by Default) und ist datenschutzrechtlich riskant (Übermittlung an YouTube/Vimeo ohne Einwilligung); WordPress.org verlangt die Offenlegung externer Dienste in der readme. Rückfrage dazu in E-45a | **ja** |
 | E-46 | Fail-closed für Login, Reset, Registrierung, Claim, Einlösen, Einladungen, Datenschutzanträge; Lernen fail-open; bekannte Geräte dürfen weiter einloggen | nein |
 | E-47 | Hybrid: Inhalte als CPT, Massendaten/Transaktionen in eigenen Tabellen | nein |
+| E-45a | Einstellung `external_media_mode`, **Default „immer laden“**, umschaltbar auf „Klick zum Laden“; Hinweis im Setup-Assistenten und Offenlegung der externen Dienste in der readme | ja (Präzisierung zu E-45) |
+| E-48 | Harte Fremdschlüssel nur zwischen cc-Tabellen | nein |
+| E-49 | Netzwerkaktivierung in R1 blockiert | nein |
+| E-50 | Fragenrevisionen werden erst beim Versuchsstart fixiert | nein |
+| E-51 | Lernstände bis Kontolöschung, Versuche/Zertifikate 10 Jahre, Rohantworten 2 Jahre nach Kursende (änderbar, juristische Bestätigung durch Betreiber) | nein |
+| E-52 | Lastannahmen bestätigt: 10.000 Lernende, 100 Kurse, 100.000 Fragen, 500 gleichzeitige Prüfungen | nein |
+| E-53 | WooCommerce- und Voucher-Connectoren sind Pro | nein |
+| E-54 | Jede R2-Zuordnung bekommt eine R2-Task oder wandert in den R4-Pool | nein |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
