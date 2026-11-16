@@ -436,7 +436,7 @@
   - **Voraussetzung:** R1-02, R1-10.
   - **Ergebnis/Definition of Done:** Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation nach R0-08 §7 und R0-23 §5; R1-35 baut darauf Verwaltung und UI.
 
-- [ ] **R1-45 · Website-Härtungsmodul** — *Aufgenommen (Beschluss E-10, E-239).*
+- [x] **R1-45 · Website-Härtungsmodul** — erledigt 16.11.2026: Nachweis `docs/r1/R1-45-nachweis.md`; Login-/Reset-/Registrierungslimit (fail-closed), Gerätecookie, XML-RPC, Site-Header ohne Dopplung, Erkennung von Security-Plugins (`held:<slug>`), erst nach Bestätigung aktiv, Notausschalter + CLI, Audit; PSD-039…056/065 als Tests; Integration 266, Multisite 276. Tab-Oberfläche mit R1-32. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-03, R1-31, R1-42.
   - **Ergebnis/Definition of Done:** Login-/Reset-/Registrierungslimit, bekanntes Gerät, XML-RPC, 4 Security-Header; Erkennung von Security-Plugins (`auto`), Notausschalter; Spezifikation R0-31 §3.4, R0-30 Tab „Website-Härtung“; Tests PSD-xxx/ADM-xxx.
 

@@ -227,6 +227,7 @@ final class Plugin {
 		\CourseCaptain\Cache\CacheInvalidation::register();
 		\CourseCaptain\Rest\RestContract::register();
 		\CourseCaptain\Seo\CourseSeo::register();
+		\CourseCaptain\Security\Hardening::register();
 		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );
 

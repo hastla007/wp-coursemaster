@@ -70,6 +70,7 @@ final class UninstallManifest {
 		'course_captain_storage_layout',
 		'course_captain_import_drop_state',
 		'course_captain_cache_generation',
+		'course_captain_hardening_state',
 		'course_captain_retention_state',
 		'course_captain_rewrite_version',
 		'course_captain_installation_uuid',

@@ -82,6 +82,8 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_certificate_fallback_rendered` | action |
 | `course_captain_certificate_renderers` | filter |
 | `course_captain_explanations_available` | filter |
+| `course_captain_hardening_conflicts` | filter |
+| `course_captain_hardening_limits` | filter |
 | `course_captain_internal_subscriber_handlers` | filter |
 | `course_captain_internal_subscribers` | filter |
 | `course_captain_loaded_v1` | action |

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T18:29:04+00:00\n"
+"POT-Creation-Date: 2026-11-16T18:56:20+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -465,7 +465,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:369
+#: src/Kernel/Plugin.php:370
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -1038,66 +1038,78 @@ msgid "Import rollback started"
 msgstr ""
 
 #: src/Ops/AuditView.php:47
-msgid "Personal data erased"
+msgid "Website hardening state changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:48
-msgid "Retention applied"
+msgid "Website hardening switched off by constant"
 msgstr ""
 
 #: src/Ops/AuditView.php:49
-msgid "Maintenance task failed"
+msgid "Maintenance action"
 msgstr ""
 
 #: src/Ops/AuditView.php:50
-msgid "Mail template saved"
+msgid "Personal data erased"
 msgstr ""
 
 #: src/Ops/AuditView.php:51
-msgid "Notification opt-out changed"
+msgid "Retention applied"
 msgstr ""
 
 #: src/Ops/AuditView.php:52
-msgid "Notification sent again"
+msgid "Maintenance task failed"
 msgstr ""
 
 #: src/Ops/AuditView.php:53
-msgid "Group invitation sent again"
+msgid "Mail template saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:54
-msgid "Held notifications released"
+msgid "Notification opt-out changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:55
-msgid "Held notifications discarded"
+msgid "Notification sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:56
-msgid "Course revision published"
+msgid "Group invitation sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:57
-msgid "Certificate issued manually"
+msgid "Held notifications released"
 msgstr ""
 
 #: src/Ops/AuditView.php:58
-msgid "Certificate corrected"
+msgid "Held notifications discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:59
-msgid "Certificate revoked"
+msgid "Course revision published"
 msgstr ""
 
 #: src/Ops/AuditView.php:60
+msgid "Certificate issued manually"
+msgstr ""
+
+#: src/Ops/AuditView.php:61
+msgid "Certificate corrected"
+msgstr ""
+
+#: src/Ops/AuditView.php:62
+msgid "Certificate revoked"
+msgstr ""
+
+#: src/Ops/AuditView.php:63
 msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
-#: src/Ops/AuditView.php:113
+#: src/Ops/AuditView.php:116
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:113
+#: src/Ops/AuditView.php:116
 msgid "System"
 msgstr ""
 
@@ -1565,6 +1577,27 @@ msgstr ""
 
 #: src/Rest/RestContract.php:228
 msgid "The attempt changed in the meantime. Please try again."
+msgstr ""
+
+#: src/Security/Hardening.php:436
+msgid "Too many attempts. Please wait a few minutes and try again."
+msgstr ""
+
+#: src/Security/Hardening.php:468
+msgid "Login is temporarily unavailable. Please try again later."
+msgstr ""
+
+#: src/Security/Hardening.php:733
+#: src/Security/Hardening.php:753
+msgid "Course Captain website hardening"
+msgstr ""
+
+#: src/Security/Hardening.php:753
+msgid "Website hardening is switched off by constant"
+msgstr ""
+
+#: src/Security/Hardening.php:756
+msgid "Security"
 msgstr ""
 
 #: src/Storage/Database.php:334

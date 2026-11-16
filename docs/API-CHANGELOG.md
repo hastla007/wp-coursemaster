@@ -14,3 +14,4 @@ Jeder Eintrag nennt: Version · Art (added/deprecated/removed/security) · Eleme
 - **added** · Filter `course_captain_seo_indexable( bool $indexable, int $course )` (experimentell; kann Indexierbarkeit nur einschränken, R0-33 §1.3)
 - **added** · `X-Robots-Tag: noindex, nofollow` auf allen Antworten von `course-captain/v1` (R0-33 LK-23)
 - **added** · Action `course_captain_migration_fault` (intern, nur mit `COURSE_CAPTAIN_TESTING`; Fehlerinjektion für Migrationstests, R1-40) und WP-CLI `wp course-captain migrate [--status] [--format=json]`
+- **added** · Filter `course_captain_hardening_conflicts( array $conflicts )` und `course_captain_hardening_limits( array $limits )` (experimentell, R0-31 §3.4); WP-CLI `wp course-captain hardening status|disable|unlock [--format=json]`; Header `Permissions-Policy` auf eigenen REST-Antworten bei aktivem `site_headers`
