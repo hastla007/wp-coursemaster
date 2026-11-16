@@ -204,9 +204,12 @@ final class ProgressTest extends SchemaTestCase {
 	}
 
 	/**
-	 * The learner's revision is frozen; a later structure change does not move the denominator.
+	 * REV-010 / RV-07 / RV-08 (E-103): learners roll forward to the new revision at the next access;
+	 * completed activities keep their status, a new required activity raises the denominator.
+	 *
+	 * @group REV-010
 	 */
-	public function test_revision_frozen(): void {
+	public function test_revision_rolls_forward_with_vested_rights(): void {
 		$this->confirm( $this->learner, $this->lessons[ $this->modules[0] ][0] );
 		$before = (array) CourseProgress::current()->get( $this->learner, $this->course );
 		$admin  = Actor::user( $this->admin );
@@ -214,8 +217,9 @@ final class ProgressTest extends SchemaTestCase {
 		ActivityService::current()->define( $admin, $extra, 'lesson', array() );
 		CoursePublisher::current()->publish( $admin, $this->course );
 		$after = CourseProgress::current()->recalculate( $this->learner, $this->course );
-		self::assertSame( (int) $before['course_revision_id'], $after['course_revision_id'] );
-		self::assertSame( 4, $after['activities_total'] );
+		self::assertNotSame( (int) $before['course_revision_id'], $after['course_revision_id'], 'switched to the published revision' );
+		self::assertSame( 5, $after['activities_total'], 'new required activity counts' );
+		self::assertSame( (int) $before['activities_done'], $after['activities_done'], 'completed activity kept (vested right)' );
 
 		$newcomer = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		$this->grant( $newcomer, 0 );
@@ -352,5 +356,119 @@ final class ProgressTest extends SchemaTestCase {
 		do_action( 'ccap_task_continue', 'progress_rebuild:' . $this->course, 0 );
 		self::assertNotNull( CourseProgress::current()->get( $this->learner, $this->course ), 'task_continue handler' );
 		do_action( 'ccap_task_continue', 'other_task', 0 );
+	}
+
+	/**
+	 * Remove a lesson from the next revision (not published any more) and publish.
+	 *
+	 * @param int $lesson Lesson.
+	 * @return void
+	 */
+	private function remove_and_publish( int $lesson ): void {
+		wp_update_post(
+			array(
+				'ID'          => $lesson,
+				'post_status' => 'draft',
+			)
+		);
+		CoursePublisher::current()->publish( Actor::user( $this->admin ), $this->course );
+	}
+
+	/**
+	 * REV-001 / RV-07: content change keeps a completed lesson completed; quota unchanged.
+	 *
+	 * @group REV-001
+	 */
+	public function test_REV_001_content_change_keeps_completion(): void {
+		$lesson = $this->lessons[ $this->modules[0] ][0];
+		$this->confirm( $this->learner, $lesson );
+		$before = CourseProgress::current()->recalculate( $this->learner, $this->course );
+		wp_update_post(
+			array(
+				'ID'           => $lesson,
+				'post_content' => 'changed text',
+			)
+		);
+		CoursePublisher::current()->publish( Actor::user( $this->admin ), $this->course );
+		$after = CourseProgress::current()->recalculate( $this->learner, $this->course );
+		self::assertNotSame( $before['course_revision_id'], $after['course_revision_id'] );
+		self::assertSame( $before['activities_done'], $after['activities_done'] );
+		self::assertSame( $before['completion_ratio'], $after['completion_ratio'] );
+		self::assertSame( 'completed', (string) Database::current()->scalar( Database::current()->prepare( 'SELECT status FROM `' . Database::current()->table( 'ccap_activity_progress' ) . '` WHERE user_id = %d AND activity_id = %d', $this->learner, $lesson ) ) );
+	}
+
+	/**
+	 * REV-003 / RV-10: the last open required lesson is removed → course completed on switch with `revision_recalc`.
+	 *
+	 * @group REV-003
+	 */
+	public function test_REV_003_removed_open_lesson_completes_course(): void {
+		add_filter( 'course_captain_internal_subscribers', static fn( array $s ): array => $s + array( 'test' => array( 'course.*' ) ) );
+		$open = $this->lessons[ $this->modules[1] ][1];
+		foreach ( array( $this->lessons[ $this->modules[0] ][0], $this->lessons[ $this->modules[0] ][1], $this->lessons[ $this->modules[1] ][0] ) as $lesson ) {
+			$this->confirm( $this->learner, $lesson );
+		}
+		self::assertSame( 'in_progress', CourseProgress::current()->recalculate( $this->learner, $this->course )['status'] );
+		$this->remove_and_publish( $open );
+		$after = CourseProgress::current()->recalculate( $this->learner, $this->course );
+		self::assertSame( 'completed', $after['status'] );
+		self::assertSame( $after['course_revision_id'], $after['completed_revision_id'], 'completed in the new revision' );
+		$db      = Database::current();
+		$payload = (string) $db->scalar( $db->prepare( 'SELECT payload FROM `' . $db->table( 'ccap_outbox_event' ) . "` WHERE event_type = 'course.completed' AND user_ref = %s", 'user:' . $this->learner ) );
+		self::assertStringContainsString( '"reason_code":"revision_recalc"', $payload );
+	}
+
+	/**
+	 * REV-004 / RV-08: a removed completed lesson no longer counts; the row stays as history.
+	 *
+	 * @group REV-004
+	 */
+	public function test_REV_004_removed_completed_lesson(): void {
+		$lesson = $this->lessons[ $this->modules[1] ][0];
+		$this->confirm( $this->learner, $lesson );
+		self::assertSame( 1, CourseProgress::current()->recalculate( $this->learner, $this->course )['activities_done'] );
+		$this->remove_and_publish( $lesson );
+		$after = CourseProgress::current()->recalculate( $this->learner, $this->course );
+		self::assertSame( 0, $after['activities_done'] );
+		self::assertSame( 3, $after['activities_total'] );
+		$db = Database::current();
+		self::assertSame( '1', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_activity_progress' ) . '` WHERE user_id = %d AND activity_id = %d', $this->learner, $lesson ) ), 'history kept' );
+	}
+
+	/**
+	 * REV-010 (B) / RV-09: a completed course stays completed with its completion revision after a new required lesson.
+	 *
+	 * @group REV-010
+	 */
+	public function test_REV_010_completed_course_stays_completed(): void {
+		foreach ( array( $this->lessons[ $this->modules[0] ][0], $this->lessons[ $this->modules[0] ][1], $this->lessons[ $this->modules[1] ][0], $this->lessons[ $this->modules[1] ][1] ) as $lesson ) {
+			$this->confirm( $this->learner, $lesson );
+		}
+		$done = CourseProgress::current()->recalculate( $this->learner, $this->course );
+		self::assertSame( 'completed', $done['status'] );
+		$extra = $this->post( 'ccap_lesson', $this->modules[1] );
+		ActivityService::current()->define( Actor::user( $this->admin ), $extra, 'lesson', array() );
+		CoursePublisher::current()->publish( Actor::user( $this->admin ), $this->course );
+		$after = CourseProgress::current()->recalculate( $this->learner, $this->course );
+		self::assertSame( 'completed', $after['status'], 'completion is an event' );
+		self::assertSame( $done['completed_revision_id'], $after['completed_revision_id'] );
+		self::assertNotSame( $done['course_revision_id'], $after['course_revision_id'], 'learning revision still follows' );
+		self::assertSame( 5, $after['activities_total'] );
+	}
+
+	/**
+	 * §3.2 step 3: the backfill after publishing switches learners without their access.
+	 *
+	 * @group REV-037
+	 */
+	public function test_backfill_after_publish(): void {
+		$this->confirm( $this->learner, $this->lessons[ $this->modules[0] ][0] );
+		$old = CourseProgress::current()->recalculate( $this->learner, $this->course )['course_revision_id'];
+		$this->remove_and_publish( $this->lessons[ $this->modules[1] ][1] );
+		self::assertNotFalse( wp_next_scheduled( \CourseCaptain\Kernel\CronHooks::TASK_CONTINUE, array( 'progress_rebuild:' . $this->course, 0 ) ), 'backfill scheduled' );
+		self::assertSame( 0, CourseProgress::current()->rebuild( $this->course ) );
+		$row = (array) CourseProgress::current()->get( $this->learner, $this->course );
+		self::assertNotSame( (string) $old, (string) $row['course_revision_id'] );
+		self::assertSame( 0, CourseProgress::current()->rebuild( $this->course ), 'idempotent' );
 	}
 }

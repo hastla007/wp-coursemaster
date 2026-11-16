@@ -913,4 +913,32 @@ final class ExamTest extends SchemaTestCase {
 		wp_set_current_user( (int) self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 		self::assertSame( 404, $call( 'GET', '/exam-sessions/' . $session )->get_status() );
 	}
+
+	/**
+	 * REV-021 / RV-01: section labels are frozen at the start; renaming a module changes nothing in the result.
+	 *
+	 * @group REV-021
+	 */
+	public function test_REV_021_section_labels_frozen(): void {
+		wp_update_post(
+			array(
+				'ID'         => $this->modules[0],
+				'post_title' => 'Topic before',
+			)
+		);
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$session  = $this->start( $this->rule() );
+		wp_update_post(
+			array(
+				'ID'         => $this->modules[0],
+				'post_title' => 'Topic after',
+			)
+		);
+		$sessions->submit( $learner, $session );
+		$result = json_decode( (string) self::row( $session )['result'], true );
+		self::assertSame( 'Topic before', $result['sections'][ $this->modules[0] ]['title'] );
+		$snapshot = json_decode( (string) self::row( $session )['snapshot'], true );
+		self::assertSame( 'Topic before', $snapshot['section_labels'][ $this->modules[0] ] );
+	}
 }

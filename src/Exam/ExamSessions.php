@@ -561,6 +561,8 @@ final class ExamSessions {
 				$items
 			),
 			'feedback'           => $settings['feedback'],
+			// Section/topic labels are frozen at the start (R0-08 §6.3, R0-23 RV-01 / REV-021).
+			'section_labels'     => self::section_labels( $items ),
 			'attempt_policy'     => $settings['attempt_policy'],
 			'competency'         => array(
 				'certifies_objectives' => array_values( array_map( 'strval', (array) ( $settings['certifies_objectives'] ?? array() ) ) ),
@@ -868,6 +870,9 @@ final class ExamSessions {
 			$need   = (array) $part['min_ratio'];
 			$passed = $passed && $sections[ $section ]['points'] * (int) $need['den'] >= (int) $need['num'] * $sections[ $section ]['max'];
 		}
+		foreach ( array_keys( $sections ) as $section ) {
+			$sections[ $section ]['title'] = isset( $snapshot['section_labels'][ $section ] ) ? (string) $snapshot['section_labels'][ $section ] : null;
+		}
 		return array(
 			'points_milli'     => $points,
 			'max_points_milli' => $max,
@@ -1067,6 +1072,23 @@ final class ExamSessions {
 	private function modules_of_question( int $question ): array {
 		$rows = $this->db->rows( $this->db->prepare( 'SELECT module_id FROM `' . $this->db->table( 'ccap_module_question' ) . '` WHERE question_id = %d ORDER BY module_id', $question ) );
 		return array_map( static fn( array $r ): int => (int) $r['module_id'], $rows );
+	}
+
+	/**
+	 * Frozen section labels (module titles at start).
+	 *
+	 * @param array<int, array<string, mixed>> $items Snapshot items.
+	 * @return array<int, string>
+	 */
+	private static function section_labels( array $items ): array {
+		$labels = array();
+		foreach ( $items as $item ) {
+			$section = (int) $item['section'];
+			if ( $section > 0 && ! isset( $labels[ $section ] ) ) {
+				$labels[ $section ] = wp_strip_all_tags( get_the_title( $section ) );
+			}
+		}
+		return $labels;
 	}
 
 	/**

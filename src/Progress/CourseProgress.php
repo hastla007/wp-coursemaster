@@ -93,7 +93,11 @@ final class CourseProgress {
 					)
 				);
 				$row = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND course_id = %d FOR UPDATE", $user_id, $course_id ) );
-				if ( null === $row['course_revision_id'] && null !== $revision ) {
+				// Forward roll with vested rights (R0-23 §3.2, RV-07…RV-10): the learner follows the
+				// published revision at the next access; completed activities keep their status via
+				// stable lesson IDs, a course completion stays an event of its revision (RV-09).
+				$switched = null !== $revision && null !== $row['course_revision_id'] && (int) $row['course_revision_id'] !== $revision;
+				if ( null !== $revision && ( null === $row['course_revision_id'] || $switched ) ) {
 					$row['course_revision_id'] = $revision;
 				}
 				$calc   = $this->calculate( $user_id, $course_id, null === $row['course_revision_id'] ? null : (int) $row['course_revision_id'] );
@@ -120,7 +124,7 @@ final class CourseProgress {
 					)
 				);
 				if ( $first ) {
-					$this->record_completed( $db, $user_id, $course_id, $row, $now );
+					$this->record_completed( $db, $user_id, $course_id, $row, $now, $switched ? 'revision_recalc' : 'activities_completed' );
 				}
 				return array(
 					'status'                => $status,
@@ -356,9 +360,10 @@ final class CourseProgress {
 	 * @param int                  $course_id Course.
 	 * @param array<string, mixed> $row       Progress row.
 	 * @param string               $now       Completion time.
+	 * @param string               $reason    `activities_completed` or `revision_recalc` (RV-10).
 	 * @return void
 	 */
-	private function record_completed( Database $db, int $user_id, int $course_id, array $row, string $now ): void {
+	private function record_completed( Database $db, int $user_id, int $course_id, array $row, string $now, string $reason = 'activities_completed' ): void {
 		$revision_no = (int) $db->scalar( $db->prepare( 'SELECT revision_no FROM `' . $db->table( 'ccap_course_revision' ) . '` WHERE id = %d', (int) $row['course_revision_id'] ) );
 		$course_uid  = (string) ( $this->structure( (int) $row['course_revision_id'] )['course']['uid'] ?? '' );
 		$object      = $course_id . ':' . $user_id . ':' . (int) $row['cycle_no'];
@@ -372,6 +377,7 @@ final class CourseProgress {
 				'completed_at'       => $now,
 				'course_revision_no' => $revision_no,
 				'rule_version'       => self::RULE_VERSION,
+				'reason_code'        => $reason,
 				'evidence'           => array(),
 			),
 			array(

@@ -348,7 +348,7 @@
   - **Ergebnis/Definition of Done:** Autoren sehen konkrete Blocker/Warnungen; ungültige Kurse/Prüfungen werden nicht veröffentlicht; Preview testbar.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-27 · Kursänderungen während laufender Lernprozesse testen**
+- [x] **R1-27 · Kursänderungen während laufender Lernprozesse testen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-27-nachweis.md`; Vorwärtsrollen mit Besitzstand (E-103) inkl. Backfill nach Veröffentlichung, Kursabschluss bleibt Ereignis, `revision_recalc`, eingefrorene Abschnittsnamen im Prüfungssnapshot; REV-001/003/004/010/021/037 neu, weitere REV-Fälle über R1-08/R1-26/R1-44 abgedeckt; Integration 255, Multisite 265. Staging-Kopie (E-104) und Drip-Besitzstand offen (A-1/A-3). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08,R1-10,R1-15.
   - **Ergebnis/Definition of Done:** Versuche bleiben revisionsfest, Fortschritt bleibt konsistent, archivierte Inhalte und Zertifikate nachvollziehbar.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

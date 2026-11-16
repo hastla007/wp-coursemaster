@@ -196,6 +196,8 @@ final class CoursePublisher {
 		);
 		update_post_meta( $course_id, self::CURRENT_REVISION, $revision );
 		\CourseCaptain\Cache\CacheStore::bump_course( $course_id, true );
+		// Backfill: learners roll forward to the new revision without waiting for their next access (R0-23 §3.2 step 3).
+		\CourseCaptain\Progress\CourseProgress::schedule_rebuild( $course_id );
 		do_action( 'course_captain_policy_changed' );
 		return $revision;
 	}
