@@ -270,3 +270,20 @@ Zielstandard **WCAG 2.2 AA**. Technisch festgelegt und nicht abzustimmen: axe-Ve
 | E-133 | Geplante Veröffentlichung (Zeitpunkt in der Zukunft) in R1 | **Nein** | R0-22 D22-6 | R1-26 |
 | E-134 | Prüfungen in der Lernenden-Vorschau | **Durchspielbar ohne Speicherung** | R0-22 D22-7 | R1-26 |
 | E-135 | Tägliche Health-Prüfung findet neue Blocker in einem veröffentlichten Kurs | **Nur melden**, nie automatisch zurückziehen | R0-22 D22-8 | R1-26 |
+
+## 22. Support und Betrieb (aus R0-13)
+
+Technisch festgelegt: Der Monitor-Schlüssel wird nur noch im Header akzeptiert, nicht als `?key=` (LB-Befund, Schlüssel würde sonst in Server-Logs landen).
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-136 | Benachrichtigung des Lernenden bei Supportaktionen | **Mail** bei Freischaltung, Übertragung (nur an das Ziel), technisch verworfenem Versuch, Annullierung, Zertifikatskorrektur/-widerruf; **keine Mail** bei Widerruf, Sperre, Aussetzung, Reset, Reconcile; im Dialog abwählbar | R0-13 D1 | R1-38 |
+| E-137 | Zählt ein vom Support als technisch defekt verworfener Versuch gegen `max_attempts`? Gibt es „Zusatzversuch“? | **Zählt nicht** (`end_reason = support_void`, zweite Ausnahme zu E-71 neben E-108); plus Aktion „Zusatzversuch“ für belegte Störungen | R0-13 D2 | R1-38 |
+| E-138 | Undo für „Fortschritt zurücksetzen“ | **Ja**, über ein Reset-Journal (30 Tage), nur solange kein neuer Fortschritt entstand | R0-13 D3 | R1-38 |
+| E-139 | Manipulationserkennung im Audit | **Append-only plus Hash-Kette** mit täglicher Prüfung in R1; externer Sink (syslog/Webhook) als Pro-Kandidat | R0-13 D4 | R1-38 |
+| **E-140** | Audit-Export in Free? (R0-07 §4.9 sieht ihn in Pro) | **Free**: gefilterter CSV/JSON-Export für Admins mit Pflichtbegründung. Prüfer und Betroffenenanfragen brauchen ihn auch ohne Pro. R0-07 §4.9 wird angepasst | R0-13 D5 | R1-38 |
+| E-141 | „Anmelden als Lernender“ (Impersonation) für den Support | **Nein**; stattdessen Ansicht des effektiven Zugangs mit Begründung; Lesevorschau ohne fremde Daten als spätere Option | R0-13 D6 | R1-38 |
+| E-142 | Zugang des Course-Captain-Herstellersupports zur Betreiber-Site | **Kein Konto**, nur das Diagnosepaket (Domain standardmäßig gehasht); sonst würde der Hersteller Auftragsverarbeiter | R0-13 D7 | R1-38 |
+| E-143 | Debug- und Fehlerprotokolle | **Debug-Fenster höchstens 24 h** (Standard 2 h), Dateien 7 Tage; Fehlertabelle und Job-Fehler 30 Tage | R0-13 D8 | R1-38 |
+| E-144 | Eine Supportrolle oder zwei? | **Eine Rolle `cc_support`** (lesen + Lernsperre); Grant-Korrekturen durch den Kursmanager oder per gezielter Cap-Zuweisung | R0-13 D9 | R1-38 |
+| E-145 | Akteure in der Betroffenenauskunft | **Nur als Rolle** („Support“, „Administrator“, „System“), keine Namen der Mitarbeitenden | R0-13 D10 | R1-38 |

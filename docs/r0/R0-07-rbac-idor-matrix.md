@@ -618,3 +618,11 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 - Sonstiges LB: `Monitor.php:30-59`; `NonceRefresh.php:24-25`; `DisputeWebhooks.php:207-208`, `:523`; `SelfService.php:123-129`; `ImportPage.php:597-602`; `AccessPages.php:692-695`; `ImportSources.php:222-224`, `:276`; `AuditPage.php:22`; `Menu.php:72`, `:252`; `AccountDeletion.php:76-83`; Sperre/Rollenwechsel: `grep -rn "set_user_role\|remove_user_role\|ajax_query_attachments\|spam"` ohne Treffer in `src/` (außer `MobileApi.php:64` `profile_update`).
 - Routenbasis: Inventur D §4.1 (W1–W52) und Querverweise (`/faqs`, `/customer-faqs`, `/tips`, `/webhooks/*`, `/monitor`).
 - Keine Codeänderung an LearnBoating, keine Implementierung, kein Commit.
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung |
+|---|---|---|
+| 16.11.2026 | R0-13 R13-D5, E-140 | §4.9: Audit-Export (gefiltert, Begründungspflicht) ist **Free**, nicht Pro |
+| 16.11.2026 | R0-15 §2.3, E-122 | Neue Cap `cc_manage_accommodations` (Nachteilsausgleich setzen/lesen), Default nur Kursmanager und Admin |
+| 16.11.2026 | E-99 | `cc_trainer` wird in R1 angelegt; Tutor-Bewertung erst mit dem Gradebook (Pro) |

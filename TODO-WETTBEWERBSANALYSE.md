@@ -74,7 +74,7 @@
   - **Ergebnis/Definition of Done:** 55 FLOW + 12 CORE, Traceability, Akzeptanzfälle und Risiken ohne unzugeordnete Pflichtfunktion.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-13 · Support- und Betriebskonzept**
+- [ ] **R0-13 · Support- und Betriebskonzept** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-13-support-betrieb.md` (5 Supportstufen, 37 Diagnose-Checks, Diagnosepaket per Allowlist, 17 Korrekturaktionen mit Audit/Undo, Reconcile RC-1…7, 88 Audit-Aktionen mit Hash-Kette, 7 Runbooks, SUP-001…042); Entscheidung offen → E-136…E-145
   - **Voraussetzung:** R0-07,R0-09.
   - **Ergebnis/Definition of Done:** Supportrollen, sichere Diagnose, Datenkorrektur, Audit- und Eskalationsregeln samt Testfällen dokumentiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
