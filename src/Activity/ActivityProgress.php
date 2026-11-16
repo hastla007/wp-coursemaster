@@ -11,7 +11,6 @@ namespace CourseCaptain\Activity;
 
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
-use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Storage\Database;
 
@@ -28,11 +27,10 @@ final class ActivityProgress {
 	 * Constructor.
 	 *
 	 * @param Database         $db        Database access.
-	 * @param PolicyService    $policy    Policy.
 	 * @param ActivityRegistry $registry  Registry.
 	 * @param Relations        $relations Relations.
 	 */
-	public function __construct( private Database $db, private PolicyService $policy, private ActivityRegistry $registry, private Relations $relations ) {
+	public function __construct( private Database $db, private ActivityRegistry $registry, private Relations $relations ) {
 	}
 
 	/**
@@ -42,7 +40,7 @@ final class ActivityProgress {
 	 */
 	public static function current(): self {
 		$db = Database::current();
-		return new self( $db, PolicyService::instance(), ActivityRegistry::instance(), new Relations( $db ) );
+		return new self( $db, ActivityRegistry::instance(), new Relations( $db ) );
 	}
 
 	/**
@@ -62,10 +60,7 @@ final class ActivityProgress {
 		if ( null === $lesson || ! in_array( $course_id, $this->relations->courses_of_item( $lesson ), true ) ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown lesson.', 404 );
 		}
-		CourseException::unless_allowed(
-			$this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => (int) $lesson->post_parent ) ),
-			'No learning access.'
-		);
+		\CourseCaptain\Access\ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
 		$definition = ActivityService::definition( $lesson_id );
 		$table      = $this->db->table( 'ccap_activity_progress' );
 		$now        = $this->db->now();

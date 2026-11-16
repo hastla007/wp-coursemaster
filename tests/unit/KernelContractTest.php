@@ -90,7 +90,8 @@ final class KernelContractTest extends TestCase {
 			}
 			preg_match_all( '/\bdefine\(\s*[\'"]([^\'"]+)[\'"]/', $code, $constants );
 			foreach ( $constants[1] as $constant ) {
-				if ( ! str_starts_with( $constant, 'COURSE_CAPTAIN_' ) && ! str_starts_with( $constant, 'CourseCaptain\\' ) ) {
+				// GM-116: `DONOTCACHEPAGE` is the shared page-cache convention, not an own constant.
+				if ( ! str_starts_with( $constant, 'COURSE_CAPTAIN_' ) && ! str_starts_with( $constant, 'CourseCaptain\\' ) && 'DONOTCACHEPAGE' !== $constant ) {
 					$violations[] = $file . ': constant ' . $constant;
 				}
 			}

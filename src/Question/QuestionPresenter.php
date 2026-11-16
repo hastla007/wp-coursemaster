@@ -9,9 +9,9 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Question;
 
+use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
-use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -30,10 +30,9 @@ final class QuestionPresenter {
 	 * Constructor.
 	 *
 	 * @param Database           $db        Database access.
-	 * @param PolicyService      $policy    Policy.
 	 * @param QuestionRepository $questions Question bank.
 	 */
-	public function __construct( private Database $db, private PolicyService $policy, private QuestionRepository $questions ) {
+	public function __construct( private Database $db, private QuestionRepository $questions ) {
 	}
 
 	/**
@@ -42,7 +41,7 @@ final class QuestionPresenter {
 	 * @return self
 	 */
 	public static function current(): self {
-		return new self( Database::current(), PolicyService::instance(), QuestionRepository::current() );
+		return new self( Database::current(), QuestionRepository::current() );
 	}
 
 	/**
@@ -57,8 +56,9 @@ final class QuestionPresenter {
 	 * @throws CourseException When not allowed or not deliverable.
 	 */
 	public function deliver( Actor $actor, int $course_id, int $module_id, int $question_id, ?Randomizer $randomizer = null ): array {
-		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => $module_id ) ), 'No learning access.' );
+		ContentGate::current()->module( $actor, $course_id, $module_id )->assert();
 		$revision = $this->deliverable_revision( $module_id, $question_id );
+		ContentGate::current()->question( $actor, $course_id, $module_id, $question_id )->assert();
 		$this->assert_not_in_running_exam( $actor->user_id, $question_id );
 		$uid      = (string) $this->db->scalar( $this->db->prepare( 'SELECT uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
 		$delivery = QuestionTypes::deliver( $revision, $randomizer ?? Randomizer::fresh(), $uid );
@@ -92,7 +92,7 @@ final class QuestionPresenter {
 	 */
 	public function deliver_inline( Actor $actor, int $course_id, int $lesson_id, int $question_id, ?Randomizer $randomizer = null ): array {
 		$module_id = (int) wp_get_post_parent_id( $lesson_id );
-		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => $module_id ) ), 'No learning access.' );
+		ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
 		$revision = $this->inline_revision( $lesson_id, $question_id );
 		$this->assert_not_in_running_exam( $actor->user_id, $question_id );
 		$uid      = (string) $this->db->scalar( $this->db->prepare( 'SELECT uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
@@ -142,11 +142,14 @@ final class QuestionPresenter {
 		if ( $claims['exp'] < $this->db->time() ) {
 			throw new CourseException( 'ccap_content_locked', 'expired', 403 );
 		}
-		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $claims['c'] ), array( 'module' => $claims['m'] ) ), 'No learning access.' );
+		$gate = ContentGate::current();
 		if ( $claims['a'] > 0 ) {
+			$gate->lesson( $actor, $claims['c'], $claims['a'] )->assert();
 			$this->inline_revision( $claims['a'], $claims['q'] );
 		} else {
+			$gate->module( $actor, $claims['c'], $claims['m'] )->assert();
 			$this->deliverable_revision( $claims['m'], $claims['q'] );
+			$gate->question( $actor, $claims['c'], $claims['m'], $claims['q'] )->assert();
 		}
 		$this->assert_not_in_running_exam( $actor->user_id, $claims['q'] );
 		return $claims;

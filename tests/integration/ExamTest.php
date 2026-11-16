@@ -267,7 +267,7 @@ final class ExamTest extends SchemaTestCase {
 		$view = ExamSessions::current()->view( Actor::user( $this->learner ), $session );
 		self::assertCount( 5, $view['questions'] );
 		self::assertStringNotContainsString( 'correct', (string) wp_json_encode( $view ) );
-		self::assertSame( 600, $view['remaining_seconds'] );
+		self::assertContains( $view['remaining_seconds'], array( 599, 600 ), 'real clock may cross a second boundary' );
 
 		$row      = self::row( $session );
 		$snapshot = json_decode( (string) $row['snapshot'], true );

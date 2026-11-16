@@ -283,7 +283,7 @@
   - **Ergebnis/Definition of Done:** Kostenlose/manuelle/zeitgesteuerte Grants, Seat/Claim, Mehrfachzugang, kein Woo.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-14 · Zugriffsschutz und geschützte Inhalte**
+- [x] **R1-14 · Zugriffsschutz und geschützte Inhalte** — erledigt 16.11.2026: Nachweis `docs/r1/R1-14-nachweis.md`; ContentGate (Zugang, Teilumfang, Drip, Voraussetzungen, laufende Prüfung) in allen Lernpfaden, geschützte Ablage und Auslieferung (GM-015/016/111/112), Seitenschutz inkl. Feed/Auszug/REST/Abschnitt/Cache (GM-107…110, 116); Unit 85, Integration 124, Multisite 133. Offen nach Plan: GM-113…115 (R1-38/R1-40). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-13, R1-07.
   - **Ergebnis/Definition of Done:** Page/Block/Shortcode/API/Medien/Download-Gates, Schutz gegen Direktzugriff.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

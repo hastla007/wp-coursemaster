@@ -155,6 +155,8 @@ final class UninstallManifest {
 		'_ccap_completion_rule',
 		'_ccap_current_revision_id',
 		'_ccap_language',
+		'_ccap_protected_course',
+		'_ccap_protected_origin',
 	);
 
 	/**

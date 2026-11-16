@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Learning;
 
+use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
@@ -378,8 +379,10 @@ final class SmartTrainer {
 		$locked  = $this->running_exam_questions( $actor->user_id );
 		$seen    = array();
 		$out     = array();
+		$gate    = ContentGate::current();
 		foreach ( $modules as $module ) {
-			if ( ! $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => $module ) )->allowed ) {
+			$decision = $gate->module( $actor, $course_id, $module );
+			if ( ! $decision->allowed() ) {
 				continue;
 			}
 			$rows = $this->db->rows(
@@ -389,6 +392,10 @@ final class SmartTrainer {
 					QuestionTypes::FLASHCARD
 				)
 			);
+			if ( null !== $decision->limit ) {
+				// Partial access: only the first n questions of the module (R0-08 §1.4 Nr. 2).
+				$rows = array_slice( $rows, 0, $decision->limit );
+			}
 			foreach ( $rows as $row ) {
 				$id = (int) $row['question_id'];
 				if ( isset( $seen[ $id ] ) || in_array( $id, $locked, true ) || ( null !== $topic && (string) $row['topic'] !== $topic ) ) {
@@ -414,8 +421,9 @@ final class SmartTrainer {
 	 */
 	private function any_module_accessible( Actor $actor, int $course_id ): bool {
 		$modules = $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT module_id FROM `' . $this->db->table( 'ccap_course_module' ) . '` WHERE course_id = %d', $course_id ) );
+		$gate    = ContentGate::current();
 		foreach ( $modules as $module ) {
-			if ( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => (int) $module ) )->allowed ) {
+			if ( $gate->module( $actor, $course_id, (int) $module )->allowed() ) {
 				return true;
 			}
 		}

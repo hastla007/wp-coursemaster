@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Exam;
 
+use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Event\Outbox;
@@ -81,7 +82,8 @@ final class ExamSessions {
 			throw new CourseException( 'ccap_not_found', 'Unknown exam.', 404 );
 		}
 		$course = (int) $rule['course_id'];
-		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course ), array( 'scope' => 'exam' ) ), 'No exam access.' );
+		$target = $this->exam_modules( $rule, $variant_id );
+		ContentGate::current()->exam( $actor, $course, $target['modules'], $target['variant_no'] )->assert();
 		if ( 'published' !== $rule['status'] || null === $rule['passing_rule'] || array() !== ExamRules::validate_passing_rule( $rule['passing_rule'] ) ) {
 			throw new CourseException( 'ccap_exam_not_startable', 'rule_unavailable', 422 );
 		}
@@ -373,25 +375,12 @@ final class ExamSessions {
 	 * @param array<string, mixed> $rule       Rule.
 	 * @param Randomizer           $randomizer Randomizer.
 	 * @return array{questions: list<array{question_id: int, section: int, points: int}>, reduced: bool}
-	 * @throws CourseException When a blueprint module is not accessible (E-286).
 	 */
 	private function draw( Actor $actor, array $rule, Randomizer $randomizer ): array {
 		$questions = array();
 		$reduced   = false;
 		foreach ( $rule['blueprints'] as $blueprint ) {
 			$module = (int) $blueprint['module_id'];
-			CourseException::unless_allowed(
-				$this->policy->decide(
-					$actor,
-					PolicyService::LEARN,
-					array( (int) $rule['course_id'] ),
-					array(
-						'module' => $module,
-						'scope'  => 'exam',
-					)
-				),
-				'No access to a blueprint module.'
-			);
 			$meta   = (array) json_decode( (string) $blueprint['rules'], true );
 			$pool   = $randomizer->shuffle( $this->questions->pool( $module ), 'pool:' . $module );
 			$count  = (int) $blueprint['question_count'];
@@ -410,6 +399,41 @@ final class ExamSessions {
 		return array(
 			'questions' => $questions,
 			'reduced'   => $reduced,
+		);
+	}
+
+	/**
+	 * Modules an exam draws from (blueprint or variant) and the variant number.
+	 *
+	 * @param array<string, mixed> $rule       Rule.
+	 * @param int|null             $variant_id Variant.
+	 * @return array{modules: list<int>, variant_no: int|null}
+	 * @throws CourseException For unknown variants.
+	 */
+	private function exam_modules( array $rule, ?int $variant_id ): array {
+		if ( null === $variant_id ) {
+			return array(
+				'modules'    => array_values( array_map( static fn( array $b ): int => (int) $b['module_id'], (array) $rule['blueprints'] ) ),
+				'variant_no' => null,
+			);
+		}
+		$variant = $this->db->row( $this->db->prepare( 'SELECT variant_no, course_id FROM `' . $this->db->table( 'ccap_exam_variant' ) . "` WHERE id = %d AND status = 'published'", $variant_id ) );
+		if ( null === $variant || (int) $variant['course_id'] !== (int) $rule['course_id'] ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown variant.', 404 );
+		}
+		$relations = new Relations( $this->db );
+		$modules   = array();
+		foreach ( $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d ORDER BY position', $variant_id ) ) as $question ) {
+			foreach ( $this->modules_of_question( (int) $question ) as $module ) {
+				if ( in_array( (int) $rule['course_id'], $relations->courses_of_module( $module ), true ) ) {
+					$modules[] = $module;
+					break;
+				}
+			}
+		}
+		return array(
+			'modules'    => array_values( array_unique( $modules ) ),
+			'variant_no' => (int) $variant['variant_no'],
 		);
 	}
 
@@ -434,21 +458,7 @@ final class ExamSessions {
 			$question = (int) $row['question_id'];
 			$sections = array_values( array_filter( $this->modules_of_question( $question ), static fn( int $m ): bool => in_array( (int) $rule['course_id'], $relations->courses_of_module( $m ), true ) ) );
 			$section  = $sections[0] ?? 0;
-			if ( 0 !== $section ) {
-				CourseException::unless_allowed(
-					$this->policy->decide(
-						$actor,
-						PolicyService::LEARN,
-						array( (int) $rule['course_id'] ),
-						array(
-							'module' => $section,
-							'scope'  => 'exam',
-						)
-					),
-					'No access to a variant module.'
-				);
-			}
-			$current = $this->db->row( $this->db->prepare( 'SELECT q.status, r.editorial_status FROM `' . $this->db->table( 'ccap_question' ) . '` q JOIN `' . $this->db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE q.id = %d', $question ) );
+			$current  = $this->db->row( $this->db->prepare( 'SELECT q.status, r.editorial_status FROM `' . $this->db->table( 'ccap_question' ) . '` q JOIN `' . $this->db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE q.id = %d', $question ) );
 			if ( null === $current || 'published' !== $current['status'] || 'published' !== $current['editorial_status'] ) {
 				throw new CourseException( 'ccap_exam_not_startable', 'variant_incomplete', 422 );
 			}

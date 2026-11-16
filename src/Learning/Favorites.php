@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Learning;
 
+use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
@@ -274,8 +275,9 @@ final class Favorites {
 	 * @return bool
 	 */
 	public function accessible( Actor $actor, int $course_id, int $question ): bool {
+		$gate = ContentGate::current();
 		foreach ( $this->modules_of( $course_id, $question ) as $module ) {
-			if ( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => $module ) )->allowed ) {
+			if ( $gate->question( $actor, $course_id, $module, $question )->allowed() ) {
 				return true;
 			}
 		}
@@ -296,13 +298,14 @@ final class Favorites {
 		if ( array() === $modules ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown question.', 404 );
 		}
+		$gate = ContentGate::current();
 		foreach ( $modules as $module ) {
-			$decision = $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => $module ) );
-			if ( $decision->allowed ) {
+			$decision = $gate->question( $actor, $course_id, $module, $question );
+			if ( $decision->allowed() ) {
 				return;
 			}
 		}
-		CourseException::unless_allowed( $decision, 'No learning access.' );
+		$decision->assert();
 	}
 
 	/**
