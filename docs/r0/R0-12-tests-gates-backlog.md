@@ -9,9 +9,9 @@
 | Größe | Wert |
 |---|---:|
 | Prozess- und Kernfälle (ID 6 · LEARN 10 · ACCESS 9 · COMMERCE 10 · SUITEFLOW 10 · OPS 10 · CORE 12) | 67 |
-| davon mit R1-Anteil (Pflicht für Gate B/C) | 46 |
+| davon mit R1-Anteil (Pflicht für Gate B/C) | 45 |
 | R1-Fälle ohne R1-Task / ohne Test | 0 / 0 |
-| Fälle mit dokumentierter Lücke | 54 |
+| Fälle mit dokumentierter Lücke | 50 |
 | Testfälle in den R0-Katalogen (GM 190 · RBAC 96 · GRANT 29 · SEAT 22 · ID 15 · IMP 32 · MED 26 · NFR 18 · REC 25 · REV 46 · CT 12) | 511 |
 | davon mit R1-Ziel-Task | 505 |
 | R1-Tasks ohne Katalogtest / mit dünner Abdeckung (≤ 2 Tests) | 1 (R1-29) / 10 |
@@ -167,7 +167,50 @@ PAR-01…PAR-12 sind in R0-05 §6 vollständig mit GM-Bereichen und R1-Tasks ver
 
 | Task | Fälle (§1) | Tests | Beispiele | R0-Spez. | Bewertung / Anmerkung |
 |---|---|---:|---|---|---|
-%%REVERSE%%
+| R1-01 | OPS-07 OPS-10 | 1 | GM-158 | R0-16, R0-20, R0-35 | dünn: nur GM-158; Lifecycle faktisch über REC-018, RBAC-095, SA-001 |
+| R1-02 | OPS-07 | 7 | GM-149, GM-163, GM-164, GM-168 | R0-06, R0-37 | ok |
+| R1-03 | CORE-09 ID-01 ID-04 ID-05 OPS-02 | 89 | GM-049, GM-058, GM-079, GM-097 | R0-07 | ok |
+| R1-04 | ACCESS-07 LEARN-01 | 8 | GM-001, GM-003, GM-004, REV-038 | R0-06, R0-08, R0-23 | ok |
+| R1-05 | LEARN-01 LEARN-02 | 5 | GM-127, GM-137, GM-138, GM-140 | R0-11, R0-22 | ok |
+| R1-06 | LEARN-04 | 6 | GM-017, GM-019, GM-020, GM-024 | R0-08 | ok |
+| R1-07 | LEARN-02 | 14 | GM-007, GM-008, GM-010, GM-011 | R0-08, R0-10 | ok |
+| R1-08 | LEARN-04 LEARN-05 | 23 | GM-021, GM-023, GM-026, GM-027 | R0-08 | ok |
+| R1-09 | LEARN-04 LEARN-05 | 6 | GM-018, GM-019, GM-030, GM-031 | R0-08 | ok |
+| R1-10 | LEARN-03 LEARN-07 | 14 | GM-005, GM-009, GM-010, GM-066 | R0-08, R0-23 | ok |
+| R1-11 | LEARN-06 | 10 | GM-055, GM-056, GM-057, GM-058 | R0-08 | ok |
+| R1-12 | LEARN-06 | 10 | GM-004, GM-043, GM-065, GM-066 | R0-08, R0-05 | ok |
+| R1-13 | ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03 | 61 | GM-042, GM-048, GM-072, GM-076 | R0-09 | ok |
+| R1-14 | ACCESS-05 ACCESS-08 LEARN-02 | 53 | GM-015, GM-016, GM-025, GM-107 | R0-07, R0-10 | ok |
+| R1-15 | LEARN-10 | 52 | GM-022, GM-064, GM-118, GM-119 | R0-10, R0-38 | ok |
+| R1-16 | ID-01 LEARN-03 OPS-08 | 9 | GM-001, GM-047, GM-050, GM-051 | R0-11 | ok |
+| R1-17 | ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06 | 25 | GM-086, GM-090, GM-099, GM-102 | R0-13 *fehlt*, R0-16, R0-17 *fehlt* | ok |
+| R1-18 | CORE-10 OPS-10 | 9 | MED-013, NFR-013, NFR-014, NFR-015 | R0-05, R0-14, R0-18 *fehlt* | Sammel-Task, nimmt alle R1-Tests ab (§3) |
+| R1-19 | OPS-08 | 2 | GM-141, GM-143 | R0-15 *fehlt*, R0-26 *fehlt* | dünn: nur GM-141/143; kein Tastatur-/Screenreader-/RTL-Test |
+| R1-20 | LEARN-03 LEARN-04 LEARN-05 OPS-04 | 10 | GM-035, GM-036, GM-037, GM-038 | R0-08, R0-14 | ok |
+| R1-21 | OPS-08 | 2 | GM-159, GM-160 | R0-27 *fehlt* (D12-6) | effektiv ohne: GM-159/160 sind Pro (E-24) → NTF-001…008 |
+| R1-22 | OPS-05 OPS-09 | 16 | GM-006, GM-110, GM-142, GM-187 | R0-14 | ok |
+| R1-23 | ID-06 OPS-07 | 28 | GM-117, GM-169, GM-170, GM-183 | R0-16 | ok |
+| R1-24 | OPS-06 | 2 | GM-189, GM-190 | R0-13 *fehlt*, R0-16 §5 | dünn: nur Seeder GM-189/190; Doku per Review |
+| R1-25 | ACCESS-05 ACCESS-06 | 4 | GM-005, GM-006, GM-110, GM-116 | R0-21 *fehlt* | knapp: Grant-/Refund-Invalidierung ohne eigenen Test (R0-21) |
+| R1-26 | LEARN-01 | 6 | GM-003, GM-022, GM-023, GM-137 | R0-22 *fehlt* | ok |
+| R1-27 | ACCESS-06 LEARN-01 LEARN-10 | 42 | GM-052, REV-001, REV-002, REV-003 | R0-23 | ok |
+| R1-28 | OPS-02 SUITEFLOW-01 | 25 | CT-01, CT-02, CT-03, CT-04 | R0-19 | ok; CT-Anker ohne Ziel-Spalte (§5) |
+| R1-29 | OPS-08 | 0 | – | R0-26 *fehlt* | **ohne**: Abnahmeprotokoll, Vorgaben aus R0-26 fehlen |
+| R1-30 | ID-06 | 2 | MED-024, MED-025 | R0-20 *fehlt* | dünn: MED-024/025; Matrix R0-20 fehlt |
+| R1-31 | ID-04 | 3 | GM-178, GM-180, GM-181 | R0-27 *fehlt* | ok |
+| R1-32 | OPS-07 | 1 | GM-179 | R0-30 *fehlt*, R0-11 Flow 4 | dünn: nur GM-179; Wizard-Resume, feldnahe Fehler ohne Test |
+| R1-33 | LEARN-04 | 2 | GM-031, REV-020 | R0-28 *fehlt* | dünn: GM-031, REV-020; Vererbungsmatrix R0-28 fehlt |
+| R1-34 | ID-04 OPS-01 | 8 | GM-012, GM-013, GM-152, GM-176 | R0-31 *fehlt*, R0-10 §5 | ok |
+| R1-35 | CORE-02 CORE-06 CORE-11 ID-03 LEARN-08 | 11 | GM-105, GM-106, GRANT-028, REV-003 | R0-29 *fehlt*, R0-09 | ok für Seats; Zertifikat ohne Domäne → R1-44\* |
+| R1-36 | OPS-07 | 2 | GM-179, GM-181 | R0-27 *fehlt* | dünn: GM-179/181; Reset, Downgrade, Multisite-Grenze ohne Test |
+| R1-37 | ACCESS-08 LEARN-01 | 1 | REV-040 | R0-33 *fehlt* | dünn: nur REV-040 (+ RBAC-015 indirekt); Yoast-Konflikttests fehlen |
+| R1-38 | ID-05 OPS-05 OPS-06 | 9 | GM-115, GM-134, GM-140, GM-146 | R0-34 *fehlt*, R0-16 §5 | ok |
+| R1-39 | OPS-07 | 1 | REC-023 | R0-35 *fehlt* | dünn: nur REC-023; Clean-Install-/Readme-Checks fehlen |
+| R1-40 | OPS-07 | 15 | GM-068, GM-080, GM-113, GM-149 | R0-37 *fehlt*, R0-16 | ok |
+| R1-41 | LEARN-10 | 11 | GM-125, GM-136, IMP-017, IMP-018 | R0-38 *fehlt*, R0-10 §3.5 | ok |
+| R1-42 | CORE-03 OPS-04 OPS-09 | 22 | GM-045, GM-073, GM-096, GM-188 | R0-14 L5, R0-09 §6 | ok |
+| R1-43\* | ACCESS-09, OPS-03, SUITEFLOW-01, SUITEFLOW-09 | (12) | CT-06…CT-12, GRANT-002, REC-016 | R0-19 §5, R0-06 E-42 | vorgeschlagen (§2.3) |
+| R1-44\* | LEARN-08, CORE-11 | (7) | RBAC-060…RBAC-066; CERT-001…008 | R0-29 *fehlt*, R0-08 §7.2, R0-06 E-39 | vorgeschlagen (§2.3) |
 
 ### 2.2 Befunde
 
@@ -225,12 +268,12 @@ Weitere Pflichtverhalten ohne Owner wurden **nicht** gefunden. Geprüft wurden i
 | Nr. | Kriterium | Pflichtmenge | Soll |
 |---|---|---|---|
 | C-1 | Rechte/IDOR | RBAC-001…RBAC-096 (+RBAC-097), CT-02, CT-10 | 100 %; RBAC-096 Körpergleichheit ohne Ausnahme |
-| C-2 | Grants, Seats, Identität (R1-Teil) | GRANT-001…GRANT-022, GRANT-027, GRANT-028; SEAT-001…SEAT-019, SEAT-021, SEAT-022; ID-001…ID-014 | 100 % (R3-Teil GRANT-023…026, GRANT-029, SEAT-020, ID-015 ausgenommen) |
+| C-2 | Grants, Seats, Identität, Gate (R1-Teil) | GM-094…GM-117; GRANT-001…GRANT-022, GRANT-027, GRANT-028; SEAT-001…SEAT-019, SEAT-021, SEAT-022; ID-001…ID-014 | 100 % (R3-Teil GRANT-023…026, GRANT-029, SEAT-020, ID-015 ausgenommen) |
 | C-3 | Import und Medien | IMP-001…IMP-032, MED-001…MED-026, GM-118…GM-136 | 100 % |
 | C-4 | Recovery | REC-001…REC-025 (+REC-026, REC-027); REC-024 nur „bedingt“ nach E-49 | 100 % |
-| C-5 | Nichtfunktionale Ziele | NFR-001…NFR-018 (+NFR-019) auf R-M bzw. R-S; nach E-60 sind Zeitbudgets Gate | 100 %; Messprotokoll nach NFR-018 |
+| C-5 | Nichtfunktionale Ziele | NFR-001…NFR-018 (+NFR-019), GM-187, GM-188 auf R-M bzw. R-S; nach E-60 sind Zeitbudgets Gate | 100 %; Messprotokoll nach NFR-018 |
 | C-6 | API-Verträge | CT-01…CT-12, GM-145…GM-155 | 100 %; Routen-Snapshot ohne undeklarierte Änderung |
-| C-7 | Betrieb, Migration, Lifecycle | GM-156…GM-186 | 100 % |
+| C-7 | Betrieb, Migration, Lifecycle | GM-156…GM-186 ohne GM-159/GM-160 (Pro, E-24 → R3-15); GM-189/GM-190 nur bei E-16 = Mechanik R1 | 100 % |
 | C-8 | Accessibility, i18n | Katalog aus R0-15/R0-26: 0 kritische und 0 schwere Befunde (WCAG-Ziel laut R0-15); R1-29-Protokoll mit Befundliste und Behebung | 100 % der kritischen Fälle |
 | C-9 | Benachrichtigungen | NTF-001…NTF-008 | 100 % |
 | C-10 | Sicherheitsprüfung | SAST/Dependency-Scan nach R0-18 ohne offene Befunde „hoch“; Threat-Model-Maßnahmen aus R0-17 umgesetzt | 0 hoch |
@@ -286,13 +329,14 @@ Kommando (aus dem Repository-Wurzelverzeichnis, Python 3, nur lesend):
 python3 - <<'PY'
 import re, collections
 D = 'docs/r0/'
-PFX = r'(GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV)-\d{3}'
+PFX = r'(GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX)-\d{3}'
 CAT = ['R0-05-golden-master.md', 'R0-07-rbac-idor-matrix.md', 'R0-09-identity-seat-grant-automaten.md',
-       'R0-10-import-medien-sicherheit.md', 'R0-14-nichtfunktionale-ziele.md',
-       'R0-16-backup-recovery-deployment.md', 'R0-23-revisionen-laufender-kurse.md',
-       'R0-19-api-erweiterungsvertraege.md']
+       'R0-10-import-medien-sicherheit.md', 'R0-13-support-betrieb.md', 'R0-14-nichtfunktionale-ziele.md',
+       'R0-15-barrierefreiheit-i18n.md', 'R0-16-backup-recovery-deployment.md', 'R0-17-threat-model-dsfa.md',
+       'R0-19-api-erweiterungsvertraege.md', 'R0-21-cache-nebenlaeufigkeit.md', 'R0-22-kursvalidierung-publish.md',
+       'R0-23-revisionen-laufender-kurse.md', 'R0-25-mandanten-locale-adr.md', 'R0-26-ux-abnahme-nutzertests.md']
 def cells(l): return [c.strip().strip('*').strip() for c in l.strip().strip('|').split('|')]
-tests = {}                                   # Test-ID -> Ziel-Tasks
+tests = {}                                   # Test-ID -> Ziel-Tasks (erste Fundstelle mit Ziel gilt)
 for f in CAT:
     hdr = None
     for l in open(D + f, encoding='utf-8'):
@@ -302,11 +346,16 @@ for f in CAT:
         if set(''.join(c)) <= set('-: '): continue
         ic = next((i for i, h in enumerate(hdr) if h in ('GM-ID', 'Test-ID', 'ID', 'Anker')), None)
         if ic is None or ic >= len(c): continue
-        t = c[ic]
-        if t.startswith('CT-'): tests[t] = {'R1-28', 'R3-12'}; continue   # R0-19 §9: Anker für R1-28/R3-12
-        if not re.fullmatch(PFX, t): continue
+        m = re.match(PFX + '|CT-\\d{2}', c[ic])
+        if not m: continue
+        t = m.group(0)
+        if f.startswith('R0-05') and not t.startswith('GM-'): continue      # R0-05 §2: Fixture-IDs, keine Tests
+        if t in tests and tests[t]: continue
+        if t.startswith('CT-'): tests[t] = {'R1-28', 'R3-12'}; continue    # R0-19 §9: Anker für R1-28/R3-12
         zc = next((i for i, h in enumerate(hdr) if h.startswith('Ziel')), None)
-        tests[t] = set(re.findall(r'R[0-4]-\d{2}', c[zc] if zc is not None and zc < len(c) else ''))
+        z = set(re.findall(r'R[0-4]-\d{2}', c[zc] if zc is not None and zc < len(c) else ''))
+        if t.startswith('UX-'): z |= {'R1-29'} | set(re.findall(r'R1-\d{2}', l))  # R0-26 §5: alle Ziel R1-29
+        tests[t] = z
 def expand(s):                               # "GM-118…GM-136" -> Einzel-IDs
     out = []
     for a, b in re.findall(r'([A-Z]+-\d{2,3})(?:…([A-Z]+-\d{2,3}))?', s):
@@ -342,7 +391,54 @@ PY
 Ergebnis am 16.11.2026:
 
 ```
-%%RESULT%%
+Fälle 67 {'ID': 6, 'LEARN': 10, 'ACCESS': 9, 'COMMERCE': 10, 'SUITEFLOW': 10, 'OPS': 10, 'CORE': 12}
+R1-Fälle 45 | ohne R1-Task [] | ohne Test []
+unbekannte Test-IDs []
+Fälle mit Lücke 50
+Katalogtests 511 {'CT': 12, 'GM': 190, 'GRANT': 29, 'ID': 15, 'IMP': 32, 'MED': 26, 'NFR': 18, 'RBAC': 96, 'REC': 25, 'REV': 46, 'SEAT': 22}
+ohne Ziel [] | mit R1-Ziel 505
+R1-01 Tests 1 | Fälle OPS-07 OPS-10
+R1-02 Tests 7 | Fälle OPS-07
+R1-03 Tests 89 | Fälle CORE-09 ID-01 ID-04 ID-05 OPS-02
+R1-04 Tests 8 | Fälle ACCESS-07 LEARN-01
+R1-05 Tests 5 | Fälle LEARN-01 LEARN-02
+R1-06 Tests 6 | Fälle LEARN-04
+R1-07 Tests 14 | Fälle LEARN-02
+R1-08 Tests 23 | Fälle LEARN-04 LEARN-05
+R1-09 Tests 6 | Fälle LEARN-04 LEARN-05
+R1-10 Tests 14 | Fälle LEARN-03 LEARN-07
+R1-11 Tests 10 | Fälle LEARN-06
+R1-12 Tests 10 | Fälle LEARN-06
+R1-13 Tests 61 | Fälle ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03
+R1-14 Tests 53 | Fälle ACCESS-05 ACCESS-08 LEARN-02
+R1-15 Tests 52 | Fälle LEARN-10
+R1-16 Tests 9 | Fälle ID-01 LEARN-03 OPS-08
+R1-17 Tests 25 | Fälle ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06
+R1-18 Tests 9 | Fälle CORE-10 OPS-10
+R1-19 Tests 2 | Fälle OPS-08
+R1-20 Tests 10 | Fälle LEARN-03 LEARN-04 LEARN-05 OPS-04
+R1-21 Tests 2 | Fälle OPS-08
+R1-22 Tests 16 | Fälle OPS-05 OPS-09
+R1-23 Tests 28 | Fälle ID-06 OPS-07
+R1-24 Tests 2 | Fälle OPS-06
+R1-25 Tests 4 | Fälle ACCESS-05 ACCESS-06
+R1-26 Tests 6 | Fälle LEARN-01
+R1-27 Tests 42 | Fälle ACCESS-06 LEARN-01 LEARN-10
+R1-28 Tests 25 | Fälle OPS-02 SUITEFLOW-01
+R1-29 Tests 0 | Fälle OPS-08
+R1-30 Tests 2 | Fälle ID-06
+R1-31 Tests 3 | Fälle ID-04
+R1-32 Tests 1 | Fälle OPS-07
+R1-33 Tests 2 | Fälle LEARN-04
+R1-34 Tests 8 | Fälle ID-04 OPS-01
+R1-35 Tests 11 | Fälle CORE-02 CORE-06 CORE-11 ID-03 LEARN-08
+R1-36 Tests 2 | Fälle OPS-07
+R1-37 Tests 1 | Fälle ACCESS-08 LEARN-01
+R1-38 Tests 9 | Fälle ID-05 OPS-05 OPS-06
+R1-39 Tests 1 | Fälle OPS-07
+R1-40 Tests 15 | Fälle OPS-07
+R1-41 Tests 11 | Fälle LEARN-10
+R1-42 Tests 22 | Fälle CORE-03 OPS-04 OPS-09
 ```
 
 **Grenzen der Zählung:** Das Skript liest die Ziel-Spalten der Kataloge, nicht deren fachliche Richtigkeit. Nebenziele in Klammern (z. B. REV „R1-27 (R1-10)“) zählen mit. Die 27 Vorschläge aus §1.3 sind nicht enthalten, bis sie in die Fachkataloge übernommen sind. CT-01…CT-12 tragen in R0-19 keine Ziel-Spalte; das Skript ordnet sie nach R0-19 §9 R1-28 und R3-12 zu.

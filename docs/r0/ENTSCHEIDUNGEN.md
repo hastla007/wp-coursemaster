@@ -332,3 +332,14 @@ Technisch festgelegt: Grenze zu WPML/Polylang/TranslatePress nur dokumentieren, 
 | E-169 | Testsprache | **de_DE** plus eine Admin-Sitzung in en_US | R0-26 D-26-09 | R1-29 |
 | E-170 | Wiederholung der Nutzertests vor späteren Gates | **Ja**, gezielt für geänderte Flows vor R2-GATE und R3-GATE | R0-26 D-26-10 | R1-29 |
 | E-171 | S2-Befunde (schwer, nicht kritisch) vor R1-GATE | **Nur mit dokumentierter Akzeptanz** durch den Auftraggeber, nie bei WCAG-Bezug in Lernenden-Flows; S1 muss immer behoben sein | R0-26 D-26-11 | R1-29 |
+
+## 26. Schema-Upgrade (aus R0-37)
+
+Technisch festgelegt: Migrationszustand in Tabelle `cc_migration_step` (D37-1); Cron-Hook heißt `cc_migrate` (Widerspruch R0-06 `cc_run_upgrade` und R0-19 aufgelöst zugunsten R0-19); Regel K-2: neuer Code muss das alte Schema lesen können.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-172 | Contract-Schritte (Entfernen alter Spalten/Tabellen) bei Upgrades | **Nie automatisch**; nur nach Admin-Freigabe mit Backup-Bestätigung oder per CLI-Flag | R0-37 D37-2 | R1-40 |
+| E-173 | Prüfungsfrist, wenn während eines laufenden Versuchs migriert wird | **Frist = Ende des Wartungsfensters + 120 s**, höchstens 30 min Verlängerung | R0-37 D37-3 | R1-20, R1-40 |
+| E-174 | WordPress-Auto-Updates während laufender `strict`-Prüfungen | **Aufschieben**, höchstens 24 h | R0-37 D37-4 | R1-40 |
+| E-175 | Verhalten nach dauerhaft fehlgeschlagener Migration | **Schreibzugriffe bleiben gesperrt**, Lesen weiter möglich; kein Notbetrieb; Admin-Hinweis mit Runbook | R0-37 D37-5 | R1-40 |

@@ -194,7 +194,7 @@
   - **Ergebnis/Definition of Done:** Pass/Voucher/Affiliate/License/Captain-Pro-Dokumente mit Version/Quellpfad, LMS-Relevanz, vorhandenem Task, offenem Delta und Nichtumfang abgeglichen.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-37 · Schema-Upgrade unter Konkurrenz und Ausfall spezifizieren**
+- [ ] **R0-37 · Schema-Upgrade unter Konkurrenz und Ausfall spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-37-schema-upgrade.md` (Trigger-Entscheidung, GET_LOCK + Lease mit Fencing, Wartungsfenster 503 nur für Schreibzugriffe, nummerierte idempotente Schritte mit Backfill/Resume, Multisite je Site, Downgrade-Grenze, MIG-001…026); Entscheidung offen → E-172…E-175
   - **Voraussetzung:** R0-06,R0-16,R0-21.
   - **Ergebnis/Definition of Done:** Lock-Strategie, Upgrade-Trigger, idempotente dbDelta-/Backfill-Schritte, unterbrochene Migration, Multisite-Scope und Rollback-Grenzen beschlossen.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
