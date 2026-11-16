@@ -215,12 +215,12 @@ final class OpsStatus {
 	 */
 	private static function hold_check( int $held ): array {
 		if ( OutboundMode::is_held() ) {
-			/* translators: %d: number of held messages */
-			return self::check( 'H-26', 'fail', sprintf( __( 'Hold mode is active; %d messages are held.', 'course-captain' ), $held ), __( 'Check the site identity, then release or discard the held messages.', 'course-captain' ) );
+			/* translators: %s: number of held messages */
+			return self::check( 'H-26', 'fail', sprintf( _n( 'Hold mode is active; %s message is held.', 'Hold mode is active; %s messages are held.', $held, 'course-captain' ), number_format_i18n( $held ) ), __( 'Check the site identity, then release or discard the held messages.', 'course-captain' ) );
 		}
 		if ( $held > 0 ) {
-			/* translators: %d: number of held messages */
-			return self::check( 'H-26', 'warn', sprintf( __( '%d messages are still held.', 'course-captain' ), $held ), __( 'Release or discard the held messages.', 'course-captain' ) );
+			/* translators: %s: number of held messages */
+			return self::check( 'H-26', 'warn', sprintf( _n( '%s message is still held.', '%s messages are still held.', $held, 'course-captain' ), number_format_i18n( $held ) ), __( 'Release or discard the held messages.', 'course-captain' ) );
 		}
 		return self::check( 'H-26', 'ok', __( 'No messages are held.', 'course-captain' ), '' );
 	}
@@ -243,8 +243,9 @@ final class OpsStatus {
 		if ( array() !== $stale ) {
 			return self::check( 'H-27', 'warn', __( 'Deliveries with an expired lease wait for the next dispatch run.', 'course-captain' ), __( 'The next run takes them over automatically; check that WP-Cron runs.', 'course-captain' ), $stale );
 		}
-		/* translators: %d: number of waiting deliveries */
-		return self::check( 'H-27', 'ok', sprintf( __( 'No dead letters; %d deliveries waiting.', 'course-captain' ), $counts['pending'] + $counts['failed'] ), '' );
+		$waiting = (int) ( $counts['pending'] + $counts['failed'] );
+		/* translators: %s: number of waiting deliveries */
+		return self::check( 'H-27', 'ok', sprintf( _n( 'No dead letters; %s delivery waiting.', 'No dead letters; %s deliveries waiting.', $waiting, 'course-captain' ), number_format_i18n( $waiting ) ), '' );
 	}
 
 	/**
@@ -336,8 +337,8 @@ final class OpsStatus {
 				array_filter( $records, static fn( array $r ): bool => IntegrationStatus::NOT_INSTALLED !== $r['state'] )
 			)
 		);
-		/* translators: %d: number of detected plugins */
-		return self::check( 'H-34', 'info', sprintf( __( '%d partner plugins detected; no data exchange in the free edition.', 'course-captain' ), count( $detected ) ), '', $detected );
+		/* translators: %s: number of detected plugins */
+		return self::check( 'H-34', 'info', sprintf( _n( '%s partner plugin detected; no data exchange in the free edition.', '%s partner plugins detected; no data exchange in the free edition.', count( $detected ), 'course-captain' ), number_format_i18n( count( $detected ) ) ), '', $detected );
 	}
 
 	/**

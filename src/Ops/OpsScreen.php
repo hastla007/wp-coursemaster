@@ -322,19 +322,19 @@ final class OpsScreen {
 		}
 		if ( $can && $report['outbox']['dead'] > 0 ) {
 			$html .= self::form( 'outbox_retry', __( 'Retry dead letters', 'course-captain' ), __( 'Delivers the events again with the same event ID. Fix the cause first.', 'course-captain' ) );
-			/* translators: %d: number of dead letters */
-			$html .= self::form( 'outbox_discard', __( 'Discard dead letters', 'course-captain' ), sprintf( __( '%d dead letters are marked as discarded and no longer delivered. The events stay in the log.', 'course-captain' ), $report['outbox']['dead'] ) );
+			/* translators: %s: number of dead letters */
+			$html .= self::form( 'outbox_discard', __( 'Discard dead letters', 'course-captain' ), sprintf( _n( '%s dead letter is marked as discarded and no longer delivered. The event stays in the log.', '%s dead letters are marked as discarded and no longer delivered. The events stay in the log.', (int) $report['outbox']['dead'], 'course-captain' ), number_format_i18n( (int) $report['outbox']['dead'] ) ) );
 		}
 
 		$notes = $report['notifications'];
 		$html .= '<h2>' . esc_html__( 'Messages', 'course-captain' ) . '</h2>';
 		/* translators: 1: held, 2: failed in 24 h, 3: unknown, 4: waiting */
-		$html .= '<p>' . esc_html( sprintf( __( 'Held: %1$d · failed in 24 hours: %2$d · outcome unknown: %3$d · waiting: %4$d', 'course-captain' ), $notes['held'], $notes['failed'], $notes['unknown'], $notes['queued'] ) ) . '</p>';
+		$html .= '<p>' . esc_html( sprintf( __( 'Held: %1$s · failed in 24 hours: %2$s · outcome unknown: %3$s · waiting: %4$s', 'course-captain' ), number_format_i18n( (int) $notes['held'] ), number_format_i18n( (int) $notes['failed'] ), number_format_i18n( (int) $notes['unknown'] ), number_format_i18n( (int) $notes['queued'] ) ) ) . '</p>';
 		if ( $can && $notes['held'] > 0 ) {
-			/* translators: %d: number of held messages */
-			$html .= self::form( 'held_release', __( 'Send held messages', 'course-captain' ), sprintf( __( '%d held messages are sent. Only do this if the site identity is confirmed (same site).', 'course-captain' ), $notes['held'] ) );
-			/* translators: %d: number of held messages */
-			$html .= self::form( 'held_discard', __( 'Discard held messages', 'course-captain' ), sprintf( __( '%d held messages are discarded and never sent.', 'course-captain' ), $notes['held'] ) );
+			/* translators: %s: number of held messages */
+			$html .= self::form( 'held_release', __( 'Send held messages', 'course-captain' ), sprintf( _n( '%s held message is sent. Only do this if the site identity is confirmed (same site).', '%s held messages are sent. Only do this if the site identity is confirmed (same site).', (int) $notes['held'], 'course-captain' ), number_format_i18n( (int) $notes['held'] ) ) );
+			/* translators: %s: number of held messages */
+			$html .= self::form( 'held_discard', __( 'Discard held messages', 'course-captain' ), sprintf( _n( '%s held message is discarded and never sent.', '%s held messages are discarded and never sent.', (int) $notes['held'], 'course-captain' ), number_format_i18n( (int) $notes['held'] ) ) );
 		}
 
 		if ( $can ) {

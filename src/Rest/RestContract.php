@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Rest;
 
+use CourseCaptain\Kernel\Locale;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -101,7 +103,15 @@ final class RestContract {
 		if ( $status < 400 || ! is_array( $data ) || ! isset( $data['code'] ) ) {
 			return $response;
 		}
-		$response->set_data( self::problem( $data, $status, $id ) );
+		// R0-25 §3.1 / LOC-015: `_locale=user` → messages in the profile language; codes never translated.
+		$switched = 'user' === $request->get_param( '_locale' ) && is_user_logged_in() && Locale::switch_to_user( get_current_user_id() );
+		try {
+			$response->set_data( self::problem( $data, $status, $id ) );
+		} finally {
+			if ( $switched ) {
+				restore_previous_locale();
+			}
+		}
 		$retry = $response->get_data()['retry_after'];
 		if ( null !== $retry ) {
 			$response->header( 'Retry-After', (string) $retry );
@@ -157,6 +167,16 @@ final class RestContract {
 		}
 		$catalog = self::messages();
 		return $catalog[ $code ] ?? __( 'The request could not be completed.', 'course-captain' );
+	}
+
+	/**
+	 * Catalog text of an own code for server-rendered pages (I18N-R-08: text from the translation, never the code alone).
+	 *
+	 * @param string $code Code.
+	 * @return string
+	 */
+	public static function user_message( string $code ): string {
+		return self::message( 0 === strpos( $code, 'ccap_' ) ? $code : 'ccap_' . $code, '' );
 	}
 
 	/**

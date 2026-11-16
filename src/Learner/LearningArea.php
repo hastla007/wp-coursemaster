@@ -11,8 +11,11 @@ namespace CourseCaptain\Learner;
 
 use CourseCaptain\Access\ContentProtection;
 use CourseCaptain\Course\CourseException;
+use CourseCaptain\Course\CourseStructure;
+use CourseCaptain\Kernel\Locale;
 use CourseCaptain\Course\ObjectIdentity;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Rest\RestContract;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
 
@@ -23,7 +26,11 @@ defined( 'ABSPATH' ) || exit;
  * the course room with module navigation (`nav`, `aria-current`,
  * lock reasons as text) and a skip link. Mobile first: single column,
  * no fixed widths, wrapping text, focus outlines kept. Pages are never
- * page-cached (personal data).
+ * page-cached (personal data). Rendered in the learner's profile
+ * language when the setting is on (E-124); `lang`/`dir` follow the
+ * resolved UI locale, content containers carry the course language
+ * when it differs (A11Y-032). CSS uses logical properties only (RTL,
+ * I18N-R-12).
  */
 final class LearningArea {
 
@@ -93,25 +100,78 @@ final class LearningArea {
 			wp_safe_redirect( wp_login_url( self::url( (string) $path ) ) );
 			exit;
 		}
-		echo self::page( Actor::user( get_current_user_id() ), (string) $path ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
+		$actor = Actor::user( get_current_user_id() );
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) {
+			// Nonce is verified in handle_post() (testable core).
+			wp_safe_redirect( self::handle_post( $actor, (string) $path, wp_unslash( $_POST ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			exit;
+		}
+		$status = isset( $_GET['ccap_status'] ) ? sanitize_key( wp_unslash( $_GET['ccap_status'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only.
+		echo self::page( $actor, (string) $path, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
 		exit;
 	}
 
 	/**
-	 * Complete page for a path (`''` = My learning, `kurs/<uid>` = course room).
+	 * Form posts in the learning area (exam start, exam answers); returns the redirect target (PRG).
 	 *
-	 * @param Actor  $actor Learner.
-	 * @param string $path  Path.
+	 * @param Actor                $actor Learner.
+	 * @param string               $path  Path.
+	 * @param array<string, mixed> $post  Unslashed POST data.
 	 * @return string
 	 */
-	public static function page( Actor $actor, string $path ): string {
-		$title = __( 'My learning', 'course-captain' );
+	public static function handle_post( Actor $actor, string $path, array $post ): string {
+		$path = trim( $path, '/' );
+		return Locale::in_learning_locale(
+			$actor->user_id,
+			static function () use ( $actor, $path, $post ): string {
+				if ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)$#', $path, $m ) ) {
+					$status = ExamRoom::handle( $actor, (int) $m[1], $post );
+					return add_query_arg( 'ccap_status', 'submitted' === $status ? false : $status, self::url( 'pruefung/' . (int) $m[1] ) ) . ( 'submitted' === $status ? '#ccap-main' : '' );
+				}
+				if ( 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)$#', $path, $m ) && 'start_exam' === ( $post['ccap_do'] ?? '' ) ) {
+					$session = ExamRoom::start( $actor, LearnerQueries::current()->course_id( $m[1] ), $post );
+					return is_int( $session ) ? self::url( 'pruefung/' . $session ) : add_query_arg( 'ccap_status', $session, self::url( $path ) );
+				}
+				return self::url( $path );
+			}
+		);
+	}
+
+	/**
+	 * Complete page for a path (`''` = My learning, `kurs/<uid>` = course room,
+	 * `pruefung/<id>` = exam room), in the learning-area locale (E-124).
+	 *
+	 * @param Actor  $actor  Learner.
+	 * @param string $path   Path.
+	 * @param string $status Status after a form post.
+	 * @return string
+	 */
+	public static function page( Actor $actor, string $path, string $status = '' ): string {
+		return Locale::in_learning_locale( $actor->user_id, static fn(): string => self::document( $actor, $path, $status ) );
+	}
+
+	/**
+	 * Document in the current locale.
+	 *
+	 * @param Actor  $actor  Learner.
+	 * @param string $path   Path.
+	 * @param string $status Status after a form post.
+	 * @return string
+	 */
+	private static function document( Actor $actor, string $path, string $status ): string {
+		$title      = __( 'My learning', 'course-captain' );
+		$title_attr = '';
 		try {
 			if ( 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)/?$#', trim( $path, '/' ), $m ) ) {
-				$course = LearnerQueries::current()->course_id( $m[1] );
-				$room   = LearnerQueries::current()->course( $actor, $course );
-				$title  = $room['title'];
-				$body   = self::course_room( $room );
+				$course     = LearnerQueries::current()->course_id( $m[1] );
+				$room       = LearnerQueries::current()->course( $actor, $course );
+				$title      = $room['title'];
+				$title_attr = Locale::content_attributes( CourseStructure::course_language( $course ) );
+				$body       = ( '' !== $status ? '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( $status ) ) . '</p>' : '' ) . self::course_room( $room ) . ExamRoom::course_exams( $actor, $course );
+			} elseif ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)/?$#', trim( $path, '/' ), $m ) ) {
+				$exam  = ExamRoom::render( $actor, (int) $m[1], $status );
+				$title = $exam['title'];
+				$body  = $exam['body'];
 			} else {
 				$body = self::my_learning( $actor );
 			}
@@ -130,7 +190,7 @@ final class LearningArea {
 		ob_start();
 		wp_footer();
 		$foot = (string) ob_get_clean();
-		return '<!doctype html><html ' . get_language_attributes() . '><head><meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1">' . $own_title . '<style>' . self::css() . '</style>' . $head . '</head><body class="ccap-learning"><a class="ccap-skip" href="#ccap-main">' . esc_html__( 'Skip to content', 'course-captain' ) . '</a><header class="ccap-bar"><a href="' . esc_url( self::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a></header><main id="ccap-main" tabindex="-1"><h1>' . esc_html( $title ) . '</h1>' . $body . '</main>' . $foot . '</body></html>';
+		return '<!doctype html><html' . Locale::ui_attributes() . '><head><meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1">' . $own_title . '<style>' . self::css() . '</style>' . $head . '</head><body class="ccap-learning"><a class="ccap-skip" href="#ccap-main">' . esc_html__( 'Skip to content', 'course-captain' ) . '</a><header class="ccap-bar"><a class="ccap-home" href="' . esc_url( self::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a></header><main id="ccap-main" tabindex="-1"><h1' . $title_attr . '>' . esc_html( $title ) . '</h1>' . $body . '</main>' . $foot . '</body></html>';
 	}
 
 	/**
@@ -146,9 +206,9 @@ final class LearningArea {
 		}
 		$html = '<ul class="ccap-cards">';
 		foreach ( $courses as $course ) {
-			$html .= '<li class="ccap-card"><h2><a href="' . esc_url( self::url( 'kurs/' . $course['course_uid'] ) ) . '">' . esc_html( $course['title'] ) . '</a></h2>';
+			$html .= '<li class="ccap-card"><h2' . Locale::content_attributes( CourseStructure::course_language( (int) $course['course_id'] ) ) . '><a href="' . esc_url( self::url( 'kurs/' . $course['course_uid'] ) ) . '">' . esc_html( $course['title'] ) . '</a></h2>';
 			$html .= '<p class="ccap-state">' . esc_html( self::state_label( $course['access']['state'] ) ) . '</p>';
-			$html .= '<p><span class="screen-reader-text">' . esc_html__( 'Progress:', 'course-captain' ) . ' </span><progress max="100" value="' . (int) $course['progress']['completion_percent'] . '" aria-label="' . esc_attr__( 'Course progress', 'course-captain' ) . '"></progress> ' . esc_html( sprintf( /* translators: %d: percent */ __( '%d %% completed', 'course-captain' ), $course['progress']['completion_percent'] ) ) . '</p>';
+			$html .= '<p><span class="screen-reader-text">' . esc_html__( 'Progress:', 'course-captain' ) . ' </span><progress max="100" value="' . (int) $course['progress']['completion_percent'] . '" aria-label="' . esc_attr__( 'Course progress', 'course-captain' ) . '"></progress> ' . esc_html( sprintf( /* translators: %s: percentage, e.g. "75 %" */ __( '%s completed', 'course-captain' ), Locale::percent( (int) $course['progress']['completion_percent'] ) ) ) . '</p>';
 			if ( null !== $course['resume'] ) {
 				$html .= '<p><a class="ccap-button" href="' . esc_url( self::url( 'kurs/' . $course['course_uid'] ) . '#lesson-' . $course['resume']['lesson_id'] ) . '">' . esc_html( sprintf( /* translators: %s: lesson title */ __( 'Continue: %s', 'course-captain' ), $course['resume']['title'] ) ) . '</a></p>';
 			}
@@ -165,17 +225,18 @@ final class LearningArea {
 	 */
 	public static function course_room( array $room ): string {
 		$resume = $room['resume']['lesson_id'] ?? 0;
+		$lang   = Locale::content_attributes( CourseStructure::course_language( (int) $room['course_id'] ) );
 		$html   = '<p class="ccap-state">' . esc_html( self::state_label( (string) $room['access']['state'] ) ) . '</p>';
 		$html  .= '<nav aria-label="' . esc_attr__( 'Course contents', 'course-captain' ) . '"><ol class="ccap-modules">';
 		foreach ( (array) $room['modules'] as $module ) {
-			$html .= '<li><h2>' . esc_html( (string) $module['title'] ) . '</h2>';
+			$html .= '<li><h2' . $lang . '>' . esc_html( (string) $module['title'] ) . '</h2>';
 			if ( null !== $module['locked_reason'] ) {
 				$html .= '<p class="ccap-locked">' . esc_html( self::lock_label( (string) $module['locked_reason'], $module['unlock_at'] ) ) . '</p>';
 			}
 			$html .= '<ol class="ccap-lessons">';
 			foreach ( (array) $module['lessons'] as $lesson ) {
 				$current = (int) $lesson['lesson_id'] === $resume ? ' aria-current="step"' : '';
-				$label   = esc_html( (string) $lesson['title'] ) . ' <span class="ccap-lesson-state">(' . esc_html( null === $lesson['locked_reason'] ? self::lesson_label( (string) $lesson['state'] ) : self::lock_label( (string) $lesson['locked_reason'], null ) ) . ')</span>';
+				$label   = '<span' . $lang . '>' . esc_html( (string) $lesson['title'] ) . '</span> <span class="ccap-lesson-state">(' . esc_html( null === $lesson['locked_reason'] ? self::lesson_label( (string) $lesson['state'] ) : self::lock_label( (string) $lesson['locked_reason'], null ) ) . ')</span>';
 				$html   .= '<li id="lesson-' . (int) $lesson['lesson_id'] . '">' . ( null === $lesson['locked_reason'] ? '<a href="' . esc_url( (string) get_permalink( (int) $lesson['lesson_id'] ) ) . '"' . $current . '>' . $label . '</a>' : '<span>' . $label . '</span>' ) . '</li>';
 			}
 			$html .= '</ol></li>';
@@ -216,7 +277,7 @@ final class LearningArea {
 			}
 			$html .= '<li><a href="' . esc_url( (string) get_permalink( $course ) ) . '">' . esc_html( $course->post_title ) . '</a>';
 			if ( ( $attributes['showProgress'] ?? true ) && isset( $enrolled[ (int) $course->ID ] ) ) {
-				$html .= ' <span class="ccap-progress">' . esc_html( sprintf( /* translators: %d: percent */ __( '%d %% completed', 'course-captain' ), $enrolled[ (int) $course->ID ]['progress']['completion_percent'] ) ) . '</span>';
+				$html .= ' <span class="ccap-progress">' . esc_html( sprintf( /* translators: %s: percentage, e.g. "75 %" */ __( '%s completed', 'course-captain' ), Locale::percent( (int) $enrolled[ (int) $course->ID ]['progress']['completion_percent'] ) ) ) . '</span>';
 			}
 			$html .= ' <a class="screen-reader-text" href="' . esc_url( self::url( 'kurs/' . $identity->ensure( $course ) ) ) . '">' . esc_html( sprintf( /* translators: %s: course */ __( 'Open %s in the learning area', 'course-captain' ), $course->post_title ) ) . '</a></li>';
 		}
@@ -333,13 +394,24 @@ final class LearningArea {
 	 * @return string
 	 */
 	private static function css(): string {
-		return 'body.ccap-learning{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere}'
-			. '.ccap-skip{position:absolute;left:-999px}.ccap-skip:focus{left:1rem;top:1rem;background:#fff;padding:.5rem;z-index:10}'
-			. '.ccap-bar{padding:.75rem 1rem;border-bottom:1px solid #ccc}#ccap-main{max-width:60rem;margin:0 auto;padding:1rem;box-sizing:border-box}'
-			. '.ccap-cards,.ccap-modules,.ccap-lessons{padding-left:1.25rem}.ccap-card{margin-bottom:1rem}'
-			. '.ccap-button{display:inline-block;padding:.6rem 1rem;border:2px solid currentColor;border-radius:.25rem;text-decoration:none;min-height:44px;box-sizing:border-box}'
-			. 'a:focus-visible,button:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}img,video,iframe{max-width:100%;height:auto}'
-			. '.screen-reader-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}'
-			. 'progress{max-width:100%;vertical-align:middle}';
+		// Logical properties only (RTL without a second stylesheet, I18N-R-12); visible focus everywhere (A11Y-003).
+		return 'html{scroll-padding-block-start:6rem}body.ccap-learning{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere;background:#fff;color:#1d2327}'
+			. '.ccap-skip{position:absolute;inset-block-start:1rem;inset-inline-start:1rem;background:#fff;color:#1d2327;padding:.5rem;z-index:10}'
+			. '.ccap-skip:not(:focus){width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
+			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
+			. '.ccap-cards,.ccap-modules,.ccap-lessons,.ccap-qnav,.ccap-result-list{padding-inline-start:1.25rem}.ccap-card{margin-block-end:1rem}'
+			. '.ccap-button{display:inline-block;padding:.6rem 1rem;border:2px solid currentColor;border-radius:.25rem;text-decoration:none;min-block-size:44px;box-sizing:border-box;font:inherit;background:#fff;color:inherit;cursor:pointer}'
+			. ':focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}'
+			. 'img,video,iframe{max-inline-size:100%;block-size:auto}'
+			. '.screen-reader-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
+			. 'progress{max-inline-size:100%;vertical-align:middle}'
+			. '.ccap-question{margin-block:1.5rem}fieldset{border:1px solid #8c8f94;padding:.75rem 1rem;min-inline-size:0;margin:0}legend{font-weight:600;padding-inline:.25rem}'
+			. '.ccap-options{padding:0}.ccap-options li{list-style:none;margin-block:.5rem}.ccap-options input[type=radio],.ccap-options input[type=checkbox],.ccap-question input[type=checkbox]{inline-size:1.5rem;block-size:1.5rem;vertical-align:middle;margin-inline-end:.5rem}'
+			. 'input[type=text],select{font:inherit;min-block-size:44px;max-inline-size:100%;box-sizing:border-box;padding-inline:.5rem}'
+			. '.ccap-exam-bar{position:sticky;inset-block-start:0;background:#fff;border-block-end:1px solid #8c8f94;padding-block:.25rem;z-index:5}.ccap-timer-line{margin:0;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}'
+			. '@media (max-height:32rem){.ccap-exam-bar{position:static}html{scroll-padding-block-start:0}}'
+			. '.ccap-error{border-inline-start:4px solid #b32d2e;padding-inline-start:.75rem}[hidden]{display:none!important}'
+			. '@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
+			. '@media (forced-colors:active){:focus-visible{outline:3px solid CanvasText}.ccap-button{border-color:ButtonText}}';
 	}
 }

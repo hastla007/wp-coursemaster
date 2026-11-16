@@ -169,4 +169,28 @@ final class FreeGuardTest extends TestCase {
 		self::assertCount( 4, $problems );
 		self::assertStringContainsString( '.pot is missing', $problems[0] );
 	}
+
+	/**
+	 * R1-19 (I18N-R-02/-03/-06/-12, I18N-005): static i18n scan catches variable or
+	 * concatenated texts, placeholders without translator comment, fixed display
+	 * date formats and physical CSS properties; clean code passes.
+	 *
+	 * @group R1-19
+	 */
+	public function test_i18n_static_scan(): void {
+		$root     = $this->tree(
+			array(
+				'languages/course-captain.pot' => '',
+				'src/a.php'                    => "<?php\n__( \$text, 'course-captain' );\n__( 'Hello ' . \$name, 'course-captain' );\nsprintf( __( 'Hello %s', 'course-captain' ), \$n );\nsprintf( _n( '%d item', '%d items', \$c, 'course-captain' ), \$c );\n\$d = wp_date( 'd.m.Y H:i', 0 );\n\$css = '.a{margin-left:1rem}';\n",
+				'src/b.php'                    => "<?php\n/* translators: %s: name */\nsprintf( __( 'Hi %s', 'course-captain' ), \$n );\n__( '100%% done', 'course-captain' );\n\$iso = wp_date( 'Y-m-d', 0 );\n\$css = '.a{margin-inline-start:1rem;inset-inline-start:0}';\n",
+			)
+		);
+		$problems = ( new TextdomainLint( $root ) )->run();
+		self::assertCount( 6, $problems, implode( "\n", $problems ) );
+		$all = implode( "\n", $problems );
+		foreach ( array( 'a.php:2: text argument 1', 'a.php:3: text argument 1', 'a.php:4: __() with placeholders', 'a.php:5: _n() with placeholders', 'a.php:6: wp_date() with fixed display format', 'a.php:7: physical CSS property' ) as $expected ) {
+			self::assertStringContainsString( $expected, $all );
+		}
+		self::assertStringNotContainsString( 'b.php', $all );
+	}
 }
