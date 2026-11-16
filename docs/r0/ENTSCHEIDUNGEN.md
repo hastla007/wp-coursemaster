@@ -51,6 +51,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-37 | Course meldet in v1 keine Verkäufe an Affiliate Captain | nein |
 | E-38 | **Öffentliche Course-Events, Read-API und Connector-Registry sind Pro.** Free behält nur die interne Outbox für eigene Zwecke (Mails, Audit). Folge: R1-43 (E-182) wird auf „interne Outbox“ reduziert; Registry, öffentliche Events und Pull-API wandern in R3/Pro; E-119/E-120 gelten für Pro; R0-19 §5 und R0-11 anpassen | **ja** |
 | E-39 | **Schreibende Workflow-Aktionen (Zugang anlegen/entziehen) schon in v1**, über die Grant-Quelle `workflow` mit Idempotenz und Audit. Achtung: Das Workflow-Captain-Konzept schließt das für das LMS-Muster aus (R0-32) – Abstimmung mit Workflow Captain nötig; wegen E-38 Teil von Pro/R3 | **ja** |
+| E-40 | Connectoren zu Form/Workflow/Review in Course Pro, erst wenn die Partner-Registries existieren | nein |
+| E-41 | Review Captain prüft die Kommunikationsberechtigung; Course liefert nur den Empfänger | nein |
+| E-42 | Produkt `course-captain-pro` bei License Captain vor R3-18 beauftragen (nach Neuzuschnitt E-95); Zugriff auf captain-pro für die Prüfung nötig | nein |
+| E-43 | Automatische Kontolöschung nach Löschantrag standardmäßig aus, Opt-in | nein |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
@@ -558,3 +562,30 @@ D30-1 (Task R1-45 für die Härtung) ist identisch mit E-239.
 | E-265 | Menüpunkt „Gruppen“ bei ausgeschalteten Gruppen | **Ausblenden**, solange aus und keine Gruppe existiert | R0-30 D30-7 | R1-32, R1-45 |
 | E-266 | Setup abschließen trotz offener Blocker (z. B. Dateischutz) | **Erlaubt** mit Status „abgeschlossen mit Hinweisen“; Blocker bleiben sichtbar, geschützte Medien werden weiter nicht ausgeliefert | R0-30 D30-8 | R1-32, R1-45 |
 | E-267 | Einschreibemodus „öffentlich“ (ganze Kurse ohne Konto/Grant, Kap. 16.1) | **Entfällt in R1**: nur „manuell“ und „Selbstanmeldung“; Gäste sehen nur den Schnupperbereich (E-15) | R0-30 D30-9 | R1-32, R1-45 |
+
+## 40. Lizenzclient-Grenze (aus R0-39)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-268 | Werden Lösungserklärungen (Pro, E-20) nach Lizenzende weiter ausgeliefert? | **Ja, eingefroren** wie bei E-94; neue Erklärungen lassen sich nicht mehr anlegen | R0-39 D39-1 | R3-08, R3-15, R3-18 |
+| E-269 | Erklärungsfeld im Free-Frageneditor | **Ausblenden**, vorhandene Texte bleiben gespeichert | R0-39 D39-2 | R3-08, R3-15, R3-18 |
+| E-270 | Lizenz `suspended`/`revoked` | **Wie `expired`** behandeln (eingefroren) | R0-39 D39-3 | R3-08, R3-15, R3-18 |
+| E-271 | Automatisch angelegte Woo-Produkte (E-34), wenn Pro deaktiviert wird | **Standardmäßig auf „privat“ setzen**, sonst kann gekauft werden, ohne dass ein Zugang entsteht | R0-39 D39-4 | R3-08, R3-15, R3-18 |
+| E-272 | Signatur der Pro-Pakete (E-190): License Captain signiert die Update-Antwort samt SHA-256, nicht das ZIP | **Signierte Antwort + SHA-256 erfüllt E-190**, ergänzt um eine Build-Attestierung | R0-39 D39-5 | R3-08, R3-15, R3-18 |
+| **E-273** | Wo wird das Pro-Add-on gebaut? | **Eigenes privates Repository `course-captain-pro`** (captain-pro ist für mich nicht prüfbar); alternativ in captain-pro, wenn du Zugriff gibst | R0-39 D39-6 | R3-08, R3-15, R3-18 |
+| E-274 | Welche Free-Versionen unterstützt Pro? | **Aktuelle und vorige Free-Minor** | R0-39 D39-7 | R3-08, R3-15, R3-18 |
+
+## 41. Finanzielle Suite-Ereignisse (aus R0-40)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-275 | Setzt ein verlorener Zahlungs-Dispute (Webhook) den Woo-Bestellstatus? | **Ja** (auf `refunded`/`cancelled`), damit auch Affiliate die Provision storniert | R0-40 D40-1 | R3-02…R3-05, R3-19 |
+| E-276 | 24-h-Pending-Timeout (E-201) bei unbezahlten Woo-Bestellungen (z. B. Überweisung) | **Gilt nicht**; Grant entsteht erst bei Zahlung, so lange die Bestellung offen ist | R0-40 D40-2 | R3-02…R3-05, R3-19 |
+| E-277 | Gutschein-Einlösung hängt länger als 24 h | **Reservierung freigeben, Grant `failed`**, Lernender bekommt Hinweis zum erneuten Einlösen | R0-40 D40-3 | R3-02…R3-05, R3-19 |
+| E-278 | Guthaben (Restwert) über die Einlöse-API? | **Nein**, Kursgutscheine sind Zugangsgutscheine | R0-40 D40-4 | R3-02…R3-05, R3-19 |
+| E-279 | Kursgutscheine zusätzlich im Woo-Warenkorb einlösbar? | **Nein**, nur über die Course-Einlösung | R0-40 D40-5 | R3-02…R3-05, R3-19 |
+| E-280 | Preis automatisch angelegter Woo-Produkte (E-34) | **Pflegt der Shop in Woo**; Produkte entstehen als Entwurf | R0-40 D40-6 | R3-02…R3-05, R3-19 |
+| E-281 | Mitgliederrabatt mit Rabattcodes kombinierbar? | **Nein**, der bessere Rabatt gilt | R0-40 D40-7 | R3-02…R3-05, R3-19 |
+| E-282 | Kursprodukte einzeln oder als Menge (mehrere Plätze) verkaufen? | **Einzeln**; mehrere Plätze nur über Gruppenprodukte | R0-40 D40-8 | R3-02…R3-05, R3-19 |
+| E-283 | Manuelle Support-Aktion „Gutscheinwert zurückgeben“ | **Ja**, mit Begründung und Audit | R0-40 D40-9 | R3-02…R3-05, R3-19 |
+| E-284 | Lernbeginn als Vermerk an der Woo-Bestellposition (Widerrufsrecht) | **Ja**, Zeitpunkt des ersten Lernzugriffs wird vermerkt | R0-40 D40-10 | R3-02…R3-05, R3-19 |

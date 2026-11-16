@@ -204,12 +204,12 @@
   - **Ergebnis/Definition of Done:** Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback und Fehlerklassen definiert.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-39 · Free-/Pro-Lizenzclient-Grenze technisch fixieren**
+- [ ] **R0-39 · Free-/Pro-Lizenzclient-Grenze technisch fixieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-39-lizenzclient-grenze.md` (Free-Regeln FG-01…12 mit CI- und Laufzeit-Guard, Pro-Build/Namespace/Feature-Registry mit 17 Schlüsseln, Lizenzzustände × Verhalten, Datenintegrität DI-1…5, externe Blocker XB-1…9, LIC-001…086); Entscheidung offen → E-268…E-274
   - **Voraussetzung:** R0-11,R0-19,R0-29.
   - **Ergebnis/Definition of Done:** Core ohne Lizenzbibliothek, Updater, Lizenzserverzugriff; Add-on eigener Build/Namespace, Feature-Flags, Upgrade/Downgrade, Lizenzende und Ausfallverhalten spezifiziert.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-40 · Vertrag für finanzielle Suite-Ereignisse abgrenzen**
+- [ ] **R0-40 · Vertrag für finanzielle Suite-Ereignisse abgrenzen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-40-finanzielle-suite-ereignisse.md` (Zuständigkeitsmatrix, Grant-Quellen woo_order/voucher/membership, Voucher-Saga, Woo-Status/Teilrefund/Dispute/Auto-Produkte, FR-01…21, FIN-001…081); Entscheidung offen → E-275…E-284
   - **Voraussetzung:** R0-09,R0-19,R0-34.
   - **Ergebnis/Definition of Done:** Course meldet keine doppelte Provision/Kauftransaktion; Voucher/Order/Grant-Quellen und Fehlercodes/Idempotenz/Refund eindeutig zugeordnet.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
