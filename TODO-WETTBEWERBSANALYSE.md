@@ -398,7 +398,7 @@
   - **Ergebnis/Definition of Done:** Reset, invalid inputs, Downgrade, WP-Werte-Vererbung, Multisite-Grenzen und Security/Accessibility getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-37 · Kurs-SEO und Sichtbarkeit sicher umsetzen**
+- [x] **R1-37 · Kurs-SEO und Sichtbarkeit sicher umsetzen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-37-nachweis.md`; eine Indexierbarkeitsfunktion für robots/Sitemaps/Suche/JSON-LD, nur einschränkend (SG-03), privater Lernbereich `noindex, nofollow` ohne Canonical/OG, Yoast- und Rank-Math-Filterverträge, oEmbed/REST-Leakschutz; Integration 224, Multisite 233. Lauf mit echten SEO-Plugins in R1-30. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-14,R1-28,R0-33.
   - **Ergebnis/Definition of Done:** Öffentliche Kursseiten SEO-kompatibel; private Prüfungen, Profile, Medien und Grants nicht indexierbar oder per API abrufbar; Yoast-Konflikttests.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.

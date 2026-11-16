@@ -171,8 +171,10 @@ final class UninstallManifest {
 		'_ccap_copied_from_uid',
 		'_ccap_current_revision_id',
 		'_ccap_language',
+		'_ccap_listing',
 		'_ccap_protected_course',
 		'_ccap_protected_origin',
+		'_ccap_seo_index',
 	);
 
 	/**

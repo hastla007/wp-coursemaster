@@ -11,3 +11,5 @@ Jeder Eintrag nennt: Version · Art (added/deprecated/removed/security) · Eleme
 - **deprecated** · Shortcode `[course_captain_protected]` · Ersatz `[ccap_protected]` · Fristende: zwei Minor-Releases nach 1.0.0, mindestens 6 Monate
 - **changed (vor Release)** · `ccap_answer_rate_limited` → `ccap_rate_limited` mit `details.bucket = answer`
 - **changed (vor Release)** · `ccap_exam_finished` → `ccap_exam_already_submitted` bzw. `ccap_exam_aborted`
+- **added** · Filter `course_captain_seo_indexable( bool $indexable, int $course )` (experimentell; kann Indexierbarkeit nur einschränken, R0-33 §1.3)
+- **added** · `X-Robots-Tag: noindex, nofollow` auf allen Antworten von `course-captain/v1` (R0-33 LK-23)

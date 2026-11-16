@@ -38,6 +38,7 @@ final class CacheInvalidation {
 		'X-Accel-Expires'           => '0',
 		'Surrogate-Control'         => 'no-store',
 		'CDN-Cache-Control'         => 'no-store',
+		'X-Robots-Tag'              => 'noindex, nofollow',
 	);
 
 	/**
