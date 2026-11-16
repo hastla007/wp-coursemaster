@@ -134,3 +134,13 @@ Die technischen Punkte D-14-03 (kürzere Lock-Wartezeiten), D-14-04 (FULLTEXT-Su
 | E-59 | Kapazitätsaussage für Shared Hosting | **Dokumentierte Klasse** „bis 50 gleichzeitige Prüfungen / 50 aktive Lernende“ (Annahme, Messung in R1-22); darüber VPS empfohlen | R0-14 D-14-05 | R1-22, R1-24 |
 | E-60 | Sind Zeitbudgets ein Release-Gate? | **Ja für R1-GATE**; danach Query- und Scan-Gates in jeder CI-Runde und eine Zeitmessung je Minor-Release | R0-14 D-14-07 | R1-18, R1-GATE |
 | E-61 | Browser-Support | **Die letzten zwei Hauptversionen** von Chrome, Edge, Firefox und Safari, dazu Firefox ESR, iOS Safari und Android Chrome (LB: nur Chromium) | R0-14 D-14-08 | R0-20, R1-19 |
+
+## 12. Import und Medien (aus R0-10)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-62 | Wie wird der Rechtestatus `own` aus einem fremden Paket beim Import gespeichert? | **Als `licensed`**, weil für den Empfänger „eigen“ nicht stimmt | R0-10 R10-D1 | R1-15 |
+| E-63 | Reimport trifft auf ein lokal geändertes Objekt | **Lokal gewinnt**; ob die Quelle übernommen wird, entscheidet der Autor je Objekt im Dry-run-Bericht | R0-10 R10-D2 | R1-15 |
+| E-64 | Paketsignaturen in R1? | **Nein**; das Feld wird im Format nur reserviert | R0-10 R10-D3 | R1-15 |
+| E-65 | Medien, die an einen Zugang gebunden sind | **Standardmäßig geschützt über PHP ausliefern** (LB: öffentlich in `uploads/`, nur die Frage gesperrt) | R0-10 R10-D4 | R1-14 |
+| E-66 | Fremd lizenzierte Inhalte im Kurs-Export | **Nur per Opt-in** mit Hinweis | R0-10 R10-D5 | R1-15 |

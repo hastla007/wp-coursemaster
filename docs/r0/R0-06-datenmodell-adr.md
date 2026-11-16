@@ -446,3 +446,9 @@ Basis aus **Konzept 22.3** (Ziel, kein Messwert): 10 000 Lernende, 100 Kurse, 10
 - Fragenrevisionierung: `Content/Import/EntityImporter.php:241-264` (`deprecated` bei neuer Revision).
 - Pass-Muster: `docs/r0/R0-36-suite-vertragsdeltas.md` §2.2, §2.5 (Quelle `wp-passmaster` @ `b2b88ea`, `src/Installer.php:674-790`).
 - Keine Codeänderung an LearnBoating, keine Implementierung, kein Commit.
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung am Entwurf |
+|---|---|---|
+| 16.11.2026 | R0-10 §1, §3, §4 | `cc_media.vector_source` entfällt; neues Feld `cc_media.access` (`public`/`protected`); `cc_import_batch.status` bekommt zusätzlich `activating`, `aborted` (gespeichert, nicht abgeleitet) und `superseded`. Offen für R0-23/R1-15: Wie bleiben Lektionen (CPT) bis zur Aktivierung auf dem alten Stand? |

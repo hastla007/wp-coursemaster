@@ -59,7 +59,7 @@
   - **Ergebnis/Definition of Done:** Claim, Quellen, Mehrfachgrants, Suspend/Expire/Refund, Race Conditions und Privacy festgelegt.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-10 · Content-Import und Medien-Sicherheit finalisieren**
+- [ ] **R0-10 · Content-Import und Medien-Sicherheit finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-10-import-medien-sicherheit.md` (Paketformat cc-package v1, Rechtemodell, Importautomat mit Aktivierungsphase, geschützte Auslieferung mit Range, Consent-Adapter, IMP-001…032/MED-001…026); Entscheidung offen → E-03, E-18, E-45, E-62…E-66
   - **Voraussetzung:** R0-06.
   - **Ergebnis/Definition of Done:** Paketformat, Rechte, Dry-run, Revisionen, Rollback, Protected Files, Consent spezifiziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
