@@ -352,7 +352,8 @@ final class LifecycleTest extends TestCase {
 		foreach ( self::own_options() as $option ) {
 			self::assertDoesNotMatchRegularExpression( '/wplc_|licen[cs]e/i', $option );
 		}
-		self::assertSame( array( Capabilities::GRANTS_OPTION ), self::own_options() );
+		// The hardening state is system state written on `init` (R1-45), depending on test order.
+		self::assertSame( array( Capabilities::GRANTS_OPTION ), array_values( array_diff( self::own_options(), array( \CourseCaptain\Security\Hardening::STATE_OPTION ) ) ) );
 		self::assertSame( array(), $GLOBALS['ccap_test_http_requests'] );
 	}
 }

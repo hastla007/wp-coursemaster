@@ -354,7 +354,7 @@ final class Hardening {
 	 * @return string
 	 */
 	private static function ip(): string {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+		$ip = ClientIp::current();
 		if ( false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
 			$packed = (string) inet_pton( $ip );
 			return 'v6:' . bin2hex( substr( $packed, 0, 8 ) );

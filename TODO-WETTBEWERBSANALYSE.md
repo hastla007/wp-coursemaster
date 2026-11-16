@@ -373,7 +373,7 @@
   - **Ergebnis/Definition of Done:** Versionierte Optionen, Typvalidierung, Capabilities, sichere Defaults, Upgrade- und Negativtests.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-32 · Setup-Assistent und globale Einstellungs-Tabs**
+- [x] **R1-32 · Setup-Assistent und globale Einstellungs-Tabs** — erledigt 16.11.2026: Nachweis `docs/r1/R1-32-nachweis.md`; Einstellungs-Screen mit Tabs (Felder, Validierung je Feld, Risiko-Bestätigung RC-*), Setup-Assistent mit Zustand und Bereitschaftsprüfung; Integration 369, Multisite 382. Offen: Übersichtsseite/Menübaum, Loopback-Prüfungen RDY-01/03/06/11/15 nur als Hinweis, Playwright/AXE. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-05,R1-31,R0-30.
   - **Ergebnis/Definition of Done:** Resumierbarer Wizard, feldnahe Fehler, Tab-Save/Reset, ungespeicherte Warnung, Accessibility.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
@@ -383,7 +383,7 @@
   - **Ergebnis/Definition of Done:** Vererbung, Preview, Änderung laufender Versuche und historische Auswertung getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-34 · Rollen-, Datenschutz-, Medien- und Mail-Settings anbinden**
+- [x] **R1-34 · Rollen-, Datenschutz-, Medien- und Mail-Settings anbinden** — erledigt 16.11.2026: Nachweis `docs/r1/R1-34-nachweis.md`; Rollen-Tab (`RoleCaps`), Testmail, Datenschutz-Settings inkl. automatisierter Anfragen, externe Medien mit Consent API, vertrauenswürdige Proxys (`ClientIp`) in Härtung/Zertifikaten, Feedback-Sichtbarkeit `never` (B-5); Integration 369, Multisite 382. Offen: Mailvorlagen-Editor, CSP-Modus ohne Wirkung, Tombstone-Alter. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-21,R1-31,R0-31.
   - **Ergebnis/Definition of Done:** UI und serverseitige Wirkung inklusive Audit, Consent, Opt-out, Redaction und Permissions geprüft.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
@@ -393,7 +393,7 @@
   - **Ergebnis/Definition of Done:** Seat/Claim-UI, Basisnachweis, Widerruf/Verifikation, Lizenzunabhängigkeit und E2E-Tests grün.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-36 · Admin-Settings-Regression und Migrationstests**
+- [x] **R1-36 · Admin-Settings-Regression und Migrationstests** — erledigt 16.11.2026: Nachweis `docs/r1/R1-36-nachweis.md`; `SettingsRegressionTest` (Register, Defaults, Validierung, Undo, Rechte), Settings-Export/-Import (`SettingsTransfer`, `never_env`), Backup-Screen, Migrationstests der Tab-Optionen; Integration 369, Multisite 382. Offen: Rollen-Tab im Export (Klärung), WP-CLI `settings`. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-32,R1-33,R1-34,R1-35.
   - **Ergebnis/Definition of Done:** Reset, invalid inputs, Downgrade, WP-Werte-Vererbung, Multisite-Grenzen und Security/Accessibility getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.

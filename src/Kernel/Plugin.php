@@ -217,6 +217,12 @@ final class Plugin {
 		\CourseCaptain\Admin\CourseSettingsPanel::register();
 		\CourseCaptain\Admin\GroupsScreen::register();
 		\CourseCaptain\Admin\CertificatesScreen::register();
+		\CourseCaptain\Admin\SettingsScreen::register();
+		\CourseCaptain\Admin\SetupWizard::register();
+		\CourseCaptain\Admin\RoleSettings::register();
+		\CourseCaptain\Admin\TestMail::register();
+		\CourseCaptain\Admin\SettingsBackup::register();
+		\CourseCaptain\Privacy\PrivacySettings::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();

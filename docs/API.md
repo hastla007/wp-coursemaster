@@ -89,6 +89,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 
 | Hook | Art |
 |---|---|
+| `course_captain_account_deletion_protected` | filter |
 | `course_captain_activity_progress_changed` | action |
 | `course_captain_allow_unmoved_protected_file` | filter |
 | `course_captain_assignment_file_scan` | filter |
@@ -96,6 +97,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_certificate_fallback_rendered` | action |
 | `course_captain_certificate_renderers` | filter |
 | `course_captain_explanations_available` | filter |
+| `course_captain_external_access_sources` | filter |
 | `course_captain_hardening_conflicts` | filter |
 | `course_captain_hardening_limits` | filter |
 | `course_captain_internal_subscriber_handlers` | filter |
@@ -111,7 +113,13 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_private_dir` | filter |
 | `course_captain_publish_guard_applies` | filter |
 | `course_captain_register_activities` | action |
+| `course_captain_risk_text` | filter |
 | `course_captain_seo_indexable` | filter |
+| `course_captain_settings_risks` | filter |
+| `course_captain_settings_roles_html` | filter |
+| `course_captain_settings_roles_save` | filter |
+| `course_captain_settings_roles_tab` | filter |
+| `course_captain_settings_rules` | filter |
 | `course_captain_trusted_media_hosts` | filter |
 | `course_captain_uninstall` | action |
 

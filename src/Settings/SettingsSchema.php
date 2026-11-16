@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
  * Field contract: `type`, `default`, `cap` (`settings` = #19,
  * `admin` = #19 and administrator only), `privacy`
  * (public/internal/personal/secret), `side_effects`, `export`, plus type
- * rules (`min`, `max`, `nullable`, `values`, `fields`). Free core fields
+ * rules (`min`, `max`, `nullable`, `values`, `fields`). `export` is `true`,
+ * `false` or `never_env` (environment-bound, never exported or imported, R0-31 EX-2). Free core fields
  * only; `pro.*` keys are registered by the add-on (SR-8). Roles, mail
  * templates and the retention sub-keys have their own stores (R1-34,
  * R1-21, R1-17); `emails.types` is a strict object (R1-21).
@@ -408,6 +409,7 @@ final class SettingsSchema {
 					'max'     => 50,
 					'default' => array(),
 					'cap'     => 'admin',
+					'export'  => 'never_env',
 				),
 				'show_avatars'            => array(
 					'type'    => 'bool',
@@ -441,6 +443,7 @@ final class SettingsSchema {
 					'type'    => 'enum',
 					'values'  => array( 'php', 'x_sendfile', 'x_accel_redirect' ),
 					'default' => 'php',
+					'export'  => 'never_env',
 				),
 				'media_delete_grace_days'    => array(
 					'type'    => 'int',
@@ -617,7 +620,7 @@ final class SettingsSchema {
 					'value' => array_values( array_intersect( (array) $field['values'], $value ) ),
 				);
 			case 'slug':
-				return is_string( $value ) && 1 === preg_match( '/^[a-z0-9][a-z0-9-]{0,63}$/', $value ) ? array(
+				return is_string( $value ) && 1 === preg_match( '/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/', $value ) ? array(
 					'ok'    => true,
 					'value' => $value,
 				) : $bad;
@@ -692,6 +695,7 @@ final class SettingsSchema {
 			return true;
 		}
 		$max = str_contains( $parts[0], ':' ) ? 128 : 32;
-		return 1 === preg_match( '/^\d{1,3}$/', $parts[1] ) && (int) $parts[1] <= $max;
+		// `0.0.0.0/0` and `::/0` would trust every address (F-82, SET-115).
+		return 1 === preg_match( '/^\d{1,3}$/', $parts[1] ) && (int) $parts[1] <= $max && (int) $parts[1] > 0;
 	}
 }

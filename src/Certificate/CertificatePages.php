@@ -386,7 +386,7 @@ final class CertificatePages {
 	 * @return string
 	 */
 	private static function client(): string {
-		return isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+		return \CourseCaptain\Security\ClientIp::current();
 	}
 
 	/**
