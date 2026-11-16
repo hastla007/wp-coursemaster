@@ -37,7 +37,7 @@ Zählkommando: `grep -E '^\| INV-' <datei> | grep -c '<klasse>'`.
 | Monitor-Schlüssel ist per `?key=` erlaubt und landet so in Logs | C | R0-17 |
 | Alle Integrationstests laufen gegen das Boots-Inhaltspaket; Fixtures müssen neutral ersetzt werden | A, C | R0-05 |
 | Harte Kurscode-Tabellen (`SectionFiles::PARTS`, `RUBRIC_KEYS`, `SCHEIN_KEYS`), Theme-Filter, Rate-Limiter im Mobile-Namespace | A | R0-04 |
-| Für Prüfungsstart-Limit und `wrongQuestionIds` gibt es keinen direkten Test | A | R0-05 |
+| Prüfungsstart-Limit hat keinen Test; `wrongQuestionIds` ist nur über die App-API positiv getestet (Korrektur aus R0-05) | A | R0-05 |
 | Kernfunktionen (Web-Login, Registrierung, Limits, Gutscheine, Webhooks, Privacy-Self-Service) hängen an `Mobile\RateLimiter`/`ApiException` – müssen in den Kern, auch ohne App-API | D (INV-D-145) | R0-04, R0-19 |
 | Rate-Limiter ist „fail-open“ bei Speicherausfall | D (INV-D-146) | R0-17, ENTSCHEIDUNGEN E-46 |
 | In der Quelle fehlen SAST, Dependency-Scan und Paketsignatur | E | R0-18 |

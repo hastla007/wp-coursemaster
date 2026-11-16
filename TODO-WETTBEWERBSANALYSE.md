@@ -34,7 +34,7 @@
   - **Ergebnis/Definition of Done:** Neutrale Kernfunktionen R1, konkrete Woo/Voucher/Ticket-Adapter R3; keine Pflichtabhängigkeiten.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-05 · Golden-Master-Fixtures festlegen**
+- [ ] **R0-05 · Golden-Master-Fixtures festlegen** — **Spezifikation fertig 16.11.2026:** `docs/r0/R0-05-golden-master.md` (190 GM-Tests mit Quelltest:Zeile, Fixture `cc-fixture-neutral-v1`, 14 Determinismusregeln, 27 Lücken). Referenzlauf und Freigabe offen → E-02, E-55, E-56
   - **Voraussetzung:** R0-03.
   - **Ergebnis/Definition of Done:** Quelltest, Fixture, erwartete Resultate und Regression pro neutralem Bereich referenziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
