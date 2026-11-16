@@ -273,7 +273,7 @@
   - **Ergebnis/Definition of Done:** Alle belegten neutralen Lern- und Wiederholungsfunktionen mit Persistenz.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-12 · Smarttrainer und Wiederholungsplanung**
+- [x] **R1-12 · Smarttrainer und Wiederholungsplanung** — erledigt 16.11.2026: Nachweis `docs/r1/R1-12-nachweis.md`; `smarttrainer.v1` mit festen Parametern, Auswahl, Intervallen, Rate-Limit und Aggregat; GM-004, GM-065…067, 069, 072, 073 und G-1…G-3 deterministisch grün; Unit 85, Integration 118, Multisite 127. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-10, R1-11.
   - **Ergebnis/Definition of Done:** Belegte Algorithmen/Intervalle als neutrale Regeln; deterministische Tests.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

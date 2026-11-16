@@ -28,8 +28,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class AnswerService {
 
-	public const ALGORITHM_VERSION = 1;
-
 	/**
 	 * Constructor.
 	 *
@@ -57,7 +55,7 @@ final class AnswerService {
 	 * @param mixed  $answer          Answer.
 	 * @param string $idempotency_key Client UUID.
 	 * @param string $context         learn|lesson|review.
-	 * @return array{correct: bool, points_milli: int, repeated: bool, attempts: int, correct_ids?: list<string>}
+	 * @return array{correct: bool, points_milli: int, repeated: bool, attempts: int, correct_ids?: list<string>, streak_counted?: bool|null, progress?: array<string, mixed>}
 	 * @throws CourseException `ccap_invalid_answer` for invalid or empty input.
 	 * @throws StorageException On non-duplicate storage errors.
 	 */
@@ -76,10 +74,15 @@ final class AnswerService {
 			throw new CourseException( 'ccap_invalid_answer', 'Invalid answer.', 422 );
 		}
 		$revision = (array) $this->questions->revision( $claims['r'] );
-		$correct  = QuestionTypes::FLASHCARD === $revision['question_type'] ? null : $eval->correct();
+		if ( QuestionTypes::FLASHCARD === $revision['question_type'] ) {
+			throw new CourseException( 'ccap_invalid_param', 'Flashcards use their own states.', 400 );
+		}
+		$correct  = $eval->correct();
+		$progress = null;
+		SmartTrainer::current()->rate_limit( $actor->user_id );
 		try {
 			$attempt = $this->db->transaction(
-				function ( Database $db ) use ( $actor, $claims, $answer, $idempotency_key, $context, $correct, $revision ): int {
+				function ( Database $db ) use ( $actor, $claims, $answer, $idempotency_key, $context, $correct, $revision, &$progress ): int {
 					$quiet = $db->wpdb()->suppress_errors( true );
 					try {
 						$id = $db->insert(
@@ -94,9 +97,9 @@ final class AnswerService {
 								'is_correct'        => null === $correct ? null : ( $correct ? 1 : 0 ),
 								'self_assessment'   => QuestionTypes::OPEN_TEXT === $revision['question_type'] && is_array( $answer ) ? ( empty( $answer['known'] ) ? 'unknown' : 'known' ) : null,
 								'idempotency_key'   => $idempotency_key,
-								'algorithm_version' => self::ALGORITHM_VERSION,
-							),
-							array( 'created_at' )
+								'algorithm_version' => SmartTrainer::ALGORITHM_VERSION,
+								'created_at'        => SmartTrainer::sql( SmartTrainer::now() ),
+							)
 						);
 					} finally {
 						$db->wpdb()->suppress_errors( $quiet );
@@ -110,7 +113,9 @@ final class AnswerService {
 							)
 						);
 					}
-					$this->apply_progress( $db, $actor->user_id, $claims['q'], $correct );
+					if ( null !== $correct ) {
+						$progress = SmartTrainer::apply( $db, $actor->user_id, $claims['q'], $correct );
+					}
 					return $id;
 				}
 			);
@@ -121,45 +126,21 @@ final class AnswerService {
 			// Parallel duplicate: the other request won; return its result.
 			return $this->result( $actor->user_id, (array) $this->existing( $actor->user_id, $idempotency_key ), true );
 		}
-		$row = (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_attempt' ) . '` WHERE id = %d', $attempt ) );
-		return $this->result( $actor->user_id, $row, false, $eval->points_milli );
-	}
-
-	/**
-	 * Progress counters per question (mastery algorithm: R1-12).
-	 *
-	 * @param Database  $db       Database in transaction.
-	 * @param int       $user     Learner.
-	 * @param int       $question Question.
-	 * @param bool|null $correct  Correctness (null: flashcard, counted in R1-11).
-	 * @return void
-	 */
-	private function apply_progress( Database $db, int $user, int $question, ?bool $correct ): void {
-		$table = $db->table( 'ccap_question_progress' );
-		$now   = $db->now();
-		$db->execute(
-			$db->prepare(
-				"INSERT IGNORE INTO `{$table}` (user_id, question_id, algorithm_version, learn_status) VALUES (%d, %d, %d, 'new')",
-				$user,
-				$question,
-				self::ALGORITHM_VERSION
-			)
-		);
-		$row = (array) $db->row( $db->prepare( "SELECT id, streak, first_answered_at FROM `{$table}` WHERE user_id = %d AND question_id = %d FOR UPDATE", $user, $question ) );
-		if ( null === $correct ) {
-			return;
+		$row    = (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_attempt' ) . '` WHERE id = %d', $attempt ) );
+		$result = $this->result( $actor->user_id, $row, false, $eval->points_milli );
+		if ( null !== $progress ) {
+			$result['streak_counted'] = $progress['streak_counted'];
+			$result['progress']       = array(
+				'status'   => $progress['status'],
+				'streak'   => $progress['streak'],
+				'attempts' => $progress['attempts'],
+				'due_at'   => $progress['due_at'],
+			);
+			if ( ( 'mastered' === $progress['status'] ) !== ( 'mastered' === $progress['previous'] ) && $claims['c'] > 0 ) {
+				\CourseCaptain\Progress\CourseProgress::current()->recalculate( $actor->user_id, $claims['c'] );
+			}
 		}
-		$db->execute(
-			$db->prepare(
-				"UPDATE `{$table}` SET attempts = attempts + 1, correct_count = correct_count + %d, wrong_count = wrong_count + %d, streak = %d, last_answered_at = %s, first_answered_at = COALESCE(first_answered_at, %s), row_version = row_version + 1 WHERE id = %d",
-				$correct ? 1 : 0,
-				$correct ? 0 : 1,
-				$correct ? (int) $row['streak'] + 1 : 0,
-				$now,
-				$now,
-				(int) $row['id']
-			)
-		);
+		return $result;
 	}
 
 	/**
