@@ -342,6 +342,24 @@ Alle folgenden Punkte sind technische, gestalterische oder Prozessentscheidungen
 | E-311 | Integrationsstatus `failed` (D34-4) und Replay zugestellter Events (D34-7) | `failed` nach 3 Dead-Lettern innerhalb 1 h (nicht beim ersten); Replay zugestellter Events nur mit ausdrücklichem Flag, Begründung und Audit |
 | E-312 | Widerspruch E-45a zu Konzept Kap. 43.3/R0-10 (externe Medien) | **Beschluss E-45a gilt** (jüngere Entscheidung, Kap. 46.1); Kap. 43.3 wird redaktionell angepasst |
 
+### Neue Fragen aus dem Gate-Protokoll (Claude im Auftrag, 16.11.2026)
+
+| ID | Frage | Beschluss |
+|---|---|---|
+| E-313 (NF-01) | LB-Vorabfreigabe unbezahlter Bestellungen (`approveOrder`) | **Behalten im Woo-Adapter (Pro):** ausdrückliche Admin-Aktion „vorab freischalten“ erzeugt einen Grant mit Quelle `woo_order` und Grund `preapproved`; wird die Bestellung storniert, wird er widerrufen. Ohne diese Aktion gilt E-293 |
+| E-314 (NF-02) | Gutscheinziel Woo-Produkt: E-305 (Woo-Checkout) vs. E-279 (nur Course-Einlösung) | **E-279 gilt:** auch für Zieltyp Woo-Produkt wird über die Course-Einlösung eingelöst, ohne Woo-Bestellung, Quelle `voucher` (wie R0-40 §2.3); E-305 wird entsprechend korrigiert |
+| E-315 (NF-04) | Grant auf ein Modul, das eine Kursrevision entfernt | Grant bleibt bestehen und wird im Admin als „Modul entfernt“ gemeldet; Umhängen nur per Support-Aktion als neue Grant-Revision (E-117) |
+| E-316 (NF-05) | Aufgabe per Revision entfernt, offener Entwurf vorhanden | Entwurf bleibt schreibgeschützt lesbar und exportierbar, keine Abgabe mehr möglich |
+| E-317 (NF-06) | Aufgaben: Standard-Abschluss und Nichtumfang R1 | Abschluss = `graded` (bzw. bestanden, falls Bewertung bestanden/nicht bestanden); nicht in R1: Zurückziehen nach Abgabe, Retakes, Fristen/Spätabgabe |
+| E-318 (NF-07) | Supportaktionen für Abgaben | **Ja:** „Abgabe zurückgeben“ und „Bewertung korrigieren“ als K-18/K-19 mit Begründung und Audit |
+| E-319 (NF-08) | Edition von `per_option`-Teilpunkten nach didaktischem Review | **Free** |
+| E-320 (NF-10) | Deutsche Ersatztexte der Woo-Widerrufsfunktion (INV-B-134) | **Ja, Teil von E-33** |
+| E-321 (NF-12) | Auto-Woo-Produkte für Zusatzmodule setzen die Abhängigkeit zum Basiskurs selbst? | **Ja**, aus der Kursbeziehung übernommen |
+| E-322 (NF-13) | E-271 „standardmäßig privat“ bei Pro-Deaktivierung: abwählbar? Deinstallation? | Abwählbar im Wirkungsbericht; bei Deinstallation bleiben Produkte privat bestehen (keine Löschung) |
+| E-323 (NF-15) | Schalter „Mehrsprachiger Kurs“ schaltet die Validator-Warnung (E-157) ab | **Ja** |
+| E-324 (NF-16) | Bedienhilfe „alle Sprachversionen als Bundle vergeben“ | **Ja, in R1-13** (nutzt Bundle E-25a und Übersetzungsgruppe E-155) |
+| E-325 (NF-18) | Zusätzliche Einstellung für Gutschein-Storno über E-35 hinaus | **Nein** |
+
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
 | ID | Frage | Empfehlung | Herkunft | Blockiert |
