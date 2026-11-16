@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T16:14:13+00:00\n"
+"POT-Creation-Date: 2026-11-16T16:23:30+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -20,6 +20,10 @@ msgstr ""
 #: course-captain.php:9
 #: src/Admin/EditorScreens.php:52
 #: src/Admin/Notices.php:120
+#: src/Ops/HealthChecks.php:172
+#: src/Privacy/PrivacyService.php:124
+#: src/Privacy/PrivacyService.php:134
+#: src/Privacy/PrivacyService.php:331
 msgid "Course Captain"
 msgstr ""
 
@@ -285,7 +289,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:338
+#: src/Kernel/Plugin.php:341
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -439,6 +443,200 @@ msgstr ""
 
 #: src/Learner/LearningArea.php:327
 msgid "not started"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:31
+#: src/Ops/AuditScreen.php:59
+msgid "Audit log"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:61
+msgid "User ID"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:62
+msgid "Object ID"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:63
+msgid "From (YYYY-MM-DD)"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:64
+msgid "To (YYYY-MM-DD)"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:70
+msgid "Area"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:70
+msgid "All"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:74
+msgid "Filter"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:75
+msgid "Audit entries"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:75
+msgid "Time (UTC)"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:75
+msgid "Event"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:75
+msgid "By"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:75
+msgid "Object"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:75
+msgid "Details"
+msgstr ""
+
+#. translators: 1: page, 2: pages
+#: src/Ops/AuditScreen.php:81
+#, php-format
+msgid "Page %1$d of %2$d"
+msgstr ""
+
+#: src/Ops/AuditView.php:36
+msgid "Access granted manually"
+msgstr ""
+
+#: src/Ops/AuditView.php:37
+msgid "Access extended"
+msgstr ""
+
+#: src/Ops/AuditView.php:38
+msgid "Group created"
+msgstr ""
+
+#: src/Ops/AuditView.php:39
+msgid "Group invitation link renewed"
+msgstr ""
+
+#: src/Ops/AuditView.php:40
+msgid "Exam attempt re-evaluated"
+msgstr ""
+
+#: src/Ops/AuditView.php:41
+msgid "Settings saved"
+msgstr ""
+
+#: src/Ops/AuditView.php:42
+msgid "Settings reset"
+msgstr ""
+
+#: src/Ops/AuditView.php:43
+msgid "Event delivery replayed"
+msgstr ""
+
+#: src/Ops/AuditView.php:44
+msgid "Import approved"
+msgstr ""
+
+#: src/Ops/AuditView.php:45
+msgid "Import published"
+msgstr ""
+
+#: src/Ops/AuditView.php:46
+msgid "Import rollback started"
+msgstr ""
+
+#: src/Ops/AuditView.php:47
+msgid "Personal data erased"
+msgstr ""
+
+#: src/Ops/AuditView.php:48
+msgid "Retention applied"
+msgstr ""
+
+#: src/Ops/AuditView.php:49
+msgid "Maintenance task failed"
+msgstr ""
+
+#: src/Ops/AuditView.php:102
+msgid "Deleted user"
+msgstr ""
+
+#: src/Ops/AuditView.php:102
+msgid "System"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:94
+msgid "Course Captain protected storage"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:98
+msgid "Course Captain maintenance"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:102
+msgid "Course Captain event delivery"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:120
+msgid "Protected files are stored in a guarded folder."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:120
+msgid "The protected folder is missing or not writable."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:120
+msgid "On nginx add a rule that denies direct access to the course-captain protected and packages folders, or set COURSE_CAPTAIN_PRIVATE_DIR outside the web root."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:134
+msgid "The hourly maintenance is not scheduled."
+msgstr ""
+
+#. translators: %s: step names
+#: src/Ops/HealthChecks.php:138
+#, php-format
+msgid "Maintenance steps failed: %s"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:141
+msgid "The maintenance has not run in the last three hours."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:141
+msgid "Check that WP-Cron or a server cron job runs regularly."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:143
+msgid "Maintenance runs regularly."
+msgstr ""
+
+#. translators: %d: number
+#: src/Ops/HealthChecks.php:155
+msgid "All internal events were delivered."
+msgstr ""
+
+#. translators: %d: number
+#: src/Ops/HealthChecks.php:155
+#, php-format
+msgid "%d event delivery failed permanently."
+msgid_plural "%d event deliveries failed permanently."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Privacy/PrivacyService.php:205
+msgid "Course Captain keeps the audit log (tamper protection) and course content."
+msgstr ""
+
+#: src/Privacy/PrivacyService.php:330
+msgid "Course Captain stores learning progress, answers, exam attempts, course access and group memberships of logged-in learners. Learning answers are kept for 2 years after the end of a course, exam attempts for 10 years, ended access records for 10 years and the audit log for 4 years. Personal data can be exported and erased with the WordPress privacy tools."
 msgstr ""
 
 #: src/Storage/Database.php:302

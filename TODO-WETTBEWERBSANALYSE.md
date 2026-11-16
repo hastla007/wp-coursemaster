@@ -298,7 +298,7 @@
   - **Ergebnis/Definition of Done:** Kurskatalog, Kursraum, Activity, Prüfung, Fortschritt, Profile, Tastatur/Mobil.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-17 · Datenschutz, Diagnose und Wartungsjobs**
+- [x] **R1-17 · Datenschutz, Diagnose und Wartungsjobs** — erledigt 16.11.2026: Nachweis `docs/r1/R1-17-nachweis.md`; Exporter/Eraser mit Einstufung aller Tabellen (GM-172/173), Kontolöschung (GM-102/103), Retention-Jobs (GM-099/131/161), isolierte Wartung und Selbstheilung (GM-156/157), Health-Checks, Audit-Ansicht mit Registry (GM-138/139); Unit 85, Integration 150, Multisite 159. Klärungen A-1/A-2 im Nachweis. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02, R1-14, R1-15.
   - **Ergebnis/Definition of Done:** Export/Eraser, Retention, Cron-Recovery, Audit, Health-Checks, Security.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

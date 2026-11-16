@@ -81,10 +81,16 @@ final class CronHooks {
 	 */
 	public static function run_hourly(): void {
 		// Access housekeeping (R0-09 G-10, E-201, SEAT-007); access itself never depends on it.
-		\CourseCaptain\Access\GrantService::current()->expire_due();
-		\CourseCaptain\Access\GrantService::current()->fail_stale_pending();
-		\CourseCaptain\Access\GroupService::current()->expire_invitations();
-		\CourseCaptain\Event\OutboxDispatcher::current()->purge();
-		\CourseCaptain\Exam\ExamSessions::current()->expire_due();
+		// Every step is isolated (GM-156).
+		\CourseCaptain\Ops\HealthChecks::run_isolated(
+			array(
+				'grant_expiry'      => static fn() => \CourseCaptain\Access\GrantService::current()->expire_due(),
+				'pending_timeout'   => static fn() => \CourseCaptain\Access\GrantService::current()->fail_stale_pending(),
+				'invitation_expiry' => static fn() => \CourseCaptain\Access\GroupService::current()->expire_invitations(),
+				'outbox_purge'      => static fn() => \CourseCaptain\Event\OutboxDispatcher::current()->purge(),
+				'exam_expiry'       => static fn() => \CourseCaptain\Exam\ExamSessions::current()->expire_due(),
+				'retention'         => static fn() => \CourseCaptain\Privacy\RetentionService::run(),
+			)
+		);
 	}
 }
