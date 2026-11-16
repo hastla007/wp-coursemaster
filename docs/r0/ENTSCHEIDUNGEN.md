@@ -174,3 +174,16 @@ Wichtigster Sicherheitsbefund in LB: Der Default `default_access = logged_in` gi
 | E-82 | Pflichtbegründung, wenn Support oder Trainer fremde Versuchsdaten lesen | **Ja, mit Audit-Eintrag** | R0-07 D07-5 | R1-03, R0-13 |
 | E-83 | Wer bekommt bei der Aktivierung Course-Captain-Caps? | **Nur `administrator`**; `editor` und `shop_manager` nicht automatisch | R0-07 D07-6 | R1-01, R1-03 |
 | E-84 | Darf der Zugriffsfilter Zugang gewähren? (LB: `bootspruefung_can_access` kann Zugang beliebig erweitern) | **Nein, er darf nur einschränken.** Zugang entsteht ausschließlich über einen Grant | R0-07 D07-7 | R0-19, R1-14 |
+
+## 15. Backup, Recovery und Deployment (aus R0-16)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-85 | Ausgang (Mails, Webhooks, Outbox) automatisch anhalten, wenn sich die Site-Identität ändert (Restore, Umzug, Kopie)? | **Ja**, bis ein Admin bestätigt | R0-16 D1 | R1-23, R1-40 |
+| E-86 | Standard-Ausgangsmodus außerhalb von `production` (`COURSE_CAPTAIN_OUTBOUND`) | **`catch`** (zurückhalten und anzeigen) | R0-16 D2 | R1-23, R1-40 |
+| E-87 | Ablage von Integrationsgeheimnissen | **Konstante in `wp-config.php`**, sonst verschlüsselt in der DB mit `COURSE_CAPTAIN_SECRET_KEY` | R0-16 D3 | R1-23, R1-40 |
+| E-88 | Zurückgehaltene Mails und Ereignisse nach einem Restore | **Admin-Liste**; Standardaktion „verwerfen“ | R0-16 D4 | R1-23, R1-40 |
+| E-89 | Bestätigung für Uninstall mit Datenlöschung | **Setting plus Eingabe des Site-Namens**, mit Audit | R0-16 D5 | R1-23, R1-40 |
+| E-90 | Downgrade um eine Minor-Version ohne Restore offiziell unterstützen? | **Ja**, aber nur, wenn das Release keinen Contract-Migrationsschritt enthält | R0-16 D6 | R1-23, R1-40 |
+| E-91 | RPO/RTO-Richtwerte für die Betreiberdoku | **RPO 24 h, RTO 4 h** als Empfehlung, nicht als Zusage | R0-16 D7 | R1-23, R1-40 |
+| E-92 | Datenschutz-Löschanträge, die nach einem Restore aus einem älteren Stand wieder auftauchen würden | **Abweichend vom Agentenvorschlag („nur dokumentieren“): Lösch-Tombstones außerhalb des normalen Datenbestands führen und nach jedem Restore automatisch erneut anwenden.** „Nur dokumentieren“ reicht für Art. 17 DSGVO voraussichtlich nicht; rechtliche Bestätigung durch den Betreiber | R0-16 D8 | R1-23, R1-40 |

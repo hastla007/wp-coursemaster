@@ -89,7 +89,7 @@
   - **Ergebnis/Definition of Done:** WCAG-Ziel, Tastatur-/Screenreader-/Kontrastfälle, Übersetzbarkeit, RTL, Zeitzonen, Datums-/Zahlenformate und Sprachwechsel definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-16 · Backup, Recovery und Deployment planen**
+- [ ] **R0-16 · Backup, Recovery und Deployment planen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-16-backup-recovery-deployment.md` (Backup-Umfang und Konsistenzstufen, Regeln I-1…I-5, Runbooks für Upgrade/Rollback/Restore/Teil-Restore/Uninstall, Staging-Ausgangsmodus, Secret-Inventar, REC-001…025); Entscheidung offen → E-85…E-92
   - **Voraussetzung:** R0-06,R0-10.
   - **Ergebnis/Definition of Done:** Upgrade-/Rollback-/Restore-Runbook, Backup-Konsistenz, Staging, Secret-Handling und Recovery-Tests beschrieben.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
