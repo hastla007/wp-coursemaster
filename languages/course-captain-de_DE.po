@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Course Captain 1.0.0-dev\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/course-captain\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/course-captain/\n"
 "Last-Translator: Course Captain\n"
 "Language-Team: German\n"
 "Language: de_DE\n"
@@ -12,7 +12,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T21:23:23+00:00\n"
+"POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
 "PO-Revision-Date: 2026-11-16 00:00+0000\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -24,6 +24,7 @@ msgstr ""
 #: src/Admin/EditorScreens.php:53
 #: src/Admin/Notices.php:120
 #: src/Notification/NotificationService.php:1029
+#: src/Ops/Compatibility.php:570
 #: src/Ops/HealthChecks.php:236
 #: src/Privacy/PrivacyService.php:125
 #: src/Privacy/PrivacyService.php:135
@@ -54,13 +55,13 @@ msgstr "Course Captain benötigt PHP %1$s oder neuer. Diese Website läuft mit P
 msgid "Course Captain cannot be activated"
 msgstr "Course Captain kann nicht aktiviert werden"
 
-#: src/Access/ContentProtection.php:123
+#: src/Access/ContentProtection.php:125
 msgid "This content is available to course participants."
 msgstr "Dieser Inhalt steht Kursteilnehmenden zur Verfügung."
 
 #: src/Admin/AuthoringRoutes.php:123
 #: src/Learner/LearnerRoutes.php:147
-#: src/Rest/RestContract.php:227
+#: src/Rest/RestContract.php:229
 msgid "Please log in."
 msgstr "Bitte melde dich an."
 
@@ -72,6 +73,7 @@ msgstr "%s (Kopie)"
 
 #: src/Admin/CertificatesScreen.php:47
 #: src/Admin/CertificatesScreen.php:184
+#: src/Admin/SettingsFields.php:50
 msgid "Certificates"
 msgstr "Zertifikate"
 
@@ -89,7 +91,7 @@ msgstr "Filter"
 #: src/Admin/CertificatesScreen.php:284
 #: src/Admin/CourseSettingsPanel.php:230
 #: src/Certificate/CertificatePages.php:291
-#: src/Course/PostTypes.php:54
+#: src/Course/PostTypes.php:57
 msgid "Course"
 msgstr "Kurs"
 
@@ -192,6 +194,7 @@ msgid "Next page"
 msgstr "Nächste Seite"
 
 #: src/Admin/CertificatesScreen.php:258
+#: src/Admin/SettingsBackup.php:168
 msgid "Export"
 msgstr "Export"
 
@@ -239,6 +242,7 @@ msgstr "Dieses Zertifikat existiert nicht."
 
 #: src/Admin/CertificatesScreen.php:286
 #: src/Admin/CourseSettingsPanel.php:283
+#: src/Admin/SettingsFields.php:641
 #: src/Certificate/CertificatePages.php:290
 msgid "Issuer"
 msgstr "Aussteller"
@@ -255,7 +259,9 @@ msgstr "Vorlagenversion"
 msgid "Verification link"
 msgstr "Verifizierungslink"
 
+#. translators: %s: page title
 #: src/Admin/CertificatesScreen.php:295
+#: src/Admin/SetupWizard.php:842
 msgid "View"
 msgstr "Ansehen"
 
@@ -338,6 +344,7 @@ msgstr "Logo (Medien-ID eines Bildes, höchstens 2 MB; 0 = keines)"
 
 #: src/Admin/CertificatesScreen.php:333
 #: src/Admin/CourseSettingsPanel.php:286
+#: src/Admin/SettingsFields.php:655
 msgid "Signature line"
 msgstr "Unterschriftszeile"
 
@@ -362,6 +369,7 @@ msgid "Issued certificates"
 msgstr "Ausgestellte Zertifikate"
 
 #: src/Admin/CertificatesScreen.php:353
+#: src/Admin/SettingsScreen.php:379
 msgid "Base template"
 msgstr "Basisvorlage"
 
@@ -371,6 +379,11 @@ msgstr "Gespeichert."
 
 #: src/Admin/CertificatesScreen.php:385
 #: src/Admin/GroupsScreen.php:474
+#: src/Admin/RoleSettings.php:388
+#: src/Admin/SettingsBackup.php:157
+#: src/Admin/SettingsScreen.php:476
+#: src/Admin/SetupWizard.php:718
+#: src/Admin/TestMail.php:121
 #: src/Ops/OpsScreen.php:245
 msgid "The form has expired. Reload the page and try again."
 msgstr "Das Formular ist abgelaufen. Lade die Seite neu und versuche es noch einmal."
@@ -484,6 +497,7 @@ msgid "Yes"
 msgstr "Ja"
 
 #: src/Admin/CourseSettingsPanel.php:207
+#: src/Admin/SettingsFields.php:525
 msgid "No"
 msgstr "Nein"
 
@@ -571,6 +585,7 @@ msgid "Show feedback"
 msgstr "Feedback anzeigen"
 
 #: src/Admin/CourseSettingsPanel.php:280
+#: src/Admin/SettingsFields.php:554
 msgid "Show correct answers"
 msgstr "Richtige Antworten anzeigen"
 
@@ -583,11 +598,12 @@ msgid "Show correct answers when"
 msgstr "Richtige Antworten anzeigen, wenn"
 
 #: src/Admin/CourseSettingsPanel.php:285
+#: src/Admin/SettingsFields.php:650
 msgid "Logo (media ID)"
 msgstr "Logo (Medien-ID)"
 
 #: src/Admin/EditorScreens.php:69
-#: src/Course/PostTypes.php:70
+#: src/Course/PostTypes.php:73
 msgid "Modules"
 msgstr "Module"
 
@@ -604,7 +620,7 @@ msgid "Modules of this course"
 msgstr "Module dieses Kurses"
 
 #: src/Admin/EditorScreens.php:87
-#: src/Course/PostTypes.php:70
+#: src/Course/PostTypes.php:73
 msgid "Module"
 msgstr "Modul"
 
@@ -691,7 +707,7 @@ msgstr "Blocker"
 
 #: src/Admin/EditorScreens.php:153
 #: src/Admin/Notices.php:148
-#: src/Ops/OpsStatus.php:149
+#: src/Ops/OpsStatus.php:152
 msgid "Warning"
 msgstr "Warnung"
 
@@ -788,7 +804,9 @@ msgstr "Diese Gruppe existiert nicht."
 
 #: src/Admin/GroupsScreen.php:346
 #: src/Admin/GroupsScreen.php:435
-#: src/Course/PostTypes.php:54
+#: src/Admin/SettingsFields.php:101
+#: src/Admin/SetupWizard.php:462
+#: src/Course/PostTypes.php:57
 msgid "Courses"
 msgstr "Kurse"
 
@@ -1075,10 +1093,2482 @@ msgid "Dismiss"
 msgstr "Ausblenden"
 
 #: src/Admin/Notices.php:148
-#: src/Ops/OpsStatus.php:148
-#: src/Rest/RestContract.php:217
+#: src/Ops/OpsStatus.php:151
+#: src/Rest/RestContract.php:219
 msgid "Error"
 msgstr "Fehler"
+
+#: src/Admin/Readiness.php:36
+msgid "The learning area needs readable addresses."
+msgstr "Der Lernbereich benötigt lesbare Adressen."
+
+#: src/Admin/Readiness.php:36
+msgid "Choose a structure other than “Plain” under Settings › Permalinks."
+msgstr "Wähle unter Einstellungen › Permalinks eine andere Struktur als „Einfach“."
+
+#: src/Admin/Readiness.php:37
+msgid "Readable addresses are switched on."
+msgstr "Lesbare Adressen sind eingeschaltet."
+
+#: src/Admin/Readiness.php:42
+msgid "Course Captain cannot write to the folder for protected files."
+msgstr "Course Captain kann nicht in den Ordner für geschützte Dateien schreiben."
+
+#: src/Admin/Readiness.php:42
+msgid "Ask your host to set write permissions for the course-captain folder in uploads. Protected media are not delivered until this is fixed."
+msgstr "Bitte deinen Hoster, Schreibrechte für den Ordner course-captain in uploads zu setzen. Geschützte Medien werden erst ausgeliefert, wenn das behoben ist."
+
+#: src/Admin/Readiness.php:43
+msgid "Direct access to protected files is checked in the system status."
+msgstr "Der direkte Zugriff auf geschützte Dateien wird im Systemstatus geprüft."
+
+#: src/Admin/Readiness.php:43
+msgid "On nginx add a rule that denies direct access to the course-captain protected folder."
+msgstr "Füge unter nginx eine Regel hinzu, die den direkten Zugriff auf den geschützten Ordner von course-captain verbietet."
+
+#: src/Admin/Readiness.php:48
+msgid "Mails and evaluations are delayed. Set up a real cron job."
+msgstr "Mails und Auswertungen verzögern sich. Richte einen echten Cronjob ein."
+
+#: src/Admin/Readiness.php:52
+msgid "A test mail was sent successfully."
+msgstr "Eine Testmail wurde erfolgreich gesendet."
+
+#: src/Admin/Readiness.php:53
+msgid "No successful test mail yet."
+msgstr "Noch keine erfolgreiche Testmail."
+
+#: src/Admin/Readiness.php:53
+msgid "Send a test mail in step 5 or under Settings › Emails."
+msgstr "Sende in Schritt 5 oder unter Einstellungen › E-Mails eine Testmail."
+
+#: src/Admin/Readiness.php:57
+msgid "A privacy policy is set."
+msgstr "Eine Datenschutzerklärung ist festgelegt."
+
+#: src/Admin/Readiness.php:58
+msgid "No privacy policy is set."
+msgstr "Es ist keine Datenschutzerklärung festgelegt."
+
+#: src/Admin/Readiness.php:58
+msgid "Choose a published page under Settings › Privacy."
+msgstr "Wähle unter Einstellungen › Datenschutz eine veröffentlichte Seite."
+
+#: src/Admin/Readiness.php:61
+msgid "The website uses HTTPS."
+msgstr "Die Website verwendet HTTPS."
+
+#: src/Admin/Readiness.php:62
+msgid "The website runs without HTTPS. Logins and exams are then not protected."
+msgstr "Die Website läuft ohne HTTPS. Anmeldungen und Prüfungen sind dann nicht geschützt."
+
+#: src/Admin/Readiness.php:62
+msgid "Ask your host for a TLS certificate."
+msgstr "Bitte deinen Hoster um ein TLS-Zertifikat."
+
+#: src/Admin/Readiness.php:72
+msgid "New accounts get a role without administrative permissions."
+msgstr "Neue Konten erhalten eine Rolle ohne Verwaltungsrechte."
+
+#. translators: %s: list of capabilities
+#: src/Admin/Readiness.php:74
+#, php-format
+msgid "New accounts get a role with permissions like %s."
+msgstr "Neue Konten erhalten eine Rolle mit Rechten wie %s."
+
+#. translators: %s: list of capabilities
+#: src/Admin/Readiness.php:74
+msgid "Choose a role without editing permissions under Settings › General in WordPress."
+msgstr "Wähle unter Einstellungen › Allgemein in WordPress eine Rolle ohne Bearbeitungsrechte."
+
+#: src/Admin/Readiness.php:83
+msgid "All requests seem to come from one proxy, but no trusted proxy is entered."
+msgstr "Alle Anfragen scheinen von einem Proxy zu kommen, aber es ist kein vertrauenswürdiger Proxy eingetragen."
+
+#: src/Admin/Readiness.php:83
+msgid "Enter the proxy under Settings › Privacy & security › Trusted proxies."
+msgstr "Trage den Proxy unter Einstellungen › Datenschutz & Sicherheit › Vertrauenswürdige Proxys ein."
+
+#. translators: %s: plugin slugs
+#: src/Admin/Readiness.php:86
+#, php-format
+msgid "Hardening functions pause because of %s."
+msgstr "Härtungsfunktionen pausieren wegen %s."
+
+#: src/Admin/Readiness.php:88
+msgid "No hardening conflicts."
+msgstr "Keine Härtungskonflikte."
+
+#: src/Admin/Readiness.php:92
+msgid "The time zone is set as a fixed offset. Deadlines then shift with daylight saving time."
+msgstr "Die Zeitzone ist als feste Abweichung eingestellt. Fristen verschieben sich dann mit der Sommerzeit."
+
+#: src/Admin/Readiness.php:92
+msgid "Choose a city, for example Berlin, under Settings › General in WordPress."
+msgstr "Wähle unter Einstellungen › Allgemein in WordPress eine Stadt, zum Beispiel Berlin."
+
+#: src/Admin/Readiness.php:93
+msgid "The time zone is a city."
+msgstr "Die Zeitzone ist eine Stadt."
+
+#. translators: %s: locale
+#: src/Admin/Readiness.php:98
+#, php-format
+msgid "Course Captain is not yet fully translated for %s. Parts of the interface appear in English."
+msgstr "Course Captain ist für %s noch nicht vollständig übersetzt. Teile der Oberfläche erscheinen auf Englisch."
+
+#. translators: %s: locale
+#: src/Admin/Readiness.php:98
+msgid "Translations arrive via Dashboard › Updates."
+msgstr "Übersetzungen kommen über Dashboard › Aktualisierungen."
+
+#: src/Admin/Readiness.php:99
+msgid "The interface is available in the website language."
+msgstr "Die Oberfläche ist in der Website-Sprache verfügbar."
+
+#: src/Admin/Readiness.php:100
+msgid "Reachability of the learning area, the interface for guests and page caching are checked in the system status."
+msgstr "Erreichbarkeit des Lernbereichs, die Oberfläche für Gäste und das Seiten-Caching werden im Systemstatus geprüft."
+
+#: src/Admin/Readiness.php:123
+msgid "Blocker:"
+msgstr "Blocker:"
+
+#: src/Admin/Readiness.php:125
+msgid "Warning:"
+msgstr "Warnung:"
+
+#: src/Admin/Readiness.php:127
+msgid "Info:"
+msgstr "Info:"
+
+#: src/Admin/Readiness.php:129
+msgid "OK:"
+msgstr "OK:"
+
+#: src/Admin/RiskDialog.php:40
+msgid "Change address?"
+msgstr "Adresse ändern?"
+
+#. translators: 1: new address, 2: old address
+#: src/Admin/RiskDialog.php:42
+#, php-format
+msgid "New address: %1$s (so far %2$s). Links in emails, on certificates and in bookmarks point to the old address. Course Captain redirects them permanently as long as no other page uses the old address. Search engines take over the new address only after some time."
+msgstr "Neue Adresse: %1$s (bisher %2$s). Links in E-Mails, auf Zertifikaten und in Lesezeichen verweisen auf die alte Adresse. Course Captain leitet sie dauerhaft weiter, solange keine andere Seite die alte Adresse verwendet. Suchmaschinen übernehmen die neue Adresse erst nach einiger Zeit."
+
+#: src/Admin/RiskDialog.php:43
+msgid "Change address"
+msgstr "Adresse ändern"
+
+#: src/Admin/RiskDialog.php:47
+msgid "Make captions mandatory?"
+msgstr "Untertitel verpflichtend machen?"
+
+#: src/Admin/RiskDialog.php:48
+msgid "Published courses with videos without captions stay online. New versions of these courses can only be published once the captions are added."
+msgstr "Veröffentlichte Kurse mit Videos ohne Untertitel bleiben online. Neue Versionen dieser Kurse können erst veröffentlicht werden, wenn die Untertitel ergänzt sind."
+
+#: src/Admin/RiskDialog.php:49
+msgid "Require captions"
+msgstr "Untertitel verlangen"
+
+#: src/Admin/RiskDialog.php:53
+msgid "Change repetition strategy?"
+msgstr "Wiederholungsstrategie ändern?"
+
+#: src/Admin/RiskDialog.php:54
+msgid "New answers are evaluated with the new strategy from now on. Existing learning progress is kept; the choice of the next practice questions can change."
+msgstr "Neue Antworten werden ab jetzt mit der neuen Strategie ausgewertet. Vorhandener Lernfortschritt bleibt erhalten; die Auswahl der nächsten Übungsfragen kann sich ändern."
+
+#: src/Admin/RiskDialog.php:55
+msgid "Change strategy"
+msgstr "Strategie ändern"
+
+#. translators: %d: number of published courses
+#: src/Admin/RiskDialog.php:59
+#, php-format
+msgid "Every person with an account on this website can then enroll themselves and gets access immediately. This applies to %d published course without an own setting and to all future courses."
+msgid_plural "Every person with an account on this website can then enroll themselves and gets access immediately. This applies to %d published courses without an own setting and to all future courses."
+msgstr[0] "Jede Person mit einem Konto auf dieser Website kann sich dann selbst einschreiben und erhält sofort Zugang. Das gilt für %d veröffentlichten Kurs ohne eigene Einstellung und für alle künftigen Kurse."
+msgstr[1] "Jede Person mit einem Konto auf dieser Website kann sich dann selbst einschreiben und erhält sofort Zugang. Das gilt für %d veröffentlichte Kurse ohne eigene Einstellung und für alle künftigen Kurse."
+
+#: src/Admin/RiskDialog.php:61
+msgid "As anyone can register on this website, this practically applies to all visitors."
+msgstr "Da sich jede Person auf dieser Website registrieren kann, gilt das praktisch für alle Besucher."
+
+#: src/Admin/RiskDialog.php:64
+msgid "Switch self-enrollment on?"
+msgstr "Selbsteinschreibung einschalten?"
+
+#: src/Admin/RiskDialog.php:65
+msgid "Courses with the own setting “off” stay closed."
+msgstr "Kurse mit der eigenen Einstellung „aus“ bleiben geschlossen."
+
+#: src/Admin/RiskDialog.php:66
+msgid "Switch self-enrollment on"
+msgstr "Selbsteinschreibung einschalten"
+
+#: src/Admin/RiskDialog.php:71
+msgid "Switch groups off?"
+msgstr "Gruppen ausschalten?"
+
+#. translators: %d: number of active groups
+#: src/Admin/RiskDialog.php:73
+#, php-format
+msgid "%d active group stays; members keep their access and existing groups can still be managed. You can create new groups only after switching groups on again."
+msgid_plural "%d active groups stay; members keep their access and existing groups can still be managed. You can create new groups only after switching groups on again."
+msgstr[0] "%d aktive Gruppe bleibt bestehen; Mitglieder behalten ihren Zugang und bestehende Gruppen können weiter verwaltet werden. Neue Gruppen kannst du erst wieder anlegen, wenn Gruppen eingeschaltet sind."
+msgstr[1] "%d aktive Gruppen bleiben bestehen; Mitglieder behalten ihren Zugang und bestehende Gruppen können weiter verwaltet werden. Neue Gruppen kannst du erst wieder anlegen, wenn Gruppen eingeschaltet sind."
+
+#: src/Admin/RiskDialog.php:74
+msgid "Switch groups off"
+msgstr "Gruppen ausschalten"
+
+#: src/Admin/RiskDialog.php:78
+msgid "Switch message off?"
+msgstr "Nachricht ausschalten?"
+
+#: src/Admin/RiskDialog.php:79
+msgid "Learners no longer receive this message. Already planned messages of this type are not sent."
+msgstr "Lernende erhalten diese Nachricht nicht mehr. Bereits geplante Nachrichten dieser Art werden nicht gesendet."
+
+#: src/Admin/RiskDialog.php:80
+msgid "Switch message off"
+msgstr "Nachricht ausschalten"
+
+#: src/Admin/RiskDialog.php:84
+msgid "Delete accounts automatically?"
+msgstr "Konten automatisch löschen?"
+
+#: src/Admin/RiskDialog.php:85
+msgid "When a person confirms their erasure request, WordPress deletes their account without further check by you, including learning progress and exam attempts. Accounts with administrative permissions are excluded."
+msgstr "Wenn eine Person ihre Löschanfrage bestätigt, löscht WordPress ihr Konto ohne weitere Prüfung durch dich, einschließlich Lernfortschritt und Prüfungsversuchen. Konten mit Verwaltungsrechten sind ausgenommen."
+
+#: src/Admin/RiskDialog.php:86
+msgid "Delete automatically"
+msgstr "Automatisch löschen"
+
+#: src/Admin/RiskDialog.php:90
+msgid "Keep evidence despite erasure requests?"
+msgstr "Nachweise trotz Löschanfragen behalten?"
+
+#. translators: %s: reason entered by the admin
+#: src/Admin/RiskDialog.php:92
+#, php-format
+msgid "Exam attempts and certificates of people requesting erasure are kept pseudonymised instead of deleted. Your reason appears in the result of every request: “%s”. Without a legal basis this is not allowed."
+msgstr "Prüfungsversuche und Zertifikate von Personen, die eine Löschung verlangen, werden pseudonymisiert behalten statt gelöscht. Dein Grund erscheint im Ergebnis jeder Anfrage: „%s“. Ohne Rechtsgrundlage ist das nicht erlaubt."
+
+#: src/Admin/RiskDialog.php:93
+msgid "Keep evidence"
+msgstr "Nachweise behalten"
+
+#: src/Admin/RiskDialog.php:98
+msgid "Change trusted proxies?"
+msgstr "Vertrauenswürdige Proxys ändern?"
+
+#. translators: 1: list of proxies, 2: IP address of the current request
+#: src/Admin/RiskDialog.php:100
+#, php-format
+msgid "Course Captain then takes the address from the X-Forwarded-For header when a request comes from %1$s. If an address here does not belong to your own proxy, attackers can bypass limits and lockouts. Your current request comes from %2$s."
+msgstr "Course Captain übernimmt die Adresse dann aus dem Header X-Forwarded-For, wenn eine Anfrage von %1$s kommt. Gehört eine Adresse hier nicht zu deinem eigenen Proxy, können Angreifer Limits und Sperren umgehen. Deine aktuelle Anfrage kommt von %2$s."
+
+#: src/Admin/RiskDialog.php:101
+msgid "Save proxies"
+msgstr "Proxys speichern"
+
+#: src/Admin/RiskDialog.php:105
+msgid "Only report the Content Security Policy?"
+msgstr "Content Security Policy nur melden?"
+
+#: src/Admin/RiskDialog.php:106
+msgid "Course Captain pages then no longer block injected scripts but only report them. Use this only briefly to find conflicts with the theme."
+msgstr "Course-Captain-Seiten blockieren eingeschleuste Skripte dann nicht mehr, sondern melden sie nur. Nutze das nur kurz, um Konflikte mit dem Theme zu finden."
+
+#: src/Admin/RiskDialog.php:107
+msgid "Report only"
+msgstr "Nur melden"
+
+#: src/Admin/RiskDialog.php:111
+msgid "Change the login limit?"
+msgstr "Anmeldelimit ändern?"
+
+#: src/Admin/RiskDialog.php:112
+msgid "With the login limit, further login attempts are blocked until the end of the time window after 10 failures from one address or 5 for one account within 15 minutes. If the counter storage fails, login and “Lost password” are blocked except on known devices. “Force” keeps the limit active even next to a security plugin (double lockouts possible); switching it off removes the protection. Emergency: define( 'COURSE_CAPTAIN_HARDENING', 'off' ); in wp-config.php or wp course-captain hardening disable."
+msgstr "Mit dem Anmeldelimit werden nach 10 Fehlversuchen von einer Adresse oder 5 für ein Konto innerhalb von 15 Minuten weitere Anmeldeversuche bis zum Ende des Zeitfensters blockiert. Fällt der Zählerspeicher aus, sind Anmeldung und „Passwort vergessen“ außer auf bekannten Geräten blockiert. „Erzwingen“ hält das Limit auch neben einem Sicherheits-Plugin aktiv (doppelte Sperren möglich); Ausschalten entfernt den Schutz. Notfall: define( 'COURSE_CAPTAIN_HARDENING', 'off' ); in der wp-config.php oder wp course-captain hardening disable."
+
+#: src/Admin/RiskDialog.php:113
+msgid "Change login limit"
+msgstr "Anmeldelimit ändern"
+
+#: src/Admin/RiskDialog.php:117
+msgid "Switch XML-RPC off?"
+msgstr "XML-RPC ausschalten?"
+
+#: src/Admin/RiskDialog.php:118
+msgid "External editors, the WordPress app and pingbacks can then no longer connect."
+msgstr "Externe Editoren, die WordPress-App und Pingbacks können sich dann nicht mehr verbinden."
+
+#: src/Admin/RiskDialog.php:119
+msgid "Switch XML-RPC off"
+msgstr "XML-RPC ausschalten"
+
+#: src/Admin/RiskDialog.php:123
+msgid "Show correct answers after every submission?"
+msgstr "Richtige Antworten nach jeder Abgabe zeigen?"
+
+#: src/Admin/RiskDialog.php:124
+msgid "Learners then see the solutions while further attempts are still open; question pools can be collected across repeated attempts. Running attempts keep their setting."
+msgstr "Lernende sehen die Lösungen dann, während weitere Versuche noch offen sind; Fragenpools können über wiederholte Versuche gesammelt werden. Laufende Versuche behalten ihre Einstellung."
+
+#: src/Admin/RiskDialog.php:125
+msgid "Show solutions"
+msgstr "Lösungen zeigen"
+
+#: src/Admin/RiskDialog.php:129
+msgid "Show profile pictures?"
+msgstr "Profilbilder anzeigen?"
+
+#: src/Admin/RiskDialog.php:130
+msgid "Every page view with a profile picture transfers a hash of the email address to Gravatar, a third-party service."
+msgstr "Jeder Seitenaufruf mit Profilbild überträgt einen Hash der E-Mail-Adresse an Gravatar, einen Drittanbieterdienst."
+
+#: src/Admin/RiskDialog.php:131
+msgid "Show profile pictures"
+msgstr "Profilbilder anzeigen"
+
+#: src/Admin/RiskDialog.php:135
+msgid "Use the category “Functional”?"
+msgstr "Kategorie „Funktional“ verwenden?"
+
+#: src/Admin/RiskDialog.php:136
+msgid "Consent tools usually treat functional services as not requiring consent. External videos then load without asking learners."
+msgstr "Consent-Tools behandeln funktionale Dienste meist als nicht einwilligungspflichtig. Externe Videos laden dann, ohne Lernende zu fragen."
+
+#: src/Admin/RiskDialog.php:137
+msgid "Use “Functional”"
+msgstr "„Funktional“ verwenden"
+
+#: src/Admin/RiskDialog.php:141
+msgid "Change file delivery?"
+msgstr "Dateiauslieferung ändern?"
+
+#: src/Admin/RiskDialog.php:142
+msgid "Protected files are then delivered by the web server; the access check stays with Course Captain. After a move or hosting change downloads can fail."
+msgstr "Geschützte Dateien werden dann vom Webserver ausgeliefert; die Zugriffsprüfung bleibt bei Course Captain. Nach einem Umzug oder Hosterwechsel können Downloads fehlschlagen."
+
+#: src/Admin/RiskDialog.php:143
+msgid "Change delivery"
+msgstr "Auslieferung ändern"
+
+#: src/Admin/RiskDialog.php:157
+msgid "Confirm change?"
+msgstr "Änderung bestätigen?"
+
+#: src/Admin/RiskDialog.php:158
+msgid "This change weakens a protection or changes many accounts at once."
+msgstr "Diese Änderung schwächt einen Schutz oder ändert viele Konten auf einmal."
+
+#: src/Admin/RiskDialog.php:159
+msgid "Confirm change"
+msgstr "Änderung bestätigen"
+
+#: src/Admin/RiskDialog.php:188
+msgid "Confirm changes"
+msgstr "Änderungen bestätigen"
+
+#: src/Admin/RiskDialog.php:189
+msgid "Confirm changes and save"
+msgstr "Änderungen bestätigen und speichern"
+
+#: src/Admin/RiskDialog.php:204
+#: src/Admin/RoleSettings.php:353
+#: src/Admin/SettingsBackup.php:226
+#: src/Admin/SettingsScreen.php:639
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: src/Admin/RoleSettings.php:55
+msgid "Courses and content"
+msgstr "Kurse und Inhalte"
+
+#: src/Admin/RoleSettings.php:56
+msgid "Learners and access"
+msgstr "Lernende und Zugang"
+
+#: src/Admin/RoleSettings.php:57
+msgid "Operation and settings"
+msgstr "Betrieb und Einstellungen"
+
+#: src/Admin/RoleSettings.php:69
+msgid "Edit own courses"
+msgstr "Eigene Kurse bearbeiten"
+
+#: src/Admin/RoleSettings.php:70
+msgid "Edit courses of others"
+msgstr "Kurse anderer bearbeiten"
+
+#: src/Admin/RoleSettings.php:71
+msgid "Publish courses"
+msgstr "Kurse veröffentlichen"
+
+#: src/Admin/RoleSettings.php:72
+msgid "Delete courses"
+msgstr "Kurse löschen"
+
+#: src/Admin/RoleSettings.php:73
+msgid "Manage the question bank across courses"
+msgstr "Fragenbank kursübergreifend verwalten"
+
+#: src/Admin/RoleSettings.php:74
+msgid "Import content"
+msgstr "Inhalte importieren"
+
+#: src/Admin/RoleSettings.php:75
+msgid "Export courses"
+msgstr "Kurse exportieren"
+
+#: src/Admin/RoleSettings.php:76
+msgid "Release rights of imported content"
+msgstr "Rechte an importierten Inhalten freigeben"
+
+#: src/Admin/RoleSettings.php:77
+msgid "Enroll learners and manage access"
+msgstr "Lernende einschreiben und Zugänge verwalten"
+
+#: src/Admin/RoleSettings.php:78
+msgid "Manage access rules"
+msgstr "Zugangsregeln verwalten"
+
+#: src/Admin/RoleSettings.php:79
+msgid "Manage groups"
+msgstr "Gruppen verwalten"
+
+#: src/Admin/RoleSettings.php:80
+msgid "View reports"
+msgstr "Berichte ansehen"
+
+#: src/Admin/RoleSettings.php:81
+msgid "View learner details"
+msgstr "Details zu Lernenden ansehen"
+
+#: src/Admin/RoleSettings.php:82
+msgid "Read exam answers of others (always logged)"
+msgstr "Prüfungsantworten anderer lesen (immer protokolliert)"
+
+#: src/Admin/RoleSettings.php:83
+msgid "Grade attempts"
+msgstr "Versuche bewerten"
+
+#: src/Admin/RoleSettings.php:84
+msgid "Correct learning progress"
+msgstr "Lernfortschritt korrigieren"
+
+#: src/Admin/RoleSettings.php:85
+msgid "Manage certificates"
+msgstr "Zertifikate verwalten"
+
+#: src/Admin/RoleSettings.php:86
+msgid "Lock learners"
+msgstr "Lernende sperren"
+
+#: src/Admin/RoleSettings.php:87
+msgid "Manage settings"
+msgstr "Einstellungen verwalten"
+
+#: src/Admin/RoleSettings.php:88
+msgid "Manage integrations"
+msgstr "Integrationen verwalten"
+
+#: src/Admin/RoleSettings.php:89
+msgid "View the audit log"
+msgstr "Protokoll ansehen"
+
+#: src/Admin/RoleSettings.php:90
+msgid "View the system status"
+msgstr "Systemstatus ansehen"
+
+#: src/Admin/RoleSettings.php:91
+msgid "Run repairs"
+msgstr "Reparaturen ausführen"
+
+#: src/Admin/RoleSettings.php:92
+msgid "Assign staff to courses"
+msgstr "Personal Kursen zuordnen"
+
+#: src/Admin/RoleSettings.php:194
+msgid "Grant high-impact permissions?"
+msgstr "Rechte mit großer Wirkung vergeben?"
+
+#. translators: 1: role name, 2: number of accounts, 3: list of permissions
+#: src/Admin/RoleSettings.php:196
+#, php-format
+msgid "The role “%1$s” (%2$d account) receives: %3$s. The change applies immediately to all accounts with this role."
+msgid_plural "The role “%1$s” (%2$d accounts) receives: %3$s. The change applies immediately to all accounts with this role."
+msgstr[0] "Die Rolle „%1$s“ (%2$d Konto) erhält: %3$s. Die Änderung gilt sofort für alle Konten mit dieser Rolle."
+msgstr[1] "Die Rolle „%1$s“ (%2$d Konten) erhält: %3$s. Die Änderung gilt sofort für alle Konten mit dieser Rolle."
+
+#: src/Admin/RoleSettings.php:197
+msgid "Grant permissions"
+msgstr "Rechte vergeben"
+
+#: src/Admin/RoleSettings.php:290
+#: src/Admin/SettingsForm.php:418
+#: src/Admin/SettingsForm.php:444
+msgid "none"
+msgstr "keine"
+
+#: src/Admin/RoleSettings.php:292
+msgid "Overview"
+msgstr "Übersicht"
+
+#: src/Admin/RoleSettings.php:292
+msgid "Permissions per role (display only)"
+msgstr "Rechte je Rolle (nur Anzeige)"
+
+#: src/Admin/RoleSettings.php:292
+msgid "Role"
+msgstr "Rolle"
+
+#: src/Admin/RoleSettings.php:292
+msgid "Accounts"
+msgstr "Konten"
+
+#: src/Admin/RoleSettings.php:292
+msgid "Permissions"
+msgstr "Rechte"
+
+#: src/Admin/RoleSettings.php:293
+msgid "Edit roles"
+msgstr "Rollen bearbeiten"
+
+#. translators: 1: role name, 2: permission
+#: src/Admin/RoleSettings.php:316
+#, php-format
+msgid "%1$s: %2$s"
+msgstr "%1$s: %2$s"
+
+#: src/Admin/RoleSettings.php:318
+msgid "high impact"
+msgstr "große Wirkung"
+
+#. translators: %s: role name
+#: src/Admin/RoleSettings.php:328
+#, php-format
+msgid "Save role “%s”"
+msgstr "Rolle „%s“ speichern"
+
+#: src/Admin/RoleSettings.php:330
+msgid "Administrator: always has all permissions and cannot be changed here."
+msgstr "Administrator: hat immer alle Rechte und kann hier nicht geändert werden."
+
+#. translators: %s: role name
+#: src/Admin/RoleSettings.php:333
+#, php-format
+msgid "Default role of new accounts: %s (set in WordPress)."
+msgstr "Standardrolle neuer Konten: %s (in WordPress festgelegt)."
+
+#: src/Admin/RoleSettings.php:334
+msgid "Authors and trainers are assigned to courses in the course itself, not here."
+msgstr "Autorinnen, Autoren und Trainer werden im Kurs selbst Kursen zugeordnet, nicht hier."
+
+#: src/Admin/RoleSettings.php:336
+#: src/Admin/SettingsScreen.php:578
+#: src/Admin/SettingsScreen.php:580
+msgid "Reset tab …"
+msgstr "Tab zurücksetzen …"
+
+#: src/Admin/RoleSettings.php:339
+msgid "Undo the reset"
+msgstr "Zurücksetzen rückgängig machen"
+
+#: src/Admin/RoleSettings.php:351
+msgid "Reset roles?"
+msgstr "Rollen zurücksetzen?"
+
+#: src/Admin/RoleSettings.php:351
+msgid "The Course Captain roles get their default permissions again. Permissions Course Captain granted to other roles are removed; permissions from role editor plugins and the administrator role stay unchanged. You can undo this for 30 days."
+msgstr "Die Course-Captain-Rollen erhalten wieder ihre Standardrechte. Rechte, die Course Captain anderen Rollen gegeben hat, werden entfernt; Rechte aus Rolleneditor-Plugins und die Administrator-Rolle bleiben unverändert. Du kannst das 30 Tage lang rückgängig machen."
+
+#: src/Admin/RoleSettings.php:353
+msgid "Reset roles"
+msgstr "Rollen zurücksetzen"
+
+#: src/Admin/RoleSettings.php:367
+msgid "Role saved."
+msgstr "Rolle gespeichert."
+
+#: src/Admin/RoleSettings.php:370
+#: src/Admin/SettingsScreen.php:442
+msgid "No changes – nothing saved."
+msgstr "Keine Änderungen – nichts gespeichert."
+
+#: src/Admin/RoleSettings.php:374
+msgid "Roles reset. You can undo this for 30 days."
+msgstr "Rollen zurückgesetzt. Du kannst das 30 Tage lang rückgängig machen."
+
+#: src/Admin/RoleSettings.php:377
+#: src/Admin/SettingsScreen.php:450
+msgid "Reset undone."
+msgstr "Zurücksetzen rückgängig gemacht."
+
+#: src/Admin/RoleSettings.php:384
+#: src/Admin/SettingsScreen.php:480
+#: src/Admin/SetupWizard.php:726
+msgid "You are not allowed to change these settings."
+msgstr "Du darfst diese Einstellungen nicht ändern."
+
+#: src/Admin/RoleSettings.php:392
+#: src/Admin/SettingsScreen.php:484
+#: src/Admin/SettingsScreen.php:652
+#: src/Admin/SetupWizard.php:722
+#: src/Admin/SetupWizard.php:986
+msgid "This change needs a confirmation. Save again and confirm the dialog."
+msgstr "Diese Änderung muss bestätigt werden. Speichere erneut und bestätige den Dialog."
+
+#: src/Admin/SettingsBackup.php:42
+#: src/Admin/SettingsBackup.php:160
+#: src/Admin/SettingsScreen.php:361
+msgid "Back up settings"
+msgstr "Einstellungen sichern"
+
+#: src/Admin/SettingsBackup.php:60
+msgid "You are not allowed to export settings."
+msgstr "Du darfst keine Einstellungen exportieren."
+
+#: src/Admin/SettingsBackup.php:151
+msgid "Settings imported. Each imported tab can be undone for 30 days."
+msgstr "Einstellungen importiert. Jeder importierte Tab kann 30 Tage lang rückgängig gemacht werden."
+
+#: src/Admin/SettingsBackup.php:152
+msgid "Nothing was imported."
+msgstr "Es wurde nichts importiert."
+
+#: src/Admin/SettingsBackup.php:153
+msgid "Error: the file is not a Course Captain settings file or larger than 256 KB."
+msgstr "Fehler: Die Datei ist keine Course-Captain-Einstellungsdatei oder größer als 256 KB."
+
+#: src/Admin/SettingsBackup.php:154
+msgid "Error: the file comes from a newer Course Captain version. Update the plugin first."
+msgstr "Fehler: Die Datei stammt aus einer neueren Course-Captain-Version. Aktualisiere zuerst das Plugin."
+
+#: src/Admin/SettingsBackup.php:155
+msgid "Error: at most ten imports per hour. Try again later."
+msgstr "Fehler: Höchstens zehn Importe pro Stunde. Versuche es später erneut."
+
+#: src/Admin/SettingsBackup.php:156
+msgid "You are not allowed to import settings."
+msgstr "Du darfst keine Einstellungen importieren."
+
+#: src/Admin/SettingsBackup.php:158
+msgid "The preview has expired. Upload the file again."
+msgstr "Die Vorschau ist abgelaufen. Lade die Datei erneut hoch."
+
+#: src/Admin/SettingsBackup.php:169
+msgid "Include personal fields (sender, footers)"
+msgstr "Persönliche Felder einschließen (Absender, Fußzeilen)"
+
+#: src/Admin/SettingsBackup.php:170
+msgid "Never exported: secrets, trusted proxies, file delivery, data deletion on uninstall, roles. The file contains no URL and no names."
+msgstr "Nie exportiert: Geheimnisse, vertrauenswürdige Proxys, Dateiauslieferung, Datenlöschung bei der Deinstallation, Rollen. Die Datei enthält keine URL und keine Namen."
+
+#: src/Admin/SettingsBackup.php:171
+msgid "Download settings"
+msgstr "Einstellungen herunterladen"
+
+#: src/Admin/SettingsBackup.php:172
+msgid "Import"
+msgstr "Importieren"
+
+#: src/Admin/SettingsBackup.php:173
+msgid "Settings file (JSON, at most 256 KB)"
+msgstr "Einstellungsdatei (JSON, höchstens 256 KB)"
+
+#: src/Admin/SettingsBackup.php:174
+msgid "Show preview"
+msgstr "Vorschau anzeigen"
+
+#: src/Admin/SettingsBackup.php:194
+msgid "Preview"
+msgstr "Vorschau"
+
+#: src/Admin/SettingsBackup.php:196
+msgid "Note: the file comes from another website."
+msgstr "Hinweis: Die Datei stammt von einer anderen Website."
+
+#. translators: 1: field, 2: reason key
+#: src/Admin/SettingsBackup.php:216
+#, php-format
+msgid "%1$s: not imported (%2$s)"
+msgstr "%1$s: nicht importiert (%2$s)"
+
+#. translators: 1: field, 2: rule
+#: src/Admin/SettingsBackup.php:221
+#, php-format
+msgid "Error: %1$s: invalid value (%2$s); this tab is not imported."
+msgstr "Fehler: %1$s: ungültiger Wert (%2$s); dieser Tab wird nicht importiert."
+
+#: src/Admin/SettingsBackup.php:223
+msgid "No changes."
+msgstr "Keine Änderungen."
+
+#: src/Admin/SettingsBackup.php:226
+msgid "Import selected tabs"
+msgstr "Ausgewählte Tabs importieren"
+
+#: src/Admin/SettingsFields.php:44
+msgid "General"
+msgstr "Allgemein"
+
+#: src/Admin/SettingsFields.php:45
+msgid "Course display"
+msgstr "Kursdarstellung"
+
+#: src/Admin/SettingsFields.php:46
+msgid "Learning"
+msgstr "Lernen"
+
+#: src/Admin/SettingsFields.php:47
+#: src/Learner/ExamRoom.php:419
+msgid "Exams"
+msgstr "Prüfungen"
+
+#: src/Admin/SettingsFields.php:48
+#: src/Admin/SettingsFields.php:115
+#: src/Admin/SettingsFields.php:570
+msgid "Enrollment"
+msgstr "Einschreibung"
+
+#: src/Admin/SettingsFields.php:49
+msgid "Roles & permissions"
+msgstr "Rollen & Rechte"
+
+#: src/Admin/SettingsFields.php:51
+msgid "Emails"
+msgstr "E-Mails"
+
+#: src/Admin/SettingsFields.php:52
+msgid "Privacy & security"
+msgstr "Datenschutz & Sicherheit"
+
+#: src/Admin/SettingsFields.php:53
+#: src/Admin/SetupWizard.php:78
+msgid "Website hardening"
+msgstr "Website-Härtung"
+
+#: src/Admin/SettingsFields.php:54
+#: src/Admin/SettingsFields.php:138
+msgid "Advanced"
+msgstr "Erweitert"
+
+#: src/Admin/SettingsFields.php:67
+msgid "Addresses, pages and basic values for the learning area."
+msgstr "Adressen, Seiten und Grundwerte für den Lernbereich."
+
+#: src/Admin/SettingsFields.php:68
+msgid "How courses appear in the theme. Course Captain uses the colours and fonts of the theme as long as you change nothing."
+msgstr "Wie Kurse im Theme erscheinen. Course Captain verwendet die Farben und Schriften des Themes, solange du nichts änderst."
+
+#: src/Admin/SettingsFields.php:69
+msgid "Defaults for practice mode and course completion. Single courses can deviate."
+msgstr "Standards für den Übungsmodus und den Kursabschluss. Einzelne Kurse können abweichen."
+
+#: src/Admin/SettingsFields.php:70
+msgid "These values are defaults for exam rules published afterwards. Published rules and running attempts do not change."
+msgstr "Diese Werte sind Standards für danach veröffentlichte Prüfungsregeln. Veröffentlichte Regeln und laufende Versuche ändern sich nicht."
+
+#: src/Admin/SettingsFields.php:71
+msgid "How learners get into a course. Access always comes from an enrollment; guests see at most the free part of a course."
+msgstr "Wie Lernende in einen Kurs kommen. Zugang entsteht immer aus einer Einschreibung; Gäste sehen höchstens den kostenlosen Teil eines Kurses."
+
+#: src/Admin/SettingsFields.php:72
+msgid "Which role may do what in Course Captain. Learners need no permissions: course access only comes from enrollments."
+msgstr "Welche Rolle in Course Captain was darf. Lernende brauchen keine Rechte: Kurszugang entsteht nur aus Einschreibungen."
+
+#: src/Admin/SettingsFields.php:73
+msgid "Defaults for certificates and the public verification page."
+msgstr "Standards für Zertifikate und die öffentliche Prüfseite."
+
+#: src/Admin/SettingsFields.php:74
+msgid "Sender, format and which messages Course Captain sends via WordPress."
+msgstr "Absender, Format und welche Nachrichten Course Captain über WordPress sendet."
+
+#: src/Admin/SettingsFields.php:75
+msgid "Data requests, retention, external media and network settings."
+msgstr "Datenanfragen, Aufbewahrung, externe Medien und Netzwerkeinstellungen."
+
+#: src/Admin/SettingsFields.php:76
+msgid "Protection of the whole website, not only the learning area. Functions a security plugin already handles pause automatically."
+msgstr "Schutz der ganzen Website, nicht nur des Lernbereichs. Funktionen, die ein Sicherheits-Plugin bereits übernimmt, pausieren automatisch."
+
+#: src/Admin/SettingsFields.php:77
+msgid "Technical settings for imports, file delivery and background jobs."
+msgstr "Technische Einstellungen für Importe, Dateiauslieferung und Hintergrundaufgaben."
+
+#: src/Admin/SettingsFields.php:92
+msgid "Addresses"
+msgstr "Adressen"
+
+#: src/Admin/SettingsFields.php:93
+msgid "Pages"
+msgstr "Seiten"
+
+#: src/Admin/SettingsFields.php:94
+msgid "Learning area"
+msgstr "Lernbereich"
+
+#: src/Admin/SettingsFields.php:95
+msgid "Removing the plugin"
+msgstr "Plugin entfernen"
+
+#: src/Admin/SettingsFields.php:98
+msgid "Display"
+msgstr "Darstellung"
+
+#: src/Admin/SettingsFields.php:102
+#: src/Admin/SettingsFields.php:440
+msgid "Feedback while practising"
+msgstr "Feedback beim Üben"
+
+#: src/Admin/SettingsFields.php:106
+msgid "Attempts and time"
+msgstr "Versuche und Zeit"
+
+#: src/Admin/SettingsFields.php:107
+msgid "Passing and order"
+msgstr "Bestehen und Reihenfolge"
+
+#: src/Admin/SettingsFields.php:108
+#: src/Admin/SettingsFields.php:537
+msgid "Result feedback"
+msgstr "Ergebnis-Feedback"
+
+#: src/Admin/SettingsFields.php:118
+msgid "Issuing"
+msgstr "Ausstellung"
+
+#: src/Admin/SettingsFields.php:122
+msgid "Sender"
+msgstr "Absender"
+
+#: src/Admin/SettingsFields.php:123
+#: src/Ops/OpsScreen.php:330
+msgid "Messages"
+msgstr "Nachrichten"
+
+#: src/Admin/SettingsFields.php:127
+msgid "Data requests"
+msgstr "Datenanfragen"
+
+#: src/Admin/SettingsFields.php:128
+#: src/Settings/EffectiveSettings.php:90
+msgid "External media"
+msgstr "Externe Medien"
+
+#: src/Admin/SettingsFields.php:129
+msgid "Network and browser protection"
+msgstr "Netzwerk- und Browserschutz"
+
+#: src/Admin/SettingsFields.php:133
+msgid "Login"
+msgstr "Anmeldung"
+
+#: src/Admin/SettingsFields.php:134
+#: src/Admin/SettingsFields.php:771
+msgid "XML-RPC"
+msgstr "XML-RPC"
+
+#: src/Admin/SettingsFields.php:135
+#: src/Admin/SettingsFields.php:780
+msgid "Security headers"
+msgstr "Sicherheits-Header"
+
+#: src/Admin/SettingsFields.php:195
+msgid "for all, changeable per course"
+msgstr "für alle, je Kurs änderbar"
+
+#: src/Admin/SettingsFields.php:197
+msgid "default, changeable per exam"
+msgstr "Standard, je Prüfung änderbar"
+
+#: src/Admin/SettingsFields.php:199
+msgid "whole website"
+msgstr "ganze Website"
+
+#: src/Admin/SettingsFields.php:201
+msgid "for all"
+msgstr "für alle"
+
+#. translators: 1: field label, 2: suggested address
+#: src/Admin/SettingsFields.php:219
+#, php-format
+msgid "Error: %1$s: allowed are lower-case letters a–z, digits and hyphens, 2 to 50 characters, no hyphen at the start or end. Suggestion: “%2$s”."
+msgstr "Fehler: %1$s: Erlaubt sind Kleinbuchstaben a–z, Ziffern und Bindestriche, 2 bis 50 Zeichen, kein Bindestrich am Anfang oder Ende. Vorschlag: „%2$s“."
+
+#. translators: 1: address, 2: suggested address
+#: src/Admin/SettingsFields.php:222
+#, php-format
+msgid "Error: “%1$s” is reserved in WordPress. Choose another address, for example “%2$s”."
+msgstr "Fehler: „%1$s“ ist in WordPress reserviert. Wähle eine andere Adresse, zum Beispiel „%2$s“."
+
+#. translators: 1: address, 2: suggested address
+#: src/Admin/SettingsFields.php:225
+#, php-format
+msgid "Error: “%1$s” is already used by a page or post. Choose another address, for example “%2$s”, or rename the page."
+msgstr "Fehler: „%1$s“ wird bereits von einer Seite oder einem Beitrag verwendet. Wähle eine andere Adresse, zum Beispiel „%2$s“, oder benenne die Seite um."
+
+#. translators: %s: address
+#: src/Admin/SettingsFields.php:228
+#, php-format
+msgid "Error: “%s” is already used by another plugin for its own content. Choose another address."
+msgstr "Fehler: „%s“ wird bereits von einem anderen Plugin für eigene Inhalte verwendet. Wähle eine andere Adresse."
+
+#. translators: %s: suggested address
+#: src/Admin/SettingsFields.php:231
+#, php-format
+msgid "Error: this address is already used by another post type, taxonomy, base or rewrite rule. Choose another address, for example “%s”, or confirm the conflict."
+msgstr "Fehler: Diese Adresse wird bereits von einem anderen Inhaltstyp, einer Taxonomie, einer Basis oder einer Rewrite-Regel verwendet. Wähle eine andere Adresse, zum Beispiel „%s“, oder bestätige den Konflikt."
+
+#: src/Admin/SettingsFields.php:233
+msgid "Error: the learning area and single courses need different addresses."
+msgstr "Fehler: Der Lernbereich und einzelne Kurse brauchen unterschiedliche Adressen."
+
+#: src/Admin/SettingsFields.php:235
+msgid "Error: the selected page is not published. Publish it or choose another page."
+msgstr "Fehler: Die ausgewählte Seite ist nicht veröffentlicht. Veröffentliche sie oder wähle eine andere Seite."
+
+#: src/Admin/SettingsFields.php:237
+msgid "Error: the selected page no longer exists. Choose another page or create a new one."
+msgstr "Fehler: Die ausgewählte Seite existiert nicht mehr. Wähle eine andere Seite oder erstelle eine neue."
+
+#: src/Admin/SettingsFields.php:239
+msgid "Error: you may not edit the selected page. Choose another page."
+msgstr "Fehler: Du darfst die ausgewählte Seite nicht bearbeiten. Wähle eine andere Seite."
+
+#. translators: 1: field label, 2: maximum number of characters
+#: src/Admin/SettingsFields.php:242
+#, php-format
+msgid "Error: %1$s: at most %2$s characters, no line breaks."
+msgstr "Fehler: %1$s: höchstens %2$s Zeichen, keine Zeilenumbrüche."
+
+#. translators: 1: field label, 2: minimum, 3: maximum
+#: src/Admin/SettingsFields.php:245
+#, php-format
+msgid "Error: %1$s: enter a whole number from %2$s to %3$s."
+msgstr "Fehler: %1$s: Gib eine ganze Zahl von %2$s bis %3$s ein."
+
+#. translators: %s: field label
+#: src/Admin/SettingsFields.php:248
+#, php-format
+msgid "Error: %s: enter a whole number, for example 30."
+msgstr "Fehler: %s: Gib eine ganze Zahl ein, zum Beispiel 30."
+
+#: src/Admin/SettingsFields.php:250
+msgid "Error: passing threshold: enter a value above 0 and at most 100 %."
+msgstr "Fehler: Bestehensgrenze: Gib einen Wert über 0 und höchstens 100 % ein."
+
+#: src/Admin/SettingsFields.php:252
+msgid "Error: passing threshold: at most one decimal place, for example 66.7 %."
+msgstr "Fehler: Bestehensgrenze: höchstens eine Nachkommastelle, zum Beispiel 66,7 %."
+
+#. translators: %s: entered value
+#: src/Admin/SettingsFields.php:255
+#, php-format
+msgid "Error: sender address: “%s” is not a valid email address."
+msgstr "Fehler: Absenderadresse: „%s“ ist keine gültige E-Mail-Adresse."
+
+#. translators: 1: line number, 2: entered value
+#: src/Admin/SettingsFields.php:258
+#, php-format
+msgid "Error: line %1$d: “%2$s” is not a valid IP address and not a valid range (for example 10.0.0.0/8)."
+msgstr "Fehler: Zeile %1$d: „%2$s“ ist keine gültige IP-Adresse und kein gültiger Bereich (zum Beispiel 10.0.0.0/8)."
+
+#. translators: 1: line number, 2: entered value
+#: src/Admin/SettingsFields.php:261
+#, php-format
+msgid "Error: line %1$d: “%2$s” would trust every address and is not allowed."
+msgstr "Fehler: Zeile %1$d: „%2$s“ würde jeder Adresse vertrauen und ist nicht erlaubt."
+
+#. translators: %d: number of entries
+#: src/Admin/SettingsFields.php:264
+#, php-format
+msgid "Error: at most 50 entries (now %d)."
+msgstr "Fehler: höchstens 50 Einträge (derzeit %d)."
+
+#: src/Admin/SettingsFields.php:266
+msgid "Error: the entered name does not match the name of this website."
+msgstr "Fehler: Der eingegebene Name stimmt nicht mit dem Namen dieser Website überein."
+
+#: src/Admin/SettingsFields.php:268
+msgid "Error: reason: required when evidence is kept despite an erasure request (at most 500 characters)."
+msgstr "Fehler: Grund: Pflicht, wenn Nachweise trotz Löschanfrage behalten werden (höchstens 500 Zeichen)."
+
+#: src/Admin/SettingsFields.php:270
+msgid "Error: this is a required message and cannot be switched off."
+msgstr "Fehler: Dies ist eine Pflichtnachricht und kann nicht ausgeschaltet werden."
+
+#: src/Admin/SettingsFields.php:272
+msgid "Error: you cannot grant a permission you do not have yourself."
+msgstr "Fehler: Du kannst kein Recht vergeben, das du selbst nicht hast."
+
+#: src/Admin/SettingsFields.php:274
+msgid "Error: only administrators may grant this permission."
+msgstr "Fehler: Nur Administratoren dürfen dieses Recht vergeben."
+
+#: src/Admin/SettingsFields.php:276
+msgid "Error: the administrator role always has all permissions and cannot be changed here."
+msgstr "Fehler: Die Administrator-Rolle hat immer alle Rechte und kann hier nicht geändert werden."
+
+#: src/Admin/SettingsFields.php:278
+msgid "Error: course title: required field."
+msgstr "Fehler: Kurstitel: Pflichtfeld."
+
+#: src/Admin/SettingsFields.php:280
+msgid "Error: course title: at most 200 characters."
+msgstr "Fehler: Kurstitel: höchstens 200 Zeichen."
+
+#. translators: %s: field label
+#: src/Admin/SettingsFields.php:283
+#, php-format
+msgid "Error: %s: check the value."
+msgstr "Fehler: %s: Prüfe den Wert."
+
+#: src/Admin/SettingsFields.php:299
+msgid "Only when no attempts are left or the exam is passed"
+msgstr "Nur wenn keine Versuche mehr übrig sind oder die Prüfung bestanden ist"
+
+#: src/Admin/SettingsFields.php:300
+msgid "Directly after every submission"
+msgstr "Direkt nach jeder Abgabe"
+
+#: src/Admin/SettingsFields.php:309
+msgid "Address of the learning area"
+msgstr "Adresse des Lernbereichs"
+
+#: src/Admin/SettingsFields.php:310
+msgid "Learners find their courses, exams and certificates here. Old addresses keep redirecting permanently. Allowed: lower-case letters, digits, hyphens."
+msgstr "Hier finden Lernende ihre Kurse, Prüfungen und Zertifikate. Alte Adressen leiten weiterhin dauerhaft weiter. Erlaubt: Kleinbuchstaben, Ziffern, Bindestriche."
+
+#: src/Admin/SettingsFields.php:313
+msgid "Address of single courses"
+msgstr "Adresse einzelner Kurse"
+
+#: src/Admin/SettingsFields.php:314
+msgid "Stands in front of the name of every course."
+msgstr "Steht vor dem Namen jedes Kurses."
+
+#: src/Admin/SettingsFields.php:317
+msgid "Course catalogue page"
+msgstr "Seite des Kurskatalogs"
+
+#: src/Admin/SettingsFields.php:318
+msgid "Page with the “Course catalogue” block. Course Captain never overwrites its content."
+msgstr "Seite mit dem Block „Kurskatalog“. Course Captain überschreibt ihren Inhalt nie."
+
+#: src/Admin/SettingsFields.php:320
+msgid "No own page – show the catalogue in the learning area"
+msgstr "Keine eigene Seite – Katalog im Lernbereich anzeigen"
+
+#: src/Admin/SettingsFields.php:323
+msgid "Start page for learners"
+msgstr "Startseite für Lernende"
+
+#: src/Admin/SettingsFields.php:324
+msgid "Learners land here via “My learning”. If the page disappears later, Course Captain uses the learning area and reports it in the system status."
+msgstr "Lernende landen hier über „Mein Lernbereich“. Verschwindet die Seite später, verwendet Course Captain den Lernbereich und meldet das im Systemstatus."
+
+#: src/Admin/SettingsFields.php:326
+msgid "My learning in the learning area"
+msgstr "Mein Lernbereich im Lernbereich"
+
+#: src/Admin/SettingsFields.php:329
+msgid "Title of the learning area"
+msgstr "Titel des Lernbereichs"
+
+#: src/Admin/SettingsFields.php:330
+msgid "Leave empty to use the website title."
+msgstr "Leer lassen, um den Website-Titel zu verwenden."
+
+#: src/Admin/SettingsFields.php:333
+msgid "Language for learners"
+msgstr "Sprache für Lernende"
+
+#: src/Admin/SettingsFields.php:334
+msgid "Automatic: learners see the learning area in their profile language as soon as more than one language is installed."
+msgstr "Automatisch: Lernende sehen den Lernbereich in ihrer Profilsprache, sobald mehr als eine Sprache installiert ist."
+
+#: src/Admin/SettingsFields.php:337
+msgid "Automatic"
+msgstr "Automatisch"
+
+#: src/Admin/SettingsFields.php:338
+msgid "Always profile language"
+msgstr "Immer Profilsprache"
+
+#: src/Admin/SettingsFields.php:339
+msgid "Never, always website language"
+msgstr "Nie, immer Website-Sprache"
+
+#: src/Admin/SettingsFields.php:343
+msgid "Group language versions in the catalogue"
+msgstr "Sprachversionen im Katalog zusammenfassen"
+
+#: src/Admin/SettingsFields.php:344
+msgid "Shows a course and its translations as one card with a language choice."
+msgstr "Zeigt einen Kurs und seine Übersetzungen als eine Karte mit Sprachauswahl."
+
+#: src/Admin/SettingsFields.php:348
+msgid "Search engines"
+msgstr "Suchmaschinen"
+
+#: src/Admin/SettingsFields.php:349
+msgid "Public catalogue and course pages may appear in search engines. Learning area, lessons, certificates and invitations never appear."
+msgstr "Öffentlicher Katalog und Kursseiten dürfen in Suchmaschinen erscheinen. Lernbereich, Lektionen, Zertifikate und Einladungen erscheinen nie."
+
+#: src/Admin/SettingsFields.php:353
+msgid "Catalogue can be indexed"
+msgstr "Katalog darf indexiert werden"
+
+#: src/Admin/SettingsFields.php:354
+msgid "Index nothing"
+msgstr "Nichts indexieren"
+
+#: src/Admin/SettingsFields.php:358
+msgid "Remove all data when the plugin is deleted"
+msgstr "Alle Daten entfernen, wenn das Plugin gelöscht wird"
+
+#: src/Admin/SettingsFields.php:359
+msgid "Deactivating never deletes anything. Importing settings never takes over this setting. To switch it on, type the name of this website below."
+msgstr "Deaktivieren löscht nie etwas. Der Import von Einstellungen übernimmt diese Einstellung nie. Gib zum Einschalten unten den Namen dieser Website ein."
+
+#: src/Admin/SettingsFields.php:366
+msgid "Width of the learning area"
+msgstr "Breite des Lernbereichs"
+
+#: src/Admin/SettingsFields.php:367
+msgid "Theme uses the content width of your theme; the other options widen only the learning area."
+msgstr "„Theme“ verwendet die Inhaltsbreite deines Themes; die anderen Optionen verbreitern nur den Lernbereich."
+
+#: src/Admin/SettingsFields.php:371
+msgid "Theme"
+msgstr "Theme"
+
+#: src/Admin/SettingsFields.php:372
+msgid "Wide"
+msgstr "Breit"
+
+#: src/Admin/SettingsFields.php:373
+msgid "Full width"
+msgstr "Volle Breite"
+
+#: src/Admin/SettingsFields.php:377
+msgid "Show breadcrumb navigation"
+msgstr "Brotkrumen-Navigation anzeigen"
+
+#: src/Admin/SettingsFields.php:378
+msgid "Shows the path course › module › lesson above the content."
+msgstr "Zeigt den Pfad Kurs › Modul › Lektion über dem Inhalt."
+
+#: src/Admin/SettingsFields.php:383
+msgid "Order in the catalogue"
+msgstr "Reihenfolge im Katalog"
+
+#: src/Admin/SettingsFields.php:384
+msgid "With equal position, courses are sorted by title."
+msgstr "Bei gleicher Position werden Kurse nach Titel sortiert."
+
+#: src/Admin/SettingsFields.php:387
+msgid "Manual"
+msgstr "Manuell"
+
+#: src/Admin/SettingsFields.php:388
+msgid "Title"
+msgstr "Titel"
+
+#: src/Admin/SettingsFields.php:389
+msgid "Newest"
+msgstr "Neueste"
+
+#: src/Admin/SettingsFields.php:393
+msgid "Content of course cards"
+msgstr "Inhalt der Kurskarten"
+
+#: src/Admin/SettingsFields.php:394
+msgid "Without a selection, the card shows only the title."
+msgstr "Ohne Auswahl zeigt die Karte nur den Titel."
+
+#: src/Admin/SettingsFields.php:397
+msgid "Cover image"
+msgstr "Titelbild"
+
+#: src/Admin/SettingsFields.php:398
+msgid "Summary"
+msgstr "Zusammenfassung"
+
+#: src/Admin/SettingsFields.php:399
+msgid "Number of lessons"
+msgstr "Anzahl der Lektionen"
+
+#: src/Admin/SettingsFields.php:400
+msgid "Progress"
+msgstr "Fortschritt"
+
+#: src/Admin/SettingsFields.php:404
+msgid "Require captions for videos"
+msgstr "Untertitel für Videos verlangen"
+
+#: src/Admin/SettingsFields.php:405
+msgid "Courses with videos without captions can then not be published. Missing alternative texts always block."
+msgstr "Kurse mit Videos ohne Untertitel können dann nicht veröffentlicht werden. Fehlende Alternativtexte blockieren immer."
+
+#: src/Admin/SettingsFields.php:411
+msgid "A course counts as completed when …"
+msgstr "Ein Kurs gilt als abgeschlossen, wenn …"
+
+#: src/Admin/SettingsFields.php:412
+msgid "Takes effect with the next publication of a course."
+msgstr "Wirkt ab der nächsten Veröffentlichung eines Kurses."
+
+#: src/Admin/SettingsFields.php:416
+msgid "… all required modules are done"
+msgstr "… alle Pflichtmodule erledigt sind"
+
+#: src/Admin/SettingsFields.php:417
+msgid "… additionally an exam is passed"
+msgstr "… zusätzlich eine Prüfung bestanden ist"
+
+#: src/Admin/SettingsFields.php:421
+msgid "Repetition strategy"
+msgstr "Wiederholungsstrategie"
+
+#: src/Admin/SettingsFields.php:422
+msgid "Decides which questions come back while practising. A change only affects new answers."
+msgstr "Entscheidet, welche Fragen beim Üben wiederkommen. Eine Änderung betrifft nur neue Antworten."
+
+#: src/Admin/SettingsFields.php:425
+msgid "Smarttrainer v1 (only available strategy)"
+msgstr "Smarttrainer v1 (einzige verfügbare Strategie)"
+
+#: src/Admin/SettingsFields.php:428
+msgid "Allow favourites"
+msgstr "Favoriten erlauben"
+
+#: src/Admin/SettingsFields.php:429
+msgid "Favourites are private; trainers and reports never see them."
+msgstr "Favoriten sind privat; Trainer/innen und Berichte sehen sie nie."
+
+#: src/Admin/SettingsFields.php:434
+msgid "Offer mistake training"
+msgstr "Fehlertraining anbieten"
+
+#: src/Admin/SettingsFields.php:435
+msgid "Learners can practise the questions they answered wrongly."
+msgstr "Lernende können die Fragen üben, die sie falsch beantwortet haben."
+
+#: src/Admin/SettingsFields.php:441
+msgid "Shows right or wrong and the correct answer."
+msgstr "Zeigt richtig oder falsch und die richtige Antwort."
+
+#: src/Admin/SettingsFields.php:445
+msgid "Immediately after every answer"
+msgstr "Direkt nach jeder Antwort"
+
+#: src/Admin/SettingsFields.php:446
+msgid "After submitting the exercise"
+msgstr "Nach dem Abgeben der Übung"
+
+#: src/Admin/SettingsFields.php:447
+#: src/Admin/SettingsFields.php:543
+#: src/Admin/SettingsFields.php:636
+msgid "Never"
+msgstr "Nie"
+
+#: src/Admin/SettingsFields.php:451
+msgid "Show the correct answer"
+msgstr "Richtige Antwort zeigen"
+
+#: src/Admin/SettingsFields.php:452
+msgid "Only effective when feedback is shown."
+msgstr "Wirkt nur, wenn Feedback angezeigt wird."
+
+#: src/Admin/SettingsFields.php:460
+msgid "Attempts per exam"
+msgstr "Versuche pro Prüfung"
+
+#: src/Admin/SettingsFields.php:461
+msgid "Counted per learner and exam; frozen when an attempt starts."
+msgstr "Gezählt je Lernende/r und Prüfung; beim Start eines Versuchs eingefroren."
+
+#: src/Admin/SettingsFields.php:464
+#: src/Admin/SettingsFields.php:585
+msgid "Unlimited"
+msgstr "Unbegrenzt"
+
+#: src/Admin/SettingsFields.php:467
+msgid "Waiting time between attempts"
+msgstr "Wartezeit zwischen Versuchen"
+
+#: src/Admin/SettingsFields.php:468
+msgid "Interrupted attempts can be continued at any time."
+msgstr "Unterbrochene Versuche können jederzeit fortgesetzt werden."
+
+#: src/Admin/SettingsFields.php:470
+#: src/Admin/SettingsFields.php:502
+msgid "seconds"
+msgstr "Sekunden"
+
+#: src/Admin/SettingsFields.php:474
+#: src/Settings/EffectiveSettings.php:75
+msgid "Cancelled attempts count"
+msgstr "Abgebrochene Versuche zählen"
+
+#: src/Admin/SettingsFields.php:475
+msgid "Only effective with an attempt limit. Attempts voided by support or ended by a course withdrawal never count."
+msgstr "Wirkt nur mit Versuchslimit. Versuche, die der Support für ungültig erklärt oder die durch einen Kursaustritt beendet wurden, zählen nie."
+
+#: src/Admin/SettingsFields.php:481
+msgid "Time limit (suggestion)"
+msgstr "Zeitlimit (Vorschlag)"
+
+#: src/Admin/SettingsFields.php:482
+msgid "The server time is decisive."
+msgstr "Maßgeblich ist die Serverzeit."
+
+#: src/Admin/SettingsFields.php:484
+#: src/Admin/SettingsFields.php:814
+msgid "minutes"
+msgstr "Minuten"
+
+#: src/Admin/SettingsFields.php:486
+msgid "No time limit"
+msgstr "Kein Zeitlimit"
+
+#: src/Admin/SettingsFields.php:489
+#: src/Settings/EffectiveSettings.php:77
+msgid "Timer mode"
+msgstr "Timer-Modus"
+
+#: src/Admin/SettingsFields.php:490
+msgid "Practice: learners may hide and extend the timer; the result does not count as evidence."
+msgstr "Übung: Lernende dürfen den Timer ausblenden und verlängern; das Ergebnis zählt nicht als Nachweis."
+
+#: src/Admin/SettingsFields.php:494
+msgid "Strict"
+msgstr "Streng"
+
+#: src/Admin/SettingsFields.php:495
+msgid "Practice"
+msgstr "Übung"
+
+#: src/Admin/SettingsFields.php:499
+msgid "Tolerance for connection loss"
+msgstr "Toleranz bei Verbindungsabbruch"
+
+#: src/Admin/SettingsFields.php:500
+msgid "Answers arriving up to this time after the end are still counted."
+msgstr "Antworten, die bis zu dieser Zeit nach dem Ende eintreffen, werden noch gewertet."
+
+#: src/Admin/SettingsFields.php:506
+msgid "Submit automatically when inactive"
+msgstr "Bei Inaktivität automatisch abgeben"
+
+#: src/Admin/SettingsFields.php:507
+msgid "Only for attempts without time limit. Learners are warned beforehand."
+msgstr "Nur für Versuche ohne Zeitlimit. Lernende werden vorher gewarnt."
+
+#: src/Admin/SettingsFields.php:509
+#: src/Admin/SettingsFields.php:583
+#: src/Admin/SettingsFields.php:597
+#: src/Admin/SettingsFields.php:707
+#: src/Admin/SettingsFields.php:807
+msgid "days"
+msgstr "Tage"
+
+#: src/Admin/SettingsFields.php:511
+msgid "Off"
+msgstr "Aus"
+
+#: src/Admin/SettingsFields.php:514
+msgid "Passing threshold (suggestion)"
+msgstr "Bestehensgrenze (Vorschlag)"
+
+#: src/Admin/SettingsFields.php:515
+msgid "Suggestion for new exams. There is no official default; every exam stores its own threshold."
+msgstr "Vorschlag für neue Prüfungen. Es gibt keinen offiziellen Standard; jede Prüfung speichert ihre eigene Grenze."
+
+#: src/Admin/SettingsFields.php:520
+msgid "Shuffle questions (pool exams)"
+msgstr "Fragen mischen (Pool-Prüfungen)"
+
+#: src/Admin/SettingsFields.php:521
+msgid "Fixed question sheets always keep their order."
+msgstr "Feste Fragebögen behalten immer ihre Reihenfolge."
+
+#: src/Admin/SettingsFields.php:526
+msgid "Within sections"
+msgstr "Innerhalb von Abschnitten"
+
+#: src/Admin/SettingsFields.php:527
+#: src/Ops/AuditScreen.php:70
+msgid "All"
+msgstr "Alle"
+
+#: src/Admin/SettingsFields.php:531
+#: src/Settings/EffectiveSettings.php:80
+msgid "Shuffle answers"
+msgstr "Antworten mischen"
+
+#: src/Admin/SettingsFields.php:532
+msgid "Answers marked as fixed (for example “All of the above”) keep their place."
+msgstr "Als fest markierte Antworten (zum Beispiel „Alle genannten“) behalten ihren Platz."
+
+#: src/Admin/SettingsFields.php:538
+msgid "Whether learners see a result after submitting."
+msgstr "Ob Lernende nach dem Abgeben ein Ergebnis sehen."
+
+#: src/Admin/SettingsFields.php:542
+msgid "After submission"
+msgstr "Nach der Abgabe"
+
+#: src/Admin/SettingsFields.php:547
+msgid "Show points"
+msgstr "Punkte zeigen"
+
+#: src/Admin/SettingsFields.php:548
+#: src/Admin/SettingsFields.php:555
+msgid "Only effective when result feedback is shown."
+msgstr "Wirkt nur, wenn Ergebnis-Feedback angezeigt wird."
+
+#: src/Admin/SettingsFields.php:561
+msgid "When correct answers appear"
+msgstr "Wann richtige Antworten erscheinen"
+
+#: src/Admin/SettingsFields.php:562
+msgid "After every submission learners always see which questions were right or wrong. Showing solutions directly makes question pools exploitable across repeated attempts."
+msgstr "Nach jeder Abgabe sehen Lernende immer, welche Fragen richtig oder falsch waren. Lösungen direkt zu zeigen macht Fragenpools über wiederholte Versuche ausnutzbar."
+
+#: src/Admin/SettingsFields.php:571
+msgid "Applies to all courses without an own setting. Selling via a shop is set up later under Integrations."
+msgstr "Gilt für alle Kurse ohne eigene Einstellung. Der Verkauf über einen Shop wird später unter Integrationen eingerichtet."
+
+#: src/Admin/SettingsFields.php:575
+msgid "I enroll learners"
+msgstr "Ich schreibe Lernende ein"
+
+#: src/Admin/SettingsFields.php:576
+msgid "Logged-in people enroll themselves (free)"
+msgstr "Angemeldete Personen schreiben sich selbst ein (kostenlos)"
+
+#: src/Admin/SettingsFields.php:580
+msgid "Duration of a new access"
+msgstr "Dauer eines neuen Zugangs"
+
+#: src/Admin/SettingsFields.php:581
+msgid "Applies to new enrollments. Existing access stays unchanged. Duration of the access, not of the data."
+msgstr "Gilt für neue Einschreibungen. Bestehende Zugänge bleiben unverändert. Dauer des Zugangs, nicht der Daten."
+
+#: src/Admin/SettingsFields.php:588
+msgid "Use groups with seats"
+msgstr "Gruppen mit Plätzen verwenden"
+
+#: src/Admin/SettingsFields.php:589
+msgid "For companies, clubs or classes. Switching off only prevents new groups; existing groups, seats and access stay."
+msgstr "Für Firmen, Vereine oder Klassen. Ausschalten verhindert nur neue Gruppen; bestehende Gruppen, Plätze und Zugänge bleiben."
+
+#: src/Admin/SettingsFields.php:594
+msgid "Validity of invitations"
+msgstr "Gültigkeit von Einladungen"
+
+#: src/Admin/SettingsFields.php:595
+msgid "Applies to new invitations; single groups can be shorter."
+msgstr "Gilt für neue Einladungen; einzelne Gruppen können kürzer sein."
+
+#: src/Admin/SettingsFields.php:600
+msgid "Who may accept an invitation?"
+msgstr "Wer darf eine Einladung annehmen?"
+
+#: src/Admin/SettingsFields.php:601
+msgid "An email address does not prove who someone is."
+msgstr "Eine E-Mail-Adresse beweist nicht, wer jemand ist."
+
+#: src/Admin/SettingsFields.php:604
+msgid "Everyone with the link"
+msgstr "Alle mit dem Link"
+
+#: src/Admin/SettingsFields.php:605
+msgid "Only the invited address"
+msgstr "Nur die eingeladene Adresse"
+
+#: src/Admin/SettingsFields.php:609
+msgid "Waiting enrollments count as failed after"
+msgstr "Wartende Einschreibungen gelten als fehlgeschlagen nach"
+
+#: src/Admin/SettingsFields.php:610
+msgid "Applies to enrollments from external sources that were not confirmed in time."
+msgstr "Gilt für Einschreibungen aus externen Quellen, die nicht rechtzeitig bestätigt wurden."
+
+#: src/Admin/SettingsFields.php:612
+msgid "hours"
+msgstr "Stunden"
+
+#: src/Admin/SettingsFields.php:615
+msgid "When an access source disappears"
+msgstr "Wenn eine Zugangsquelle wegfällt"
+
+#: src/Admin/SettingsFields.php:616
+msgid "Access is never withdrawn automatically."
+msgstr "Zugang wird nie automatisch entzogen."
+
+#: src/Admin/SettingsFields.php:619
+msgid "Keep access"
+msgstr "Zugang behalten"
+
+#: src/Admin/SettingsFields.php:620
+msgid "Keep and mark for review"
+msgstr "Behalten und zur Prüfung markieren"
+
+#: src/Admin/SettingsFields.php:626
+#: src/Settings/EffectiveSettings.php:86
+msgid "Issue certificates automatically"
+msgstr "Zertifikate automatisch ausstellen"
+
+#: src/Admin/SettingsFields.php:627
+msgid "Applies to courses without an own setting that have a completion rule. Issued certificates do not change."
+msgstr "Gilt für Kurse ohne eigene Einstellung, die eine Abschlussregel haben. Ausgestellte Zertifikate ändern sich nicht."
+
+#: src/Admin/SettingsFields.php:632
+msgid "Name on the public verification page"
+msgstr "Name auf der öffentlichen Prüfseite"
+
+#: src/Admin/SettingsFields.php:633
+msgid "Email addresses never appear there."
+msgstr "E-Mail-Adressen erscheinen dort nie."
+
+#: src/Admin/SettingsFields.php:637
+msgid "When the person allows it for their certificate"
+msgstr "Wenn die Person es für ihr Zertifikat erlaubt"
+
+#: src/Admin/SettingsFields.php:642
+msgid "Leave empty to use the website title. Changes create a new template version; issued certificates keep theirs."
+msgstr "Leer lassen, um den Website-Titel zu verwenden. Änderungen erzeugen eine neue Vorlagenversion; ausgestellte Zertifikate behalten ihre."
+
+#: src/Admin/SettingsFields.php:645
+msgid "Footer"
+msgstr "Fußzeile"
+
+#: src/Admin/SettingsFields.php:646
+msgid "Text at the bottom of every certificate."
+msgstr "Text unten auf jedem Zertifikat."
+
+#: src/Admin/SettingsFields.php:651
+msgid "ID of an image in the media library; 0 = no logo."
+msgstr "ID eines Bildes in der Mediathek; 0 = kein Logo."
+
+#: src/Admin/SettingsFields.php:656
+msgid "Text below the signature area, for example a role."
+msgstr "Text unter dem Unterschriftsbereich, zum Beispiel eine Funktion."
+
+#: src/Admin/SettingsFields.php:661
+msgid "Sender name (optional)"
+msgstr "Absendername (optional)"
+
+#: src/Admin/SettingsFields.php:662
+msgid "Leave empty to use the WordPress default."
+msgstr "Leer lassen, um den WordPress-Standard zu verwenden."
+
+#: src/Admin/SettingsFields.php:665
+msgid "Sender address (optional)"
+msgstr "Absenderadresse (optional)"
+
+#: src/Admin/SettingsFields.php:666
+msgid "Leave empty to use the WordPress default. An address of your own domain lands in spam less often."
+msgstr "Leer lassen, um den WordPress-Standard zu verwenden. Eine Adresse deiner eigenen Domain landet seltener im Spam."
+
+#: src/Admin/SettingsFields.php:670
+msgid "Footer of all Course Captain mails"
+msgstr "Fußzeile aller Course-Captain-Mails"
+
+#: src/Admin/SettingsFields.php:671
+msgid "Allowed: simple formatting and links."
+msgstr "Erlaubt: einfache Formatierungen und Links."
+
+#: src/Admin/SettingsFields.php:675
+msgid "Format"
+msgstr "Format"
+
+#: src/Admin/SettingsFields.php:676
+msgid "Text only is read best by some mail programs and screen readers."
+msgstr "Reiner Text wird von manchen Mailprogrammen und Screenreadern am besten gelesen."
+
+#: src/Admin/SettingsFields.php:679
+msgid "HTML with text version"
+msgstr "HTML mit Textversion"
+
+#: src/Admin/SettingsFields.php:680
+msgid "Text only"
+msgstr "Nur Text"
+
+#: src/Admin/SettingsFields.php:684
+msgid "Which messages are sent"
+msgstr "Welche Nachrichten gesendet werden"
+
+#: src/Admin/SettingsFields.php:685
+msgid "Learners can unsubscribe from informational messages themselves. Required messages (important for access or rights) cannot be switched off and are not listed."
+msgstr "Lernende können sich selbst von informativen Nachrichten abmelden. Pflichtnachrichten (wichtig für Zugang oder Rechte) können nicht ausgeschaltet werden und sind nicht aufgeführt."
+
+#: src/Admin/SettingsFields.php:692
+msgid "Provide data export automatically after a confirmed request"
+msgstr "Datenexport nach bestätigter Anfrage automatisch bereitstellen"
+
+#: src/Admin/SettingsFields.php:693
+msgid "The person receives the download link at their confirmed address."
+msgstr "Die Person erhält den Download-Link an ihre bestätigte Adresse."
+
+#: src/Admin/SettingsFields.php:698
+msgid "Delete the account automatically after a confirmed erasure request"
+msgstr "Konto nach bestätigter Löschanfrage automatisch löschen"
+
+#: src/Admin/SettingsFields.php:699
+msgid "Accounts with administrative permissions are excluded."
+msgstr "Konten mit Verwaltungsrechten sind ausgenommen."
+
+#: src/Admin/SettingsFields.php:704
+msgid "Maximum age of your backups"
+msgstr "Höchstalter deiner Backups"
+
+#: src/Admin/SettingsFields.php:705
+msgid "So that deleted people do not reappear after a restore, Course Captain remembers deletions this long plus 30 days."
+msgstr "Damit gelöschte Personen nach einer Wiederherstellung nicht wieder auftauchen, merkt sich Course Captain Löschungen so lange plus 30 Tage."
+
+#: src/Admin/SettingsFields.php:711
+msgid "External videos (for example YouTube, Vimeo)"
+msgstr "Externe Videos (zum Beispiel YouTube, Vimeo)"
+
+#: src/Admin/SettingsFields.php:712
+msgid "By default the learning area loads external videos immediately. The browser of your learners then transfers at least the IP address to the video service without prior consent. Check with your privacy advisor whether you want this. With “Load after click” the connection is only made after a click or a consent in your consent tool."
+msgstr "Standardmäßig lädt der Lernbereich externe Videos sofort. Der Browser deiner Lernenden überträgt dann ohne vorherige Einwilligung mindestens die IP-Adresse an den Videodienst. Kläre mit deiner Datenschutzberatung, ob du das möchtest. Mit „Nach Klick laden“ wird die Verbindung erst nach einem Klick oder einer Einwilligung in deinem Consent-Tool aufgebaut."
+
+#: src/Admin/SettingsFields.php:715
+msgid "Always load"
+msgstr "Immer laden"
+
+#: src/Admin/SettingsFields.php:716
+msgid "Load after click"
+msgstr "Nach Klick laden"
+
+#: src/Admin/SettingsFields.php:717
+msgid "Show as link only"
+msgstr "Nur als Link zeigen"
+
+#: src/Admin/SettingsFields.php:721
+msgid "Learners may choose “Always load”"
+msgstr "Lernende dürfen „Immer laden“ wählen"
+
+#: src/Admin/SettingsFields.php:722
+msgid "Only effective with “Load after click”. The box is never pre-ticked for learners."
+msgstr "Wirkt nur mit „Nach Klick laden“. Das Kästchen ist für Lernende nie vorab angekreuzt."
+
+#: src/Admin/SettingsFields.php:727
+msgid "Category in the consent tool"
+msgstr "Kategorie im Consent-Tool"
+
+#: src/Admin/SettingsFields.php:728
+msgid "Only effective with “Load after click”: Course Captain asks for consent in this category via the WP Consent API."
+msgstr "Wirkt nur mit „Nach Klick laden“: Course Captain fragt über die WP Consent API die Einwilligung in dieser Kategorie ab."
+
+#: src/Admin/SettingsFields.php:732
+msgid "Marketing"
+msgstr "Marketing"
+
+#: src/Admin/SettingsFields.php:733
+msgid "Statistics"
+msgstr "Statistik"
+
+#: src/Admin/SettingsFields.php:734
+msgid "Preferences"
+msgstr "Präferenzen"
+
+#: src/Admin/SettingsFields.php:735
+msgid "Functional"
+msgstr "Funktional"
+
+#: src/Admin/SettingsFields.php:739
+msgid "Show profile pictures (Gravatar)"
+msgstr "Profilbilder anzeigen (Gravatar)"
+
+#: src/Admin/SettingsFields.php:740
+msgid "Hashed email addresses are transferred to Gravatar."
+msgstr "Gehashte E-Mail-Adressen werden an Gravatar übertragen."
+
+#: src/Admin/SettingsFields.php:744
+msgid "Trusted proxies"
+msgstr "Vertrauenswürdige Proxys"
+
+#: src/Admin/SettingsFields.php:745
+msgid "One address or range per line. Only enter addresses if your website runs behind your own proxy or load balancer."
+msgstr "Eine Adresse oder ein Bereich pro Zeile. Trage nur Adressen ein, wenn deine Website hinter deinem eigenen Proxy oder Load Balancer läuft."
+
+#: src/Admin/SettingsFields.php:750
+msgid "Content Security Policy for Course Captain pages"
+msgstr "Content Security Policy für Course-Captain-Seiten"
+
+#: src/Admin/SettingsFields.php:751
+msgid "Blocks injected scripts on Course Captain pages. Report only should be used only briefly."
+msgstr "Blockiert eingeschleuste Skripte auf Course-Captain-Seiten. „Nur melden“ sollte nur kurz verwendet werden."
+
+#: src/Admin/SettingsFields.php:754
+msgid "Enforce"
+msgstr "Erzwingen"
+
+#: src/Admin/SettingsFields.php:755
+msgid "Report only (for troubleshooting)"
+msgstr "Nur melden (zur Fehlersuche)"
+
+#: src/Admin/SettingsFields.php:760
+msgid "Login limit"
+msgstr "Anmeldelimit"
+
+#: src/Admin/SettingsFields.php:760
+msgid "Blocks further login attempts after too many failures. Pauses automatically while a security plugin has its own login lockout."
+msgstr "Blockiert weitere Anmeldeversuche nach zu vielen Fehlversuchen. Pausiert automatisch, solange ein Sicherheits-Plugin eine eigene Anmeldesperre hat."
+
+#: src/Admin/SettingsFields.php:762
+msgid "Exempt known devices from address lockouts"
+msgstr "Bekannte Geräte von Adresssperren ausnehmen"
+
+#: src/Admin/SettingsFields.php:763
+msgid "A signed, technically necessary cookie recognises devices on which the person already logged in successfully."
+msgstr "Ein signiertes, technisch notwendiges Cookie erkennt Geräte, auf denen sich die Person bereits erfolgreich angemeldet hat."
+
+#: src/Admin/SettingsFields.php:768
+msgid "Limit for “Lost password”"
+msgstr "Limit für „Passwort vergessen“"
+
+#: src/Admin/SettingsFields.php:768
+msgid "Limits requests per address and account. The answer is the same for known and unknown accounts."
+msgstr "Begrenzt Anfragen pro Adresse und Konto. Die Antwort ist für bekannte und unbekannte Konten gleich."
+
+#: src/Admin/SettingsFields.php:769
+msgid "Limit for registrations"
+msgstr "Limit für Registrierungen"
+
+#: src/Admin/SettingsFields.php:769
+msgid "Limits new accounts per address and hour. Only effective while anyone can register."
+msgstr "Begrenzt neue Konten pro Adresse und Stunde. Wirkt nur, solange sich jede Person registrieren kann."
+
+#: src/Admin/SettingsFields.php:772
+msgid "Old interface for external editors and pingbacks; often used for attacks."
+msgstr "Alte Schnittstelle für externe Editoren und Pingbacks; wird oft für Angriffe genutzt."
+
+#: src/Admin/SettingsFields.php:776
+msgid "WordPress default"
+msgstr "WordPress-Standard"
+
+#: src/Admin/SettingsFields.php:777
+msgid "Switch off"
+msgstr "Ausschalten"
+
+#: src/Admin/SettingsFields.php:780
+msgid "nosniff, Referrer-Policy, embedding only on this website and a Permissions-Policy for Course Captain responses. Headers the server already sends are not sent twice."
+msgstr "nosniff, Referrer-Policy, Einbettung nur auf dieser Website und eine Permissions-Policy für Course-Captain-Antworten. Header, die der Server bereits sendet, werden nicht doppelt gesendet."
+
+#: src/Admin/SettingsFields.php:784
+msgid "Run imports"
+msgstr "Importe ausführen"
+
+#: src/Admin/SettingsFields.php:785
+msgid "WP-CLI is always possible."
+msgstr "WP-CLI ist immer möglich."
+
+#: src/Admin/SettingsFields.php:788
+msgid "In the background (recommended)"
+msgstr "Im Hintergrund (empfohlen)"
+
+#: src/Admin/SettingsFields.php:789
+msgid "In the browser tab"
+msgstr "Im Browser-Tab"
+
+#: src/Admin/SettingsFields.php:793
+msgid "Delivery of protected files"
+msgstr "Auslieferung geschützter Dateien"
+
+#: src/Admin/SettingsFields.php:794
+msgid "PHP works everywhere. The server methods are faster for large files."
+msgstr "PHP funktioniert überall. Die Servermethoden sind bei großen Dateien schneller."
+
+#: src/Admin/SettingsFields.php:798
+msgid "PHP"
+msgstr "PHP"
+
+#: src/Admin/SettingsFields.php:799
+msgid "X-Sendfile (Apache)"
+msgstr "X-Sendfile (Apache)"
+
+#: src/Admin/SettingsFields.php:800
+msgid "X-Accel-Redirect (nginx)"
+msgstr "X-Accel-Redirect (nginx)"
+
+#: src/Admin/SettingsFields.php:804
+msgid "Remove deleted media permanently after"
+msgstr "Gelöschte Medien endgültig entfernen nach"
+
+#: src/Admin/SettingsFields.php:805
+msgid "Unreferenced protected files are deleted after this grace period."
+msgstr "Nicht mehr referenzierte geschützte Dateien werden nach dieser Frist gelöscht."
+
+#: src/Admin/SettingsFields.php:811
+msgid "Warn when background jobs did not run for longer than"
+msgstr "Warnen, wenn Hintergrundaufgaben länger nicht gelaufen sind als"
+
+#: src/Admin/SettingsFields.php:812
+msgid "The system status and Site Health warn after this time."
+msgstr "Systemstatus und Website-Zustand warnen nach dieser Zeit."
+
+#. translators: %d: number of fields with errors
+#: src/Admin/SettingsForm.php:315
+#: src/Admin/SetupWizard.php:764
+#, php-format
+msgid "%d entry must be corrected:"
+msgid_plural "%d entries must be corrected:"
+msgstr[0] "%d Eintrag muss korrigiert werden:"
+msgstr[1] "%d Einträge müssen korrigiert werden:"
+
+#. translators: 1: default value, 2: scope
+#: src/Admin/SettingsForm.php:400
+#, php-format
+msgid "Default: %1$s · Applies: %2$s"
+msgstr "Standard: %1$s · Gilt: %2$s"
+
+#. translators: %s: label of the field this one depends on
+#: src/Admin/SettingsForm.php:403
+#, php-format
+msgid "Depends on: %s"
+msgstr "Hängt ab von: %s"
+
+#: src/Admin/SettingsForm.php:421
+msgid "off until saved once, then on"
+msgstr "aus, bis einmal gespeichert, dann an"
+
+#: src/Admin/SettingsForm.php:421
+#: src/Admin/SettingsForm.php:425
+msgid "on"
+msgstr "an"
+
+#: src/Admin/SettingsForm.php:425
+msgid "off"
+msgstr "aus"
+
+#: src/Admin/SettingsForm.php:432
+#: src/Admin/SettingsForm.php:447
+msgid "empty"
+msgstr "leer"
+
+#: src/Admin/SettingsForm.php:513
+msgid "Value:"
+msgstr "Wert:"
+
+#. translators: %d: page ID
+#: src/Admin/SettingsForm.php:543
+#, php-format
+msgid "Page %d (not published)"
+msgstr "Seite %d (nicht veröffentlicht)"
+
+#. translators: %s: message name
+#: src/Admin/SettingsForm.php:559
+#, php-format
+msgid "Send “%s”"
+msgstr "„%s“ senden"
+
+#: src/Admin/SettingsScreen.php:50
+#: src/Admin/SettingsScreen.php:354
+#: src/Admin/SettingsScreen.php:359
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: src/Admin/SettingsScreen.php:50
+msgctxt "admin menu"
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: src/Admin/SettingsScreen.php:354
+msgid "You are not allowed to change settings."
+msgstr "Du darfst keine Einstellungen ändern."
+
+#: src/Admin/SettingsScreen.php:361
+msgid "Open the setup assistant"
+msgstr "Einrichtungsassistenten öffnen"
+
+#: src/Admin/SettingsScreen.php:379
+msgid "Edit the base template under Certificates"
+msgstr "Basisvorlage unter Zertifikate bearbeiten"
+
+#: src/Admin/SettingsScreen.php:382
+msgid "Test mail"
+msgstr "Testmail"
+
+#: src/Admin/SettingsScreen.php:397
+msgid "Settings: areas"
+msgstr "Einstellungen: Bereiche"
+
+#: src/Admin/SettingsScreen.php:417
+msgid "You changed settings in this form but did not save them. Leave the page and discard the changes?"
+msgstr "Du hast Einstellungen in diesem Formular geändert, aber nicht gespeichert. Seite verlassen und Änderungen verwerfen?"
+
+#. translators: %s: tab name
+#: src/Admin/SettingsScreen.php:437
+#, php-format
+msgid "Settings “%s” saved."
+msgstr "Einstellungen „%s“ gespeichert."
+
+#. translators: 1: tab name, 2: number of warnings
+#: src/Admin/SettingsScreen.php:439
+#, php-format
+msgid "Settings “%1$s” saved, %2$d warning."
+msgid_plural "Settings “%1$s” saved, %2$d warnings."
+msgstr[0] "Einstellungen „%1$s“ gespeichert, %2$d Warnung."
+msgstr[1] "Einstellungen „%1$s“ gespeichert, %2$d Warnungen."
+
+#. translators: %d: number of settings
+#: src/Admin/SettingsScreen.php:447
+#, php-format
+msgid "Tab reset: %d setting has its default value again. You can undo this for 30 days."
+msgid_plural "Tab reset: %d settings have their default value again. You can undo this for 30 days."
+msgstr[0] "Tab zurückgesetzt: %d Einstellung hat wieder ihren Standardwert. Du kannst das 30 Tage lang rückgängig machen."
+msgstr[1] "Tab zurückgesetzt: %d Einstellungen haben wieder ihren Standardwert. Du kannst das 30 Tage lang rückgängig machen."
+
+#: src/Admin/SettingsScreen.php:453
+msgid "There is nothing to undo any more."
+msgstr "Es gibt nichts mehr rückgängig zu machen."
+
+#. translators: 1: display name, 2: time, 3: list of fields
+#: src/Admin/SettingsScreen.php:468
+#, php-format
+msgid "This tab was changed in the meantime by %1$s (%2$s). Affected: %3$s. Your input is still here. Check the new values and save again."
+msgstr "Dieser Tab wurde inzwischen von %1$s geändert (%2$s). Betroffen: %3$s. Deine Eingaben sind noch da. Prüfe die neuen Werte und speichere erneut."
+
+#: src/Admin/SettingsScreen.php:469
+msgid "someone else"
+msgstr "jemand anderem"
+
+#: src/Admin/SettingsScreen.php:473
+msgid "Load new values (discard my input)"
+msgstr "Neue Werte laden (meine Eingaben verwerfen)"
+
+#. translators: %s: current stored value
+#: src/Admin/SettingsScreen.php:538
+#, php-format
+msgid "Changed in the meantime to: %s"
+msgstr "Inzwischen geändert auf: %s"
+
+#: src/Admin/SettingsScreen.php:559
+msgid "Save changes"
+msgstr "Änderungen speichern"
+
+#: src/Admin/SettingsScreen.php:578
+msgid "All values match the default."
+msgstr "Alle Werte entsprechen dem Standard."
+
+#. translators: %s: date until which undo is possible
+#: src/Admin/SettingsScreen.php:588
+#, php-format
+msgid "Undo the reset (possible until %s)"
+msgstr "Zurücksetzen rückgängig machen (möglich bis %s)"
+
+#. translators: %s: tab name
+#: src/Admin/SettingsScreen.php:632
+#, php-format
+msgid "Reset tab “%s”?"
+msgstr "Tab „%s“ zurücksetzen?"
+
+#. translators: %d: number of settings
+#: src/Admin/SettingsScreen.php:634
+#, php-format
+msgid "This %d setting gets its default value again:"
+msgid_plural "These %d settings get their default value again:"
+msgstr[0] "Diese %d Einstellung erhält wieder ihren Standardwert:"
+msgstr[1] "Diese %d Einstellungen erhalten wieder ihren Standardwert:"
+
+#: src/Admin/SettingsScreen.php:636
+msgid "Not affected: other tabs, settings of single courses and exams, learning progress, access, groups, attempts and certificates. You can undo this for 30 days."
+msgstr "Nicht betroffen: andere Tabs, Einstellungen einzelner Kurse und Prüfungen, Lernfortschritt, Zugänge, Gruppen, Versuche und Zertifikate. Du kannst das 30 Tage lang rückgängig machen."
+
+#: src/Admin/SettingsScreen.php:639
+msgid "Reset tab"
+msgstr "Tab zurücksetzen"
+
+#. translators: %s: domain of the website
+#: src/Admin/SettingsScreen.php:684
+#, php-format
+msgid "Warning: the address does not belong to the domain of this website (%s). Without matching SPF/DMARC records mails often land in spam."
+msgstr "Warnung: Die Adresse gehört nicht zur Domain dieser Website (%s). Ohne passende SPF/DMARC-Einträge landen Mails oft im Spam."
+
+#: src/Admin/SettingsScreen.php:689
+msgid "Warning: new people cannot register on this website. Only people with an existing account can enroll themselves."
+msgstr "Warnung: Neue Personen können sich auf dieser Website nicht registrieren. Nur Personen mit bestehendem Konto können sich selbst einschreiben."
+
+#: src/Admin/SettingsScreen.php:692
+msgid "Warning: long validity keeps invitation links usable and invited addresses stored for longer."
+msgstr "Warnung: Eine lange Gültigkeit hält Einladungslinks länger nutzbar und eingeladene Adressen länger gespeichert."
+
+#: src/Admin/SettingsScreen.php:697
+msgid "Warning: deletion markers can expire before your backups are rotated."
+msgstr "Warnung: Löschmarkierungen können ablaufen, bevor deine Backups rotiert werden."
+
+#. translators: %s: IP address of the proxy
+#: src/Admin/SettingsScreen.php:704
+#, php-format
+msgid "Warning: all requests seem to come from %s (probably a proxy or load balancer). Enter it under Privacy & security › Trusted proxies, otherwise a login lockout hits everyone at once."
+msgstr "Warnung: Alle Anfragen scheinen von %s zu kommen (vermutlich ein Proxy oder Load Balancer). Trage ihn unter Datenschutz & Sicherheit › Vertrauenswürdige Proxys ein, sonst trifft eine Anmeldesperre alle auf einmal."
+
+#. translators: %s: plugin slug
+#: src/Admin/SettingsScreen.php:708
+#, php-format
+msgid "Warning: %s uses XML-RPC. After switching it off, parts of it no longer work."
+msgstr "Warnung: %s verwendet XML-RPC. Nach dem Ausschalten funktionieren Teile davon nicht mehr."
+
+#: src/Admin/SettingsScreen.php:733
+msgid "Currently without effect because of the setting it depends on; the stored value is kept."
+msgstr "Derzeit ohne Wirkung wegen der Einstellung, von der sie abhängt; der gespeicherte Wert bleibt erhalten."
+
+#. translators: %s: website name
+#: src/Admin/SettingsScreen.php:762
+#, php-format
+msgid "To switch it on, type the name of the website: %s"
+msgstr "Gib zum Einschalten den Namen der Website ein: %s"
+
+#: src/Admin/SettingsScreen.php:775
+msgid "Website hardening is switched off in wp-config.php (COURSE_CAPTAIN_HARDENING). Changes here only take effect once the constant is removed."
+msgstr "Die Website-Härtung ist in der wp-config.php ausgeschaltet (COURSE_CAPTAIN_HARDENING). Änderungen hier wirken erst, wenn die Konstante entfernt ist."
+
+#: src/Admin/SettingsScreen.php:778
+#: src/Admin/SetupWizard.php:855
+msgid "Detected security plugins"
+msgstr "Erkannte Sicherheits-Plugins"
+
+#: src/Admin/SettingsScreen.php:779
+#: src/Admin/SetupWizard.php:855
+msgid "No security plugin detected."
+msgstr "Kein Sicherheits-Plugin erkannt."
+
+#: src/Admin/SettingsScreen.php:782
+msgid "Failed logins per address"
+msgstr "Fehlgeschlagene Anmeldungen pro Adresse"
+
+#: src/Admin/SettingsScreen.php:783
+msgid "Failed logins per account and address"
+msgstr "Fehlgeschlagene Anmeldungen pro Konto und Adresse"
+
+#: src/Admin/SettingsScreen.php:784
+msgid "Failed logins per account"
+msgstr "Fehlgeschlagene Anmeldungen pro Konto"
+
+#: src/Admin/SettingsScreen.php:785
+msgid "Lost password per address"
+msgstr "„Passwort vergessen“ pro Adresse"
+
+#: src/Admin/SettingsScreen.php:786
+msgid "Lost password per account and address"
+msgstr "„Passwort vergessen“ pro Konto und Adresse"
+
+#: src/Admin/SettingsScreen.php:787
+msgid "Lost password per account"
+msgstr "„Passwort vergessen“ pro Konto"
+
+#: src/Admin/SettingsScreen.php:788
+msgid "Registrations per address"
+msgstr "Registrierungen pro Adresse"
+
+#. translators: 1: number of attempts, 2: minutes
+#: src/Admin/SettingsScreen.php:792
+#, php-format
+msgid "%1$d in %2$d min"
+msgstr "%1$d in %2$d Min."
+
+#: src/Admin/SettingsScreen.php:794
+msgid "Effective limits (changeable by filter only)"
+msgstr "Wirksame Limits (nur per Filter änderbar)"
+
+#: src/Admin/SettingsScreen.php:795
+msgid "Emergency"
+msgstr "Notfall"
+
+#: src/Admin/SettingsScreen.php:795
+#: src/Admin/SetupWizard.php:793
+msgid "If you lock yourself out: add define( 'COURSE_CAPTAIN_HARDENING', 'off' ); to wp-config.php or run wp course-captain hardening disable."
+msgstr "Falls du dich aussperrst: Füge define( 'COURSE_CAPTAIN_HARDENING', 'off' ); in die wp-config.php ein oder führe wp course-captain hardening disable aus."
+
+#: src/Admin/SettingsScreen.php:808
+msgid "Status: active"
+msgstr "Status: aktiv"
+
+#. translators: %s: plugin slug
+#: src/Admin/SettingsScreen.php:811
+#, php-format
+msgid "Status: paused because of %s"
+msgstr "Status: pausiert wegen %s"
+
+#: src/Admin/SettingsScreen.php:813
+msgid "Status: off until the tab is saved once"
+msgstr "Status: aus, bis der Tab einmal gespeichert wird"
+
+#: src/Admin/SettingsScreen.php:815
+msgid "Status: not needed (registration closed)"
+msgstr "Status: nicht nötig (Registrierung geschlossen)"
+
+#: src/Admin/SettingsScreen.php:817
+msgid "Status: off"
+msgstr "Status: aus"
+
+#: src/Admin/SetupWizard.php:51
+msgid "Setup"
+msgstr "Einrichtung"
+
+#: src/Admin/SetupWizard.php:73
+msgid "Purpose & language"
+msgstr "Zweck & Sprache"
+
+#: src/Admin/SetupWizard.php:74
+msgid "Addresses & pages"
+msgstr "Adressen & Seiten"
+
+#: src/Admin/SetupWizard.php:75
+msgid "Enrollment & groups"
+msgstr "Einschreibung & Gruppen"
+
+#: src/Admin/SetupWizard.php:76
+msgid "Learning & exams"
+msgstr "Lernen & Prüfungen"
+
+#: src/Admin/SetupWizard.php:77
+msgid "Email & privacy"
+msgstr "E-Mail & Datenschutz"
+
+#: src/Admin/SetupWizard.php:79
+msgid "First course"
+msgstr "Erster Kurs"
+
+#: src/Admin/SetupWizard.php:80
+msgid "Readiness check"
+msgstr "Bereitschaftsprüfung"
+
+#: src/Admin/SetupWizard.php:93
+msgid "What do you use Course Captain for? Your answer fills the next steps with matching suggestions. You can change every suggestion."
+msgstr "Wofür nutzt du Course Captain? Deine Antwort füllt die nächsten Schritte mit passenden Vorschlägen. Du kannst jeden Vorschlag ändern."
+
+#: src/Admin/SetupWizard.php:94
+msgid "Choose the address under which learners find their courses."
+msgstr "Wähle die Adresse, unter der Lernende ihre Kurse finden."
+
+#: src/Admin/SetupWizard.php:95
+msgid "How do learners get into a course? Access always comes from an enrollment; without one, guests see at most the free part of a course."
+msgstr "Wie kommen Lernende in einen Kurs? Zugang entsteht immer aus einer Einschreibung; ohne sie sehen Gäste höchstens den kostenlosen Teil eines Kurses."
+
+#: src/Admin/SetupWizard.php:96
+msgid "These values are suggestions for new courses and exams. You can set every exam individually later. Running attempts never change."
+msgstr "Diese Werte sind Vorschläge für neue Kurse und Prüfungen. Du kannst jede Prüfung später einzeln einstellen. Laufende Versuche ändern sich nie."
+
+#: src/Admin/SetupWizard.php:97
+msgid "Course Captain sends mails via WordPress. Choose the sender and how external videos are loaded."
+msgstr "Course Captain sendet Mails über WordPress. Wähle den Absender und wie externe Videos geladen werden."
+
+#: src/Admin/SetupWizard.php:98
+msgid "Course Captain can protect your whole website against frequent attacks. If a security plugin already does this, Course Captain holds back for that function."
+msgstr "Course Captain kann deine ganze Website vor häufigen Angriffen schützen. Übernimmt das bereits ein Sicherheits-Plugin, hält sich Course Captain für diese Funktion zurück."
+
+#: src/Admin/SetupWizard.php:99
+msgid "Create an empty course skeleton so you can start right away. You write the content yourself or import it."
+msgstr "Lege ein leeres Kursgerüst an, damit du sofort loslegen kannst. Die Inhalte schreibst du selbst oder importierst sie."
+
+#: src/Admin/SetupWizard.php:100
+msgid "Course Captain checks whether everything is ready. Fix blockers before your first course."
+msgstr "Course Captain prüft, ob alles bereit ist. Behebe Blocker vor deinem ersten Kurs."
+
+#. translators: %d: step number
+#: src/Admin/SetupWizard.php:167
+#, php-format
+msgid "The setup stopped at step %d of 8."
+msgstr "Die Einrichtung wurde bei Schritt %d von 8 unterbrochen."
+
+#: src/Admin/SetupWizard.php:168
+msgid "Continue setup"
+msgstr "Einrichtung fortsetzen"
+
+#: src/Admin/SetupWizard.php:170
+msgid "Course Captain is ready. Set up the learning area in about 10 minutes."
+msgstr "Course Captain ist bereit. Richte den Lernbereich in etwa 10 Minuten ein."
+
+#: src/Admin/SetupWizard.php:171
+msgid "Start setup"
+msgstr "Einrichtung starten"
+
+#: src/Admin/SetupWizard.php:175
+msgid "Hide notice"
+msgstr "Hinweis ausblenden"
+
+#: src/Admin/SetupWizard.php:187
+msgid "Sorry, you are not allowed to access this page."
+msgstr "Du darfst leider nicht auf diese Seite zugreifen."
+
+#: src/Admin/SetupWizard.php:500
+msgid "Module 1"
+msgstr "Modul 1"
+
+#: src/Admin/SetupWizard.php:515
+msgid "Lesson 1"
+msgstr "Lektion 1"
+
+#. translators: 1: step number, 2: step title
+#: src/Admin/SetupWizard.php:617
+#, php-format
+msgid "Setup · Step %1$d of 8: %2$s"
+msgstr "Einrichtung · Schritt %1$d von 8: %2$s"
+
+#: src/Admin/SetupWizard.php:631
+msgid "Leave setup – your progress is kept"
+msgstr "Einrichtung verlassen – dein Fortschritt bleibt erhalten"
+
+#. translators: %d: step number
+#: src/Admin/SetupWizard.php:651
+#, php-format
+msgid "Step %d saved."
+msgstr "Schritt %d gespeichert."
+
+#: src/Admin/SetupWizard.php:662
+msgid "Setup steps"
+msgstr "Einrichtungsschritte"
+
+#: src/Admin/SetupWizard.php:666
+msgid "current step"
+msgstr "aktueller Schritt"
+
+#: src/Admin/SetupWizard.php:668
+msgid "saved"
+msgstr "gespeichert"
+
+#: src/Admin/SetupWizard.php:670
+msgid "skipped"
+msgstr "übersprungen"
+
+#: src/Admin/SetupWizard.php:672
+#: src/Learner/ExamRoom.php:106
+msgid "open"
+msgstr "offen"
+
+#. translators: 1: display name, 2: date and time
+#: src/Admin/SetupWizard.php:688
+#, php-format
+msgid "Last edited by %1$s, %2$s"
+msgstr "Zuletzt bearbeitet von %1$s, %2$s"
+
+#: src/Admin/SetupWizard.php:705
+msgid "Setup completed."
+msgstr "Einrichtung abgeschlossen."
+
+#. translators: %d: number of open points
+#: src/Admin/SetupWizard.php:710
+#, php-format
+msgid "Setup completed. %d point is still open."
+msgid_plural "Setup completed. %d points are still open."
+msgstr[0] "Einrichtung abgeschlossen. %d Punkt ist noch offen."
+msgstr[1] "Einrichtung abgeschlossen. %d Punkte sind noch offen."
+
+#: src/Admin/SetupWizard.php:714
+msgid "These settings were changed in the meantime by someone else. Your input is still here. Check the values and save again."
+msgstr "Diese Einstellungen wurden inzwischen von jemand anderem geändert. Deine Eingaben sind noch da. Prüfe die Werte und speichere erneut."
+
+#: src/Admin/SetupWizard.php:760
+#: src/Admin/SetupWizard.php:877
+msgid "Course title"
+msgstr "Kurstitel"
+
+#: src/Admin/SetupWizard.php:781
+msgid "Suggestion for your purpose."
+msgstr "Vorschlag für deinen Zweck."
+
+#: src/Admin/SetupWizard.php:793
+msgid "If you skip this step, hardening stays off."
+msgstr "Wenn du diesen Schritt überspringst, bleibt die Härtung aus."
+
+#: src/Admin/SetupWizard.php:795
+msgid "Save and continue"
+msgstr "Speichern und weiter"
+
+#: src/Admin/SetupWizard.php:798
+msgid "Back"
+msgstr "Zurück"
+
+#: src/Admin/SetupWizard.php:803
+msgid "Skip"
+msgstr "Überspringen"
+
+#: src/Admin/SetupWizard.php:820
+msgid "Train employees or members"
+msgstr "Mitarbeitende oder Mitglieder schulen"
+
+#: src/Admin/SetupWizard.php:821
+msgid "Give courses to customers"
+msgstr "Kurse an Kundinnen und Kunden geben"
+
+#: src/Admin/SetupWizard.php:822
+msgid "Prepare for an exam"
+msgstr "Auf eine Prüfung vorbereiten"
+
+#: src/Admin/SetupWizard.php:823
+msgid "Other"
+msgstr "Sonstiges"
+
+#: src/Admin/SetupWizard.php:826
+msgid "Purpose"
+msgstr "Zweck"
+
+#: src/Admin/SetupWizard.php:830
+msgid "Only used for suggestions in the assistant and stored nowhere else."
+msgstr "Wird nur für Vorschläge im Assistenten verwendet und nirgends sonst gespeichert."
+
+#: src/Admin/SetupWizard.php:832
+msgid "Website language"
+msgstr "Website-Sprache"
+
+#: src/Admin/SetupWizard.php:832
+msgid "Time zone"
+msgstr "Zeitzone"
+
+#: src/Admin/SetupWizard.php:833
+msgid "Course Captain takes these values from WordPress."
+msgstr "Course Captain übernimmt diese Werte aus WordPress."
+
+#: src/Admin/SetupWizard.php:835
+msgid "Warning: the time zone is set as a fixed offset. Deadlines then shift with daylight saving time. Choose a city in WordPress, for example Berlin."
+msgstr "Warnung: Die Zeitzone ist als feste Abweichung eingestellt. Fristen verschieben sich dann mit der Sommerzeit. Wähle in WordPress eine Stadt, zum Beispiel Berlin."
+
+#. translators: %s: page title
+#: src/Admin/SetupWizard.php:842
+#, php-format
+msgid "Page “%s” was already created."
+msgstr "Die Seite „%s“ wurde bereits erstellt."
+
+#: src/Admin/SetupWizard.php:844
+msgid "Create a new page “Courses”"
+msgstr "Neue Seite „Kurse“ erstellen"
+
+#: src/Admin/SetupWizard.php:844
+msgid "Creates a published page with the “Course catalogue” block. Existing pages are never overwritten."
+msgstr "Erstellt eine veröffentlichte Seite mit dem Block „Kurskatalog“. Bestehende Seiten werden nie überschrieben."
+
+#. translators: %s: page title
+#: src/Admin/SetupWizard.php:849
+#, php-format
+msgid "Privacy policy: “%s”."
+msgstr "Datenschutzerklärung: „%s“."
+
+#: src/Admin/SetupWizard.php:850
+msgid "Warning: no privacy policy is set."
+msgstr "Warnung: Es ist keine Datenschutzerklärung festgelegt."
+
+#: src/Admin/SetupWizard.php:851
+msgid "Text modules for Course Captain are in the WordPress guide for the privacy policy."
+msgstr "Textbausteine für Course Captain stehen im WordPress-Leitfaden für die Datenschutzerklärung."
+
+#: src/Admin/SetupWizard.php:852
+msgid "Retention periods are changeable suggestions; have them checked legally before you collect learning data. All periods: Settings › Privacy & security."
+msgstr "Aufbewahrungsfristen sind änderbare Vorschläge; lass sie rechtlich prüfen, bevor du Lerndaten erhebst. Alle Fristen: Einstellungen › Datenschutz & Sicherheit."
+
+#: src/Admin/SetupWizard.php:855
+msgid "Protective functions"
+msgstr "Schutzfunktionen"
+
+#. translators: %s: course title
+#: src/Admin/SetupWizard.php:860
+#, php-format
+msgid "Course draft “%s” was already created."
+msgstr "Der Kursentwurf „%s“ wurde bereits erstellt."
+
+#. translators: %s: course title
+#: src/Admin/SetupWizard.php:860
+msgid "Open"
+msgstr "Öffnen"
+
+#: src/Admin/SetupWizard.php:865
+msgid "How do you want to start?"
+msgstr "Wie möchtest du beginnen?"
+
+#: src/Admin/SetupWizard.php:868
+msgid "Create an empty course skeleton (one module, one lesson; nothing is published)"
+msgstr "Leeres Kursgerüst anlegen (ein Modul, eine Lektion; nichts wird veröffentlicht)"
+
+#: src/Admin/SetupWizard.php:869
+msgid "Import content after the setup"
+msgstr "Inhalte nach der Einrichtung importieren"
+
+#: src/Admin/SetupWizard.php:870
+msgid "Skip – I create courses later"
+msgstr "Überspringen – ich lege Kurse später an"
+
+#: src/Admin/SetupWizard.php:875
+msgid "Course title (required for the skeleton)"
+msgstr "Kurstitel (Pflicht für das Gerüst)"
+
+#. translators: 1: blockers, 2: warnings, 3: OK checks
+#: src/Admin/SetupWizard.php:946
+#, php-format
+msgid "Check finished: %1$d blockers, %2$d warnings, %3$d OK."
+msgstr "Prüfung abgeschlossen: %1$d Blocker, %2$d Warnungen, %3$d OK."
+
+#: src/Admin/SetupWizard.php:953
+msgid "Blockers"
+msgstr "Blocker"
+
+#: src/Admin/SetupWizard.php:954
+msgid "Warnings"
+msgstr "Warnungen"
+
+#: src/Admin/SetupWizard.php:955
+msgid "Notes"
+msgstr "Hinweise"
+
+#: src/Admin/SetupWizard.php:956
+#: src/Ops/OpsStatus.php:154
+msgid "OK"
+msgstr "OK"
+
+#. translators: 1: group heading, 2: count
+#: src/Admin/SetupWizard.php:968
+#, php-format
+msgid "%1$s (%2$d)"
+msgstr "%1$s (%2$d)"
+
+#: src/Admin/SetupWizard.php:971
+msgid "Check again"
+msgstr "Erneut prüfen"
+
+#: src/Admin/SetupWizard.php:972
+msgid "Finish setup"
+msgstr "Einrichtung abschließen"
+
+#. translators: %s: email address of the current user
+#: src/Admin/TestMail.php:98
+#, php-format
+msgid "Send test mail to %s"
+msgstr "Testmail an %s senden"
+
+#: src/Admin/TestMail.php:101
+msgid "The test mail goes to the address of your profile."
+msgstr "Die Testmail geht an die Adresse deines Profils."
+
+#: src/Admin/TestMail.php:113
+msgid "Test mail sent. Check your inbox (also spam)."
+msgstr "Testmail gesendet. Prüfe deinen Posteingang (auch den Spam-Ordner)."
+
+#: src/Admin/TestMail.php:115
+msgid "Warning: the test mail could not be sent. A frequent cause: the server may not send mails. An SMTP plugin helps. You can continue the setup anyway."
+msgstr "Warnung: Die Testmail konnte nicht gesendet werden. Eine häufige Ursache: Der Server darf keine Mails senden. Ein SMTP-Plugin hilft. Du kannst die Einrichtung trotzdem fortsetzen."
+
+#: src/Admin/TestMail.php:117
+msgid "You sent 5 test mails in the last hour. The next one is possible in one hour."
+msgstr "Du hast in der letzten Stunde 5 Testmails gesendet. Die nächste ist in einer Stunde möglich."
+
+#: src/Admin/TestMail.php:119
+msgid "You are not allowed to send test mails."
+msgstr "Du darfst keine Testmails senden."
 
 #: src/Certificate/CertificateAdmin.php:235
 msgid "This image is the logo of the certificate template."
@@ -1235,44 +3725,44 @@ msgstr "hat die Prüfung des Kurses bestanden"
 msgid "has successfully completed the course"
 msgstr "hat den Kurs erfolgreich abgeschlossen"
 
-#: src/Course/PostTypes.php:77
+#: src/Course/PostTypes.php:80
 msgid "Lessons"
 msgstr "Lektionen"
 
-#: src/Course/PostTypes.php:77
+#: src/Course/PostTypes.php:80
 msgid "Lesson"
 msgstr "Lektion"
 
-#: src/Course/PostTypes.php:81
+#: src/Course/PostTypes.php:84
 msgid "Course FAQs"
 msgstr "Kurs-FAQs"
 
-#: src/Course/PostTypes.php:81
+#: src/Course/PostTypes.php:84
 msgid "Course FAQ"
 msgstr "Kurs-FAQ"
 
-#: src/Course/PostTypes.php:82
+#: src/Course/PostTypes.php:85
 msgid "Learning tips"
 msgstr "Lerntipps"
 
-#: src/Course/PostTypes.php:82
+#: src/Course/PostTypes.php:85
 msgid "Learning tip"
 msgstr "Lerntipp"
 
-#: src/Course/PostTypes.php:87
+#: src/Course/PostTypes.php:90
 msgctxt "post status"
 msgid "Archived"
 msgstr "Archiviert"
 
 #. translators: %s: number of items
-#: src/Course/PostTypes.php:95
+#: src/Course/PostTypes.php:98
 #, php-format
 msgid "Archived <span class=\"count\">(%s)</span>"
 msgid_plural "Archived <span class=\"count\">(%s)</span>"
 msgstr[0] "Archiviert <span class=\"count\">(%s)</span>"
 msgstr[1] "Archiviert <span class=\"count\">(%s)</span>"
 
-#: src/Course/PostTypes.php:101
+#: src/Course/PostTypes.php:104
 msgctxt "post status"
 msgid "Staged"
 msgstr "Bereitgestellt"
@@ -1430,7 +3920,7 @@ msgid "Course Captain is network activated, which is not supported. It is paused
 msgstr "Course Captain ist netzwerkweit aktiviert, was nicht unterstützt wird. Es ist pausiert (Haltemodus): Es laufen keine Kursseiten, keine REST-Routen, keine Migrationen und keine geplanten Aufgaben. Deaktiviere es in der Netzwerkverwaltung und aktiviere es auf jeder Website einzeln. Es wurden keine Daten gelöscht."
 
 #. translators: %s: percentage number, e.g. "75" (add a space before the sign if your language requires one).
-#: src/Kernel/Locale.php:275
+#: src/Kernel/Locale.php:291
 #, php-format
 msgid "%s%%"
 msgstr "%s %%"
@@ -1439,7 +3929,7 @@ msgstr "%s %%"
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr "Course Captain kann nicht netzwerkweit aktiviert werden. Aktiviere es stattdessen auf jeder Website einzeln. Es wurde nichts geändert."
 
-#: src/Kernel/Plugin.php:380
+#: src/Kernel/Plugin.php:389
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr "Course Captain ist inaktiv, weil die Website die Voraussetzungen nicht erfüllt:"
 
@@ -1545,10 +4035,6 @@ msgstr "Fragen"
 msgid "answered"
 msgstr "beantwortet"
 
-#: src/Learner/ExamRoom.php:106
-msgid "open"
-msgstr "offen"
-
 #. translators: %s: answer state ("answered" or "open")
 #: src/Learner/ExamRoom.php:109
 #, php-format
@@ -1651,7 +4137,7 @@ msgid "The time is up. Your answers have been submitted."
 msgstr "Die Zeit ist abgelaufen. Deine Antworten wurden abgegeben."
 
 #: src/Learner/ExamRoom.php:328
-#: src/Rest/RestContract.php:247
+#: src/Rest/RestContract.php:249
 msgid "This attempt was cancelled."
 msgstr "Dieser Versuch wurde abgebrochen."
 
@@ -1699,10 +4185,6 @@ msgstr "falsch"
 msgid "Back to my learning"
 msgstr "Zurück zu meinem Lernbereich"
 
-#: src/Learner/ExamRoom.php:419
-msgid "Exams"
-msgstr "Prüfungen"
-
 #. translators: %s: exam version label
 #: src/Learner/ExamRoom.php:422
 #, php-format
@@ -1725,121 +4207,121 @@ msgstr "Prüfung fortsetzen"
 msgid "Start exam"
 msgstr "Prüfung starten"
 
-#: src/Learner/LearningArea.php:162
-#: src/Learner/LearningArea.php:193
+#: src/Learner/LearningArea.php:170
+#: src/Learner/LearningArea.php:201
 msgid "My learning"
 msgstr "Mein Lernbereich"
 
-#: src/Learner/LearningArea.php:180
+#: src/Learner/LearningArea.php:188
 msgid "This course is not available."
 msgstr "Dieser Kurs ist nicht verfügbar."
 
-#: src/Learner/LearningArea.php:193
+#: src/Learner/LearningArea.php:201
 msgid "Skip to content"
 msgstr "Zum Inhalt springen"
 
-#: src/Learner/LearningArea.php:205
+#: src/Learner/LearningArea.php:213
 msgid "You are not enrolled in any course yet."
 msgstr "Du bist noch in keinem Kurs eingeschrieben."
 
-#: src/Learner/LearningArea.php:211
+#: src/Learner/LearningArea.php:219
 msgid "Progress:"
 msgstr "Fortschritt:"
 
-#: src/Learner/LearningArea.php:211
+#: src/Learner/LearningArea.php:219
 msgid "Course progress"
 msgstr "Kursfortschritt"
 
 #. translators: %s: percentage, e.g. "75 %"
-#: src/Learner/LearningArea.php:211
-#: src/Learner/LearningArea.php:280
+#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 #, php-format
 msgid "%s completed"
 msgstr "%s abgeschlossen"
 
 #. translators: %s: lesson title
-#: src/Learner/LearningArea.php:213
+#: src/Learner/LearningArea.php:221
 #, php-format
 msgid "Continue: %s"
 msgstr "Weiter: %s"
 
-#: src/Learner/LearningArea.php:230
+#: src/Learner/LearningArea.php:238
 msgid "Course contents"
 msgstr "Kursinhalt"
 
 #. translators: %s: course
-#: src/Learner/LearningArea.php:282
+#: src/Learner/LearningArea.php:290
 #, php-format
 msgid "Open %s in the learning area"
 msgstr "%s im Lernbereich öffnen"
 
-#: src/Learner/LearningArea.php:298
+#: src/Learner/LearningArea.php:306
 msgid "Go to the learning area"
 msgstr "Zum Lernbereich"
 
-#: src/Learner/LearningArea.php:349
+#: src/Learner/LearningArea.php:357
 msgid "Access active"
 msgstr "Zugang aktiv"
 
-#: src/Learner/LearningArea.php:350
+#: src/Learner/LearningArea.php:358
 msgid "Partial access"
 msgstr "Teilzugang"
 
-#: src/Learner/LearningArea.php:351
+#: src/Learner/LearningArea.php:359
 msgid "Access pending"
 msgstr "Zugang ausstehend"
 
-#: src/Learner/LearningArea.php:352
+#: src/Learner/LearningArea.php:360
 msgid "Access suspended"
 msgstr "Zugang ausgesetzt"
 
-#: src/Learner/LearningArea.php:353
+#: src/Learner/LearningArea.php:361
 msgid "Access expired"
 msgstr "Zugang abgelaufen"
 
-#: src/Learner/LearningArea.php:354
+#: src/Learner/LearningArea.php:362
 msgid "No access"
 msgstr "Kein Zugang"
 
 #. translators: %s: date
-#: src/Learner/LearningArea.php:369
+#: src/Learner/LearningArea.php:377
 #, php-format
 msgid "Available from %s"
 msgstr "Verfügbar ab %s"
 
-#: src/Learner/LearningArea.php:372
+#: src/Learner/LearningArea.php:380
 msgid "Locked: no access"
 msgstr "Gesperrt: kein Zugang"
 
-#: src/Learner/LearningArea.php:373
+#: src/Learner/LearningArea.php:381
 msgid "Locked: not part of the preview"
 msgstr "Gesperrt: nicht Teil der Vorschau"
 
-#: src/Learner/LearningArea.php:374
+#: src/Learner/LearningArea.php:382
 msgid "Locked: not yet released"
 msgstr "Gesperrt: noch nicht freigegeben"
 
-#: src/Learner/LearningArea.php:375
+#: src/Learner/LearningArea.php:383
 msgid "Locked: complete the previous steps first"
 msgstr "Gesperrt: schließe zuerst die vorherigen Schritte ab"
 
-#: src/Learner/LearningArea.php:376
+#: src/Learner/LearningArea.php:384
 msgid "Locked during your running exam"
 msgstr "Während deiner laufenden Prüfung gesperrt"
 
-#: src/Learner/LearningArea.php:378
+#: src/Learner/LearningArea.php:386
 msgid "Locked"
 msgstr "Gesperrt"
 
-#: src/Learner/LearningArea.php:388
+#: src/Learner/LearningArea.php:396
 msgid "completed"
 msgstr "abgeschlossen"
 
-#: src/Learner/LearningArea.php:388
+#: src/Learner/LearningArea.php:396
 msgid "in progress"
 msgstr "in Bearbeitung"
 
-#: src/Learner/LearningArea.php:388
+#: src/Learner/LearningArea.php:396
 msgid "not started"
 msgstr "nicht begonnen"
 
@@ -2175,10 +4657,6 @@ msgstr "Bis (JJJJ-MM-TT)"
 msgid "Area"
 msgstr "Bereich"
 
-#: src/Ops/AuditScreen.php:70
-msgid "All"
-msgstr "Alle"
-
 #: src/Ops/AuditScreen.php:75
 msgid "Audit entries"
 msgstr "Protokolleinträge"
@@ -2276,148 +4754,300 @@ msgid "Course settings reset to the defaults"
 msgstr "Kurseinstellungen auf die Standards zurückgesetzt"
 
 #: src/Ops/AuditView.php:55
+msgid "Settings imported"
+msgstr "Einstellungen importiert"
+
+#: src/Ops/AuditView.php:56
+msgid "Role permissions changed"
+msgstr "Rollenrechte geändert"
+
+#: src/Ops/AuditView.php:57
+msgid "Data request processed automatically"
+msgstr "Datenanfrage automatisch bearbeitet"
+
+#: src/Ops/AuditView.php:58
 msgid "Event delivery replayed"
 msgstr "Ereigniszustellung wiederholt"
 
-#: src/Ops/AuditView.php:56
+#: src/Ops/AuditView.php:59
 msgid "Import approved"
 msgstr "Import freigegeben"
 
-#: src/Ops/AuditView.php:57
+#: src/Ops/AuditView.php:60
 msgid "Import published"
 msgstr "Import veröffentlicht"
 
-#: src/Ops/AuditView.php:58
+#: src/Ops/AuditView.php:61
 msgid "Import rollback started"
 msgstr "Rücknahme des Imports gestartet"
 
-#: src/Ops/AuditView.php:59
+#: src/Ops/AuditView.php:62
 msgid "Import resumed"
 msgstr "Import fortgesetzt"
 
-#: src/Ops/AuditView.php:60
+#: src/Ops/AuditView.php:63
 msgid "Import resumed automatically"
 msgstr "Import automatisch fortgesetzt"
 
-#: src/Ops/AuditView.php:61
+#: src/Ops/AuditView.php:64
 msgid "Import cancellation requested"
 msgstr "Abbruch des Imports angefordert"
 
-#: src/Ops/AuditView.php:62
+#: src/Ops/AuditView.php:65
 msgid "Import stopped: too many failed objects"
 msgstr "Import angehalten: zu viele fehlgeschlagene Objekte"
 
-#: src/Ops/AuditView.php:63
+#: src/Ops/AuditView.php:66
 msgid "Imported course held back by the course check"
 msgstr "Importierter Kurs von der Kursprüfung zurückgehalten"
 
-#: src/Ops/AuditView.php:64
+#: src/Ops/AuditView.php:67
 msgid "Import discarded"
 msgstr "Import verworfen"
 
-#: src/Ops/AuditView.php:65
+#: src/Ops/AuditView.php:68
 msgid "Import report exported"
 msgstr "Importbericht exportiert"
 
-#: src/Ops/AuditView.php:66
+#: src/Ops/AuditView.php:69
 msgid "Website hardening state changed"
 msgstr "Härtungsstatus der Website geändert"
 
-#: src/Ops/AuditView.php:67
+#: src/Ops/AuditView.php:70
 msgid "Website hardening switched off by constant"
 msgstr "Härtung der Website per Konstante ausgeschaltet"
 
-#: src/Ops/AuditView.php:68
+#: src/Ops/AuditView.php:71
 msgid "Maintenance action"
 msgstr "Wartungsaktion"
 
-#: src/Ops/AuditView.php:69
+#: src/Ops/AuditView.php:72
 msgid "Personal data erased"
 msgstr "Personenbezogene Daten gelöscht"
 
-#: src/Ops/AuditView.php:70
+#: src/Ops/AuditView.php:73
 msgid "Retention applied"
 msgstr "Aufbewahrungsregel angewendet"
 
-#: src/Ops/AuditView.php:71
+#: src/Ops/AuditView.php:74
 msgid "Maintenance task failed"
 msgstr "Wartungsaufgabe fehlgeschlagen"
 
-#: src/Ops/AuditView.php:72
+#: src/Ops/AuditView.php:75
 msgid "Mail template saved"
 msgstr "Mailvorlage gespeichert"
 
-#: src/Ops/AuditView.php:73
+#: src/Ops/AuditView.php:76
 msgid "Notification opt-out changed"
 msgstr "Abmeldung von Benachrichtigungen geändert"
 
-#: src/Ops/AuditView.php:74
+#: src/Ops/AuditView.php:77
 msgid "Notification sent again"
 msgstr "Benachrichtigung erneut gesendet"
 
-#: src/Ops/AuditView.php:75
+#: src/Ops/AuditView.php:78
 msgid "Group invitation sent again"
 msgstr "Gruppeneinladung erneut gesendet"
 
-#: src/Ops/AuditView.php:76
+#: src/Ops/AuditView.php:79
 msgid "Held notifications released"
 msgstr "Zurückgehaltene Benachrichtigungen freigegeben"
 
-#: src/Ops/AuditView.php:77
+#: src/Ops/AuditView.php:80
 msgid "Held notifications discarded"
 msgstr "Zurückgehaltene Benachrichtigungen verworfen"
 
-#: src/Ops/AuditView.php:78
+#: src/Ops/AuditView.php:81
 msgid "Course revision published"
 msgstr "Kursrevision veröffentlicht"
 
-#: src/Ops/AuditView.php:79
+#: src/Ops/AuditView.php:82
 msgid "Certificate issued manually"
 msgstr "Zertifikat manuell ausgestellt"
 
-#: src/Ops/AuditView.php:80
+#: src/Ops/AuditView.php:83
 msgid "Certificate corrected"
 msgstr "Zertifikat korrigiert"
 
-#: src/Ops/AuditView.php:81
+#: src/Ops/AuditView.php:84
 msgid "Certificate revoked"
 msgstr "Zertifikat widerrufen"
 
-#: src/Ops/AuditView.php:82
+#: src/Ops/AuditView.php:85
 msgid "Certificate list exported"
 msgstr "Zertifikatsliste exportiert"
 
-#: src/Ops/AuditView.php:83
+#: src/Ops/AuditView.php:86
 msgid "Certificate needs review after re-evaluation"
 msgstr "Zertifikat muss nach Neubewertung geprüft werden"
 
-#: src/Ops/AuditView.php:84
+#: src/Ops/AuditView.php:87
 msgid "Job retried"
 msgstr "Aufgabe erneut versucht"
 
-#: src/Ops/AuditView.php:85
+#: src/Ops/AuditView.php:88
 msgid "Dead letters discarded"
 msgstr "Unzustellbare Ereignisse verworfen"
 
-#: src/Ops/AuditView.php:86
+#: src/Ops/AuditView.php:89
 msgid "Cache emptied"
 msgstr "Cache geleert"
 
-#: src/Ops/AuditView.php:87
+#: src/Ops/AuditView.php:90
 msgid "Diagnostics package exported"
 msgstr "Diagnosepaket exportiert"
 
-#: src/Ops/AuditView.php:88
+#: src/Ops/AuditView.php:91
 msgid "Site identity confirmed after restore, move or copy"
 msgstr "Website-Identität nach Wiederherstellung, Umzug oder Kopie bestätigt"
 
-#: src/Ops/AuditView.php:141
+#: src/Ops/AuditView.php:144
 msgid "Deleted user"
 msgstr "Gelöschter Benutzer"
 
-#: src/Ops/AuditView.php:141
+#: src/Ops/AuditView.php:144
 msgid "System"
 msgstr "System"
+
+#: src/Ops/Compatibility.php:116
+msgid "Course Captain compatibility"
+msgstr "Kompatibilität von Course Captain"
+
+#: src/Ops/Compatibility.php:567
+msgid "No known conflicts with other plugins or the server setup."
+msgstr "Keine bekannten Konflikte mit anderen Plugins oder der Serverkonfiguration."
+
+#: src/Ops/Compatibility.php:567
+msgid "Course Captain found conflicts with other plugins or the server setup."
+msgstr "Course Captain hat Konflikte mit anderen Plugins oder der Serverkonfiguration gefunden."
+
+#: src/Ops/Compatibility.php:587
+msgid "No other plugin uses the names of Course Captain."
+msgstr "Kein anderes Plugin verwendet die Namen von Course Captain."
+
+#: src/Ops/Compatibility.php:589
+msgid "Another plugin already uses names of Course Captain; they were not overwritten and the affected functions are missing."
+msgstr "Ein anderes Plugin verwendet bereits Namen von Course Captain; sie wurden nicht überschrieben und die betroffenen Funktionen fehlen."
+
+#: src/Ops/Compatibility.php:589
+msgid "Deactivate the plugin that registers these names or contact its developer."
+msgstr "Deaktiviere das Plugin, das diese Namen registriert, oder wende dich an dessen Entwickler."
+
+#: src/Ops/Compatibility.php:611
+msgid "The addresses of the learning area and the courses are free."
+msgstr "Die Adressen des Lernbereichs und der Kurse sind frei."
+
+#: src/Ops/Compatibility.php:613
+msgid "An address of Course Captain is also used by a page, content type or archive; one of them may not be reachable."
+msgstr "Eine Adresse von Course Captain wird auch von einer Seite, einem Inhaltstyp oder einem Archiv verwendet; eines davon ist möglicherweise nicht erreichbar."
+
+#: src/Ops/Compatibility.php:613
+msgid "Change the slug of the learning area or of the courses in the general settings."
+msgstr "Ändere die Titelform (Slug) des Lernbereichs oder der Kurse in den allgemeinen Einstellungen."
+
+#: src/Ops/Compatibility.php:623
+msgid "The REST API is reachable for visitors."
+msgstr "Die REST-API ist für Besucher erreichbar."
+
+#: src/Ops/Compatibility.php:625
+msgid "A plugin or snippet blocks the REST API for visitors who are not logged in."
+msgstr "Ein Plugin oder Snippet blockiert die REST-API für nicht angemeldete Besucher."
+
+#: src/Ops/Compatibility.php:625
+msgid "Logged-in learners are not affected. The certificate verification page works without the REST API; allow the course-captain/v1 routes for visitors if you use the catalog or verification in other clients."
+msgstr "Angemeldete Lernende sind nicht betroffen. Die Zertifikatsprüfseite funktioniert ohne REST-API; erlaube die Routen course-captain/v1 für Besucher, wenn du den Katalog oder die Prüfung in anderen Clients verwendest."
+
+#: src/Ops/Compatibility.php:637
+msgid "No database query cache detected."
+msgstr "Kein Datenbank-Abfragecache erkannt."
+
+#: src/Ops/Compatibility.php:640
+msgid "A database drop-in replaces the WordPress database class."
+msgstr "Ein Datenbank-Drop-in ersetzt die WordPress-Datenbankklasse."
+
+#: src/Ops/Compatibility.php:640
+msgid "If it caches query results, switch that off: Course Captain needs current data for access checks."
+msgstr "Wenn es Abfrageergebnisse zwischenspeichert, schalte das aus: Course Captain braucht für Zugriffsprüfungen aktuelle Daten."
+
+#: src/Ops/Compatibility.php:642
+msgid "A database query cache is active. It can return outdated access rights and locks; this setup is not supported."
+msgstr "Ein Datenbank-Abfragecache ist aktiv. Er kann veraltete Zugriffsrechte und Sperren liefern; diese Konfiguration wird nicht unterstützt."
+
+#: src/Ops/Compatibility.php:642
+msgid "Switch off the database cache of the cache plugin (object and page cache may stay on)."
+msgstr "Schalte den Datenbank-Cache des Cache-Plugins aus (Objekt- und Seitencache dürfen an bleiben)."
+
+#: src/Ops/Compatibility.php:653
+msgid "No mail log detected."
+msgstr "Kein Mail-Protokoll erkannt."
+
+#: src/Ops/Compatibility.php:655
+msgid "Mail log active: links in invitations are logged as well."
+msgstr "Mail-Protokoll aktiv: Links in Einladungen werden mitprotokolliert."
+
+#: src/Ops/Compatibility.php:655
+msgid "Invitation and claim links expire, but restrict access to the mail log or shorten its retention."
+msgstr "Einladungs- und Einlöse-Links laufen ab, aber beschränke den Zugriff auf das Mail-Protokoll oder verkürze dessen Aufbewahrung."
+
+#: src/Ops/Compatibility.php:665
+msgid "WP-Cron runs with page requests."
+msgstr "WP-Cron läuft mit Seitenaufrufen."
+
+#: src/Ops/Compatibility.php:670
+msgid "WP-Cron is switched off; a server cron job runs the maintenance."
+msgstr "WP-Cron ist ausgeschaltet; ein Server-Cronjob führt die Wartung aus."
+
+#: src/Ops/Compatibility.php:672
+msgid "WP-Cron is switched off (DISABLE_WP_CRON) and no server cron job has run the maintenance in the last three hours."
+msgstr "WP-Cron ist ausgeschaltet (DISABLE_WP_CRON) und kein Server-Cronjob hat die Wartung in den letzten drei Stunden ausgeführt."
+
+#: src/Ops/Compatibility.php:672
+msgid "Access deadlines are still checked on every access, but mails and cleanup wait. Set up a server cron job that calls wp-cron.php."
+msgstr "Zugangsfristen werden weiterhin bei jedem Zugriff geprüft, aber Mails und Aufräumarbeiten warten. Richte einen Server-Cronjob ein, der wp-cron.php aufruft."
+
+#: src/Ops/Compatibility.php:682
+msgid "Permalinks are set up."
+msgstr "Permalinks sind eingerichtet."
+
+#: src/Ops/Compatibility.php:684
+msgid "Plain permalinks are active: the learning area and protected files use query links."
+msgstr "Einfache Permalinks sind aktiv: Lernbereich und geschützte Dateien verwenden Abfrage-Links."
+
+#: src/Ops/Compatibility.php:684
+msgid "Choose a permalink structure under Settings → Permalinks for readable links."
+msgstr "Wähle unter Einstellungen → Permalinks eine Permalink-Struktur für lesbare Links."
+
+#: src/Ops/Compatibility.php:695
+msgid "No translation plugin with post type translation detected."
+msgstr "Kein Übersetzungs-Plugin mit Übersetzung von Inhaltstypen erkannt."
+
+#: src/Ops/Compatibility.php:698
+msgid "Course Captain content is marked as translatable in the translation plugin; translated copies are not supported."
+msgstr "Course-Captain-Inhalte sind im Übersetzungs-Plugin als übersetzbar markiert; übersetzte Kopien werden nicht unterstützt."
+
+#: src/Ops/Compatibility.php:698
+msgid "Switch off translation for the Course Captain content types in the translation plugin."
+msgstr "Schalte im Übersetzungs-Plugin die Übersetzung für die Course-Captain-Inhaltstypen aus."
+
+#: src/Ops/Compatibility.php:700
+msgid "Translation plugin detected: Course Captain content is not translated."
+msgstr "Übersetzungs-Plugin erkannt: Course-Captain-Inhalte werden nicht übersetzt."
+
+#: src/Ops/Compatibility.php:711
+msgid "No widget output cache detected."
+msgstr "Kein Widget-Ausgabecache erkannt."
+
+#: src/Ops/Compatibility.php:713
+msgid "Cached widgets could show protected content to other users. Switch off \"Element Caching\" in Elementor or set it to \"Inactive\" for widgets with Course Captain shortcodes."
+msgstr "Zwischengespeicherte Widgets könnten geschützte Inhalte anderen Benutzern zeigen. Schalte „Element Caching“ in Elementor aus oder stelle es für Widgets mit Course-Captain-Shortcodes auf „Inaktiv“."
+
+#: src/Ops/Compatibility.php:715
+msgid "Elementor \"Element Caching\" is active."
+msgstr "Elementor „Element Caching“ ist aktiv."
+
+#: src/Ops/Compatibility.php:717
+msgid "Elementor \"Element Caching\" may be active by default."
+msgstr "Elementor „Element Caching“ ist möglicherweise standardmäßig aktiv."
 
 #: src/Ops/HealthChecks.php:96
 msgid "Course Captain protected storage"
@@ -2467,12 +5097,12 @@ msgid "Run \"wp course-captain migrate\" or check the database permissions."
 msgstr "Führe „wp course-captain migrate“ aus oder prüfe die Datenbankrechte."
 
 #: src/Ops/HealthChecks.php:148
-#: src/Ops/OpsStatus.php:166
+#: src/Ops/OpsStatus.php:169
 msgid "The database schema is newer than the plugin."
 msgstr "Das Datenbankschema ist neuer als das Plugin."
 
 #: src/Ops/HealthChecks.php:148
-#: src/Ops/OpsStatus.php:166
+#: src/Ops/OpsStatus.php:169
 msgid "Install the matching plugin version or restore database and files together."
 msgstr "Installiere die passende Plugin-Version oder stelle Datenbank und Dateien gemeinsam wieder her."
 
@@ -2489,17 +5119,17 @@ msgid "The database update failed: %s"
 msgstr "Das Datenbank-Update ist fehlgeschlagen: %s"
 
 #: src/Ops/HealthChecks.php:156
-#: src/Ops/OpsStatus.php:174
+#: src/Ops/OpsStatus.php:177
 msgid "The database update is running."
 msgstr "Das Datenbank-Update läuft."
 
 #: src/Ops/HealthChecks.php:158
-#: src/Ops/OpsStatus.php:172
+#: src/Ops/OpsStatus.php:175
 msgid "A database update is due."
 msgstr "Ein Datenbank-Update steht an."
 
 #: src/Ops/HealthChecks.php:160
-#: src/Ops/OpsStatus.php:176
+#: src/Ops/OpsStatus.php:179
 msgid "Existing data is being updated in the background."
 msgstr "Vorhandene Daten werden im Hintergrund aktualisiert."
 
@@ -2514,7 +5144,7 @@ msgid "The database does not support named locks; updates are protected by a lea
 msgstr "Die Datenbank unterstützt keine benannten Sperren; Updates sind nur durch eine Lease geschützt."
 
 #: src/Ops/HealthChecks.php:169
-#: src/Ops/OpsStatus.php:178
+#: src/Ops/OpsStatus.php:181
 msgid "The database schema is up to date."
 msgstr "Das Datenbankschema ist aktuell."
 
@@ -2546,7 +5176,7 @@ msgstr "Die Wartung ist in den letzten drei Stunden nicht gelaufen."
 
 #. translators: %s: UTC time
 #: src/Ops/HealthChecks.php:205
-#: src/Ops/OpsStatus.php:261
+#: src/Ops/OpsStatus.php:264
 msgid "Check that WP-Cron or a server cron job runs regularly."
 msgstr "Prüfe, ob WP-Cron oder ein Server-Cronjob regelmäßig läuft."
 
@@ -2764,10 +5394,6 @@ msgid_plural "%s dead letters are marked as discarded and no longer delivered. T
 msgstr[0] "%s unzustellbares Ereignis wird als verworfen markiert und nicht mehr zugestellt. Das Ereignis bleibt im Protokoll."
 msgstr[1] "%s unzustellbare Ereignisse werden als verworfen markiert und nicht mehr zugestellt. Die Ereignisse bleiben im Protokoll."
 
-#: src/Ops/OpsScreen.php:330
-msgid "Messages"
-msgstr "Nachrichten"
-
 #. translators: 1: held, 2: failed in 24 h, 3: unknown, 4: waiting
 #: src/Ops/OpsScreen.php:332
 #, php-format
@@ -2886,38 +5512,34 @@ msgstr "Ich habe die Auswirkung gelesen und möchte fortfahren."
 msgid "Course Captain %1$s, schema %2$s, contract %3$s"
 msgstr "Course Captain %1$s, Schema %2$s, Vertrag %3$s"
 
-#: src/Ops/OpsStatus.php:150
+#: src/Ops/OpsStatus.php:153
 msgid "Info"
 msgstr "Info"
 
-#: src/Ops/OpsStatus.php:151
-msgid "OK"
-msgstr "OK"
-
-#: src/Ops/OpsStatus.php:163
+#: src/Ops/OpsStatus.php:166
 msgid "Use \"Retry now\" below or run \"wp course-captain migrate\"."
 msgstr "Verwende unten „Jetzt erneut versuchen“ oder führe „wp course-captain migrate“ aus."
 
-#: src/Ops/OpsStatus.php:168
+#: src/Ops/OpsStatus.php:171
 msgid "The database update stopped after repeated aborts."
 msgstr "Das Datenbank-Update wurde nach wiederholten Abbrüchen angehalten."
 
-#: src/Ops/OpsStatus.php:170
+#: src/Ops/OpsStatus.php:173
 msgid "The database update failed."
 msgstr "Das Datenbank-Update ist fehlgeschlagen."
 
 #. translators: %s: outbound mode on, catch or off
-#: src/Ops/OpsStatus.php:205
+#: src/Ops/OpsStatus.php:208
 #, php-format
 msgid "Outbound mode: %s"
 msgstr "Ausgangsmodus: %s"
 
-#: src/Ops/OpsStatus.php:207
+#: src/Ops/OpsStatus.php:210
 msgid "Mails and deliveries are switched off on a production site."
 msgstr "Mails und Zustellungen sind auf einer Produktionswebsite ausgeschaltet."
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsStatus.php:219
+#: src/Ops/OpsStatus.php:222
 #, php-format
 msgid "Hold mode is active; %s message is held."
 msgid_plural "Hold mode is active; %s messages are held."
@@ -2925,12 +5547,12 @@ msgstr[0] "Der Haltemodus ist aktiv; %s Nachricht wird zurückgehalten."
 msgstr[1] "Der Haltemodus ist aktiv; %s Nachrichten werden zurückgehalten."
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsStatus.php:219
+#: src/Ops/OpsStatus.php:222
 msgid "Check the site identity, then release or discard the held messages."
 msgstr "Prüfe die Website-Identität und gib die zurückgehaltenen Nachrichten dann frei oder verwirf sie."
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsStatus.php:223
+#: src/Ops/OpsStatus.php:226
 #, php-format
 msgid "%s message is still held."
 msgid_plural "%s messages are still held."
@@ -2938,16 +5560,16 @@ msgstr[0] "%s Nachricht wird noch zurückgehalten."
 msgstr[1] "%s Nachrichten werden noch zurückgehalten."
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsStatus.php:223
+#: src/Ops/OpsStatus.php:226
 msgid "Release or discard the held messages."
 msgstr "Gib die zurückgehaltenen Nachrichten frei oder verwirf sie."
 
-#: src/Ops/OpsStatus.php:225
+#: src/Ops/OpsStatus.php:228
 msgid "No messages are held."
 msgstr "Es werden keine Nachrichten zurückgehalten."
 
 #. translators: %d: number of deliveries
-#: src/Ops/OpsStatus.php:240
+#: src/Ops/OpsStatus.php:243
 #, php-format
 msgid "%d internal delivery failed permanently (dead letter)."
 msgid_plural "%d internal deliveries failed permanently (dead letters)."
@@ -2955,20 +5577,20 @@ msgstr[0] "%d interne Zustellung ist endgültig fehlgeschlagen (unzustellbar)."
 msgstr[1] "%d interne Zustellungen sind endgültig fehlgeschlagen (unzustellbar)."
 
 #. translators: %d: number of deliveries
-#: src/Ops/OpsStatus.php:240
+#: src/Ops/OpsStatus.php:243
 msgid "Fix the cause (usually mail or storage), then retry or discard the dead letters."
 msgstr "Behebe die Ursache (meist Mail oder Speicher) und stelle die unzustellbaren Ereignisse dann erneut zu oder verwirf sie."
 
-#: src/Ops/OpsStatus.php:244
+#: src/Ops/OpsStatus.php:247
 msgid "Deliveries with an expired lease wait for the next dispatch run."
 msgstr "Zustellungen mit abgelaufener Lease warten auf den nächsten Zustelllauf."
 
-#: src/Ops/OpsStatus.php:244
+#: src/Ops/OpsStatus.php:247
 msgid "The next run takes them over automatically; check that WP-Cron runs."
 msgstr "Der nächste Lauf übernimmt sie automatisch; prüfe, ob WP-Cron läuft."
 
 #. translators: %s: number of waiting deliveries
-#: src/Ops/OpsStatus.php:248
+#: src/Ops/OpsStatus.php:251
 #, php-format
 msgid "No dead letters; %s delivery waiting."
 msgid_plural "No dead letters; %s deliveries waiting."
@@ -2976,36 +5598,36 @@ msgstr[0] "Keine unzustellbaren Ereignisse; %s Zustellung wartet."
 msgstr[1] "Keine unzustellbaren Ereignisse; %s Zustellungen warten."
 
 #. translators: %s: UTC time
-#: src/Ops/OpsStatus.php:261
+#: src/Ops/OpsStatus.php:264
 #, php-format
 msgid "The oldest open delivery is from %s (UTC)."
 msgstr "Die älteste offene Zustellung stammt vom %s (UTC)."
 
-#: src/Ops/OpsStatus.php:263
+#: src/Ops/OpsStatus.php:266
 msgid "No delivery backlog."
 msgstr "Kein Zustellrückstau."
 
-#: src/Ops/OpsStatus.php:277
+#: src/Ops/OpsStatus.php:280
 msgid "No failed or stuck access grants."
 msgstr "Keine fehlgeschlagenen oder hängenden Zugangsvergaben."
 
 #. translators: 1: failed grants, 2: pending grants
-#: src/Ops/OpsStatus.php:281
+#: src/Ops/OpsStatus.php:284
 #, php-format
 msgid "Access grants: %1$d failed, %2$d pending for more than 24 hours."
 msgstr "Zugangsvergaben: %1$d fehlgeschlagen, %2$d seit mehr als 24 Stunden ausstehend."
 
 #. translators: 1: failed grants, 2: pending grants
-#: src/Ops/OpsStatus.php:281
+#: src/Ops/OpsStatus.php:284
 msgid "Clarify the source, then process the grant again; avoid manual duplicate grants."
 msgstr "Kläre die Quelle und verarbeite die Vergabe dann erneut; vermeide manuelle doppelte Vergaben."
 
-#: src/Ops/OpsStatus.php:294
+#: src/Ops/OpsStatus.php:297
 msgid "No broken exam attempts."
 msgstr "Keine beschädigten Prüfungsversuche."
 
 #. translators: %d: number of attempts
-#: src/Ops/OpsStatus.php:298
+#: src/Ops/OpsStatus.php:301
 #, php-format
 msgid "%d exam attempt is broken."
 msgid_plural "%d exam attempts are broken."
@@ -3013,36 +5635,36 @@ msgstr[0] "%d Prüfungsversuch ist beschädigt."
 msgstr[1] "%d Prüfungsversuche sind beschädigt."
 
 #. translators: %d: number of attempts
-#: src/Ops/OpsStatus.php:298
+#: src/Ops/OpsStatus.php:301
 msgid "The exam snapshot is damaged; contact the technical operator."
 msgstr "Der Prüfungs-Snapshot ist beschädigt; wende dich an den technischen Betrieb."
 
-#: src/Ops/OpsStatus.php:310
+#: src/Ops/OpsStatus.php:313
 msgid "No stalled imports."
 msgstr "Keine hängenden Importe."
 
-#: src/Ops/OpsStatus.php:312
+#: src/Ops/OpsStatus.php:315
 msgid "Imports without a heartbeat for more than 15 minutes."
 msgstr "Importe ohne Lebenszeichen seit mehr als 15 Minuten."
 
-#: src/Ops/OpsStatus.php:312
+#: src/Ops/OpsStatus.php:315
 msgid "Resume or discard the import in the import screen."
 msgstr "Setze den Import in der Import-Ansicht fort oder verwirf ihn."
 
-#: src/Ops/OpsStatus.php:322
+#: src/Ops/OpsStatus.php:325
 msgid "COURSE_CAPTAIN_SECRET_KEY is set (from constant)."
 msgstr "COURSE_CAPTAIN_SECRET_KEY ist gesetzt (aus Konstante)."
 
-#: src/Ops/OpsStatus.php:324
+#: src/Ops/OpsStatus.php:327
 msgid "COURSE_CAPTAIN_SECRET_KEY is not set; keys are derived from the WordPress salts."
 msgstr "COURSE_CAPTAIN_SECRET_KEY ist nicht gesetzt; Schlüssel werden aus den WordPress-Salts abgeleitet."
 
-#: src/Ops/OpsStatus.php:324
+#: src/Ops/OpsStatus.php:327
 msgid "Set the constant in wp-config.php so a salt change does not invalidate tokens."
 msgstr "Setze die Konstante in der wp-config.php, damit eine Salt-Änderung keine Tokens ungültig macht."
 
 #. translators: %s: number of detected plugins
-#: src/Ops/OpsStatus.php:341
+#: src/Ops/OpsStatus.php:344
 #, php-format
 msgid "%s partner plugin detected; no data exchange in the free edition."
 msgid_plural "%s partner plugins detected; no data exchange in the free edition."
@@ -3215,241 +5837,241 @@ msgstr "Die Voraussetzungen bilden einen Kreis, sodass einige Module nie freiges
 msgid "Not published: the course check found blockers. Open \"Publish revision\" for details."
 msgstr "Nicht veröffentlicht: Die Kursprüfung hat Blocker gefunden. Öffne „Revision veröffentlichen“ für Details."
 
-#: src/Rest/RestContract.php:167
+#: src/Rest/RestContract.php:169
 msgid "The request could not be completed."
 msgstr "Die Anfrage konnte nicht abgeschlossen werden."
 
-#: src/Rest/RestContract.php:188
+#: src/Rest/RestContract.php:190
 msgid "Login required"
 msgstr "Anmeldung erforderlich"
 
-#: src/Rest/RestContract.php:189
+#: src/Rest/RestContract.php:191
 msgid "Not allowed"
 msgstr "Nicht erlaubt"
 
-#: src/Rest/RestContract.php:190
+#: src/Rest/RestContract.php:192
 msgid "Account locked"
 msgstr "Konto gesperrt"
 
-#: src/Rest/RestContract.php:191
+#: src/Rest/RestContract.php:193
 msgid "Not available yet"
 msgstr "Noch nicht verfügbar"
 
-#: src/Rest/RestContract.php:192
+#: src/Rest/RestContract.php:194
 msgid "Not found"
 msgstr "Nicht gefunden"
 
-#: src/Rest/RestContract.php:193
+#: src/Rest/RestContract.php:195
 msgid "Check your input"
 msgstr "Prüfe deine Eingabe"
 
-#: src/Rest/RestContract.php:194
+#: src/Rest/RestContract.php:196
 msgid "Confirmation needed"
 msgstr "Bestätigung erforderlich"
 
-#: src/Rest/RestContract.php:195
+#: src/Rest/RestContract.php:197
 msgid "Invalid input"
 msgstr "Ungültige Eingabe"
 
-#: src/Rest/RestContract.php:196
+#: src/Rest/RestContract.php:198
 msgid "Invalid link or token"
 msgstr "Ungültiger Link oder Token"
 
-#: src/Rest/RestContract.php:197
+#: src/Rest/RestContract.php:199
 msgid "Request conflict"
 msgstr "Anfragekonflikt"
 
-#: src/Rest/RestContract.php:198
+#: src/Rest/RestContract.php:200
 msgid "Still in progress"
 msgstr "Wird noch bearbeitet"
 
-#: src/Rest/RestContract.php:199
-#: src/Rest/RestContract.php:211
+#: src/Rest/RestContract.php:201
+#: src/Rest/RestContract.php:213
 msgid "Changed in the meantime"
 msgstr "Inzwischen geändert"
 
-#: src/Rest/RestContract.php:200
+#: src/Rest/RestContract.php:202
 msgid "Too many requests"
 msgstr "Zu viele Anfragen"
 
-#: src/Rest/RestContract.php:201
+#: src/Rest/RestContract.php:203
 msgid "Maintenance"
 msgstr "Wartung"
 
-#: src/Rest/RestContract.php:202
+#: src/Rest/RestContract.php:204
 msgid "Temporarily unavailable"
 msgstr "Vorübergehend nicht verfügbar"
 
-#: src/Rest/RestContract.php:203
+#: src/Rest/RestContract.php:205
 msgid "Exam cannot start"
 msgstr "Prüfung kann nicht starten"
 
-#: src/Rest/RestContract.php:204
+#: src/Rest/RestContract.php:206
 msgid "Exam is starting"
 msgstr "Prüfung wird gestartet"
 
-#: src/Rest/RestContract.php:205
+#: src/Rest/RestContract.php:207
 msgid "No attempts left"
 msgstr "Keine Versuche mehr"
 
-#: src/Rest/RestContract.php:206
+#: src/Rest/RestContract.php:208
 msgid "Time is over"
 msgstr "Zeit abgelaufen"
 
-#: src/Rest/RestContract.php:207
+#: src/Rest/RestContract.php:209
 msgid "Already submitted"
 msgstr "Bereits abgegeben"
 
-#: src/Rest/RestContract.php:208
+#: src/Rest/RestContract.php:210
 msgid "Attempt cancelled"
 msgstr "Versuch abgebrochen"
 
-#: src/Rest/RestContract.php:209
+#: src/Rest/RestContract.php:211
 msgid "Answer locked"
 msgstr "Antwort gesperrt"
 
-#: src/Rest/RestContract.php:210
+#: src/Rest/RestContract.php:212
 msgid "Invalid answer"
 msgstr "Ungültige Antwort"
 
-#: src/Rest/RestContract.php:212
+#: src/Rest/RestContract.php:214
 msgid "Cannot be changed"
 msgstr "Kann nicht geändert werden"
 
-#: src/Rest/RestContract.php:213
+#: src/Rest/RestContract.php:215
 msgid "Submission incomplete"
 msgstr "Einreichung unvollständig"
 
-#: src/Rest/RestContract.php:214
+#: src/Rest/RestContract.php:216
 msgid "File not accepted"
 msgstr "Datei nicht akzeptiert"
 
-#: src/Rest/RestContract.php:215
+#: src/Rest/RestContract.php:217
 msgid "Check the grading"
 msgstr "Prüfe die Bewertung"
 
-#: src/Rest/RestContract.php:228
+#: src/Rest/RestContract.php:230
 msgid "You are not allowed to do this."
 msgstr "Du darfst das nicht tun."
 
-#: src/Rest/RestContract.php:229
+#: src/Rest/RestContract.php:231
 msgid "Your learning access on this site is locked."
 msgstr "Dein Lernzugang auf dieser Website ist gesperrt."
 
-#: src/Rest/RestContract.php:230
+#: src/Rest/RestContract.php:232
 msgid "This content is not available to you right now."
 msgstr "Dieser Inhalt steht dir gerade nicht zur Verfügung."
 
-#: src/Rest/RestContract.php:231
+#: src/Rest/RestContract.php:233
 msgid "The requested item was not found."
 msgstr "Das angeforderte Element wurde nicht gefunden."
 
-#: src/Rest/RestContract.php:232
+#: src/Rest/RestContract.php:234
 msgid "Some data is not valid. Please check it."
 msgstr "Einige Daten sind ungültig. Bitte prüfe sie."
 
-#: src/Rest/RestContract.php:233
+#: src/Rest/RestContract.php:235
 msgid "Please confirm the warnings first."
 msgstr "Bitte bestätige zuerst die Warnungen."
 
-#: src/Rest/RestContract.php:234
+#: src/Rest/RestContract.php:236
 msgid "A parameter is missing or invalid."
 msgstr "Ein Parameter fehlt oder ist ungültig."
 
-#: src/Rest/RestContract.php:235
+#: src/Rest/RestContract.php:237
 msgid "This link or token is not valid."
 msgstr "Dieser Link oder Token ist ungültig."
 
-#: src/Rest/RestContract.php:236
+#: src/Rest/RestContract.php:238
 msgid "This request key was already used for a different request."
 msgstr "Dieser Anfrageschlüssel wurde bereits für eine andere Anfrage verwendet."
 
-#: src/Rest/RestContract.php:237
+#: src/Rest/RestContract.php:239
 msgid "The same request is still being processed. Please try again shortly."
 msgstr "Dieselbe Anfrage wird noch bearbeitet. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:238
+#: src/Rest/RestContract.php:240
 msgid "Someone changed this in the meantime. Please reload."
 msgstr "Jemand hat das inzwischen geändert. Bitte lade neu."
 
-#: src/Rest/RestContract.php:239
+#: src/Rest/RestContract.php:241
 msgid "Too many requests. Please wait a moment."
 msgstr "Zu viele Anfragen. Bitte warte einen Moment."
 
-#: src/Rest/RestContract.php:240
+#: src/Rest/RestContract.php:242
 msgid "Maintenance is running. Please try again shortly."
 msgstr "Es läuft eine Wartung. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:241
+#: src/Rest/RestContract.php:243
 msgid "This is temporarily unavailable. Please try again later."
 msgstr "Das ist vorübergehend nicht verfügbar. Bitte versuche es später noch einmal."
 
-#: src/Rest/RestContract.php:242
+#: src/Rest/RestContract.php:244
 msgid "This exam cannot be started right now."
 msgstr "Diese Prüfung kann gerade nicht gestartet werden."
 
-#: src/Rest/RestContract.php:243
+#: src/Rest/RestContract.php:245
 msgid "The exam is already starting. Please wait a moment."
 msgstr "Die Prüfung wird bereits gestartet. Bitte warte einen Moment."
 
-#: src/Rest/RestContract.php:244
+#: src/Rest/RestContract.php:246
 msgid "You have no attempts left for this exam right now."
 msgstr "Du hast für diese Prüfung gerade keine Versuche mehr."
 
-#: src/Rest/RestContract.php:245
+#: src/Rest/RestContract.php:247
 msgid "The time for this exam is over."
 msgstr "Die Zeit für diese Prüfung ist abgelaufen."
 
-#: src/Rest/RestContract.php:246
+#: src/Rest/RestContract.php:248
 msgid "This attempt has already been submitted."
 msgstr "Dieser Versuch wurde bereits abgegeben."
 
-#: src/Rest/RestContract.php:248
+#: src/Rest/RestContract.php:250
 msgid "This answer can no longer be changed."
 msgstr "Diese Antwort kann nicht mehr geändert werden."
 
-#: src/Rest/RestContract.php:249
+#: src/Rest/RestContract.php:251
 msgid "Please choose a valid answer."
 msgstr "Bitte wähle eine gültige Antwort."
 
-#: src/Rest/RestContract.php:250
+#: src/Rest/RestContract.php:252
 msgid "The attempt changed in the meantime. Please try again."
 msgstr "Der Versuch wurde inzwischen geändert. Bitte versuche es noch einmal."
 
-#: src/Rest/RestContract.php:251
+#: src/Rest/RestContract.php:253
 msgid "This submission can no longer be changed."
 msgstr "Diese Einreichung kann nicht mehr geändert werden."
 
-#: src/Rest/RestContract.php:252
+#: src/Rest/RestContract.php:254
 msgid "Please add the required text or file before submitting."
 msgstr "Bitte füge vor dem Einreichen den erforderlichen Text oder die Datei hinzu."
 
-#: src/Rest/RestContract.php:253
+#: src/Rest/RestContract.php:255
 msgid "This file was not accepted. Please check its type and size."
 msgstr "Diese Datei wurde nicht akzeptiert. Bitte prüfe Typ und Größe."
 
-#: src/Rest/RestContract.php:254
+#: src/Rest/RestContract.php:256
 msgid "Please check the points and add the required comment or reason."
 msgstr "Bitte prüfe die Punkte und füge den erforderlichen Kommentar oder Grund hinzu."
 
-#: src/Security/Hardening.php:436
+#: src/Security/Hardening.php:425
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr "Zu viele Versuche. Bitte warte einige Minuten und versuche es erneut."
 
-#: src/Security/Hardening.php:468
+#: src/Security/Hardening.php:457
 msgid "Login is temporarily unavailable. Please try again later."
 msgstr "Die Anmeldung ist vorübergehend nicht verfügbar. Bitte versuche es später noch einmal."
 
-#: src/Security/Hardening.php:733
-#: src/Security/Hardening.php:753
+#: src/Security/Hardening.php:754
+#: src/Security/Hardening.php:774
 msgid "Course Captain website hardening"
 msgstr "Website-Härtung von Course Captain"
 
-#: src/Security/Hardening.php:753
+#: src/Security/Hardening.php:774
 msgid "Website hardening is switched off by constant"
 msgstr "Die Website-Härtung ist per Konstante ausgeschaltet"
 
-#: src/Security/Hardening.php:756
+#: src/Security/Hardening.php:777
 msgid "Security"
 msgstr "Sicherheit"
 
@@ -3493,17 +6115,9 @@ msgstr "Maximale Versuche"
 msgid "Waiting time after a failed attempt (seconds)"
 msgstr "Wartezeit nach einem nicht bestandenen Versuch (Sekunden)"
 
-#: src/Settings/EffectiveSettings.php:75
-msgid "Cancelled attempts count"
-msgstr "Abgebrochene Versuche zählen"
-
 #: src/Settings/EffectiveSettings.php:76
 msgid "Time limit (minutes)"
 msgstr "Zeitlimit (Minuten)"
-
-#: src/Settings/EffectiveSettings.php:77
-msgid "Timer mode"
-msgstr "Timer-Modus"
 
 #: src/Settings/EffectiveSettings.php:78
 msgid "Late tolerance (seconds)"
@@ -3512,10 +6126,6 @@ msgstr "Spättoleranz (Sekunden)"
 #: src/Settings/EffectiveSettings.php:79
 msgid "Shuffle questions"
 msgstr "Fragen mischen"
-
-#: src/Settings/EffectiveSettings.php:80
-msgid "Shuffle answers"
-msgstr "Antworten mischen"
 
 #: src/Settings/EffectiveSettings.php:81
 msgid "Exam feedback"
@@ -3533,10 +6143,6 @@ msgstr "Selbsteinschreibung"
 msgid "Access duration (days)"
 msgstr "Zugangsdauer (Tage)"
 
-#: src/Settings/EffectiveSettings.php:86
-msgid "Issue certificates automatically"
-msgstr "Zertifikate automatisch ausstellen"
-
 #: src/Settings/EffectiveSettings.php:87
 msgid "Certificate template"
 msgstr "Zertifikatsvorlage"
@@ -3544,10 +6150,6 @@ msgstr "Zertifikatsvorlage"
 #: src/Settings/EffectiveSettings.php:89
 msgid "Invitation valid for (days)"
 msgstr "Einladung gültig für (Tage)"
-
-#: src/Settings/EffectiveSettings.php:90
-msgid "External media"
-msgstr "Externe Medien"
 
 #: src/Settings/EffectiveSettings.php:102
 msgid "applies immediately"
