@@ -660,3 +660,10 @@ Pflichtinhalt (Konzept 35.4; R0-06 §4.5):
 - Abgleich mit Inventur A §2.1–2.3, §5 (keine Widersprüche zu den dort genannten Zeilen gefunden), R0-06 §3–§5.
 - Neu gegenüber Inventur A: Eigenheiten G-1 bis G-3 (§5.2), Kulanz/Erklärungsrecht/Modulnamen nicht im Snapshot (§6.3), `examRule`-Rückfall auf Entwurfsregeln (§4.1), `reveal` ohne Zeilensperre (§6.2).
 - Keine Codeänderung an LearnBoating, keine Implementierung, kein Commit.
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung |
+|---|---|---|
+| 16.11.2026 | R0-22 Δ22-1, E-129 | §4.1: Entwürfe von Prüfungsregeln sind **nie** als Übung erreichbar; Übungsprüfungen sind veröffentlichte Regeln mit `purpose=practice` |
+| 16.11.2026 | R0-15 §2.3, E-122/E-123 | Prüfungsregel bekommt `timer_mode` (`strict`/`practice`); Nachteilsausgleich wird beim Versuchsstart in den Snapshot übernommen |

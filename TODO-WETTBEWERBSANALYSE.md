@@ -119,7 +119,7 @@
   - **Ergebnis/Definition of Done:** Invalidierung bei Grants/Refunds/Revisionen, Objektcache, HTTP/CDN-Cache, Locks, Race- und stale-read-Verhalten mit Negativtests spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-22 · Kursvalidierung und Veröffentlichungsfreigabe definieren**
+- [ ] **R0-22 · Kursvalidierung und Veröffentlichungsfreigabe definieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-22-kursvalidierung-publish.md` (118 Regeln VAL-000…145, Publish-Workflow mit Vorschau ohne Schreibzugriff, alle Umgehungswege abgesichert, Autoren-UX, PUB-001…052); Entscheidung offen → E-128…E-135
   - **Voraussetzung:** R0-08,R0-11.
   - **Ergebnis/Definition of Done:** Fehlende Lektionen, ungültige Fragen, nicht lizenzierte Medien, unvollständige Prüfungsregeln und Preview/Publish-Blocker mit Autoren-UX dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

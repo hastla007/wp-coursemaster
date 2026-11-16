@@ -257,3 +257,16 @@ Zielstandard **WCAG 2.2 AA**. Technisch festgelegt und nicht abzustimmen: axe-Ve
 | E-125 | Konformitätsbericht Barrierefreiheit je Release | **Ja**, WCAG-2.2-AA-Tabelle in der Doku. Keine Vorlage für die Barrierefreiheitserklärung (vgl. E-04), nur ein neutraler Hinweis, welche Angaben der Betreiber braucht | R0-15 D-15-06 | R1-24 |
 | E-126 | Zugesicherte Screenreader | **NVDA und VoiceOver (macOS, iOS)**; TalkBack best effort, JAWS nicht zugesichert | R0-15 D-15-08 | R1-29 |
 | E-127 | Barrierefreie PDF-Nachweise im Pro-Zertifikatsdesigner | **Ja**, getaggtes PDF (an PDF/UA orientiert) als Pro-Abnahmekriterium | R0-15 D-15-09 | R3 |
+
+## 21. Kursvalidierung und Veröffentlichen (aus R0-22)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-128 | Darf ein Admin einen Publish-Blocker übersteuern? | **Nein**; Warnungen werden bestätigt (Fingerabdruck + Audit), Blocker nicht | R0-22 D22-1 | R1-26 |
+| E-129 | Dürfen Entwürfe von Prüfungsregeln als Übung genutzt werden? (R0-08 §4.1 erlaubt es) | **Nein.** Übungsprüfungen sind veröffentlichte Regeln mit `purpose=practice`. R0-08 §4.1 wird entsprechend angepasst | R0-22 D22-2 | R1-26 |
+| E-130 | Prüfungsblueprint verlangt mehr Fragen, als der Pool hat | **Blocker** nur bei Nachweis- und Pflichtprüfungen, sonst Warnung | R0-22 D22-3 | R1-26 |
+| **E-131** | Fehlende Alt-Texte beim Veröffentlichen (R0-15: Blocker; R0-22: Warnung, per Site-Einstellung erzwingbar) | **Alt-Text fehlt (ohne `decorative`) = Blocker** wie R0-15; fehlende Untertitel = Warnung, per Site-Einstellung zum Blocker machbar. Damit ist der Widerspruch zwischen R0-15 und R0-22 aufgelöst | R0-22 D22-4 | R1-26 |
+| E-132 | Freigabeprozess in Free | **Einstufig** (Autor reicht ein, Kursmanager veröffentlicht); mehrstufige Freigaben in Pro | R0-22 D22-5 | R1-26 |
+| E-133 | Geplante Veröffentlichung (Zeitpunkt in der Zukunft) in R1 | **Nein** | R0-22 D22-6 | R1-26 |
+| E-134 | Prüfungen in der Lernenden-Vorschau | **Durchspielbar ohne Speicherung** | R0-22 D22-7 | R1-26 |
+| E-135 | Tägliche Health-Prüfung findet neue Blocker in einem veröffentlichten Kurs | **Nur melden**, nie automatisch zurückziehen | R0-22 D22-8 | R1-26 |
