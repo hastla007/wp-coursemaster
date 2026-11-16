@@ -14,6 +14,7 @@ use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Kernel\CronHooks;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\Migrator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -102,7 +103,47 @@ final class HealthChecks {
 			'label' => __( 'Course Captain event delivery', 'course-captain' ),
 			'test'  => array( self::class, 'test_outbox' ),
 		);
+
+		$tests['direct']['course_captain_migration'] = array(
+			'label' => __( 'Course Captain database', 'course-captain' ),
+			'test'  => array( self::class, 'test_migration' ),
+		);
 		return $tests;
+	}
+
+	/**
+	 * Site Health test `course_captain_migration` (R0-37 §3.5).
+	 *
+	 * @param Migrator|null $migrator Migrator (tests); default current site.
+	 * @return array<string, mixed>
+	 */
+	public static function test_migration( ?Migrator $migrator = null ): array {
+		$report = ( $migrator ?? Migrator::for_current_site() )->report();
+		$cli    = __( 'Run "wp course-captain migrate" or check the database permissions.', 'course-captain' );
+		switch ( $report['state'] ) {
+			case 'newer':
+				return self::result( 'course_captain_migration', 'critical', __( 'The database schema is newer than the plugin.', 'course-captain' ), __( 'Install the matching plugin version or restore database and files together.', 'course-captain' ) );
+			case 'blocked':
+				/* translators: %s: step IDs */
+				return self::result( 'course_captain_migration', 'critical', sprintf( __( 'The database update stopped after repeated aborts: %s', 'course-captain' ), implode( ', ', $report['poison'] ) ), $cli );
+			case 'failed':
+				/* translators: %s: step IDs */
+				return self::result( 'course_captain_migration', 'critical', sprintf( __( 'The database update failed: %s', 'course-captain' ), implode( ', ', $report['failed'] ) ), $cli );
+			case 'running':
+				return self::result( 'course_captain_migration', 'recommended', __( 'The database update is running.', 'course-captain' ), '' );
+			case 'pending':
+				return self::result( 'course_captain_migration', 'recommended', __( 'A database update is due.', 'course-captain' ), $cli );
+			case 'backfill':
+				return self::result( 'course_captain_migration', 'recommended', __( 'Existing data is being updated in the background.', 'course-captain' ), '' );
+		}
+		if ( array() !== $report['checksum_mismatch'] ) {
+			/* translators: %s: step IDs */
+			return self::result( 'course_captain_migration', 'recommended', sprintf( __( 'Completed update steps were changed afterwards: %s', 'course-captain' ), implode( ', ', $report['checksum_mismatch'] ) ), '' );
+		}
+		if ( $report['named_lock_unavailable'] > 0 ) {
+			return self::result( 'course_captain_migration', 'recommended', __( 'The database does not support named locks; updates are protected by a lease only.', 'course-captain' ), '' );
+		}
+		return self::result( 'course_captain_migration', 'good', __( 'The database schema is up to date.', 'course-captain' ), '' );
 	}
 
 	/**

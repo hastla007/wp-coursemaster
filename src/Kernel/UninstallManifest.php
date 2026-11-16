@@ -61,6 +61,8 @@ final class UninstallManifest {
 		'course_captain_fk_issues',
 		'course_captain_migration_bootstrap_lock',
 		'course_captain_migration_failed',
+		// Counter of runs without GET_LOCK (R1-40, R0-21 §2.5).
+		'course_captain_named_lock_unavailable',
 		'course_captain_cron_state',
 		'course_captain_lock_import',
 		'course_captain_lock_retention',

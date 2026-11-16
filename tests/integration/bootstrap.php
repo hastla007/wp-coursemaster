@@ -19,6 +19,9 @@ if ( false === $ccap_tests_dir || '' === $ccap_tests_dir ) {
 
 require_once $ccap_tests_dir . '/includes/functions.php';
 
+// R1-40: enables the migration fault points (course_captain_migration_fault, R0-37 §7).
+define( 'COURSE_CAPTAIN_TESTING', true );
+
 /*
  * LG-1 (R0-39 §1.3, R0-18 G-07): every outbound HTTP request is blocked and
  * recorded; the base test case fails a test that caused one.
