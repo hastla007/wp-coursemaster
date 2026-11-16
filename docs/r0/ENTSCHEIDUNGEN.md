@@ -2,7 +2,9 @@
 
 **Stand:** 16.11.2026 · **Zweck:** Alle Fragen, die aus den R0-Arbeiten entstanden sind und die nicht technisch, sondern vom Auftraggeber zu entscheiden sind. Doppelte Fragen aus verschiedenen Inventurteilen sind zusammengeführt. Jede Zeile nennt eine **Empfehlung**.
 
-**So antworten:** z. B. „Alle Empfehlungen annehmen außer E-12 (Option B) und E-30 (nein)“. Erst danach werden die betroffenen R0-Dokumente von „Vorschlag“ auf „beschlossen“ gesetzt und die Tasks abgehakt. **R0-GATE und damit jede Implementierung (R1) bleiben bis dahin gesperrt.**
+**Stand 16.11.2026: Alle Entscheidungen sind getroffen** – teils durch den Auftraggeber (Beschlussprotokoll), teils durch Claude im Auftrag (Abschnitt „Von Claude entschieden“). Die Abschnitte 1–41 darunter sind die ursprünglichen Fragen mit Empfehlung.
+
+~~**So antworten:**~~ z. B. „Alle Empfehlungen annehmen außer E-12 (Option B) und E-30 (nein)“. Erst danach werden die betroffenen R0-Dokumente von „Vorschlag“ auf „beschlossen“ gesetzt und die Tasks abgehakt. **R0-GATE und damit jede Implementierung (R1) bleiben bis dahin gesperrt.**
 
 Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.md`, `R0-36-suite-vertragsdeltas.md`. Die Kürzel in der Spalte „Herkunft“ verweisen auf die Abschnitte „Entscheidungsbedarf“ dort.
 
@@ -209,7 +211,7 @@ Alle folgenden Punkte sind technische, gestalterische oder Prozessentscheidungen
 | E-195 | PHP-Untergrenze 8.3 (ersetzt E-57); vor R1-GATE auf php.net verifizieren | Claude: angepasst an Beschlüsse |
 | E-197 | Empfehlung übernommen: **Nur `cc_course` bekommt eine öffentliche URL**, Standard-Slug `kurs` (in den Einstellungen änderbar); Lernbereich `/lernen/` | Claude |
 | E-198 | Empfehlung übernommen: **Nicht unterstützt**, mit Warnung im Systemstatus (Gefahr veralteter Zugriffsentscheidungen) | Claude |
-| E-199 | Empfehlung übernommen: **Ja, neue R2-08** „Zusätzliche neutrale Fragetypen“ (Voraussetzung R2-04) | Claude |
+| E-199 | **Entfällt** durch Beschluss E-69 (Fragetypen schon in R1, keine R2-08) | Claude: angepasst an Beschlüsse |
 | E-200 | Empfehlung übernommen: **R4-Pool**; R1 importiert nur cc-package | Claude |
 | E-201 | Empfehlung übernommen: **24 h**, danach `failed` mit Grund `pending_timeout`, Support-Hinweis und Event | Claude |
 | E-202 | Empfehlung übernommen: **Eigenes Course-Captain-Hauptmenü**, Suite-Status als Unterseite „Integrationen“; gemeinsames Suite-Menü frühestens mit R3-16 | Claude |
@@ -289,6 +291,23 @@ Alle folgenden Punkte sind technische, gestalterische oder Prozessentscheidungen
 | E-282 | Empfehlung übernommen: **Einzeln**; mehrere Plätze nur über Gruppenprodukte | Claude |
 | E-283 | Empfehlung übernommen: **Ja**, mit Begründung und Audit | Claude |
 | E-284 | Empfehlung übernommen: **Ja**, Zeitpunkt des ersten Lernzugriffs wird vermerkt | Claude |
+| E-39b | Schreibende Workflow-Aktionen über Grant-Quelle `workflow` im **Course-Pro-Connector**; Änderungsauftrag an das Workflow-Captain-Konzept (`wp-workflowmaster`), dort ist das LMS-Muster bisher ausgeschlossen | ja (Präzisierung) |
+| E-69 | **Fragetypen Zuordnung, Sortieren, Lückentext schon in R1 Free.** Folge: R0-08 §3, R0-22 Validierung, R1-06 erweitern; E-199 (R2-08) entfällt | **ja** |
+| E-168 | **Text-/Dateiaufgaben mit Bewertung in R1** (R2-02 wird nach R1 vorgezogen). Folge: Upload-Sicherheit (R0-10), Bewertungs-Workflow draft/submitted/returned/graded, Nutzertest-Referenzkurs mit Aufgabe schon in R1 (R0-26), Golden Master ohne LB-Quelle | **ja** |
+| E-232 | Fortschrittseinsicht für Gruppenbesitzer nur in Pro als Opt-in, nur Fortschritt/Abschluss, Lernende werden informiert | nein |
+| E-188 | Repository privat mit freien Sicherheitswerkzeugen; öffentlich zur ersten WordPress.org-Veröffentlichung | nein |
+| E-193 | Deploy-Freigabe durch den Auftraggeber; Vertretung wird später benannt (vor R1-GATE) | nein |
+| E-204 | Auftraggeber übernimmt die Reviewer-Rollen vorerst selbst; weitere Personen/Vertretung werden vor R1-Start benannt. Hinweis: Vier-Augen-Prinzip (Autor ≠ Reviewer) bleibt Pflicht | teilweise |
+| E-161 | Rekrutierung gemischt: eigene Kontakte für Autoren/Admins, Dienstleister/Verbände für Personen mit Hilfstechnik | nein |
+| E-162 | Budget für Nutzertests kommt; Betrag nennt der Auftraggeber vor R1-29 | nein |
+| E-192 | Cloud-VM für Performance-Messungen wird gestellt | nein |
+| E-196 | **Keine Lizenzen kommerzieller Plugins**; Kompatibilität mit WP Rocket, Elementor Pro u. a. nur „best effort“ (R0-20 Stufen anpassen) | **ja** |
+| E-194 | Lesender Deploy-Key für hastla007/learnboating in der CI; nightly Koexistenztest gegen Commit 9f37c77, nur installiert, nie verändert/weitergegeben | nein |
+| E-206 | WordPress.org-Konto mit 2FA legt der Auftraggeber an | nein |
+| E-211 | Sicherheitsmeldungen über eine Adresse des Auftraggebers; Erstreaktion ≤ 72 h | nein |
+| E-212 | Auftraggeber betreut das wp.org-Forum; Pro-Support über eigenen Kanal | nein |
+| E-273 | **Pro-Add-on wird in `captain-pro/addons/course-captain-pro` gebaut** (Konzept-Plan). Voraussetzung: Zugriff auf das private Repo captain-pro für Prüfung von Kernel, FeatureRegistry, TARIFE, ARCHITECTURE | **ja** |
+| E-195 | PHP 8.3 als Untergrenze bestätigt | nein |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 

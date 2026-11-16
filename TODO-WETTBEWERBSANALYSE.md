@@ -428,13 +428,21 @@
   - **Ergebnis/Definition of Done:** Gleichzeitige Enrollment-/Seat-/Attempt-/Completion-Operationen gegen echte DB, Unique-Invarianten, Deadlock-/Retry- und Messprotokoll.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — *Vorschlag aus R0-12, Aufnahme offen (E-182).*
+- [ ] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — *Aufgenommen (E-182, angepasst an E-38): nur **interne** Outbox im Free-Kern; öffentliche Events/Read-API/Registry sind Pro (R3).*
   - **Voraussetzung:** R1-02, R1-03.
   - **Ergebnis/Definition of Done:** Event-Envelope v1, Outbox mit Zustellung/Backoff/Dead-Letter, Connector-Registry und GrantSourceAdapter nach R0-19 §5; Tests aus R0-19/R0-21.
 
-- [ ] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — *Vorschlag aus R0-12, Aufnahme offen (E-183).*
+- [ ] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — *Aufgenommen (E-183).*
   - **Voraussetzung:** R1-02, R1-10.
   - **Ergebnis/Definition of Done:** Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation nach R0-08 §7 und R0-23 §5; R1-35 baut darauf Verwaltung und UI.
+
+- [ ] **R1-45 · Website-Härtungsmodul** — *Aufgenommen (Beschluss E-10, E-239).*
+  - **Voraussetzung:** R1-03, R1-31, R1-42.
+  - **Ergebnis/Definition of Done:** Login-/Reset-/Registrierungslimit, bekanntes Gerät, XML-RPC, 4 Security-Header; Erkennung von Security-Plugins (`auto`), Notausschalter; Spezifikation R0-31 §3.4, R0-30 Tab „Website-Härtung“; Tests PSD-xxx/ADM-xxx.
+
+- [ ] **R1-46 · Text-/Dateiaufgaben mit Bewertung (aus R2-02 vorgezogen)** — *Aufgenommen (Beschluss E-168).*
+  - **Voraussetzung:** R1-07, R1-09, R1-14.
+  - **Ergebnis/Definition of Done:** Abgabe-Workflow draft/submitted/returned/graded, sichere Uploads (R0-10), Bewertung durch Trainer, Benachrichtigung; Tests und Nutzertest-Referenzkurs mit Aufgabe (R0-26).
 
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
@@ -445,7 +453,7 @@
   - **Ergebnis/Definition of Done:** Notizen pro Lektion, Suche, Export/Löschung, Rechte- und E2E-Tests.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R2-02 · Text-/Dateiaufgaben**
+- [ ] ~~**R2-02 · Text-/Dateiaufgaben**~~ → nach **R1-46** vorgezogen (E-168)
   - **Voraussetzung:** R2-01.
   - **Ergebnis/Definition of Done:** Sichere Abgabe, Upload, Status, Feedback, Retakes und Objektberechtigung.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
