@@ -17,6 +17,7 @@ use CourseCaptain\Event\Outbox;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
+use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\StorageException;
@@ -143,11 +144,12 @@ final class CertificateService {
 	 * @return array{id: int, certificate_uid: string, created: bool}|null
 	 */
 	public function auto_issue( string $type, int $evidence_id ): ?array {
-		if ( true !== Settings::get( 'certificates.auto_issue' ) ) {
-			return null;
-		}
 		$evidence = $this->evidence( $type, $evidence_id );
 		if ( null === $evidence || ! $evidence['eligible'] ) {
+			return null;
+		}
+		// Class E (R0-28 §1.4 #22): decided at the event with the course override of the published revision.
+		if ( true !== EffectiveSettings::for_course( 'certificates.auto_issue', (int) $evidence['course_id'] ) ) {
 			return null;
 		}
 		if ( self::EVIDENCE_EXAM === $type && ! $this->grant_at_submission( $evidence ) ) {
@@ -748,12 +750,15 @@ final class CertificateService {
 
 	/**
 	 * Current base template (CF-04): every change of `certificates.base_template`
-	 * is a new `version`; issued certificates keep theirs.
+	 * is a new `version`; issued certificates keep theirs. With a course,
+	 * its leaf overrides apply (class A, R0-28 §1.4 #23); a definition that
+	 * already has a version keeps that version number.
 	 *
+	 * @param int $course_id Course (0 = site template).
 	 * @return array{template_uid: string, version: int, kind: string, definition_hash: string, definition: array<string, mixed>}
 	 */
-	public static function template(): array {
-		$settings   = (array) Settings::get( 'certificates.base_template' );
+	public static function template( int $course_id = 0 ): array {
+		$settings   = (array) ( $course_id > 0 ? EffectiveSettings::for_course( 'certificates.base_template', $course_id ) : Settings::get( 'certificates.base_template' ) );
 		$definition = array(
 			'issuer_name'     => (string) ( $settings['issuer_name'] ?? '' ),
 			'footer_text'     => (string) ( $settings['footer_text'] ?? '' ),
@@ -768,6 +773,11 @@ final class CertificateService {
 		);
 		$versions   = array_values( (array) $state['versions'] );
 		$last       = end( $versions );
+		foreach ( $versions as $known ) {
+			if ( is_array( $known ) && ( $known['definition_hash'] ?? '' ) === $hash ) {
+				$last = $known;
+			}
+		}
 		if ( ! is_array( $last ) || ( $last['definition_hash'] ?? '' ) !== $hash ) {
 			$versions[]        = array(
 				'version'         => count( $versions ) + 1,
@@ -838,7 +848,7 @@ final class CertificateService {
 		if ( null !== $existing ) {
 			return $existing;
 		}
-		$template = self::template();
+		$template = self::template( (int) $evidence['course_id'] );
 		try {
 			return $this->db->transaction(
 				function ( Database $db ) use ( $evidence, $actor, $reason, $type, $evidence_id, $template ): array {

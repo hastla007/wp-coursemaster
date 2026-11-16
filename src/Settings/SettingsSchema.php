@@ -452,6 +452,83 @@ final class SettingsSchema {
 	}
 
 	/**
+	 * Override metadata (R0-28 §1.4, T28-5): register keys with a scope
+	 * beyond `global`. `scopes` = levels that may override (course,
+	 * activity, exam_rule, group, media); `class` = resolution class
+	 * (L live, K course revision, R exam rule/attempt start, G grant or
+	 * invitation, E event, A issuance); `lockable` = a site lock may forbid
+	 * overrides; `unit` = `field` or `leaf` (sub-keys of an object override
+	 * one by one); `monotonic` = `shorter` (only smaller than global) or
+	 * `stricter` (only stricter, ordered by the enum values).
+	 *
+	 * @return array<string, array{scopes: list<string>, class: string, lockable: bool, unit: string, monotonic?: string}>
+	 */
+	public static function overridable(): array {
+		$course = static fn( string $resolve_class, string $unit = 'field' ): array => array(
+			'scopes'   => array( 'course' ),
+			'class'    => $resolve_class,
+			'lockable' => true,
+			'unit'     => $unit,
+		);
+		$exam   = static fn( bool $lockable = true, string $unit = 'field' ): array => array(
+			'scopes'   => array( 'exam_rule' ),
+			'class'    => 'R',
+			'lockable' => $lockable,
+			'unit'     => $unit,
+		);
+		return array(
+			'general.catalog_indexing'           => $course( 'L' ),
+			'display.container_width'            => $course( 'L' ),
+			'display.breadcrumbs'                => $course( 'L' ),
+			'learning.course_completion_default' => $course( 'K' ),
+			'learning.mastery_algorithm'         => $course( 'K' ),
+			'learning.favorites_enabled'         => $course( 'L' ),
+			'learning.mistake_training_enabled'  => $course( 'L' ),
+			'learning.feedback'                  => array(
+				'scopes'   => array( 'course', 'activity' ),
+				'class'    => 'L',
+				'lockable' => true,
+				'unit'     => 'leaf',
+			),
+			'exams.max_attempts'                 => $exam(),
+			'exams.cooldown_seconds'             => $exam(),
+			'exams.count_cancelled'              => $exam(),
+			'exams.time_limit_minutes'           => $exam(),
+			'exams.timer_mode'                   => $exam(),
+			'exams.late_tolerance_seconds'       => $exam(),
+			'exams.shuffle_questions'            => $exam( false ),
+			'exams.shuffle_answers'              => $exam(),
+			'exams.feedback'                     => $exam( true, 'leaf' ),
+			'exams.auto_submit_inactive_days'    => $exam(),
+			'enrollment.self_enrollment'         => $course( 'L' ),
+			'enrollment.default_access_days'     => $course( 'G' ),
+			'enrollment.groups_enabled'          => $course( 'L' ),
+			'certificates.auto_issue'            => $course( 'E' ),
+			'certificates.base_template'         => $course( 'A', 'leaf' ),
+			'enrollment.claim_policy'            => array(
+				'scopes'   => array( 'group' ),
+				'class'    => 'G',
+				'lockable' => true,
+				'unit'     => 'field',
+			),
+			'enrollment.invite_valid_days'       => array(
+				'scopes'    => array( 'group' ),
+				'class'     => 'G',
+				'lockable'  => false,
+				'unit'      => 'field',
+				'monotonic' => 'shorter',
+			),
+			'privacy.external_media_mode'        => array(
+				'scopes'    => array( 'media' ),
+				'class'     => 'L',
+				'lockable'  => false,
+				'unit'      => 'field',
+				'monotonic' => 'stricter',
+			),
+		);
+	}
+
+	/**
 	 * Defaults of a tab.
 	 *
 	 * @param string $tab Tab.

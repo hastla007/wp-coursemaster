@@ -19,6 +19,7 @@ use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
+use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\NamedLock;
 use CourseCaptain\Storage\RateLimiter;
@@ -33,7 +34,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class ExamSessions {
 
-	public const FORMAT_VERSION    = 1;
+	public const FORMAT_VERSION    = 2;
 	public const EVALUATOR_VERSION = '1.0.0';
 	public const UNLIMITED_LOCK    = 86400;
 	private const START_LOCK_WAIT  = 10;
@@ -118,6 +119,27 @@ final class ExamSessions {
 		} finally {
 			$lock->release();
 		}
+	}
+
+	/**
+	 * Settings of a historical attempt (SN-3/SN-4): only from the snapshot,
+	 * never resolved again; snapshots without provenance report `unknown`.
+	 *
+	 * @param array<string, mixed> $snapshot Snapshot.
+	 * @return array<string, array{v: mixed, src: string}>
+	 */
+	public static function settings_provenance( array $snapshot ): array {
+		if ( isset( $snapshot['settings_provenance'] ) && is_array( $snapshot['settings_provenance'] ) ) {
+			return $snapshot['settings_provenance'];
+		}
+		$out = array();
+		foreach ( array_keys( ExamRules::REGISTER_MAP ) as $key ) {
+			$out[ $key ] = array(
+				'v'   => null,
+				'src' => 'unknown',
+			);
+		}
+		return $out;
 	}
 
 	/**
@@ -529,29 +551,42 @@ final class ExamSessions {
 		$limit    = null === $rule['time_limit_seconds'] ? null : (int) $rule['time_limit_seconds'];
 		$started  = $this->now();
 		$practice = 'practice' === ( $settings['purpose'] ?? 'evidence' );
+		// Accommodation (R0-28 §1.3 step 6, C-5): applies even over a lock; frozen, never shown in results (E-122).
+		$accommodation = null === $limit ? null : EffectiveSettings::accommodation( $this->db, $actor->user_id, (int) $rule['course_id'], (int) $rule['id'], $started );
+		if ( null !== $accommodation ) {
+			$limit = $accommodation['unlimited'] ? null : ( null === $accommodation['factor_pct'] ? $limit : intdiv( $limit * $accommodation['factor_pct'], 100 ) );
+		}
+		$provenance = array();
+		foreach ( (array) ( $rule['settings_provenance'] ?? array() ) as $key => $entry ) {
+			$provenance[ (string) $key ] = array(
+				'v'   => $entry['v'] ?? null,
+				'src' => (string) ( $entry['src'] ?? 'unknown' ),
+				'ref' => in_array( $entry['src'] ?? '', array( 'global', 'global_lock', 'schema_default' ), true ) ? 'site' : 'rule:' . (string) $rule['uid'] . '@' . (string) $rule['version'],
+			);
+		}
 		$snapshot = array(
-			'format_version'     => self::FORMAT_VERSION,
-			'rule'               => array(
+			'format_version'      => self::FORMAT_VERSION,
+			'rule'                => array(
 				'id'      => (int) $rule['id'],
 				'uid'     => (string) $rule['uid'],
 				'version' => (string) $rule['version'],
 				'hash'    => 'sha256:' . hash( 'sha256', (string) wp_json_encode( array( $rule['passing_rule'], $rule['settings'], $rule['blueprints'] ) ) ),
 			),
-			'evidence_eligible'  => ! $practice && ! $plan['reduced'],
-			'reduced'            => $plan['reduced'],
-			'practice'           => $practice,
-			'timing'             => array(
+			'evidence_eligible'   => ! $practice && ! $plan['reduced'],
+			'reduced'             => $plan['reduced'],
+			'practice'            => $practice,
+			'timing'              => array(
 				'time_limit_seconds'     => $limit,
 				'grace_seconds'          => (int) $settings['grace_seconds'],
 				'late_tolerance_seconds' => (int) $settings['late_tolerance_seconds'],
 				'timer_mode'             => (string) $settings['timer_mode'],
 			),
-			'passing_rule'       => $rule['passing_rule'],
-			'randomizer'         => array(
+			'passing_rule'        => $rule['passing_rule'],
+			'randomizer'          => array(
 				'seed'               => $randomizer->seed(),
 				'randomizer_version' => Randomizer::VERSION,
 			),
-			'scoring'            => array_map(
+			'scoring'             => array_map(
 				static fn( array $item ): array => array(
 					'position' => $item['position'],
 					'points'   => $item['points'],
@@ -560,16 +595,19 @@ final class ExamSessions {
 				),
 				$items
 			),
-			'feedback'           => $settings['feedback'],
+			'feedback'            => $settings['feedback'],
 			// Section/topic labels are frozen at the start (R0-08 §6.3, R0-23 RV-01 / REV-021).
-			'section_labels'     => self::section_labels( $items ),
-			'attempt_policy'     => $settings['attempt_policy'],
-			'competency'         => array(
+			'section_labels'      => self::section_labels( $items ),
+			'attempt_policy'      => $settings['attempt_policy'],
+			'competency'          => array(
 				'certifies_objectives' => array_values( array_map( 'strval', (array) ( $settings['certifies_objectives'] ?? array() ) ) ),
 				'validity_days'        => isset( $settings['competency_validity_days'] ) ? max( 1, (int) $settings['competency_validity_days'] ) : null,
 			),
-			'open_text_in_score' => (bool) $settings['open_text_in_score'],
-			'evaluator_version'  => self::EVALUATOR_VERSION,
+			'open_text_in_score'  => (bool) $settings['open_text_in_score'],
+			'evaluator_version'   => self::EVALUATOR_VERSION,
+			// R0-28 T28-2: effective values with source; historical views read only this (SN-3).
+			'settings_provenance' => $provenance,
+			'accommodation'       => $accommodation,
 		);
 		ksort( $snapshot );
 		$json = (string) wp_json_encode( $snapshot );

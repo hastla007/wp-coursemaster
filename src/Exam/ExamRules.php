@@ -12,6 +12,7 @@ namespace CourseCaptain\Exam;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
+use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -23,8 +24,31 @@ defined( 'ABSPATH' ) || exit;
  * `attempt_policy`, `feedback`, `shuffle_questions`, `shuffle_answers`,
  * `grace_seconds`, `late_tolerance_seconds`, `timer_mode`. The explanation
  * switch is a Pro setting and not part of the Free defaults (R0-39 G-12).
+ * Register-backed settings inherit global → rule (R1-33): drafts resolve
+ * live, publication materializes `{v, src}`, locks act from the next start.
  */
 final class ExamRules {
+
+	public const SETTINGS_FORMAT = 2;
+
+	/**
+	 * Register keys backed by a rule setting (R0-28 §1.4 #9–#18) → rule
+	 * path; the time limit lives in the column `time_limit_seconds`.
+	 *
+	 * @var array<string, string>
+	 */
+	public const REGISTER_MAP = array(
+		'exams.max_attempts'              => 'attempt_policy.max_attempts',
+		'exams.cooldown_seconds'          => 'attempt_policy.cooldown_seconds',
+		'exams.count_cancelled'           => 'attempt_policy.count_cancelled',
+		'exams.time_limit_minutes'        => '',
+		'exams.timer_mode'                => 'timer_mode',
+		'exams.late_tolerance_seconds'    => 'late_tolerance_seconds',
+		'exams.shuffle_questions'         => 'shuffle_questions',
+		'exams.shuffle_answers'           => 'shuffle_answers',
+		'exams.feedback'                  => 'feedback',
+		'exams.auto_submit_inactive_days' => 'auto_submit_inactive_days',
+	);
 
 	/**
 	 * Constructor.
@@ -45,44 +69,59 @@ final class ExamRules {
 	}
 
 	/**
-	 * Default settings (explicitly stored at creation).
+	 * Full settings shape with code defaults; register-backed values are
+	 * replaced by the resolver (R0-28), rule-only values are stored.
 	 *
 	 * @return array<string, mixed>
 	 */
 	public static function default_settings(): array {
 		return array(
-			'purpose'                  => 'evidence',
-			'attempt_policy'           => array(
+			'purpose'                   => 'evidence',
+			'attempt_policy'            => array(
 				'max_attempts'     => null,
 				'cooldown_seconds' => 0,
 				'count_cancelled'  => true,
 			),
-			'feedback'                 => array(
+			'feedback'                  => array(
 				'feedback_visibility'       => 'after_submit',
 				'show_score'                => true,
 				'show_correct_answers'      => true,
 				'show_correct_answers_when' => 'no_attempts_left_or_passed',
 			),
-			'shuffle_questions'        => 'within_section',
-			'shuffle_answers'          => true,
-			'grace_seconds'            => 5,
-			'late_tolerance_seconds'   => 120,
-			'timer_mode'               => 'strict',
-			'open_text_in_score'       => true,
-			'certifies_objectives'     => array(),
-			'competency_validity_days' => null,
+			'shuffle_questions'         => 'within_section',
+			'shuffle_answers'           => true,
+			'grace_seconds'             => 5,
+			'late_tolerance_seconds'    => 120,
+			'timer_mode'                => 'strict',
+			'open_text_in_score'        => true,
+			'certifies_objectives'      => array(),
+			'competency_validity_days'  => null,
+			'auto_submit_inactive_days' => null,
 		);
 	}
 
 	/**
-	 * Create a draft rule.
+	 * Rule-only settings without a register key (stored explicitly).
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function own_defaults(): array {
+		return array_intersect_key( self::default_settings(), array_flip( array( 'purpose', 'grace_seconds', 'open_text_in_score', 'certifies_objectives', 'competency_validity_days' ) ) );
+	}
+
+	/**
+	 * Create a draft rule. Register-backed settings (R0-28 §1.4 #9–#18)
+	 * are stored as overrides only when given; missing ones inherit the
+	 * global value until publication (E-227). A time limit in seconds is
+	 * an explicit override; `overrides` may name register keys directly
+	 * (e.g. `exams.time_limit_minutes => null` = explicitly unlimited).
 	 *
 	 * @param Actor                $actor        Actor (M-06).
 	 * @param int                  $course_id    Course.
 	 * @param string               $version      Version label.
 	 * @param array<string, mixed> $passing_rule `min_ratio` {num, den}, optional `parts`.
-	 * @param int|null             $time_limit   Seconds or null.
-	 * @param array<string, mixed> $settings     Settings (merged over defaults).
+	 * @param int|null             $time_limit   Seconds or null (inherit).
+	 * @param array<string, mixed> $settings     Settings (legacy shape and/or `overrides`).
 	 * @return int Rule ID.
 	 * @throws CourseException On invalid data or missing rights.
 	 */
@@ -92,6 +131,7 @@ final class ExamRules {
 		if ( array() !== $errors || '' === trim( $version ) || ( null !== $time_limit && $time_limit < 1 ) ) {
 			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', array_merge( $errors, array( 'rule' ) ) ) ), 422 );
 		}
+		$overrides = self::validated_overrides( self::extract_overrides( $settings ) );
 		return $this->db->insert(
 			'ccap_exam_rule',
 			array(
@@ -101,10 +141,84 @@ final class ExamRules {
 				'status'             => 'draft',
 				'time_limit_seconds' => $time_limit,
 				'passing_rule'       => (string) wp_json_encode( $passing_rule ),
-				'settings'           => (string) wp_json_encode( array_replace_recursive( self::default_settings(), $settings ) ),
+				'settings'           => (string) wp_json_encode( self::stored_settings( $settings, $overrides ) ),
 			),
 			array( 'created_at', 'updated_at' )
 		);
+	}
+
+	/**
+	 * Change overrides of a draft rule; `inherit` removes one (§4.1).
+	 * `exams.time_limit_minutes` replaces the explicit time limit.
+	 *
+	 * @param Actor                $actor   Actor (M-06).
+	 * @param int                  $rule_id Draft rule.
+	 * @param array<string, mixed> $changes Register key → value or `inherit`.
+	 * @return array<string, mixed> Overrides after the change.
+	 * @throws CourseException `ccap_rule_frozen`, `ccap_validation_failed`, `ccap_setting_locked`.
+	 */
+	public function set_overrides( Actor $actor, int $rule_id, array $changes ): array {
+		$rule   = $this->editable( $actor, $rule_id );
+		$stored = (array) $rule['settings_stored'];
+		if ( self::SETTINGS_FORMAT !== (int) ( $stored['_format'] ?? 0 ) ) {
+			// Draft from before R1-33: every stored value counts as explicit.
+			$stored = array(
+				'_format'   => self::SETTINGS_FORMAT,
+				'overrides' => self::extract_overrides( array_replace_recursive( self::default_settings(), $stored ) ),
+			) + array_intersect_key( array_replace_recursive( self::own_defaults(), $stored ), self::own_defaults() );
+		}
+		$overrides = (array) ( $stored['overrides'] ?? array() );
+		$column    = $rule['time_limit_column'];
+		$set       = array();
+		foreach ( $changes as $key => $value ) {
+			$key = (string) $key;
+			if ( ! array_key_exists( $key, self::REGISTER_MAP ) ) {
+				throw new CourseException( 'ccap_validation_failed', esc_html( $key ), 422 );
+			}
+			if ( 'exams.time_limit_minutes' === $key ) {
+				$column = null;
+			}
+			if ( EffectiveSettings::INHERIT === $value ) {
+				unset( $overrides[ $key ] );
+				continue;
+			}
+			$set[ $key ] = $value;
+		}
+		$overrides = array_replace( $overrides, self::validated_overrides( $set ) );
+		ksort( $overrides );
+		$stored['overrides'] = $overrides;
+		$table               = $this->db->table( 'ccap_exam_rule' );
+		$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET settings = %s, time_limit_seconds = " . ( null === $column ? 'NULL' : (int) $column ) . ', updated_at = %s WHERE id = %d', (string) wp_json_encode( $stored ), $this->db->now(), $rule_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer cast.
+		return $overrides;
+	}
+
+	/**
+	 * Panel "Effective settings" of a rule (§1.7): value, source, class.
+	 *
+	 * @param int $rule_id Rule.
+	 * @return list<array{key: string, label: string, value: mixed, source: string, locked: bool, resting: bool, overridden: bool, applies: string}>
+	 */
+	public function panel( int $rule_id ): array {
+		$rule = $this->get( $rule_id );
+		if ( null === $rule ) {
+			return array();
+		}
+		$labels = EffectiveSettings::labels();
+		$own    = (array) ( $rule['settings_stored']['overrides'] ?? array() );
+		$rows   = array();
+		foreach ( (array) $rule['settings_provenance'] as $key => $entry ) {
+			$rows[] = array(
+				'key'        => (string) $key,
+				'label'      => $labels[ $key ] ?? (string) $key,
+				'value'      => $entry['v'],
+				'source'     => (string) $entry['src'],
+				'locked'     => 'global_lock' === $entry['src'],
+				'resting'    => 'global_lock' === $entry['src'] && ( array_key_exists( $key, $own ) || ( 'exams.time_limit_minutes' === $key && null !== $rule['time_limit_column'] ) ),
+				'overridden' => array_key_exists( $key, $own ) || ( 'exams.time_limit_minutes' === $key && null !== $rule['time_limit_column'] ),
+				'applies'    => 'draft' === $rule['status'] ? __( 'applies when the exam is published', 'course-captain' ) : EffectiveSettings::class_label( 'R' ),
+			);
+		}
+		return $rows;
 	}
 
 	/**
@@ -190,11 +304,20 @@ final class ExamRules {
 	public function publish( Actor $actor, int $rule_id ): void {
 		$rule = $this->editable( $actor, $rule_id );
 		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::PUBLISH_COURSE, array( (int) $rule['course_id'] ) ), 'Not allowed to publish.' );
-		$table = $this->db->table( 'ccap_exam_rule' );
+		// Materialize every register value with its source (R0-28 §2.1, E-227); locks act live at start (E-225).
+		$resolved = self::resolve_settings( (array) $rule['settings_stored'], $rule['time_limit_column'], 'draft', true )['provenance'];
+		$stored   = (array) $rule['settings_stored'];
+		if ( 'practice' !== ( $stored['purpose'] ?? 'evidence' ) && 'practice' === ( $resolved['exams.timer_mode']['v'] ?? 'strict' ) ) {
+			// INH-018: a practice timer is never evidence-eligible.
+			throw new CourseException( 'ccap_validation_failed', 'timer_mode', 422 );
+		}
+		$stored['resolved'] = $resolved;
+		$limit              = self::seconds( $resolved['exams.time_limit_minutes']['v'] ?? null );
+		$table              = $this->db->table( 'ccap_exam_rule' );
 		$this->db->transaction(
-			function ( Database $db ) use ( $table, $rule, $rule_id, $actor ): void {
+			function ( Database $db ) use ( $table, $rule, $rule_id, $actor, $stored, $limit ): void {
 				$db->execute( $db->prepare( "UPDATE `{$table}` SET status = 'retired', updated_at = %s WHERE course_id = %d AND status = 'published' AND id <> %d", $db->now(), (int) $rule['course_id'], $rule_id ) );
-				$db->execute( $db->prepare( "UPDATE `{$table}` SET status = 'published', published_by = %d, published_at = %s, updated_at = %s WHERE id = %d AND status = 'draft'", $actor->user_id, $db->now(), $db->now(), $rule_id ) );
+				$db->execute( $db->prepare( "UPDATE `{$table}` SET status = 'published', settings = %s, time_limit_seconds = " . ( null === $limit ? 'NULL' : (int) $limit ) . ", published_by = %d, published_at = %s, updated_at = %s WHERE id = %d AND status = 'draft'", (string) wp_json_encode( $stored ), $actor->user_id, $db->now(), $db->now(), $rule_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer cast.
 			}
 		);
 	}
@@ -210,12 +333,244 @@ final class ExamRules {
 		if ( null === $row ) {
 			return null;
 		}
-		$passing             = json_decode( (string) $row['passing_rule'], true );
-		$settings            = json_decode( (string) $row['settings'], true );
-		$row['passing_rule'] = is_array( $passing ) ? $passing : null;
-		$row['settings']     = is_array( $settings ) ? array_replace_recursive( self::default_settings(), $settings ) : self::default_settings();
-		$row['blueprints']   = $this->db->rows( $this->db->prepare( 'SELECT module_id, question_count, rules FROM `' . $this->db->table( 'ccap_exam_blueprint' ) . '` WHERE rule_id = %d ORDER BY id', $rule_id ) );
+		$passing                    = json_decode( (string) $row['passing_rule'], true );
+		$settings                   = json_decode( (string) $row['settings'], true );
+		$settings                   = is_array( $settings ) ? $settings : array();
+		$column                     = null === $row['time_limit_seconds'] ? null : (int) $row['time_limit_seconds'];
+		$effective                  = self::resolve_settings( $settings, $column, (string) $row['status'] );
+		$row['passing_rule']        = is_array( $passing ) ? $passing : null;
+		$row['settings_stored']     = $settings;
+		$row['time_limit_column']   = $column;
+		$row['settings']            = $effective['settings'];
+		$row['time_limit_seconds']  = $effective['time_limit_seconds'];
+		$row['settings_provenance'] = $effective['provenance'];
+		$row['blueprints']          = $this->db->rows( $this->db->prepare( 'SELECT module_id, question_count, rules FROM `' . $this->db->table( 'ccap_exam_blueprint' ) . '` WHERE rule_id = %d ORDER BY id', $rule_id ) );
 		return $row;
+	}
+
+	/**
+	 * Effective settings of a stored rule (R0-28 §1.3 class R).
+	 *
+	 * Drafts resolve live (overrides → global); published rules use their
+	 * materialized `resolved` block; rules stored before R1-33 (no
+	 * `_format`) count as fully explicit. Locks replace values live unless
+	 * `$ignore_locks` (materialization).
+	 *
+	 * @param array<string, mixed> $stored       Stored settings JSON.
+	 * @param int|null             $column       Stored time limit (seconds).
+	 * @param string               $status       Rule status.
+	 * @param bool                 $ignore_locks Skip locks.
+	 * @return array{settings: array<string, mixed>, time_limit_seconds: int|null, provenance: array<string, array{v: mixed, src: string}>}
+	 */
+	public static function resolve_settings( array $stored, ?int $column, string $status, bool $ignore_locks = false ): array {
+		$legacy  = self::SETTINGS_FORMAT !== (int) ( $stored['_format'] ?? 0 );
+		$context = array( 'ignore_locks' => $ignore_locks );
+		if ( $legacy ) {
+			$full     = array_replace_recursive( self::default_settings(), $stored );
+			$resolved = array();
+			foreach ( self::REGISTER_MAP as $key => $path ) {
+				$resolved[ $key ] = array(
+					'v'   => 'exams.time_limit_minutes' === $key ? self::minutes( $column ) : self::read_path( $full, $key, $path ),
+					'src' => 'exam_rule',
+				);
+			}
+			$context['rule'] = array( 'resolved' => $resolved );
+		} elseif ( 'draft' !== $status && is_array( $stored['resolved'] ?? null ) ) {
+			$context['rule'] = array( 'resolved' => $stored['resolved'] );
+		} else {
+			$overrides = (array) ( $stored['overrides'] ?? array() );
+			if ( null !== $column ) {
+				$overrides['exams.time_limit_minutes'] = self::minutes( $column );
+			}
+			$context['rule'] = array( 'overrides' => $overrides );
+		}
+		$settings   = array_replace_recursive( self::default_settings(), $legacy ? $stored : array_intersect_key( $stored, self::own_defaults() ) );
+		$provenance = array();
+		$limit      = null;
+		foreach ( self::REGISTER_MAP as $key => $path ) {
+			$r                  = EffectiveSettings::resolve( $key, $context );
+			$provenance[ $key ] = array(
+				'v'   => $r['value'],
+				'src' => $r['source'],
+			);
+			if ( 'exams.time_limit_minutes' === $key ) {
+				$limit = self::seconds( $r['value'] );
+				continue;
+			}
+			$settings = self::write_path( $settings, $key, $path, $r['value'] );
+		}
+		// C-6: inactivity submission only without a time limit.
+		if ( null !== $limit && null !== ( $settings['auto_submit_inactive_days'] ?? null ) ) {
+			$settings['auto_submit_inactive_days']              = null;
+			$provenance['exams.auto_submit_inactive_days']['v'] = null;
+		}
+		ksort( $provenance );
+		return array(
+			'settings'           => $settings,
+			'time_limit_seconds' => $limit,
+			'provenance'         => $provenance,
+		);
+	}
+
+	/**
+	 * Register overrides contained in submitted settings (legacy shape or `overrides`).
+	 *
+	 * @param array<string, mixed> $settings Settings.
+	 * @return array<string, mixed>
+	 */
+	private static function extract_overrides( array $settings ): array {
+		$out = array();
+		foreach ( self::REGISTER_MAP as $key => $path ) {
+			if ( '' === $path ) {
+				continue;
+			}
+			if ( 'exams.feedback' === $key ) {
+				if ( isset( $settings['feedback'] ) && is_array( $settings['feedback'] ) ) {
+					$leaves = array();
+					foreach ( $settings['feedback'] as $leaf => $value ) {
+						$leaves[ 'feedback_visibility' === $leaf ? 'visibility' : (string) $leaf ] = $value;
+					}
+					$out[ $key ] = $leaves;
+				}
+				continue;
+			}
+			$parts = explode( '.', $path );
+			$node  = $settings;
+			$found = true;
+			foreach ( $parts as $part ) {
+				if ( ! is_array( $node ) || ! array_key_exists( $part, $node ) ) {
+					$found = false;
+					break;
+				}
+				$node = $node[ $part ];
+			}
+			if ( $found ) {
+				$out[ $key ] = $node;
+			}
+		}
+		foreach ( (array) ( $settings['overrides'] ?? array() ) as $key => $value ) {
+			$out[ (string) $key ] = $value;
+		}
+		return $out;
+	}
+
+	/**
+	 * Validate rule overrides (scope `exam_rule`, locks refused).
+	 *
+	 * @param array<string, mixed> $overrides Overrides.
+	 * @return array<string, mixed>
+	 * @throws CourseException `ccap_validation_failed`, `ccap_setting_locked`.
+	 */
+	private static function validated_overrides( array $overrides ): array {
+		$out    = array();
+		$errors = array();
+		$locks  = EffectiveSettings::locks();
+		foreach ( $overrides as $key => $value ) {
+			$check = EffectiveSettings::validate_override( (string) $key, $value, 'exam_rule' );
+			if ( ! $check['ok'] ) {
+				$errors[] = (string) $key;
+				continue;
+			}
+			if ( isset( $locks[ $key ] ) ) {
+				throw new CourseException( 'ccap_setting_locked', esc_html( (string) $key ), 422 );
+			}
+			$out[ (string) $key ] = $check['value'];
+		}
+		if ( array() !== $errors ) {
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', $errors ) ), 422 );
+		}
+		ksort( $out );
+		return $out;
+	}
+
+	/**
+	 * Stored settings of a new draft.
+	 *
+	 * @param array<string, mixed> $settings  Submitted settings.
+	 * @param array<string, mixed> $overrides Validated overrides.
+	 * @return array<string, mixed>
+	 */
+	private static function stored_settings( array $settings, array $overrides ): array {
+		$own = array_replace_recursive( self::own_defaults(), array_intersect_key( $settings, self::own_defaults() ) );
+		return array(
+			'_format'   => self::SETTINGS_FORMAT,
+			'overrides' => (object) $overrides,
+		) + $own;
+	}
+
+	/**
+	 * Value at a rule path (feedback renames `visibility`).
+	 *
+	 * @param array<string, mixed> $settings Settings.
+	 * @param string               $key      Register key.
+	 * @param string               $path     Rule path.
+	 * @return mixed
+	 */
+	private static function read_path( array $settings, string $key, string $path ) {
+		if ( 'exams.feedback' === $key ) {
+			$feedback = (array) ( $settings['feedback'] ?? array() );
+			$out      = array();
+			foreach ( $feedback as $leaf => $value ) {
+				$out[ 'feedback_visibility' === $leaf ? 'visibility' : (string) $leaf ] = $value;
+			}
+			return $out;
+		}
+		$node = $settings;
+		foreach ( explode( '.', $path ) as $part ) {
+			$node = is_array( $node ) ? ( $node[ $part ] ?? null ) : null;
+		}
+		return $node;
+	}
+
+	/**
+	 * Write a value at a rule path (feedback renames `visibility`).
+	 *
+	 * @param array<string, mixed> $settings Settings.
+	 * @param string               $key      Register key.
+	 * @param string               $path     Rule path.
+	 * @param mixed                $value    Value.
+	 * @return array<string, mixed>
+	 */
+	private static function write_path( array $settings, string $key, string $path, $value ): array {
+		if ( 'exams.feedback' === $key ) {
+			$feedback = array();
+			foreach ( (array) $value as $leaf => $v ) {
+				$feedback[ 'visibility' === $leaf ? 'feedback_visibility' : (string) $leaf ] = $v;
+			}
+			$settings['feedback'] = array_replace( (array) ( $settings['feedback'] ?? array() ), $feedback );
+			return $settings;
+		}
+		$parts = explode( '.', $path );
+		if ( 2 === count( $parts ) ) {
+			$settings[ $parts[0] ]              = (array) ( $settings[ $parts[0] ] ?? array() );
+			$settings[ $parts[0] ][ $parts[1] ] = $value;
+			return $settings;
+		}
+		$settings[ $path ] = $value;
+		return $settings;
+	}
+
+	/**
+	 * Minutes (register unit) of a time limit in seconds.
+	 *
+	 * @param int|null $seconds Seconds.
+	 * @return int|float|null
+	 */
+	private static function minutes( ?int $seconds ) {
+		if ( null === $seconds ) {
+			return null;
+		}
+		return 0 === $seconds % 60 ? intdiv( $seconds, 60 ) : round( $seconds / 60, 4 );
+	}
+
+	/**
+	 * Seconds of a register time limit (minutes).
+	 *
+	 * @param mixed $minutes Minutes or null.
+	 * @return int|null
+	 */
+	private static function seconds( $minutes ): ?int {
+		return is_int( $minutes ) || is_float( $minutes ) ? (int) round( $minutes * 60 ) : null;
 	}
 
 	/**

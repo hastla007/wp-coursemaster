@@ -214,6 +214,7 @@ final class Plugin {
 		\CourseCaptain\Admin\Notices::register();
 		\CourseCaptain\Admin\IdentityNotice::register();
 		\CourseCaptain\Admin\EditorScreens::register();
+		\CourseCaptain\Admin\CourseSettingsPanel::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();
