@@ -13,6 +13,10 @@ use CourseCaptain\Admin\CertificatesScreen;
 use CourseCaptain\Admin\CourseSettingsPanel;
 use CourseCaptain\Admin\EditorScreens;
 use CourseCaptain\Admin\GroupsScreen;
+use CourseCaptain\Admin\RoleSettings;
+use CourseCaptain\Admin\SettingsScreen;
+use CourseCaptain\Admin\SetupState;
+use CourseCaptain\Admin\SetupWizard;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
@@ -546,7 +550,7 @@ final class A11yI18nTest extends SchemaTestCase {
 	}
 
 	/**
-	 * A11Y-020/-028/-080 (server side): admin screens and blocks have labelled controls, named actions, table headers with scope, no positive tabindex.
+	 * A11Y-020/-028/-080/-083 (server side): admin screens (incl. settings tabs, roles, setup steps) and blocks have labelled controls, named actions, table headers with scope, no positive tabindex.
 	 *
 	 * @group A11Y-028
 	 */
@@ -561,6 +565,13 @@ final class A11yI18nTest extends SchemaTestCase {
 			'catalog'      => LearningArea::render_catalog( array() ),
 			'link'         => LearningArea::render_link( array() ),
 		);
+		foreach ( SettingsScreen::tabs_for( $this->admin ) as $tab ) {
+			$screens[ 'settings-' . $tab ] = SettingsScreen::html( array( 'tab' => $tab ), $this->admin );
+		}
+		$screens['roles'] = RoleSettings::html( array(), $this->admin );
+		foreach ( SetupState::STEPS as $step ) {
+			$screens[ 'setup-' . $step ] = SetupWizard::html( array( 'step' => $step ), $this->admin );
+		}
 		foreach ( array( '', 'jobs', 'integrations', 'diagnostics' ) as $area ) {
 			$screens[ 'ops-' . $area ] = OpsScreen::html( array( 'area' => $area ) );
 		}
@@ -573,6 +584,7 @@ final class A11yI18nTest extends SchemaTestCase {
 			self::assertSame( array(), A11yDom::fragment_problems( $html ), $name );
 		}
 		self::assertStringContainsString( 'role="status"', $screens['editor'], 'A11Y-031 validation summary as status' );
+		self::assertSame( 1, substr_count( $screens['setup-addresses'], 'aria-current="step"' ), 'A11Y-083 step list marks the current step' );
 
 		// The checker itself finds the problems it claims to find.
 		$bad = A11yDom::fragment_problems( '<input name="x"><button></button><a href="#"></a><span tabindex="2">x</span><img src="a.png"><table><tr><td>1</td></tr></table><div aria-describedby="nope"></div>' );
