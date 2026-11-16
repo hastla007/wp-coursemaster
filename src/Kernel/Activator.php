@@ -89,6 +89,7 @@ final class Activator {
 
 		Capabilities::grant_activation_defaults();
 		Roles::install();
+		\CourseCaptain\Settings\Settings::migrate();
 		CronHooks::schedule_recurring( time() );
 		// Rewrite rules are flushed once on the next request, after all rules are registered.
 		delete_option( Plugin::REWRITE_VERSION_OPTION );

@@ -181,9 +181,8 @@ final class AnswerService {
 	 * @return bool
 	 */
 	private static function show_correct_answers(): bool {
-		$learning = get_option( 'course_captain_settings_learning', array() );
-		$value    = is_array( $learning ) ? ( $learning['values']['feedback']['show_correct_answers'] ?? true ) : true;
-		return false !== $value;
+		$feedback = \CourseCaptain\Settings\Settings::get( 'learning.feedback' );
+		return ! is_array( $feedback ) || false !== ( $feedback['show_correct_answers'] ?? true );
 	}
 
 	/**

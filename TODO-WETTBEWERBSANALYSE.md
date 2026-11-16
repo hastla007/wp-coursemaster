@@ -368,7 +368,7 @@
   - **Ergebnis/Definition of Done:** Themes, Objektcache, REST-Security, Mail-/Cache-Plugins und unterstützte Versionen in Matrix getestet; Konflikte dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-31 · Settings-Storage, Migration und Berechtigungen**
+- [x] **R1-31 · Settings-Storage, Migration und Berechtigungen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-31-nachweis.md`; Register als eine Quelle, Option je Tab mit Teil-Update, Rechten je Feld, Konflikterkennung, Audit nach Datenschutzklasse, Reset/Undo, Migration (GM-181), Export ohne Secrets, Fremdschreiber-Schutz; Unit 85, Integration 129, Multisite 138. Klärung GM-178/GM-180 im Nachweis. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02,R1-03,R0-27.
   - **Ergebnis/Definition of Done:** Versionierte Optionen, Typvalidierung, Capabilities, sichere Defaults, Upgrade- und Negativtests.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.

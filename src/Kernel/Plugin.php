@@ -194,6 +194,7 @@ final class Plugin {
 		DeletionGuard::register();
 		\CourseCaptain\Progress\CourseProgress::register();
 		\CourseCaptain\Access\ContentProtection::register();
+		\CourseCaptain\Settings\Settings::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		EscalationGuard::register();
