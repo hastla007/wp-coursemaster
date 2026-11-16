@@ -192,6 +192,7 @@ final class Plugin {
 		ObjectIdentity::register();
 		CoursePublisher::register();
 		DeletionGuard::register();
+		\CourseCaptain\Progress\CourseProgress::register();
 		Invalidation::register();
 		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );

@@ -526,6 +526,10 @@ final class ExamSessions {
 			),
 			'feedback'           => $settings['feedback'],
 			'attempt_policy'     => $settings['attempt_policy'],
+			'competency'         => array(
+				'certifies_objectives' => array_values( array_map( 'strval', (array) ( $settings['certifies_objectives'] ?? array() ) ) ),
+				'validity_days'        => isset( $settings['competency_validity_days'] ) ? max( 1, (int) $settings['competency_validity_days'] ) : null,
+			),
 			'open_text_in_score' => (bool) $settings['open_text_in_score'],
 			'evaluator_version'  => self::EVALUATOR_VERSION,
 		);
@@ -751,7 +755,7 @@ final class ExamSessions {
 				'points_milli'      => (int) ( $fresh['points_milli'] ?? 0 ),
 				'max_points_milli'  => (int) ( $fresh['max_points_milli'] ?? 0 ),
 				'evaluation_no'     => $number,
-				'evidence_eligible' => 'evidence' === (string) ( json_decode( (string) $row['snapshot'], true )['purpose'] ?? 'evidence' ),
+				'evidence_eligible' => ! empty( json_decode( (string) $row['snapshot'], true )['evidence_eligible'] ),
 			) + $extra,
 			array(
 				'user_id'      => (int) $row['user_id'],

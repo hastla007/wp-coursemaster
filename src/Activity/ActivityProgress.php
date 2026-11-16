@@ -107,7 +107,7 @@ final class ActivityProgress {
 		$status = (string) $row['status'];
 		$reason = $row['reason_code'];
 		if ( 'completed' !== $status ) {
-			$provider = $this->registry->get( $definition['type'] );
+			$provider = $this->registry->get( '' === $definition['type'] ? 'lesson' : $definition['type'] );
 			$decision = null === $provider ? 'in_progress' : $provider->evaluate_completion(
 				$definition['rule'],
 				$data + array(
@@ -137,6 +137,15 @@ final class ActivityProgress {
 				(int) $row['id']
 			)
 		);
+		/**
+		 * Activity progress changed (course progress recalculates, R0-08 §5.1).
+		 *
+		 * @since 1.0.0
+		 * @param int $user_id   Learner.
+		 * @param int $course_id Course.
+		 * @param int $lesson_id Lesson.
+		 */
+		do_action( 'course_captain_activity_progress_changed', $actor->user_id, $course_id, $lesson_id );
 		return (array) $this->state( $actor->user_id, $lesson_id );
 	}
 

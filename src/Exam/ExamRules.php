@@ -51,24 +51,26 @@ final class ExamRules {
 	 */
 	public static function default_settings(): array {
 		return array(
-			'purpose'                => 'evidence',
-			'attempt_policy'         => array(
+			'purpose'                  => 'evidence',
+			'attempt_policy'           => array(
 				'max_attempts'     => null,
 				'cooldown_seconds' => 0,
 				'count_cancelled'  => true,
 			),
-			'feedback'               => array(
+			'feedback'                 => array(
 				'feedback_visibility'       => 'after_submit',
 				'show_score'                => true,
 				'show_correct_answers'      => true,
 				'show_correct_answers_when' => 'no_attempts_left_or_passed',
 			),
-			'shuffle_questions'      => 'within_section',
-			'shuffle_answers'        => true,
-			'grace_seconds'          => 5,
-			'late_tolerance_seconds' => 120,
-			'timer_mode'             => 'strict',
-			'open_text_in_score'     => true,
+			'shuffle_questions'        => 'within_section',
+			'shuffle_answers'          => true,
+			'grace_seconds'            => 5,
+			'late_tolerance_seconds'   => 120,
+			'timer_mode'               => 'strict',
+			'open_text_in_score'       => true,
+			'certifies_objectives'     => array(),
+			'competency_validity_days' => null,
 		);
 	}
 

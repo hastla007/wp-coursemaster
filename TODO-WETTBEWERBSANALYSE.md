@@ -263,7 +263,7 @@
   - **Ergebnis/Definition of Done:** Richtig/Falsch/Teilpunkte nach belegter Regel, Ergebnis-/Retake-UX, Audit.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-10 · Fortschritt, Completion, Mastery, Competency**
+- [x] **R1-10 · Fortschritt, Completion, Mastery, Competency** — erledigt 16.11.2026: Nachweis `docs/r1/R1-10-nachweis.md`; Completion gegen die Revision des Lernenden (GM-009, E-286, monoton), `mastery_ratio`, abgeleitete Competency, Neuaufbau-Job; Unit 85, Integration 108, Multisite 117. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-07, R1-09.
   - **Ergebnis/Definition of Done:** Getrennte Zustände, Resume, Revisionsschutz, Datenschutz.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
