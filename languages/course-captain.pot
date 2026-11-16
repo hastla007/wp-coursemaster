@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T18:14:26+00:00\n"
+"POT-Creation-Date: 2026-11-16T18:29:04+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -21,7 +21,7 @@ msgstr ""
 #: src/Admin/EditorScreens.php:53
 #: src/Admin/Notices.php:120
 #: src/Notification/NotificationService.php:972
-#: src/Ops/HealthChecks.php:172
+#: src/Ops/HealthChecks.php:213
 #: src/Privacy/PrivacyService.php:125
 #: src/Privacy/PrivacyService.php:135
 #: src/Privacy/PrivacyService.php:355
@@ -465,7 +465,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:349
+#: src/Kernel/Plugin.php:369
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -1101,59 +1101,113 @@ msgstr ""
 msgid "System"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:94
+#: src/Ops/HealthChecks.php:95
 msgid "Course Captain protected storage"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:98
+#: src/Ops/HealthChecks.php:99
 msgid "Course Captain maintenance"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:102
+#: src/Ops/HealthChecks.php:103
 msgid "Course Captain event delivery"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:120
+#: src/Ops/HealthChecks.php:108
+msgid "Course Captain database"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:122
+msgid "Run \"wp course-captain migrate\" or check the database permissions."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:125
+msgid "The database schema is newer than the plugin."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:125
+msgid "Install the matching plugin version or restore database and files together."
+msgstr ""
+
+#. translators: %s: step IDs
+#: src/Ops/HealthChecks.php:128
+#, php-format
+msgid "The database update stopped after repeated aborts: %s"
+msgstr ""
+
+#. translators: %s: step IDs
+#: src/Ops/HealthChecks.php:131
+#, php-format
+msgid "The database update failed: %s"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:133
+msgid "The database update is running."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:135
+msgid "A database update is due."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:137
+msgid "Existing data is being updated in the background."
+msgstr ""
+
+#. translators: %s: step IDs
+#: src/Ops/HealthChecks.php:141
+#, php-format
+msgid "Completed update steps were changed afterwards: %s"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:144
+msgid "The database does not support named locks; updates are protected by a lease only."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:146
+msgid "The database schema is up to date."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:161
 msgid "Protected files are stored in a guarded folder."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:120
+#: src/Ops/HealthChecks.php:161
 msgid "The protected folder is missing or not writable."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:120
+#: src/Ops/HealthChecks.php:161
 msgid "On nginx add a rule that denies direct access to the course-captain protected and packages folders, or set COURSE_CAPTAIN_PRIVATE_DIR outside the web root."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:134
+#: src/Ops/HealthChecks.php:175
 msgid "The hourly maintenance is not scheduled."
 msgstr ""
 
 #. translators: %s: step names
-#: src/Ops/HealthChecks.php:138
+#: src/Ops/HealthChecks.php:179
 #, php-format
 msgid "Maintenance steps failed: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:141
+#: src/Ops/HealthChecks.php:182
 msgid "The maintenance has not run in the last three hours."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:141
+#: src/Ops/HealthChecks.php:182
 msgid "Check that WP-Cron or a server cron job runs regularly."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:143
+#: src/Ops/HealthChecks.php:184
 msgid "Maintenance runs regularly."
 msgstr ""
 
 #. translators: %d: number
-#: src/Ops/HealthChecks.php:155
+#: src/Ops/HealthChecks.php:196
 msgid "All internal events were delivered."
 msgstr ""
 
 #. translators: %d: number
-#: src/Ops/HealthChecks.php:155
+#: src/Ops/HealthChecks.php:196
 #, php-format
 msgid "%d event delivery failed permanently."
 msgid_plural "%d event deliveries failed permanently."
@@ -1513,11 +1567,11 @@ msgstr ""
 msgid "The attempt changed in the meantime. Please try again."
 msgstr ""
 
-#: src/Storage/Database.php:332
+#: src/Storage/Database.php:334
 msgid "Invalid identifier."
 msgstr ""
 
-#: src/Storage/Migrator.php:171
+#: src/Storage/Migrator.php:271
 msgid "Course Captain is updating its database. Please try again in a few seconds."
 msgstr ""
 

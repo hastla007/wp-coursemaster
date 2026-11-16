@@ -196,7 +196,9 @@ final class Database {
 		}
 		$this->wpdb->last_error = '';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$result = $this->wpdb->insert( $this->table( $table ), $data );
+		// Explicit formats: core's `$wpdb->field_types` maps e.g. `object_id` to %d and would cast strings (hashes, UIDs).
+		$formats = array_map( static fn( $value ): string => is_int( $value ) || is_bool( $value ) ? '%d' : ( is_float( $value ) ? '%f' : '%s' ), array_values( $data ) );
+		$result  = $this->wpdb->insert( $this->table( $table ), $data, $formats );
 		if ( false === $result ) {
 			throw StorageException::from_wpdb( $this->wpdb, 'insert into ' . $table ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not output: shortened DB error for logs.
 		}

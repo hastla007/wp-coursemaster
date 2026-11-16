@@ -70,4 +70,16 @@ final class DocReviewFixesTest extends SchemaTestCase {
 		self::assertInstanceOf( \WP_Error::class, $error );
 		self::assertSame( 9, $error->get_error_data()['retry_after'] );
 	}
+
+	/**
+	 * Core maps `object_id` to %d in `$wpdb->field_types`: inserts must keep strings (audit hash, outbox UID).
+	 */
+	public function test_insert_keeps_string_object_id(): void {
+		$db  = \CourseCaptain\Storage\Database::current();
+		$uid = '9f1c2d3e-0000-4000-8000-000000000001';
+		$db->transaction( static fn( \CourseCaptain\Storage\Database $d ) => \CourseCaptain\Event\Outbox::record( $d, 'access.changed', 'grant', $uid, 1, array(), array( 'user_id' => 1 ) ) );
+		self::assertSame( $uid, (string) $db->scalar( $db->prepare( 'SELECT object_id FROM `' . $db->table( 'ccap_outbox_event' ) . '` WHERE object_id = %s', $uid ) ) );
+		\CourseCaptain\Event\AuditLog::write( $db, \CourseCaptain\Policy\Actor::cron(), 'retention_applied', 'user', 'abc123hash' );
+		self::assertSame( 'abc123hash', (string) $db->scalar( 'SELECT object_id FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'retention_applied' ORDER BY id DESC LIMIT 1" ) );
+	}
 }

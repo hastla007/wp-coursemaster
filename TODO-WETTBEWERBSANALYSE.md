@@ -413,7 +413,7 @@
   - **Ergebnis/Definition of Done:** Free-ZIP Clean-Install, Upgrade, WordPress.org-Readme, i18n, Demo ohne Fremdinhalte, Support-Runbook und Deaktivierung geprüft.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R1-40 · Datenbankmigration mit Lock und Wiederaufnahme testen**
+- [x] **R1-40 · Datenbankmigration mit Lock und Wiederaufnahme testen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-40-nachweis.md`; Migrator mit Struktur-/Backfill-Phase, Lease+Fencing, Zeitbudget, Poison-Erkennung, Wiederaufnahme nach hartem Abbruch (Mehrprozesstests mit `pcntl_fork`), Wartungsfenster W1, Site-Health, `wp course-captain migrate`; Integration 249, Multisite 259. P4/P6/Downgrade (MIG-018/019) und Admin-Hinweise offen (Nachweis O-1…O-5). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02,R1-23,R0-37.
   - **Ergebnis/Definition of Done:** Parallele Admin/Cron/CLI-Upgradeversuche, Crash, Retry, Backfill und Restore ohne doppelte Schemaaktionen oder Datenverlust getestet.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.

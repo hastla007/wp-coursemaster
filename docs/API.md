@@ -87,6 +87,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_loaded_v1` | action |
 | `course_captain_mail_template_locales` | filter |
 | `course_captain_media_mime_types` | filter |
+| `course_captain_migration_fault` | action |
 | `course_captain_notification_hold` | filter |
 | `course_captain_outbound_mode` | filter |
 | `course_captain_outbox_dead_lettered` | action |

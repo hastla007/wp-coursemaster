@@ -167,7 +167,10 @@ final class PrivacyOpsTest extends SchemaTestCase {
 		}
 		$db = Database::current();
 		self::assertSame( '1', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'personal_data_erased'" ) );
-		self::assertStringNotContainsString( (string) $user, (string) $db->scalar( 'SELECT object_id FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'personal_data_erased'" ) );
+		// The audit reference is a salted hash, never the raw user ID (a hex hash may contain the ID's digits by chance).
+		$reference = (string) $db->scalar( 'SELECT object_id FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'personal_data_erased'" );
+		self::assertMatchesRegularExpression( '/^[0-9a-f]{64}$/', $reference );
+		self::assertNotSame( (string) $user, $reference );
 		self::assertFalse( PrivacyService::erase( $email )['items_removed'], 'nothing left' );
 	}
 
