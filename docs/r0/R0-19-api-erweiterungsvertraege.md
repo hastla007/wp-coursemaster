@@ -18,15 +18,15 @@
 |---|---:|
 | Vertragsflächen mit Versionskennung (§1.1) | 11 |
 | REST-Routen `course-captain/v1` R1 (§2.3) | 50 (+ 3 für R3 reserviert) |
-| davon aus LB W1–W52 abgeleitet / neu | 37 Routen aus 31 W-Nummern + 3 LB-Nebenrouten / 10 neu |
+| davon aus LB W1–W52 abgeleitet / aus LB-Nebenrouten / neu | 34 Routen aus 32 W-Nummern / 4 / 12 |
 | entfallende LB-Routen | W21–W23, W29–W44, W52 (20), `/faqs`, 2 Zahlungs-Webhooks, M1–M78 als eigene API (E-05) |
-| Fehlercodes im Katalog (§3) | 48 R1 + 7 für R3 reserviert |
-| PHP-API-Funktionen (§4.1) | 15 |
-| Actions/Filter (§4.2–4.4) | 13 Lebenszyklus/Registry · 22 Filter · 3 Actions; 24 LB-Hooks entfallen oder werden durch Registry ersetzt |
+| Fehlercodes im Katalog (§3) | 46 R1 + 7 für R3 reserviert |
+| PHP-API-Funktionen (§4.1) | 14 (`enroll_v1` entfällt, D19-5) |
+| Actions/Filter (§4.2–4.4) | 13 Actions · 24 Filter; rund 45 LB-Hooks entfallen oder werden durch PHP-API/Registry ersetzt |
 | Shortcodes / Blocks (§4.5, §4.6) | 3 / 5 |
-| WP-CLI-Unterkommandos `wp course-captain …` (§4.7) | 17 R1 (aus 15 LB, 6 davon entfallen bzw. R3) |
+| WP-CLI-Unterkommandos `wp course-captain …` (§4.7) | 15 R1 (8 aus LB übernommen, 2 ersetzt, 5 neu) + `woo reconcile` R3; von 15 LB-Kommandos entfallen 4 |
 | Cron-/Action-Scheduler-Hooks (§4.8) | 5 R1 + 3 Pro/R3 |
-| Event-Typen v1 (§5.3) | 24 (21 stabil, 3 experimentell) |
+| Event-Typen v1 (§5.3) | 27 (24 stabil, 3 experimentell) |
 | Integrationszustände (§6) | 8 |
 | neuer Entscheidungsbedarf (§7) | 6 (`D19-1…D19-6`) |
 
@@ -132,7 +132,7 @@ Kein Bruch (Minor): neue optionale Parameter, neue Antwortfelder, neue Enum-Wert
 | Pagination | `page` (≥ 1), `per_page` (1–100, Standard 20); Header `X-WP-Total`, `X-WP-TotalPages` | M24 |
 | Caching | `Cache-Control: no-store, private` für alle Antworten außer `R-42` (`no-store`, ohne `private`) | LearnerController.php:469-493 |
 | Korrelation | jede Antwort trägt `X-Request-Id: req_<32 hex>`; derselbe Wert steht im Fehlerkörper und im Audit | Problem.php:23-26 |
-| Wartung | schreibende Anfragen während Migration/Read-only-Fenster → `503 cc_maintenance`, `Retry-After: 30` (R0-16 §… „B“) | Maintenance.php:59-77 |
+| Wartung | schreibende Anfragen während Migration/Read-only-Fenster → `503 cc_maintenance`, `Retry-After: 30` (R0-16, Read-only-Fenster „B“) | Maintenance.php:59-77 |
 | Rate-Limits | Buckets je Zweck (§4.3 `course_captain_rate_limits`); Überschreitung → `429 cc_rate_limited` mit `Retry-After` und `details.bucket`; Zählerspeicher defekt: Einlösen/Einladen/Verifikation fail-closed (`503 cc_temporarily_unavailable`, `reason: limiter_unavailable`), Lern-/Antwort-Limits fail-open (E-46) | RateLimiter.php:115-120 |
 
 **Implizite Fehler jeder Route** (werden in §2.3 nicht wiederholt): `401 cc_auth_required` (außer **Ö**), `403 rest_cookie_invalid_nonce` (WP-Kern, durchgereicht), `403 cc_account_locked`, `400 rest_invalid_param`, `500 cc_internal_error`; bei schreibenden Routen zusätzlich `503 cc_maintenance`, `503 cc_db_busy`.
@@ -306,7 +306,7 @@ LB-App-Format (`src/Mobile/Problem.php`: `type, title, status, detail, code, mes
 | `cc_feature_unavailable` | 404 | Funktion nicht aktiv (Modul/Pro/Connector fehlt); bewusst wie „nicht vorhanden“ | – | – | – / `COURSE_VOUCHERS_UNAVAILABLE` (503) |
 | **Ergebniscodes (kein Fehler)** | 200/201 | `created`, `duplicate`, `updated`, `unchanged` im Ergebnisobjekt der PHP-API | – | – | Kap. 18 `duplicate`; Affiliate `created\|duplicate` |
 
-Summe R1: 48 Fehlercodes (ohne Ergebniscodes und durchgereichte `rest_*`).
+Summe R1: 46 Fehlercodes (ohne Ergebniscodes und durchgereichte `rest_*`).
 
 ### 3.3 Abbildungsregeln
 
@@ -352,7 +352,7 @@ Alle Funktionen existieren erst nach `course_captain_loaded_v1` (vorher: `functi
 | `course_captain_resume_grant_v1( string $source_type, string $source_reference, array $context )` | – | W | wie revoke; nie für `revoked` (E-29) | natürlich | wie revoke | stabil, R1 (LB `…_reactivate_order`) |
 | `course_captain_get_grant_v1( string $source_type, string $source_reference, array $context )` | – | L | wie revoke | – | Grant-Liste | stabil, R1 (INV-B-059) |
 | `course_captain_get_events_v1( ?string $after_event_id, array $filter, array $context )` | „nachholbare Abfrage“ | L | Connector mit Abo für die Typen bzw. `cc_manage_integrations` | – | `{events[], next}` (§5.5) | stabil, R1 |
-| `course_captain_resolve_recipient_v1( string $user_ref, string $purpose, array $context )` | – | L | registrierter Connector mit Fähigkeit `recipient_resolver`-Nutzung | – | `{display_name, email, locale}` nur zur Versandzeit, nie gespeichert (R0-32 W13, V3, E-41) | experimentell, R3 |
+| `course_captain_resolve_recipient( string $user_ref, string $purpose, array $context )` (ab Stabilisierung `_v1`) | – | L | registrierter Connector mit Fähigkeit `recipient_resolver`-Nutzung | – | `{display_name, email, locale}` nur zur Versandzeit, nie gespeichert (R0-32 W13, V3, E-41) | experimentell, R3 |
 | ~~`course_captain_enroll_v1`~~ | – | – | – | – | **entfällt** (D19-5): „Enrollment“ ist der abgeleitete Zustand aus Grants (Kap. 31.2); Einschreiben = `grant_access_v1` mit `source_type` des Aufrufers | – |
 
 **Grant-Payload (`grant_access_v1`):** `course_uid` (Pflicht), `user_id` (Pflicht; Gastkauf erst nach Kontozuordnung, E-30), `source_type` (`[a-z0-9_]{1,32}`, = Connector-Quelle), `source_reference` (≤ 191, z. B. `order:123:item:7`, `redemption:<key>`), `source_line?`, `idempotency_key`, `scopes[]` (`view`, `download`, `exam`; Standard alle, E-27), `status` (`active`\|`pending`), `valid_from?`, `valid_until?`, `reason` (Code), `meta` (nur Schlüssel mit Präfix `<source_type>.`, ≤ 4 KB, nie PII/Secrets). Validierung: `cc_invalid_scope`, `cc_not_found` (Kurs/Nutzer), `cc_source_not_allowed`, `cc_idempotency_conflict` (gleicher Key, anderer Nutzer/Kurs, LB INV-B-058).
@@ -367,7 +367,7 @@ Alle Funktionen existieren erst nach `course_captain_loaded_v1` (vorher: `functi
 | `course_captain_register_extensions` | Action | `Extensions $ext` mit Slots `settingsTabs`, `diagnostics`, `readinessChecks`, `responseFields`, `hubTiles`, `grantListColumns`, `accessOffers`, `privacyContributions`, `uninstallManifest`, `tasks`, `placeholders` | `init` 5 | experimentell (Slots einzeln stabil ab R1-28) | R1 | K-03, K-05, K-09, K-11, K-12, K-16, K-17, K-18 |
 | `course_captain_admin_menu_built_v1` | Action | `string $parent_slug` | `admin_menu` 20, nach eigenem Menü | stabil | R1 | R0-32 F2(a) |
 | `course_captain_event_v1` | Action | `array $envelope` | nach Commit, im selben Request (`shutdown` wenn nötig), **best effort** (§5.4) | stabil | R1 | Kap. 18 |
-| `course_captain_<typ>_v1` (z. B. `course_captain_course_completed_v1`) | Action | `array $envelope` | wie oben, je Event-Typ (Punkte → `_`) | stabil | R1 | Kap. 18 Hooknamen (Alias, §5.2) |
+| `course_captain_<typ>_v1` (z. B. `course_captain_course_completed_v1`) | Action | `array $envelope` | wie oben, je **stabilem** Event-Typ (Punkte → `_`); experimentelle Typen nur über `course_captain_event_v1` | stabil | R1 | Kap. 18 Hooknamen (Alias, §5.2) |
 | `course_captain_before_erase_user` | Action | `int $user_id` | vor Eraser-Transaktion | stabil | R1 | `bootspruefung_before_erase_user` |
 | `course_captain_connector_status_changed` | Action | `string $connector_id, string $from, string $to, ?string $error_class` | nach Statuswechsel (§6) | stabil | R1 | neu (Kap. 31.4) |
 | `course_captain_outbox_dead_lettered` | Action | `string $event_id, string $subscriber_id, string $error_class` | Zustellung endgültig gescheitert | stabil | R1 | neu (Kap. 18 Dead-Letter) |
@@ -466,7 +466,7 @@ Akteur `system:cli` (R0-07 §4.7); `--user=<id>` prüft Caps dieses Nutzers; sch
 | `woo reconcile` | `[--apply] [--order=<id>] [--since=<datum>] [--yes]` | stabil, **Pro/R3** (vom Woo-Adapter registriert) | `reconcile` (replace) |
 | `woo …` weitere | vom Adapter | R3 | – |
 
-Entfallen: `shop setup`, `chart`, `export course-files`, `export customer-faqs` (exclude_domain_specific). Zählung: 17 R1-Einträge inkl. `cleanup-sites`, ohne `woo`.
+Entfallen: `shop setup`, `chart`, `export course-files`, `export customer-faqs` (exclude_domain_specific). Zählung: 15 R1-Kommandos inkl. `cleanup-sites`, ohne `woo`.
 
 ### 4.8 Cron- und Hintergrund-Hooks
 
@@ -514,7 +514,7 @@ Entfallen: `bp_mobile_export_generate` (E-05), `update_check`/`media_relocate` (
 | `object_id` | string (UUID) | ja | `uid` des Aggregats | 30.3 |
 | `object_version` | int ≥ 1 | ja | monoton je Objekt (Grant-Revision, `evaluation_no`, Zertifikat-`revision_no` …); Consumer verwerfen ältere Stände | 30.3 |
 | `course_uid` | UUID \| null | ja | Kursbezug (Filterfeld) | 18 (`course_id`) |
-| `user_ref` | `user:<id>` \| null | ja | betroffene Person, pseudonym; Klardaten nur über Resolver (§4.1) | 18 |
+| `user_ref` | `user:<id>` \| null | ja | betroffene Person, pseudonym; Klardaten nur über Resolver `course_captain_resolve_recipient` (§4.1) | 18 |
 | `actor_type` / `actor_ref` | `user\|system\|connector` / `user:<id>`, `system:cron`, `connector:<id>` | ja | Auslöser; `actor_ref` = null, wenn nicht zulässig | 30.3 (`actor_id`) |
 | `correlation_id` | UUID | ja | Vorgang über Schritte hinweg (Kap. 31.3 Nr. 4) | 18, 30.3 |
 | `causation_id` | UUID \| null | ja | `event_id`/Run-ID, die dieses Ereignis ausgelöst hat (Schleifenschutz) | R0-32 W5 (`causal_run_id`) |
@@ -615,7 +615,7 @@ Alle Events entstehen **im selben Commit** wie die Fachänderung (Outbox, §5.4)
 5. **Garantie:** at-least-once je Abonnent. Consumer MÜSSEN über `event_id` deduplizieren (Kap. 18) und `object_version` prüfen. `idempotency_key` erlaubt Dedupe auch nach erneuter Erzeugung (Backfill).
 6. **Lokaler Hook** `course_captain_event_v1` (+ Alias je Typ): feuert **nach Commit im selben Request**, at-most-once, **keine Zustellgarantie** (Kap. 30.3 „einmaliges `do_action` ist keine Zustellgarantie“). Für Caches/UI. Zuverlässige Consumer registrieren sich als `EventSubscriber` (§5.7).
 7. **Replay:** `wp course-captain outbox retry|replay` bzw. Admin-Aktion setzt Zustellungen zurück auf `pending` mit **gleicher** `event_id`; nie neue IDs für dieselbe Tatsache. Replay prüft Rechte (`cc_manage_integrations`) und Abo-Freigabe neu.
-8. **Haltemodus / Ausgangsmodus:** Bei geänderter Site-Identität (E-85) und bei `COURSE_CAPTAIN_OUTBOUND = catch|off` (E-86) entstehen Events weiter, Zustellungen bleiben `pending` bzw. `skipped`; nach Restore werden Zustellungen mit `created_at` vor dem Erkennungszeitpunkt dem Admin zur Entscheidung vorgelegt, Standard „verwerfen“ (E-88, R0-16 §… Nr. 9).
+8. **Haltemodus / Ausgangsmodus:** Bei geänderter Site-Identität (E-85) und bei `COURSE_CAPTAIN_OUTBOUND = catch|off` (E-86) entstehen Events weiter, Zustellungen bleiben `pending` bzw. `skipped`; nach Restore werden Zustellungen mit `created_at` vor dem Erkennungszeitpunkt dem Admin zur Entscheidung vorgelegt, Standard „verwerfen“ (E-88, R0-16 Recovery-Schritt 9).
 9. **Eingang:** Webhooks und Partner-Callbacks deduplizieren über `cc_inbox_event (connector_id, event_id)`; Replay → `202 duplicate` ohne Wirkung (R0-07 §4.8).
 10. **REST-Idempotenz** (§2.1) und **Grant-Idempotenz** (`grant_source_key` UNIQUE, K-01) sind getrennte Ebenen; ein Retry mit gleichem Schlüssel erzeugt weder neuen Grant noch neues Event.
 
