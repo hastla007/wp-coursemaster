@@ -14,7 +14,7 @@
 
 ### R0 – Bestandsaufnahme und umsetzungsreife Architektur
 
-- [ ] **R0-01 · Repository- und Versionsbasis erfassen**
+- [x] **R0-01 · Repository- und Versionsbasis erfassen** — erledigt 16.11.2026: `docs/r0/R0-01-baseline.md` (LearnBoating `9f37c77`, Course Captain `5af78c3`, Modulkarte, Quellrechte; Lizenzfrage → `docs/r0/ENTSCHEIDUNGEN.md` E-01)
   - **Voraussetzung:** keine.
   - **Ergebnis/Definition of Done:** LearnBoating-Commit, Course-Captain-Stand, Verzeichnis-/Modulkarte und Quellrechte dokumentiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
