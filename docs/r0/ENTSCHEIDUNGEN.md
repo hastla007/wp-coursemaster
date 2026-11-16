@@ -67,6 +67,228 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-52 | Lastannahmen bestätigt: 10.000 Lernende, 100 Kurse, 100.000 Fragen, 500 gleichzeitige Prüfungen | nein |
 | E-53 | WooCommerce- und Voucher-Connectoren sind Pro | nein |
 | E-54 | Jede R2-Zuordnung bekommt eine R2-Task oder wandert in den R4-Pool | nein |
+| E-55 | Abweichungen vom LB-Verhalten gibt der Auftraggeber schriftlich über die Abweichungsliste in R0-05 frei | nein |
+| E-56 | Referenzlauf des LB-Plugins (nur Ausführen, kein Code) für Fälle mit Rechenlogik | nein |
+| E-57 | durch E-195 ersetzt, wird dort entschieden | – |
+| E-58 | CI: MariaDB 10.11 und 12.3 (bzw. 11.8 LTS), MySQL 8.4; MySQL 8.0/MariaDB 10.6 best effort | nein |
+| E-59 | Doku nennt Shared-Hosting-Klasse „bis 50 gleichzeitige Prüfungen“ (wird in R1-22 gemessen) | nein |
+| E-60 | Zeitbudgets sind Release-Gate für R1-GATE | nein |
+| E-61 | Letzte zwei Versionen von Chrome, Edge, Firefox, Safari + Firefox ESR, iOS Safari, Android Chrome | nein |
+| E-62 | „eigen“ aus Fremdpaket wird als „lizenziert“ gespeichert | nein |
+| E-63 | Reimport: lokal gewinnt, Wahl je Objekt im Dry-run | nein |
+
+### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
+
+Alle folgenden Punkte sind technische, gestalterische oder Prozessentscheidungen. Jede Empfehlung wurde gegen die Beschlüsse oben geprüft; wo ein Beschluss sie berührt, steht „angepasst“. Der Auftraggeber kann jeden Punkt jederzeit ändern.
+
+| ID | Beschluss | Entschieden von |
+|---|---|---|
+| E-64 | Empfehlung übernommen: **Nein**; das Feld wird im Format nur reserviert | Claude |
+| E-65 | Empfehlung übernommen: **Standardmäßig geschützt über PHP ausliefern** (LB: öffentlich in `uploads/`, nur die Frage gesperrt) | Claude |
+| E-66 | Empfehlung übernommen: **Nur per Opt-in** mit Hinweis | Claude |
+| E-67 | Empfehlung übernommen: **1:1 in R1**, aber mit eigener `activity_uid`, damit 1:n später ohne Fortschrittsmigration möglich ist | Claude |
+| E-68 | Empfehlung übernommen: **Ja** (`cc_exam_session`, Modus `quiz`); unbewertete Quizze nutzen die Lernmodus-Engine | Claude |
+| E-70 | Empfehlung übernommen: **Nur `manual_confirm` durch den Lernenden**; nachweisbasierte Abschlüsse nie; Reset durch die Kursverwaltung mit Audit | Claude |
+| E-71 | Empfehlung übernommen: **Ja, wenn ein Limit gesetzt ist**; sonst könnte man Fragen durch Abbruch sichten | Claude |
+| E-72 | Empfehlung übernommen: **Einstellung** „automatisch abgeben nach x Tagen Inaktivität“, standardmäßig aus | Claude |
+| E-73 | Empfehlung übernommen: **Nein**: abgeleitet aus Versuchen und Zertifikaten plus `competency_validity_days`; Tabelle erst mit manuellen bzw. externen Nachweisen | Claude |
+| E-74 | Empfehlung übernommen: **Im Datenvertrag ab R1** (`evaluation_no`, Revision mit Audit), Oberfläche erst mit dem Gradebook (Pro); nie automatisch | Claude |
+| E-75 | Empfehlung übernommen: **`evaluated` mit `end_reason`** (LB-Parität); Konzept 28.3 wird redaktionell angepasst | Claude |
+| E-76 | Empfehlung übernommen: **`manual_confirm`** als Standard; „≥ 90 % angesehen“ als Option mit Hinweis auf Selbstauskunft des Players | Claude |
+| E-77 | Empfehlung übernommen: **`all_or_nothing` und `proportional_penalty`**; `per_option` erst nach didaktischem Review | Claude |
+| E-78 | Empfehlung übernommen: **Ja** (Delta zu R0-06) | Claude |
+| E-79 | Empfehlung übernommen: **Ja**; LB hat keine Konto- oder Lernsperre | Claude |
+| E-80 | Empfehlung übernommen: **In R1 site-weit**, kursbezogene Kursmanager erst später | Claude |
+| E-81 | Empfehlung übernommen: **Minimieren**: Name bzw. Anzeigename, E-Mail-Adresse nur maskiert oder per eigener Cap | Claude |
+| E-82 | Empfehlung übernommen: **Ja, mit Audit-Eintrag** | Claude |
+| E-83 | Empfehlung übernommen: **Nur `administrator`**; `editor` und `shop_manager` nicht automatisch | Claude |
+| E-84 | Empfehlung übernommen: **Nein, er darf nur einschränken.** Zugang entsteht ausschließlich über einen Grant | Claude |
+| E-85 | Empfehlung übernommen: **Ja**, bis ein Admin bestätigt | Claude |
+| E-86 | Empfehlung übernommen: **`catch`** (zurückhalten und anzeigen) | Claude |
+| E-87 | Empfehlung übernommen: **Konstante in `wp-config.php`**, sonst verschlüsselt in der DB mit `COURSE_CAPTAIN_SECRET_KEY` | Claude |
+| E-88 | Empfehlung übernommen: **Admin-Liste**; Standardaktion „verwerfen“ | Claude |
+| E-89 | Empfehlung übernommen: **Setting plus Eingabe des Site-Namens**, mit Audit | Claude |
+| E-90 | Empfehlung übernommen: **Ja**, aber nur, wenn das Release keinen Contract-Migrationsschritt enthält | Claude |
+| E-91 | Empfehlung übernommen: **RPO 24 h, RTO 4 h** als Empfehlung, nicht als Zusage | Claude |
+| E-92 | Empfehlung übernommen: **Abweichend vom Agentenvorschlag („nur dokumentieren“): Lösch-Tombstones außerhalb des normalen Datenbestands führen und nach jedem Restore automatisch erneut anwenden.** „Nur dokumentieren“ reicht für Art. 17 DSGVO voraussichtlich nicht; rechtliche Bestätigung durch den Betreiber | Claude |
+| E-93 | Empfehlung übernommen: **Ja, Grants und Widerrufe laufen weiter** (sonst zahlen Kunden ohne Zugang oder behalten ihn trotz Erstattung). Nur neue Zuordnungen und Konfigurationsänderungen sind gesperrt | Claude |
+| E-94 | Empfehlung übernommen: **Lizenzende:** Konfiguration wirkt eingefroren weiter. **Add-on deaktiviert:** Rückfall auf Free-Verhalten, Daten bleiben erhalten | Claude |
+| E-95 | Entitlement-Schlüssel neu zuschneiden; neu `course.explanations` (wegen E-20), `course.events`/`course.connectors` (wegen E-38); `drip_content`, `certificates`, `groups` entfallen als Free-Funktionen | Claude: angepasst an Beschlüsse |
+| E-96 | Empfehlung übernommen: **HTML- und Druckansicht in Free**; serverseitiges PDF und Designer erst in Pro | Claude |
+| E-97 | Empfehlung übernommen: **Standardmäßig aus**, je Nachweis vom Lernenden freizugeben | Claude |
+| E-98 | Berichte Basic in Free: Fortschritt je Lernendem, Bestehensquote je Prüfung, CSV-Export | Claude: angepasst an Beschlüsse |
+| E-99 | Empfehlung übernommen: **`cc_trainer` in R1 anlegen** (für Ergebnis-Einsicht und Support gebraucht, R0-07); Tutor-Bewertungsfunktionen erst mit dem Gradebook (Pro). Damit ist der Widerspruch zwischen R0-07 und R0-11 aufgelöst | Claude |
+| E-100 | Empfehlung übernommen: **Nein**; höchstens ein Hinweis auf der Seite „Erweiterungen“ (WordPress.org-Richtlinie) | Claude |
+| E-101 | Empfehlung übernommen: **Free R1** | Claude |
+| E-102 | Empfehlung übernommen: **Leeres Kursgerüst** in R1; Demo-Kurse mit Inhalt in R2-03 | Claude |
+| E-103 | Empfehlung übernommen: **Vorwärtsrollen mit Besitzstand:** Alle sehen die neue Revision, Erreichtes bleibt. Harter Bestandsschutz nur über eine neue Kursausgabe (eigener Kurs); Fortschrittsanrechnung zwischen Ausgaben erst R2/Pro | Claude |
+| E-104 | Empfehlung übernommen: **Nicht öffentliche Staging-Kopie** für Import und Editor, Übernahme in einer Transaktion je Kurs. Folge: Änderungen an veröffentlichten Kursen werden erst mit „Kurs veröffentlichen“ sichtbar | Claude |
+| E-105 | Empfehlung übernommen: **Ja**, beim Veröffentlichen, nur für Lernende ohne Kursabschluss, mit Audit und Hinweis | Claude |
+| E-106 | Empfehlung übernommen: **Unverändert** (Parität), plus ausdrückliche Aktion „Lernstand dieser Frage zurücksetzen“ mit Audit; nie automatisch | Claude |
+| E-107 | Empfehlung übernommen: **Ja als Standard**; der Autor kann beim Veröffentlichen „Versuchszähler zurücksetzen“ wählen (Audit) | Claude |
+| E-108 | Empfehlung übernommen: **Zweistufig:** erst „Einschreibung geschlossen“ (bestehende Lernende lernen bis zum Grant-Ende weiter), dann „archiviert“. Sofortarchivierung nur mit Bestätigung und Anzahl der Betroffenen. Ein Abbruch wegen Rückzug zählt **nicht** gegen `max_attempts` (Ausnahme zu E-71) | Claude |
+| E-109 | Empfehlung übernommen: **Frage bei der Auswertung neutralisieren** (aus Punkten und Maximum, Grund im Ergebnis) | Claude |
+| E-110 | Empfehlung übernommen: **Nicht in R1** (alte Template-Version wird weiter gerendert); Sammel-Neuausstellung als Pro-Kandidat | Claude |
+| E-111 | Empfehlung übernommen: **Automatisch** beim Umstellen; Zertifikat nach Kurseinstellung | Claude |
+| E-112 | Empfehlung übernommen: **Ja** (LB speichert Tokens im Klartext) | Claude |
+| E-113 | Empfehlung übernommen: **Wird gewertet**; automatisches Zertifikat nur, wenn bei Start **und** Abgabe ein Grant aktiv war | Claude |
+| E-114 | Empfehlung übernommen: **Nein**; nur die Support-Aktion „Zugang übertragen“ mit Audit | Claude |
+| E-115 | Empfehlung übernommen: **Keine Grenze** | Claude |
+| E-116 | Empfehlung übernommen: **90 Tage**, danach löschen | Claude |
+| E-117 | Empfehlung übernommen: **Neue Grant-Revision** statt stillem Umhängen wie in LB | Claude |
+| E-118 | Empfehlung übernommen: **Mindestens 2 Minor-Releases und 6 Monate**; ein alter Major-Namespace bleibt 12 Monate parallel. Ausnahme bei Sicherheitsproblemen, mit Changelog | Claude |
+| E-119 | Event-Speicherung ohne Abonnent 30 Tage – gilt wegen E-38 nur mit Pro; Free speichert nur die interne Outbox | Claude: angepasst an Beschlüsse |
+| E-120 | Freigabe personenbezogener Event-Klassen je Connector – Pro (E-38) | Claude: angepasst an Beschlüsse |
+| E-121 | Empfehlung übernommen: **Englisch (en_US)**, Deutsch als erste Übersetzung. Voraussetzung für translate.wordpress.org; LB nutzt Deutsch | Claude |
+| E-122 | Empfehlung übernommen: **Ja:** Zeitfaktor 100–400 % oder ohne Limit je Lernendem, nur durch Berechtigte, ohne Begründungstext, im Snapshot eingefroren, in Ergebnis und Nachweis nicht sichtbar. Datenschutzbewertung (Art. 9) in R0-17 | Claude |
+| E-123 | Empfehlung übernommen: **`strict`** (Standard für Nachweise) und **`practice`** (von Lernenden abschaltbar und verlängerbar, nicht nachweisfähig) | Claude |
+| E-124 | Empfehlung übernommen: **Einstellung „Profilsprache“**, standardmäßig an bei mehr als einer installierten Sprache; Fristen mit Zonenkennung, keine eigene Nutzerzeitzone in R1 | Claude |
+| E-125 | Empfehlung übernommen: **Ja**, WCAG-2.2-AA-Tabelle in der Doku. Keine Vorlage für die Barrierefreiheitserklärung (vgl. E-04), nur ein neutraler Hinweis, welche Angaben der Betreiber braucht | Claude |
+| E-126 | Empfehlung übernommen: **NVDA und VoiceOver (macOS, iOS)**; TalkBack best effort, JAWS nicht zugesichert | Claude |
+| E-127 | Empfehlung übernommen: **Ja**, getaggtes PDF (an PDF/UA orientiert) als Pro-Abnahmekriterium | Claude |
+| E-128 | Empfehlung übernommen: **Nein**; Warnungen werden bestätigt (Fingerabdruck + Audit), Blocker nicht | Claude |
+| E-129 | Empfehlung übernommen: **Nein.** Übungsprüfungen sind veröffentlichte Regeln mit `purpose=practice`. R0-08 §4.1 wird entsprechend angepasst | Claude |
+| E-130 | Empfehlung übernommen: **Blocker** nur bei Nachweis- und Pflichtprüfungen, sonst Warnung | Claude |
+| E-131 | Empfehlung übernommen: **Alt-Text fehlt (ohne `decorative`) = Blocker** wie R0-15; fehlende Untertitel = Warnung, per Site-Einstellung zum Blocker machbar. Damit ist der Widerspruch zwischen R0-15 und R0-22 aufgelöst | Claude |
+| E-132 | Empfehlung übernommen: **Einstufig** (Autor reicht ein, Kursmanager veröffentlicht); mehrstufige Freigaben in Pro | Claude |
+| E-133 | Empfehlung übernommen: **Nein** | Claude |
+| E-134 | Empfehlung übernommen: **Durchspielbar ohne Speicherung** | Claude |
+| E-135 | Empfehlung übernommen: **Nur melden**, nie automatisch zurückziehen | Claude |
+| E-136 | Empfehlung übernommen: **Mail** bei Freischaltung, Übertragung (nur an das Ziel), technisch verworfenem Versuch, Annullierung, Zertifikatskorrektur/-widerruf; **keine Mail** bei Widerruf, Sperre, Aussetzung, Reset, Reconcile; im Dialog abwählbar | Claude |
+| E-137 | Empfehlung übernommen: **Zählt nicht** (`end_reason = support_void`, zweite Ausnahme zu E-71 neben E-108); plus Aktion „Zusatzversuch“ für belegte Störungen | Claude |
+| E-138 | Empfehlung übernommen: **Ja**, über ein Reset-Journal (30 Tage), nur solange kein neuer Fortschritt entstand | Claude |
+| E-139 | Empfehlung übernommen: **Append-only plus Hash-Kette** mit täglicher Prüfung in R1; externer Sink (syslog/Webhook) als Pro-Kandidat | Claude |
+| E-140 | Empfehlung übernommen: **Free**: gefilterter CSV/JSON-Export für Admins mit Pflichtbegründung. Prüfer und Betroffenenanfragen brauchen ihn auch ohne Pro. R0-07 §4.9 wird angepasst | Claude |
+| E-141 | Empfehlung übernommen: **Nein**; stattdessen Ansicht des effektiven Zugangs mit Begründung; Lesevorschau ohne fremde Daten als spätere Option | Claude |
+| E-142 | Empfehlung übernommen: **Kein Konto**, nur das Diagnosepaket (Domain standardmäßig gehasht); sonst würde der Hersteller Auftragsverarbeiter | Claude |
+| E-143 | Empfehlung übernommen: **Debug-Fenster höchstens 24 h** (Standard 2 h), Dateien 7 Tage; Fehlertabelle und Job-Fehler 30 Tage | Claude |
+| E-144 | Empfehlung übernommen: **Eine Rolle `cc_support`** (lesen + Lernsperre); Grant-Korrekturen durch den Kursmanager oder per gezielter Cap-Zuweisung | Claude |
+| E-145 | Empfehlung übernommen: **Nur als Rolle** („Support“, „Administrator“, „System“), keine Namen der Mitarbeitenden | Claude |
+| E-146 | Empfehlung übernommen: **Kennzeichen `exam_only`** je Frage bzw. Pool in Free, standardmäßig aus; Hinweis im Editor | Claude |
+| E-147 | Nach Abgabe zeigt Free richtig/falsch und (nach Einstellung) die richtige Antwort; Erklärungstexte nur mit Pro (E-20) | Claude: angepasst an Beschlüsse |
+| E-148 | Empfehlung übernommen: **Nein**: unzuverlässig und Verhaltensüberwachung ohne echten Integritätsgewinn | Claude |
+| E-149 | Empfehlung übernommen: **Letzter Stand gewinnt** plus sichtbarer Hinweis „in anderem Fenster geöffnet“ | Claude |
+| E-150 | Empfehlung übernommen: **Eraser löscht standardmäßig.** Einstellung „Nachweise trotz Löschantrag pseudonymisiert aufbewahren“ (Default aus, Pflichtbegründung, im Eraser-Ergebnis sichtbar). Präzisiert E-51; juristische Bestätigung durch den Betreiber | Claude |
+| E-151 | Empfehlung übernommen: **Tabelle plus Journal** außerhalb des Backups (`COURSE_CAPTAIN_PRIVACY_JOURNAL_DIR`); Frist = maximales Backup-Alter + 30 Tage (Default 120 Tage); zurückgehaltene Mails 30 Tage | Claude |
+| E-152 | Empfehlung übernommen: **Tabelle R0-17 §3.4 als Defaults**; fail-closed zusätzlich für Einladungsversand, Datenschutzanträge und Import/Export | Claude |
+| E-153 | Empfehlung übernommen: **Doku-Vorlage plus generierte Verarbeitungsübersicht im Systemstatus**; keine fertige DSFA, keine Rechtsbewertung | Claude |
+| E-154 | Empfehlung übernommen: **Optionaler Job** „Lerndaten nach x Jahren ohne Anmeldung und ohne aktiven Grant löschen“, Default aus, mit Vorschau | Claude |
+| E-155 | Empfehlung übernommen: **Eigener Kurs je Sprache**, verknüpft über eine Übersetzungsgruppe; Fortschritt, Grants und Zertifikate gelten je Kurs | Claude |
+| E-156 | Empfehlung übernommen: **Nein, kein Übertrag in R1**; Sammelvergabe durch den Kursmanager möglich | Claude |
+| E-157 | Empfehlung übernommen: **Erlaubt** mit `lang`-Kennzeichnung und Validator-Warnung | Claude |
+| E-158 | Empfehlung übernommen: **Kurssprache**, im Snapshot eingefroren | Claude |
+| E-159 | Empfehlung übernommen: **Ja, schon in Free** | Claude |
+| E-160 | Empfehlung übernommen: **Nein in R1**, kein `tenant_id` | Claude |
+| E-163 | Empfehlung übernommen: **6 Autoren, 5+4 Lernende** (davon 4 mit Hilfstechnik), **5 Gruppenverwalter, 5 Admins**; Nachtest mit mindestens 3 neuen Personen | Claude |
+| E-164 | Empfehlung übernommen: **Eine Person, die nicht an der Entwicklung beteiligt ist**; extern für die Barrierefreiheitssitzungen | Claude |
+| E-165 | Empfehlung übernommen: **10 Fragen manuell, 40 per Import**; alle 50 manuell nur im Praxis-Benchmark | Claude |
+| E-166 | Empfehlung übernommen: **Erfolg ≥ 80 % je Aufgabe, SUS ≥ 70**, Referenzkurs veröffentlichen im Median ≤ 90 min, Setup ≤ 10 min, Prüfung fortsetzen ≤ 1 min ohne Antwortverlust; jede Person mit Hilfstechnik löst jede kritische Aufgabe ohne sehende Hilfe | Claude |
+| E-167 | Empfehlung übernommen: **Mit Einwilligung**, Löschung 6 Monate nach R1-GATE | Claude |
+| E-169 | Empfehlung übernommen: **de_DE** plus eine Admin-Sitzung in en_US | Claude |
+| E-170 | Empfehlung übernommen: **Ja**, gezielt für geänderte Flows vor R2-GATE und R3-GATE | Claude |
+| E-171 | Empfehlung übernommen: **Nur mit dokumentierter Akzeptanz** durch den Auftraggeber, nie bei WCAG-Bezug in Lernenden-Flows; S1 muss immer behoben sein | Claude |
+| E-172 | Empfehlung übernommen: **Nie automatisch**; nur nach Admin-Freigabe mit Backup-Bestätigung oder per CLI-Flag | Claude |
+| E-173 | Empfehlung übernommen: **Frist = Ende des Wartungsfensters + 120 s**, höchstens 30 min Verlängerung | Claude |
+| E-174 | Empfehlung übernommen: **Aufschieben**, höchstens 24 h | Claude |
+| E-175 | Empfehlung übernommen: **Schreibzugriffe bleiben gesperrt**, Lesen weiter möglich; kein Notbetrieb; Admin-Hinweis mit Runbook | Claude |
+| E-176 | Empfehlung übernommen: **Fehler am einzelnen Objekt isolieren**; der Rest läuft weiter, Abhängige werden mitmarkiert | Claude |
+| E-177 | Empfehlung übernommen: **Hintergrund** (Action Scheduler bzw. WP-Cron) mit Fortschrittsanzeige; Browser-Polling und WP-CLI als Alternativen, mitten im Lauf wechselbar | Claude |
+| E-178 | Empfehlung übernommen: **Ablageordner auf dem Server oder WP-CLI**, mit höheren Grenzwerten | Claude |
+| E-179 | Empfehlung übernommen: **Zurückstellen**, die übrigen Kurse aktivieren | Claude |
+| E-180 | Empfehlung übernommen: **max(100 Fehler, 2 % der Objekte)** | Claude |
+| E-181 | Empfehlung übernommen: **Ja**, nach Vorprüfungen (Lease abgelaufen, Paketkopie unverändert) | Claude |
+| E-182 | R1-43 wird auf **interne Outbox** (Mails, Audit, spätere Pro-Anbindung) reduziert; öffentliche Events, Read-API und Connector-Registry sind Pro (E-38) | Claude: angepasst an Beschlüsse |
+| E-183 | Empfehlung übernommen: **R1-44 aufnehmen** (Domäne und Ausstellung), R1-35 bleibt Verwaltung und UI | Claude |
+| E-184 | Empfehlung übernommen: **100 % der R1-Pflichttests grün**, Ausnahmen nur per E-Nummer oder freigegebener GM-Abweichung (E-55); Abzeichnung durch den Auftraggeber | Claude |
+| E-185 | Partnererkennung lesend in R1 (nur Anzeige); alle Aktionen und die Registry mit Pro (E-38) | Claude: angepasst an Beschlüsse |
+| E-186 | Empfehlung übernommen: **Eingangsbedingung von R3-01**, nicht von Gate A | Claude |
+| E-187 | Empfehlung übernommen: **In R0-27 spezifizieren** | Claude |
+| E-189 | Empfehlung übernommen: **GitHub Artifact Attestation + Sigstore keyless**, keine eigene Schlüsselverwaltung | Claude |
+| E-190 | Empfehlung übernommen: **License Captain signiert beim Upload**, der Pro-Client prüft vor der Installation (abhängig vom License-Captain-Vertrag, E-42) | Claude |
+| E-191 | Empfehlung übernommen: **Playwright je PR/nightly**; echtes iOS/Android/Safari **manuell vor jedem Minor-Release** | Claude |
+| E-195 | PHP-Untergrenze 8.3 (ersetzt E-57); vor R1-GATE auf php.net verifizieren | Claude: angepasst an Beschlüsse |
+| E-197 | Empfehlung übernommen: **Nur `cc_course` bekommt eine öffentliche URL**, Standard-Slug `kurs` (in den Einstellungen änderbar); Lernbereich `/lernen/` | Claude |
+| E-198 | Empfehlung übernommen: **Nicht unterstützt**, mit Warnung im Systemstatus (Gefahr veralteter Zugriffsentscheidungen) | Claude |
+| E-199 | Empfehlung übernommen: **Ja, neue R2-08** „Zusätzliche neutrale Fragetypen“ (Voraussetzung R2-04) | Claude |
+| E-200 | Empfehlung übernommen: **R4-Pool**; R1 importiert nur cc-package | Claude |
+| E-201 | Empfehlung übernommen: **24 h**, danach `failed` mit Grund `pending_timeout`, Support-Hinweis und Event | Claude |
+| E-202 | Empfehlung übernommen: **Eigenes Course-Captain-Hauptmenü**, Suite-Status als Unterseite „Integrationen“; gemeinsames Suite-Menü frühestens mit R3-16 | Claude |
+| E-203 | Empfehlung übernommen: **Kein eigener Vertrag**: Mitgliedschaft ist eine Grant-Quelle über den GrantSourceAdapter, Adapter erst in R3 | Claude |
+| E-205 | Empfehlung übernommen: **Slug vor R1-Start prüfen und früh einreichen**; Ersatz `course-captain-lms` | Claude |
+| E-207 | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen (WordPress.org-Review, mindestens 4 Zeichen); vor R1-01 gegen aktuelle Richtlinie prüfen | Claude: angepasst an Beschlüsse |
+| E-208 | Empfehlung übernommen: **Sprachpaket über translate.wordpress.org**, bis zur Freigabe zusätzlich im ZIP | Claude |
+| E-209 | Empfehlung übernommen: **1.0.0** | Claude |
+| E-210 | Empfehlung übernommen: **Keine** | Claude |
+| E-213 | Pro-Add-on unter GPL-2.0-or-later (als WordPress-Erweiterung faktisch erforderlich); Lizenzschlüssel regelt Updates und Support | Claude: angepasst an Beschlüsse |
+| E-214 | Empfehlung übernommen: **Erst ab R2-03** | Claude |
+| E-215 | Empfehlung übernommen: **Kein echter Widerspruch:** Inbox und zugestellte Outbox-Einträge 90 Tage; Events ohne Abonnent 30 Tage; Benachrichtigungsprotokoll 90 Tage | Claude |
+| E-216 | Empfehlung übernommen: **Pflicht:** Claim/Einladung, Sicherheits- und Kontomails, Datenschutzanträge; alle übrigen abbestellbar (Tabelle R0-27 §3.2) | Claude |
+| E-217 | Empfehlung übernommen: **Vorhanden, standardmäßig aus**, ohne Kauf- oder Verlängerungslink | Claude |
+| E-218 | Empfehlung übernommen: **Retry 5×** (5 min, 30 min, 2 h, 12 h); max. 10 Mails je Empfänger und 24 h; 3 Neuversendungen je Einladung; 5 Testmails je Admin und Stunde | Claude |
+| E-219 | Empfehlung übernommen: **Optionale Felder Name/Adresse**, leer = WordPress-Standard | Claude |
+| E-220 | Empfehlung übernommen: **Frühere Slugs dauerhaft merken und per 301 weiterleiten**, solange keine andere Seite den alten Slug belegt | Claude |
+| E-221 | Empfehlung übernommen: **Nein, nur per Filter**; die wirksamen Werte werden im Tab „Erweitert“ angezeigt | Claude |
+| E-222 | Empfehlung übernommen: **Aus**, im Setup-Assistenten aktivierbar | Claude |
+| E-223 | Empfehlung übernommen: **An** (LB-Parität), Download-Link an die bestätigte Adresse | Claude |
+| E-224 | Empfehlung übernommen: **Erzwingen (`enforce`)**, Umschalten auf `report_only` mit Bestätigung | Claude |
+| E-225 | Empfehlung übernommen: **Ab dem nächsten Versuchsstart**; laufende Versuche bleiben unverändert | Claude |
+| E-226 | Empfehlung übernommen: **Ja**, nur in Entwürfen, mit Rückgängig | Claude |
+| E-227 | Empfehlung übernommen: **Ja**, Änderung wird im Veröffentlichungs-Diff angezeigt | Claude |
+| E-228 | Empfehlung übernommen: **Explizit übernehmen**, damit die Prüfung gleich bleibt | Claude |
+| E-229 | Empfehlung übernommen: **Nicht in R1**: Prüfungseinstellungen nur global und je Prüfungsregel | Claude |
+| E-230 | Empfehlung übernommen: **Ja** | Claude |
+| E-231 | Empfehlung übernommen: **Nur ein Gruppenfilter im Basisbericht** in Free; eigene Gruppenberichte in Pro | Claude |
+| E-233 | Empfehlung übernommen: **Nur Einladungen erzeugen**, keine Konten | Claude |
+| E-234 | Empfehlung übernommen: **Nur innerhalb derselben Stammgruppe** | Claude |
+| E-235 | Empfehlung übernommen: **Layout-Revision**; der alte Link bleibt gültig und zeigt die neue Fassung | Claude |
+| E-236 | Empfehlung übernommen: **Nein**, weder Initialen noch Ergebnis (präzisiert E-97) | Claude |
+| E-237 | Empfehlung übernommen: **Besitzer und Admins** | Claude |
+| E-238 | Empfehlung übernommen: **Kein externer Dienst.** Findet der Technik-Spike keine Bibliothek für getaggte PDFs, liefert Pro kein PDF (HTML/Druck bleibt) | Claude |
+| E-239 | Empfehlung übernommen: **Neue Task R1-45 „Härtungsmodul“ in Free** | Claude |
+| E-240 | Härtung: zunächst aus, bis der Admin im Assistenten bestätigt (E-260); danach je Funktion `auto` (zieht sich bei erkanntem Security-Plugin zurück) | Claude: angepasst an Beschlüsse |
+| E-241 | Empfehlung übernommen: **Registrierungslimit und Geräte-Cookie ja**; Schutz gegen User-Enumeration nur als Opt-in | Claude |
+| E-242 | Empfehlung übernommen: **Konstante `COURSE_CAPTAIN_HARDENING` in wp-config.php** schaltet ab; bekannte Geräte (Cookie) dürfen weiter | Claude |
+| E-243 | Empfehlung übernommen: **Beendete Grants 10 Jahre, entfernte Plätze 365 Tage, geschlossene Gruppen 3 Jahre, aufgehobene Lernsperren 30 Tage, Exportdateien 24 h** | Claude |
+| E-244 | Empfehlung übernommen: **Späterer von: letzter aktiver Grant endet oder letzte Aktivität im Kurs** | Claude |
+| E-245 | Empfehlung übernommen: **Nur mit Pflichtbegründung und Audit** | Claude |
+| E-246 | Consent-Kategorie `marketing` – wirkt nur, wenn der Betreiber nach E-45a auf „Klick zum Laden“ umstellt | Claude: angepasst an Beschlüsse |
+| E-247 | Empfehlung übernommen: **Nein**; Schnupperzugang (E-15) erfordert Login | Claude |
+| E-248 | Empfehlung übernommen: **Aus**, einschaltbar | Claude |
+| E-249 | Empfehlung übernommen: **Einführen**, Default „gelistet“ | Claude |
+| E-250 | Empfehlung übernommen: **404** | Claude |
+| E-251 | Empfehlung übernommen: **Nein** | Claude |
+| E-252 | Empfehlung übernommen: **Standardmäßig aus**, je Kurs einschaltbar | Claude |
+| E-253 | Empfehlung übernommen: **Course-Captain-Typen über deren Filter ausschließen** plus Systemstatus-Warnung; Relevanssi getestet, andere best effort | Claude |
+| E-254 | Unterseite „Integrationen“ schon in R1, nur lesend (Partnererkennung); Aktionen mit Pro/R3 | Claude: angepasst an Beschlüsse |
+| E-255 | Empfehlung übernommen: **Auch `cc_support` und Kursmanager** (lesend) | Claude |
+| E-256 | Empfehlung übernommen: **Erkannte Partner anzeigen**, mit Hinweis „kein Vertrag verfügbar“; nicht installierte nicht bewerben (E-100) | Claude |
+| E-257 | Empfehlung übernommen: **Ja**, gebündelt höchstens einmal je 24 h | Claude |
+| E-258 | Empfehlung übernommen: **Offene Zustellungen höchstens 30 Tage**, danach Dead-Letter mit Grund `retention` | Claude |
+| E-259 | Empfehlung übernommen: **Erst in R3**, nur mit sichtbarem Hinweis im Admin und Abschaltmöglichkeit | Claude |
+| E-260 | Empfehlung übernommen: **Alles aus, bis der Admin im Assistenten oder Tab speichert**; der Assistent schlägt „an“ vor (außer bei erkanntem Security-Plugin), danach gilt `auto` (E-240) | Claude |
+| E-261 | Empfehlung übernommen: **Login-Limit, Reset-Limit, bekanntes Gerät, XML-RPC, 4 Security-Header**; übrige LB-Funktionen (Enumeration, Anwendungspasswörter) in den R4-Pool (ergänzt E-241) | Claude |
+| E-262 | Empfehlung übernommen: **Eigener 11. Tab „Website-Härtung“** | Claude |
+| E-263 | Empfehlung übernommen: **Login auf bekannten Geräten bleibt möglich** + Notausschalter per Konstante und WP-CLI (ergänzt E-242) | Claude |
+| E-264 | Empfehlung übernommen: **Bereichsnavigation innerhalb bestehender Menüpunkte**; Protokoll unter Systemstatus | Claude |
+| E-265 | Empfehlung übernommen: **Ausblenden**, solange aus und keine Gruppe existiert | Claude |
+| E-266 | Empfehlung übernommen: **Erlaubt** mit Status „abgeschlossen mit Hinweisen“; Blocker bleiben sichtbar, geschützte Medien werden weiter nicht ausgeliefert | Claude |
+| E-267 | Empfehlung übernommen: **Entfällt in R1**: nur „manuell“ und „Selbstanmeldung“; Gäste sehen nur den Schnupperbereich (E-15) | Claude |
+| E-268 | Empfehlung übernommen: **Ja, eingefroren** wie bei E-94; neue Erklärungen lassen sich nicht mehr anlegen | Claude |
+| E-269 | Empfehlung übernommen: **Ausblenden**, vorhandene Texte bleiben gespeichert | Claude |
+| E-270 | Empfehlung übernommen: **Wie `expired`** behandeln (eingefroren) | Claude |
+| E-271 | Empfehlung übernommen: **Standardmäßig auf „privat“ setzen**, sonst kann gekauft werden, ohne dass ein Zugang entsteht | Claude |
+| E-272 | Empfehlung übernommen: **Signierte Antwort + SHA-256 erfüllt E-190**, ergänzt um eine Build-Attestierung | Claude |
+| E-274 | Empfehlung übernommen: **Aktuelle und vorige Free-Minor** | Claude |
+| E-275 | Empfehlung übernommen: **Ja** (auf `refunded`/`cancelled`), damit auch Affiliate die Provision storniert | Claude |
+| E-276 | Empfehlung übernommen: **Gilt nicht**; Grant entsteht erst bei Zahlung, so lange die Bestellung offen ist | Claude |
+| E-277 | Empfehlung übernommen: **Reservierung freigeben, Grant `failed`**, Lernender bekommt Hinweis zum erneuten Einlösen | Claude |
+| E-278 | Empfehlung übernommen: **Nein**, Kursgutscheine sind Zugangsgutscheine | Claude |
+| E-279 | Empfehlung übernommen: **Nein**, nur über die Course-Einlösung | Claude |
+| E-280 | Empfehlung übernommen: **Pflegt der Shop in Woo**; Produkte entstehen als Entwurf | Claude |
+| E-281 | Empfehlung übernommen: **Nein**, der bessere Rabatt gilt | Claude |
+| E-282 | Empfehlung übernommen: **Einzeln**; mehrere Plätze nur über Gruppenprodukte | Claude |
+| E-283 | Empfehlung übernommen: **Ja**, mit Begründung und Audit | Claude |
+| E-284 | Empfehlung übernommen: **Ja**, Zeitpunkt des ersten Lernzugriffs wird vermerkt | Claude |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
