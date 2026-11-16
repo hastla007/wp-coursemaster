@@ -91,7 +91,7 @@ Alle Aussagen unten mit `Datei:Zeile` beziehen sich auf diese Commits. Weil hier
 | Schritt | Aufruf (PHP) | Verhalten laut Code | Hooks |
 |---|---|---|---|
 | Vorprüfung | `vcap()->redemptions->check( $code, ['target'=>…,'amount'=>…] )` (`RedemptionService.php:72`) | reserviert nichts; zählt ungültige Codes zum Rate-Limit (`:75-80`) | – |
-| Reservieren | `->reserve( $code, ['key','target','amount','user_id','email','ttl_minutes','meta'] )` (`:106`) | Key-Pflicht nach `KEY_PATTERN` `/^[A-Za-z0-9][A-Za-z0-9._:\-]{7,63}$/` (`:35, 109-110`); bekannter Key wird **vor** dem Voucher-Lookup beantwortet (`:120-136`); gleicher Key + anderer Request-Hash (Voucher/Target/Betrag/User) → `vcap_idempotency_conflict`; Transaktion mit `SELECT … FOR UPDATE` auf die Voucher-Zeile (`:150-155`); TTL = `ttl_minutes` (nur PHP, max. 60 Tage) oder Option `vcap_redemption_ttl` (Standard 15 min) (`:147`); Ablauf über Action Scheduler `vcap_release_expired_redemption` (`:219`) | `vcap_redemption_reserved` (`:228`); Filter `vcap_redemption_allowed` (`:616`), `vcap_redemption_target_available` (`:631`) |
+| Reservieren | `->reserve( $code, ['key','target','amount','user_id','email','ttl_minutes','meta'] )` (`:106`) | Key-Pflicht nach `KEY_PATTERN` `/^[A-Za-z0-9][A-Za-z0-9._:\-]{7,63}$/` (`:35, 109-110`); bekannter Key wird **vor** dem Voucher-Lookup beantwortet (`:120-136`); gleicher Key + anderer Request-Hash (Voucher/Target/Betrag/User) → `vcap_idempotency_conflict`; Transaktion mit `SELECT … FOR UPDATE` auf die Voucher-Zeile (`:150-154`); TTL = `ttl_minutes` (nur PHP, max. 60 Tage) oder Option `vcap_redemption_ttl` (Standard 15 min) (`:147`); Ablauf über Action Scheduler `vcap_release_expired_redemption` (`:219`) | `vcap_redemption_reserved` (`:228`); Filter `vcap_redemption_allowed` (`:616`), `vcap_redemption_target_available` (`:631`) |
 | Bestätigen | `->commit( $key )` (`:239`) | Zustandsübergang mit gleicher Sperrreihenfolge (Voucher-, dann Einlösezeile, `:461-463`); Wiederholung liefert das Ergebnis erneut; während Reservierung storniert → `vcap_cancelled` (`:480`) | `vcap_voucher_redeemed` **genau einmal** (`:531`) |
 | Freigeben | `->release( $key )` (`:250`) | gibt Wert zurück; idempotent | `vcap_redemption_released( $data, $expired )` (`:540`) |
 | Zustand | `->get( $key )` (`:388`) | `vcap_reservation_missing`, wenn unbekannt | – |
@@ -174,7 +174,7 @@ Alle Aussagen unten mit `Datei:Zeile` beziehen sich auf diese Commits. Weil hier
 1. **Build:** Client mit `bin/export-client.php` unter eigenem Namespace und eigener Textdomain ins Add-on kopieren (`CLIENT-INTEGRATION.md:27-33`); Update der Bibliothek = Export erneut ausführen und Add-on releasen, kein geteiltes Paket (`CLIENT-REPOS.md:32-34`).
 2. **Konfiguration:** `product_key`, `version`, `server_url` (stabiler eigener Hostname), gepinnte Ed25519-`public_keys`, `account_url`, optional `core_version`, `network`, `settings_parent` (`:51-65, 140-162`).
 3. **Header:** `Update URI` mit Host des Lizenzservers (Pflicht, `:121`); Version = Header.
-4. **Laufzeit:** `register()` hängt Lizenzseite, Notices, Tages-Check (Cron, Catch-up nach 36 h), Datenschutztext und Updater ein (`:113, 319-325`); Features erst auf `init` per `is_entitled()` laden (`:91-100`).
+4. **Laufzeit:** `register()` hängt Lizenzseite, Notices, Tages-Check (Cron, Catch-up nach 36 h), Datenschutztext und Updater ein (`:117, 319-325`); Features erst auf `init` per `is_entitled()` laden (`:94-104`).
 5. **Updates:** WordPress fragt über `update_plugins_{host}`; Download nur mit gültiger Lizenz, SHA-256 geprüft (`:306-317`).
 6. **Deinstallation:** `uninstall()` gibt Aktivierung frei und löscht Lizenzdaten (`:336-338`).
 7. **Server:** Produktschlüssel und Entitlements im Shop-Katalog; Präfix je Produkt (L10).
@@ -199,7 +199,7 @@ Alle Aussagen unten mit `Datei:Zeile` beziehen sich auf diese Commits. Weil hier
 | Pro-Ort `captain-pro/addons/course-captain-pro/`, Verzeichnisbaum | `konzept.md:8, 157, 247-248` | **nicht prüfbar**; indirekt gestützt: `wp-license:docs/ENTITLEMENTS.md:50` und `docs/TODO.md:149` (T-159: Add-ons, Lizenzclient-Kopie, Kernel, Build, CI in `captain-pro`) |
 | Tarife `single/business/agency` laut `captain-pro/docs/TARIFE.md` | `konzept.md:166` | **nicht prüfbar**; License nennt als Beispiel `solo, business, agency` (`ENTITLEMENTS.md:58`), License-TODO für Workflow „Single/Business/Agency“ (`docs/TODO.md:720`) |
 | Add-on-Kernel, FeatureRegistry, ZIP-Auslieferung | `konzept.md:206` | **nicht prüfbar** |
-| Kap. 45: `captain-pro/docs/ARCHITECTURE.md` (isolierte Clientbibliotheken, Free-Daten bei Lizenzende unangetastet) | `konzept.md:1400` | **nicht prüfbar**; inhaltlich deckungsgleich mit License L1/L2/L5 |
+| Kap. 45: `captain-pro/docs/ARCHITECTURE.md` (isolierte Clientbibliotheken, Free-Daten bei Lizenzende unangetastet) | `konzept.md:1400` (Quellenliste Kap. 45) | **nicht prüfbar**; inhaltlich deckungsgleich mit License L1/L2/L5 |
 
 **Konsequenz für R0-39:** Bis zum Zugang zu `captain-pro` gilt der License-Client-Vertrag (Abschnitt 5) als einzig belegte Grundlage. Kernel-spezifische Annahmen aus Kap. 6/8 (FeatureRegistry, Build-Registry, gemeinsamer Kernel) sind als **offene Annahmen** zu führen, nicht als Vertrag.
 

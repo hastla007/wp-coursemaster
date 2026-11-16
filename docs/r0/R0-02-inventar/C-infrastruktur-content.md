@@ -10,8 +10,8 @@
 | Bereich | `bootspruefung-learning/{bootspruefung-learning.php, uninstall.php, dropins/, src/Plugin.php, src/functions.php, src/Content, src/Infrastructure, src/Settings, src/Support, src/Audit, src/Security, src/Privacy, src/Cli, src/Extensions}` sowie `schema/v1` und die zugehörigen Tests |
 | Quelle | `hastla007/learnboating`, Commit `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (nur gelesen, nicht verändert) |
 | Plugin-Version der Quelle | 0.14.0, Schema-Version `1.17.0` (`Migrator::SCHEMA_VERSION`), API-Vertrag 1 (`Plugin::API_CONTRACT`) |
-| Abdeckung Quellcode | **100 %**: 56 PHP-Dateien mit 12 551 Zeilen sind vollständig gelesen (Liste 1.1) |
-| Abdeckung Schemas | **100 %**: 17 JSON-Schemas mit 878 Zeilen sind vollständig gelesen (Liste 1.2) |
+| Abdeckung Quellcode | **100 %**: 49 PHP-Dateien mit 12 374 Zeilen sind vollständig gelesen (Liste 1.1) |
+| Abdeckung Schemas | **100 %**: 17 JSON-Schemas mit 876 Zeilen sind vollständig gelesen (Liste 1.2) |
 | Abdeckung Tests | Die 14 Testdateien aus Liste 1.3 sind nach Prüfabschnitten (`echo "…"`) und Einzelprüfungen (`$check(…)`) ausgewertet. Zeilenangaben zeigen auf den Beginn des jeweiligen Abschnitts. |
 | Zeilenangaben | `Pfad:Zeile` nennt die erste Zeile der Methode bzw. Konstante im genannten Commit. Pfade sind relativ zu `bootspruefung-learning/`. |
 
@@ -157,7 +157,7 @@ Legende **Art:** UI · PHP · Daten · API (REST/Hook/CLI) · Cron · Import · 
 
 | ID | Quellpfad:Zeile | Art | Funktion | Klassifikation | Begründung | neutraler Zielbaustein | Phase/Edition | Task-ID(s) | Golden-Master-Kandidat |
 |---|---|---|---|---|---|---|---|---|---|
-| INV-C-068 | `src/Settings/Settings.php:12`, `:43`, `:81` | Daten | Eine Option `bp_learning_settings` mit `DEFAULTS`-Merge, `get()` | abstract | Kap. 43 verlangt ein typisiertes Register mit Scope, Capability und Audit | Settings-Register `cc_settings` | R1-Free | R0-27, R1-31 | support/standalone.php:36 |
+| INV-C-068 | `src/Settings/Settings.php:12`, `:43`, `:81` | Daten | Eine Option `bp_learning_settings` mit `DEFAULTS`-Merge, `get()` | abstract | Kap. 43 verlangt ein typisiertes Register mit Scope, Capability und Audit | Settings-Register `cc_settings` | R1-Free | R0-27, R1-31 | support/standalone.php:37 |
 | INV-C-069 | `src/Settings/Settings.php:86`, `:97` | UI | `register_setting('bp_learning', …)`, `sanitize()`. Achtung: `sanitize()` baut **immer alle** Schlüssel neu aus `$input` auf, ein Teilformular setzt die übrigen Werte auf ihren Standard zurück. | abstract | Pro Feld validieren, fehlende Schlüssel erhalten | Feldverträge und Validatoren | R1-Free | R0-27, R1-31, R1-36 | admin-test.php:866 |
 | INV-C-070 | `src/Settings/Settings.php:16` | Daten | `delete_data_on_uninstall` (false) | reuse | generisch | Setting „Daten bei Deinstallation löschen“ | R1-Free | R1-23 | smoke-test.php:128 |
 | INV-C-071 | `src/Settings/Settings.php:18` | Daten | `radio_voice_output` (`browser`/`recording`/`off`) | exclude_domain_specific | Funktrainer | – | exclude | – | – |
@@ -259,7 +259,7 @@ Legende **Art:** UI · PHP · Daten · API (REST/Hook/CLI) · Cron · Import · 
 | INV-C-157 | `src/Privacy/AccountDeletion.php:428`, `:461`, `:475`, `:499`, `:520`, `:544`, `:561`, `:589` | UI | Bestätigungsseite mit Knopf (Schutz gegen Link-Scanner, T42), Texte, Mailtexte, Multisite-Hinweise | reuse | generisch, Texte neutralisieren | Privacy-UX | R1-Free | R1-17, R1-21 | account-test.php:211 |
 | INV-C-158 | `src/Privacy/AccountDeletion.php:609` | Commerce | `closeEntitlements`: Zugänge ohne Bestellung löschen, solche mit Bestellung als manuell `revoked` markieren (T238) | abstract | `order_id` ist Woo-gebunden, Ziel ist eine quellenneutrale Regel | Grant-Policy bei Kontolöschung | R1-Free | R0-09 | account-test.php:211 |
 | INV-C-159 | `src/Privacy/NetworkAccounts.php:14` | PHP | Multisite-Kapsel: Mitgliedschaften, `wpmu_delete_user`/`wp_delete_user`, Websites mit Tabellen, `inSite` | abstract | Umfang hängt an R0-25/E-C-01 | Multisite-Adapter | R1-Free (bedingt) | R0-25 | account-test.php:375 |
-| INV-C-160 | `src/Privacy/SelfService.php:14`, `:28`, `:36`, `:51` | Commerce | „Meine Daten“ als WooCommerce-Endpunkt `meine-daten` samt Menüpunkt und Rewrite-Flush | replace | Free braucht eine eigene Seite, Block oder Shortcode im Lernbereich. Woo-Endpunkt nur im Adapter. | Privacy-Self-Service-Block | R1-Free / R3 | R1-16, R1-17 | account-test.php:163 |
+| INV-C-160 | `src/Privacy/SelfService.php:20`, `:26`, `:36`, `:51` | Commerce | „Meine Daten“ als WooCommerce-Endpunkt `meine-daten` samt Menüpunkt und Rewrite-Flush | replace | Free braucht eine eigene Seite, Block oder Shortcode im Lernbereich. Woo-Endpunkt nur im Adapter. | Privacy-Self-Service-Block | R1-Free / R3 | R1-16, R1-17 | account-test.php:163 |
 | INV-C-161 | `src/Privacy/SelfService.php:66`, `:82` | API | `openRequest`, `request` (5 je Tag und Art, geschützte Konten, erneut senden, `wp_create_user_request`) | reuse | generisch | Privacy-Self-Service | R1-Free | R1-17 | account-test.php:163 |
 | INV-C-162 | `src/Privacy/SelfService.php:123`, `:136`, `:211`, `:226` | UI | `handle` (admin-post `bp_privacy_request`, Nonce), `render`, `renderOpen`, `form` | abstract | UI auf den neutralen Lernbereich umstellen | Privacy-Self-Service-UI | R1-Free | R1-16, R1-19 | account-test.php:163 |
 
@@ -290,8 +290,8 @@ Legende **Art:** UI · PHP · Daten · API (REST/Hook/CLI) · Cron · Import · 
 |---|---|---|---|---|---|---|---|---|---|
 | INV-C-179 | `src/Extensions/Extensions.php:21`, `:34` | API | Filter `bootspruefung_user_owns_course` (voller Zugang zum Fragenkatalog laut `AccessService`) | abstract | neutraler Zugangsfilter für Connectoren | Filter `course_captain_user_has_access` | R1-Free (Vertrag) / R3 | R0-19, R3-01 | extensions-test.php:426 |
 | INV-C-180 | `src/Extensions/Extensions.php:51`, `:71` | API | Filter `bootspruefung_practice_region` (ISO 3166-2) und `bootspruefung_practice_offers` (höchstens 20, bereinigt) | abstract | „Praxis-Termine“ sind fachlich; neutral wären „externe Termine/Angebote je Kurs“ | Events-Connector-Vertrag | R3 | R3-07 | extensions-test.php:468 |
-| INV-C-181 | `src/Extensions/Tickets.php:129`, `:137`, `:170`, `:182`, `:213`, `:237`, `:245`, `:274` | API | Ticket-Ereignisse `issued/redeemed/cancelled` in Nutzer-Meta (höchstens 100, ohne Scanner-ID), Liste je Kurs, Filter `bootspruefung_tickets_for_user` | abstract | Ticket-Connector ist neutral, Bezug „Praxis“ fachlich | Ticket-/Event-Connector | R3 | R3-07 | extensions-test.php:432 |
-| INV-C-182 | `src/Extensions/Tickets.php:299`, `:315` | Daten | Export und Löschung der Ticket-Meta | reuse | generisch | Connector-Privacy-Beitrag | R3 | R3-07, R1-17 | extensions-test.php:494 |
+| INV-C-181 | `src/Extensions/Tickets.php:28`, `:36`, `:69`, `:81`, `:112`, `:136`, `:144`, `:173` | API | Ticket-Ereignisse `issued/redeemed/cancelled` in Nutzer-Meta (höchstens 100, ohne Scanner-ID), Liste je Kurs, Filter `bootspruefung_tickets_for_user` | abstract | Ticket-Connector ist neutral, Bezug „Praxis“ fachlich | Ticket-/Event-Connector | R3 | R3-07 | extensions-test.php:432 |
+| INV-C-182 | `src/Extensions/Tickets.php:198`, `:214` | Daten | Export und Löschung der Ticket-Meta | reuse | generisch | Connector-Privacy-Beitrag | R3 | R3-07, R1-17 | extensions-test.php:494 |
 | INV-C-183 | `src/Extensions/Vouchers.php:55`, `:63`, `:75`, `:80`, `:86`, `:96` | API | Registrierung, IP-Limit (30 je Stunde über alle Wege, Filter), Code-Hash, `available`, Aktion `bootspruefung_voucher_redeemed` mit Audit | abstract | Vertrag neutral nutzbar, Grenzen übernehmen | Voucher-Connector-Vertrag | R3 | R3-04, R3-05 | extensions-test.php:178 |
 | INV-C-184 | `src/Extensions/Vouchers.php:110`, `:171`, `:176`, `:211`, `:223` | Commerce | `redeem`: interne 0-€-Woo-Bestellung je Code-Hash unter NamedLock (10 s), idempotent, Abgleich, Aktion `bootspruefung_voucher_order_created`; `orderForHash` (HPOS oder Postmeta) | replace | Konzept Kap. 32/47: Reserve/Grant/Commit direkt auf Grants, keine `wc_item`-Bindung im Kern. Muster „Lock je Code-Hash plus Idempotenz“ übernehmen. | Voucher-Grant-Service (Reserve/Grant/Commit) | R3 | R3-04, R3-05, R0-40 | extensions-test.php:153, :178; voucher-grant-test.php:142 |
 | INV-C-185 | `src/Extensions/Vouchers.php:234`, `:279` | API | `redeemCode` über Filter `bootspruefung_voucher_redeem`, Aktion `…_redeem_failed`, `summary` | abstract | wie INV-C-183 | Voucher-Connector | R3 | R3-04 | extensions-test.php:219 |
@@ -319,10 +319,10 @@ Legende **Art:** UI · PHP · Daten · API (REST/Hook/CLI) · Cron · Import · 
 
 | Klassifikation | Anzahl |
 |---|---:|
-| reuse | 101 |
-| abstract | 63 |
-| replace | 21 |
-| exclude_domain_specific | 14 |
+| reuse | 97 |
+| abstract | 71 |
+| replace | 20 |
+| exclude_domain_specific | 11 |
 | unknown | 0 |
 
 ## 3. Daten
@@ -423,7 +423,7 @@ SET NULL: `praxis_task.media_id→media`. Insgesamt 41 Schlüssel.
 | `bp_learning_schema_version` | z. B. `1.17.0` | ja | `Migrator.php:26`, `:143` |
 | `bp_learning_migration_lock` | Sperrzeile `<Besitzer>\|<Zeit>`, TTL 1800 s | off (INSERT IGNORE) | `Migrator.php:27`, `Lock.php:103` |
 | `bp_learning_fk_issues` | `[Name => Meldung]`, fehlt = alles da | nein | `Migrator.php:33` |
-| `bp_learning_migration_failed` | `{at, message(≤500)}` | nein | `Plugin.php:347`, `:511` |
+| `bp_learning_migration_failed` | `{at, message(≤500)}` | nein | `Plugin.php:347`, `:512` |
 | `bp_learning_cron_errors` | Liste `{task,item,message,at}`, höchstens 20 | nein | `Cron.php:19` |
 | `bp_cron_last_hourly` | Unix-Zeit des letzten Stundenlaufs | nein | `Monitor.php:24`, `Plugin.php:310` |
 | `bp_learning_import_lock` | Sperre `<batch>-<zufall>\|<zeit>`, TTL 900 s | off | `ImportService.php:48` |
@@ -437,7 +437,7 @@ SET NULL: `praxis_task.media_id→media`. Insgesamt 41 Schlüssel.
 | `bp_learning_update_check` | `{checked_at, latest, url, security, error}` | nein | `UpdateCheck.php:31` |
 | `bp_learning_login_dummy_hash` | Passwort-Hash für die Dummy-Prüfung | nein | `LoginGuard.php:56` |
 | `bp_entitlement_prune_last` | Unix-Zeit des letzten vollständigen Laufs | nein | `PersonalData.php:119`, **wird bei der Deinstallation nicht gelöscht** |
-| `bp_privacy_endpoint_version` | `'1'` (Rewrite-Stand „meine-daten“) | ja | `SelfService.php:117` (+94) |
+| `bp_privacy_endpoint_version` | `'1'` (Rewrite-Stand „meine-daten“) | ja | `SelfService.php:23` |
 | `bp_learning_voucher_with_member_discount` | `'yes'` erlaubt die Kombination; wird hier nur gelesen | – | `Vouchers.php:41` |
 | `bp_learning_rewrite_version` (`Router::REWRITE_OPTION`) | wird bei Aktivierung und Deaktivierung gelöscht | – | `Plugin.php:92`, `:125` (Router: Teil D) |
 
@@ -449,8 +449,8 @@ Gelesene fremde Optionen: `timezone_string`, `date_format`, `woocommerce_email_f
 
 | Art | Schlüssel | Bedeutung | Quelle |
 |---|---|---|---|
-| Nutzer-Meta | `_bp_tickets` | Ticketliste (höchstens 100) | `Tickets.php:123` (+101) |
-| Nutzer-Meta | `_bp_ticket_id` (mehrfach) | Suchschlüssel je Ticket | `Tickets.php:124` (+101) |
+| Nutzer-Meta | `_bp_tickets` | Ticketliste (höchstens 100) | `Tickets.php:22` |
+| Nutzer-Meta | `_bp_ticket_id` (mehrfach) | Suchschlüssel je Ticket | `Tickets.php:23` |
 | Nutzer-Meta (Fremdklassen, beim Löschen erfasst) | `bp_app_settings`, `bp_expiry_reminders`, `bp_expiry_reminder_optout`, `bp_notices_dismissed`, `bp_money_back_used`, `bp_money_back_downloads` | App-Einstellungen, Erinnerungen, Widerspruch, Admin-Hinweise, Garantie | `Uninstaller.php:63` |
 | Post-Meta (Anhang) | `_bp_protected_path` | absoluter Pfad einer geschützten Datei | `MediaStorage.php:463`, `BackupCheck.php:209` |
 | Post-Meta (Anhang) | `_bp_chart` | Seekarten-Code (exclude) | `Uninstaller.php:116` |
@@ -469,7 +469,7 @@ Gelesene fremde Optionen: `timezone_string`, `date_format`, `woocommerce_email_f
 |---|---|---|---|
 | `bp_learning_cc_<md5(key:generation)>` | 1 Tag | Teure Inhaltsabfragen ohne persistenten Object-Cache; `invalidate()` löscht sie per SQL | `ContentCache.php:43` |
 | `bp_learning_video_hosts` | – | Videohosts (wird beim Invalidieren gelöscht) | `ContentCache.php:84` |
-| `bp_privacy_notice_<uid>` | 10 min | Rückmeldung „Meine Daten“ | `SelfService.php:225` (+94) |
+| `bp_privacy_notice_<uid>` | 10 min | Rückmeldung „Meine Daten“ | `SelfService.php:131` |
 | `bp_voucher_notice_<uid>` | 10 min | Rückmeldung zur Gutschein-Einlösung | `Vouchers.php:345` |
 | Object-Cache-Gruppe `bootspruefung` | 1 Tag | Einträge `<key>:<generation>`, Schlüssel `generation` | `ContentCache.php:19` |
 | Deinstallation | – | Transient-Präfixe `bp_learning_`, `bp_money_back_notice_`, `bp_price_errors_`, `bp_price_input_`, `bp_catalog_skipped_`, `bp_privacy_notice_`, `bp_voucher_notice_`, `bp_protect_notice_`, `bp_oss_totals_`, `bp_paypal_token_`, `bp_webhook_rejected_`, `bp_dispute_`, `bp_rl_`; fest: `bp_paypal_verify_calls` | `Uninstaller.php:51` |
@@ -552,9 +552,9 @@ Aktivierung und Deaktivierung: `register_activation_hook` → `Plugin::activate`
 | `LoginGuard.php:468`, `:472` | Filter `wp_redirect` (PHP_INT_MAX), dynamisch | Weiterleitung unterdrücken bzw. strecken |
 | `KnownDevice.php:30`–`:32` | `wp_login` (10, 2), `after_password_reset`, `woocommerce_customer_reset_password` | Gerätecookie |
 | `AfterResponse.php:42` | `shutdown` (0) | verschobene Arbeit |
-| `SelfService.php:122`–`:127` (+94) | `woocommerce_get_query_vars`, `woocommerce_account_menu_items` (30), `woocommerce_account_meine-daten_endpoint`, `woocommerce_endpoint_meine-daten_title`, `admin_post_bp_privacy_request`, `init` (99) | „Meine Daten“ |
+| `SelfService.php:28`–`:33` | `woocommerce_get_query_vars`, `woocommerce_account_menu_items` (30), `woocommerce_account_meine-daten_endpoint`, `woocommerce_endpoint_meine-daten_title`, `admin_post_bp_privacy_request`, `init` (99) | „Meine Daten“ |
 | `Vouchers.php:57`–`:59` | `bootspruefung_voucher_redeemed` (10, 4), `admin_post_bp_voucher_redeem`, Filter `bootspruefung_coupon_allow_with_member_discount` (10, 3) | Gutschein |
-| `Tickets.php:131`–`:133` (+101) | `bootspruefung_ticket_issued` (10, 4), `…_redeemed` (10, 3), `…_cancelled` (10, 2) | Tickets |
+| `Tickets.php:30`–`:32` | `bootspruefung_ticket_issued` (10, 4), `…_redeemed` (10, 3), `…_cancelled` (10, 2) | Tickets |
 
 ### 4.3 Cron-Ereignisse
 
@@ -609,7 +609,7 @@ Kleiner Befund: Der Docblock „Führt ausstehende Datenbankmigrationen aus.“ 
 
 - `GET /wp-json/bootspruefung/v1/monitor` (`Monitor.php:30`), `permission_callback` = Schlüssel-Abgleich (`X-Monitor-Key` oder `?key=`, `hash_equals`) bzw. offen ohne Konstante (nur Gesamtstatus). Antwort `{status: ok\|error, checks?}`, Status 200 oder 503, `Cache-Control: no-store`. Hinweis: Ein Schlüssel in `?key=` landet in Server-Logs.
 - Wartungs-Guard für alle schreibenden Anfragen an `/bootspruefung/v1` und `/boatingschool/v1` (`Maintenance.php:59`).
-- `admin-post.php?action=bp_privacy_request` (Nonce `bp_privacy_request`, `SelfService.php:217`), `action=bp_voucher_redeem` (Nonce `bp_voucher_redeem`, `Vouchers.php:337`).
+- `admin-post.php?action=bp_privacy_request` (Nonce `bp_privacy_request`, `SelfService.php:123`), `action=bp_voucher_redeem` (Nonce `bp_voucher_redeem`, `Vouchers.php:337`).
 
 ### 4.7 Eigene Hooks und Filter (`do_action`/`apply_filters`)
 
@@ -636,8 +636,8 @@ Kleiner Befund: Der Docblock „Führt ausstehende Datenbankmigrationen aus.“ 
 | `bootspruefung_user_owns_course` | Filter (konsumiert) | bool, userId, courseCode | `Extensions.php:25` |
 | `bootspruefung_practice_region` | Filter | Region, userId, courseCode | `Extensions.php:60` |
 | `bootspruefung_practice_offers` | Filter | Angebote, courseCode, Region | `Extensions.php:81` |
-| `bootspruefung_tickets_for_user` | Filter | null oder Liste, userId | `Tickets.php:224` (+101) |
-| `bootspruefung_ticket_issued`/`_redeemed`/`_cancelled` | Action (konsumiert) | siehe 4.2 | `Tickets.php:131` (+101) |
+| `bootspruefung_tickets_for_user` | Filter | null oder Liste, userId | `Tickets.php:123` |
+| `bootspruefung_ticket_issued`/`_redeemed`/`_cancelled` | Action (konsumiert) | siehe 4.2 | `Tickets.php:30` |
 | `bootspruefung_voucher_redeem` | Filter | null, Array oder WP_Error; Code, userId | `Vouchers.php:248` |
 | `bootspruefung_voucher_redeem_per_ip` | Filter | Grenze (30) | `Vouchers.php:66` |
 | `bootspruefung_voucher_redeemed` | Action (konsumiert) | Code, userId, productId, args | `Vouchers.php:57` |
@@ -706,7 +706,7 @@ discard: aus jedem Zustand außer published und laufendem importing ──▶ di
 | `register-ip\|<client>` | 10 | 1 h | `Hardening.php:135` |
 | `lbvc-redeem-ip\|<client>` | 30 (Filter) | 1 h | `Vouchers.php:77` |
 | `redeem\|<userId>` | 10 | 1 h | `Vouchers.php:316` |
-| `web-privacy\|<type>\|<userId>` | 5 | 1 Tag | `SelfService.php:187` (+94) |
+| `web-privacy\|<type>\|<userId>` | 5 | 1 Tag | `SelfService.php:93` |
 
 Login-Zähler werden vorgemerkt (`take`) und bei Erfolg zurückgenommen (`release`). Bei einem bekannten Gerät gilt nur der Zähler Konto+IP (`LoginGuard::scope`). Ein Passwort-Reset setzt die Kontozähler zurück.
 
@@ -719,7 +719,7 @@ Login-Zähler werden vorgemerkt (`take`) und bei Erfolg zurückgenommen (`releas
 | Update-Prüfung | `bp_update_none`, `bp_update_http`, `bp_update_json`, `bp_update_pre`, `bp_update_tag` | `UpdateCheck.php:144`–`:158` |
 | Wartung | Web `bp_maintenance` (503, `retry_after` 30); App `MAINTENANCE` (Problem-Response) | `Maintenance.php:77` |
 | Fachliche Ausnahme | `exam_expired`, `exam_finished`, `exam_answer_locked`, `exam_not_startable`, `exam_start_busy`, `answer_rate_limited`, `exam_start_rate_limited`, `question_token_expired`; `AccessDenied` (403), `NotFound` (404) | `DomainException.php:16` |
-| Datenschutz | `SelfService::request` → `created`/`resent`/`confirmed`/`protected`/`limited`/`error`; `processDeletion` → `completed`/`protected`/`failed`/`skipped`; Export-Fehlergrund `export_unavailable`, `exporter_invalid:<key>`, `exporter_pages:<key>`, `export_file`, `export_mail` | `SelfService.php:176`; `AccountDeletion.php:155`, `:376` |
+| Datenschutz | `SelfService::request` → `created`/`resent`/`confirmed`/`protected`/`limited`/`error`; `processDeletion` → `completed`/`protected`/`failed`/`skipped`; Export-Fehlergrund `export_unavailable`, `exporter_invalid:<key>`, `exporter_pages:<key>`, `export_file`, `export_mail` | `SelfService.php:82`; `AccountDeletion.php:155`, `:376` |
 | Restore/Monitor | `ok`/`warn`/`fail`; CLI-Exit 1 bei `fail`; Monitor 200 oder 503 | `BackupCheck.php:47`; `Monitor.php:95` |
 | Migration | Admin-Hinweise `schema_newer`, `migration_failed`; Migrationsaktion `run`/`schedule`/`wait` | `Plugin.php:368`, `:553` |
 | Audit-Aktionen im Bereich C | `import_uploaded`, `import_validated`, `import_validation_failed`, `import_approved`, `import_started`, `import_published`, `import_rolled_back`, `import_rollback_requested`, `import_discarded`, `import_retention`, `override_<feld>`, `personal_data_erased`, `account_deletion_skipped`, `account_deletion_failed`, `account_deleted`, `account_removed_from_site`, `privacy_export_failed`, `privacy_export_sent`, `entitlements_closed_account_deleted`, `voucher_redeemed`, `voucher_redeem_failed`, `voucher_redeem_skipped`, `privacy_orphan_site_tables_dropped` | jeweilige `AuditLog::record`-Aufrufe |
