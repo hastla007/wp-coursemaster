@@ -316,3 +316,19 @@ Technisch festgelegt: Grenze zu WPML/Polylang/TranslatePress nur dokumentieren, 
 | E-158 | Sprache des Zertifikats | **Kurssprache**, im Snapshot eingefroren | R0-25 D-25-04 | R1-19 |
 | E-159 | Sprachvarianten für Mailvorlagen | **Ja, schon in Free** | R0-25 D-25-05 | R1-19 |
 | E-160 | Mandanten innerhalb einer Site (z. B. mehrere Akademien in einer Installation) | **Nein in R1**, kein `tenant_id` | R0-25 D-25-09 | R1-19 |
+
+## 25. UX-Abnahme mit Nutzertests (aus R0-26)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-161** | Wer rekrutiert die Teilnehmenden für die Nutzertests? | **Gemischt**: eigene Kunden bzw. Netzwerk für Autoren und Admins; Personen mit Hilfstechnik über Dienstleister oder Verbände | R0-26 D-26-01 | R1-29 |
+| **E-162** | Budget für Nutzertests | **Pauschale je Sitzung plus Testgeräte** (Mengengerüst in R0-26; Betrag legt der Auftraggeber fest) | R0-26 D-26-02 | R1-29 |
+| E-163 | Teilnehmerzahl je Rolle | **6 Autoren, 5+4 Lernende** (davon 4 mit Hilfstechnik), **5 Gruppenverwalter, 5 Admins**; Nachtest mit mindestens 3 neuen Personen | R0-26 D-26-03 | R1-29 |
+| E-164 | Wer moderiert? | **Eine Person, die nicht an der Entwicklung beteiligt ist**; extern für die Barrierefreiheitssitzungen | R0-26 D-26-04 | R1-29 |
+| E-165 | Umfang der Autorenaufgabe | **10 Fragen manuell, 40 per Import**; alle 50 manuell nur im Praxis-Benchmark | R0-26 D-26-05 | R1-29 |
+| E-166 | Abnahmeschwellen | **Erfolg ≥ 80 % je Aufgabe, SUS ≥ 70**, Referenzkurs veröffentlichen im Median ≤ 90 min, Setup ≤ 10 min, Prüfung fortsetzen ≤ 1 min ohne Antwortverlust; jede Person mit Hilfstechnik löst jede kritische Aufgabe ohne sehende Hilfe | R0-26 D-26-06 | R1-29 |
+| E-167 | Aufzeichnung der Sitzungen | **Mit Einwilligung**, Löschung 6 Monate nach R1-GATE | R0-26 D-26-07 | R1-29 |
+| E-168 | Referenzkurs mit „Aufgabe (Abgabe)“ (Konzept 27.4/28.4 verlangt eine) | **Erst ab R2** (RK-v1.1 nach R2-02), weil Text- und Dateiaufgaben erst dort kommen | R0-26 D-26-08 | R1-29 |
+| E-169 | Testsprache | **de_DE** plus eine Admin-Sitzung in en_US | R0-26 D-26-09 | R1-29 |
+| E-170 | Wiederholung der Nutzertests vor späteren Gates | **Ja**, gezielt für geänderte Flows vor R2-GATE und R3-GATE | R0-26 D-26-10 | R1-29 |
+| E-171 | S2-Befunde (schwer, nicht kritisch) vor R1-GATE | **Nur mit dokumentierter Akzeptanz** durch den Auftraggeber, nie bei WCAG-Bezug in Lernenden-Flows; S1 muss immer behoben sein | R0-26 D-26-11 | R1-29 |

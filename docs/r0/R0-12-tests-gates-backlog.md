@@ -34,10 +34,10 @@
 | ID-04 | Getrennte Objekt-/Site-Rechte für Trainer, Autor, Tutor, Shop-Manager, Admin | R1 (BS-03) | R1-03, R1-31, R1-34 | RBAC-003, RBAC-004, RBAC-005, RBAC-011, RBAC-024, RBAC-025, RBAC-032, RBAC-033, RBAC-042, RBAC-062, RBAC-091, RBAC-092, GM-153, GM-154 | C | Kein Test, dass `editor`/`shop_manager` bei Aktivierung keine `cc_*`-Caps erhalten (E-83) → RBAC-097 |
 | ID-05 | E-Mail-Wechsel, Kontolöschung, Sperre, Zusammenführung | R1 (BS-19, BS-12) | R1-17, R1-13, R1-03, R1-38 | ID-008…ID-014, GM-102, GM-177, RBAC-050, GRANT-019 | C | Merge-Werkzeug nicht in R1 (E-114), nur „Zugang übertragen“ (ID-012) |
 | ID-06 | Multisite/Cross-Site-Identität | R4 (W-11, E-07); R1 nur Site-Isolation (BS-26) | R1-23, R1-30; R4-01 | RBAC-010, RBAC-078, GM-186, REC-024 | C (Isolation) · R4 | R0-25 fehlt; RBAC-010/078 nur „bedingt“ |
-| LEARN-01 | Kurs: Entwurf → veröffentlicht → Revision → archiviert | R1 (BS-04, BS-05) | R1-04, R1-05, R1-26, R1-27 | GM-001, GM-003, GM-137, GM-144, RBAC-002, RBAC-004, RBAC-017, REV-038, REV-039, REV-040, REV-043, REV-044 | B | Blocker-/Warnungskatalog des Publish-Validators fehlt (R0-22) |
+| LEARN-01 | Kurs: Entwurf → veröffentlicht → Revision → archiviert | R1 (BS-04, BS-05) | R1-04, R1-05, R1-26, R1-27, R1-37 | GM-001, GM-003, GM-137, GM-144, RBAC-002, RBAC-004, RBAC-017, REV-038, REV-039, REV-040, REV-043, REV-044 | B | Blocker-/Warnungskatalog des Publish-Validators fehlt (R0-22) |
 | LEARN-02 | Lektion, Video, Datei, Activity bearbeiten, freigeben, absolvieren; keine fremden Uploads | R1 (BS-07, BS-15) | R1-05, R1-07, R1-14 | GM-007…GM-016, MED-001…MED-005, MED-010, RBAC-067…RBAC-076, IMP-012 | B/C | – |
 | LEARN-03 | Fortschritt speichern, unterbrechen, fortsetzen, Gerätewechsel; nie rückwärts | R1 (BS-09) | R1-10, R1-16, R1-20 | GM-011, GM-027, GM-036, GM-075, GM-077, REV-036 | B | Kein Test für verspätete/doppelte Lektions-Fortschritts-Requests (Monotonie, E-70) → GM-191 |
-| LEARN-04 | Prüfung starten, speichern, Zeitlimit, Abgabe, Bewertung | R1 (BS-08) | R1-08, R1-09, R1-20 | GM-027…GM-029, GM-035…GM-039, GM-045, GM-050, GM-053, GM-054, NFR-005, REC-011 | B/C | – |
+| LEARN-04 | Prüfung starten, speichern, Zeitlimit, Abgabe, Bewertung | R1 (BS-06, BS-08) | R1-06, R1-08, R1-09, R1-20, R1-33 | GM-027…GM-029, GM-035…GM-039, GM-045, GM-050, GM-053, GM-054, NFR-005, REC-011 | B/C | – |
 | LEARN-05 | Nicht bestanden, Wiederholung, Versuchslimit, Sperrfrist; keine Umgehung per URL/REST | R1 (BS-08) | R1-08, R1-09, R1-20 | GM-030, GM-040, GM-041, GM-046, RBAC-031, REV-024 | B | `cooldown_seconds` (R0-08 §4.4), `max_attempts` ohne Revisionswechsel und „Abbruch zählt“ (E-71) ohne Test → GM-192 |
 | LEARN-06 | Smarttrainer, Karteikarten, Favoriten, Fehlertraining, Wiederholungsplan | R1 (BS-10, BS-11) | R1-11, R1-12 | GM-055…GM-074, RBAC-021, RBAC-023, REV-029, REV-035 | B | Referenzlauf der Rechenlogik offen (E-56); Abweichungsliste offen (E-55) |
 | LEARN-07 | Completion, Mastery, Competency getrennt | R1 (BS-09) | R1-10 | GM-009, GM-066, GM-075, GM-076, REV-001, REV-003, REV-025 | B | Competency (abgeleitet, `competency_validity_days`, E-73) und „Zahlung ist keine Kompetenz“ ohne Test → CERT-009 |
@@ -48,10 +48,10 @@
 | ACCESS-02 | Kauf-/Voucher-/Ticket-/Mitgliedschaftsgrant mit stabiler Quellreferenz | R1+R3 (Kern BS-12, K-01/K-02; Adapter R3.1/R3.2/R3.4) | R1-13; R3-02, R3-04, R3-07 | GM-088, GM-089, GRANT-004, GRANT-005, GRANT-006, GRANT-024 | C · R3-GATE | Mitgliedschafts-Entitlement ohne Vertrag (Kap. 34.7) |
 | ACCESS-03 | Mehrere gültige Grants für denselben Kurs | R1 (BS-12) | R1-13 | GM-085, GM-092, GRANT-010, GRANT-011 | B | – |
 | ACCESS-04 | Grant pending → active/failed/expired/revoked | R1 (BS-12) | R1-13; R3-10 | GRANT-001, GRANT-015, GRANT-016, GRANT-020, GRANT-022, GM-091 | C | Pending-Timeout und Eskalation offen (SEAM-006) |
-| ACCESS-05 | Ablauf, Verlängerung, Pause, Reaktivierung | R1 (BS-12, BS-13) | R1-13, R1-14, R1-17 | GM-084, GM-086, GM-089, GRANT-009, GRANT-012, GRANT-013, GRANT-014, RBAC-009, RBAC-046 | B/C | Zeitzonen-Darstellung (UTC gespeichert, lokal angezeigt) ohne Test; R0-15 fehlt |
-| ACCESS-06 | Rückerstattung nach Kursbeginn oder nach Zertifikat | R1+R3 (Kern mit FakeSource; Woo R3.1) | R1-13, R1-27; R3-03 | GRANT-007, GRANT-027, GRANT-028, RBAC-037, RBAC-065, REV-023, REV-046, GRANT-023 | C · R3-GATE | – |
+| ACCESS-05 | Ablauf, Verlängerung, Pause, Reaktivierung | R1 (BS-12, BS-13) | R1-13, R1-14, R1-17, R1-25 | GM-084, GM-086, GM-089, GRANT-009, GRANT-012, GRANT-013, GRANT-014, RBAC-009, RBAC-046 | B/C | Zeitzonen-Darstellung (UTC gespeichert, lokal angezeigt) ohne Test; R0-15 fehlt |
+| ACCESS-06 | Rückerstattung nach Kursbeginn oder nach Zertifikat | R1+R3 (Kern mit FakeSource; Woo R3.1) | R1-13, R1-25, R1-27; R3-03 | GRANT-007, GRANT-027, GRANT-028, RBAC-037, RBAC-065, REV-023, REV-046, GRANT-023 | C · R3-GATE | – |
 | ACCESS-07 | Paket/Bündel, mehrere Plätze, Teilwiderruf | R1+R3 (Seats BS-14; Bundle-Teil nach E-25/W-07; Teilrefund R3.1) | R1-13, R1-04; R3-03 | GM-101, SEAT-009, SEAT-010, SEAT-013, SEAT-020 | C · R3-GATE | Relation „Kurs enthält Kurs“ (INV-A-107/144) ohne Test → GM-193 (nach E-25) |
-| ACCESS-08 | Gesperrter Kurs, eingeschränkte Lektion, geschützte Downloads; Prüfung bei jedem Zugriff | R1 (BS-15) | R1-14 | GM-015, GM-107…GM-116, MED-001…MED-017, RBAC-012…RBAC-020, RBAC-067…RBAC-075 | C | – |
+| ACCESS-08 | Gesperrter Kurs, eingeschränkte Lektion, geschützte Downloads; Prüfung bei jedem Zugriff | R1 (BS-15, BS-23) | R1-14, R1-37 | GM-015, GM-107…GM-116, MED-001…MED-017, RBAC-012…RBAC-020, RBAC-067…RBAC-075 | C | – |
 | ACCESS-09 | Quelle/Partner deaktiviert oder inkompatibel; kein stiller Massenwiderruf | R1+R3 (Kern Z-6; Connector R3) | R1-13, R1-43\*; R3-10 | GRANT-021, RBAC-048, CT-08, CT-09 | C · R3-GATE | Betreiber-Policy für Bestands-Grants (Kap. 35.2) ohne Setting und Test (R0-27) |
 | COMMERCE-01 | Woo-Produkt/Variation → Kurs; Zahlung bestätigt → Grant | R3.1 (BS-31) | R3-02, R3-06 | GRANT-004 | R3-GATE | Woo-Katalog fehlt (R3-FIRST-001/004: HPOS/Classic, Blocks/Classic, doppelte Hooks); GRANT-004 prüft nur den Kern |
 | COMMERCE-02 | Bestellstatus pending/on-hold/failed/cancelled/completed | R3.1 | R3-02, R3-03 | GRANT-023 | R3-GATE | Nur RF-11/RF-13 abgedeckt; Statuswechsel nach Freischaltung offen (R3-FIRST-001) |
@@ -78,8 +78,8 @@
 | OPS-03 | Event verspätet, doppelt, out-of-order, verloren | R1+R3 (Kern FakeSource und Outbox; Partner R3) | R1-13, R1-43\*; R3-12 | GRANT-007, GRANT-025, RBAC-093, CT-07, CT-11, REC-016 | C · R3-GATE | Outbox ohne R1-Owner (§2.3) |
 | OPS-04 | Parallelität: zwei Zahlungen, Refunds, Einlösungen, Joins, Abgaben | R1 (BS-02) | R1-20, R1-42; R3-05 | GRANT-005, GRANT-017, SEAT-003…SEAT-006, SEAT-019, ID-014, GM-045, GM-053, GM-096, GM-188, NFR-010, NFR-011, REV-030, REV-031, REV-032, IMP-020, GRANT-026 | C | – |
 | OPS-05 | Job, Queue, DB, Netzwerk oder Partner offline | R1 (BS-02, BS-20) | R1-17, R1-22, R1-38 | GM-156, GM-157, NFR-009, NFR-013, IMP-022, REC-008, CT-07 | C | Robustheitsfälle RB-01…RB-08 (R0-14 §4.1) ohne Test-ID; Alarmierung ohne Test |
-| OPS-06 | Admin-Diagnose, Healthcheck, Fehler-/Supportexport | R1 (BS-20) | R1-17, R1-38 | GM-115, GM-146, GM-147, GM-148, MED-007, MED-008, RBAC-094, REC-022 | C | Redigierter Diagnoseexport ohne Test; R0-13 und R0-34 fehlen |
-| OPS-07 | Installation, Update, Migration, Deinstallation, Rollback | R1 (BS-01, BS-02) | R1-01, R1-02, R1-23, R1-39, R1-40 | GM-158, GM-163…GM-171, GM-183…GM-186, REC-001…REC-025, RBAC-095 | C | – |
+| OPS-06 | Admin-Diagnose, Healthcheck, Fehler-/Supportexport | R1 (BS-20) | R1-17, R1-24, R1-38 | GM-115, GM-146, GM-147, GM-148, MED-007, MED-008, RBAC-094, REC-022 | C | Redigierter Diagnoseexport ohne Test; R0-13 und R0-34 fehlen |
+| OPS-07 | Installation, Update, Migration, Deinstallation, Rollback | R1 (BS-01, BS-02) | R1-01, R1-02, R1-23, R1-32, R1-36, R1-39, R1-40 | GM-158, GM-163…GM-171, GM-183…GM-186, REC-001…REC-025, RBAC-095 | C | – |
 | OPS-08 | Übersetzungen, Accessibility, Responsive, E-Mail/Benachrichtigung | R1 (BS-17, BS-22) | R1-16, R1-19, R1-21, R1-29 | GM-141, GM-143, NFR-014, NFR-016, MED-025, SEAT-002, SEAT-022 | C | Kein Tastatur-, Screenreader-, RTL- oder Locale-Test (R0-15, R0-26 fehlen); transaktionale Mails ohne Test, GM-159/GM-160 sind Pro-Erinnerung (E-24) → NTF-001…NTF-008 |
 | OPS-09 | Große Kataloge, Prüfungsspitzen, Masseneinschreibungen | R1 | R1-22, R1-42 | NFR-001…NFR-009, NFR-018, GM-006, GM-110, GM-142, GM-187, IMP-032 | C | Masseneinschreibung (Bulk-Grant, Gruppe mit 1 000 Plätzen) in keinem Lastprofil → NFR-019 |
 | OPS-10 | Standalone-Free ohne Partner und ohne Lizenzserver | R1 (Z-6) | R1-01, R1-18 | CT-09, NFR-016, NFR-017 | B | Kein ausdrücklicher Test „Free ohne Woo/Suite/Pro, keine Verbindung zu Lizenz- oder Partnerservern“ → SA-001 |
@@ -309,9 +309,9 @@ for f in CAT:
         tests[t] = set(re.findall(r'R[0-4]-\d{2}', c[zc] if zc is not None and zc < len(c) else ''))
 def expand(s):                               # "GM-118…GM-136" -> Einzel-IDs
     out = []
-    for a, b in re.findall(r'([A-Z]+-\d{3})(?:…([A-Z]+-\d{3}))?', s):
+    for a, b in re.findall(r'([A-Z]+-\d{2,3})(?:…([A-Z]+-\d{2,3}))?', s):
         if b and a.split('-')[0] == b.split('-')[0]:
-            p = a.split('-')[0]; out += [f'{p}-{n:03d}' for n in range(int(a[-3:]), int(b[-3:]) + 1)]
+            p = a.split('-')[0]; out += [f'{p}-{n:03d}' for n in range(int(a.split('-')[1]), int(b.split('-')[1]) + 1)]
         else: out.append(a)
     return out
 cases, bytask = [], collections.defaultdict(set)

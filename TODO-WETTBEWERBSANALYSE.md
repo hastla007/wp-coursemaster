@@ -139,7 +139,7 @@
   - **Ergebnis/Definition of Done:** Single-Site-Scope, Multisite-Nichtumfang, Locale-Fallback, Sprachversionen und gemischte Kurs-/Fragensprachen als ADR dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-26 · Accessibility- und UX-Abnahme mit Nutzertests planen**
+- [ ] **R0-26 · Accessibility- und UX-Abnahme mit Nutzertests planen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-26-ux-abnahme-nutzertests.md` (Referenzkurspaket cc-fx-rk-v1 mit RK-1…3, 34 messbare Aufgaben, Testdesign mit Hilfstechnik-Teilnehmenden, Schwellen S-01…10, AT- und Browser-Matrix, Befund-Schweregrade, UX-001…091); Entscheidung offen → E-161…E-171
   - **Voraussetzung:** R0-11,R0-15.
   - **Ergebnis/Definition of Done:** Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
