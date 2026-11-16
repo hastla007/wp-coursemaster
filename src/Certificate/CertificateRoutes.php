@@ -206,7 +206,7 @@ final class CertificateRoutes {
 			$response->header( 'Cache-Control', 'private, no-store' );
 			return $response;
 		} catch ( CourseException $e ) {
-			return new \WP_Error( $e->error_code, $e->getMessage(), array( 'status' => $e->status ) );
+			return new \WP_Error( $e->error_code, $e->getMessage(), array( 'status' => $e->status ) + $e->data );
 		}
 	}
 }

@@ -134,7 +134,7 @@ final class AuthoringRoutes {
 		try {
 			return new \WP_REST_Response( $call( Actor::user( get_current_user_id() ) ), $status );
 		} catch ( CourseException $e ) {
-			return new \WP_Error( $e->error_code, $e->getMessage(), array( 'status' => $e->status ) );
+			return new \WP_Error( $e->error_code, $e->getMessage(), array( 'status' => $e->status ) + $e->data );
 		}
 	}
 }

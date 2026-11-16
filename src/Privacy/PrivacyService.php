@@ -271,6 +271,11 @@ final class PrivacyService {
 				return $n;
 			}
 		);
+		// Per-site notification preferences (user option, R1-21).
+		if ( false !== get_user_option( 'course_captain_notification_prefs', $user_id ) ) {
+			delete_user_option( $user_id, 'course_captain_notification_prefs' );
+			++$count;
+		}
 		if ( $count > 0 ) {
 			AuditLog::write(
 				$db,

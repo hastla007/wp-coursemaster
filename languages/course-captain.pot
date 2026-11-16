@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T17:56:16+00:00\n"
+"POT-Creation-Date: 2026-11-16T18:14:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -24,7 +24,7 @@ msgstr ""
 #: src/Ops/HealthChecks.php:172
 #: src/Privacy/PrivacyService.php:125
 #: src/Privacy/PrivacyService.php:135
-#: src/Privacy/PrivacyService.php:350
+#: src/Privacy/PrivacyService.php:355
 msgid "Course Captain"
 msgstr ""
 
@@ -465,7 +465,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:348
+#: src/Kernel/Plugin.php:349
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -1164,7 +1164,7 @@ msgstr[1] ""
 msgid "Course Captain keeps the audit log (tamper protection) and course content."
 msgstr ""
 
-#: src/Privacy/PrivacyService.php:349
+#: src/Privacy/PrivacyService.php:354
 msgid "Course Captain stores learning progress, answers, exam attempts, course access and group memberships of logged-in learners. Learning answers are kept for 2 years after the end of a course, exam attempts for 10 years, ended access records for 10 years and the audit log for 4 years. Personal data can be exported and erased with the WordPress privacy tools."
 msgstr ""
 

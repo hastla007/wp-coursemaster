@@ -333,7 +333,7 @@
   - **Ergebnis/Definition of Done:** Migration von Vorversionen, Backup-Restore, Plugin-Deaktivierung, sichere Datenaufbewahrung und explizite Uninstall-Policy getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-24 · Dokumentation, Onboarding und Support**
+- [x] **R1-24 · Dokumentation, Onboarding und Support** — erledigt 16.11.2026: Nachweis `docs/r1/R1-24-nachweis.md`; `docs/user/` (Installation, Admin, Autoren, Lernende, Troubleshooting-Runbook, Datenschutz, Entwickler, Release), `readme.txt`/`CHANGELOG.md` korrigiert; Code-Befunde B-1/B-3/B-6 behoben (`tests/integration/DocReviewFixesTest.php`), B-2/B-4/B-5/B-7/B-8 offen (Nachweis); `SECURITY.md` braucht Sicherheitsadresse des Auftraggebers. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-16,R1-21.
   - **Ergebnis/Definition of Done:** Installationsguide, Admin-/Autoren-/Lernendenhilfe, Troubleshooting, Privacy-Hinweise, API- und Release-Doku fertig.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

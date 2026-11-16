@@ -20,6 +20,7 @@ final class ExternalMedia {
 
 	public const ALWAYS_LOAD   = 'always_load';
 	public const CLICK_TO_LOAD = 'click_to_load';
+	public const LINK_ONLY     = 'link_only';
 
 	/**
 	 * Foreign hosts among URLs (sorted, unique).
@@ -52,7 +53,7 @@ final class ExternalMedia {
 	public static function mode(): string {
 		$privacy = get_option( 'course_captain_settings_privacy', array() );
 		$mode    = is_array( $privacy ) ? (string) ( $privacy['values']['external_media_mode'] ?? '' ) : '';
-		return self::CLICK_TO_LOAD === $mode ? self::CLICK_TO_LOAD : self::ALWAYS_LOAD;
+		return in_array( $mode, array( self::CLICK_TO_LOAD, self::LINK_ONLY ), true ) ? $mode : self::ALWAYS_LOAD;
 	}
 
 	/**
@@ -61,7 +62,7 @@ final class ExternalMedia {
 	 * @param array<string, mixed> $settings  Video settings.
 	 * @param bool                 $consented Learner consented for this video/host.
 	 * @param string               $mode      Mode (default from settings).
-	 * @return array{video_url: string|null, subtitles_url: string|null, consent_required: bool, foreign_host: string|null}
+	 * @return array{video_url: string|null, subtitles_url: string|null, consent_required: bool, foreign_host: string|null, link_url: string|null}
 	 */
 	public static function video_view( array $settings, bool $consented = false, ?string $mode = null ): array {
 		$mode      = $mode ?? self::mode();
@@ -70,12 +71,23 @@ final class ExternalMedia {
 		$subtitles = 'vtt' === ( $settings['subtitles'] ?? 'off' ) && SettingsSchema::is_https_url( (string) ( $settings['subtitle_url'] ?? '' ) ) ? (string) $settings['subtitle_url'] : null;
 		$foreign   = null === $valid_url ? array() : self::foreign_hosts( array( $valid_url ) );
 		$host      = $foreign[0] ?? null;
+		if ( null !== $host && self::LINK_ONLY === $mode ) {
+			// Never embedded: the learner opens the external page in a new tab (R0-31).
+			return array(
+				'video_url'        => null,
+				'subtitles_url'    => null,
+				'consent_required' => false,
+				'foreign_host'     => $host,
+				'link_url'         => $valid_url,
+			);
+		}
 		if ( null !== $host && self::CLICK_TO_LOAD === $mode && ! $consented ) {
 			return array(
 				'video_url'        => null,
 				'subtitles_url'    => null,
 				'consent_required' => true,
 				'foreign_host'     => $host,
+				'link_url'         => null,
 			);
 		}
 		return array(
@@ -83,6 +95,7 @@ final class ExternalMedia {
 			'subtitles_url'    => null === $valid_url ? null : $subtitles,
 			'consent_required' => false,
 			'foreign_host'     => $host,
+			'link_url'         => null,
 		);
 	}
 }
