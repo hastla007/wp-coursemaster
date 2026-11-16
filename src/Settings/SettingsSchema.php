@@ -302,6 +302,33 @@ final class SettingsSchema {
 					'values'  => array( 'never', 'learner_opt_in' ),
 					'default' => 'learner_opt_in',
 				),
+				'base_template'      => array(
+					'type'    => 'object',
+					'fields'  => array(
+						'issuer_name'     => array(
+							'type' => 'string',
+							'max'  => 120,
+						),
+						'footer_text'     => array(
+							'type' => 'text',
+							'max'  => 500,
+						),
+						'logo_id'         => array(
+							'type' => 'int',
+							'min'  => 0,
+						),
+						'signature_label' => array(
+							'type' => 'string',
+							'max'  => 120,
+						),
+					),
+					'default' => array(
+						'issuer_name'     => '',
+						'footer_text'     => '',
+						'logo_id'         => 0,
+						'signature_label' => '',
+					),
+				),
 			),
 			'emails'       => array(
 				'from_name'    => array(

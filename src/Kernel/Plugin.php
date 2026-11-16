@@ -201,6 +201,9 @@ final class Plugin {
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();
+		\CourseCaptain\Certificate\CertificateService::register();
+		\CourseCaptain\Certificate\CertificateRoutes::register();
+		\CourseCaptain\Certificate\CertificatePages::register();
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();
 		\CourseCaptain\Ops\AuditScreen::register();

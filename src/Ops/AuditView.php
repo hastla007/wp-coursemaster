@@ -33,20 +33,24 @@ final class AuditView {
 	 */
 	public static function registry(): array {
 		return array(
-			'grant.manual_created'    => array( 'access', __( 'Access granted manually', 'course-captain' ) ),
-			'grant.extended'          => array( 'access', __( 'Access extended', 'course-captain' ) ),
-			'group.created'           => array( 'groups', __( 'Group created', 'course-captain' ) ),
-			'group.token_rotated'     => array( 'groups', __( 'Group invitation link renewed', 'course-captain' ) ),
-			'attempt_graded'          => array( 'attempt', __( 'Exam attempt re-evaluated', 'course-captain' ) ),
-			'settings_saved'          => array( 'settings', __( 'Settings saved', 'course-captain' ) ),
-			'settings_reset'          => array( 'settings', __( 'Settings reset', 'course-captain' ) ),
-			'outbox.replayed'         => array( 'ops', __( 'Event delivery replayed', 'course-captain' ) ),
-			'import_approved'         => array( 'import', __( 'Import approved', 'course-captain' ) ),
-			'import_published'        => array( 'import', __( 'Import published', 'course-captain' ) ),
-			'import_rollback_started' => array( 'import', __( 'Import rollback started', 'course-captain' ) ),
-			'personal_data_erased'    => array( 'privacy', __( 'Personal data erased', 'course-captain' ) ),
-			'retention_applied'       => array( 'ops', __( 'Retention applied', 'course-captain' ) ),
-			'cron_task_failed'        => array( 'ops', __( 'Maintenance task failed', 'course-captain' ) ),
+			'grant.manual_created'        => array( 'access', __( 'Access granted manually', 'course-captain' ) ),
+			'grant.extended'              => array( 'access', __( 'Access extended', 'course-captain' ) ),
+			'group.created'               => array( 'groups', __( 'Group created', 'course-captain' ) ),
+			'group.token_rotated'         => array( 'groups', __( 'Group invitation link renewed', 'course-captain' ) ),
+			'attempt_graded'              => array( 'attempt', __( 'Exam attempt re-evaluated', 'course-captain' ) ),
+			'settings_saved'              => array( 'settings', __( 'Settings saved', 'course-captain' ) ),
+			'settings_reset'              => array( 'settings', __( 'Settings reset', 'course-captain' ) ),
+			'outbox.replayed'             => array( 'ops', __( 'Event delivery replayed', 'course-captain' ) ),
+			'import_approved'             => array( 'import', __( 'Import approved', 'course-captain' ) ),
+			'import_published'            => array( 'import', __( 'Import published', 'course-captain' ) ),
+			'import_rollback_started'     => array( 'import', __( 'Import rollback started', 'course-captain' ) ),
+			'personal_data_erased'        => array( 'privacy', __( 'Personal data erased', 'course-captain' ) ),
+			'retention_applied'           => array( 'ops', __( 'Retention applied', 'course-captain' ) ),
+			'cron_task_failed'            => array( 'ops', __( 'Maintenance task failed', 'course-captain' ) ),
+			'certificate_issued'          => array( 'certificates', __( 'Certificate issued manually', 'course-captain' ) ),
+			'certificate_corrected'       => array( 'certificates', __( 'Certificate corrected', 'course-captain' ) ),
+			'certificate_revoked'         => array( 'certificates', __( 'Certificate revoked', 'course-captain' ) ),
+			'certificate_review_required' => array( 'certificates', __( 'Certificate needs review after re-evaluation', 'course-captain' ) ),
 		);
 	}
 

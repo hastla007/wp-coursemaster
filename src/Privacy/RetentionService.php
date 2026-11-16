@@ -30,6 +30,7 @@ final class RetentionService {
 	public const IMPORT_UNCHANGED_DAYS = 14;
 	public const IMPORT_LOG_DAYS       = 180;
 	public const KEEP_PACKAGES         = 2;
+	public const CERTIFICATES_DAYS     = 3653;
 
 	/**
 	 * Run all steps.
@@ -49,6 +50,7 @@ final class RetentionService {
 			'RT-24_import_unchanged' => static fn(): int => $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_import_item_log' ) . "` WHERE action = 'unchanged' AND created_at < %s", $sql( self::IMPORT_UNCHANGED_DAYS ) ) ),
 			'RT-25_import_log'       => static fn(): int => $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_import_item_log' ) . '` WHERE created_at < %s', $sql( self::IMPORT_LOG_DAYS ) ) ) + $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_import_issue' ) . '` WHERE created_at < %s', $sql( self::IMPORT_LOG_DAYS ) ) ),
 			'RT-26_package_copies'   => static fn(): int => self::package_copies( $db ),
+			'RT-09_certificates'     => static fn(): int => \CourseCaptain\Certificate\CertificateService::expire_retention( $db, $sql( self::CERTIFICATES_DAYS ) ),
 			'RT-39_idempotency'      => static fn(): int => $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_request_idempotency' ) . '` WHERE expires_at < %s', gmdate( 'Y-m-d H:i:s', $now ) ) ),
 			'RT-40_rate_limits'      => static fn(): int => $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_rate_limit' ) . '` WHERE expires_at < %s', gmdate( 'Y-m-d H:i:s', $now ) ) ),
 			'RT-42_settings_undo'    => static fn(): int => self::settings_undo( $now ),

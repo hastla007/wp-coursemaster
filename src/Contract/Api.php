@@ -48,6 +48,6 @@ final class Api {
 	 * @return list<string>
 	 */
 	private static function features(): array {
-		return array();
+		return array( 'certificates' );
 	}
 }
