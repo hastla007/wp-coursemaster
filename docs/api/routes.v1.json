@@ -157,6 +157,79 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/cancel",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/report",
+        "methods": [
+            "GET"
+        ],
+        "args": {
+            "after": {
+                "type": "integer",
+                "required": false
+            },
+            "class": {
+                "type": "string",
+                "required": false
+            },
+            "entity": {
+                "type": "string",
+                "required": false
+            },
+            "format": {
+                "type": "string",
+                "required": false
+            },
+            "per_page": {
+                "type": "integer",
+                "required": false
+            },
+            "phase": {
+                "type": "string",
+                "required": false
+            },
+            "rule": {
+                "type": "string",
+                "required": false
+            },
+            "severity": {
+                "type": "string",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/resume",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/step",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/items/(?P<id>\\d+)/duplicate",
         "methods": [
             "POST"
