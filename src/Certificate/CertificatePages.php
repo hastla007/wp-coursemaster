@@ -320,7 +320,7 @@ final class CertificatePages {
 		if ( ! function_exists( 'register_block_type' ) ) {
 			return;
 		}
-		register_block_type( dirname( __DIR__, 2 ) . '/blocks/certificate-verify', array( 'render_callback' => array( self::class, 'render_block' ) ) );
+		\CourseCaptain\Ops\Compatibility::register_block( dirname( __DIR__, 2 ) . '/blocks/certificate-verify', 'course-captain/certificate-verify', array( 'render_callback' => array( self::class, 'render_block' ) ) );
 	}
 
 	/**
@@ -386,7 +386,7 @@ final class CertificatePages {
 	 * @return string
 	 */
 	private static function client(): string {
-		return \CourseCaptain\Security\ClientIp::current();
+		return \CourseCaptain\Security\ClientIp::get();
 	}
 
 	/**

@@ -487,6 +487,7 @@ final class GroupCertificateAdminTest extends SchemaTestCase {
 	 * @group CRT-020
 	 */
 	public function test_CRT_020_slug_history(): void {
+		$this->set_permalink_structure( '/%postname%/' );
 		CertificateAdmin::register();
 		Settings::save( Actor::user( $this->admin ), 'general', array( 'learning_area_slug' => 'akademie' ), array( 'learning_area_slug' ), Settings::rev( 'general' ) );
 		self::assertContains( 'lernen', CertificateAdmin::history()['learning_area_slug'] ?? array() );

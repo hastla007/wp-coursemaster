@@ -45,6 +45,7 @@ final class Settings {
 
 	/** Input key carrying the typed site name when data deletion is switched on (E-89). */
 	public const CONFIRM_SITE_FIELD = '_confirm_site_name';
+	public const CONFIRM_SLUG_FIELD = '_confirm_slug_conflict';
 
 	/**
 	 * Guard against recursion in the foreign-writer filter.
@@ -122,7 +123,7 @@ final class Settings {
 	 * @param array<string, mixed> $input  Submitted values.
 	 * @param array                $fields Rendered fields (`_fields[]`).
 	 * @phpstan-param list<string> $fields
-	 * @return array{before: array<string, mixed>, candidate: array<string, mixed>, errors: array<string, string>, changed: list<string>}
+	 * @return array{before: array<string, mixed>, candidate: array<string, mixed>, errors: array<string, string>, changed: list<string>, slug: array<string, array{conflicts: mixed, suggestion: string}>}
 	 * @throws CourseException `ccap_not_found`, `ccap_forbidden`.
 	 */
 	public static function check( Actor $actor, string $tab, array $input, array $fields ): array {
@@ -155,12 +156,32 @@ final class Settings {
 			$touched[]           = $field;
 		}
 		$errors += SettingsRules::check( $actor, $tab, $candidate, $before, $touched );
+		// F4.1 / KOMP-132: a changed public slug that is already in use needs a confirmation.
+		$slug_conflicts = array();
+		if ( 'general' === $tab && empty( $input[ self::CONFIRM_SLUG_FIELD ] ) ) {
+			foreach ( array( 'learning_area_slug', 'course_slug' ) as $field ) {
+				// A hard collision from SettingsRules (page/foreign CPT) keeps its rule; the conflict list is added as data.
+				$hard = isset( $errors[ $field ] ) && in_array( $errors[ $field ], array( 'collision', 'foreign_cpt' ), true );
+				if ( ( isset( $errors[ $field ] ) && ! $hard ) || ! isset( $candidate[ $field ], $before[ $field ] ) || $candidate[ $field ] === $before[ $field ] ) {
+					continue;
+				}
+				$found = \CourseCaptain\Ops\Compatibility::slug_conflicts( (string) $candidate[ $field ], $field );
+				if ( array() !== $found ) {
+					$errors[ $field ]         = $hard ? $errors[ $field ] : 'slug_conflict';
+					$slug_conflicts[ $field ] = array(
+						'conflicts'  => $found,
+						'suggestion' => \CourseCaptain\Ops\Compatibility::slug_suggestion( (string) $candidate[ $field ], $field ),
+					);
+				}
+			}
+		}
 		$changed = array_keys( array_filter( $candidate, static fn( $value, $key ) => $value !== $before[ $key ], ARRAY_FILTER_USE_BOTH ) );
 		return array(
 			'before'    => $before,
 			'candidate' => $candidate,
 			'errors'    => $errors,
 			'changed'   => $changed,
+			'slug'      => $slug_conflicts,
 		);
 	}
 
@@ -193,7 +214,7 @@ final class Settings {
 		}
 		$result = self::check( $actor, $tab, $input, $fields );
 		if ( array() !== $result['errors'] ) {
-			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', array_keys( $result['errors'] ) ) ), 422, array( 'fields' => $result['errors'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', array_keys( $result['errors'] ) ) ), 422, array_merge( array( 'fields' => $result['errors'] ), array() === $result['slug'] ? array() : array( 'slug_conflicts' => $result['slug'] ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
 		}
 		$before    = $result['before'];
 		$candidate = $result['candidate'];

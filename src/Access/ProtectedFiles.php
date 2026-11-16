@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class ProtectedFiles {
 
-	public const QUERY_VAR = 'ccap_file';
+	public const QUERY_VAR = 'course_captain_file';
 	public const INLINE    = array( 'application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'text/vtt' );
 
 	/**
@@ -86,7 +86,11 @@ final class ProtectedFiles {
 	 */
 	public static function attachment_url( $url, $attachment_id ) {
 		$uid = Database::current()->scalar( Database::current()->prepare( 'SELECT uid FROM `' . Database::current()->table( 'ccap_media' ) . "` WHERE attachment_id = %d AND access = 'protected' AND status = 'active'", (int) $attachment_id ) );
-		return null === $uid ? $url : home_url( '/cc-file/' . $uid . '/' );
+		if ( null === $uid ) {
+			return $url;
+		}
+		// KOMP-016: query fallback with plain permalinks.
+		return \CourseCaptain\Ops\Compatibility::plain_permalinks() ? add_query_arg( self::QUERY_VAR, $uid, home_url( '/' ) ) : home_url( '/cc-file/' . $uid . '/' );
 	}
 
 	/**

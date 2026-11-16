@@ -363,7 +363,7 @@
   - **Ergebnis/Definition of Done:** Referenzaufgaben durchgespielt; Tastatur, Screenreader, mobile Prüfungen und Fehlerbehebung mit dokumentierten Befunden.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-30 · Konflikt- und Interoperabilitätstests**
+- [x] **R1-30 · Konflikt- und Interoperabilitätstests** — erledigt 16.11.2026: Nachweis `docs/r1/R1-30-nachweis.md` (Matrix aller KOMP-IDs, Befunde F-01…F-17); `CompatibilityTest`/`CompatibilityNamesTest` mit Fremd-Plugin-Stubs: Pflichtfälle KOMP-057…059 (Security-Plugin-Erkennung, Rückzug, Header-Vorrang E-307), REST-Gastsperre, DB-Query-Cache (kritisch), Mail-Log, SEO-Plugins, Woo-Koexistenz/`view_admin_dashboard`, Polylang, Elementor, Plain-Permalinks, DISABLE_WP_CRON, vertrauenswürdige Proxys; Namenskollisionen KOMP-130…132/134 (Kollisionsschutz für CPT/Rolle/Shortcode/Block, Slug-Prüfung F4.1 mit Bestätigung, Präfix-Inventar), Query-Vars nach D-20-03; Integration 389, Multisite 402. Offen: Profile KP-01…14 (Docker, echte Plugins, Redis/Varnish/Cloudflare, Browser-E2E), J-21 gegen LB. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-22,R1-28.
   - **Ergebnis/Definition of Done:** Themes, Objektcache, REST-Security, Mail-/Cache-Plugins und unterstützte Versionen in Matrix getestet; Konflikte dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

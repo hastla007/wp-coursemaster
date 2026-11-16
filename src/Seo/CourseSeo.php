@@ -327,16 +327,17 @@ final class CourseSeo {
 	/**
 	 * Active SEO plugin mode (§3.1).
 	 *
-	 * @return string yoast|rank_math|none
+	 * AIOSEO, SEOPress and The SEO Framework count as `other` (KOMP-063):
+	 * Course Captain then prints no own tags; robots stay on `wp_robots`.
+	 *
+	 * @return string yoast|rank_math|other|none
 	 */
 	public static function mode(): string {
-		if ( defined( 'WPSEO_VERSION' ) ) {
-			return 'yoast';
+		$plugin = \CourseCaptain\Ops\Compatibility::seo_plugin();
+		if ( null === $plugin ) {
+			return 'none';
 		}
-		if ( class_exists( '\RankMath' ) ) {
-			return 'rank_math';
-		}
-		return 'none';
+		return in_array( $plugin, array( 'yoast', 'rank_math' ), true ) ? $plugin : 'other';
 	}
 
 	/**

@@ -226,6 +226,9 @@ final class SettingsFields {
 			case 'foreign_cpt':
 				/* translators: %s: address */
 				return sprintf( __( 'Error: “%s” is already used by another plugin for its own content. Choose another address.', 'course-captain' ), (string) ( $params['value'] ?? '' ) );
+			case 'slug_conflict':
+				/* translators: %s: suggested address */
+				return sprintf( __( 'Error: this address is already used by another post type, taxonomy, base or rewrite rule. Choose another address, for example “%s”, or confirm the conflict.', 'course-captain' ), (string) ( $params['suggestion'] ?? '' ) );
 			case 'equal':
 				return __( 'Error: the learning area and single courses need different addresses.', 'course-captain' );
 			case 'page_unpublished':

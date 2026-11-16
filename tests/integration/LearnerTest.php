@@ -353,6 +353,7 @@ final class LearnerTest extends SchemaTestCase {
 	 * Shortcodes `[ccap_learning_link]` and `[ccap_access]`.
 	 */
 	public function test_shortcodes(): void {
+		$this->set_permalink_structure( '/%postname%/' );
 		self::assertStringContainsString( '/lernen/', do_shortcode( '[ccap_learning_link label="Los"]' ) );
 		self::assertStringContainsString( '>Los<', do_shortcode( '[ccap_learning_link label="Los"]' ) );
 		wp_set_current_user( (int) self::factory()->user->create( array( 'role' => 'subscriber' ) ) );

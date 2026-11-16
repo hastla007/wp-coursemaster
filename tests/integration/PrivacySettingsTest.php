@@ -388,7 +388,7 @@ final class PrivacySettingsTest extends SchemaTestCase {
 		);
 		self::assertSame( array( 'ccap_view_reports' ), RoleCaps::current( 'editor' ), 'foreign grant kept' );
 		self::assertNotContains( 'ccap_view_attempt_details', RoleCaps::current( Roles::TRAINER ) );
-		self::assertSame( Roles::capabilities()[ Roles::TRAINER ], array_values( array_merge( array( 'read' ), RoleCaps::current( Roles::TRAINER ) ) ) );
+		self::assertSame( array_values( array_diff( Roles::capabilities()[ Roles::TRAINER ], Roles::BASE_CAPS ) ), RoleCaps::current( Roles::TRAINER ) );
 		foreach ( Roles::ALL as $role ) {
 			self::assertFalse( get_role( $role )->has_cap( 'unfiltered_html' ), 'RB-7 after reset' );
 		}

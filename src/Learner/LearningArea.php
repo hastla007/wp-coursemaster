@@ -12,6 +12,7 @@ namespace CourseCaptain\Learner;
 use CourseCaptain\Access\ContentProtection;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\ObjectIdentity;
+use CourseCaptain\Ops\Compatibility;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
@@ -27,7 +28,10 @@ defined( 'ABSPATH' ) || exit;
  */
 final class LearningArea {
 
-	public const QUERY_VAR = 'ccap_learn';
+	/**
+	 * Query var of the learning area (D-20-03: `course_captain_` for query vars, KOMP-130).
+	 */
+	public const QUERY_VAR = 'course_captain_app';
 
 	/**
 	 * Hooks.
@@ -45,8 +49,8 @@ final class LearningArea {
 		);
 		add_action( 'template_redirect', array( self::class, 'serve' ), 5 );
 		add_action( 'init', array( self::class, 'blocks' ) );
-		add_shortcode( 'ccap_learning_link', array( self::class, 'shortcode_link' ) );
-		add_shortcode( 'ccap_access', array( self::class, 'shortcode_access' ) );
+		Compatibility::add_shortcode( 'ccap_learning_link', array( self::class, 'shortcode_link' ) );
+		Compatibility::add_shortcode( 'ccap_access', array( self::class, 'shortcode_access' ) );
 	}
 
 	/**
@@ -75,6 +79,10 @@ final class LearningArea {
 	 * @return string
 	 */
 	public static function url( string $path = '' ): string {
+		if ( Compatibility::plain_permalinks() ) {
+			// KOMP-016 / D-20-08: query fallback without rewrite rules.
+			return add_query_arg( self::QUERY_VAR, rawurlencode( ltrim( $path, '/' ) ), home_url( '/' ) );
+		}
 		return home_url( '/' . self::slug() . '/' . ltrim( $path, '/' ) );
 	}
 
@@ -193,8 +201,8 @@ final class LearningArea {
 			return;
 		}
 		$dir = dirname( __DIR__, 2 ) . '/blocks';
-		register_block_type( $dir . '/course-catalog', array( 'render_callback' => array( self::class, 'render_catalog' ) ) );
-		register_block_type( $dir . '/learning-link', array( 'render_callback' => array( self::class, 'render_link' ) ) );
+		Compatibility::register_block( $dir . '/course-catalog', 'course-captain/course-catalog', array( 'render_callback' => array( self::class, 'render_catalog' ) ) );
+		Compatibility::register_block( $dir . '/learning-link', 'course-captain/learning-link', array( 'render_callback' => array( self::class, 'render_link' ) ) );
 	}
 
 	/**

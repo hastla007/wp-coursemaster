@@ -76,6 +76,10 @@ final class KernelContractTest extends TestCase {
 			// Hooks defined by Course Captain.
 			preg_match_all( '/\b(?:do_action|apply_filters|do_action_ref_array|apply_filters_ref_array)\(\s*[\'"]([^\'"]+)[\'"]/', $code, $hooks );
 			foreach ( $hooks[1] as $hook ) {
+				// R1-30: foreign/core hooks probed read-only or fired for page caches (R0-20 KOMP-032/052/058).
+				if ( in_array( $hook, array( 'litespeed_control_set_nocache', 'rest_authentication_errors', 'xmlrpc_enabled' ), true ) ) {
+					continue;
+				}
 				if ( ! str_starts_with( $hook, 'course_captain_' ) && ! str_starts_with( $hook, 'ccap_' ) ) {
 					$violations[] = $file . ': hook ' . $hook;
 				}

@@ -34,7 +34,7 @@ final class Plugin {
 	public const REWRITE_VERSION_OPTION = 'course_captain_rewrite_version';
 
 	/** Bump when own rewrite rules change. */
-	public const REWRITE_VERSION = '4';
+	public const REWRITE_VERSION = '5';
 
 	/**
 	 * Instance booted by WordPress.
@@ -192,6 +192,8 @@ final class Plugin {
 			return;
 		}
 
+		// KOMP-015: is_ssl() behind a trusted TLS-terminating proxy.
+		\CourseCaptain\Security\ClientIp::apply_forwarded_https();
 		add_action( 'init', array( $this, 'load_textdomain' ), 1 );
 		add_action( 'init', array( $this, 'maybe_flush_rewrite_rules' ), 999 );
 		add_action( 'admin_init', array( $this, 'on_admin_init' ) );
@@ -243,6 +245,7 @@ final class Plugin {
 		\CourseCaptain\Rest\RestContract::register();
 		\CourseCaptain\Seo\CourseSeo::register();
 		\CourseCaptain\Security\Hardening::register();
+		\CourseCaptain\Ops\Compatibility::register();
 		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );
 

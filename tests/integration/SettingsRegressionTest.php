@@ -482,6 +482,9 @@ final class SettingsRegressionTest extends SchemaTestCase {
 			self::assertFalse( get_option( 'course_captain_setup_state' ) );
 		} finally {
 			restore_current_blog();
+			// The activation ran DDL (implicit commit): remove the site and its tables explicitly.
+			wp_delete_site( $blog );
+			$GLOBALS['wpdb']->query( 'COMMIT' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		}
 		self::assertSame( 77, Settings::get( 'exams.cooldown_seconds' ) );
 		foreach ( array_keys( SettingsSchema::TABS ) as $tab ) {
