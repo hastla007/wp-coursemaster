@@ -76,6 +76,10 @@ final class Outbox {
 	 * @return string|null Event UUID, or null when no subscriber wants it.
 	 */
 	public static function record( Database $db, string $event_type, string $object_type, string $object_uid, int $object_version, array $payload, array $meta = array() ): ?string {
+		// Invalidation matrix (R0-21 §3.7): user-related events drop K2 of that user after commit.
+		if ( isset( $meta['user_id'] ) && (int) $meta['user_id'] > 0 ) {
+			\CourseCaptain\Cache\CacheStore::bump_user( (int) $meta['user_id'] );
+		}
 		$subscribers = self::subscribers_for( $event_type );
 		if ( array() === $subscribers ) {
 			return null;

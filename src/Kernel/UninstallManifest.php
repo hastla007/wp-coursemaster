@@ -152,6 +152,7 @@ final class UninstallManifest {
 		'_ccap_activity_settings',
 		'_ccap_activity_type',
 		'_ccap_activity_uid',
+		'_ccap_cache_gen',
 		'_ccap_completion_rule',
 		'_ccap_copied_from_uid',
 		'_ccap_current_revision_id',

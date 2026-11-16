@@ -80,6 +80,8 @@ final class CourseRelations {
 				$now
 			)
 		);
+		\CourseCaptain\Cache\CacheStore::bump_course( $bundle_id );
+		\CourseCaptain\Cache\CacheStore::bump_course( $course_id );
 		do_action( 'course_captain_policy_changed' );
 	}
 
@@ -97,6 +99,8 @@ final class CourseRelations {
 		CourseException::unless_allowed( $decision, 'Not allowed to edit this bundle.' );
 		$table = $this->db->table( 'ccap_course_relation' );
 		$this->db->execute( $this->db->prepare( "DELETE FROM `{$table}` WHERE course_id = %d AND related_course_id = %d AND relation_type = 'contains'", $bundle_id, $course_id ) );
+		\CourseCaptain\Cache\CacheStore::bump_course( $bundle_id );
+		\CourseCaptain\Cache\CacheStore::bump_course( $course_id );
 		do_action( 'course_captain_policy_changed' );
 	}
 

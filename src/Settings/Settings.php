@@ -431,7 +431,7 @@ final class Settings {
 			delete_option( Plugin::REWRITE_VERSION_OPTION );
 		}
 		if ( array() !== $changed ) {
-			update_option( 'course_captain_cache_generation', (int) get_option( 'course_captain_cache_generation', 0 ) + 1, true );
+			\CourseCaptain\Cache\CacheStore::bump_content();
 			do_action( 'course_captain_policy_changed' );
 		}
 	}

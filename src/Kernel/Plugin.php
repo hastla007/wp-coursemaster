@@ -207,6 +207,7 @@ final class Plugin {
 		\CourseCaptain\Publish\PublishGuard::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
+		\CourseCaptain\Cache\CacheInvalidation::register();
 		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );
 

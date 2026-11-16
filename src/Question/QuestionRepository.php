@@ -137,6 +137,12 @@ final class QuestionRepository {
 				$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET editorial_status = 'deprecated' WHERE question_id = %d AND editorial_status = 'published' AND id <> %d", $question_id, $revision ) );
 				$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET editorial_status = 'published', published_at = COALESCE(published_at, %s) WHERE id = %d", $now, $revision ) );
 				$this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_question' ) . "` SET status = 'published', current_revision_id = %d, updated_at = %s WHERE id = %d", $revision, $now, $question_id ) );
+				// Editorial status of older revisions changed: drop their K1 entries; courses using the question see a new content generation (§3.7).
+				foreach ( $this->db->rows( $this->db->prepare( "SELECT id FROM `{$table}` WHERE question_id = %d", $question_id ) ) as $old ) {
+					$id = (int) $old['id'];
+					$this->db->after_commit( static fn() => wp_cache_delete( \CourseCaptain\Cache\CacheStore::key( 'k1', 'shared', 'qrev:' . $id, array() ), \CourseCaptain\Cache\CacheStore::GROUP ) );
+				}
+				\CourseCaptain\Cache\CacheStore::bump_content();
 			}
 		);
 		return $revision;
@@ -203,6 +209,26 @@ final class QuestionRepository {
 	 * @return array<string, mixed>|null
 	 */
 	public function revision( int $revision_id ): ?array {
+		$key = \CourseCaptain\Cache\CacheStore::key( 'k1', 'shared', 'qrev:' . $revision_id, array() );
+		$hit = wp_cache_get( $key, \CourseCaptain\Cache\CacheStore::GROUP );
+		if ( is_array( $hit ) && array_key_exists( 'v', $hit ) ) {
+			return $hit['v'];
+		}
+		$value = $this->load_revision( $revision_id );
+		// K1 only once immutable: drafts are still edited in place.
+		if ( null !== $value && 'draft' !== $value['editorial_status'] ) {
+			wp_cache_set( $key, array( 'v' => $value ), \CourseCaptain\Cache\CacheStore::GROUP, \CourseCaptain\Cache\CacheStore::TTL_K1 );
+		}
+		return $value;
+	}
+
+	/**
+	 * Revision data from the database.
+	 *
+	 * @param int $revision_id Revision.
+	 * @return array<string, mixed>|null
+	 */
+	private function load_revision( int $revision_id ): ?array {
 		$row = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_question_revision' ) . '` WHERE id = %d', $revision_id ) );
 		if ( null === $row ) {
 			return null;

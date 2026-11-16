@@ -338,7 +338,7 @@
   - **Ergebnis/Definition of Done:** Installationsguide, Admin-/Autoren-/Lernendenhilfe, Troubleshooting, Privacy-Hinweise, API- und Release-Doku fertig.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-25 · Cache- und Zustandskonsistenz implementieren**
+- [x] **R1-25 · Cache- und Zustandskonsistenz implementieren** — erledigt 16.11.2026: Nachweis `docs/r1/R1-25-nachweis.md`; generationsversionierter Objektcache K1/K1g/K2 mit Leseprotokoll, Invalidierung nach Commit (Grant/Refund über Outbox, Kursrevision mit Purge, Fragenrevision, Rollen, Eraser), H-X-Header auf allen Statuscodes; Integration 176, Multisite 185. Mehrprozess-/Proxy-Proben mit R1-42/R1-30. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02,R1-13.
   - **Ergebnis/Definition of Done:** Grant-/Refund-/Kursrevisionen invalidieren Cache sicher; private Antworten nie öffentlich zwischengespeichert; Paralleltests grün.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

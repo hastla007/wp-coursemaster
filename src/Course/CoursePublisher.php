@@ -149,6 +149,7 @@ final class CoursePublisher {
 			self::$busy = false;
 		}
 		$this->mark_current( $course_id, 'archived' );
+		\CourseCaptain\Cache\CacheStore::bump_course( $course_id, true );
 		do_action( 'course_captain_policy_changed' );
 	}
 
@@ -194,6 +195,7 @@ final class CoursePublisher {
 			}
 		);
 		update_post_meta( $course_id, self::CURRENT_REVISION, $revision );
+		\CourseCaptain\Cache\CacheStore::bump_course( $course_id, true );
 		do_action( 'course_captain_policy_changed' );
 		return $revision;
 	}

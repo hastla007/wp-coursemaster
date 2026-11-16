@@ -27,11 +27,18 @@ defined( 'ABSPATH' ) || exit;
 final class Database {
 
 	/**
-	 * Nesting depth of `transaction()`.
+	 * Nesting depth of `transaction()` per connection (wrappers are per call).
 	 *
-	 * @var int
+	 * @var array<int, int>
 	 */
-	private int $depth = 0;
+	private static array $depths = array();
+
+	/**
+	 * Callbacks for the next commit per connection (R0-21 T-5); dropped on rollback.
+	 *
+	 * @var array<int, list<callable>>
+	 */
+	private static array $queues = array();
 
 	/**
 	 * Constructor.
@@ -114,28 +121,51 @@ final class Database {
 	 * @throws Throwable Rethrown from the unit of work after rollback.
 	 */
 	public function transaction( Closure $work ) {
-		if ( $this->depth > 0 ) {
-			++$this->depth;
+		$conn = spl_object_id( $this->wpdb );
+		if ( ( self::$depths[ $conn ] ?? 0 ) > 0 ) {
+			++self::$depths[ $conn ];
 			try {
 				return $work( $this );
 			} finally {
-				--$this->depth;
+				--self::$depths[ $conn ];
 			}
 		}
 
 		$this->execute( 'START TRANSACTION' );
-		$this->depth = 1;
+		self::$depths[ $conn ] = 1;
+		self::$queues[ $conn ] = array();
 		try {
 			$result = $work( $this );
 			$this->execute( 'COMMIT' );
-			return $result;
 		} catch ( Throwable $e ) {
 			// Explicit rollback, also after lock wait timeouts (R0-21 T-3).
 			$this->wpdb->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			self::$queues[ $conn ] = array();
 			throw $e;
 		} finally {
-			$this->depth = 0;
+			self::$depths[ $conn ] = 0;
 		}
+		$callbacks             = self::$queues[ $conn ];
+		self::$queues[ $conn ] = array();
+		foreach ( $callbacks as $callback ) {
+			$callback();
+		}
+		return $result;
+	}
+
+	/**
+	 * Run after the outer commit, or now outside a transaction (T-5).
+	 *
+	 * @param callable $callback Callback without arguments.
+	 * @return void
+	 */
+	public function after_commit( callable $callback ): void {
+		$conn = spl_object_id( $this->wpdb );
+		if ( ( self::$depths[ $conn ] ?? 0 ) > 0 ) {
+			self::$queues[ $conn ][] = $callback;
+			return;
+		}
+		$callback();
 	}
 
 	/**
@@ -144,7 +174,7 @@ final class Database {
 	 * @return bool
 	 */
 	public function in_transaction(): bool {
-		return $this->depth > 0;
+		return ( self::$depths[ spl_object_id( $this->wpdb ) ] ?? 0 ) > 0;
 	}
 
 	/**

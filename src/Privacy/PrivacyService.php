@@ -263,6 +263,7 @@ final class PrivacyService {
 				null,
 				array( 'rows' => $count )
 			);
+			\CourseCaptain\Cache\CacheStore::bump_user( $user_id );
 			do_action( 'course_captain_policy_changed' );
 		}
 		return $count;
