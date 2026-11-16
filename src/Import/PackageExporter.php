@@ -30,6 +30,11 @@ defined( 'ABSPATH' ) || exit;
 final class PackageExporter {
 
 	/**
+	 * Maximum records per data file (R0-10 §1.1); larger entities are split.
+	 */
+	public const RECORDS_PER_FILE = 5000;
+
+	/**
 	 * Build the package records (no file I/O).
 	 *
 	 * @param Actor $actor   Author.
@@ -157,16 +162,17 @@ final class PackageExporter {
 	 * @param string                                    $system  `source.system`.
 	 * @param string                                    $title   Title.
 	 * @param string|null                               $file    Target path (default: packages folder).
+	 * @param int                                       $per_file Records per data file (R0-10 §1.1: ≤ 5 000).
 	 * @return string Path.
 	 * @throws CourseException When the archive cannot be written.
 	 */
-	public static function write( array $records, string $system, string $title, ?string $file = null ): string {
+	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE ): string {
 		$files  = array();
 		$counts = array();
 		foreach ( $records as $entity => $list ) {
 			$counts[ $entity ] = count( $list );
-			if ( array() !== $list ) {
-				$files[ 'data/' . $entity . '/000001.json' ] = (string) wp_json_encode( $list, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+			foreach ( array_chunk( $list, max( 1, min( self::RECORDS_PER_FILE, $per_file ) ) ) as $i => $part ) {
+				$files[ sprintf( 'data/%s/%06d.json', $entity, $i + 1 ) ] = (string) wp_json_encode( $part, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			}
 		}
 		$content  = PackageValidator::content_sha256( $files );

@@ -418,7 +418,7 @@
   - **Ergebnis/Definition of Done:** Parallele Admin/Cron/CLI-Upgradeversuche, Crash, Retry, Backfill und Restore ohne doppelte Schemaaktionen oder Datenverlust getestet.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-41 · Großimport-Batchverarbeitung mit Fehlerreport**
+- [x] **R1-41 · Großimport-Batchverarbeitung mit Fehlerreport** — erledigt 16.11.2026: Nachweis `docs/r1/R1-41-nachweis.md`; `ImportRunner` (NDJSON-Spool, Chunks je Transaktion mit Savepoint je Objekt, Lease mit Fencing, Zeit-/Speicherbudget, adaptive Chunkgröße, Retry bei Deadlock/`ccap_db_busy`, Fehlerschwelle, Abbruch/Resume, Auto-Wiederaufnahme mit Watchdog, Rechteprüfung je Schritt), `ImportReport` (stabile Codes, JSON-Keyset/CSV mit Injection-Schutz), REST-Fortschritt/Schritt/Abbruch/Resume/Report, WP-CLI `import`; Tests bis 5 000 Fragen (Dry-run) bzw. 1 500 (Commit); Integration 340, Multisite 352. Offen: Zeitscheiben für Plan/Dry-run, Messungen M-01…M-16, Medien-/Blueprint-Import, Admin-Oberfläche. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-15,R0-38.
   - **Ergebnis/Definition of Done:** Dry-run vor Commit, Fortschritt/Resume, pro Objekt validierte Fehler, idempotenter Reimport, Rollback und Rechteprüfung E2E.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.

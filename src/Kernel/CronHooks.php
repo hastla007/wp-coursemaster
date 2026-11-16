@@ -97,6 +97,8 @@ final class CronHooks {
 				'exam_expiry'       => static fn() => \CourseCaptain\Exam\ExamSessions::current()->expire_due(),
 				'retention'         => static fn() => \CourseCaptain\Privacy\RetentionService::run(),
 				'notifications'     => static fn() => \CourseCaptain\Notification\NotificationService::current()->hourly(),
+				// Stale imports: automatic resume up to three times, then aborted (R1-41, E-181).
+				'import_watchdog'   => static fn() => \CourseCaptain\Import\ImportRunner::current()->watchdog(),
 			)
 		);
 	}
