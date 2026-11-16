@@ -529,3 +529,10 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-18, E-23, E-69,
 - LearnBoating @ `9f37c77` (nur lesend): CR:186-216 (`examRule()`-Rückfall auf nicht archivierte Regeln inkl. Entwurf, Standard `0.75` in :207), CR:171 (Medienfilter `BLOCKING_RIGHTS`), `src/Content/Repositories/Overrides.php:34`; ES:237-252 (Pool je Blueprint mit Doppelausschluss, `reduced` statt Fehler), ES:261-269; PK:387-430 (`referenceErrors`, Abbruch bei 50 Meldungen :395); SV:23-27 (unterstützte Schlüsselwörter, **kein** `uniqueItems` → doppelte Optionen/Schlüssel unerkannt); IS:244-264 (`validate`); `schema/v1/questions.schema.json:55-89` (Antwortregeln je Typ), `schema/v1/exam_rules.schema.json:9-22, :43-51` (`time_limit_seconds ≥ 1`, `question_count ≥ 1`, `min_correct_ratio` Pflicht), `schema/v1/media.schema.json:14` (`alt_text` nullable, keine a11y-Pflicht).
 - LB hat **keinen** Kurseditor und keinen Publish-Validator; Validierung findet nur beim Import (Schema + Referenzen) und zur Laufzeit (stilles `reduced`, Rechte-Filter, 0.75-Rückfall) statt. Alle Regeln dieses Dokuments ohne LB-Beleg sind neu.
 - Keine Änderung an LearnBoating, keine Implementierung, kein Commit.
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung |
+|---|---|---|
+| 16.11.2026 | R0-25 | VAL-002 verlangt ein gültiges BCP-47-Sprachtag für die Inhaltssprache, keine WP-Locale; gemischte Sprachen erzeugen eine Warnung (E-157) |
+| 16.11.2026 | E-131 | Fehlender Alt-Text = Blocker (abweichend vom ursprünglichen D22-4), fehlende Untertitel = Warnung |

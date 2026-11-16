@@ -303,3 +303,16 @@ Hauptrestrisiko ist die **Prüfungsintegrität**: Fragen und Antworten können �
 | E-152 | Rate-Limit-Defaults | **Tabelle R0-17 §3.4 als Defaults**; fail-closed zusätzlich für Einladungsversand, Datenschutzanträge und Import/Export | R0-17 D7 | R1-03, R1-42 |
 | E-153 | DSFA- und VVT-Baustein für Betreiber | **Doku-Vorlage plus generierte Verarbeitungsübersicht im Systemstatus**; keine fertige DSFA, keine Rechtsbewertung | R0-17 D8 | R1-24, R1-38 |
 | E-154 | Lerndaten inaktiver Konten | **Optionaler Job** „Lerndaten nach x Jahren ohne Anmeldung und ohne aktiven Grant löschen“, Default aus, mit Vorschau | R0-17 D9 | R1-17 |
+
+## 24. Multisite und Sprachen (aus R0-25)
+
+Technisch festgelegt: Grenze zu WPML/Polylang/TranslatePress nur dokumentieren, mit Systemstatus-Hinweis (D-25-06). Fallback auf eine andere Variante derselben Sprache, z. B. `de_AT` → `de_DE` (D-25-07). Eine erzwungene Netzwerkaktivierung führt in den Haltemodus (D-25-08). Im Lernbereich gilt für Angemeldete die Profilsprache, für Gäste die Site-Sprache (D-25-10).
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-155** | Wie werden Sprachversionen eines Kurses abgebildet? | **Eigener Kurs je Sprache**, verknüpft über eine Übersetzungsgruppe; Fortschritt, Grants und Zertifikate gelten je Kurs | R0-25 D-25-01 | R1-19 |
+| E-156 | Gilt ein Grant für alle Sprachversionen eines Kurses? | **Nein, kein Übertrag in R1**; Sammelvergabe durch den Kursmanager möglich | R0-25 D-25-02 | R1-19 |
+| E-157 | Gemischte Sprachen innerhalb eines Kurses (z. B. englische Fragen in einem deutschen Kurs) | **Erlaubt** mit `lang`-Kennzeichnung und Validator-Warnung | R0-25 D-25-03 | R1-19 |
+| E-158 | Sprache des Zertifikats | **Kurssprache**, im Snapshot eingefroren | R0-25 D-25-04 | R1-19 |
+| E-159 | Sprachvarianten für Mailvorlagen | **Ja, schon in Free** | R0-25 D-25-05 | R1-19 |
+| E-160 | Mandanten innerhalb einer Site (z. B. mehrere Akademien in einer Installation) | **Nein in R1**, kein `tenant_id` | R0-25 D-25-09 | R1-19 |

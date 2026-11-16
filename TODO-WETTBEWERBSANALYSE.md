@@ -134,7 +134,7 @@
   - **Ergebnis/Definition of Done:** Jeder FLOW/CORE/PAR/LB-Fall einer Task, einem Test und Gate zugeordnet; Template für Inputs, Dateien, Negativfälle, Abnahme, Reviewer und offene Fragen verbindlich.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-25 · Mandanten-/Mehrsprachigkeits-/Locale-Grenzen klären**
+- [ ] **R0-25 · Mandanten-/Mehrsprachigkeits-/Locale-Grenzen klären** — **ADR-Entwurf fertig 16.11.2026:** `docs/r0/R0-25-mandanten-locale-adr.md` (Single-Site, Multisite-Regeln MS-R-01…15, Nichtumfang NS-01…07, Sprachmodell mit drei Ebenen, Antworten auf Ü-1…7, Fallback-Ketten, LOC-001…029, MS-001…023); Entscheidung offen → E-155…E-160
   - **Voraussetzung:** R0-07,R0-15.
   - **Ergebnis/Definition of Done:** Single-Site-Scope, Multisite-Nichtumfang, Locale-Fallback, Sprachversionen und gemischte Kurs-/Fragensprachen als ADR dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
