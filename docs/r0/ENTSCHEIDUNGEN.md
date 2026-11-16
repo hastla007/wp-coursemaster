@@ -47,6 +47,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-33 | **Deutsche Shop-Rechtspflichten und PayPal/Klarna-Webhooks werden wie in LB übernommen** (Widerrufsbutton, Bestellknopf, Preisangaben, Rechtstexte in Mails, OSS-Schwelle, Zahlungs-Dispute). Wegen E-01 Clean Room als Neuimplementierung nach Verhalten; Ort: WooCommerce-Adapter R3.1 (Pro, E-53). Folge: R0-04 BS-Z und R3-02/R3-03 erweitern; juristische Prüfung durch den Betreiber | **ja** |
 | E-34 | **Woo-Produkte werden automatisch aus Kursen/Modulen angelegt und gepflegt** (R3.1). Folge: Produkt-Sync mit Konfliktregeln (manuelle Änderungen am Produkt, Löschung, Preis) in R3-02 spezifizieren | **ja** |
 | E-35 | Gutschein-Storno entzieht nur den Voucher-Grant; Lernhistorie bleibt | nein |
+| E-36 | Ein Gutscheincode pro Gruppenplatz | nein |
+| E-37 | Course meldet in v1 keine Verkäufe an Affiliate Captain | nein |
+| E-38 | **Öffentliche Course-Events, Read-API und Connector-Registry sind Pro.** Free behält nur die interne Outbox für eigene Zwecke (Mails, Audit). Folge: R1-43 (E-182) wird auf „interne Outbox“ reduziert; Registry, öffentliche Events und Pull-API wandern in R3/Pro; E-119/E-120 gelten für Pro; R0-19 §5 und R0-11 anpassen | **ja** |
+| E-39 | **Schreibende Workflow-Aktionen (Zugang anlegen/entziehen) schon in v1**, über die Grant-Quelle `workflow` mit Idempotenz und Audit. Achtung: Das Workflow-Captain-Konzept schließt das für das LMS-Muster aus (R0-32) – Abstimmung mit Workflow Captain nötig; wegen E-38 Teil von Pro/R3 | **ja** |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
@@ -539,3 +543,18 @@ Technische Korrekturen aus R0-27 (T27-1…8) sind übernommen, u. a. Optionsname
 | E-257 | Alarm-Mail an Admins, wenn eine Integration `failed` ist (R3) | **Ja**, gebündelt höchstens einmal je 24 h | R0-34 D34-5 | R1-38, R3-10, R3-16 |
 | E-258 | Offene (noch nicht zugestellte) Zustellungen und Aufbewahrungsfristen | **Offene Zustellungen höchstens 30 Tage**, danach Dead-Letter mit Grund `retention` | R0-34 D34-6 | R1-38, R3-10, R3-16 |
 | E-259 | Übernahme einer Course-Aktion durch einen Partner (z. B. Workflow übernimmt einen Mailtyp) | **Erst in R3**, nur mit sichtbarem Hinweis im Admin und Abschaltmöglichkeit | R0-34 D34-8 | R1-38, R3-10, R3-16 |
+
+## 39. Admin-Menü und Setup (aus R0-30)
+
+D30-1 (Task R1-45 für die Härtung) ist identisch mit E-239.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-260 | Härtung: Standard ohne Bestätigung des Admins (Widerspruch zu E-240 `auto`) | **Alles aus, bis der Admin im Assistenten oder Tab speichert**; der Assistent schlägt „an“ vor (außer bei erkanntem Security-Plugin), danach gilt `auto` (E-240) | R0-30 D30-2 | R1-32, R1-45 |
+| E-261 | Umfang der Härtung in R1 | **Login-Limit, Reset-Limit, bekanntes Gerät, XML-RPC, 4 Security-Header**; übrige LB-Funktionen (Enumeration, Anwendungspasswörter) in den R4-Pool (ergänzt E-241) | R0-30 D30-3 | R1-32, R1-45 |
+| E-262 | Ort der Härtungs-Einstellungen | **Eigener 11. Tab „Website-Härtung“** | R0-30 D30-4 | R1-32, R1-45 |
+| E-263 | Aussperren bei fail-closed, wenn der Zählerspeicher ausfällt | **Login auf bekannten Geräten bleibt möglich** + Notausschalter per Konstante und WP-CLI (ergänzt E-242) | R0-30 D30-5 | R1-32, R1-45 |
+| E-264 | Fehlende Menüplätze (Kurs-FAQ, Tipps, Medien, Protokoll, Rechte) | **Bereichsnavigation innerhalb bestehender Menüpunkte**; Protokoll unter Systemstatus | R0-30 D30-6 | R1-32, R1-45 |
+| E-265 | Menüpunkt „Gruppen“ bei ausgeschalteten Gruppen | **Ausblenden**, solange aus und keine Gruppe existiert | R0-30 D30-7 | R1-32, R1-45 |
+| E-266 | Setup abschließen trotz offener Blocker (z. B. Dateischutz) | **Erlaubt** mit Status „abgeschlossen mit Hinweisen“; Blocker bleiben sichtbar, geschützte Medien werden weiter nicht ausgeliefert | R0-30 D30-8 | R1-32, R1-45 |
+| E-267 | Einschreibemodus „öffentlich“ (ganze Kurse ohne Konto/Grant, Kap. 16.1) | **Entfällt in R1**: nur „manuell“ und „Selbstanmeldung“; Gäste sehen nur den Schnupperbereich (E-15) | R0-30 D30-9 | R1-32, R1-45 |

@@ -159,7 +159,7 @@
   - **Ergebnis/Definition of Done:** Free Seat/Claim und Basisnachweis vertraglich abgrenzen; Pro Gruppen-UX/Designer und Lizenzablauf getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-30 · Admin-Menü, Setup und Einstellungs-UX abnehmen**
+- [ ] **R0-30 · Admin-Menü, Setup und Einstellungs-UX abnehmen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-30-admin-setup-ux.md` (Menübaum mit 12 Punkten und Bereichsnavigation, Setup-Assistent in 8 Schritten, Wireframes für alle Schritte und 11 Tabs, Fehlertexte F-01…92, 18 Bestätigungsdialoge, ADM-001…127); Entscheidung offen → E-260…E-267
   - **Voraussetzung:** R0-15,R0-22,R0-26,R0-27.
   - **Ergebnis/Definition of Done:** Menübaum, Tab-Screens, Hilfetexte, Validierungsfehler, Risk-Confirmations und Tastaturabläufe als prüfbare Wireframes.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
