@@ -15,31 +15,33 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **E-20**, E-95, E-147, E-268, E-269 | Die Erklärungs-Schalter sind **Pro-Felder** (`pro.learning.feedback.show_explanations`, `pro.exams.feedback.show_explanations`); die Free-Objekte `learning.feedback`/`exams.feedback` regeln nur Sichtbarkeit, richtig/falsch und richtige Antwort |
 | **E-38**, E-119, E-120, E-182 | Free hat nur die **interne Outbox**; Event-Speicherung ohne Abonnent (30 Tage) und Event-Klassen je Connector gibt es nur mit Pro |
 | **E-45/E-45a**, E-246 | `privacy.external_media_mode` = enum{`always_load`, `click_to_load`, `link_only`}, **Default `always_load`**; neues Feld `privacy.consent_category` (Default `marketing`), wirksam nur bei `click_to_load` |
-| **E-168** | Text-/Dateiaufgaben in R1; Settings für Upload-Typen und -Größe sind noch nicht festgelegt (Offene Punkte) |
+| **E-168**, **E-289** | Text-/Dateiaufgaben in R1; Register-Zeilen `assignments.allowed_file_types` (Default pdf, docx, odt, txt, jpg, png), `assignments.max_file_mb` (20), `assignments.max_files` (5), je Aufgabe nur strenger; Aufbewahrung wie `raw_answers_years_after_course_end` (§1.3, SET-134) |
+| **E-290** | Mailtypen N-14 `assignment_submitted` (an zuständige Trainer), N-15 `assignment_returned`, N-16 `assignment_graded` (an Lernende), alle `informational` (§3.2, NTF-035…037) |
+| **E-285** | Fehlercodes `ccap_*` (z. B. `ccap_setting_invalid`); Optionen/Transients `course_captain_*` |
 | **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta, Tabellen; Optionen `course_captain_*` (SR-1, im Text umgestellt) |
 | **E-24, E-43, E-44, E-51, E-53, E-81…E-90, E-97, E-100, E-116, E-124, E-136, E-143, E-150…E-152, E-159, E-187, E-197, E-201** | wie angenommen |
 
-**Kernzahlen** (per Skript, §8; Stand vor Einarbeitung der Beschlüsse. Nach Einarbeitung zusätzlich 11 Register-Zeilen: 8 im Tab Website-Härtung (7 × `hardening.*`, 1 Konstante), `pro.learning.feedback.show_explanations`, `pro.exams.feedback.show_explanations`, `privacy.consent_category`; Invarianten 13 statt 14; Testfälle SET-129…SET-133)
+**Kernzahlen** (per Skript, §8; erneut ausgeführt am 16.11.2026 nach Einarbeitung aller Beschlüsse einschließlich E-285…E-312)
 
 | Größe | Wert |
 |---|---:|
 | Felder in Konzept Kap. 43.3 (Tabellenzeilen) | 57 |
 | … davon mit Zuordnung in §1.2 (Name identisch, Reihenfolge identisch) | 57 |
-| … mit editierbarem Feld (Art enthält „Feld“ oder „Pro“, auch Mischformen mit WP/Inv/Objekt) | 42 |
+| … mit editierbarem Feld (Art enthält „Feld“ oder „Pro“, auch Mischformen mit WP/Inv/Objekt) | 43 |
 | … nur WordPress-Erbe | 1 |
-| … nur feste Sicherheits-/Fachinvariante ohne Schalter | 6 |
+| … nur feste Sicherheits-/Fachinvariante ohne Schalter | 5 |
 | … Aktion bzw. Objektregel statt gespeichertem Wert | 5 |
 | … eigene Seite (Integrationen, Pro-Lizenz) | 3 |
-| Register-Zeilen §1.3 | 72 |
-| … mit Quelle Kap. 43 (K43-xx) | 51 |
-| … nur aus R0-Dokumenten, Entscheidungen oder LB-Inventur | 21 |
-| Retention-Unterschlüssel §1.4 | 17 (nach E-243: 21) |
-| Invarianten INV-S-01…14 (§1.5) | 14 |
+| Register-Zeilen §1.3 | 86 |
+| … mit Quelle Kap. 43 (K43-xx) | 52 |
+| … nur aus R0-Dokumenten, Entscheidungen oder LB-Inventur | 34 |
+| Retention-Unterschlüssel §1.4 | 21 |
+| Invarianten INV-S-01…14 (§1.5; INV-S-07 entfällt nach E-10) | 13 |
 | LB-Schlüssel `bp_learning_settings` (11) mit Verbleib §1.6 | 11 / 11 |
 | weitere LB-Optionen (20) mit Verbleib §2.7 | 20 / 20 |
-| Mailtypen R1 (§3.2) | 13 |
-| Testfälle SET / NTF (§4) | 85 / 34 |
-| … Ziel-Task R1-31 / R1-36 / R1-21 | 59 / 26 / 34 |
+| Mailtypen R1 (§3.2) | 16 |
+| Testfälle SET / NTF (§4) | 91 / 37 |
+| … Ziel-Task R1-31 / R1-36 / R1-32 / R1-21 | 63 / 27 / 1 / 37 |
 | Entscheidungen E-215…E-224 (beschlossen) | 10 |
 
 **Lesehilfe.** „K43-nn“ = nn-te Zeile der Tabelle in Konzept Kap. 43.3 (Zählung per Skript). „#n“ = primitive Capability Nr. n aus R0-07 §3.1 (z. B. #19 = `ccap_manage_settings`, #24 = `ccap_assign_staff`), „M-nn“ = Meta-Capability aus R0-07 §3.2. Edition/Phase: **F/R1** = Free, Release 1; **P/R3** = Course Captain Pro, R3; **C/R3** = Pro-Connector R3 (E-53). Typ-Kurzschrift: `int 1–100`, `int? …` = darf `null` sein (Bedeutung von `null` steht im Default), `enum{…}`, `set⊆{…}`, `map<…>`, `slug`, `page_id`. Risiko: **–** keine Bestätigung, **R** Bestätigungsdialog mit konkreter Folge (Anzahl Betroffener, wo ermittelbar), **R+** zusätzlich Eingabe des Site-Namens und Backup-Hinweis. Ebene der Tests: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW** Playwright, **MS** Multisite-Integration.
@@ -166,6 +168,9 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `learning.mastery_algorithm` | Lernen | K43-13, R0-08 §5.2 | enum{smarttrainer.v1} | global, Kurs | `smarttrainer.v1` | #19; Kurs: M-03 | nur registrierte Algorithmusversionen; Wechsel wirkt nur auf neue Antworten; Hilfetext ohne Lernwirksamkeitsversprechen | F/R1 | – | ja | R | SET-051 |
 | `learning.favorites_enabled` | Lernen | K43-14 | bool | global, Kurs | true | #19; Kurs: M-03 | Favoriten sind privat (nie in Berichten oder Traineransicht), im Export, vom Eraser gelöscht | F/R1 | – | ja | – | SET-052 |
 | `learning.mistake_training_enabled` | Lernen | K43-14 | bool | global, Kurs | true | #19; Kurs: M-03 | wie oben | F/R1 | – | ja | – | SET-052 |
+| `assignments.allowed_file_types` | Lernen | E-168, E-289, R0-10 §4.5 | set<enum{pdf, docx, odt, txt, jpg, png}> | global, Aufgabe | {pdf, docx, odt, txt, jpg, png} | #19; Aufgabe: M-03 | nur Werte der Abgabe-Allowlist R0-10 §4.5 (svg/html/js/php nie); Aufgabe nur Teilmenge (R0-08 §2.5 `file_rules`, eingefroren mit der Kursrevision) | F/R1 | – | ja | R | SET-134 |
+| `assignments.max_file_mb` | Lernen | E-289 | int 1–100 | global, Aufgabe | 20 | #19; Aufgabe: M-03 | wirksam ist der kleinste Wert aus PHP-/WP-Limit, globalem und Aufgabenwert; Aufgabe nur kleiner | F/R1 | – | ja | – | SET-134 |
+| `assignments.max_files` | Lernen | E-289 | int 1–20 | global, Aufgabe | 5 | #19; Aufgabe: M-03 | je Abgabe (`submission_no`); Aufgabe nur kleiner | F/R1 | – | ja | – | SET-134 |
 | `learning.feedback` | Lernen | K43-21, E-20, E-147, R0-08 §4.5 | object{visibility enum{always, after_submit, never}, show_correct_answers bool} | global, Kurs, Quiz | always, true | #19; Kurs: M-03; Quiz: M-06 | `show_*` nur wirksam bei `visibility ≠ never`; gilt für Lernmodus und unbewertete Quizze; Free zeigt richtig/falsch und ggf. die richtige Antwort, nie Erklärungstexte (E-20) | F/R1 | (LB-Feld `learning_explanations` → `pro.learning.feedback.show_explanations`) | ja | – | SET-064 |
 | `pro.learning.feedback.show_explanations` | Lernen (Pro) | E-20, E-95 (`course.explanations`), E-268, E-269 | bool | global, Kurs, Quiz | true | #19 + Pro aktiv; Kurs: M-03; Quiz: M-06 | nur wirksam, wenn `learning.feedback.visibility ≠ never`; ohne Pro unsichtbar (E-100); nach Lizenzende eingefroren weiter wirksam, neue Erklärungen nicht anlegbar (E-268, E-270); Texte bleiben in Free gespeichert (E-269) | P/R3 | `bp_learning_settings.learning_explanations` | ja | – | SET-132 |
 | `exams.max_attempts` | Prüfungen | K43-17, R0-08 §4.4 | int? 1–100 | global, Prüfung | `null` = unbegrenzt | #19; Prüfung: M-06 | eingefroren beim Versuchsstart; keine Rückwirkung; Zählung alter Versuche nach E-107 | F/R1 | – | ja | – | SET-060 |
@@ -189,7 +194,7 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `enrollment.source_disabled_policy` | Einschreibung | R0-12 ACCESS-09, E-93 | enum{keep, keep_and_flag} | global | `keep` | #19 | nie automatischer Massenwiderruf; `keep_and_flag` legt eine Prüfliste im Systemstatus an | F/R1 (Wirkung ab R3) | – | ja | – | SET-075 |
 | `pro.groups.advanced_enabled` | Einschreibung | K43-28 | bool | global, Gruppe | false | #19 + Pro aktiv | ohne Pro unsichtbar (E-100); Basis-Seat-Rechte unabhängig (INV-S-12) | P/R3 (R3-15) | – | ja | – | SET-076 |
 | `WP:default_role` | Rollen & Rechte | K43-30, E-83 | WP-Erbe | WP | `subscriber` | WP `manage_options` | CC legt keine Lernrolle an; Health-Warnung, wenn `default_role` `edit_posts`, `promote_users` oder `ccap_*` hat; nie `administrator` | F/R1 | – | nein | – | SET-080 |
-| `roles.cap_assignments` | Rollen & Rechte | K43-31, K43-33, E-83, R0-07 §3.5 | map<role, set<ccap_cap>> (Wirkung in den WP-Rollen; Manifest `course_captain_role_grants`) | global | Aktivierungs-Defaults R0-07 §3.1 (nur `administrator` und vier `cc_`-Rollen; `ccap_support` ohne #14) | #24 + `promote_users`; #19…#23 nur durch `administrator` | `administrator` nicht änderbar und nicht wählbar; keine Cap über dem eigenen Satz; #14 und #19…#24 an andere Rollen sind Hochrisiko | F/R1 | – | ja | R | SET-081 |
+| `roles.cap_assignments` | Rollen & Rechte | K43-31, K43-33, E-83, R0-07 §3.5 | map<role, set<ccap_cap>> (Wirkung in den WP-Rollen; Manifest `course_captain_role_grants`) | global | Aktivierungs-Defaults R0-07 §3.1 (nur `administrator` und vier `ccap_`-Rollen; `ccap_support` ohne #14) | #24 + `promote_users`; #19…#23 nur durch `administrator` | `administrator` nicht änderbar und nicht wählbar; keine Cap über dem eigenen Satz; #14 und #19…#24 an andere Rollen sind Hochrisiko | F/R1 | – | ja | R | SET-081 |
 | `certificates.auto_issue` | Zertifikate | K43-34 | bool | global, Kurs | false | #19; Kurs: M-03 + #17 | Kurs-Override nur mit definierter Abschlussregel (Validator); keine Rückwirkung | F/R1 | – | ja | – | SET-090 |
 | `certificates.holder_name_policy` | Zertifikate | K43-35, E-97 | enum{never, learner_opt_in} | global | `learner_opt_in` (je Nachweis standardmäßig aus) | #19 | Verifikationsseite zeigt nie E-Mail oder andere PII | F/R1 | – | ja | – | SET-091 |
 | `certificates.base_template` | Zertifikate | K43-36, E-96, E-110, R0-25 Ü-5 | object{issuer_name ≤ 120, footer_text ≤ 500 (Sprachvarianten), logo_id int, signature_label ≤ 120} | global, Kurs | Aussteller = Site-Titel, Rest leer | #19; Kurs: M-03 + #17 | Text bereinigt; Logo = Bildanhang ≤ 2 MB; Änderung erzeugt neue `template_version`, ausgestellte Nachweise bleiben unverändert | F/R1 (Designer P/R3) | – | ja | – | SET-092 |
@@ -445,6 +450,9 @@ Neu im Systemzustand: `course_captain_installation_uuid`, `course_captain_site_i
 | N-11 | `grading_completed` | Auswertung nach manueller Bewertung (`evaluation_no` neu, R1-09) | Lernender | informational | an | `session_uid` + `evaluation_no` | Ergebnis freigegeben (`feedback.visibility ≠ never` für den Link-Text) | PRIV-021 |
 | N-12 | `access_expired` | `access.changed` (Zugang → kein Zugang), Ursache Ablauf | Lernender | informational | **aus** (E-217) | `course_uid` + `object_version` | weiterhin kein Zugang; ohne Kauf- oder Verlängerungslink | NTF-002, E-24 |
 | N-13 | `test_mail` | Admin-Aktion „Testmail“ | eigene Profiladresse des Admins (keine freie Adresse, kein Relay) | required | – | – (Rate-Limit §3.8) | Ausgangsmodus | INV-D-045 |
+| N-14 | `assignment_submitted` | `assignment.submitted` (R0-08 §2.5) | zuständige Trainer des Kurses (`ccap_course_staff`, Rolle `trainer`) | informational | an | `submission_uid` + `submission_no` | Abgabe weiter `submitted`; Empfänger hat Bewertungsrecht (E-288) | E-290 |
+| N-15 | `assignment_returned` | `assignment.returned` | Lernender | informational | an | `submission_uid` + `returned` | Status `returned`; Kommentar nicht in der Mail, nur Link | E-290 |
+| N-16 | `assignment_graded` | `assignment.graded` (auch Neubewertung, `evaluation_no`) | Lernender | informational | an | `submission_uid` + `evaluation_no` | Status `graded`; Punkte nicht in der Mail, nur Link | E-290 |
 
 **Keine Mail in R1:** Widerruf, Aussetzung, Lernsperre, Fortschritts-Reset, Reconcile, Verlängerung (E-136, R0-13 K-02). **Nicht von CC:** Datenschutzanträge, Passwort-Reset, Kontoanlage (WordPress-Kern); Kaufbestätigungen (WooCommerce). **Pro (R3):** Ablauf-Erinnerungen, Drip-Freigaben, Fristen, Kohortenkommunikation (Kap. 19, E-24). **Admin-Benachrichtigungen** laufen in R1 über Admin-Hinweise und Site Health, nicht per Mail.
 
@@ -608,14 +616,14 @@ Verboten: Punktzahl, Antworten, Freitext aus Antworten, fremde Adressen, IP, int
 | SET-072 | P | Gruppen abschalten bei zwei aktiven Gruppen | Dialog nennt 2; keine neuen Gruppen; bestehende Plätze und Grants aktiv | PI | R1-31 | R1-13 |
 | SET-073 | P/N | Einladungsfrist 0, 366, 14; `invited_address_only` mit fremdem Konto | 0/366 abgelehnt; neue Einladung 14 Tage; fremdes Konto 403 | PI | R1-31 | R1-13 |
 | SET-074 | P | Timeout 1 h, Grant bleibt `pending` | nach 1 h `failed` mit `pending_timeout` (E-201) | PI | R1-31 | R1-13 |
-| SET-075 | P | Quelle deaktiviert, Policy `keep_and_flag` | Grants bleiben aktiv, Prüfliste im Systemstatus, kein Widerruf (ACCESS-09) | PI | R1-31 | R1-43\* |
+| SET-075 | P | Quelle deaktiviert, Policy `keep_and_flag` | Grants bleiben aktiv, Prüfliste im Systemstatus, kein Widerruf (ACCESS-09) | PI | R1-31 | R1-43 |
 | SET-076 | P | Pro aktiv, dann deaktiviert bzw. Lizenz abgelaufen | Pro-Feld nur mit Pro sichtbar; Basis-Plätze und Claims funktionieren in allen Fällen | PI | R1-36 | R3-15 |
 | SET-077 | P | Grant entziehen bei zwei gleichwertigen Grants; Lernsperre | Vorschau zeigt verbleibenden Zugang; Fortschritt bleibt; keine Mail (E-136) | PI | R1-36 | R1-38 |
 | SET-080 | N | WP `default_role` = `editor` | Health-Warnung; CC vergibt keine `ccap_*`-Cap an `editor` (E-83) | PI | R1-31 | R1-03 |
 | SET-081 | P/N | #12 an `editor` geben; #19 durch Kursmanager vergeben; `administrator` bearbeiten | erstes mit Bestätigung und Audit, Manifest aktualisiert; zweites 403; `administrator` nicht wählbar (RBAC-091) | PI | R1-31 | R1-03 |
 | SET-082 | P | Standard-Support-Rolle öffnet Versuchsdetail; danach #14 zuweisen | ohne #14 403; mit #14 nur mit Pflichtbegründung und Audit (E-82) | PI | R1-31 | R1-03 |
 | SET-083 | N | Rollen-Tab ohne Nonce, mit fremder Nonce, per CSRF-Formular | abgewiesen, kein Audit-Erfolg, Wert unverändert (INV-S-04) | PI | R1-36 | R1-03 |
-| SET-090 | N | Kurs-Override `auto_issue` ohne Abschlussregel | Validator-Blocker; mit Regel: Zertifikat bei Abschluss | PI | R1-31 | R1-44\* |
+| SET-090 | N | Kurs-Override `auto_issue` ohne Abschlussregel | Validator-Blocker; mit Regel: Zertifikat bei Abschluss | PI | R1-31 | R1-44 |
 | SET-091 | P | Policy `never`; Lernender versucht Namensfreigabe; Pro deaktiviert | keine Freigabe möglich; Verifikation zeigt Status ohne PII und bleibt ohne Pro erreichbar (INV-S-13) | PI | R1-31 | R1-35 |
 | SET-092 | P | Ausstellername ändern nach drei ausgestellten Nachweisen | neue `template_version`; alte Nachweise unverändert gerendert (E-110) | PI | R1-31 | R1-35 |
 | SET-093 | N | Widerruf ohne Grund, ohne #17 | abgelehnt; mit Grund: Status `revoked`, Audit, Mail N-07 | PI | R1-36 | R1-38 |
@@ -645,6 +653,7 @@ Verboten: Punktzahl, Antworten, Freitext aus Antworten, fremde Adressen, IP, int
 | SET-131 | P | `consent_category = statistics` bei `always_load` bzw. `click_to_load` | `always_load`: ohne Wirkung; `click_to_load`: Consent API mit Kategorie `statistics` abgefragt; `functional` nur mit Bestätigung | PI | R1-31 | R1-34 |
 | SET-132 | P | Free ohne Pro; Pro aktiv; Pro-Lizenz abgelaufen | Free: kein Erklärungs-Schalter, keine Erklärungen ausgeliefert, Texte gespeichert; Pro: Schalter sichtbar; abgelaufen: eingefroren wirksam, Feld lesend (E-268) | PI | R1-36 | R3-15 |
 | SET-133 | P | Setup-Assistent, Schritt Datenschutz | Hinweis zur Übertragung an externe Dienste und Umschalter `always_load`/`click_to_load` sichtbar | PW | R1-32 | R1-31 |
+| SET-134 | P/N | Frischinstallation; Aufgabe mit `file_rules` {pdf}, 10 MB, 2 Dateien; global danach `max_file_mb = 5`; Aufgabe versucht `zip` oder 30 MB | Defaults pdf/docx/odt/txt/jpg/png, 20 MB, 5 Dateien (E-289); Aufgabenwerte gültig; wirksam 5 MB (kleinster Wert); `zip` und Werte über global abgelehnt (`ccap_setting_invalid`) | PI | R1-31 | R1-46 |
 | SET-126 | P | Woo und Voucher installiert, nicht verbunden | Systemstatus zeigt sie lesend; keine Aktivierung, keine Settings (E-185) | PI | R1-36 | R1-38 |
 | SET-127 | N | Free ohne Connector | keine Woo-/Voucher-Felder, keine Woo-Hooks (KOMP-101) | PI | R1-36 | R1-30 |
 | SET-128 | N | Free ohne Pro | keine Lizenzseite, kein Lizenzfeld, kein Upsell-Schalter (E-100) | PI | R1-36 | – |
@@ -653,14 +662,14 @@ Verboten: Punktzahl, Antworten, Freitext aus Antworten, fremde Adressen, IP, int
 
 | ID | P/N | Gegeben / Aktion | Erwartung | Ebene | Ziel-Task | weitere |
 |---|---|---|---|---|---|---|
-| NTF-001 | P | Einladung, Claim-Bestätigung, Kursabschluss | genau eine Mail je Ereignis (Dedupe), Absender von WordPress geerbt | PI | R1-21 | R1-43\* |
+| NTF-001 | P | Einladung, Claim-Bestätigung, Kursabschluss | genau eine Mail je Ereignis (Dedupe), Absender von WordPress geerbt | PI | R1-21 | R1-43 |
 | NTF-002 | P | Zugang abgelaufen, Default | keine Mail (E-217), Ablaufanzeige im Lernbereich; nach Einschalten genau eine Mail **nach** Ablauf, ohne Kauflink; keine Erinnerung davor (E-24) | PI | R1-21 | – |
 | NTF-003 | N | `wp_mail` liefert `false` bzw. SMTP fällt aus | Fehler protokolliert (ohne PII), Retry mit Backoff, nach Erfolg keine Doppelmail | PI | R1-21 | R1-17 |
 | NTF-004 | P | Lernender bestellt `informational`-Typen ab | keine weiteren Mails dieser Typen; `required` (Einladung, Korrektur, Widerruf) weiter | PI | R1-21 | R1-34 |
 | NTF-005 | N | Besitzer lädt 50 Adressen bei 10 Plätzen ein | Rate-Limit max(20, 2 × 10) greift fail-closed; keine Mail über dem Limit | PI | R1-21 | R1-13 |
 | NTF-006 | P | `WP_ENVIRONMENT_TYPE = staging` bzw. Haltemodus | alle Mails `caught` bzw. `held`, keine externe Zustellung | PI | R1-21 | R1-23 |
 | NTF-007 | P | E2E-Lauf in der CI | jede erwartete Mail im Sink, 0 externe Zustellungen | PW | R1-21 | R1-18 |
-| NTF-008 | N | dasselbe Outbox-Event wird zweimal zugestellt (Replay) | ein Datensatz, eine Mail | PI | R1-21 | R1-43\* |
+| NTF-008 | N | dasselbe Outbox-Event wird zweimal zugestellt (Replay) | ein Datensatz, eine Mail | PI | R1-21 | R1-43 |
 | NTF-009 | N | Prozessabbruch nach `wp_mail`, vor dem Status-Update | nach Lease `unknown`, kein automatischer Zweitversand; Aktion „erneut senden“ sichtbar | PI | R1-21 | R1-42 |
 | NTF-010 | N | Grant zwischen Event und Versand widerrufen | `suppressed (state_changed)`, keine Mail | PI | R1-21 | R1-13 |
 | NTF-011 | N | Empfänger vor Versand gelöscht bzw. Löschantrag ausgeführt | keine Mail; Datensatz gelöscht bzw. ohne Personenbezug | PI | R1-21 | R1-17 |
@@ -676,7 +685,7 @@ Verboten: Punktzahl, Antworten, Freitext aus Antworten, fremde Adressen, IP, int
 | NTF-021 | N | Kurstitel und Gruppenname mit HTML, CR/LF und `Bcc:` | inert im Text, keine zusätzlichen Header (SEC-040) | PU | R1-21 | – |
 | NTF-022 | N | Abschluss-, Bewertungs- und Annullierungsmail | keine Punktzahl, keine Antworten, kein Freitext (PRIV-021) | PI | R1-21 | – |
 | NTF-023 | P | `multipart` | HTML- und Textteil inhaltsgleich, Textteil ohne Markup | PU | R1-21 | – |
-| NTF-024 | P | Kursabschluss mit automatischem Zertifikat (eine `correlation_id`) | eine Mail mit beiden Links | PI | R1-21 | R1-44\* |
+| NTF-024 | P | Kursabschluss mit automatischem Zertifikat (eine `correlation_id`) | eine Mail mit beiden Links | PI | R1-21 | R1-44 |
 | NTF-025 | P/N | elf Mails an einen Empfänger in 24 h | `informational` ab der 11. `suppressed`, `required` ins nächste Fenster verschoben | PI | R1-21 | – |
 | NTF-026 | P | Gruppeneinladung an 500 Adressen | Stapel 50 bzw. 20 s, Fortsetzung, keine Doppelmail, alle Mails nach Abschluss im Sink | PI | R1-21 | R1-22 |
 | NTF-027 | P | Supportdialog „Versuch verwerfen“ mit abgewählter Mail; „Lernsperre“ | keine Mail in beiden Fällen (E-136) | PI | R1-21 | R1-38 |
@@ -687,6 +696,9 @@ Verboten: Punktzahl, Antworten, Freitext aus Antworten, fremde Adressen, IP, int
 | NTF-032 | P | Retention 90 Tage | ältere `ccap_notification`-Zeilen gelöscht, jüngere bleiben | PI | R1-21 | R1-17 |
 | NTF-033 | N | WP-Cron 2 h ausgefallen, 40 Mails in der Warteschlange | Warnung im Systemstatus; nach Wiederanlauf alle versendet, keine verloren, keine doppelt | PI | R1-21 | R1-38 |
 | NTF-034 | P | Vorlage speichern, Vorschau, Testversand | Vorschau mit Beispieldaten in gewählter Sprache; Testversand nur an die eigene Adresse; Audit | PW | R1-21 | R1-32 |
+| NTF-035 | P | Lernender reicht Aufgabe ein; Kurs hat 2 Trainer, 1 Autor | je zugewiesenem Trainer genau eine Mail N-14 (Dedupe `submission_uid` + `submission_no`); Lernender und Autor erhalten keine | PI | R1-21 | R1-46 |
+| NTF-036 | P | Trainer gibt zurück, danach bewertet, danach Neubewertung | N-15 einmal; N-16 einmal je `evaluation_no`; keine Punkte, kein Kommentar im Mailtext | PI | R1-21 | R1-46 |
+| NTF-037 | N | Lernender hat informative Mails abbestellt; Trainer hat N-14 abbestellt | N-15/N-16 bzw. N-14 `suppressed` (`opt_out`); Abgabe-Workflow unverändert | PI | R1-21 | R1-46 |
 
 ---
 
@@ -721,7 +733,7 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §33, „Von Claude entschiede
 
 | Nr. | Korrektur | Betroffen |
 |---|---|---|
-| **T27-1** | Optionsnamen für Schema-/Migrationszustand, Ordner-Geheimnis und Installations-UUID (früher `cc_db_version`, `cc_schema_fingerprint`, `cc_migrations_applied`, `cc_backfill_state`, `cc_migration_failed`, `cc_fk_issues`, `cc_storage_secret`, `cc_installation_uuid`) heißen `course_captain_…` (E-207) – **eingearbeitet** in R0-16; Migrationszustand in `ccap_migration_step` (technisch festgelegt zu R0-37). | R0-16 §1, R0-06 §6.1 |
+| **T27-1** | Optionsnamen für Schema-/Migrationszustand, Ordner-Geheimnis und Installations-UUID (früher `ccap_db_version`, `ccap_schema_fingerprint`, `ccap_migrations_applied`, `ccap_backfill_state`, `ccap_migration_failed`, `ccap_fk_issues`, `ccap_storage_secret`, `ccap_installation_uuid`) heißen `course_captain_…` (E-207) – **eingearbeitet** in R0-16; Migrationszustand in `ccap_migration_step` (technisch festgelegt zu R0-37). | R0-16 §1, R0-06 §6.1 |
 | **T27-2** | INV-C-068 nennt `ccap_settings`; maßgeblich sind die Tab-Optionen aus §2.1. | R0-02 C (Zielspalte) |
 | **T27-3** | Kap. 43.3 „Fragenreihenfolge: Mischen aus“ gegen R0-08 `shuffle_questions` Default `within_section`: beides gilt je Prüfungsart (feste Variante `none`, Poolprüfung `within_section`); Kap. 43.3 redaktionell präzisieren. | Konzept 43.3, R0-08 §3 |
 | **T27-4** | R0-13 K-15 „Mail mit neuem PDF-Link“: in Free gibt es kein PDF (E-96); Link auf die HTML-Nachweisansicht. | R0-13 §3.1 |
@@ -771,6 +783,7 @@ mp = [cells(l) for l in part('### 1.2', '### 1.3').split('\n') if l.startswith('
 reg = [cells(l) for l in part('### 1.3', '### 1.4').split('\n') if l.startswith('| `')]
 ret = [l for l in part('### 1.4', '### 1.5').split('\n') if l.startswith('| `')]
 inv = {cells(l)[0]: cells(l) for l in part('### 1.5', '### 1.6').split('\n') if l.startswith('| INV-S-')}
+gone = set(re.findall(r'~~(INV-S-\d\d)~~', part('### 1.5', '### 1.6')))   # entfallene Nummern
 tests = {cells(l)[0]: cells(l) for l in part('## 4.', '## 5.').split('\n') if re.match(r'^\| (SET|NTF)-\d{3} ', l)}
 keys = {re.sub(r'`', '', r[0]) for r in reg}
 err = collections.defaultdict(list)
@@ -779,11 +792,12 @@ for i, (k, m) in enumerate(zip(rows43, mp), 1):
     if m[0] != f'K43-{i:02d}' or m[1] != k[0] or m[2] != k[1]: err['zuordnung'].append(m[0])
     for key in re.findall(r'`([^`]+)`', m[4]):
         base = key.split(' ')[0]
-        if base not in keys and not base.startswith('cc_') and base not in ('ccap_access_rule',): err['key'].append((m[0], base))
+        if base.endswith('.*') and any(k.startswith(base[:-1]) for k in keys): continue   # Gruppen-Key, z. B. hardening.*
+        if base not in keys and not base.startswith('ccap_') and base not in ('ccap_access_rule',): err['key'].append((m[0], base))
     for t in re.findall(r'(?:SET|NTF)-\d{3}', m[5]):
         if t not in tests: err['test'].append((m[0], t))
     for iv in re.findall(r'INV-S-\d\d', m[4]):
-        if iv not in inv: err['inv'].append((m[0], iv))
+        if iv not in inv and iv not in gone: err['inv'].append((m[0], iv))
 art = collections.Counter()
 for m in mp:
     a = m[3]
@@ -803,26 +817,26 @@ miss = sorted(set(re.findall(r'\bE-\d+\b', doc)) - E)
 if miss: err['E-unbekannt'] = miss
 ziel = collections.Counter(c[5] for c in tests.values())
 print('Tests SET/NTF:', sum(t.startswith('SET') for t in tests), '/', sum(t.startswith('NTF') for t in tests), '| Ziel:', dict(ziel))
-bad = [t for t, c in tests.items() if c[5] not in ('R1-21', 'R1-31', 'R1-36')]
+bad = [t for t, c in tests.items() if c[5] not in ('R1-21', 'R1-31', 'R1-32', 'R1-36')]
 if bad: err['ziel'] = bad
 mail = [l for l in part('### 3.2', '### 3.3').split('\n') if re.match(r'^\| N-\d\d ', l)]
-print('Mailtypen:', len(mail), '| D27:', len(set(re.findall(r'\*\*D27-(\d+)\*\*', doc))))
+print('Mailtypen:', len(mail), '| D27:', len(set(re.findall(r'^\| D27-(\d+) \|', doc, re.M))))
 print('Fehler:', dict(err) if err else 'keine')
 PY
 ```
 
-Ausgabe (16.11.2026):
+Ausgabe (16.11.2026, erneut ausgeführt nach Einarbeitung von E-285…E-312; Skript dabei um Gruppen-Keys `x.*`, entfallene Invarianten `~~INV-S-nn~~`, Ziel R1-32 und die D27-Zählung aus §5 korrigiert):
 
 ```text
 Kap. 43.3 Zeilen: 57 | Zuordnungen: 57
-Art: {'Feld/Pro': 42, 'Inv': 6, 'Aktion/Objekt': 5, 'WP': 1, 'Seite': 3}
-Register: 72 | mit K43: 51 | ohne K43: 21 | Retention: 17 | INV-S: 14
-Tests SET/NTF: 85 / 34 | Ziel: {'R1-31': 59, 'R1-36': 26, 'R1-21': 34}
-Mailtypen: 13 | D27: 10
+Art: {'Feld/Pro': 43, 'Inv': 5, 'Aktion/Objekt': 5, 'WP': 1, 'Seite': 3}
+Register: 86 | mit K43: 52 | ohne K43: 34 | Retention: 21 | INV-S: 13
+Tests SET/NTF: 91 / 37 | Ziel: {'R1-31': 63, 'R1-36': 27, 'R1-32': 1, 'R1-21': 37}
+Mailtypen: 16 | D27: 10
 Fehler: keine
 ```
 
-Die Prüfungen umfassen: Name und Reihenfolge jeder Kap.-43.3-Zeile gegen §1.2; jeder dort genannte Register-Key existiert in §1.3; jede genannte Test-ID und Invariante ist definiert; jede Register-Zeile hat 13 gefüllte Spalten und mindestens einen definierten Test; alle E-Nummern existieren in `ENTSCHEIDUNGEN.md`; jeder Test zielt auf R1-21, R1-31 oder R1-36.
+Die Prüfungen umfassen: Name und Reihenfolge jeder Kap.-43.3-Zeile gegen §1.2; jeder dort genannte Register-Key existiert in §1.3; jede genannte Test-ID und Invariante ist definiert; jede Register-Zeile hat 13 gefüllte Spalten und mindestens einen definierten Test; alle E-Nummern existieren in `ENTSCHEIDUNGEN.md`; jeder Test zielt auf R1-21, R1-31, R1-32 oder R1-36.
 
 ---
 

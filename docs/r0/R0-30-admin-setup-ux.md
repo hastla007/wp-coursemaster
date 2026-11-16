@@ -57,7 +57,7 @@ Kap. 43.2 nennt zwölf Menüpunkte, aber keinen Platz für **Protokoll** (E-19, 
 
 ### 1.2 Endgültiger Menübaum (Free)
 
-Präfixe: Caps `ccap_` nach E-207. Die Nummer `#n` verweist auf R0-07 §3.1 (dort noch `cc_…`). **Meta-Caps** `ccap_menu_*` werden nie Rollen zugewiesen; `map_meta_cap` löst sie in „eine der genannten Caps“ auf. Menüposition des Hauptmenüs: `'26.3'` (direkt nach „Kommentare“), Filter `course_captain_menu_position`. Icon: `dashicons-welcome-learn-more`.
+Präfixe: Caps `ccap_` nach E-207. Die Nummer `#n` verweist auf R0-07 §3.1 (dort noch `ccap_…`). **Meta-Caps** `ccap_menu_*` werden nie Rollen zugewiesen; `map_meta_cap` löst sie in „eine der genannten Caps“ auf. Menüposition des Hauptmenüs: `'26.3'` (direkt nach „Kommentare“), Filter `course_captain_menu_position`. Icon: `dashicons-welcome-learn-more`.
 
 | Pos | Menüpunkt | Slug / URL | Cap (Seite) | Sichtbar wenn | Screen | Bereiche (Bereichsnavigation) |
 |---:|---|---|---|---|---|---|

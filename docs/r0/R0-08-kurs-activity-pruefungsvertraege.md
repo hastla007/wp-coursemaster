@@ -24,7 +24,11 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **E-23**, E-129 | Prüfungsregel `draft/published/retired` mit `purpose = exam/practice`; Entwürfe nie als Übung; `reduced` bleibt (§4.1, §6.3) |
 | **E-25a** | Bundle: ein Grant schaltet mehrere Kurse frei (§1.4) |
 | **E-26** | abhängige Zusatz-Grants in R1 (§1.4; Automat in R0-09) |
-| **E-27** | Zugang je Modul: Grant-Schlüssel mit `module_id` (NULL = ganzer Kurs; technisch `0` nach R0-06 Nachtrag Δ40-1), Freischaltprüfung je Modul (§1.4) |
+| **E-27**, **E-286** | Zugang je Modul: Grant-Schlüssel mit `module_id NOT NULL DEFAULT 0` (0 = ganzer Kurs, E-286), Freischaltprüfung je Modul (§1.4); Scopes `view/download/exam` gelten innerhalb eines Moduls; Kursprüfung startbar nur mit Zugang zu allen Blueprint-Modulen; Kursfortschritt mit Nenner der zugänglichen Module (§5.1) |
+| **E-287**, **E-297** | Zusatz-Grant hängt am effektiven Zugang zum Basiskurs; Bundles eine Ebene (§1.4) |
+| **E-288** | Trainer, Autor und Kursmanager des Kurses bewerten Aufgaben in R1 Free (Note/bestanden, Feedback, Rückgabe); Gradebook, Bewertungsraster und Tutor-Workflows Pro (§2.5) |
+| **E-289** | Datei-Abgaben: pdf, docx, odt, txt, jpg, png; max. 20 MB je Datei, 5 Dateien je Abgabe (änderbar); kein eingebauter Virenscan, Hook für Scanner-Plugins; Aufbewahrung wie Rohantworten (E-51) (§2.5) |
+| **E-290** | Benachrichtigungen „Abgabe eingereicht“ (an zuständige Trainer), „zurückgegeben“ und „bewertet“ (an Lernende), alle informativ; Events `assignment.*` nur interne Outbox (§2.5) |
 | **E-38** | Fachereignisse gehen in Free nur in die interne Outbox; öffentliche Events, Read-API und Connector-Registry sind Pro (§2.5) |
 | **E-45/E-45a** | `needsExternalConsent` wirkt nur im Modus `click_to_load`; Default `always_load` (§2.2) |
 | **E-50** | Kursrevision fixiert Struktur und Regeln, nicht die Fragenrevisionen (§1.2, §7) |
@@ -84,7 +88,7 @@ Die Freischaltung ist **eine** serverseitige Policy-Entscheidung je (Lernender, 
 
 | # | Prüfung | Quelle des Rechts | Sperrgrund | LB-Beleg |
 |---|---|---|---|---|
-| 1 | Zugang zum **Modul** des Objekts (E-27): aktiver Grant auf genau dieses Modul oder auf den ganzen Kurs (`module_id` leer); Bundle-Grants (E-25a) wirken wie je ein Grant je enthaltenem Kurs; abhängige Zusatz-Grants (E-26) nur, solange ihr Basis-Grant aktiv ist | aktiver Grant, Free-Regel `free` mit Gültigkeitsfenster, Einstellung „Zugang für angemeldete Nutzer“ | `no_access` | AS:50-133, :335-357 (LB: je Kurs × Feature; je Modul ist neu) |
+| 1 | Zugang zum **Modul** des Objekts (E-27): aktiver Grant auf genau dieses Modul oder auf den ganzen Kurs (`module_id = 0`, E-286), jeweils mit passendem Scope `view/download/exam` innerhalb des Moduls; Bundle-Grants (E-25a, eine Ebene nach E-297) wirken wie je ein Grant je enthaltenem Kurs; abhängige Zusatz-Grants (E-26) nur, solange effektiver Zugang zum Basiskurs besteht (E-287) | aktiver Grant, Free-Regel `free` mit Gültigkeitsfenster, Einstellung „Zugang für angemeldete Nutzer“ | `no_access` | AS:50-133, :335-357 (LB: je Kurs × Feature; je Modul ist neu) |
 | 2 | Teilumfang (`free_limited`): nur die ersten *n* Elemente je Abschnitt | `ccap_access_rule` (`access_type = free_limited`, `limit_type`, `limit_value`) | `trial` | AS:37-46 (Limit-Typen), LS:405-428 (erste *n* Fragen je Modul), ES:166-171 (erste *n* Bögen, keine Zufallsprüfung) |
 | 3 | Drip: Modul wird *d* Tage nach Zugangsbeginn frei (E-14) | `ccap_access_rule` (`access_type = drip`, `module_id`, `limit_value` = Tage; bei mehreren Regeln gilt das Maximum) | `drip` + `unlock_at` | AS:263-283 (`MAX(limit_value)`), :315-333 (Zugangsbeginn = frühester `valid_from` eines aktiven Grants, sonst Registrierung) |
 | 4 | Voraussetzungen | `ccap_course_module.rules` bzw. Activity-`settings.prerequisites` | `prerequisite` + `requires[]` | **neu** (LB kennt nur `required` je Modul, `courses.schema.json:27`) |
@@ -104,9 +108,9 @@ GateDecision {
 
 **Regeln:**
 
-- **Zugang je Modul (E-27, MUSS):** Die Prüfung #1 läuft je Modul. Objekte ohne Modulbezug (Kursseite, Kurs-FAQ, Zertifikatsregel) verlangen Zugang zu mindestens einem Modul des Kurses bzw. einen Grant auf den ganzen Kurs. Eine **Prüfung** (Zufallsprüfung oder feste Variante) ist nur startbar, wenn **alle** ihre Blueprint- bzw. Variantenmodule freigeschaltet sind; `requires` nennt die gesperrten Module (gleiche Regel wie bei Drip, unten). Der effektive Zugang je (Lernender, Kurs, Modul) ist Ergebnis von R0-09; dieses Dokument liest ihn nur.
+- **Zugang je Modul (E-27, MUSS):** Die Prüfung #1 läuft je Modul. Objekte ohne Modulbezug (Kursseite, Kurs-FAQ, Zertifikatsregel) verlangen Zugang zu mindestens einem Modul des Kurses bzw. einen Grant auf den ganzen Kurs. Eine **Prüfung** (Zufallsprüfung oder feste Variante) ist nur startbar, wenn Zugang zu **allen** Modulen besteht, aus denen ihr Blueprint bzw. ihre Variante zieht (**E-286**), und diese freigeschaltet sind; `requires` nennt die gesperrten Module (gleiche Regel wie bei Drip, unten). Der effektive Zugang je (Lernender, Kurs, Modul) ist Ergebnis von R0-09; dieses Dokument liest ihn nur.
 - **Bundle (E-25a):** Ein Grant, der mehrere Kurse freischaltet, wird je Zielkurs ausgewertet; ein Widerruf entzieht alle Ziele dieses Grants, andere Quellen bleiben (Mehrfachquelle, LB-Parität).
-- **Abhängige Zusatz-Grants (E-26):** Ein Zusatz-Grant (typisch ein Zusatzmodul) wirkt nur, solange sein Basis-Grant `active` ist; ausgesetzt, abgelaufen oder widerrufen ⇒ Zusatz wirkt nicht. Die Kette und ihre Zustände definiert R0-09.
+- **Abhängige Zusatz-Grants (E-26, E-287):** Ein Zusatz-Grant (typisch ein Zusatzmodul) wirkt nur, solange der Lernende **effektiven Zugang zum Basiskurs** hat, gleich aus welchem Grant; fehlt dieser Zugang ⇒ Zusatz wirkt nicht. Der Zusatz-Grant ändert dabei seinen Status nicht; der effektive Zugang wird berechnet (R0-09 §3.5).
 - **Drip in Free (E-14):** nur relativ zum Zugangsbeginn in ganzen Tagen, je Modul. Absolute Termine, Kampagnen und Gruppen-Drip sind Pro. Drip gilt auch für **Prüfungen**: Eine feste Variante ist gesperrt, solange eines ihrer Module gesperrt ist (ES:213-216, `paperUnlockTimes` ES:784), eine Zufallsprüfung, solange ein Blueprint-Modul gesperrt ist (ES:228-236).
 - **Zugangsbeginn** ist pro Kurs und Scope zu berechnen und im Request zu memoisieren (LB `RequestMemo`, AS:309-312). Er ändert sich, wenn ein früherer Grant aktiv wird; das ist gewollt (LB-Parität) und im Test zu fixieren.
 - **Voraussetzungen (neu):** Typen `completed(activity_uid)`, `completed(module_uid)`, `passed(exam activity_uid)`. Zyklen werden beim Veröffentlichen abgewiesen (Publish-Validator R1-26). Eine Voraussetzung auf eine nicht mehr existierende Activity der Revision ist ein Validierungsfehler, kein stilles „frei“.
@@ -277,8 +281,8 @@ interface ActivityRegistry
 |---|---|---|
 | `instructions` | Blöcke | Aufgabenstellung; Pflicht (VAL-037) |
 | `submission_type` | `text` / `file` / `text_and_file` | Pflicht |
-| `text_limits` | `{min_chars?, max_chars?}` | Grenzwerte und Defaults in R0-27 (OP-08-3) |
-| `file_rules` | `{allowlist[], max_files, max_bytes}` | Allowlist ⊆ globale Allowlist (R0-10 §4.5); Werte OP-10-2 |
+| `text_limits` | `{min_chars?, max_chars?}` | Grenzwerte und Defaults technisch in R1-46 (OP-08-3) |
+| `file_rules` | `{allowlist[], max_files, max_bytes}` | Allowlist ⊆ globale Allowlist (R0-10 §4.5); Defaults nach **E-289**: `pdf, docx, odt, txt, jpg, png`, `max_bytes` = 20 MB, `max_files` = 5; änderbar (Register R0-27 `assignments.*`) |
 | `max_points` | Ganzzahl ≥ 1 | gespeichert als `max_points_milli` (§3.2) |
 | `passing_points` | Ganzzahl 0…`max_points` oder leer | leer ⇒ `passed` bleibt `null`; Abschlussregel `passed` dann ungültig (VAL-038) |
 | `rubric_text` | Text, optional | nur für Bewertende sichtbar |
@@ -303,13 +307,15 @@ interface ActivityRegistry
 | `graded` | `regrade(points, reason)` | `graded` | Bewertungsrecht; Pflichtbegründung | neue Auswertung `evaluation_no + 1`, die alte bleibt sichtbar (E-74-Analogie, §4.6); erreichte Completion bleibt (Monotonie §5.1) | `request_key` |
 
 - **Nicht in R1:** Zurückziehen einer eingereichten Abgabe durch Lernende, erneute Abgabe nach `graded` (Retakes), Fristen mit Spätabgabe, Gruppenabgaben, Peer-Review (OP-08-4).
-- **Bewertungsrecht:** Kursmanager und dem Kurs zugewiesene Trainer (`ccap_trainer` über `ccap_course_staff`, R0-07); nie die abgebende Person selbst. Die genaue Cap legt R0-07 fest (OP-08-1, OP-10-4). Eine kursübergreifende Notenübersicht (Gradebook) bleibt Pro (E-74, E-99).
+- **Bewertungsrecht (E-288):** Trainer, Autor und Kursmanager **des Kurses** (`ccap_course_staff` mit Rolle `trainer`/`author` bzw. Kursmanager, R0-07 #15) bewerten in R1 Free: Note/bestanden, Feedback, Rückgabe; nie die abgebende Person selbst. Gradebook (kursübergreifende Notenübersicht), Bewertungsraster und Tutor-Workflows bleiben Pro (E-74, E-99, E-288).
 - **Zugangsentzug:** ohne effektiven Zugang kein `save`/`submit` (`ccap_access_denied`); eingereichte Abgaben bleiben bewertbar, Ergebnisse bleiben sichtbar (Analogie zur Abgabe einer laufenden Prüfung, GM-042).
 - **Sichtbarkeit:** Lernende sehen eigene Fassungen, Rückgabekommentare, Punkte und Feedback nach `graded`. Das Feedback der Bewertenden ist **kein** Lösungserklärungstext im Sinne von E-20 und ist in Free sichtbar. Fremde Abgaben ⇒ `ccap_not_found` (kein Existenzleck).
 - **Dateien:** Ablage, Typprüfung, Größe, Auslieferung, Audit fremder Abrufe, Rate-Limit nach R0-10 §4.5.
 - **Mastery/Competency:** Aufgaben speisen weder den Smarttrainer noch Kompetenznachweise (`producesEvidence = false` in R1).
-- **Ereignisse:** `assignment.submitted`, `assignment.returned`, `assignment.graded` nur in die interne Outbox (E-38); öffentliche Events mit Pro. Benachrichtigungen an Lernende/Bewertende → OP-08-2.
-- **Privacy:** `ExportsActivity::exportLearnerData()` liefert Text, Dateimetadaten, Kommentare und Auswertungen; der Eraser entfernt Dateien und Texte. Aufbewahrung OP-10-3 (E-51).
+- **Ereignisse:** `assignment.submitted`, `assignment.returned`, `assignment.graded` nur in die interne Outbox (E-38, E-290); öffentliche Events mit Pro.
+- **Benachrichtigungen (E-290):** `assignment_submitted` an die zuständigen Trainer des Kurses, `assignment_returned` und `assignment_graded` an den Lernenden; alle Klasse `informational` (abbestellbar, R0-27 §3.2).
+- **Privacy:** `ExportsActivity::exportLearnerData()` liefert Text, Dateimetadaten, Kommentare und Auswertungen; der Eraser entfernt Dateien und Texte. Aufbewahrung wie Rohantworten: 2 Jahre nach Kursende (E-51, **E-289**).
+- **Virenscan (E-289):** kein eingebauter Scanner; Filter-Hook für Scanner-Plugins vor dem Übergang der Datei in die geschützte Ablage (R0-10 §4.5).
 
 ---
 
@@ -488,7 +494,7 @@ passing_rule {
 - **Activity:** Status `not_started` → `in_progress` → `completed`. Jeder Übergang speichert `reason_code`, `rule_version`, `completed_at` und den `content_hash` der Activity zum Abschlusszeitpunkt (R0-06 `ccap_activity_progress.content_hash`).
 - **Monotonie:** Nachweisbasierte Abschlüsse (`downloaded`, `passed`, `evaluated`, `attempted`, `all_known`) bleiben bestehen. Zurücknehmen darf der Lernende nur `manual_confirm` (LB VS:246-247 erlaubt `completed = false` generell); ein Reset durch die Kursverwaltung ist mit Audit möglich (E-70). Abschlüsse über `submitted`/`graded`/`passed` einer Aufgabe (§2.5) sind nachweisbasiert und monoton.
 - **Modul:** abgeschlossen ⇔ alle Pflicht-Activities des Moduls in der Revision des Lernenden abgeschlossen.
-- **Kurs:** abgeschlossen ⇔ alle Pflichtmodule (`ccap_course_module.required`, LB `courses.schema.json:27`) abgeschlossen **und** die optionale Kurs-Abschlussregel (z. B. `passed(exam)`) erfüllt. `completion_ratio = erledigte Pflicht-Activities / Pflicht-Activities` (`decimal(5,4)`).
+- **Kurs:** abgeschlossen ⇔ alle Pflichtmodule (`ccap_course_module.required`, LB `courses.schema.json:27`) abgeschlossen **und** die optionale Kurs-Abschlussregel (z. B. `passed(exam)`) erfüllt. `completion_ratio = erledigte Pflicht-Activities / Pflicht-Activities` (`decimal(5,4)`). Bei Zugang nur zu einzelnen Modulen (E-27) ist der Nenner die Zahl der Pflicht-Activities der **zugänglichen** Module; die Anzeige lautet „x von y freigeschalteten Modulen“ (**E-286**). Kurs abgeschlossen setzt weiter alle Pflichtmodule voraus.
 - **Revision:** maßgeblich ist `ccap_course_progress.course_revision_id`; Umstellung auf neue Revisionen regelt R0-23.
 - **Erklärbarkeit:** API liefert je Activity `state`, `reason_code`, Regeltext (i18n) und Belegreferenz, z. B. „Abgeschlossen: Quiz bestanden mit 8/10 am 14.11.2026“ oder „Offen: Voraussetzung ‚Modul 2‘ nicht erfüllt“.
 

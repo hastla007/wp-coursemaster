@@ -17,9 +17,11 @@
 | E-31 | Voucher-Zieltypen A (neutrales Angebot) und B (Woo-Produkt) bleiben spezifiziert (§2.3) |
 | E-33, E-34, E-25a | Dispute-Webhooks, Zustimmungs-Gate, Auto-Produkte und Mitgliederrabatt im Woo-Adapter (§4) |
 | E-38 | Course-Events an Partner nur über Pro; im Free-Kern nur interne Outbox (§0, §1.1) |
-| E-275 (= D40-1) | verlorener Dispute setzt den Woo-Status auf `refunded`/`cancelled` (§4.4) |
-| E-276 (= D40-2) | kein Pending-Timeout für unbezahlte Woo-Bestellungen (§4.2) |
-| E-277 (= D40-3) | hängende Einlösung > 24 h: Reservierung freigeben, Grant `failed`, Hinweis zum erneuten Einlösen (§3.4) |
+| E-275 (= D40-1), **E-295** | verlorener Dispute setzt den Woo-Status: `refunded`, wenn Geld zurückgebucht wurde; `cancelled` nur, wenn die Bestellung vor Zahlung storniert wurde (§4.4) |
+| E-276 (= D40-2), **E-293** | unbezahlte Woo-Bestellung erzeugt **keinen** Grant, auch nicht `pending_confirmation`; kein Pending-Timeout dafür; E-201 gilt nur für Quellen mit bestätigter Zahlung, aber ausstehender Course-Verarbeitung (§4.2) |
+| E-277 (= D40-3), **E-294** | hängende Einlösung > 24 h: Reservierung freigeben, Grant `failed` – endgültig für diesen Idempotenzschlüssel; ein neuer Einlöseversuch erzeugt einen neuen Schlüssel (§3.4) |
+| **E-301** | Membership-Adapter ist eigene Task **R3-20** (§2.4, FIN-080/081) |
+| **E-305** | Voucher-Kanal: neutrales Ziel (Zieltyp A) über Kanal `course-captain` (Einlöse-API) – so in §2.3 umgesetzt. Woo-Produkt-Ziel (Zieltyp B) über den Woo-Checkout von Voucher Captain: steht im Widerspruch zu E-279 („nur über die Course-Einlösung, nicht im Warenkorb“) und zur Zieltyp-B-Zeile in §2.3 (keine Woo-Bestellung, Quelle `voucher`); §2.3 bleibt bis zur Klärung unverändert (**neue Frage NF-02**, R0-GATE-protokoll.md) |
 | E-278 (= D40-4) | keine Guthaben über die Einlöse-API (§2.3, §3.5) |
 | E-279 (= D40-5) | Kursgutscheine nur über die Course-Einlösung, nicht im Warenkorb (§2.3, FIN-018/055) |
 | E-280 (= D40-6) | Preis pflegt der Shop in Woo; Auto-Produkte entstehen als Entwurf (§4.5) |
@@ -105,7 +107,7 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 `UNIQUE grant_source (source_type, source_id, source_line, source_revision, course_id, module_id)`.
 
 - **`module_id bigint unsigned NOT NULL DEFAULT 0`**, `0` = ganzer Kurs (E-27 schreibt „NULL = ganzer Kurs“). Begründung: InnoDB erlaubt in einem UNIQUE-Index **mehrere NULL-Werte**; mit NULL wäre der Idempotenzschlüssel für Ganzkurs-Grants nicht DB-erzwungen (R0-06 §1 Nr. 4 „Idempotenzspalten sind NOT NULL“). → Δ40-1.
-- Gleicher Schlüssel mit anderem `user_id` → `cc_idempotency_conflict` (R0-09 §2.2).
+- Gleicher Schlüssel mit anderem `user_id` → `ccap_idempotency_conflict` (R0-09 §2.2).
 - Ein Ziel ist immer ein Paar `(course_id, module_id)`; ein Bundle-Kurs (E-25a) ist ein gewöhnliches Ziel, die enthaltenen Kurse werden im effektiven Zugang abgeleitet (kein Grant je Teilkurs). Refund des Bundle-Grants beendet damit auch die abgeleiteten Zugänge, sofern keine anderen Grants bestehen.
 - `source_revision` +1 nur nach E-29/E-117 (Refund zurückgenommen, Kundenwechsel, Wiederaufnahme nach `expired`/`revoked`).
 
@@ -157,7 +159,7 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 
 ### 3.1 Voraussetzungen
 
-- `defined('VCAP_VERSION') && version_compare(VCAP_VERSION, '1.1.0', '>=') && function_exists('vcap')` (CONNECTORS §6); sonst Connector `active_incompatible` (R0-34 INT-003), Einlöse-UI antwortet `cc_feature_unavailable`.
+- `defined('VCAP_VERSION') && version_compare(VCAP_VERSION, '1.1.0', '>=') && function_exists('vcap')` (CONNECTORS §6); sonst Connector `active_incompatible` (R0-34 INT-003), Einlöse-UI antwortet `ccap_feature_unavailable`.
 - Voucher setzt WooCommerce und InnoDB voraus (R0-36 C11, X1); „Voucher allein“ heißt „ohne Course-Woo-Adapter“.
 - Angemeldet (E-30); Rate-Limit `code_redeem` **fail-closed** (E-46); zusätzlich Voucher-eigenes Limit (`vcap_rate_limited`).
 
@@ -172,9 +174,9 @@ Lock-Reihenfolge (ergänzt R0-09 §6.1): L1 `learner:<user>` → **LV `voucher-c
 | Schritt | Aktion | Erfolg | Fehler/Abbruch |
 |---|---|---|---|
 | S0 Vorprüfung | Ziel auflösen (Angebot/Produkt → Zielliste); `check($code, ['target'])` (reserviert nichts) | Vorschau „Zugang zu …, bereits vorhanden bis …“ (Verhalten LB INV-B-057) | Fehlercode nach §3.5; **nichts** gespeichert außer Rate-Limit-Zähler |
-| S1 Schlüssel | unter LV: offene Saga zu `(user, code_hmac, target)` suchen → Schlüssel wiederverwenden; sonst neuen Schlüssel mit `n+1`, Saga `reserving` **committen**, bevor Voucher gerufen wird | – | DB-Fehler → `cc_db_busy`, nichts reserviert |
-| S2 Reservieren | `reserve($code, ['key','target','user_id', 'ttl_minutes' => 26*60, 'meta' => ['correlation_id']])` | weiter S3 | `vcap_already_redeemed` → `get($key)`: `committed` und Saga gehört uns → S5 (Ergebnis `duplicate`); sonst `cc_code_already_used`, Saga `released`. `vcap_temporary_failure` → Saga bleibt `reserving`, Retry. Übrige Codes → Saga `released` (nichts reserviert), Fehler an Nutzer |
-| S3 Grants vorbereiten | eine TX: Saga `reserved` + je Ziel Grant `pending_confirmation` (G-01, `reserved`), Outbox `grant.created` | Anzeige „Zugang wird aktiviert“ | Unique-Kollision mit fremdem Nutzer → `cc_idempotency_conflict` + `release` |
+| S1 Schlüssel | unter LV: offene Saga zu `(user, code_hmac, target)` suchen → Schlüssel wiederverwenden; sonst neuen Schlüssel mit `n+1`, Saga `reserving` **committen**, bevor Voucher gerufen wird | – | DB-Fehler → `ccap_db_busy`, nichts reserviert |
+| S2 Reservieren | `reserve($code, ['key','target','user_id', 'ttl_minutes' => 26*60, 'meta' => ['correlation_id']])` | weiter S3 | `vcap_already_redeemed` → `get($key)`: `committed` und Saga gehört uns → S5 (Ergebnis `duplicate`); sonst `ccap_code_already_used`, Saga `released`. `vcap_temporary_failure` → Saga bleibt `reserving`, Retry. Übrige Codes → Saga `released` (nichts reserviert), Fehler an Nutzer |
+| S3 Grants vorbereiten | eine TX: Saga `reserved` + je Ziel Grant `pending_confirmation` (G-01, `reserved`), Outbox `grant.created` | Anzeige „Zugang wird aktiviert“ | Unique-Kollision mit fremdem Nutzer → `ccap_idempotency_conflict` + `release` |
 | S4 Bestätigen | Saga `committing`; `commit($key)` | weiter S5 | `vcap_reservation_missing` → Grants `revoked` (`voucher_reservation_lost`), Saga `lost`, `release` (idempotent), Hinweis „erneut einlösen“. `vcap_cancelled` → Grants `revoked` (`voucher_cancelled`), `release`, Saga `released`. `vcap_temporary_failure`/Timeout → Saga bleibt `committing`, Retry |
 | S5 Aktivieren | eine TX: Grants `active` (G-04, `committed`), Saga `committed`, Outbox `grant.activated` (+ `access.changed`/`enrollment.created` nach R0-09 §3.4) | Ergebnis `created` bzw. `duplicate` | DB-Fehler → Retry-Job (Saga `committed`, Grants noch pending) |
 | S6 Retry-Job `ccap_voucher_retry` (alle 5 min, Backoff 5/15/60 min, Lease) | `get($key)` und fortsetzen: `reserved` → S3/S4; `committed` → S5 sicherstellen; `released` → Grants `revoked` (`released`), Saga `released`, Schlüssel verwerfen | – | siehe §3.4 |
@@ -185,37 +187,37 @@ Lock-Reihenfolge (ergänzt R0-09 §6.1): L1 `learner:<user>` → **LV `voucher-c
 
 | Lage bei `deadline_at` (24 h) | Verhalten |
 |---|---|
-| Partner erreichbar, Saga `reserving`/`reserved` | `release($key)` → Grants `failed` (`pending_timeout`, G-06), Saga `released`; Event `grant.failed`; Lernender erhält Hinweis zum erneuten Einlösen (neuer Schlüssel `n+1`), Support-Hinweis (Beschluss E-277) |
+| Partner erreichbar, Saga `reserving`/`reserved` | `release($key)` → Grants `failed` (`pending_timeout`, G-06), Saga `released`; Event `grant.failed`; Lernender erhält Hinweis zum erneuten Einlösen (neuer Schlüssel `n+1`), Support-Hinweis (Beschluss E-277). `failed` ist für diesen Schlüssel **endgültig**; R0-09 G-13 (Retry) gilt dafür nicht (**E-294**) |
 | Partner erreichbar, Saga `committing` | erst `get($key)`: `committed` → S5 (Zugang, weil Gutschein verbraucht ist); sonst `release` wie oben |
 | Partner nicht erreichbar/inaktiv/inkompatibel | Grants `failed` (`partner_unavailable`, G-06), Saga `failed`; **kein** Release möglich. Nach Rückkehr des Partners: auditierter Retry (G-13) mit `get($key)` – `committed` → aktiv, `released`/`reservation_missing` → `revoked` |
 | TTL | `ttl_minutes = 26 h` > Retry-Fenster 24 h (CONNECTORS §2 letzter Absatz); TTL läuft beim Partner trotzdem ab → Gutschein wird dort frei, Course entzieht beim nächsten `get` |
 
-Kein Massenwiderruf bei Deaktivierung (ACCESS-09, R0-09 RF-15); E-93: bei abgelaufener Pro-Lizenz laufen Saga-Fortsetzung und Widerrufe weiter, neue Einlösungen sind gesperrt (`cc_feature_unavailable`).
+Kein Massenwiderruf bei Deaktivierung (ACCESS-09, R0-09 RF-15); E-93: bei abgelaufener Pro-Lizenz laufen Saga-Fortsetzung und Widerrufe weiter, neue Einlösungen sind gesperrt (`ccap_feature_unavailable`).
 
 ### 3.5 Fehlercode-Mapping (präzisiert R0-19 §3.4)
 
 | Voucher-Code | Schritt | Course-Code (HTTP) | `reason` | R | Grant-/Saga-Wirkung |
 |---|---|---|---|---|---|
-| `vcap_invalid_request` | S0–S4 | `cc_code_invalid` (422) | `invalid_request` | – | Saga `released`; **zusätzlich** Health-Fehlerklasse `validation` + Audit (Course-Fehler, nicht Nutzerfehler) |
-| `vcap_not_found` | S0/S2 | `cc_code_invalid` (422) | `unknown` | – | nichts |
-| `vcap_not_redeemable` | S0/S2 | `cc_code_invalid` (422) | `not_redeemable` (Ticket, Shop-only, `credit`, falscher Kanal) | – | nichts |
-| `vcap_insufficient_balance` | S0/S2 | `cc_code_invalid` (422) | `insufficient_balance` (nur Abwehr: Guthaben sind nach E-278 ausgeschlossen) | – | nichts |
-| `vcap_expired` / `vcap_cancelled` | S0/S2 | `cc_code_expired` (410) | `expired` / `voided` | – | nichts |
-| `vcap_cancelled` | S4 | `cc_code_expired` (410) | `voided` | – | Grants `revoked` `voucher_cancelled`, `release` |
-| `vcap_not_active` | S0/S2 | `cc_code_not_yet_valid` (422) | – | – | nichts |
-| `vcap_already_redeemed` | S2 | `duplicate` (200) **oder** `cc_code_already_used` (409) | – | – | Erfolg nur, wenn `get($key)` = `committed` für **diese** Saga |
-| `vcap_reserved` | S2 | `cc_code_in_progress` (409) | – | R (`retry_after: 30`) | nichts |
-| `vcap_target_unavailable` | S0/S2 | `cc_code_wrong_target` (422) | `target_unavailable` | – | nichts |
-| `vcap_not_allowed` | S0–S4 | `cc_code_not_allowed` (403) | – | – | nichts bzw. Saga `released` |
-| `vcap_idempotency_conflict` | S2 | `cc_idempotency_conflict` (409) | – | – | Saga `failed`, Audit (Manipulationsverdacht) |
-| `vcap_reservation_missing` | S4/S6 | – (Nutzer: `cc_not_found`, `reason: reservation_lost`) | – | – | Grants `revoked` `voucher_reservation_lost` |
-| `vcap_rate_limited` | S0/S2 | `cc_rate_limited` (429) | `details.bucket = code_redeem` | R | nichts |
-| `vcap_temporary_failure` | alle | `cc_temporarily_unavailable` (503) | `partner_unavailable` | R | Saga bleibt, Retry mit **gleichem** Schlüssel |
-| `vcap_not_committed` | Refund (Betreiberaktion E-283) | `cc_partner_error` (502) | `partner_code` | – | keine |
+| `vcap_invalid_request` | S0–S4 | `ccap_code_invalid` (422) | `invalid_request` | – | Saga `released`; **zusätzlich** Health-Fehlerklasse `validation` + Audit (Course-Fehler, nicht Nutzerfehler) |
+| `vcap_not_found` | S0/S2 | `ccap_code_invalid` (422) | `unknown` | – | nichts |
+| `vcap_not_redeemable` | S0/S2 | `ccap_code_invalid` (422) | `not_redeemable` (Ticket, Shop-only, `credit`, falscher Kanal) | – | nichts |
+| `vcap_insufficient_balance` | S0/S2 | `ccap_code_invalid` (422) | `insufficient_balance` (nur Abwehr: Guthaben sind nach E-278 ausgeschlossen) | – | nichts |
+| `vcap_expired` / `vcap_cancelled` | S0/S2 | `ccap_code_expired` (410) | `expired` / `voided` | – | nichts |
+| `vcap_cancelled` | S4 | `ccap_code_expired` (410) | `voided` | – | Grants `revoked` `voucher_cancelled`, `release` |
+| `vcap_not_active` | S0/S2 | `ccap_code_not_yet_valid` (422) | – | – | nichts |
+| `vcap_already_redeemed` | S2 | `duplicate` (200) **oder** `ccap_code_already_used` (409) | – | – | Erfolg nur, wenn `get($key)` = `committed` für **diese** Saga |
+| `vcap_reserved` | S2 | `ccap_code_in_progress` (409) | – | R (`retry_after: 30`) | nichts |
+| `vcap_target_unavailable` | S0/S2 | `ccap_code_wrong_target` (422) | `target_unavailable` | – | nichts |
+| `vcap_not_allowed` | S0–S4 | `ccap_code_not_allowed` (403) | – | – | nichts bzw. Saga `released` |
+| `vcap_idempotency_conflict` | S2 | `ccap_idempotency_conflict` (409) | – | – | Saga `failed`, Audit (Manipulationsverdacht) |
+| `vcap_reservation_missing` | S4/S6 | – (Nutzer: `ccap_not_found`, `reason: reservation_lost`) | – | – | Grants `revoked` `voucher_reservation_lost` |
+| `vcap_rate_limited` | S0/S2 | `ccap_rate_limited` (429) | `details.bucket = code_redeem` | R | nichts |
+| `vcap_temporary_failure` | alle | `ccap_temporarily_unavailable` (503) | `partner_unavailable` | R | Saga bleibt, Retry mit **gleichem** Schlüssel |
+| `vcap_not_committed` | Refund (Betreiberaktion E-283) | `ccap_partner_error` (502) | `partner_code` | – | keine |
 | `vcap_refund_exceeded` | Refund (Betreiberaktion E-283) | Ergebnis `unchanged` (200) | – | – | keine (bereits vollständig zurückgegeben) |
-| alles Übrige | – | `cc_partner_error` (502) | `partner_code` | nach `retryable` | Saga unverändert, Health `partner_error` |
+| alles Übrige | – | `ccap_partner_error` (502) | `partner_code` | nach `retryable` | Saga unverändert, Health `partner_error` |
 
-Delta zu R0-19 §3.2/§3.4: `cc_code_invalid` bekommt das `reason`-Enum `unknown|not_redeemable|insufficient_balance|invalid_request`, `cc_code_expired` `expired|voided` (Δ40-4). Nutzertexte bleiben neutral (kein Existenzorakel, K-14).
+Delta zu R0-19 §3.2/§3.4: `ccap_code_invalid` bekommt das `reason`-Enum `unknown|not_redeemable|insufficient_balance|invalid_request`, `ccap_code_expired` `expired|voided` (Δ40-4). Nutzertexte bleiben neutral (kein Existenzorakel, K-14).
 
 ### 3.6 Voucher-Ereignisse nach der Einlösung
 
@@ -240,15 +242,15 @@ Jeder Woo-Hook (`woocommerce_order_status_changed`, `woocommerce_payment_complet
 | Woo-Status / Lage | Soll | `reason_code` | Bemerkung |
 |---|---|---|---|
 | `checkout-draft` | nichts | – | – |
-| `pending` (Zahlung offen) | `pending_confirmation` | `awaiting_payment` | kein Pending-Timeout (Beschluss E-276); Zugang erst bei Zahlung; Dashboard-Hinweis bei > 7 Tagen |
-| `on-hold` ohne `date_paid` (z. B. Überweisung) | `pending_confirmation` | `awaiting_payment` | dto. |
+| `pending` (Zahlung offen) | **nichts** (kein Grant, E-293) | – | kein Pending-Timeout (E-276); Grant entsteht erst bei Zahlung; Dashboard-Hinweis bei > 7 Tagen offener Bestellung (ohne Grant) |
+| `on-hold` ohne `date_paid` (z. B. Überweisung) | **nichts** (kein Grant, E-293) | – | dto. |
 | bezahlter Status (`wc_get_is_paid_statuses()`), Zustimmung erfüllt | `active` | `order_paid` | Laufzeit ab `date_paid` (R0-09 §3.3) |
 | bezahlter Status, Zustimmung § 356 Abs. 5 BGB fehlt (E-33-Gate) | `pending_confirmation` | `consent_missing` | Freischaltung nach Zustimmung (`consent_given`) |
 | `on-hold` mit `date_paid` | `suspended` | `payment_disputed` | Rückkehr in bezahlten Status → `active` (G-09) |
 | Dispute-Fall offen (§4.4) | `suspended` | `payment_disputed` | unabhängig vom Status, solange ein Fall offen ist |
-| `failed` ohne `date_paid` | `revoked` | `payment_failed` | RF-13 |
+| `failed` ohne `date_paid` | nichts (kein Grant vorhanden, E-293) | – | RF-13 |
 | `failed` mit `date_paid` | `revoked` | `chargeback_lost` | entspricht Affiliate-Default `wpac_wc_chargeback_statuses = ['failed']` |
-| `cancelled` | `revoked` | `order_cancelled` | auch bei Regel `keep` (RF-11/12) |
+| `cancelled` | `revoked`, falls nach Zahlung ein Grant besteht; vor Zahlung kein Grant (E-293) | `order_cancelled` | auch bei Regel `keep` (RF-11/12) |
 | `refunded` | `revoked` | `order_refunded` | außer Regel `keep` (RF-02) |
 | Teilrefund | je Position nach §4.3 | `item_refunded` | – |
 | Position entfernt | `revoked` | `item_removed` | RF-14 |
@@ -280,9 +282,9 @@ Manuelle Bestellaktionen (abgleichen, vor Zahlung freischalten, aussetzen, aufhe
 | Fall-Automat je `(gateway, case_id)` | `opened`/`updated` → offen; `won` / `lost` → abgeschlossen und **endgültig**; zwischen Ergebnissen gilt das jüngere `event_time`; älteres Ereignis nach Abschluss → `stale_event`; Fenster −60 Tage/+1 Tag |
 | Speicherort | Fallstand als Bestell-Meta `_ccap_disputes` (über CRUD, gehört zur Bestellung) → fließt in den Snapshot (`disputeState`, Δ40-5) |
 | Grant-Wirkung | offen → `suspended` (`payment_disputed`); `won` und kein weiterer offener Fall → `active` (`dispute_won`); `lost` → `revoked` (`chargeback_lost`) |
-| Woo-Status | **Beschluss E-275:** der Adapter setzt den Woo-Status, damit auch Affiliate die Provision storniert: `lost` → `refunded` bzw. `cancelled`; `opened` → `on-hold`, `won` → vorheriger bezahlter Status (Empfehlung aus D40-1); nur aus passendem Ausgangsstatus, idempotent, mit Bestellnotiz |
-| Lock | L2 `grant-source:woo_order:<id>` (statt LB-eigener Dispute-Sperre); belegt → `409 cc_resource_busy`, Gateway wiederholt |
-| Fehler | Signatur ungültig → `401 cc_signature_invalid` (Audit max. 1 × je 10 min); Secrets nach E-87 (Konstanten haben Vorrang, nie angezeigt) |
+| Woo-Status | **Beschluss E-275:** der Adapter setzt den Woo-Status, damit auch Affiliate die Provision storniert: `lost` → `refunded`, wenn Geld zurückgebucht wurde, `cancelled` nur bei Storno vor Zahlung (**E-295**); `opened` → `on-hold`, `won` → vorheriger bezahlter Status (Empfehlung aus D40-1); nur aus passendem Ausgangsstatus, idempotent, mit Bestellnotiz |
+| Lock | L2 `grant-source:woo_order:<id>` (statt LB-eigener Dispute-Sperre); belegt → `409 ccap_resource_busy`, Gateway wiederholt |
+| Fehler | Signatur ungültig → `401 ccap_signature_invalid` (Audit max. 1 × je 10 min); Secrets nach E-87 (Konstanten haben Vorrang, nie angezeigt) |
 | Finanzen | Course bucht nichts; Rückbuchung/Halten der Provision nur über den Woo-Status (E-275) bzw. durch das Gateway-Plugin; der Adapter ruft nie `wc_create_refund` (FIN-INV-02) |
 
 ### 4.5 Auto-Produkte (E-34)
@@ -362,19 +364,20 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 | FIN-005 | I | Dispute-Webhook mit gleicher Event-ID 3 × | 1 Fallübergang, 2 × `202 duplicate` | R3-03, R3-19 |
 | FIN-006 | I | Outbox-Replay `grant.activated` (IA-03) | gleiche `event_id`; Consumer dedupliziert; kein neuer Grant | R3-19 |
 | FIN-007 | I | Backfill: Reconcile über 500 bestehende Bestellungen nach Connector-Freigabe | nur fehlende Grants, keine Duplikate, keine Provision | R3-03, R3-19 |
+| FIN-008 | I | Woo-Bestellung `pending`, dann `on-hold` ohne `date_paid`, dann `cancelled`; zweite Bestellung `pending` → bezahlt | erste Bestellung: 0 `ccap_grant`, 0 `grant.*`-Events, Woo-Status `cancelled`; zweite: genau 1 Grant erst bei Zahlung, direkt `active` (E-293, E-295) | R3-02, R3-03 |
 
 ### 6.2 Race bei der Einlösung
 
 | ID | Art | Gegeben / Aktion | Erwartung | Ziel |
 |---|---|---|---|---|
-| FIN-010 | P | zwei Konten lösen denselben Einmalgutschein gleichzeitig ein | genau 1 `committed`; anderes Konto `cc_code_in_progress` bzw. `cc_code_already_used`; 1 Grant-Satz | R3-05 |
+| FIN-010 | P | zwei Konten lösen denselben Einmalgutschein gleichzeitig ein | genau 1 `committed`; anderes Konto `ccap_code_in_progress` bzw. `ccap_code_already_used`; 1 Grant-Satz | R3-05 |
 | FIN-011 | P | ein Konto, zwei Tabs, gleicher Code | gleicher Schlüssel (LV-Lock), 1 Grant-Satz | R3-05 |
 | FIN-012 | I | TTL läuft zwischen S3 und S4 ab (Zeit vorstellen) | `vcap_reservation_missing` → Grants `revoked` `voucher_reservation_lost`; Neuversuch mit Schlüssel `n+1` | R3-04, R3-05 |
 | FIN-013 | I | Gutscheinkauf wird während offener Reservierung erstattet | `commit` → `vcap_cancelled`; Grants `revoked`, `release` | R3-05 |
 | FIN-014 | I | Prozessabbruch nach `reserve`, vor S3 | Retry: `get` = `reserved` → S3/S4; kein Doppelverbrauch; DB enthält keinen Klarcode | R3-04 |
 | FIN-015 | I | Prozessabbruch nach `commit`, vor S5 | Retry: `get` = `committed` → Grants `active`; Nutzer sieht bis dahin „wird aktiviert“ | R3-04 |
 | FIN-016 | I | `vcap_temporary_failure` bei `reserve` und bei `commit` (erzwungener Ausfall) | Saga bleibt, Retry mit gleichem Schlüssel; Integrationsstatus `degraded` | R3-04, R3-19 |
-| FIN-017 | I | gleicher Schlüssel, anderer Nutzer (manipuliert) | `cc_idempotency_conflict`; kein Grant | R3-05 |
+| FIN-017 | I | gleicher Schlüssel, anderer Nutzer (manipuliert) | `ccap_idempotency_conflict`; kein Grant | R3-05 |
 | FIN-018 | I | Kursgutschein mit Kanal `shop` konfiguriert; Einlöseversuch im Warenkorb und extern | Warenkorb weist den Kursgutschein ab, Diagnosewarnung (E-279); externe Einlösung erzeugt genau 1 Zugang; Gutscheinprodukt mit Kursmapping wird beim Speichern abgewiesen (FIN-INV-05) | R3-05 |
 | FIN-019 | I | Zieltyp B: Produktmapping wird zwischen `reserve` und `commit` geändert | Grants nach eingefrorener Zielliste | R3-04 |
 
@@ -397,10 +400,10 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 |---|---|---|---|---|
 | FIN-030 | I | PayPal `opened` (gültige Signatur) | Grants `suspended` `payment_disputed`; Woo-Status `on-hold`; Bestellnotiz | R3-03 |
 | FIN-031 | I | danach `won` | Grants `active` `dispute_won`; Affiliate gibt Provision frei | R3-03, R3-19 |
-| FIN-032 | I | danach `lost`, Lernender hat Zertifikat | Grants `revoked` `chargeback_lost`; Woo-Status `refunded`/`cancelled` (E-275); Zertifikat `issued`; Affiliate 1 Rückbuchung; 0 Course-Affiliate-Aufrufe | R3-03, R3-19 |
+| FIN-032 | I | danach `lost`, Lernender hat Zertifikat | Grants `revoked` `chargeback_lost`; Woo-Status `refunded` (Geld zurückgebucht, E-275/E-295); Zertifikat `issued`; Affiliate 1 Rückbuchung; 0 Course-Affiliate-Aufrufe | R3-03, R3-19 |
 | FIN-033 | I | zwei Fälle, einer `won`, einer offen | bleibt `suspended` | R3-03 |
 | FIN-034 | I | `won` (jünger) trifft vor `opened` (älter) ein | Fall endgültig `won`, `opened` → `stale_event` | R3-03 |
-| FIN-035 | I | ungültige Signatur / falsche `cert_url` / zu alt | `401 cc_signature_invalid` bzw. abgewiesen; keine Wirkung; Audit gedrosselt | R3-03 |
+| FIN-035 | I | ungültige Signatur / falsche `cert_url` / zu alt | `401 ccap_signature_invalid` bzw. abgewiesen; keine Wirkung; Audit gedrosselt | R3-03 |
 | FIN-036 | I | `lost` nach bereits erfolgtem Vollrefund | keine Änderung (`revoked` bleibt), kein zweites Event | R3-03 |
 | FIN-037 | I | Klarna-Konflikt manuell gemeldet (Bestellaktion) | gleicher Pfad wie Webhook; Capability + Begründung + Audit | R3-03 |
 | FIN-038 | I | Transaktions-ID ohne exakten Treffer | `202`, Audit `dispute_unmatched`, keine Wirkung | R3-03 |
@@ -412,8 +415,8 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 | FIN-040 | I | Voucher Captain wird bei Saga `reserved` deaktiviert; 24 h vergehen | Grants `failed` `partner_unavailable`; nach Reaktivierung Retry (G-13): `committed` → aktiv, sonst `revoked` | R3-04, R3-19 |
 | FIN-041 | I | WooCommerce deaktiviert, Bestellungen ändern sich nicht; Reaktivierung | kein Widerruf; Reconcile ab Deaktivierungszeitpunkt ohne Duplikate (CORE-12) | R3-03, R3-19 |
 | FIN-042 | I | Affiliate Captain deaktiviert/fehlt | Course-Grants unverändert; kein Fehler, keine Abhängigkeit | R3-19 |
-| FIN-043 | I | Pro-Lizenz abgelaufen (E-93) | Woo-Grants/Widerrufe und Saga-Fortsetzung laufen; neue Einlösung `cc_feature_unavailable` | R3-19 |
-| FIN-044 | I | Voucher Captain 1.0.x aktiv | `active_incompatible`; Einlöse-UI `cc_feature_unavailable`; bestehende Voucher-Grants unverändert | R3-19 |
+| FIN-043 | I | Pro-Lizenz abgelaufen (E-93) | Woo-Grants/Widerrufe und Saga-Fortsetzung laufen; neue Einlösung `ccap_feature_unavailable` | R3-19 |
+| FIN-044 | I | Voucher Captain 1.0.x aktiv | `active_incompatible`; Einlöse-UI `ccap_feature_unavailable`; bestehende Voucher-Grants unverändert | R3-19 |
 | FIN-045 | I | Haltemodus (E-85) während Refund | Grant-Übergang erfolgt, Outbox-Zustellung bleibt `pending` | R3-19 |
 | FIN-046 | I | Woo-Hook verloren (simuliert), Reconcile-Lauf | fehlender Übergang wird nachgeholt | R3-03 |
 
@@ -457,8 +460,8 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 
 | ID | Art | Gegeben / Aktion | Erwartung | Ziel |
 |---|---|---|---|---|
-| FIN-080 | I | FakeMembershipAdapter: aktiv → pausiert → aktiv → abgelaufen → reaktiviert | `active` → `suspended` → `active` → `expired` → neue Revision | R3-19 (Adapter-Task fehlt, Δ40-6) |
-| FIN-081 | I | Abo-Produkt im Woo-Mapping, das ein Membership-Adapter beansprucht | Mapping abgewiesen; Abo-Verlängerung erzeugt keinen `woo_order`-Grant | R3-02, R3-19 |
+| FIN-080 | I | FakeMembershipAdapter: aktiv → pausiert → aktiv → abgelaufen → reaktiviert | `active` → `suspended` → `active` → `expired` → neue Revision | R3-20 (E-301) |
+| FIN-081 | I | Abo-Produkt im Woo-Mapping, das ein Membership-Adapter beansprucht | Mapping abgewiesen; Abo-Verlängerung erzeugt keinen `woo_order`-Grant | R3-02, R3-20 |
 
 ---
 
@@ -488,9 +491,9 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 | Δ40-1 | R0-06 `ccap_grant`, R0-09 §2.2, ENTSCHEIDUNGEN E-27 (Folgetext) | `module_id bigint unsigned NOT NULL DEFAULT 0` (0 = ganzer Kurs) statt NULL; Unique `grant_source` um `module_id` erweitern; gleiches für `ccap_group` (`group_source`) bei Modul-Gruppenprodukten | eingearbeitet (R0-06 §4.4, R0-09 §2.2; Modul in `ccap_group_course` statt `group_source`) |
 | Δ40-2 | R0-06 (Pro-Schema), R0-39 | Tabelle `ccap_source_saga` (§3.2) im Pro-Add-on; Retention wie Inbox (E-116, `failed` bis Klärung + 90 Tage) | eingearbeitet (R0-06 §4.10) |
 | Δ40-3 | R0-36 §3.3 Nr. 2 | „Grant aktiv geschrieben → commit“ ersetzen durch „Grants `pending_confirmation` → commit → `active`“ (R0-09 §2.2 gilt) | an R0-36 übergeben |
-| Δ40-4 | R0-19 §3.2/§3.4 | `reason`-Enums für `cc_code_invalid` und `cc_code_expired`; Mapping `vcap_insufficient_balance`, `vcap_not_committed`, `vcap_refund_exceeded`; `vcap_invalid_request` zusätzlich als Health-Klasse `validation` | eingearbeitet (R0-19 §3.4) |
+| Δ40-4 | R0-19 §3.2/§3.4 | `reason`-Enums für `ccap_code_invalid` und `ccap_code_expired`; Mapping `vcap_insufficient_balance`, `vcap_not_committed`, `vcap_refund_exceeded`; `vcap_invalid_request` zusätzlich als Health-Klasse `validation` | eingearbeitet (R0-19 §3.4) |
 | Δ40-5 | R0-19 §5.8 `SourceSnapshot` | Felder `disputeState: none|open|won|lost` und `lines[].frozenTargets[]` (`courseUid`, `moduleUid|0`, `scopes`) | eingearbeitet (R0-19 §5.8) |
-| Δ40-6 | TODO/R0-24 | eigene R3-Task „Membership-Adapter (E-203)“ fehlt; FIN-080/081 bis dahin unter R3-19 | offen (Task fehlt im TODO) |
+| Δ40-6 | TODO/R0-24 | eigene R3-Task „Membership-Adapter (E-203)“; FIN-080/081 Ziel R3-20 | **erledigt durch E-301** (R3-20 im TODO aufgenommen) |
 | Δ40-7 | R0-09 §5 | RF-Zeilen um FR-08…FR-10 (Dispute über Webhook) und FR-12…FR-16 (Voucher-Saga) ergänzen; RF-15 „gelöscht“ als bewusste LB-Abweichung (E-55-Liste) | an R0-09 §5 übergeben (Verweis auf §5 dieses Dokuments) |
 | Δ40-8 | R0-09 §6.1 | Lock LV `voucher-code:<code_hmac>` zwischen L1 und L2 | eingearbeitet (R0-09 §6.1) |
 | Δ40-9 | Konzept Kap. 30.2 (Affiliate-Zeile), Kap. 45 (Voucher-API) | redaktionell: „Course meldet keine Verkäufe“ (E-37); Kurs-Einlösung nur `vcap()->redemptions` | redaktionell offen (Konzept) |

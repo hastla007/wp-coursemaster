@@ -83,7 +83,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | `enrollment.invite_valid_days` | 30 | Sec, S: Token-Lebensdauer begrenzt; Adresse 30 d nach Ablauf gelöscht | lange Fristen verlängern Token-Missbrauch und Adresshaltung | – ; Hinweis ab > 90 Tagen | ja | **Δ-2** (Hinweistext) |
 | `enrollment.claim_policy` | `transferable` (E-28) | Sec: Link ist kein Identitätsbeweis (R0-09 §1.2); `invited_address_only` ist strenger | keins (strenger) | – | ja | ok, Hilfetext nach PD-5 |
 | `WP:default_role` | `subscriber` | Sec: keine Rechte über `read`; Health-Warnung bei `edit_posts`, `promote_users`, `ccap_*` | Eskalation, wenn Registrierung offen ist | WP-Kern | nein (WP) | ok |
-| `roles.cap_assignments` | nur `administrator` + vier `cc_`-Rollen; `ccap_support` ohne #14 (E-83, E-144) | Z, Sec: Least Privilege | Hochrisiko-Caps #14, #19…#24 an weitere Rollen öffnen fremde Antworten bzw. Administration | R mit Liste der Hochrisiko-Caps | ja (`role_caps_changed`) | ok |
+| `roles.cap_assignments` | nur `administrator` + vier `ccap_`-Rollen; `ccap_support` ohne #14 (E-83, E-144) | Z, Sec: Least Privilege | Hochrisiko-Caps #14, #19…#24 an weitere Rollen öffnen fremde Antworten bzw. Administration | R mit Liste der Hochrisiko-Caps | ja (`role_caps_changed`) | ok |
 | `certificates.auto_issue` | false | M: Nachweis erst bei definierter Abschlussregel | Ausstellung mit Personendaten im Snapshot | – | ja | ok |
 | `certificates.holder_name_policy` | `learner_opt_in`, je Nachweis aus (E-97) | Z: Verifikation zeigt ohne Freigabe nur Status, Aussteller, Kurs, Datum, Initialen | `never` ist strenger; es gibt keinen Wert „immer öffentlich“ | – | ja | ok |
 | `emails.from_name` | leer = WP erben | M: keine zweite Kopie; Klasse `personal` | kann Personennamen enthalten → Export nur per Opt-in | – | ja („geändert“) | ok |
@@ -277,7 +277,7 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 
 | Nr. | Gegenstand | Default | Regel | Test |
 |---|---|---|---|---|
-| RB-1 | Aktivierung | Caps nur für `administrator` (alle 24) und die vier `cc_`-Rollen nach R0-07 §3.1 (E-83) | `editor`, `author`, `contributor`, `shop_manager` erhalten keine `ccap_*`-Cap | RBAC-097, PSD-034 |
+| RB-1 | Aktivierung | Caps nur für `administrator` (alle 24) und die vier `ccap_`-Rollen nach R0-07 §3.1 (E-83) | `editor`, `author`, `contributor`, `shop_manager` erhalten keine `ccap_*`-Cap | RBAC-097, PSD-034 |
 | RB-2 | Lernende | WP `subscriber`, keine `ccap_*`-Cap | Zugang nur über Grant (E-84) | SET-080 |
 | RB-3 | Support | `ccap_support` ohne #14 (E-144) | fremde Antworten nie im Standard; Versuchsdetails nur mit #14 und Pflichtbegründung (E-82) | SET-082 |
 | RB-4 | Hochrisiko-Caps | #14, #19…#24 | Vergabe an andere Rollen nur durch `administrator`, R-Dialog mit Liste, Audit `role_caps_changed` | PSD-035 |

@@ -63,7 +63,7 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 | **FG-09** | Free sendet **keine ausgehenden HTTP-Requests** an Dritte, außer an ausdrücklich konfigurierte Ziele (z. B. Mail über `wp_mail`). Ausgehende Webhooks sind Pro (`course.webhooks`). | Laufzeit-Guard LG | R0-36 §5.3 (ZF6-Vorbild), E-210 |
 | **FG-10** | Free-Uninstall löscht **nur eigene Namen**: exakte Optionsnamen aus dem Uninstall-Manifest bzw. `course_captain_settings_*`, nie das Muster `course_captain_%`. Begründung: Der License-Client legt mit `option_prefix = course_captain_pro` die Optionen `course_captain_pro_license`, `…_license_state`, `…_license_pending`, `…_update_meta` an (CI:124, :206, :261, :310); ein Platzhalter-Löschen würde Aktivierung und Snapshot zerstören. | LIC-063 | R0-16, E-89 |
 | **FG-11** | Free führt eine **neutrale, persistente Erweiterungsliste** (`course_captain_extensions_seen`: Slug, Name, Version, „hat Daten“, zuletzt gesehen). Eine Erweiterung trägt sich über die Registry ein; Free speichert **keinen Lizenzstatus**. Damit kann Free ohne laufenden Pro-Code „Erweiterung inaktiv, Daten vorhanden“ anzeigen (R0-29 Z-22, L4/L5). | LIC-012 | ER-5, R0-29 §3.2 |
-| **FG-12** | Free kennt Pro-Tabellen nicht namentlich. Neutrale Free-Felder, die nur Pro beschreibt (z. B. `cc_group.parent_group_id`, Delegationen, R0-29 Δ-1/GR-3), sind ohne Pro **wirkungslos, nicht gelöscht**. | DI-1, R0-29 GRP-045/046 | R0-29 GR-3 |
+| **FG-12** | Free kennt Pro-Tabellen nicht namentlich. Neutrale Free-Felder, die nur Pro beschreibt (z. B. `ccap_group.parent_group_id`, Delegationen, R0-29 Δ-1/GR-3), sind ohne Pro **wirkungslos, nicht gelöscht**. | DI-1, R0-29 GRP-045/046 | R0-29 GR-3 |
 
 ### 1.2 Statischer CI-Guard (Free)
 
@@ -92,7 +92,7 @@ Erweitert R0-18 §2.5 (dort 7 Musterzeilen) um G-7 (breit wie A2), G-8, G-9, G-1
 
 ### 1.3 Laufzeit-Guard (Free)
 
-- **LG-1:** In PHPUnit-Integration und Playwright-E2E (R1) hängt ein Test-MU-Plugin an `pre_http_request` und **schlägt fehl** bei jedem Request, der nicht auf der Allowlist steht (leer; WordPress-Core-eigene Update- und Übersetzungsabfragen sind über `WP_HTTP_BLOCK_EXTERNAL` blockiert und zählen nicht). Abgedeckt: Aktivierung, Setup-Assistent, Kurs anlegen/veröffentlichen, Lernfluss, Prüfung, Zertifikat, Import, Cron-Läufe `cc_hourly`/`cc_migrate`, Uninstall.
+- **LG-1:** In PHPUnit-Integration und Playwright-E2E (R1) hängt ein Test-MU-Plugin an `pre_http_request` und **schlägt fehl** bei jedem Request, der nicht auf der Allowlist steht (leer; WordPress-Core-eigene Update- und Übersetzungsabfragen sind über `WP_HTTP_BLOCK_EXTERNAL` blockiert und zählen nicht). Abgedeckt: Aktivierung, Setup-Assistent, Kurs anlegen/veröffentlichen, Lernfluss, Prüfung, Zertifikat, Import, Cron-Läufe `ccap_hourly`/`ccap_migrate`, Uninstall.
 - **LG-2:** Dieselbe Suite läuft mit installiertem, aber **nicht aktiviertem** und mit **aktiviertem, unlizenziertem** Pro-Add-on. Free-Ergebnisse (Statuscodes, Antworten ohne Zeitstempel und IDs, Free-Prüfsumme DI-1) bleiben gleich (FG-05).
 
 ---
@@ -109,7 +109,7 @@ Erweitert R0-18 §2.5 (dort 7 Musterzeilen) um G-7 (breit wie A2), G-8, G-9, G-1
 | Unveränderte Kopie | verboten (nur für Experimente gedacht; die zuerst geladene Kopie gewinnt) | CI:38-44 |
 | Optionspräfix | `course_captain_pro` (Default aus dem Produktschlüssel); Pro-Settings im Register als `pro.*` (R0-27) gespeichert unter `course_captain_pro_settings_*` | CI:124, R0-27 |
 | Tabellen, Caps, Cron | eigene Präfixe `ccap_pro_*` (Tabellen), Cron-Hooks `ccap_pro_*` (E-207); der License-Client legt zusätzlich `course_captain_pro_license_check` an | E-207, CI:323 |
-| REST | eigener Namespace `course-captain-pro/v1`; Fehlercode `cc_pro_license_required` (403) gehört in den **Pro**-Fehlerkatalog, nicht in den Free-Katalog R0-19 §3 (Δ-5) | R0-11 F5.5 |
+| REST | eigener Namespace `course-captain-pro/v1`; Fehlercode `ccap_pro_license_required` (403) gehört in den **Pro**-Fehlerkatalog, nicht in den Free-Katalog R0-19 §3 (Δ-5) | R0-11 F5.5 |
 | Plugin-Kopf | `Plugin Name: Course Captain Pro`, `Version` = `version` in `license-config.php` (sonst lehnt der Release-Server ab), `Requires at least`/`Requires PHP` = Free-Minimum (R0-20), `Text Domain: course-captain-pro`, **`Update URI: https://<license-host>/course-captain-pro`**, **`Requires Plugins: course-captain`** (Slug nach E-205), `License: GPL-2.0-or-later` (E-213) | CI:119-125, Starter-README |
 | ZIP | genau ein Ordner `course-captain-pro/`; Release über `wp wplc release create --product=course-captain-pro …` oder Manifest (`tools/create-release-manifest.php`), `requires_core` = niedrigste unterstützte Free-Version (§2.6) | CI:361-365, UP:127-166 |
 | Build-Ort | **`captain-pro/addons/course-captain-pro/`** (E-273, Konzept-Plan; abweichend von License `CLIENT-REPOS.md:23`). Voraussetzung: Zugriff auf `captain-pro` (XB-5) | E-273, R0-36 §6/§7.2 |
@@ -127,7 +127,7 @@ Erweitert R0-18 §2.5 (dort 7 Musterzeilen) um G-7 (breit wie A2), G-8, G-9, G-1
 ### 2.3 Lizenzseite, Hinweise, Datenschutz
 
 - **Ort:** Untermenü „Pro-Lizenz“ im Course-Captain-Menü (`settings_parent => false`, eigene Seite ruft `render_settings()`, `settings_url` gesetzt; Hook `course_captain_admin_menu_built_v1`) (CI:156-157, R0-27 K43-52/SET-128).
-- **Recht:** `manage_options` (Library-Default). Die Lizenz ist eine Site-Einstellung; `cc_*`-Caps reichen nicht (E-83: nur `administrator` erhält Caps).
+- **Recht:** `manage_options` (Library-Default). Die Lizenz ist eine Site-Einstellung; `ccap_*`-Caps reichen nicht (E-83: nur `administrator` erhält Caps).
 - **Hinweise** kommen aus der Library (`grace`, `expired`, `suspended`, `revoked`, `inactive`, `deactivated`, `site_changed`, `stale`, `misconfigured`, Server länger als 3 Tage nicht erreichbar, CI:322). Zusätzlich zeigt Pro ein **Course-spezifisches Banner** in Pro-Bereichen (Z-P, R0-29 GR-6) und einen Eintrag im Slot `diagnostics` mit der Liste der eingefrorenen Regeln.
 - **Datenschutz:** `privacy_text()` der Library wird übernommen und um den Satz ergänzt: „Es werden keine Kurs-, Lern-, Prüfungs- oder Teilnehmerdaten gesendet.“ Gesendet werden nur die Felder aus CI:346. Prüfung: LIC-085.
 - **Konfigurationswerte** (`server_url` mit Konstante `COURSE_CAPTAIN_PRO_LICENSE_SERVER`, `public_keys` gepinnt, `account_url`, `update_uri`, `core_version`, `channel = stable`) stehen in `license-config.php`, die Hauptdatei und `uninstall.php` gemeinsam nutzen (CI:50-66). Release-Builds definieren **nie** `COURSE_CAPTAIN_PRO_LICENSE_DEV` (CI:136; Pro-Guard PG-5).
@@ -159,7 +159,7 @@ Erweitert R0-18 §2.5 (dort 7 Musterzeilen) um G-7 (breit wie A2), G-8, G-9, G-1
 | K-12 | `course.webhooks` | ausgehende Webhooks | Kap. 6 | interne Outbox (E-38) | R3-08 |
 | K-13 | `course.custom_activities` | zusätzliche Activity-Typen | Kap. 6 | Basis-Activities | R3-08 |
 | K-14 | `course.frontend_builder` | Frontend-Kurs-Builder | **neu** (N-03) | Admin-Editor | R3-08 |
-| K-15 | `course.multi_instructor` | mehrere Trainer je Kurs | **neu** (N-03) | Einzel-Eigentümer, `cc_trainer` (E-99) | R3-08 |
+| K-15 | `course.multi_instructor` | mehrere Trainer je Kurs | **neu** (N-03) | Einzel-Eigentümer, `ccap_trainer` (E-99) | R3-08 |
 | K-16 | `course.advanced_roles` | erweiterte Adminrollen, delegierte Rechte | **neu** (N-03) | Rollen R1 (R0-07) | R3-08 |
 | K-17 | `course.content_workflows` | geplante Veröffentlichung, mehrstufige Freigabe | **neu** (N-03) | Publish-Workflow R1 (R0-22) | R3-08 |
 | K-18 | `course.events` | öffentliche Course-Events und Read-API; Event-Speicherung ohne Abonnent 30 Tage (E-119), Freigabe personenbezogener Event-Klassen je Connector (E-120) | **neu** (E-38, E-95) | interne Outbox für Mails und Audit (E-182) | R3 |
@@ -192,7 +192,7 @@ Format nach `EntitlementCatalog::KEY_PATTERN` (`^[a-zA-Z0-9_.-]{1,120}$`) und EN
 | PG-1 | Kopf hat `Update URI`; der Host ist der stabile Lizenz-Host und nicht `wordpress.org`. `Version` = `license-config.php` `version` | CI:121-122 |
 | PG-2 | Client liegt unter `includes/licensing/`, Namespace `CourseCaptainPro\Licensing`, kein `WPLC\Client` (Prüfung wie `export-client.php`), `LicenseManager::VERSION` = gepinnte Version, Dateien byteweise gleich dem Export aus dem gepinnten Commit | `export-client.php`, CI:29-44 |
 | PG-3 | Kein Free-Code kopiert: kein `namespace CourseCaptain\` (ohne `Pro`), keine Free-Klassen- oder Funktionsdeklarationen `course_captain_*_v1` | R0-18 §2.5 |
-| PG-4 | Keine direkten Schreibzugriffe auf Free-Tabellen (`$wpdb->insert\|update\|delete\|query` auf `cc_*`/`ccap_*` außer `ccap_pro_*`); Schreiben nur über PHP-API v1 und die Dienste, die `course_captain_loaded_v1` übergibt (R0-29 CRT-040 verallgemeinert) | R0-29 Grundregel |
+| PG-4 | Keine direkten Schreibzugriffe auf Free-Tabellen (`$wpdb->insert\|update\|delete\|query` auf `ccap_*` außer `ccap_pro_*`); Schreiben nur über PHP-API v1 und die Dienste, die `course_captain_loaded_v1` übergibt (R0-29 CRT-040 verallgemeinert) | R0-29 Grundregel |
 | PG-5 | Kein `define( 'COURSE_CAPTAIN_PRO_LICENSE_DEV'` und kein Filter `course_captain_pro_license_public_keys` im Release-Build; `public_keys` nicht leer | CI:136 |
 | PG-6 | Kein `wp_remote_*` außerhalb von `includes/licensing/`, Webhook-Zustellung und Connector-Transport (Allowlist) | §2.3 |
 | PG-7 | Kein `is_entitled()` vor `init` und kein Lizenzaufruf im Frontend-Pfad (statisch: Aufrufer-Analyse; dynamisch: LIC-026) | CI:94-105 |
@@ -228,7 +228,7 @@ Format nach `EntitlementCatalog::KEY_PATTERN` (`^[a-zA-Z0-9_.-]{1,120}$`) und EN
 | Klasse | Pro-Code läuft | Neue Pro-Konfiguration/-Zuordnungen | Bestehende Pro-Konfiguration | Käuferschützende Vorgänge (E-93) | Pro-Jobs | Pro-Daten |
 |---|---|---|---|---|---|---|
 | **V** | ja | ja | wirkt | laufen | laufen | lesen/schreiben |
-| **E** | ja | **gesperrt** (403 `cc_pro_license_required`, Eingaben bleiben im Formular, R0-11 F5.5) | **wirkt eingefroren weiter** (E-94) | **laufen weiter** (Grant nach Zahlung, Widerruf nach Erstattung, Gutscheineinlösung, Reconcile, Abschluss offener Tutorbewertungen) | laufende enden regulär, neue nur, wenn sie zu E-93 gehören | lesen und exportieren |
+| **E** | ja | **gesperrt** (403 `ccap_pro_license_required`, Eingaben bleiben im Formular, R0-11 F5.5) | **wirkt eingefroren weiter** (E-94) | **laufen weiter** (Grant nach Zahlung, Widerruf nach Erstattung, Gutscheineinlösung, Reconcile, Abschluss offener Tutorbewertungen) | laufende enden regulär, neue nur, wenn sie zu E-93 gehören | lesen und exportieren |
 | **A** | nein | – | wirkt nicht; Free-Fallback (E-94) | keine (keine Hooks), Nachholen per Reconcile nach Reaktivierung | pausiert (Cursor bleibt) | bleiben unverändert in der DB |
 
 Für alle Klassen gilt: Free-Funktionen, Lernhistorie, Grants, Versuche, ausgestellte Zertifikate und Verifikation bleiben unverändert (CI:202, EN:11, CORE-10). Pro-Daten werden durch keinen Zustandswechsel gelöscht. Übergang E → V erfolgt ohne Neuaktivierung bei der nächsten signierten Antwort (täglicher Check oder „Jetzt prüfen“).
@@ -242,7 +242,7 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 | K-01 `explanations` | ausgeliefert nach Snapshot-Einstellung | **weiter ausgeliefert, eingefroren** (E-268); Einstellungen gesperrt, neue Erklärungen nicht anlegbar | nicht ausgeliefert; Texte bleiben gespeichert, Free zeigt richtig/falsch und Lösung nach E-147 |
 | K-02 `advanced_paths` | voll | Pfade lesbar, Regeln wirken, Ändern 403 | Pfadsperren entfallen, Zugang folgt den Grants (R0-11) |
 | K-03 `drip_campaigns` | voll | Regeln wirken eingefroren | nur Free-Drip; bereits freie Module bleiben frei (R0-29 Z-06) |
-| K-04 `advanced_assessment` | voll | Pro-Fragen bleiben spielbar, laufende Versuche enden regulär; neue Pro-Fragen und Veröffentlichen mit neuen Pro-Typen 403 | Pro-Fragen übersprungen bzw. Prüfung `cc_exam_not_startable` (R0-11) |
+| K-04 `advanced_assessment` | voll | Pro-Fragen bleiben spielbar, laufende Versuche enden regulär; neue Pro-Fragen und Veröffentlichen mit neuen Pro-Typen 403 | Pro-Fragen übersprungen bzw. Prüfung `ccap_exam_not_startable` (R0-11) |
 | K-05 `gradebook` | voll | lesend, CSV des letzten Stands; offene Bewertungen dürfen abgeschlossen werden (E-93) | unsichtbar, Daten bleiben |
 | K-06 `certificate_designer` | voll | Ausstellung mit zuletzt veröffentlichter Vorlage; PDF-Download bleibt (R0-29 Z-14/Z-16) | Basisvorlage, Fallback-Renderer (R0-29 Z-13) |
 | K-07 `groups_advanced` | voll | Delegierte lesen, schreiben 403 (R0-29 Z-03) | Delegationen wirkungslos, Untergruppen eigenständig (R0-29 Z-03/Z-04) |
@@ -274,7 +274,7 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 
 | Nr. | Invariante (MUSS) | Messung |
 |---|---|---|
-| **DI-1** | Free-Prüfsumme (R0-29 §3.3: `cc_group`, `cc_group_course`, `cc_seat`, `cc_grant`, `cc_certificate`, `cc_certificate_template`, `cc_course_staff`, erweitert um `cc_question`-Revisionen inkl. Erklärungstexte und `cc_attempt`) bleibt über jeden Übergang in §4.2 gleich. Ausnahme ist nur die dokumentierte L5D-Differenz. | sha256 vor/nach |
+| **DI-1** | Free-Prüfsumme (R0-29 §3.3: `ccap_group`, `ccap_group_course`, `ccap_seat`, `ccap_grant`, `ccap_certificate`, `ccap_certificate_template`, `ccap_course_staff`, erweitert um `ccap_question`-Revisionen inkl. Erklärungstexte und `ccap_attempt`) bleibt über jeden Übergang in §4.2 gleich. Ausnahme ist nur die dokumentierte L5D-Differenz. | sha256 vor/nach |
 | **DI-2** | Pro schreibt Free-Daten nur über Free-Domänendienste und die PHP-API v1. | PG-4, LIC-024 |
 | **DI-3** | Kein Lizenz- oder Pluginwechsel löscht Daten. Löschen gibt es nur über die bestätigte Uninstall-Option (L5D). | LIC-060…066 |
 | **DI-4** | Nach Reaktivierung gibt es keine Nachholmails, keine doppelten Grants oder Revisionen und keine rückwirkende Sperre freigeschalteter Module (R0-29 §3.3). | LIC-067/068 |
@@ -449,7 +449,7 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §40 und Beschlussprotokoll, 1
 | Δ-2 | R0-29 §3.1 Zeile L2 | „Grace (Server nicht erreichbar)“ → „Offline ≤ 14 d (Snapshot gültig)“; zusätzlich Zeile `grace` (Zahlung) mit Verhalten wie L1. GRP-065 entsprechend |
 | Δ-3 | R0-08 §4.5, R0-27 | `show_explanations` aus Free-Register entfernen → `pro.explanations.show` (E-20); Free behält Speicher und Export der Texte |
 | Δ-4 | R0-19 §5.8 (`DesiredGrant.grantSourceKey`), Konzept Kap. 7/31.2 („Enrollment/Entitlement-Service“) | `entitlement_revision` → `grant_revision`; im Free-Code kein Wort „entitlement“ (FG-07) |
-| Δ-5 | R0-19 §3 / R0-11 F5.5 | `cc_pro_license_required` im Pro-Fehlerkatalog, nicht im Free-Katalog |
+| Δ-5 | R0-19 §3 / R0-11 F5.5 | `ccap_pro_license_required` im Pro-Fehlerkatalog, nicht im Free-Katalog |
 | Δ-6 | R0-18 §2.5 | Musterliste durch G-1…G-14 ersetzen (u. a. G-7 breit wie A2, ohne Ausnahme), Guard-Selbsttest LIC-010 |
 | Δ-7 | R0-11 §1.3/N-03, Konzept Kap. 6 „Vorgesehene Pro-Entitlements“ | Liste K-01…K-19; `drip_content`, `certificates`, `groups` streichen; `course.explanations`, `course.events`, `course.connectors` ergänzen (E-95) |
 | Δ-8 | R0-35 §4 Zeile „Spezifikation der Grenze“ | Verweis auf dieses Dokument; RC-090…099 um LIC-Bezüge ergänzen |

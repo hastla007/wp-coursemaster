@@ -11,12 +11,12 @@ Alle Arbeitsannahmen und die Fragen D07-1…D07-7 sind entschieden (`ENTSCHEIDUN
 
 | Beschluss | Wirkung in diesem Dokument |
 |---|---|
-| **E-207** | Präfix `ccap_` für Caps, Rollen, CPTs, Tabellen, Meta und Cron (z. B. `ccap_trainer`, `ccap_learn`, `ccap_grant`); Fehlercodes, admin-post-/AJAX-Aktionen, Nonce-Namen, Shortcode und Cache-Gruppe behalten vorerst `cc_` (Offene Punkte) |
-| **E-27** | Zugang **je Modul**: M-02 prüft den effektiven Grant für Kurs **oder** Modul (`module_id`, NULL = ganzer Kurs) |
+| **E-207** | Präfix `ccap_` für Caps, Rollen, CPTs, Tabellen, Meta und Cron (z. B. `ccap_trainer`, `ccap_learn`, `ccap_grant`); nach **E-285** tragen auch Fehlercodes, admin-post-/AJAX-Aktionen, Nonce-Namen, Shortcode und Cache-Gruppe `ccap_`; nur die Fixture-Konten `cc_fx_*` (Testdaten) behalten ihren Namen |
+| **E-27**, **E-286**, **E-287** | Zugang **je Modul**: M-02 prüft den effektiven Grant für Kurs **oder** Modul (`module_id`, 0 = ganzer Kurs); Scopes `view/download/exam` gelten innerhalb des Moduls; Zusatz-Grants hängen am effektiven Zugang zum Basiskurs |
 | **E-38** | Öffentliche Read-API, öffentliche Events und Connector-Registry sind **Pro** (R3); in R1 gibt es keine registrierten Connectoren (§4.8) |
 | **E-39**, E-39b | Schreibende Workflow-Aktionen in v1 über die Grant-Quelle `workflow` mit Idempotenz und Audit, im Course-Pro-Connector (§4.8) |
 | **E-10**, E-239, E-262 | Website-Härtung (R1-45) im Free-Kern; Einstellungen im Tab „Website-Härtung“ über #19 (§4.10) |
-| **E-168** | Text-/Dateiaufgaben mit Bewertung in R1 (R1-46): Bewertung über #15/M-10, Abgabe nur durch den eigenen Nutzer (§4.10) |
+| **E-168**, **E-288** | Text-/Dateiaufgaben mit Bewertung in R1 (R1-46): Trainer, Autor und Kursmanager **des Kurses** bewerten (Note/bestanden, Feedback, Rückgabe) über M-10a; Abgabe nur durch den eigenen Nutzer (§4.10); Gradebook/Tutor-Workflows Pro |
 | **E-20**, E-147 | Lösungserklärungen nur mit Pro; M-09 liefert in Free richtig/falsch und nach Einstellung die richtige Antwort |
 | **E-232** | Fortschrittseinsicht des Gruppenbesitzers nur mit Pro als Opt-in (M-16) |
 | E-140 | Audit-Export Free (§4.9) |
@@ -53,14 +53,14 @@ Alle Arbeitsannahmen und die Fragen D07-1…D07-7 sind entschieden (`ENTSCHEIDUN
 | P-01 | **Deny by default.** Fehlt Objektzuweisung, aktiver Grant, Site-Kontext, Kursstatus oder Connector, wird verweigert. Es gibt keinen Modus „Zugang für alle Angemeldeten“ als Default (Abweichung von LB, Abschnitt 6 L-W1). | Konzept 36 |
 | P-02 | Jede Entscheidung = **Capability + Objektbeziehung + Site + Status** (Nutzer, Kurs, Grant, Versuch). Ein zentraler `PolicyService::decide(actor, action, object, context)` liefert `allow` oder `deny` mit Grund. Die WP-Meta-Caps (3.2) sind seine Fassade für `current_user_can()`. | Konzept 36, R1-03 |
 | P-03 | **Alle Einstiege nutzen denselben Dienst:** REST, admin-post, AJAX, Block-Editor/Core-REST, Shortcode/Block-Render, `the_content`/Feeds/Suche, Medien-Endpunkt, Upload, Cron, CLI, Webhook, PHP-API, Exporter/Eraser. | Konzept 36 „Prüfpunkte“ |
-| P-04 | **Nonce ≠ Recht.** Nonce schützt nur vor CSRF. Jede schreibende Aktion prüft zusätzlich die Cap. REST: `X-WP-Nonce` (`wp_rest`), admin-post/AJAX: Nonce je Aktion **und Objekt-ID** (`cc_<aktion>_<id>`). | Konzept 36, LB D §3.3 |
+| P-04 | **Nonce ≠ Recht.** Nonce schützt nur vor CSRF. Jede schreibende Aktion prüft zusätzlich die Cap. REST: `X-WP-Nonce` (`wp_rest`), admin-post/AJAX: Nonce je Aktion **und Objekt-ID** (`ccap_<aktion>_<id>`). | Konzept 36, LB D §3.3 |
 | P-05 | `manage_options` wird **nie** als LMS-Autorisierung verwendet. Auch Protokoll, Einstellungen und Systemstatus bekommen eigene `ccap_*`-Caps. | Konzept 36 |
 | P-06 | **WP-Administrator ≠ Inhaltseigentümer.** Der Administrator hat alle `ccap_*`-Caps, wird dadurch aber nicht Autor oder Trainer eines Kurses. Lesen fremder Versuchsdaten ist auch für ihn auditpflichtig. | Konzept 36 |
 | P-07 | **Rollen addieren keine Objekte.** Wer Autor von Kurs A und Lernender in Kurs B ist, hat Autorenrechte nur auf A und Lernrechte nur auf B. | Konzept 35.1 |
-| P-08 | **Fremd = unsichtbar.** Fremde oder nicht sichtbare Objekte ergeben **404 `cc_not_found`**, identisch zu einer nicht existierenden ID (kein Existenz-Orakel). **403 `cc_forbidden`** nur, wenn das Objekt dem Akteur legitim bekannt ist (z. B. veröffentlichter Kurs ohne Grant, eigener Versuch nach Widerruf). **401 `cc_auth_required`** ohne Anmeldung. **423/403 `cc_account_locked`** bei Lernsperre (D07-2). | LB `ExamService.php:1034-1042`, Beschluss E-06 |
+| P-08 | **Fremd = unsichtbar.** Fremde oder nicht sichtbare Objekte ergeben **404 `ccap_not_found`**, identisch zu einer nicht existierenden ID (kein Existenz-Orakel). **403 `ccap_forbidden`** nur, wenn das Objekt dem Akteur legitim bekannt ist (z. B. veröffentlichter Kurs ohne Grant, eigener Versuch nach Widerruf). **401 `ccap_auth_required`** ohne Anmeldung. **423/403 `ccap_account_locked`** bei Lernsperre (D07-2). | LB `ExamService.php:1034-1042`, Beschluss E-06 |
 | P-09 | **Keine Nutzer-ID aus dem Payload** für „eigene“ Aktionen. Die ID kommt aus der Sitzung. Parameter wie `user_id` sind nur in Staff-Routen zulässig und werden dort über Meta-Caps geprüft. | LB `LearnerController.php:24-26` |
 | P-10 | **Fremde Rollen bleiben unangetastet.** Aktivierung ergänzt Caps nur bei `administrator` und legt die vier `ccap_`-Rollen an. Deaktivierung entfernt nichts, Deinstallation entfernt nur `ccap_*`-Caps und die eigenen Rollen (Option, Nutzer behalten ihre übrigen Rollen). | Konzept 17 |
-| P-11 | **Änderungen wirken sofort.** Rollen-, Grant-, Staff- und Sperränderungen invalidieren Policy-Memo, Objekt-Cache-Gruppe `cc_policy` und markieren Antworten `no-store` (R1-25). Kein Warten auf Cron. | Konzept 17 |
+| P-11 | **Änderungen wirken sofort.** Rollen-, Grant-, Staff- und Sperränderungen invalidieren Policy-Memo, Objekt-Cache-Gruppe `ccap_policy` und markieren Antworten `no-store` (R1-25). Kein Warten auf Cron. | Konzept 17 |
 | P-12 | **Systemakteure** (`system:cron`, `system:cli`, `connector:<id>`) rufen nie `current_user_can()` auf. Sie haben eine feste, je Job/Kommando definierte Erlaubnis (4.6–4.8) und schreiben einen Audit-Eintrag mit `actor_type`. | R0-06 `ccap_grant_event.actor_type` |
 
 ---
@@ -104,7 +104,7 @@ Alle Arbeitsannahmen und die Fragen D07-1…D07-7 sind entschieden (`ENTSCHEIDUN
 | 12 | `ccap_view_reports` | aggregierte Berichte (Kurs, Gruppe) | ✓ | ✓ | – | – | ✓ |
 | 13 | `ccap_view_learner_details` | personenbezogene Lernübersicht (Status, Fortschritt, Grants, Plätze), minimiert | ✓ | ✓ | ✓ | – | ✓ |
 | 14 | `ccap_view_attempt_details` | Antworten/Snapshots fremder Versuche lesen (immer Audit, Begründung D07-5) | ✓ | ✓ | – | – | – |
-| 15 | `ccap_grade_attempts` | offene Antworten und Text-/Dateiabgaben bewerten (R1-09, R1-46/E-168) | ✓ | ✓ | – | – | ✓ |
+| 15 | `ccap_grade_attempts` | offene Antworten und Text-/Dateiabgaben bewerten (R1-09, R1-46/E-168); Autoren bewerten Aufgaben ihres Kurses ohne diese Cap über M-10a (E-288) | ✓ | ✓ | – | – | ✓ |
 | 16 | `ccap_manage_learner_progress` | Fortschritt zurücksetzen, Versuch annullieren (mit Grund) | ✓ | ✓ | – | – | – |
 | 17 | `ccap_manage_certificates` | Zertifikat ausstellen, korrigieren, widerrufen (CORE-SPEC-006) | ✓ | ✓ | – | – | – |
 | 18 | `ccap_lock_learners` | Lernsperre setzen/aufheben (D07-2) | ✓ | ✓ | ✓ | – | – |
@@ -133,6 +133,7 @@ Umsetzung: Filter `map_meta_cap` (Priorität 10). Rückgabe ist eine Liste primi
 | M-08 | `ccap_use_attempt` (exam_session) | `user_id` = Akteur **und** Status `running` **und** Frist nicht abgelaufen **und** M-02(`exam`) jetzt → `read`; fremd → `do_not_allow` (404) | eigener Versuch |
 | M-09 | `ccap_view_attempt` (exam_session\|attempt) | eigener Versuch → `read` (Feedback-Regel E-20 gilt); zugewiesener Kurs/Gruppe und Versuch in Bewertung → `ccap_grade_attempts`; sonst → `ccap_view_attempt_details` (+ Audit); fremd ohne Beziehung → `do_not_allow` | eigener Versuch, zugewiesener Kurs/Gruppe |
 | M-10 | `ccap_grade_attempt` (exam_session) | Versuch des Akteurs selbst → `do_not_allow` (auch Admin); zugewiesener Kurs/Gruppe → `ccap_grade_attempts`; sonst `ccap_grade_attempts` + `ccap_edit_others_courses` | zugewiesener Kurs |
+| M-10a | `ccap_grade_submission` (assignment_submission, E-288) | Abgabe des Akteurs selbst → `do_not_allow` (auch Admin); Akteur als `trainer` dem Kurs zugewiesen → `ccap_grade_attempts`; Akteur Autor des Kurses (M-03) → `ccap_edit_courses`; sonst `ccap_grade_attempts` + `ccap_edit_others_courses` (Kursmanager) | zugewiesener bzw. eigener Kurs |
 | M-11 | `ccap_view_learner` (user, course?) | Akteur = user → `read`; Trainer: user hat Grant/Platz in zugewiesenem Kurs bzw. zugewiesener Gruppe → `ccap_view_learner_details`; Manager/Support → `ccap_view_learner_details`; Gruppenbesitzer → `do_not_allow` | zugewiesener Kurs/Gruppe |
 | M-12 | `ccap_manage_learner_progress` (user, course) | Akteur = user (eigenen Fortschritt zurücksetzen, falls Kurs erlaubt) → `read`; sonst `ccap_manage_learner_progress` | – |
 | M-13 | `ccap_manage_grant` (grant) | `ccap_manage_grants`; Grant fremder Site → `do_not_allow`; Grant mit externer Quelle (Woo/Voucher) → nur Suspend/Notiz, kein Löschen (R0-09) | – |
@@ -169,7 +170,7 @@ Umsetzung: Filter `map_meta_cap` (Priorität 10). Rückgabe ist eine Liste primi
 - **Site:** Alle `ccap_`-Tabellen sind je Site (R0-06 §6.6). Der PolicyService lädt Objekte nur aus `$wpdb->prefix` der aktuellen Site. Nach `switch_to_blog()` wird der Memo verworfen. Super-Admins bestehen WP-bedingt jede Cap außer `do_not_allow`. Deshalb sind strukturelle Verbote (Selbstbewertung M-10, Selbstsperre M-24) als `do_not_allow` formuliert. Cross-Site-Identität bleibt R4 (ID-06, Beschluss E-07/E-49).
 - **„Gesperrter Nutzer“** ist für Tests (Abschnitt 5) dreifach definiert: (a) **Lernsperre** `ccap_learner_lock` mit Grund und Audit (D07-2); (b) Konto **ohne Rolle** auf der Site (kein `read`); (c) Multisite `spam`/`deleted` (bedingt). Folgen: alle Lern-Meta-Caps (M-02, M-08, M-17) verweigert; Grants bleiben unverändert (keine Datenänderung, R0-09); eigene Zertifikate sind nicht herunterladbar, die öffentliche Verifikation bleibt; Datenschutzanträge bleiben möglich (M-23).
 - **Kursstatus:** Entwurf/archiviert → Lernen und Prüfungsstart 404 (R0-05 GM-00x „Kursstatus“); laufende Versuche eines archivierten Kurses dürfen abgegeben werden (R0-23).
-- **Grantstatus:** nur `active` innerhalb `valid_from/valid_until` zählt. `pending_*`, `suspended`, `expired`, `revoked`, `failed` → `cc_content_locked` mit Grund (`pending`, `suspended`, `expired`, `revoked`). Der Lernende sieht seinen eigenen Status (kein 404, P-08).
+- **Grantstatus:** nur `active` innerhalb `valid_from/valid_until` zählt. `pending_*`, `suspended`, `expired`, `revoked`, `failed` → `ccap_content_locked` mit Grund (`pending`, `suspended`, `expired`, `revoked`). Der Lernende sieht seinen eigenen Status (kein 404, P-08).
 - **Connector deaktiviert:** PHP-API- und Webhook-Aufrufe dieses Connectors → `forbidden`/`connector_disabled`; bestehende Grants bleiben (Konzept 36).
 
 ### 3.5 Rollenwechsel und Eskalationsschutz
@@ -219,7 +220,7 @@ Konvention: `permission_callback` prüft Anmeldung, Sperre und primitive Cap. Di
 | RG-20 | `GET /monitor` | LB `/monitor` | Schlüssel | nur Header `X-CC-Monitor-Key`, `hash_equals`; ohne Schlüssel nur Gesamtstatus; **kein** `?key=` (L-W8) | Header |
 | RG-21 | WP-Kern `/wp/v2/ccap_course`, `ccap_module`, `ccap_lesson`, `ccap_faq`, `ccap_tip`, `/wp/v2/media` | LB `/wp/v2/bp_tip`, `bp_faq`, … | CPT-Mapping 3.2 | `context=edit` nur M-03/M-06; `context=view` für `ccap_lesson`/`ccap_module`: **kein** `content.rendered` ohne M-02 bzw. M-03 (eigener Controller wie LB `TipsPostsController`); Medien ohne Pfad/Dateiname für geschützte Anhänge (LB `ProtectedFiles.php:331`) | Cookie+Nonce |
 
-**Entfallende LB-Routen:** W21–W23 (Navigation), W29–W44 (Funk, Gerätesimulation), W52 (Prüfungsanmeldung) sind `exclude_domain_specific` (Inventur D §4.1). Test: Route existiert nicht (`rest_no_route` 404). Die App-API `boatingschool/v1` entfällt in R1 (Beschluss E-05). Nonce-Erneuerung als AJAX `wp_ajax(_nopriv)_cc_rest_nonce` wie LB (`NonceRefresh.php:24-25`), ohne Rechtewirkung.
+**Entfallende LB-Routen:** W21–W23 (Navigation), W29–W44 (Funk, Gerätesimulation), W52 (Prüfungsanmeldung) sind `exclude_domain_specific` (Inventur D §4.1). Test: Route existiert nicht (`rest_no_route` 404). Die App-API `boatingschool/v1` entfällt in R1 (Beschluss E-05). Nonce-Erneuerung als AJAX `wp_ajax(_nopriv)_ccap_rest_nonce` wie LB (`NonceRefresh.php:24-25`), ohne Rechtewirkung.
 
 ### 4.2 Admin-Screens (Menü nach Konzept 43.2)
 
@@ -256,37 +257,37 @@ Jede Seite registriert ihre eigene Cap; die Render-Methode prüft erneut (`wp_di
 
 ### 4.3 admin-post / AJAX
 
-Alle Aktionen: `current_user_can(Cap)` **vor** `check_admin_referer('cc_<aktion>_<objekt-id>')`, dann Meta-Cap auf das Objekt, dann Bestätigungsseite bei Risikoaktionen (Konzept 43.2 UX-Vertrag). Nur POST. Rückleitung per `wp_safe_redirect`.
+Alle Aktionen: `current_user_can(Cap)` **vor** `check_admin_referer('ccap_<aktion>_<objekt-id>')`, dann Meta-Cap auf das Objekt, dann Bestätigungsseite bei Risikoaktionen (Konzept 43.2 UX-Vertrag). Nur POST. Rückleitung per `wp_safe_redirect`.
 
 | Aktion (Vorschlag) | LB-Vorbild (Inventur D §3.3) | Cap / Meta-Cap | Scope |
 |---|---|---|---|
-| `cc_grant_create` | `bp_access_grant` | M-14 | Nutzer existiert auf Site; Begründung Pflicht |
-| `cc_grant_change` (extend/suspend/revoke/release) | `bp_access_change` | M-13 | Grant-ID + Nonce je Grant |
-| `cc_access_rule_save` | `bp_free_rule` | #10 + M-01 | Kurs |
-| `cc_group_admin` (anlegen, Status, Plätze, Besitzer) | `bp_group_admin` | #11 | Gruppe |
-| `cc_staff_assign` / `cc_staff_remove` | – | #24 + M-03 auf den Kurs | Zielrolle ≤ eigene Caps (3.5) |
-| `cc_learner_lock` / `cc_learner_unlock` | – | M-24 | Ziel-Nutzer |
-| `cc_progress_reset` | – | M-12 | Nutzer + Kurs |
-| `cc_certificate_issue` / `_correct` / `_revoke` | – | M-19 / #17 | Grund Pflicht |
-| `cc_override` | `bp_override` | M-06 bzw. M-07 je Objekt | Objekt |
-| `cc_rights_release` | `bp_rights_release` | #8 | Sammelaktion mit Begründung |
-| `cc_rules_release` | `bp_rules_release` | M-04 auf Kurs der Regel | Kurs |
-| `cc_import_upload` / `cc_import_server` / `cc_import_url` | `bp_import_upload/server/url` | #6 | Upload-Validierung R0-10; URL nur `wp_safe_remote_get` |
-| `cc_import_action` | `bp_import_action` | M-21 | Batch + Nonce je Batch |
-| `cc_faq_import`, `cc_faq_page` | `bp_faq_import`, `bp_faq_page` (+`publish_pages`) | #1 (+ WP `publish_pages`) | – |
-| `cc_mapping_remove` | `bp_mapping_remove` | #9 | – (Woo-Zuordnung erst R3) |
-| `cc_mail_test` | `bp_mail_test` (`manage_options`) | #19 | an eigene Adresse |
-| `cc_settings_save` (je Tab) | `options.php`, `bp_security_save` | #19 (Tab Rollen: #24) | – |
-| `cc_integration_save` | `bp_dispute_settings` | #20 | Secrets write-only |
-| `cc_golive_tick` | `bp_golive_tick` | #19 | – |
-| `cc_storage_recheck` | `?bp_storage_recheck` | #23 | – |
-| `cc_maintenance_action` | – | #23 | Bestätigung |
-| `cc_notice_dismiss` (admin-post + AJAX) | `bp_notice_dismiss` | `read` + signierte Werte | nur eigene Hinweise |
-| `cc_privacy_request` | `bp_privacy_request` | M-23 | eigenes Konto |
-| `wp_ajax(_nopriv)_cc_rest_nonce` | `bp_rest_nonce` | – | gibt nur Nonce der eigenen Sitzung |
+| `ccap_grant_create` | `bp_access_grant` | M-14 | Nutzer existiert auf Site; Begründung Pflicht |
+| `ccap_grant_change` (extend/suspend/revoke/release) | `bp_access_change` | M-13 | Grant-ID + Nonce je Grant |
+| `ccap_access_rule_save` | `bp_free_rule` | #10 + M-01 | Kurs |
+| `ccap_group_admin` (anlegen, Status, Plätze, Besitzer) | `bp_group_admin` | #11 | Gruppe |
+| `ccap_staff_assign` / `ccap_staff_remove` | – | #24 + M-03 auf den Kurs | Zielrolle ≤ eigene Caps (3.5) |
+| `ccap_learner_lock` / `ccap_learner_unlock` | – | M-24 | Ziel-Nutzer |
+| `ccap_progress_reset` | – | M-12 | Nutzer + Kurs |
+| `ccap_certificate_issue` / `_correct` / `_revoke` | – | M-19 / #17 | Grund Pflicht |
+| `ccap_override` | `bp_override` | M-06 bzw. M-07 je Objekt | Objekt |
+| `ccap_rights_release` | `bp_rights_release` | #8 | Sammelaktion mit Begründung |
+| `ccap_rules_release` | `bp_rules_release` | M-04 auf Kurs der Regel | Kurs |
+| `ccap_import_upload` / `ccap_import_server` / `ccap_import_url` | `bp_import_upload/server/url` | #6 | Upload-Validierung R0-10; URL nur `wp_safe_remote_get` |
+| `ccap_import_action` | `bp_import_action` | M-21 | Batch + Nonce je Batch |
+| `ccap_faq_import`, `ccap_faq_page` | `bp_faq_import`, `bp_faq_page` (+`publish_pages`) | #1 (+ WP `publish_pages`) | – |
+| `ccap_mapping_remove` | `bp_mapping_remove` | #9 | – (Woo-Zuordnung erst R3) |
+| `ccap_mail_test` | `bp_mail_test` (`manage_options`) | #19 | an eigene Adresse |
+| `ccap_settings_save` (je Tab) | `options.php`, `bp_security_save` | #19 (Tab Rollen: #24) | – |
+| `ccap_integration_save` | `bp_dispute_settings` | #20 | Secrets write-only |
+| `ccap_golive_tick` | `bp_golive_tick` | #19 | – |
+| `ccap_storage_recheck` | `?bp_storage_recheck` | #23 | – |
+| `ccap_maintenance_action` | – | #23 | Bestätigung |
+| `ccap_notice_dismiss` (admin-post + AJAX) | `bp_notice_dismiss` | `read` + signierte Werte | nur eigene Hinweise |
+| `ccap_privacy_request` | `bp_privacy_request` | M-23 | eigenes Konto |
+| `wp_ajax(_nopriv)_ccap_rest_nonce` | `bp_rest_nonce` | – | gibt nur Nonce der eigenen Sitzung |
 | Metabox „Lernzugang erforderlich“ (`save_post`) | `bp_required_access` | WP `edit_post(id)` **und** M-01 + M-03 auf den Zielkurs | Zielkurs muss editierbar sein |
 | Mediathek-Feld „Kurs · Scope“ (`attachment_fields_to_save`) | `ProtectedFiles::saveFields` (T195) | `edit_post(attachment)` **und** M-03 auf Zielkurs | wie LB plus Kursbezug |
-| `cc_export_create` (Inhalt/Bericht/Grants) | CLI-Exporte | #7 / #12 / #9 | Scope der Daten wie Bericht |
+| `ccap_export_create` (Inhalt/Bericht/Grants) | CLI-Exporte | #7 / #12 / #9 | Scope der Daten wie Bericht |
 
 **Entfallend:** `bp_member_discount`, `bp_shop_catalog`, `bp_shop_prices`, `bp_exam_committee*`, `bp_chart`, `bp_mobile_*`, `bp_learning_set_entitled_only` (der Modus „alle Angemeldeten“ entfällt, P-01).
 
@@ -295,7 +296,7 @@ Alle Aktionen: `current_user_can(Cap)` **vor** `check_admin_referer('cc_<aktion>
 | Oberfläche | Cap | Scope | Schutz gegen Umgehung |
 |---|---|---|---|
 | CPT-Bearbeitung (`post.php`, Block-Editor, Autosave, Revisionen) | CPT-Mapping → M-03/M-06 | Staff-Zuweisung; Revisions-Endpunkt `/wp/v2/ccap_lesson/{id}/revisions` gleicher Check | Vorschau-Links nur für M-03 |
-| Block „Inhalt nur mit Zugang“, Shortcode `[cc_restricted course scope]` | Render: M-02 | Kurs/Scope aus Attributen; unbekannter Kurs → gesperrt | Editor-Speichern: Attribut-Kurs muss M-01 bestehen |
+| Block „Inhalt nur mit Zugang“, Shortcode `[ccap_restricted course scope]` | Render: M-02 | Kurs/Scope aus Attributen; unbekannter Kurs → gesperrt | Editor-Speichern: Attribut-Kurs muss M-01 bestehen |
 | `the_content`, `the_excerpt`, `the_content_feed`, Suche, Sitemaps, oEmbed, REST `content.rendered` | M-02 bzw. Bypass M-03/`edit_post` | Pflichtangabe am Beitrag | Filter früh und spät (LB `ContentGate.php:132`), Auszug nur manuell (`:162`), Page-Builder-Daten verwerfen (`:151-157`), `NoCache` |
 | Lernbereich `/lernen/…` (App-Shell) | angemeldet; Daten nur über RG-03…RG-12 | – | Shell enthält keine Kursinhalte |
 | Kurskatalog-Block | M-01 | nur veröffentlichte Kurse | Entwürfe nie im Katalog |
@@ -374,9 +375,9 @@ CLI setzt Shell-Zugang voraus und gilt als Systemakteur. Ohne `--user` prüft CC
 | PHP-Write-API, eingehende Webhooks, Read-API | In R1 gibt es keine registrierten Connectoren; `connector:<id>` setzt die Connector-Registry voraus, die Pro ist. Free erlaubt `course_captain_grant_access_v1` nur Nutzern mit `ccap_manage_grants` bzw. dem Kern selbst. Die PHP-Read-API für Connectoren und öffentliche Events liefert Pro/R3 | E-38 |
 | Schreibende Workflow-Aktionen | Nur über die Grant-Quelle `workflow` (eigene Grants dieser Quelle), idempotent, mit Audit und Akteur `connector:workflow`; Bestandteil des Course-Pro-Connectors; setzt die Änderung am Workflow-Captain-Konzept voraus | E-39, E-39b |
 | Website-Härtung (R1-45) | Einstellungen: #19; Notausschalter per Konstante `COURSE_CAPTAIN_HARDENING` und WP-CLI (`system:cli`, nur Admin-Kontext); Login auf bekannten Geräten bleibt möglich; Sperren wirken auf alle Konten, auch Admins, ohne Existenz-Orakel | E-10, E-242, E-263 |
-| Text-/Dateiaufgaben (R1-46) | Abgabe, Entwurf, Rückzug: nur eigener Nutzer mit aktivem Grant für Kurs/Modul (M-02); Datei der Abgabe: Eigentümer, zugewiesener Trainer (M-10) oder #14 mit Begründung (E-82), sonst 404; Bewertung: M-10 (keine Selbstbewertung) | E-168 |
+| Text-/Dateiaufgaben (R1-46) | Entwurf und Abgabe (kein Rückzug in R1, R0-08 §2.5): nur eigener Nutzer mit aktivem Grant für Kurs/Modul (M-02); Datei der Abgabe: Eigentümer, Bewertungsberechtigte nach M-10a oder #14 mit Begründung (E-82), sonst 404; Bewertung und Rückgabe: M-10a – Trainer, Autor und Kursmanager des Kurses (keine Selbstbewertung) | E-168, E-288 |
 | Lösungserklärungen | Erklärungstexte werden nur ausgeliefert, wenn Pro aktiv ist (bzw. eingefroren nach Lizenzende, E-268); das Feld ist für Free-Lesepfade nicht Teil der Antwort | E-20, E-147, E-268 |
-| Bundle und Zusatz-Grants | Ein Bundle-Grant schaltet mehrere Kurse frei; ein abhängiger Zusatz-Grant ist nur gültig, solange der Basis-Grant gültig ist; beides wird in M-02 über den effektiven Grant ausgewertet | E-25a, E-26 |
+| Bundle und Zusatz-Grants | Ein Bundle-Grant schaltet mehrere Kurse frei; ein abhängiger Zusatz-Grant zählt nur, solange effektiver Zugang zum Basiskurs besteht (Status des Zusatz-Grants unverändert); Bundles eine Ebene; beides wird in M-02 über den effektiven Zugang ausgewertet | E-25a, E-26, E-287, E-297 |
 
 ## 5. IDOR- und RBAC-Testkatalog
 
@@ -403,7 +404,7 @@ Vorhanden aus R0-05: Kurse **C-A**, **C-B** (veröffentlicht), **C-C** (Entwurf)
 
 ### 5.2 Allgemeine Erwartung jedes Negativtests
 
-1. HTTP-Status und Code nach P-08 (`cc_not_found` 404, `cc_forbidden` 403, `cc_content_locked` 403 mit `reason`, `cc_account_locked`, `cc_auth_required` 401).
+1. HTTP-Status und Code nach P-08 (`ccap_not_found` 404, `ccap_forbidden` 403, `ccap_content_locked` 403 mit `reason`, `ccap_account_locked`, `ccap_auth_required` 401).
 2. **Keine Seiteneffekte:** DB-Snapshot der betroffenen Tabellen vor/nach identisch (außer Rate-Limit-Zähler, Audit).
 3. Antwortkörper bei „fremd“ und „nicht existent“ byte-gleich bis auf Request-ID (RBAC-096).
 4. Kein Leck in Headern, Fehlermeldung, `_links`, `_embedded`, Zeitverhalten über ±50 % (Stichprobe).
@@ -417,15 +418,15 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 
 | Test-ID | Var. | Akteur / Vorbedingung | Aktion (Oberfläche) | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|---|
-| RBAC-001 | F | U-X (kein Grant C-A) | `GET /courses/C-A`, dann `GET /courses/C-A/next-question` | 200 mit allen Features `false`, keine Inhalte; zweiter Aufruf 403 `cc_content_locked` | R1-03 | ID-01 |
+| RBAC-001 | F | U-X (kein Grant C-A) | `GET /courses/C-A`, dann `GET /courses/C-A/next-question` | 200 mit allen Features `false`, keine Inhalte; zweiter Aufruf 403 `ccap_content_locked` | R1-03 | ID-01 |
 | RBAC-002 | F | U-L1 | `GET /courses/C-C` (Entwurf), `/courses/C-D` (archiviert), `/courses/999999` | dreimal 404, gleicher Körper | R1-03 | R0-05 Kursstatus |
 | RBAC-003 | F | RF-AU2 (Autor C-B) | `POST /wp/v2/ccap_course/<C-A>`; `post.php?post=<C-A>&action=edit` | 403 `rest_cannot_edit`; `wp_die` 403; Post unverändert | R1-03 | M-03 |
 | RBAC-004 | R | RF-AU2 | eigenen Kurs C-B veröffentlichen (`status=publish`) | 403; Status bleibt Entwurf/Revision unverändert | R1-03 | M-04 |
 | RBAC-005 | R | U-TUT (Trainer C-A) | C-A bearbeiten (Core-REST, Editor) | 403 | R1-03 | 35.1 |
 | RBAC-006 | R | RF-AU2, gültiges REST-Nonce | Rolle → `subscriber`; gleiche Sitzung `POST /wp/v2/ccap_course/<C-B>` | 403 sofort, kein Cache-Treffer | R1-03 | P-11 |
 | RBAC-007 | R | U-TUT | Staff-Zuweisung C-A entfernen; `GET /reports/courses/C-A` | 403 sofort | R1-03 | B-2 |
-| RBAC-008 | G | RF-BLK | `GET /me/courses`, `GET /courses/C-A/next-question` | `cc_account_locked`; Grant-Zeile unverändert | R1-03 | 3.4 |
-| RBAC-009 | A | U-X (G-7 abgelaufen, Ablauf-Cron **nicht** gelaufen) | `GET /courses/C-B/next-question` | 403 `cc_content_locked` `reason=expired`; `/me/courses` zeigt `expired` | R1-03 | B-6 |
+| RBAC-008 | G | RF-BLK | `GET /me/courses`, `GET /courses/C-A/next-question` | `ccap_account_locked`; Grant-Zeile unverändert | R1-03 | 3.4 |
+| RBAC-009 | A | U-X (G-7 abgelaufen, Ablauf-Cron **nicht** gelaufen) | `GET /courses/C-B/next-question` | 403 `ccap_content_locked` `reason=expired`; `/me/courses` zeigt `expired` | R1-03 | B-6 |
 | RBAC-010 | F | U-ADM auf Site 1 | `GET /courses/<Kurs-ID von RF-SITE2>` | 404 (bedingt, Beschluss E-07) | R1-03 | ID-06 |
 | RBAC-011 | E | RF-AU2 | Kurs C-A per Core-REST mit `author=<RF-AU2>` übernehmen; im eigenen Kurs C-B `author` auf U-X umsetzen | beide 403 (Autorwechsel braucht `ccap_edit_others_courses`); `post_author` unverändert | R1-03 | B-1, P-06 |
 
@@ -441,20 +442,20 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-017 | F | RF-AU2 | Vorschau-Link einer Entwurfslektion von C-A | 403/404; eigene Entwurfslektion C-B 200 | R1-14 | M-06 |
 | RBAC-018 | R | RF-AU2 | Rolle entziehen; Vorschau eigener Entwurfslektion C-B | 404 (kein M-03 mehr) | R1-14 | P-11 |
 | RBAC-019 | A | U-L2 | Grant G-2 widerrufen; `PUT /courses/C-A/lessons/<L-A-01>/progress` | 403 `reason=revoked`; Fortschritt unverändert | R1-14 | R0-09 |
-| RBAC-020 | G | RF-NOROLE | `GET /courses/C-A/lessons/<L-A-01>` | 403 `cc_account_locked` bzw. 401-gleich (kein `read`) | R1-14 | 3.4 (b) |
+| RBAC-020 | G | RF-NOROLE | `GET /courses/C-A/lessons/<L-A-01>` | 403 `ccap_account_locked` bzw. 401-gleich (kein `read`) | R1-14 | 3.4 (b) |
 
 #### Frage
 
 | Test-ID | Var. | Akteur / Vorbedingung | Aktion | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|---|
 | RBAC-021 | F | U-L1 (kein Grant C-B) | `PUT /courses/C-A/favorites/<Frage nur in C-B>` | 404; keine Zeile in `ccap_favorite` | R1-03 | L-W5 |
-| RBAC-022 | F | U-L1 | `POST /answers` mit Frage-Token, das für U-X ausgestellt wurde | 403 `cc_invalid_token`; kein `ccap_attempt` | R1-03 | LB `QuestionPresenter.php:155-158` |
+| RBAC-022 | F | U-L1 | `POST /answers` mit Frage-Token, das für U-X ausgestellt wurde | 403 `ccap_invalid_token`; kein `ccap_attempt` | R1-03 | LB `QuestionPresenter.php:155-158` |
 | RBAC-023 | F | U-L1 | `next-question?module=<M-B1>` bzw. `?collection=<Sammlung von U-X>` auf C-A | 404; R0-05 GM-058 | R1-03 | RG-05 |
 | RBAC-024 | F | RF-AU2 | `ccap_edit_question` auf Frage nur in C-A; auf RF-Q-SH (C-A und C-B) | beide 403 (geteilte Frage braucht Recht auf alle Kurse) | R1-03 | M-07 |
 | RBAC-025 | R | U-TUT | Frage in C-A bearbeiten (Admin-Fragenbank) | 403 | R1-03 | 35.1 |
 | RBAC-026 | R | RF-AU2 | Rolle → `subscriber`; eigene Frage (`author_user_id`) speichern | 403 | R1-03 | M-07 |
 | RBAC-027 | A | U-X | Token wird vor `valid_until` ausgegeben, Antwort danach gesendet | 403 `reason=expired`; kein Versuch gezählt | R1-03 | LB `LearningService.php:177-188` |
-| RBAC-028 | G | RF-BLK | Token vor Sperre ausgegeben, Antwort nach Sperre | `cc_account_locked`; kein `ccap_attempt` | R1-03 | 3.4 |
+| RBAC-028 | G | RF-BLK | Token vor Sperre ausgegeben, Antwort nach Sperre | `ccap_account_locked`; kein `ccap_attempt` | R1-03 | 3.4 |
 
 #### Versuch
 
@@ -469,7 +470,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-035 | F | RF-SUP | `GET /exam-sessions/<RF-S-L1E>/review` und S-11 | 403; Lernerübersicht ohne Antworten 200 | R1-03 | Konzept 43.3 |
 | RBAC-036 | F | U-GO (Besitzer GRP-1) | Versuch/Fortschritt von U-S1 lesen (`/reports/groups/GRP-1`) | 403 | R1-03 | 35.1 Käufer |
 | RBAC-037 | A | U-L2 mit laufendem Versuch | G-2 widerrufen bzw. `valid_until` überschreiten; `PUT …/answers/2` | 403 `reason=revoked/expired`; Versuch bleibt `running` bis Frist, Ergebnis später lesbar | R1-03 | LB `ExamService.php:1044-1057` |
-| RBAC-038 | G | RF-BLK mit laufendem Versuch | `POST …/submit` | `cc_account_locked`; Cron wertet nach Frist aus | R1-03 | 3.4 |
+| RBAC-038 | G | RF-BLK mit laufendem Versuch | `POST …/submit` | `ccap_account_locked`; Cron wertet nach Frist aus | R1-03 | 3.4 |
 | RBAC-039 | R | U-TUT, Bewertungsformular offen | Zuweisung entfernen; Bewertung absenden | 403; keine Bewertung gespeichert | R1-03 | P-11 |
 | RBAC-040 | C | U-TUT | Bewertung ohne/mit fremdem Nonce | 403 `rest_cookie_invalid_nonce` | R1-03 | P-04 |
 
@@ -478,13 +479,13 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | Test-ID | Var. | Akteur / Vorbedingung | Aktion | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|---|
 | RBAC-041 | F | U-L1 | `GET /me/courses?user_id=<U-X>` | Parameter ignoriert, nur eigene Daten | R1-03 | P-09 |
-| RBAC-042 | R | U-TUT | admin-post `cc_grant_create` für C-A | 403 | R1-03 | 36 |
-| RBAC-043 | C | RF-MGR | `cc_grant_change` mit Nonce von Grant G-1 auf Grant G-10 | 403; G-10 unverändert | R1-03 | P-04 |
-| RBAC-044 | C | RF-MGR | `cc_grant_change` per GET bzw. ohne Nonce | 403/405; keine Änderung | R1-03 | P-04 |
-| RBAC-045 | F | RF-AU2 | `cc_grant_change` (revoke) mit manipulierter Grant-ID | 403 | R1-03 | M-13 |
+| RBAC-042 | R | U-TUT | admin-post `ccap_grant_create` für C-A | 403 | R1-03 | 36 |
+| RBAC-043 | C | RF-MGR | `ccap_grant_change` mit Nonce von Grant G-1 auf Grant G-10 | 403; G-10 unverändert | R1-03 | P-04 |
+| RBAC-044 | C | RF-MGR | `ccap_grant_change` per GET bzw. ohne Nonce | 403/405; keine Änderung | R1-03 | P-04 |
+| RBAC-045 | F | RF-AU2 | `ccap_grant_change` (revoke) mit manipulierter Grant-ID | 403 | R1-03 | M-13 |
 | RBAC-046 | A | RF-MGR | G-7 (abgelaufen) „verlängern“ | neue Revision/Ereignis in `ccap_grant_event`, kein stilles Wiederaufleben; Zugriff erst danach | R1-03 | Beschluss E-29 |
-| RBAC-047 | E | U-L1 (Theme-Formular ruft PHP-API) | `course_captain_grant_access_v1()` im Kontext U-L1 ohne Connector | `forbidden`; kein Grant | R1-03 | 4.8 |
-| RBAC-048 | E | registrierter, **deaktivierter** Connector | `course_captain_grant_access_v1` | `connector_disabled`; kein Grant | R1-03 | Beschluss E-39 |
+| RBAC-047 | E | U-L1 (Theme-Formular ruft PHP-API) | `course_captain_grant_access_v1()` im Kontext U-L1 ohne Connector | `forbidden`; kein Grant | R1-03, R3-01 | 4.8 |
+| RBAC-048 | E | registrierter, **deaktivierter** Connector | `course_captain_grant_access_v1` | `connector_disabled`; kein Grant | R3-01, R3-12 | Beschluss E-39 |
 | RBAC-049 | R | RF-MGR | Manager-Rolle entziehen; offene Seite S-13 „Widerrufen“ absenden | 403 | R1-03 | P-11 |
 | RBAC-050 | G | RF-BLK | Sperre setzen, dann aufheben | Grants unverändert; nach Aufhebung sofort Zugriff | R1-03 | D07-2 |
 
@@ -495,9 +496,9 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-051 | F | U-X | `PUT /me/groups/<GRP-1>` (Umbenennen), `POST …/token` | 404; Token unverändert | R1-03 | LB `GroupController.php:109-115` |
 | RBAC-052 | F | U-GO | `DELETE /me/groups/<GRP-1>/members/<Mitglied aus GRP-2>` | 404; kein Grant widerrufen | R1-03 | LB `GroupService.php:423` |
 | RBAC-053 | F | U-S1 (Mitglied GRP-1) | `POST /me/groups/<GRP-1>/invite` | 404 | R1-03 | M-15 |
-| RBAC-054 | F | U-X | persönliche Einladung für U-S2 mit `POST /groups/join` einlösen, Option „nur eingeladene Adresse“ an | 403 `cc_invite_other_account`; Platz unverändert | R1-03 | Beschluss E-28 |
-| RBAC-055 | A | U-S3 | Beitritt zu GRP-1 nach `valid_until` bzw. `suspended` | 409 `cc_group_not_active`; Mitglieder ohne Zugriff | R1-03 | R0-09 |
-| RBAC-056 | G | U-GO gesperrt (RF-BLK-Variante) | `GET /me/groups` | `cc_account_locked`; Plätze der Mitglieder weiter aktiv | R1-03 | 3.4 |
+| RBAC-054 | F | U-X | persönliche Einladung für U-S2 mit `POST /groups/join` einlösen, Option „nur eingeladene Adresse“ an | 403 `ccap_invite_other_account`; Platz unverändert | R1-03 | Beschluss E-28 |
+| RBAC-055 | A | U-S3 | Beitritt zu GRP-1 nach `valid_until` bzw. `suspended` | 409 `ccap_group_not_active`; Mitglieder ohne Zugriff | R1-03 | R0-09 |
+| RBAC-056 | G | U-GO gesperrt (RF-BLK-Variante) | `GET /me/groups` | `ccap_account_locked`; Plätze der Mitglieder weiter aktiv | R1-03 | 3.4 |
 | RBAC-057 | R | U-ADM überträgt GRP-1 an U-S1 | U-GO `PUT /me/groups/<GRP-1>` | 404 sofort | R1-03 | P-11 |
 | RBAC-058 | F | RF-TRB | `GET /reports/courses/C-A` | nur Lernende aus GRP-1 | R1-03 | B-3 |
 | RBAC-059 | F | U-GO | `GET /me/groups/<GRP-1>` | nur Platz-/Einladungsstatus, keine Fortschritte; E-Mail nach D07-4 | R1-03 | 35.1 |
@@ -506,13 +507,13 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 
 | Test-ID | Var. | Akteur / Vorbedingung | Aktion | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|---|
-| RBAC-060 | F | U-X | `GET /certificates/<uid RF-CERT1>/pdf` | 404 | R1-03 | M-18 |
-| RBAC-061 | F | Gast | `GET /certificates/verify/<VT-1>`; numerische ID statt Token | Minimaldaten; numerische ID → 404; Rate-Limit greift | R1-14 | CORE-SPEC-006 |
-| RBAC-062 | R | U-TUT | `ccap_certificate_revoke` RF-CERT1 | 403 („bewerten, nicht allein widerrufen“) | R1-03 | 36 |
-| RBAC-063 | R | RF-MGR | Manager-Rolle entziehen; Korrektur absenden | 403; keine neue Revision | R1-03 | P-11 |
-| RBAC-064 | E | U-L1 mit #17 (Testrolle) | eigenes Zertifikat korrigieren | 403 `do_not_allow` | R1-03 | M-19 |
-| RBAC-065 | A | U-L1, Grant G-1 widerrufen/abgelaufen | eigenes Zertifikat-PDF | 200 (Historie bleibt, CORE-Defaults) | R1-03 | 35.4 |
-| RBAC-066 | G | RF-BLK mit Zertifikat | PDF-Download; öffentliche Verifikation | PDF `cc_account_locked`; Verifikation 200 | R1-14 | 3.4 |
+| RBAC-060 | F | U-X | `GET /certificates/<uid RF-CERT1>/pdf` | 404 | R1-03, R1-44 | M-18 |
+| RBAC-061 | F | Gast | `GET /certificates/verify/<VT-1>`; numerische ID statt Token | Minimaldaten; numerische ID → 404; Rate-Limit greift | R1-14, R1-44 | CORE-SPEC-006 |
+| RBAC-062 | R | U-TUT | `ccap_certificate_revoke` RF-CERT1 | 403 („bewerten, nicht allein widerrufen“) | R1-03, R1-44 | 36 |
+| RBAC-063 | R | RF-MGR | Manager-Rolle entziehen; Korrektur absenden | 403; keine neue Revision | R1-03, R1-44 | P-11 |
+| RBAC-064 | E | U-L1 mit #17 (Testrolle) | eigenes Zertifikat korrigieren | 403 `do_not_allow` | R1-03, R1-44 | M-19 |
+| RBAC-065 | A | U-L1, Grant G-1 widerrufen/abgelaufen | eigenes Zertifikat-PDF | 200 (Historie bleibt, CORE-Defaults) | R1-03, R1-44 | 35.4 |
+| RBAC-066 | G | RF-BLK mit Zertifikat | PDF-Download; öffentliche Verifikation | PDF `ccap_account_locked`; Verifikation 200 | R1-14, R1-44 | 3.4 |
 
 #### Datei
 
@@ -525,7 +526,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-071 | E | RF-AU2 | Mediathek-Feld eigener Anhang → Kurs C-A | abgelehnt; Feld unverändert | R1-14 | LB T195 `ProtectedFiles.php:158` |
 | RBAC-072 | A | U-X | Datei C-B nach Ablauf G-7, auch mit `Range: bytes=0-99` | 403 (nicht 206) | R1-14 | B-6 |
 | RBAC-073 | R | RF-AU2 lädt Datei an C-B hoch | Rolle entziehen; Download | 403 (Bypass M-03 entfällt), kein Grant | R1-14 | P-11 |
-| RBAC-074 | G | RF-BLK | Download RF-FILE-A | `cc_account_locked` | R1-14 | 3.4 |
+| RBAC-074 | G | RF-BLK | Download RF-FILE-A | `ccap_account_locked` | R1-14 | 3.4 |
 | RBAC-075 | F | U-L2 mit laufendem Versuch, U-X | Medium einer Prüfungsfrage aus dem Versuch abrufen | U-L2 200; U-X 404 | R1-14 | R0-10 §4.3 |
 | RBAC-076 | E | RF-AU2 | Upload `x.php.png`, SVG mit Skript | abgelehnt (MED-BAD) | R1-14 | GM-128 |
 
@@ -535,9 +536,9 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 |---|---|---|---|---|---|---|
 | RBAC-077 | R | RF-AU2 | `POST /imports/<RF-IMP1>/step`; S-18 | 403 | R1-03 | M-21 |
 | RBAC-078 | F | RF-MGR auf Site 1 | Batch-ID von RF-SITE2 | 404 (bedingt) | R1-03 | 3.4 |
-| RBAC-079 | C | RF-MGR | `cc_import_action` mit Nonce eines anderen Batches | 403 | R1-03 | P-04 |
+| RBAC-079 | C | RF-MGR | `ccap_import_action` mit Nonce eines anderen Batches | 403 | R1-03 | P-04 |
 | RBAC-080 | E | Nutzer mit #6 ohne #3 | Schritt `activate/publish` | 403; Vorschau bleibt | R1-03 | M-21 |
-| RBAC-081 | E | U-ADM | `cc_import_url` auf `http://127.0.0.1/`, `169.254.169.254`, `http://` | abgelehnt (nur https, `wp_safe_remote_get`) | R1-03 | LB `ImportSources.php:276` |
+| RBAC-081 | E | U-ADM | `ccap_import_url` auf `http://127.0.0.1/`, `169.254.169.254`, `http://` | abgelehnt (nur https, `wp_safe_remote_get`) | R1-03 | LB `ImportSources.php:276` |
 | RBAC-082 | E | U-ADM | Ablageordner-Name `../x.zip`, Symlink | abgelehnt | R1-03 | LB `ImportSources.php:222-224` |
 | RBAC-083 | R | RF-MGR startet Import | Rolle entziehen; nächster Schritt (REST) | 403; Batch bleibt fortsetzbar für Berechtigte | R1-03 | P-11 |
 | RBAC-084 | G / A | RF-NOROLE (früher Manager); überholter Batch | Schritt auslösen; Freigabe eines überholten Batches | 403; überholter Batch 409 (`supersededBy`) | R1-03 | R0-10 IMP-019 |
@@ -550,7 +551,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-086 | F | U-L1 | `POST /me/privacy-requests` mit `user_id=<U-X>` bzw. fremder E-Mail | Antrag nur für eigenes Konto | R1-03 | M-23 |
 | RBAC-087 | F | U-TUT | Bericht-CSV C-B; C-A | C-B 403; C-A nur zugewiesene Lernende, keine Antworten/E-Mail nach D07-4 | R1-03 | M-16 |
 | RBAC-088 | R | RF-AU2 | Kurs-Export C-A; Zuweisung entfernt → Export eigener C-B | C-A 403; nach Rollenentzug auch C-B 403 | R1-03 | #7 |
-| RBAC-089 | A / G | RF-MGR, Export > Ablaufzeit; RF-BLK | Download abgelaufen; RF-BLK stellt Datenschutzantrag | 410 `cc_export_expired`; Antrag erlaubt | R1-03 | M-23 |
+| RBAC-089 | A / G | RF-MGR, Export > Ablaufzeit; RF-BLK | Download abgelaufen; RF-BLK stellt Datenschutzantrag | 410 `ccap_export_expired`; Antrag erlaubt | R1-03 | M-23 |
 
 #### Querschnitt (Cron, CLI, Webhook, Eskalation)
 
@@ -559,10 +560,23 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-090 | F | `system:cron` | Job mit Grant-ID einer anderen Site / gelöschtem Grant | No-op mit Log, kein Fehlerabbruch | R1-03 | 4.6 |
 | RBAC-091 | E | RF-MGR | Tab „Rollen & Rechte“: sich selbst `ccap_manage_settings` geben; Nutzer zu `administrator` machen | 403; `administrator` nicht wählbar | R1-03 | 3.5 |
 | RBAC-092 | E | RF-SUP | RF-MGR bzw. U-ADM sperren; sich selbst sperren | 403 (`do_not_allow`) | R1-03 | M-24 |
-| RBAC-093 | E | Webhook ohne/mit falscher Signatur; Replay derselben `event_id` | `POST /webhooks/<connector>` | 401 ohne Details, keine Inbox-Zeile; Replay 200 ohne zweiten Grant | R1-03 | 4.8 |
+| RBAC-093 | E | Webhook ohne/mit falscher Signatur; Replay derselben `event_id` | `POST /webhooks/<connector>` | 401 ohne Details, keine Inbox-Zeile; Replay 200 ohne zweiten Grant | R3-01 | 4.8 |
 | RBAC-094 | E | Monitor | `GET /monitor?key=<richtig>` | Schlüssel im Query wird ignoriert → nur Gesamtstatus | R1-03 | L-W8 |
 | RBAC-095 | E | Deaktivierung/Deinstallation | Plugin deaktivieren, deinstallieren | Fremdrollen unverändert; `ccap_*` nur bei Deinstallation entfernt | R1-03 | P-10 |
 | RBAC-096 | F | Messreihe über RBAC-002/029/052/060/068 | „fremd“ vs. „nicht existent“ | Körper byte-gleich (bis Request-ID), Status gleich | R1-03 | P-08 |
+
+#### Ergänzungen nach Beschluss (E-83, E-27/E-286/E-287, E-168/E-288, E-10)
+
+| Test-ID | Var. | Akteur / Vorbedingung | Aktion (Oberfläche) | Erwartung | Ziel | Bezug |
+|---|---|---|---|---|---|---|
+| RBAC-097 | E | Site mit Nutzern der Rollen `editor` und `shop_manager` | Plugin aktivieren | beide ohne `ccap_*`-Caps; nur `administrator` und die vier `ccap_`-Rollen erhalten Caps (E-83) | R1-03 | 3.1 |
+| RBAC-098 | F | U-L1 mit Grant nur auf Modul M-A1 von C-A (`module_id` ≠ 0) | Lektion und Frage in M-A2 öffnen; Kursprüfung mit Blueprint M-A1 + M-A2 starten | M-A2: 403 `ccap_content_locked` (`reason: no_access`); Kursprüfung nicht startbar, `requires` nennt M-A2 (E-286) | R1-14, R1-13 | M-02 |
+| RBAC-099 | A | Zusatz-Grant mit `depends_on_course_id` = C-A; Basiszugang zu C-A abgelaufen | Zusatzmodul öffnen | 403 `ccap_content_locked`; Zusatz-Grant bleibt `active` (E-287); nach neuem Basis-Grant wieder Zugang | R1-13, R1-14 | M-02 |
+| RBAC-100 | F | U-L2, Abgabe von U-L1 in C-E | Abgabe lesen, Abgabedatei abrufen, `submit` und `save` auf die fremde Abgabe | je 404 `ccap_not_found`, keine Änderung, kein Existenzleck | R1-46 | §4.10 |
+| RBAC-101 | R | RF-AU2 als Staff `author` von C-E; U-TUT (nur C-A zugewiesen) | Abgabe in C-E bewerten und zurückgeben | RF-AU2 erlaubt (E-288, Audit); U-TUT 404 | R1-46 | M-10a |
+| RBAC-102 | E | U-TUT zugewiesener Trainer von C-E und dort zugleich Lernender mit eigener Abgabe; U-ADM mit eigener Abgabe | eigene Abgabe bewerten bzw. zurückgeben | 403 `do_not_allow` (auch Admin) | R1-46 | M-10a |
+| RBAC-103 | R | RF-SUP (`ccap_support`, ohne #14) | Abgabe bewerten; Abgabedatei öffnen; danach mit #14 und Begründung | Bewerten 403; Datei 404; mit #14 lesbar, Audit mit Begründung (E-82) | R1-46 | §4.10 |
+| RBAC-104 | R | RF-MGR (ohne #19) | Tab „Website-Härtung“ öffnen und speichern; WP-CLI-Notausschalter im Kontext eines Nicht-Admins | 403 bzw. abgelehnt; Werte unverändert | R1-45 | §4.10 |
 
 **Abdeckung je Objekttyp (F/R/G/A):** Kurs 001–003,010 / 004–007,011 / 008 / 009 · Lektion 012,015–017 / 018 / 020 / 013,014,019 · Frage 021–024 / 025,026 / 028 / 027 · Versuch 029–036 / 039 / 038 / 037 · Grant 041,045 / 042,049 / 050 / 046 · Gruppe 051–054,058,059 / 057 / 056 / 055 · Zertifikat 060,061 / 062,063 / 066 / 065 · Datei 067–070,075 / 073 / 074 / 072 · Import 077–079 / 083 / 084 / 084 (Ersatz: überholter Batch, Grants gibt es dort nicht) · Export 085–087 / 088 / 089 / 089 (Ablauf des Exports).
 
@@ -624,7 +638,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 ### Offene Punkte nach Einarbeitung
 
 1. **Scopes und Modulzugang (E-27):** E-27 ersetzt „je Kurs mit Scopes“ durch „je Modul“. Ob die Scopes `view|download|exam` innerhalb eines Moduls weiter bestehen, ist nicht ausdrücklich beschlossen; M-02 führt beide Merkmale, bis R0-06/R0-09 den Grant-Schlüssel festlegen.
-2. **Präfix:** E-207 nennt CPTs, Caps, Rollen, Cron, Meta und Tabellen. Fehlercodes (`cc_not_found` …), admin-post-/AJAX-Aktionen (§4.3), Nonce-Muster `cc_<aktion>_<id>`, Shortcode `[cc_restricted]`, Cache-Gruppe `cc_policy` und Fixture-Konten `cc_fx_*` behalten `cc_`; D-20-03 sieht für AJAX-Aktionen ohnehin `course_captain_` vor. Endgültige Benennung in R0-19/R0-20.
+2. **Präfix:** E-207 nennt CPTs, Caps, Rollen, Cron, Meta und Tabellen. Fehlercodes (`ccap_not_found` …), admin-post-/AJAX-Aktionen (§4.3), Nonce-Muster `ccap_<aktion>_<id>`, Shortcode `[ccap_restricted]`, Cache-Gruppe `ccap_policy` und Fixture-Konten `cc_fx_*` behalten `ccap_`; D-20-03 sieht für AJAX-Aktionen ohnehin `course_captain_` vor. Endgültige Benennung in R0-19/R0-20.
 3. **Lesender Zugriff auf Integrationen über #22:** E-255 nennt die Rollen, aber keine Cap; dieses Dokument nutzt `ccap_view_system_status` (#22). Bestätigung in R0-34.
 4. **E-99 vs. E-168:** Trainer bewerten Text-/Dateiabgaben schon in R1 (#15), während E-99 die Tutor-Bewertungsfunktionen ins Gradebook (Pro) legt. Abgrenzung in R0-08 bestätigen.
 5. **Testlücke:** Für R1-45 (Härtung), R1-46 (Abgaben), E-232 (Opt-in-Fortschritt) und den Modulzugang (E-27) gibt es noch keine RBAC-Testfälle; RBAC-047/048/093 (Connector) sind nach E-38 Pro-/R3-Fälle.
@@ -640,7 +654,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | R0-06 | Tabelle `ccap_course_staff` (D07-1); Kennzeichen `ccap_learner_lock` als User-Meta oder Tabelle (D07-2); `ccap_import_batch.created_by` und Export-Datensatz mit Ersteller und Ablauf (B-9) bestätigen |
 | R0-05 | Fixtures RF-* (5.1) ergänzen. Platzhalter `ccap_manage_content` (R0-05 U-EDT, R0-10 §4.3) = hier `ccap_edit_others_courses` (site-weit) bzw. Meta-Cap `ccap_edit_course` (objektbezogen); `ccap_edit_course` ist als Meta-Cap M-03 bestätigt |
 | R0-10 | Rechteprüfung §4.3 Schritt 2 = M-20; „Wer `ccap_manage_content` für das Objekt hat“ → M-03 auf einen referenzierenden Kurs |
-| R0-19 | Fehlercodes `cc_account_locked`, `cc_invite_other_account`, `cc_group_not_active`, `cc_export_expired`, `cc_invalid_token` in den Katalog (Beschluss E-06) |
+| R0-19 | Fehlercodes `ccap_account_locked`, `ccap_invite_other_account`, `ccap_group_not_active`, `ccap_export_expired`, `ccap_invalid_token` in den Katalog (Beschluss E-06) |
 | R0-09 | Lernsperre ändert keine Grants; Grant-Verlängerung nach Ablauf als neue Revision (RBAC-046) |
 | R0-08 | Bewertungsrecht M-10 inkl. Verbot der Selbstbewertung |
 

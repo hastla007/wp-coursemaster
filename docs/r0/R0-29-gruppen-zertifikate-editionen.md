@@ -1,6 +1,6 @@
 # R0-29 · Free-/Pro-Grenze für Gruppen und Zertifikate
 
-**Stand:** 16.11.2026 · **Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** · **Bezug:** TODO R0-29 (DoD: „Free Seat/Claim und Basisnachweis vertraglich abgrenzen; Pro Gruppen-UX/Designer und Lizenzablauf getestet“), Folgetasks **R1-35**, **R1-44\*** (Vorschlag, E-183), **R3-08** (dazu R3-15, R3-18, R1-36); Konzept Kap. 4.5, 5, 6, 7, 35.1, 35.4, 43.1/43.3, 46.1; `R0-04` (BS-14, K-22, Befund ohne Quellbestand), `R0-07` (#11, #12, #17, M-15…M-19, RG-11/12/14/15, RBAC-051…066), `R0-08` §7.2, `R0-09` §1.2, §4, §6.3, §8, `R0-11` §1.2 (ER-1…ER-5), §1.5, §2, Flow 3/5, N-01…N-05, `R0-12` (CERT-001…008, R1-44\*), `R0-15` (A11Y-096, D-15-09), `R0-17` (T-38…T-40, SEC-034, PRIV-025), `R0-19` (R-31…R-45, Slots, Events), `R0-23` §5, `R0-27` (SET-072…076, SET-090…093, N-02, N-05…N-07).
+**Stand:** 16.11.2026 · **Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** · **Bezug:** TODO R0-29 (DoD: „Free Seat/Claim und Basisnachweis vertraglich abgrenzen; Pro Gruppen-UX/Designer und Lizenzablauf getestet“), Folgetasks **R1-35**, **R1-44** (beschlossen, E-183), **R3-08** (dazu R3-15, R3-18, R1-36); Konzept Kap. 4.5, 5, 6, 7, 35.1, 35.4, 43.1/43.3, 46.1; `R0-04` (BS-14, K-22, Befund ohne Quellbestand), `R0-07` (#11, #12, #17, M-15…M-19, RG-11/12/14/15, RBAC-051…066), `R0-08` §7.2, `R0-09` §1.2, §4, §6.3, §8, `R0-11` §1.2 (ER-1…ER-5), §1.5, §2, Flow 3/5, N-01…N-05, `R0-12` (CERT-001…008, R1-44), `R0-15` (A11Y-096, D-15-09), `R0-17` (T-38…T-40, SEC-034, PRIV-025), `R0-19` (R-31…R-45, Slots, Events), `R0-23` §5, `R0-27` (SET-072…076, SET-090…093, N-02, N-05…N-07).
 
 ### Beschlussstand
 
@@ -34,7 +34,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | Zertifikate Pro | Designer, mehrere Vorlagen mit Zuordnungsregeln, serverseitiges getaggtes PDF (PDF/UA-orientiert), Sammel-Neuausstellung im neuen Layout, mehrsprachige Vorlagen, Rezertifizierungs-Erinnerung. 6 Funktionen, Tabelle §2.3. |
 | Datenvertrag | Snapshot `format_version = 1` enthält **alle gedruckten Werte aufgelöst**; Vorlagenversionen (auch Designer) liegen in der Free-Tabelle `ccap_certificate_template`; Free besitzt einen Fallback-Renderer für jede Vorlagenart (§2.4). |
 | Lizenzablauf | 9 Zustände L0…L6D, Erwartungsmatrix für 22 Objekte (§3.2), Sequenztest „aktiv → abgelaufen → deinstalliert → reaktiviert“ mit Free-Prüfsumme (§3.3). |
-| Tests | 48 GRP- und 48 CRT-Fälle (GRP-001…065, CRT-001…063, mit Lücken je Block), davon 18 Lizenzfälle. Ziel R1-35, R1-44\*, R3-08 (§4). CERT-001…006/008 aus R0-12 sind übernommen. |
+| Tests | 48 GRP- und 48 CRT-Fälle (GRP-001…065, CRT-001…063, mit Lücken je Block), davon 18 Lizenzfälle. Ziel R1-35, R1-44, R3-08 (§4). CERT-001…006/008 aus R0-12 sind übernommen. |
 | Entscheidungen | 8 Beschlüsse E-231…E-238 (§5). |
 
 ---
@@ -107,7 +107,7 @@ Entitlement-Vorschlag nach E-95/N-03: `course.groups_advanced` (GP-01…GP-05, G
 
 | Nr. | Regel | Beleg |
 |---|---|---|
-| CR-1 | **Free besitzt die Nachweis-Domäne vollständig** (Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation, Datenschutz). Pro ruft für jede Ausstellung, Korrektur und Neuausstellung den Free-Dienst `CertificateService` auf; direkte Schreibzugriffe auf `ccap_certificate` sind verboten (Architekturtest CRT-040). | Kap. 43.1, 46.1; ER-3; R1-44\* |
+| CR-1 | **Free besitzt die Nachweis-Domäne vollständig** (Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation, Datenschutz). Pro ruft für jede Ausstellung, Korrektur und Neuausstellung den Free-Dienst `CertificateService` auf; direkte Schreibzugriffe auf `ccap_certificate` sind verboten (Architekturtest CRT-040). | Kap. 43.1, 46.1; ER-3; R1-44 |
 | CR-2 | **Der Snapshot ist selbsttragend.** Alles, was gedruckt oder als PDF ausgegeben wird, steht als aufgelöster Wert im Snapshot (§2.4). Pro darf keine gedruckten Werte außerhalb des Snapshots halten. | R0-08 §7.2, R0-23 §5.1 |
 | CR-3 | **Jede Vorlagenversion ist Free-Datenbestand** (`ccap_certificate_template`, append-only, Δ-7), auch Designer-Vorlagen. Eine referenzierte Version wird nie gelöscht, auch nicht bei Pro-Datenlöschung. | R0-23 §5.2 „neue Template-Version“, E-110 |
 | CR-4 | **Free kann jedes Zertifikat darstellen.** Für `kind = base` rendert Free exakt; für jede andere Art (z. B. `designer`) rendert Free den **Fallback** aus dem Snapshot im Basislayout mit dem Hinweis „Darstellung im Standardlayout“. Verifikation und Status sind davon unabhängig. | ER-3, Kap. 35.4 |
@@ -115,7 +115,7 @@ Entitlement-Vorschlag nach E-95/N-03: `course.groups_advanced` (GP-01…GP-05, G
 | CR-6 | **Format Free = HTML + Druck.** Kein serverseitiges PDF, keine PDF-Bibliothek, kein PDF-Link in Free-Mails und -Antworten (E-96, T27-4). PDF gibt es nur über die Pro-Erweiterung im Slot `responseFields`. | E-96, R0-27 T27-4 |
 | CR-7 | **Lesen und Herunterladen sind keine Pro-Schreibaktionen.** Bei `expired` bleiben PDF-Download vorhandener Zertifikate und Designer-Darstellung verfügbar; nur Vorlagen ändern und Sammelläufe starten sind gesperrt. | ER-4 |
 
-### 2.2 Free-Funktionen (R1; Domäne R1-44\*, Verwaltung/UI R1-35)
+### 2.2 Free-Funktionen (R1; Domäne R1-44, Verwaltung/UI R1-35)
 
 | Nr. | Funktion | Screen | Cap / Meta-Cap | API | Regeln | Lizenzende / Pro-Berührung |
 |---|---|---|---|---|---|---|
@@ -321,39 +321,39 @@ Typ: **U** Unit, **I** Integration (PHPUnit + WP-Testsuite), **E** E2E (Playwrig
 | GRP-064 | L | Lizenz `invalid` (Signatur manipuliert) | Verhalten wie L3, Diagnoseeintrag | R3-08 | R0-11 F5.4 |
 | GRP-065 | L | L2 Grace 13 Tage, dann Tag 15 | Tag 13 wie L1; Tag 15 wie L3 ohne Fehlermeldung an Lernende | R3-08 | §3.1 |
 
-### 4.4 Zertifikate – Free (Ziel R1-44\* Domäne, R1-35 Verwaltung/UI)
+### 4.4 Zertifikate – Free (Ziel R1-44 Domäne, R1-35 Verwaltung/UI)
 
 | ID | Typ | Fall | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|
-| CRT-001 (=CERT-001) | I | Kurs erfüllt Abschlussregel, `auto_issue` an | genau ein Zertifikat `revision_no = 1`, `issued`; Snapshot mit Kursrevision, Evidenz, `template_version`, Sprache; Event `certificate.issued` | R1-44\* | CF-02 |
-| CRT-002 (=CERT-002) | P | Ausstellung doppelt (Cron + Abgabe) | ein Zertifikat, zweiter Aufruf liefert dasselbe | R1-44\*, R1-42 | CF-02 |
-| CRT-003 (=CERT-003) | I | Korrektur nach Nachbewertung | `revision_no = 2`, alte `corrected`, alter Token „ersetzt“, Mail N-06 mit HTML-Link | R1-44\* | CF-09 |
-| CRT-004 (=CERT-004) | I | Bei Abgabe kein Grant aktiv (E-113) | Ergebnis gewertet, kein automatisches Zertifikat; manuelle Ausstellung CF-03 möglich | R1-44\* | CF-02/03 |
-| CRT-005 (=CERT-005) | E/A | HTML- und Druckansicht mit langen Namen, Umlauten, RTL-Kurstitel | vollständig, Druck 1 Seite A4, kein serverseitiges PDF, Text statt Bild (A11Y-096) | R1-44\*, R1-19 | CF-06 |
-| CRT-006 (=CERT-006) | I | Datenschutzexport und Löschung | Export enthält Snapshot-Daten; Eraser nach E-150; Verifikation danach `ccap_not_found` bzw. ohne Name | R1-44\*, R1-17 | CF-12 |
+| CRT-001 (=CERT-001) | I | Kurs erfüllt Abschlussregel, `auto_issue` an | genau ein Zertifikat `revision_no = 1`, `issued`; Snapshot mit Kursrevision, Evidenz, `template_version`, Sprache; Event `certificate.issued` | R1-44 | CF-02 |
+| CRT-002 (=CERT-002) | P | Ausstellung doppelt (Cron + Abgabe) | ein Zertifikat, zweiter Aufruf liefert dasselbe | R1-44, R1-42 | CF-02 |
+| CRT-003 (=CERT-003) | I | Korrektur nach Nachbewertung | `revision_no = 2`, alte `corrected`, alter Token „ersetzt“, Mail N-06 mit HTML-Link | R1-44 | CF-09 |
+| CRT-004 (=CERT-004) | I | Bei Abgabe kein Grant aktiv (E-113) | Ergebnis gewertet, kein automatisches Zertifikat; manuelle Ausstellung CF-03 möglich | R1-44 | CF-02/03 |
+| CRT-005 (=CERT-005) | E/A | HTML- und Druckansicht mit langen Namen, Umlauten, RTL-Kurstitel | vollständig, Druck 1 Seite A4, kein serverseitiges PDF, Text statt Bild (A11Y-096) | R1-44, R1-19 | CF-06 |
+| CRT-006 (=CERT-006) | I | Datenschutzexport und Löschung | Export enthält Snapshot-Daten; Eraser nach E-150; Verifikation danach `ccap_not_found` bzw. ohne Name | R1-44, R1-17 | CF-12 |
 | CRT-007 (=CERT-008) | L | Lizenz läuft ab, Add-on aktiv | Basisnachweise und Verifikation unverändert, Designer-Vorlage eingefroren | R3-08 | Z-12…Z-17 |
-| CRT-008 | U | Snapshot-Kanonisierung: gleiche Daten in anderer Schlüsselreihenfolge, NFD-Umlaute | gleicher `snapshot_hash` | R1-44\* | §2.4 |
-| CRT-009 | I | Snapshot mit unbekanntem Feld bzw. fehlendem Pflichtfeld schreiben | `ccap_validation_failed`, nichts gespeichert | R1-44\* | §2.4 Regel 1 |
-| CRT-010 | I | Profilname nach Ausstellung ändern | Nachweis zeigt alten Namen; Korrektur auf Antrag übernimmt neuen | R1-44\* | R0-23 §5.2 |
-| CRT-011 | I | Manuelle Ausstellung ohne Evidenz bzw. mit `reduced`-Versuch | abgewiesen | R1-44\* | CF-03 |
-| CRT-012 | I | Korrektur, die Kurs oder Person ändern will | abgewiesen (Widerruf + Neuausstellung nötig) | R1-44\* | R0-23 §5.3 |
-| CRT-013 | I | Widerruf Revision 2 eines korrigierten Zertifikats | alle Revisionen `revoked`; beide Tokens „widerrufen am …“; Mail N-07 nur Kategorie | R1-44\* | CF-10, REV-046 |
-| CRT-014 | I | Widerruf ohne Grund; durch Trainer; eigenes Zertifikat mit #17 | abgewiesen / 403 / 403 | R1-44\* | RBAC-062/064 |
-| CRT-015 | E | Verifikation je Zustand (`valid`, abgelaufen, `corrected` alt, `revoked`, unbekannt) | Antworten nach §2.5; unbekannt ohne Hinweis auf ähnliche Tokens | R1-44\* | CF-07, SEC-034 |
-| CRT-016 | I | Verifikationsantwort auf Feld-Policy prüfen (Schema-Test) | enthält nie E-Mail, Konto-ID, Punkte, Grund, Vorlagenart | R1-44\* | §2.5 |
+| CRT-008 | U | Snapshot-Kanonisierung: gleiche Daten in anderer Schlüsselreihenfolge, NFD-Umlaute | gleicher `snapshot_hash` | R1-44 | §2.4 |
+| CRT-009 | I | Snapshot mit unbekanntem Feld bzw. fehlendem Pflichtfeld schreiben | `ccap_validation_failed`, nichts gespeichert | R1-44 | §2.4 Regel 1 |
+| CRT-010 | I | Profilname nach Ausstellung ändern | Nachweis zeigt alten Namen; Korrektur auf Antrag übernimmt neuen | R1-44 | R0-23 §5.2 |
+| CRT-011 | I | Manuelle Ausstellung ohne Evidenz bzw. mit `reduced`-Versuch | abgewiesen | R1-44 | CF-03 |
+| CRT-012 | I | Korrektur, die Kurs oder Person ändern will | abgewiesen (Widerruf + Neuausstellung nötig) | R1-44 | R0-23 §5.3 |
+| CRT-013 | I | Widerruf Revision 2 eines korrigierten Zertifikats | alle Revisionen `revoked`; beide Tokens „widerrufen am …“; Mail N-07 nur Kategorie | R1-44 | CF-10, REV-046 |
+| CRT-014 | I | Widerruf ohne Grund; durch Trainer; eigenes Zertifikat mit #17 | abgewiesen / 403 / 403 | R1-44 | RBAC-062/064 |
+| CRT-015 | E | Verifikation je Zustand (`valid`, abgelaufen, `corrected` alt, `revoked`, unbekannt) | Antworten nach §2.5; unbekannt ohne Hinweis auf ähnliche Tokens | R1-44 | CF-07, SEC-034 |
+| CRT-016 | I | Verifikationsantwort auf Feld-Policy prüfen (Schema-Test) | enthält nie E-Mail, Konto-ID, Punkte, Grund, Vorlagenart | R1-44 | §2.5 |
 | CRT-017 | I | Namensfreigabe an/aus, Abruf vor und nach | sofort wirksam, auch für alten Token einer Korrektur | R1-35 | CF-08, PRIV-025 |
 | CRT-018 | I | Basisvorlage ändern nach drei Ausstellungen | neue `template_version`; drei alte rendern unverändert; neue Ausstellung mit neuer Version | R1-35 | CF-04, SET-092 |
-| CRT-019 | I | Prüfcode im Druck = Prüfcode auf Verifikationsseite; ein Zeichen im Snapshot manipuliert | gleich; nach Manipulation Integritätsprüfung schlägt an (Systemstatus) | R1-44\* | §2.4 |
+| CRT-019 | I | Prüfcode im Druck = Prüfcode auf Verifikationsseite; ein Zeichen im Snapshot manipuliert | gleich; nach Manipulation Integritätsprüfung schlägt an (Systemstatus) | R1-44 | §2.4 |
 | CRT-020 | I | Kurs-Slug ändern, alten Verifikationslink aufrufen | 301 auf neue URL, Antwort gleich (E-220) | R1-35 | §2.4 `verify` |
 | CRT-021 | I | Free-Antworten R-40 und Mails N-05…N-07 auf PDF-Bezug prüfen | kein `pdf_url`, kein PDF-Link (CR-6) | R1-35 | E-96, T27-4 |
-| CRT-022 | I | Zertifikat mit `template.kind = designer` und `fields`/`assets` ohne Pro rendern | Fallback mit Hinweis, alle `fields` als Liste, Assets als Alt-Text; Status und Verifikation normal | R1-44\* | CR-4 |
-| CRT-023 | I | Unbekannte `template.kind = "xyz"` | Fallback, kein Fehler, Diagnoseeintrag | R1-44\* | CR-4 |
+| CRT-022 | I | Zertifikat mit `template.kind = designer` und `fields`/`assets` ohne Pro rendern | Fallback mit Hinweis, alle `fields` als Liste, Assets als Alt-Text; Status und Verifikation normal | R1-44 | CR-4 |
+| CRT-023 | I | Unbekannte `template.kind = "xyz"` | Fallback, kein Fehler, Diagnoseeintrag | R1-44 | CR-4 |
 | CRT-024 | I | Referenziertes Logo aus Mediathek löschen | Warnung vor dem Löschen (SOLL); danach Nachweis ohne Logo, kein Platzhalterbild | R1-35 | §2.4 Regel 3 |
 | CRT-025 | E | Lernender mit Lernsperre | eigene Ansicht `ccap_account_locked`; Verifikation 200 | R1-35 | RBAC-066 |
 | CRT-026 | E | Admin-Liste A-11: Filter, CSV-Export mit/ohne Begründung | ohne Begründung abgewiesen; CSV ohne E-Mail, Audit-Eintrag | R1-35 | CF-11 |
 | CRT-027 | A | L-15, L-16, A-11 mit Tastatur/Screenreader; Druckvorschau mit 200 % Zoom | Überschriftenhierarchie, Status als Text, Links mit Zweck, kein Informationsverlust | R1-35 | R0-15 ST-5/ST-8 |
-| CRT-028 | I | Verifikation über Seiten-Cache/Proxy vor und nach Widerruf | nachher sofort `revoked` | R1-25, R1-44\* | CON-037, T-40 |
-| CRT-029 | U | `course_captain_verify_certificate_v1` mit Token, UID ohne Recht, UID mit #17 | Minimaldaten / `ccap_not_found` / volle Daten | R1-44\* | R0-19 |
+| CRT-028 | I | Verifikation über Seiten-Cache/Proxy vor und nach Widerruf | nachher sofort `revoked` | R1-25, R1-44 | CON-037, T-40 |
+| CRT-029 | U | `course_captain_verify_certificate_v1` mit Token, UID ohne Recht, UID mit #17 | Minimaldaten / `ccap_not_found` / volle Daten | R1-44 | R0-19 |
 
 ### 4.5 Zertifikate – Pro (Ziel R3-08)
 
@@ -431,15 +431,15 @@ Die acht Punkte dieses Dokuments sind entschieden (`ENTSCHEIDUNGEN.md` Abschnitt
 | Δ-10 | R0-06 `ccap_certificate`, R0-08 §7.2 | `revision_kind varchar(16) NOT NULL DEFAULT 'initial'` (`initial/correction/layout`); Snapshot-Felder `format_version`, `display_id`, `texts`, `fields`, `assets`, `verify.path_at_issue` |
 | Δ-11 | R0-07 | M-15 um Resolver-Aufruf (GR-3) ergänzen; M-16 Besitzer bleibt `do_not_allow` in Free, Pro-Erweiterung nur nach E-232 |
 | Δ-12 | R0-11 §1.5 | Zeile Zertifikatsdesigner: PDF-Download bleibt bei `expired` (CR-7); neue Zeilen Untergruppen, Massenimport, Sammel-Neuausstellung (Tabelle §3.2); L-15 „Format N-04“ → HTML/Druck; N-05 „Initialen“ nach E-236 |
-| Δ-13 | R0-12 | CERT-001…006, CERT-008 → CRT-001…007 (Alias); R1-35 und R1-44\* zeigen auf §4 dieses Dokuments; Gate B-8 um CRT-008…029 erweitern |
+| Δ-13 | R0-12 | CERT-001…006, CERT-008 → CRT-001…007 (Alias); R1-35 und R1-44 zeigen auf §4 dieses Dokuments; Gate B-8 um CRT-008…029 erweitern |
 | Δ-14 | R0-13 K-15 | „Mail mit neuem PDF-Link“ → Link auf HTML-Ansicht (bestätigt T27-4) |
 | Δ-15 | konzept.md Kap. 4.5, 5 | redaktionell nach C-01/C-02: Free = Basisnachweis mit Verifikation, Gruppen-Grundfunktion; Pro = Designer, PDF, Vorlagen, erweiterte Gruppenorganisation |
-| Δ-16 | TODO R1-35, R1-44\* | DoD-Verweis auf R0-29 §1.2, §2.2, §2.4, §4; R3-08 DoD auf §1.3, §2.3, §3 |
+| Δ-16 | TODO R1-35, R1-44 | DoD-Verweis auf R0-29 §1.2, §2.2, §2.4, §4; R3-08 DoD auf §1.3, §2.3, §3 |
 
 ---
 
 ## 7. Nachweis
 
-- Gelesen: `TODO-WETTBEWERBSANALYSE.md` (R0-29, R1-35, R1-44, R3-08); `konzept.md` Kap. 4.5, 5, 6, 7, 35.1, 35.4, 43.1–43.5, 46.1; `docs/r0/ENTSCHEIDUNGEN.md` (Beschlussprotokoll E-01…E-20, Empfehlungen bis E-224, gezielt E-14, E-17, E-28, E-36, E-46, E-73, E-81, E-84, E-89, E-93…E-100, E-110…E-117, E-127, E-136, E-145, E-150, E-158, E-183, E-220, E-222); R0-04 (Z-3/Z-4/Z-6, BS-14, K-22, Befund ohne Quellbestand); R0-06 (E-35…E-39, `ccap_group`, `ccap_group_course`, `ccap_seat`, `ccap_certificate`); R0-07 (§2, §3.1 #1…#24, M-15…M-19, RG-11/12/14/15, RBAC-036, 051…066, D07-1, D07-4); R0-08 §7; R0-09 §1, §4, §6.3, §8, §9; R0-11 §1.1–1.5, §2.2/2.3, §3.3, §3.5, §4, §5; R0-12 (LEARN-08, CERT-001…008, R1-35, R1-44\*, D12-2); R0-13 K-10…K-16; R0-15 (A11Y-092/096, D-15-09); R0-17 (T-38…T-40, SEC-034, PRIV-025); R0-19 (R-31…R-45, Slots, Fehlercodes, Events); R0-21 CON-037; R0-23 §5, R23-D8; R0-27 (K43-27/28, K43-34…37, SET-072…093, SET-128, N-02, N-05…N-07, T27-4, D27-8).
+- Gelesen: `TODO-WETTBEWERBSANALYSE.md` (R0-29, R1-35, R1-44, R3-08); `konzept.md` Kap. 4.5, 5, 6, 7, 35.1, 35.4, 43.1–43.5, 46.1; `docs/r0/ENTSCHEIDUNGEN.md` (Beschlussprotokoll E-01…E-20, Empfehlungen bis E-224, gezielt E-14, E-17, E-28, E-36, E-46, E-73, E-81, E-84, E-89, E-93…E-100, E-110…E-117, E-127, E-136, E-145, E-150, E-158, E-183, E-220, E-222); R0-04 (Z-3/Z-4/Z-6, BS-14, K-22, Befund ohne Quellbestand); R0-06 (E-35…E-39, `ccap_group`, `ccap_group_course`, `ccap_seat`, `ccap_certificate`); R0-07 (§2, §3.1 #1…#24, M-15…M-19, RG-11/12/14/15, RBAC-036, 051…066, D07-1, D07-4); R0-08 §7; R0-09 §1, §4, §6.3, §8, §9; R0-11 §1.1–1.5, §2.2/2.3, §3.3, §3.5, §4, §5; R0-12 (LEARN-08, CERT-001…008, R1-35, R1-44, D12-2); R0-13 K-10…K-16; R0-15 (A11Y-092/096, D-15-09); R0-17 (T-38…T-40, SEC-034, PRIV-025); R0-19 (R-31…R-45, Slots, Fehlercodes, Events); R0-21 CON-037; R0-23 §5, R23-D8; R0-27 (K43-27/28, K43-34…37, SET-072…093, SET-128, N-02, N-05…N-07, T27-4, D27-8).
 - Keine LearnBoating-Quellen gelesen (E-01; für Zertifikate existiert kein Bestand, für Gruppen genügen die Verhaltensbefunde aus R0-09).
 - Keine Implementierung, keine Testausführung, kein Commit.

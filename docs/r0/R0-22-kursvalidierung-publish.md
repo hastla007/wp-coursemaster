@@ -391,7 +391,7 @@ Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte
 | Weg | Absicherung |
 |---|---|
 | Course-Captain-Editor (A-04) | REST `…/publish` (§2.4) |
-| Block-Editor/WP-REST `wp/v2/ccap_course` mit `status=publish` | `rest_pre_insert_cc_course`: Statuswechsel auf `publish`/`future`/`private` wird abgewiesen (`ccap_publish_via_validator`, 422) mit Verweis auf A-04; Speichern als Entwurf bleibt erlaubt |
+| Block-Editor/WP-REST `wp/v2/ccap_course` mit `status=publish` | `rest_pre_insert_ccap_course`: Statuswechsel auf `publish`/`future`/`private` wird abgewiesen (`ccap_publish_via_validator`, 422) mit Verweis auf A-04; Speichern als Entwurf bleibt erlaubt |
 | Quick Edit / Bulk Edit / `wp_insert_post` aus Fremdcode | `wp_insert_post_data`-Filter setzt einen ungültigen Statuswechsel auf den alten Status zurück; `transition_post_status`-Wächter loggt den Versuch (Audit `publish_bypass_blocked`) |
 | XML-RPC | wie `wp_insert_post` (gleicher Filter) |
 | WP-CLI `wp post update --post_status=publish` | wie oben; eigener Befehl `wp course-captain course publish <uid> [--ack=<fp,…>|--ack-all-warnings] [--note=…]` ruft §2.4 mit Akteur `system:cli` + `--user` |

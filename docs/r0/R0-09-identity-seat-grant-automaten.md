@@ -17,7 +17,13 @@
 | E-31, E-203 | Quellen `voucher` mit zwei Zieltypen und `membership` (§2.2, Details R0-40) |
 | E-112…E-117 | frühere Entscheidungsbedarfe D09-1…D09-6 beschlossen (§8), Verweise im Text umgestellt |
 | E-201, E-276, E-277 | Pending-Timeout 24 h für technische Pendings (G-06) |
-| E-207 | Tabellen, Caps und Cron-Hooks `ccap_*`; Fehlercodes bleiben `cc_*` (Offene Punkte) |
+| **E-286** | `module_id NOT NULL DEFAULT 0` (0 = ganzer Kurs); Scopes `view/download/exam` bleiben innerhalb eines Moduls; Kursprüfung nur mit Zugang zu allen Blueprint-Modulen (§3.1) |
+| **E-287** | Zusatz-Grant hängt am effektiven Zugang zum Basiskurs, sein Status ändert sich nicht (§3.5) |
+| **E-293** | Unbezahlte Woo-Bestellung erzeugt **keinen** Grant, auch nicht `pending_confirmation` (G-01, RF-11, RF-13); E-201 gilt nur für Quellen mit bestätigter Zahlung und ausstehender Course-Verarbeitung |
+| **E-294** | Freigegebener Gutschein: `failed` ist für diesen Idempotenzschlüssel endgültig, kein G-13-Retry; neuer Einlöseversuch = neuer Schlüssel |
+| **E-295** | Verlorener Dispute: Shopstatus `refunded`, wenn Geld zurückgebucht wurde; `cancelled` nur bei Storno vor Zahlung (RF-10, RF-11) |
+| **E-297** | Bundles eine Ebene; Gruppenplätze auf Bundles erlaubt (§3.1, §4.2) |
+| E-207 | Tabellen, Caps und Cron-Hooks `ccap_*`; Fehlercodes ebenfalls `ccap_*` (**E-285**) |
 
 Die Deltas §9 sind in R0-06/R0-19 eingearbeitet (Spalte „Status“).
 
@@ -65,10 +71,10 @@ Die Deltas §9 sind in R0-06/R0-19 eingearbeitet (Spalte „Status“).
 | Nachschlagen | über den Hash (Indexzugriff, kein Vergleich im Klartext); Formatprüfung vor dem DB-Zugriff | wie LB GS:739 |
 | Ablauf | `i`: `claim_expires_at = invited_at + 30 d` (Setting, LB `INVITE_DAYS`, GS:25); `g`: gültig, solange Gruppe `active` und `now ≤ valid_until`, optional eigenes Ablaufdatum; `c`: 14 d (Setting, Vorschlag für R3) | LB GS:639-654 |
 | Vorschau (`GET`) | ändert nichts; zeigt Gruppenname (bereinigt, GS:521-531), Besitzer-Anzeigename, Kurse/Scopes, freie Plätze, Ablauf; bei persönlicher Einladung und anderem Konto: Hinweis mit **maskierter** Adresse (`a…@example.de`, GS:287-308, T132) | übernehmen |
-| Einlösen (`POST`, Nonce) | nur angemeldet (Gast → Login/Registrierung mit Rücksprung, GM-104); unter Gruppen-Lock (§4.3); persönlich: `UPDATE ccap_seat SET status='active', user_id=?, claim_token_hash=NULL, invite_email=NULL, claimed_at=? WHERE id=? AND status='invited' AND claim_token_hash=? AND claim_expires_at>?` → genau 1 Zeile, sonst `cc_claim_used` bzw. `cc_claim_expired` | LB bedingtes UPDATE GS:390-399; **Delta:** `invite_email` wird beim Claim geleert (Privacy §7) |
+| Einlösen (`POST`, Nonce) | nur angemeldet (Gast → Login/Registrierung mit Rücksprung, GM-104); unter Gruppen-Lock (§4.3); persönlich: `UPDATE ccap_seat SET status='active', user_id=?, claim_token_hash=NULL, invite_email=NULL, claimed_at=? WHERE id=? AND status='invited' AND claim_token_hash=? AND claim_expires_at>?` → genau 1 Zeile, sonst `ccap_claim_used` bzw. `ccap_claim_expired` | LB bedingtes UPDATE GS:390-399; **Delta:** `invite_email` wird beim Claim geleert (Privacy §7) |
 | Einmaligkeit | `i` und `c` sind nach erfolgreichem Claim sofort ungültig (Hash = NULL). Doppelklick/zweites Gerät desselben Kontos liefert die bestehende Mitgliedschaft (idempotent, GS:350-357) | übernehmen |
 | Wiederholung („erneut senden“) | erzeugt **neues** Token, alter Hash wird überschrieben (sofort ungültig), `invited_at`/`claim_expires_at` neu; zählt gegen das Einladungsbudget max(20, 2 × Plätze)/24 h (GS:262-270) | LB kennt kein Resend; neu |
-| Accountwechsel | Token ist ein Inhaberrecht: Standard `claim_policy = transferable` (LB, E-28) → jedes angemeldete Konto kann nach Hinweis annehmen. Option `invited_address_only` → nur wenn `user_email` des Kontos (WP-bestätigt, s. u.) der Einladungsadresse entspricht; sonst 403 `cc_invite_other_account` (RBAC-054). Bei dieser Option ist der Gruppenlink `g` deaktiviert | E-28 |
+| Accountwechsel | Token ist ein Inhaberrecht: Standard `claim_policy = transferable` (LB, E-28) → jedes angemeldete Konto kann nach Hinweis annehmen. Option `invited_address_only` → nur wenn `user_email` des Kontos (WP-bestätigt, s. u.) der Einladungsadresse entspricht; sonst 403 `ccap_invite_other_account` (RBAC-054). Bei dieser Option ist der Gruppenlink `g` deaktiviert | E-28 |
 | Falsches Konto beansprucht | keine Selbstkorrektur durch den Lernenden; Besitzer entfernt den Platz und lädt neu ein (§4.6), Support kann „Zugang übertragen“ (E-114) | – |
 | Brute Force | Rate-Limit je IP und Konto auf Vorschau und Einlösen (Werte in R0-17, LB Einlösung 30/IP/h, 10/Konto/h); bei Ausfall des Zählers **fail-closed** (E-46) | E-46 |
 | Leckschutz | Claim-Seite mit `Referrer-Policy: no-referrer`, `Cache-Control: no-store`; Token nie in Logs, Audit, Exporten (R0-07 §4.9), Fehlermeldungen oder Outbox-Payloads | neu |
@@ -81,7 +87,7 @@ Die Deltas §9 sind in R0-06/R0-19 eingearbeitet (Spalte „Status“).
 | Ereignis | Wirkung auf Grants | Wirkung auf Seats/Gruppen | Lernhistorie/Zertifikat | Beleg |
 |---|---|---|---|---|
 | **E-Mail-Wechsel** | keine (35.1) | keine; offene Einladungen an die alte Adresse bleiben gültig (Token, nicht Adresse zählt); bei `invited_address_only` zählt die Adresse zum Claim-Zeitpunkt | keine; Zertifikat-Snapshot unverändert | 35.1 |
-| **Lernsperre** (`ccap_learner_lock`, E-79) | **keine Änderung**; effektiver Zugang = deny (`cc_account_locked`) | eigene Plätze bleiben belegt; als Besitzer: Verwaltung gesperrt, Mitglieder behalten Zugang (RBAC-056) | bleibt; öffentliche Verifikation bleibt | R0-07 §3.4, RBAC-050 |
+| **Lernsperre** (`ccap_learner_lock`, E-79) | **keine Änderung**; effektiver Zugang = deny (`ccap_account_locked`) | eigene Plätze bleiben belegt; als Besitzer: Verwaltung gesperrt, Mitglieder behalten Zugang (RBAC-056) | bleibt; öffentliche Verifikation bleibt | R0-07 §3.4, RBAC-050 |
 | **Rollenentzug auf der Site** | keine Änderung; Zugriff mangels `read` verweigert | wie Sperre | bleibt | R0-07 §3.4 (b) |
 | **Kontolöschung** | alle Grants → `revoked` (`account_deleted`), Event + Outbox; danach Retention nach §7 (Kaufquellen pseudonymisiert behalten, sonst löschen) | eigene Plätze → `removed`, `invite_email` NULL, Seat-Grants `revoked`; eigene Gruppen: `owner_user_id = 0`, Gruppe läuft weiter, Admin verwaltet (GS:444-469, GM-102) | Lerndaten über Eraser (R1-17, INV-C-152); Zertifikate nach Retention E-51 | LB INV-C-148/158 quellenneutral |
 | **Zusammenführung (Merge)** | R1: **kein** Merge-Werkzeug (E-114). Support-Aktion „Zugang übertragen“: Quell-Grant `revoked` (`transferred`), neuer Grant gleicher Quelle mit `source_revision + 1` für das Zielkonto, Begründung Pflicht, beide Konten im Audit | Platz: entfernen + neu einladen | Historie bleibt beim Ursprungskonto; keine automatische Übernahme von Fortschritt/Versuchen/Zertifikaten | 35.1 „Merge nur nach expliziter sicherer Bestätigung“ |
@@ -98,7 +104,7 @@ Die Deltas §9 sind in R0-06/R0-19 eingearbeitet (Spalte „Status“).
 | Zustand | Bedeutung | Zugang | Anzeige „Mein Lernen“ (31.2) | Ende? |
 |---|---|---|---|---|
 | `pending_claim` | Berechtigung besteht, Lernender noch nicht zugeordnet (`user_id NULL`) | nein | – (beim Käufer: „Zuweisung offen“) | nein |
-| `pending_confirmation` | Lernender bekannt, Quelle hat noch nicht bestätigt (Zahlung offen, Zustimmung fehlt, Voucher reserviert) | nein | „Zugang wird aktiviert“ | nein |
+| `pending_confirmation` | Lernender bekannt, Quelle hat noch nicht bestätigt (Zustimmung fehlt nach bestätigter Zahlung, Voucher reserviert); **nie** für unbezahlte Woo-Bestellungen (E-293) | nein | „Zugang wird aktiviert“ | nein |
 | `active` | gültig; Zugang nur innerhalb `valid_from ≤ now ≤ valid_until` (Zeitprüfung, nicht Cron, R0-07 B-6) | ja | „aktiv bis …“ | nein |
 | `suspended` | reversibel gesperrt (Zahlungskonflikt, manuelle Sperre, Gruppe ausgesetzt) | nein | „vorübergehend nicht verfügbar“ + Supportweg | nein |
 | `expired` | Laufzeit abgelaufen | nein | „abgelaufen“ + ggf. Verlängerungsangebot | **ja** (je Revision) |
@@ -109,16 +115,16 @@ Die Deltas §9 sind in R0-06/R0-19 eingearbeitet (Spalte „Status“).
 
 ### 2.2 Quellen und Idempotenzschlüssel
 
-Schlüssel = `UNIQUE grant_source (source_type, source_id, source_line, source_revision, course_id, module_id)` (R0-06 §4.4; `module_id bigint unsigned NOT NULL DEFAULT 0`, 0 = ganzer Kurs, E-27). Ein Ziel ist immer `(course_id, module_id)` plus Scopes. Gleicher Schlüssel mit anderem `user_id` → `cc_idempotency_conflict` (GM-088, Verhalten LB `lb_idempotency_conflict`).
+Schlüssel = `UNIQUE grant_source (source_type, source_id, source_line, source_revision, course_id, module_id)` (R0-06 §4.4; `module_id bigint unsigned NOT NULL DEFAULT 0`, 0 = ganzer Kurs, E-27). Ein Ziel ist immer `(course_id, module_id)` plus Scopes. Gleicher Schlüssel mit anderem `user_id` → `ccap_idempotency_conflict` (GM-088, Verhalten LB `lb_idempotency_conflict`).
 
 | `source_type` | Phase | `source_id` | `source_line` | `source_revision` | Erzeuger / Actor | Startzustand |
 |---|---|---|---|---|---|---|
 | `manual` | R1 | `request_key` (UUID v4 aus dem Formular, bei Doppelabsendung identisch) | `''` | 1; Reaktivierung nach `expired`/`revoked` = +1 | Admin/Manager mit `ccap_manage_grants` (M-14), Begründung Pflicht (ESV:332-361) | `active` |
 | `group_seat` | R1 | `ccap_group.uid` | `ccap_seat.id` (Seat-Zeile ist einmalig) | 1; nach Gruppen-Wiedereinsetzung +1 (§4.8) | System beim Claim (`actor = user`) | `active` |
-| `woo_order` | R3.1 (Pro, E-53) | Woo-Bestell-ID (HPOS/CRUD) | Positions-ID; je eingefrorenem Ziel der Position eine Zeile (R0-40 §2.2) | 1; bestätigte Rücknahme einer Erstattung oder Kundenwechsel +1 (E-29, E-117) | `connector:woocommerce` | `pending_confirmation` oder `active` (bezahlt, Konto vorhanden, Zustimmung erfüllt) |
+| `woo_order` | R3.1 (Pro, E-53) | Woo-Bestell-ID (HPOS/CRUD) | Positions-ID; je eingefrorenem Ziel der Position eine Zeile (R0-40 §2.2) | 1; bestätigte Rücknahme einer Erstattung oder Kundenwechsel +1 (E-29, E-117) | `connector:woocommerce` | erst ab bestätigter Zahlung (E-293): `active` (Konto vorhanden, Zustimmung erfüllt) oder `pending_confirmation` (bezahlt, Course-Verarbeitung ausstehend) |
 | `voucher` | R3.2 (Pro, E-53) | `redemption_key` (`vcap()->redemptions`, R0-36 C2, R0-40 §2.3) | Index des Ziels in der eingefrorenen Zielliste; Ziel ist ein neutrales Zugangsangebot **oder** ein Woo-Produkt (E-31); ein Code je Platz (E-36) | 1 | `connector:voucher-captain` | `pending_confirmation` (reserve) → `active` (commit) |
 | `membership` | R3 (Pro, E-203) | `{provider}:{membership_id}` | `{plan_id}:{target_index}` | 1; Wiederaufnahme = +1 (E-29) | Membership-Adapter über GrantSourceAdapter | nach Statusabbildung R0-40 §2.4 |
-| `workflow` | Pro/R3 (E-39, E-39b) | Workflow-Lauf-ID | Aktions-ID | 1 | `connector:workflow-captain` im **Course-Pro-Connector**; darf nur Grants mit `source_type = workflow` anlegen und entziehen (`cc_source_not_allowed` sonst); Idempotenz über den Grant-Schlüssel, jede Aktion mit Audit; setzt die Änderung am Workflow-Captain-Konzept voraus (E-39b) | `active` |
+| `workflow` | Pro/R3 (E-39, E-39b) | Workflow-Lauf-ID | Aktions-ID | 1 | `connector:workflow-captain` im **Course-Pro-Connector**; darf nur Grants mit `source_type = workflow` anlegen und entziehen (`ccap_source_not_allowed` sonst); Idempotenz über den Grant-Schlüssel, jede Aktion mit Audit; setzt die Änderung am Workflow-Captain-Konzept voraus (E-39b) | `active` |
 
 Woo-spezifische Felder (`order_id`, `order_item_id`, `sku`) liegen **nicht** im Kern (K-01); der Statusabgleich läuft über `GrantSourceAdapter` + `SourceStatusMapper`, unbekannter Quellstatus = „nicht ändern“ (K-02, EPL:34-71).
 
@@ -128,19 +134,19 @@ Spalte **Vorrang**: Eine manuelle Entscheidung (`manual_override`, Δ-2) wird vo
 
 | Nr. | Von → Nach | Auslöser | Quelle(n) | `reason_code` | Event (Outbox) | Bemerkung |
 |---|---|---|---|---|---|---|
-| G-01 | ∅ → `pending_confirmation` | Quelle meldet Anspruch, unbestätigt | woo_order, voucher | `awaiting_payment`, `consent_missing`, `reserved` | `grant.created` | LB EPL:47-49, :65-67 |
+| G-01 | ∅ → `pending_confirmation` | Quelle meldet Anspruch, unbestätigt | woo_order (nur nach bestätigter Zahlung, E-293), voucher | `consent_missing`, `reserved` | `grant.created` | LB EPL:47-49, :65-67 (LB legt auch bei offener Zahlung einen Pending-Eintrag an – **Abweichung E-293**) |
 | G-02 | ∅ → `pending_claim` | Anspruch ohne zugeordneten Lernenden | woo_order (nach E-30 später) | `awaiting_claim` | `grant.created` | 35.1 |
 | G-03 | ∅ → `active` | sofort gültiger Anspruch | manual, group_seat, woo_order, workflow | `manual_grant`, `seat_claimed`, `order_paid` | `grant.created` + `grant.activated` | Erste Aktivierung setzt Laufzeit (§3.3) |
-| G-04 | `pending_confirmation` → `active` | Quelle bestätigt (bezahlt, Zustimmung, Commit) | woo_order, voucher | `order_paid`, `consent_given`, `committed` | `grant.activated` | LB ESV:121-134 |
+| G-04 | `pending_confirmation` → `active` | Quelle bestätigt (Zustimmung, Commit) | woo_order, voucher | `consent_given`, `committed` | `grant.activated` | LB ESV:121-134 |
 | G-05 | `pending_claim` → `active` | verifizierter Claim + gültiger Quellnachweis | woo_order (später) | `claimed` | `grant.activated` | 35.2 |
-| G-06 | `pending_*` → `failed` | Validierung/Ziel/Vertrag/Timeout-Eskalation | alle externen | `target_unavailable`, `contract_incompatible`, `pending_timeout` | `grant.failed` | Pending-Timeout 24 h für technische Pendings (E-201); nicht für unbezahlte Woo-Bestellungen (E-276); Voucher-Saga nach E-277/R0-40 §3.4 |
-| G-07 | `pending_*` → `revoked` | Storno, Zahlung fehlgeschlagen, Refund vor Aktivierung, Voucher `released` | woo_order, voucher | `order_cancelled`, `payment_failed`, `released` | `grant.revoked` | LB EPL:37-59 |
+| G-06 | `pending_*` → `failed` | Validierung/Ziel/Vertrag/Timeout-Eskalation | alle externen | `target_unavailable`, `contract_incompatible`, `pending_timeout` | `grant.failed` | Pending-Timeout 24 h nur für Quellen mit bestätigter Zahlung und ausstehender Course-Verarbeitung (E-201, E-293); unbezahlte Woo-Bestellungen haben keinen Grant (E-276, E-293); Voucher-Saga nach E-277/R0-40 §3.4: `failed` nach Freigabe ist für diesen Schlüssel endgültig (E-294) |
+| G-07 | `pending_*` → `revoked` | Storno oder Refund vor Aktivierung, Voucher `released` | woo_order (bezahlt, noch nicht aktiviert), voucher | `order_cancelled`, `order_refunded`, `released` | `grant.revoked` | LB EPL:37-59 |
 | G-08 | `active` → `suspended` | Zahlungskonflikt, manuelle Sperre, Gruppe ausgesetzt | woo_order, manual (Admin), group_seat | `payment_disputed`, `manual_suspend`, `group_suspended` | `grant.suspended` | LB EPL:53-56 |
 | G-09 | `suspended` → `active` | Konflikt gewonnen, manuelle Freigabe, Gruppe fortgesetzt | wie G-08 | `dispute_won`, `manual_release`, `group_resumed` | `grant.resumed` | nur wenn **alle** Sperrgründe weg sind; manuelle Sperre nur manuell lösbar |
 | G-10 | `active` → `expired` | `now > valid_until` (Cron `ccap_grant_expire`, stündlich) oder Enddatum in der Vergangenheit gesetzt | alle | `validity_ended` | `grant.expired` | Cron ist nur kosmetisch (R0-07 §4.6) |
 | G-11 | `suspended` → `expired` | Laufzeit endet während der Sperre | alle | `validity_ended` | `grant.expired` | – |
 | G-12 | `active`/`suspended` → `revoked` | Refund/Teilrefund nach Regel, Chargeback verloren, Storno, Position entfernt, Platz entfernt/reduziert, Konto gelöscht, Admin-Widerruf, Voucher `void` (E-35), Übertragung | alle | `item_refunded`, `order_refunded`, `chargeback_lost`, `item_removed`, `group_member_removed`, `group_seats_reduced`, `group_revoked`, `account_deleted`, `manual_revoke`, `voucher_voided`, `transferred`, `source_subject_changed` | `grant.revoked` | Endzustand |
-| G-13 | `failed` → `pending_*`/`active` | auditierter Retry (Admin oder automatisch bei temporärem Fehler) mit **demselben** Schlüssel und nachgewiesenem Anspruch | alle externen | `retry` | `grant.retried` + Folgeevent | 35.2, 31.3 Nr. 5 |
+| G-13 | `failed` → `pending_*`/`active` | auditierter Retry (Admin oder automatisch bei temporärem Fehler) mit **demselben** Schlüssel und nachgewiesenem Anspruch | alle externen; **nicht** für Gutscheine nach Freigabe der Reservierung (E-294: neuer Einlöseversuch = neuer Schlüssel) | `retry` | `grant.retried` + Folgeevent | 35.2, 31.3 Nr. 5 |
 | G-14 | `active` → `active` | Enddatum ändern (`extend`), Restack der Kette | manual, System | `extended`, `rescheduled` | `grant.extended` / `grant.rescheduled` | kein Statuswechsel, aber CAS + Event |
 | G-15 | `expired`/`revoked` → neue Revision `active` | Reaktivierung, bestätigte Rücknahme der Erstattung, erneute Berechtigung | manual, woo_order, group_seat | `reactivated`, `refund_reversed`, `reinstated` | `grant.created` + `grant.activated` (neue Zeile, `supersedes` im Event-Detail) | E-29, RBAC-046 |
 
@@ -154,7 +160,7 @@ Spalte **Vorrang**: Eine manuelle Entscheidung (`manual_override`, Δ-2) wird vo
 | manueller `revoked` → Aufheben | nicht möglich; Aufheben gilt nur für `suspended`/`approved` | LB `releaseManual` springt auf den Stand vor der Sperre zurück (ESV:387-423) – für `revoked` **Abweichung** |
 | Ereignis mit älterer Quellversion | ignoriert (`stale_event`), siehe §6 R-04 | neu |
 
-**Manuelle Vorabfreigabe** (LB `approveOrder`, INV-B-011): `pending_confirmation` → `active` mit `manual_override = approved`, Begründung Pflicht; ein späterer Widerruf der Quelle (Zahlung fehlgeschlagen, Storno) setzt sich trotzdem durch.
+**Manuelle Vorabfreigabe** (LB `approveOrder`, INV-B-011): `pending_confirmation` → `active` mit `manual_override = approved`, Begründung Pflicht; ein späterer Widerruf der Quelle (Storno, Erstattung) setzt sich trotzdem durch. Nach **E-293** gibt es für **unbezahlte** Woo-Bestellungen keinen Pending-Grant; die LB-Vorabfreigabe unbezahlter Bestellungen (z. B. Überweisung) ist damit ohne Gegenstand. Ob der Shop unbezahlte Bestellungen weiterhin vorab freischalten darf (dann als manueller Grant oder als Ausnahme zu E-293), ist **neue Frage NF-01** (R0-GATE-protokoll.md).
 
 ### 2.4 Transaktion, CAS, Audit
 
@@ -163,13 +169,13 @@ Ablauf jedes Übergangs (MUSS):
 1. Eingang dedupliziert (`ccap_inbox_event` UNIQUE `(connector_id, event_id)`) bzw. interner Befehl mit `request_key`.
 2. Quell-Lock `grant-source:<source_type>:<source_id>` (NamedLock, §6.1) – serialisiert alle Positionen eines Quellobjekts für den Diff-Planer (`GrantReconciler`, K-02).
 3. `START TRANSACTION`; Grant lesen; `GrantTransitionGuard` entscheidet nach §2.3.
-4. Neu: `INSERT` mit Unique `grant_source`; bei Duplicate-Key die vorhandene Zeile lesen und vergleichen (gleicher Nutzer/Kurs → idempotente Antwort, sonst `cc_idempotency_conflict`). **Kein** `SELECT … FOR UPDATE` auf nicht existierende Zeilen (R0-36 P4).
-5. Bestehend: `UPDATE ccap_grant SET status=?, …, row_version=row_version+1 WHERE id=? AND row_version=? AND status=?`; 0 Zeilen → TX zurück, neu lesen, Guard erneut (höchstens 3 Versuche), sonst `cc_conflict` (HTTP 409) bzw. Inbox-Retry.
+4. Neu: `INSERT` mit Unique `grant_source`; bei Duplicate-Key die vorhandene Zeile lesen und vergleichen (gleicher Nutzer/Kurs → idempotente Antwort, sonst `ccap_idempotency_conflict`). **Kein** `SELECT … FOR UPDATE` auf nicht existierende Zeilen (R0-36 P4).
+5. Bestehend: `UPDATE ccap_grant SET status=?, …, row_version=row_version+1 WHERE id=? AND row_version=? AND status=?`; 0 Zeilen → TX zurück, neu lesen, Guard erneut (höchstens 3 Versuche), sonst `ccap_conflict` (HTTP 409) bzw. Inbox-Retry.
 6. `INSERT ccap_grant_event` (`from_status`, `to_status`, `reason_code`, `actor_type`, `actor_id`, `source_event_id`, `correlation_id`; UNIQUE `(grant_id, source_event_id)`).
 7. `INSERT ccap_outbox_event` (Event aus §2.3, plus `access.changed`, wenn sich der effektive Zugang für Nutzer × Kurs × Modul ändert, §3.4). In Free ist das die **interne** Outbox (Mails, Audit, Cache); externe Zustellung nur mit Pro (E-38).
 8. `COMMIT`; danach Policy-Memo/Cache `ccap_policy` invalidieren (R0-07 P-11).
 
-Deadlock (1213) → ganze TX wiederholen (max. 3, Jitter), Lock-Wait (1205) → `cc_db_busy` (R0-14 RB-04). Nie im Autocommit weiterlaufen (R0-36 P4).
+Deadlock (1213) → ganze TX wiederholen (max. 3, Jitter), Lock-Wait (1205) → `ccap_db_busy` (R0-14 RB-04). Nie im Autocommit weiterlaufen (R0-36 P4).
 
 **Audit:** `ccap_grant_event` ist die fachliche Historie (append-only). Admin-Aktionen (manuell anlegen/verlängern/sperren/widerrufen/übertragen) schreiben zusätzlich `ccap_audit_log` mit Begründung (R0-07 §3.6). Grants mit externer Quelle kann der Admin sperren, notieren und widerrufen, aber nicht löschen (M-13).
 
@@ -214,8 +220,8 @@ zählende_grants(u, t) = { g ∈ ccap_grant : g.user_id = u ∧ g.status = 'acti
 - Ein voller Grant hebt den Teilumfang auf (`limit = null`, GM-082).
 - Zugangsbeginn für Drip = frühestes `valid_from` eines aktiven Grants, sonst Registrierung (AS:320-333; R0-08 §1).
 - Filter `course_captain_can_access` darf nur einschränken (D07-7).
-- **Modul-Grants (E-27):** Ein Ganzkurs-Grant (`module_id = 0`) deckt alle Module; ein Modul-Grant nur sein Modul. Kursweite Funktionen (Kursprüfung über mehrere Module, Kurszertifikat) brauchen Zugang zum ganzen Kurs bzw. zu allen Modulen, die die Prüfungsregel verwendet (Feinschnitt R0-08 §1).
-- **Bundle (E-25/E-25a):** Ein Grant auf einen Bundle-Kurs wirkt auf alle über `contains` verbundenen Kurse; es entstehen keine Teil-Grants. Widerruf des Bundle-Grants beendet die abgeleiteten Zugänge, sofern keine anderen Grants bestehen (R0-40 §2.1).
+- **Modul-Grants (E-27, E-286):** Ein Ganzkurs-Grant (`module_id = 0`) deckt alle Module; ein Modul-Grant nur sein Modul. Scopes `view/download/exam` gelten innerhalb des Moduls. Eine Kursprüfung ist startbar, wenn Zugang zu allen Modulen besteht, aus denen ihr Blueprint zieht (E-286, R0-08 §1.4). Kursfortschritt: Nenner = Pflicht-Activities der zugänglichen Module (R0-08 §5.1).
+- **Bundle (E-25/E-25a, E-297):** Ein Grant auf einen Bundle-Kurs wirkt auf alle über `contains` verbundenen Kurse; es entstehen keine Teil-Grants. Bundles haben **eine Ebene** (Bundle enthält Kurse, keine Bundles). Ein Gruppenplatz auf einen Bundle-Kurs (`ccap_group_course.course_id` = Bundle) leitet den Zugang für jedes Mitglied ebenso ab. Widerruf des Bundle-Grants beendet die abgeleiteten Zugänge, sofern keine anderen Grants bestehen (R0-40 §2.1).
 - **Abhängige Zusatz-Grants (E-26):** siehe §3.5.
 
 ### 3.2 Anzeige-Status je Kurs
@@ -246,8 +252,8 @@ Wird nach jedem Grant-Übergang berechnet, je betroffenem Nutzer × Kurs × Modu
 |---|---|
 | Datenfeld | `ccap_grant.depends_on_course_id bigint unsigned NOT NULL DEFAULT 0` (0 = unabhängig, R0-06 §4.4) |
 | Wirkung | Der Grant zählt nur, solange der Lernende **effektiven Zugang zum Basiskurs** hat (beliebige Quelle, inkl. Bundle); das effektive Ende ist `min(eigenes valid_until, effektives Ende des Basiskurses)` |
-| Status | Der Grant bleibt `active`; die Abhängigkeit wird wie die Zeitgrenze beim Lesen ausgewertet (kein Cron nötig). Fällt der Basiszugang weg, entsteht `access.changed` für das Zusatzmodul; kommt er zurück (neuer Basis-Grant), zählt der Zusatz-Grant wieder |
-| Kette | höchstens eine Stufe: der Basiskurs selbst darf nicht von einem Grant mit Abhängigkeit abhängen; Zyklen werden beim Anlegen abgewiesen (`cc_validation_failed`) |
+| Status | Der Grant bleibt `active` (**E-287**: der Zusatz-Grant ändert seinen Status nicht, der effektive Zugang wird berechnet); die Abhängigkeit wird wie die Zeitgrenze beim Lesen ausgewertet (kein Cron nötig). Fällt der Basiszugang weg, entsteht `access.changed` für das Zusatzmodul; kommt er zurück (neuer Basis-Grant), zählt der Zusatz-Grant wieder |
+| Kette | höchstens eine Stufe: der Basiskurs selbst darf nicht von einem Grant mit Abhängigkeit abhängen; Zyklen werden beim Anlegen abgewiesen (`ccap_validation_failed`) |
 | Anlage | durch Quelle oder Admin (`ccap_manage_grants`); Woo-Produkte „Zusatzmodul“ setzen die Abhängigkeit über das Mapping (R3-02) |
 | Refund | Refund des Basis-Grants entzieht den Zusatz-Grant nicht, er zählt nur nicht mehr; Refund des Zusatz-Grants folgt §5 |
 
@@ -279,7 +285,7 @@ Der Besitzer erhält **keinen** eigenen Grant; will er selbst lernen, beanspruch
 |---|---|---|
 | Einladen | Besitzer/Admin (M-15); je Adresse unter `NamedLock group-seats:<id>`: freier Platz? → Seat `invited` mit Token-Hash und Ablauf; sonst übersprungen (keine Mail); Budget max(20, 2 × Plätze)/24 h; Mailtext nach Art. 14 DSGVO (wer lädt ein, wie lange, Datenschutzerklärung), Absender bei Personal = Marke | GS:217-270, :687-709, GM-097 |
 | Gruppenlink | nur bei `claim_policy = transferable`; jeder angemeldete Nutzer mit Link belegt einen freien Platz („wer zuerst kommt“, E-28) | GS:276-330 |
-| Join | (1) Formatprüfung, Rate-Limit; (2) Lock `group-seats:<id>` (Wartezeit ≤ 2 s, D-14-03, sonst `cc_group_busy`); (3) Token **unter dem Lock erneut** auflösen; (4) Gruppe `active` und gültig, sonst 409 `cc_group_not_active` (RBAC-055); (5) Nutzer hat bereits `active`-Platz → diesen zurückgeben (idempotent); (6) persönlich: bedingtes UPDATE (§1.2); Link: freie Plätze zählen, `INSERT`, **nach dem Insert nachzählen** (ältere Zeilen zuerst), bei Überbuchung löschen → `cc_group_full`; (7) Seat-Grants je `ccap_group_course` anlegen (G-03), alles in **einer** TX mit dem Seat (R0-06 §4.8) | GS:333-417, GM-095/096 |
+| Join | (1) Formatprüfung, Rate-Limit; (2) Lock `group-seats:<id>` (Wartezeit ≤ 2 s, D-14-03, sonst `ccap_group_busy`); (3) Token **unter dem Lock erneut** auflösen; (4) Gruppe `active` und gültig, sonst 409 `ccap_group_not_active` (RBAC-055); (5) Nutzer hat bereits `active`-Platz → diesen zurückgeben (idempotent); (6) persönlich: bedingtes UPDATE (§1.2); Link: freie Plätze zählen, `INSERT`, **nach dem Insert nachzählen** (ältere Zeilen zuerst), bei Überbuchung löschen → `ccap_group_full`; (7) Seat-Grants je `ccap_group_course` anlegen (G-03), alles in **einer** TX mit dem Seat (R0-06 §4.8) | GS:333-417, GM-095/096 |
 | Hinweis Doppelzugang | Vorschau meldet, wenn der Nutzer den Kurs bereits unbefristet über eine andere Quelle hat; Claim bleibt möglich (Bestätigung), damit der Besitzer keinen Platz unbemerkt verliert | LB `lb_access_exists` nur bei Voucher (INV-B-057) |
 
 ### 4.4 Entfernen, Platzreduktion, Platzerhöhung
@@ -338,10 +344,10 @@ Gilt für Kaufquellen (R3.1 Woo, R3.2 Voucher). **Grundsätze (MUSS):** nur der 
 | RF-07 | Spätes `paid`/`processing` nach endgültigem `refunded` (Out-of-order) | ignoriert, `stale_event` protokolliert | ignoriert | – | – |
 | RF-08 | Chargeback/Dispute eröffnet (on-hold nach Zahlung) | `suspended` (`payment_disputed`) | Gruppe `suspended` | bleibt | bleibt |
 | RF-09 | Chargeback gewonnen | `active` (G-09), sofern kein manueller Hold | Gruppe `active` | bleibt | bleibt |
-| RF-10 | Chargeback verloren | `revoked` (`chargeback_lost`), wie manueller Widerruf endgültig | Gruppe `revoked` | bleibt | bleibt; Betrugsverdacht → separater Prozess CORE-SPEC-006 |
-| RF-11 | Storno vor Zahlung | `pending_confirmation` → `revoked` (`order_cancelled`) | keine Gruppe angelegt | – | – |
+| RF-10 | Chargeback verloren | `revoked` (`chargeback_lost`), wie manueller Widerruf endgültig; der Shopstatus ist `refunded`, wenn Geld zurückgebucht wurde (E-295, R0-40) | Gruppe `revoked` | bleibt | bleibt; Betrugsverdacht → separater Prozess CORE-SPEC-006 |
+| RF-11 | Storno vor Zahlung | **kein Grant** vorhanden (E-293), keine Änderung; Shopstatus `cancelled` (E-295) | keine Gruppe angelegt | – | – |
 | RF-12 | Storno nach Zahlung | `revoked` (`order_cancelled`), auch bei `keep` (EPL:107; `commerce-test.php:145-152`) | Gruppe `revoked` | bleibt | bleibt |
-| RF-13 | Zahlung fehlgeschlagen | `pending_confirmation` → `revoked` (`payment_failed`) | – | – | – |
+| RF-13 | Zahlung fehlgeschlagen | **kein Grant** vorhanden (E-293), keine Änderung | – | – | – |
 | RF-14 | Position aus Bestellung entfernt | `revoked` (`item_removed`) | Gruppe `revoked` | bleibt | bleibt |
 | RF-15 | Bestellung gelöscht/Papierkorb, Quelle nicht erreichbar, Connector deaktiviert | **keine** Änderung; Reconcile-Hinweis; kein Massenwiderruf (ACCESS-09, 35.2) | keine | – | – |
 | RF-16 | Gutschein **vor** Commit freigegeben/abgelaufen (`released`) | `pending_confirmation` → `revoked` (`released`) | – | – | – |
@@ -349,7 +355,7 @@ Gilt für Kaufquellen (R3.1 Woo, R3.2 Voucher). **Grundsätze (MUSS):** nur der 
 | RF-18 | Kauf des Gutscheins erstattet (Voucher `void` nach Commit, R0-36 C6) | wie RF-17 | – | bleibt | bleibt |
 | RF-19 | Gesetzlicher Widerruf digitaler Inhalte / freiwillige Kulanz | entscheidet der Shop; Course Captain reagiert nur auf den bestätigten Refund-Status (RF-02…RF-05) | wie dort | bleibt | bleibt |
 
-**Wirkung auf laufende Prüfungen:** §6 R-05 und E-113. **Anzeige:** Lernende sehen „beendet“ bzw. „vorübergehend nicht verfügbar“ mit Supportweg; ihr Verlauf und ihre Ergebnisse bleiben lesbar (403 `cc_content_locked` nur für neue Lerninhalte, eigene Versuche bleiben einsehbar, R0-07 P-08).
+**Wirkung auf laufende Prüfungen:** §6 R-05 und E-113. **Anzeige:** Lernende sehen „beendet“ bzw. „vorübergehend nicht verfügbar“ mit Supportweg; ihr Verlauf und ihre Ergebnisse bleiben lesbar (403 `ccap_content_locked` nur für neue Lerninhalte, eigene Versuche bleiben einsehbar, R0-07 P-08).
 
 ---
 
@@ -371,14 +377,14 @@ Gilt für Kaufquellen (R3.1 Woo, R3.2 Voucher). **Grundsätze (MUSS):** nur der 
 
 | Nr. | Szenario | Strategie | Erwartung |
 |---|---|---|---|
-| R-01 | 50 parallele Joins auf den letzten Platz (Gruppenlink) | L3 + Nachzählung nach Insert + TX Seat+Grant | genau 1 Platz, 1 Grant-Satz; Rest `cc_group_full`/`cc_group_busy` |
+| R-01 | 50 parallele Joins auf den letzten Platz (Gruppenlink) | L3 + Nachzählung nach Insert + TX Seat+Grant | genau 1 Platz, 1 Grant-Satz; Rest `ccap_group_full`/`ccap_group_busy` |
 | R-02 | Dasselbe Konto joint doppelt (Doppelklick, zwei Tabs) | L3 + Prüfung „aktiver Platz vorhanden“; optional Unique über generierte Spalte (Δ-5) | 1 Platz; zweite Antwort = bestehende Mitgliedschaft |
-| R-03 | Persönliche Einladung von zwei Konten gleichzeitig eingelöst | bedingtes UPDATE (`affected_rows = 1`) | 1 Gewinner, anderer `cc_claim_used` |
+| R-03 | Persönliche Einladung von zwei Konten gleichzeitig eingelöst | bedingtes UPDATE (`affected_rows = 1`) | 1 Gewinner, anderer `ccap_claim_used` |
 | R-04 | Webhook doppelt/out-of-order (`paid` und `refunded` parallel bzw. vertauscht) | Inbox-Unique; L2; `source_seq` (Δ-4): Ereignis mit Version ≤ zuletzt angewendeter → `stale_event`; Guard nach §2.3 | exakt 1 Grant; Endzustand entspricht der höchsten Quellversion; kein Wiederaufleben |
-| R-05 | Refund/Platzentzug **während laufender Prüfung** | Jede Schreibaktion (`saveAnswer`, `flag`, `reveal`) prüft den effektiven Zugang neu → 403 `cc_content_locked` (`revoked`) (LB ES:1044-1057); Abgabe nach E-113 | gespeicherte Antworten bleiben; kein Datenverlust; Ergebnis/Zertifikat nach E-113 |
+| R-05 | Refund/Platzentzug **während laufender Prüfung** | Jede Schreibaktion (`saveAnswer`, `flag`, `reveal`) prüft den effektiven Zugang neu → 403 `ccap_content_locked` (`revoked`) (LB ES:1044-1057); Abgabe nach E-113 | gespeicherte Antworten bleiben; kein Datenverlust; Ergebnis/Zertifikat nach E-113 |
 | R-06 | Refund während Zertifikatsausstellung | Ausstellung prüft nur Evidenz und E-113-Regel, nicht den späteren Grant; Unique `evidence_rev` | höchstens 1 Zertifikat; ausgestelltes bleibt gültig |
 | R-07 | Doppel-Grant aus zwei verschiedenen Quellen für denselben Kurs | gewollt: zwei Grants (Mehrfachzugang) | 2 Zeilen, Vereinigung; Widerruf einer lässt die andere |
-| R-08 | Gleicher Quellschlüssel, verschiedene Nutzer (Voucher-Key, Manipulation) | Unique + Vergleich | `cc_idempotency_conflict`, kein zweiter Grant (GM-088) |
+| R-08 | Gleicher Quellschlüssel, verschiedene Nutzer (Voucher-Key, Manipulation) | Unique + Vergleich | `ccap_idempotency_conflict`, kein zweiter Grant (GM-088) |
 | R-09 | Platzreduktion während Join/Einladung | beides unter L3 | Belegung ≤ Plätze nach Abschluss beider Operationen |
 | R-10 | Ablauf-Cron gegen manuelle Verlängerung | CAS + Cron-UPDATE mit `status='active' AND valid_until < now AND row_version = ?` | Verlängerung gewinnt oder Cron gewinnt und Verlängerung wird als G-15 behandelt; nie „aktiv mit Enddatum in der Vergangenheit“ |
 | R-11 | Restack gleichzeitig mit Refund in derselben Kette | L4 um Laufzeitberechnung | Summe der Laufzeiten unverändert, keine Überlappung |
@@ -394,11 +400,11 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 | Test-ID | Art | Gegeben / Aktion | Erwartung | Ziel-Task | Bezug |
 |---|---|---|---|---|---|
 | GRANT-001 | U | Übergangstabelle: jede (Von, Nach)-Kombination | nur G-01…G-15 erlaubt, Rest `ignored`/Exception | R1-13 | §2.3 |
-| GRANT-002 | I | manuell anlegen, Formular doppelt mit gleichem `request_key` | 1 Grant, 1 Event, 1 Outbox-Eintrag | R1-13 | §2.2, GM-087 |
+| GRANT-002 | I | manuell anlegen, Formular doppelt mit gleichem `request_key` | 1 Grant, 1 Event, 1 Outbox-Eintrag | R1-13, R1-43 | §2.2, GM-087 |
 | GRANT-003 | I | manuell ohne Begründung / Enddatum in der Vergangenheit | abgewiesen, keine Zeile | R1-13 | GM-087 |
 | GRANT-004 | I | FakeSource-Ereignis zehnmal | 1 Grant (CORE-03) | R1-13 | GM-088 |
-| GRANT-005 | P | 2…50 Prozesse, gleicher Quellschlüssel | 1 Grant; andere erhalten ihn oder `cc_temporary_failure` | R1-42 | R-08, GM-088 |
-| GRANT-006 | I | gleicher Schlüssel, anderer Nutzer | `cc_idempotency_conflict` | R1-13 | R-08 |
+| GRANT-005 | P | 2…50 Prozesse, gleicher Quellschlüssel | 1 Grant; andere erhalten ihn oder `ccap_temporary_failure` | R1-42 | R-08, GM-088 |
+| GRANT-006 | I | gleicher Schlüssel, anderer Nutzer | `ccap_idempotency_conflict` | R1-13 | R-08 |
 | GRANT-007 | I | `revoked` (Refund), dann `paid` | bleibt `revoked`, `stale_event`/`ignored` | R1-13 (FakeSource), R3-03 | E-29, RF-07 |
 | GRANT-008 | I | Refund zurückgenommen (FakeSource `reinstate`) | neue Revision `source_revision = 2` `active`, alte `revoked`; Kettenposition unverändert | R1-13, R3-03 | G-15, Δ-3 |
 | GRANT-009 | I | `expired` „verlängern“ | neue Revision; alte bleibt `expired` | R1-13 | RBAC-046 |
@@ -422,7 +428,7 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 | GRANT-027 | I | Prüfung läuft, Grant widerrufen; `saveAnswer`, dann `submit` | Antwort abgewiesen (`revoked`); Abgabe nach E-113 | R1-08, R1-14 | R-05 |
 | GRANT-028 | I | Zertifikat ausgestellt, danach Refund | Zertifikat `issued`, Verifikation unverändert | R1-10/R1-35 | 35.3 |
 | GRANT-029 | I | Kundenwechsel in der Quelle | alter `revoked` (`source_subject_changed`), neue Revision für neuen Kunden, Audit | R3-03 | E-117 |
-| GRANT-030 | I | Modul-Grant für Modul A; Zugriff auf Modul A, Modul B, Kursprüfung | A erlaubt, B `cc_content_locked` (`not_granted`), Kursprüfung nach R0-08 §1 | R1-13, R1-14 | E-27 |
+| GRANT-030 | I | Modul-Grant für Modul A; Zugriff auf Modul A, Modul B, Kursprüfung | A erlaubt, B `ccap_content_locked` (`not_granted`), Kursprüfung nach R0-08 §1 | R1-13, R1-14 | E-27 |
 | GRANT-031 | I | Ganzkurs-Grant + Modul-Grant gleicher Quelle-ID, Refund des Modul-Grants | getrennte Schlüssel (`module_id` 0 vs. A); Zugang bleibt, kein `access.changed` | R1-13 | E-27, GM-085 |
 | GRANT-032 | I | Bundle-Grant auf Kurs B, B enthält C und D; Widerruf des Bundle-Grants | C und D zugänglich ohne eigene Grants; nach Widerruf kein Zugang, außer über andere Grants | R1-13, R1-14 | E-25a |
 | GRANT-033 | I | Zusatz-Grant mit `depends_on_course_id = Basis`; Basis-Grant läuft ab, dann neuer Basis-Grant | Zusatz zählt nicht mehr (`access.changed`), danach wieder; Zyklus beim Anlegen abgewiesen | R1-13 | E-26, §3.5 |
@@ -436,7 +442,7 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 | SEAT-003 | P | 50 Joins auf letzten Platz über Gruppenlink | 1 Platz | R1-42 | R-01, GM-096 |
 | SEAT-004 | P | gleicher Nutzer joint 20× parallel | 1 Platz, 1 Grant je Kurs | R1-42 | R-02 |
 | SEAT-005 | P | persönliche Einladung von 2 Konten parallel | 1 Gewinner | R1-42 | R-03 |
-| SEAT-006 | I | `GET_LOCK` liefert NULL / Lock belegt (Timeout 0) | ohne Lock: Nachzählung hält Grenze, Log-Eintrag; belegt: `cc_group_busy`, nichts geschrieben | R1-42 | GM-096, NL:42-68 |
+| SEAT-006 | I | `GET_LOCK` liefert NULL / Lock belegt (Timeout 0) | ohne Lock: Nachzählung hält Grenze, Log-Eintrag; belegt: `ccap_group_busy`, nichts geschrieben | R1-42 | GM-096, NL:42-68 |
 | SEAT-007 | I | Einladung nach 30 d | belegt keinen Platz, Token ungültig, Cron → `expired`, Adresse nach +30 d gelöscht | R1-13, R1-17 | GM-099 |
 | SEAT-008 | I | erneut senden | altes Token ungültig, neues gültig, Budget gezählt | R1-13 | §1.2 |
 | SEAT-009 | I | Platz freigeben | Grants `revoked`, Lernhistorie bleibt, Platz neu belegbar mit **neuer** Seat-Zeile | R1-13 | GM-098 |
@@ -445,8 +451,8 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 | SEAT-012 | I | Gruppe aussetzen / fortsetzen | Seat-Grants folgen; entfernte bleiben draußen; manuell entschiedene unberührt | R1-13 | GM-100 |
 | SEAT-013 | I | Gruppe widerrufen und wiedereinsetzen | neue Revisionen nur für Plätze mit Grund `group_revoked` | R1-13, R3-03 | §4.8 |
 | SEAT-014 | I | Gruppenlink rotieren | alter Link 404/ungültig, persönliche Einladungen gültig | R1-13 | §4.7 |
-| SEAT-015 | I | `invited_address_only`, fremdes Konto | 403 `cc_invite_other_account`; Gruppenlink deaktiviert | R1-03 | RBAC-054, E-28 |
-| SEAT-016 | I | Join in gesperrter/abgelaufener Gruppe | 409 `cc_group_not_active` | R1-03 | RBAC-055, R-13 |
+| SEAT-015 | I | `invited_address_only`, fremdes Konto | 403 `ccap_invite_other_account`; Gruppenlink deaktiviert | R1-03 | RBAC-054, E-28 |
+| SEAT-016 | I | Join in gesperrter/abgelaufener Gruppe | 409 `ccap_group_not_active` | R1-03 | RBAC-055, R-13 |
 | SEAT-017 | I | Besitzer sieht Mitglieder | Status, Name, maskierte Adresse; keine Fortschritte | R1-35 | E-81, RBAC-059 |
 | SEAT-018 | I | Besitzerwechsel | alter Besitzer sofort 404 | R1-03 | RBAC-057 |
 | SEAT-019 | P | Reduktion parallel zu Join | Belegung ≤ Plätze | R1-42 | R-09 |
@@ -525,7 +531,7 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 | Δ-7 | R0-06 `ccap_grant` | `user_id NULL` zusätzlich erlaubt für `revoked` + `revocation_reason = account_deleted` (pseudonymisiert), plus `subject_ref char(64) NULL` (HMAC) | eingearbeitet (R0-06 §4.4) |
 | Δ-8 | R0-06 §4.8 | Transaktionsgrenze „Platz beanspruchen“ um Lock-Reihenfolge §6.1 ergänzen | eingearbeitet (R0-06 §4.8) |
 | Δ-9 | R0-06 `ccap_grant` (R3, nach E-30-Erweiterung) | `claim_token_hash char(64) NULL` UNIQUE, `claim_expires_at datetime NULL` für Gast-Claim `c` | vorgemerkt (Gast-Claim nach E-30 später) |
-| Δ-10 | R0-19 | Events §2.5; Fehlercodes `cc_idempotency_conflict`, `cc_conflict`, `cc_claim_used`, `cc_claim_expired`, `cc_group_full`, `cc_group_busy`, `cc_group_not_active`, `cc_invite_other_account`, `cc_invalid_token` | eingearbeitet (R0-19 §3.2) |
+| Δ-10 | R0-19 | Events §2.5; Fehlercodes `ccap_idempotency_conflict`, `ccap_conflict`, `ccap_claim_used`, `ccap_claim_expired`, `ccap_group_full`, `ccap_group_busy`, `ccap_group_not_active`, `ccap_invite_other_account`, `ccap_invalid_token` | eingearbeitet (R0-19 §3.2) |
 | Δ-11 | R0-07 | M-17 um `claim_policy` und Rate-Limit fail-closed präzisieren; Aktion „Zugang übertragen“ unter `ccap_manage_grants` + Pflichtbegründung + Audit (S-13/`ccap_grant_change`) | an R0-07 übergeben |
 | Δ-12 | R0-05 | GM-086/GM-100 und GM-087 („Verlängern“ nach Ablauf) auf neue-Revision-Semantik umstellen; GM-101 bleibt (LB-Regel übernommen); Abweichungsliste (E-55) um §2.3 „Verbotene Übergänge“ und E-117 ergänzen | an R0-05 übergeben (Abweichungsliste E-55) |
 | Δ-13 | R0-08 | Versuchsabgabe nach Zugangsverlust nach E-113; Schreibaktionen prüfen effektiven Zugang je Aufruf | an R0-08 übergeben (E-113) |
@@ -545,5 +551,5 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 1. **E-26:** Abhängigkeit vom effektiven Zugang zum Basiskurs statt von einem bestimmten Grant (R0-04 K-04 nannte `depends_on_grant`); Laufzeitbegrenzung ohne Statuswechsel ist eine Festlegung bei der Einarbeitung und braucht die Bestätigung der Architektur.
 2. **E-27 Kursprüfung bei Modul-Grants:** Welche Module eine kursweite Prüfung und das Kurszertifikat voraussetzen, ist in R0-08 §1 noch nicht festgelegt (hier: Zugang zu allen Modulen, die die Prüfungsregel nutzt).
 3. **E-39b:** Schreibende Workflow-Aktionen setzen die Änderung des Workflow-Captain-Konzepts voraus (`wp-workflowmaster`); bis dahin ist die Quelle `workflow` nur spezifiziert.
-4. **Fehlercodes** bleiben `cc_*` (E-207 nennt sie nicht, siehe R0-06 Offene Punkte).
+4. **Fehlercodes** bleiben `ccap_*` (E-207 nennt sie nicht, siehe R0-06 Offene Punkte).
 5. **Bundle in Gruppen:** Ob `ccap_group_course` einen Bundle-Kurs als Ziel haben darf (abgeleiteter Zugang für alle Mitglieder), ist nicht beschlossen; der Formel nach ja.

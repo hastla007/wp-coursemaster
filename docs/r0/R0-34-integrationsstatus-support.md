@@ -20,14 +20,14 @@ Die Annahmen und die Fragen D34-1…D34-8 sind entschieden (`ENTSCHEIDUNGEN.md`,
 | **E-258** | Offene Zustellungen höchstens **30 Tage**, danach Dead-Letter mit Grund `retention` (statt 90 Tage nach der früheren Empfehlung) |
 | E-259 | Übernahme einer Course-Aktion durch einen Partner erst in R3, mit sichtbarem Hinweis und Abschaltmöglichkeit |
 | E-119, E-120 | Event-Speicherung ohne Abonnent und Freigabe je Event-Klasse gelten nur mit Pro |
-| **E-207** | Präfix `ccap_` für Tabellen, Caps, Rollen und Cron (`ccap_integrations`, `ccap_outbox_delivery`, `ccap_support`, `ccap_hourly` …); Fehlercodes und Nonce-Aktionen vorerst `cc_` wie R0-19 |
-**Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional. Präfixe: `ccap_` für Tabellen, Caps, Rollen und Cron (E-207); Fehlercodes und Nonce-Aktionen vorerst `cc_` wie in R0-19.
+| **E-207** | Präfix `ccap_` für Tabellen, Caps, Rollen und Cron (`ccap_integrations`, `ccap_outbox_delivery`, `ccap_support`, `ccap_hourly` …); Fehlercodes und Nonce-Aktionen ebenfalls `ccap_` (**E-285**) |
+**Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional. Präfixe: `ccap_` für Tabellen, Caps, Rollen und Cron (E-207); Fehlercodes und Nonce-Aktionen ebenfalls `ccap_` (E-285).
 
 ---
 
 ## 0. Kurzfassung
 
-1. **Ein Datensatz je Provider** (`IntegrationStatus`, §2): Partnererkennung, Connector, Vertragsversionen, einer der **8 Zustände aus R0-19 §6** mit `state_reason`, letzter Erfolg und Fehler (Fehlerklasse, `cc_*`-Code, Partnercode, Fehler-ID, Correlation-ID), Queue-Zähler aus `ccap_outbox_delivery`, Dead-Letter, Eingang, Datenschutzklasse und erlaubte Aktionen des aktuellen Betrachters. In R1 sind nur die Erkennungsfelder befüllt; alles andere ist `null` und wird erst durch einen registrierten Connector (R3) gefüllt.
+1. **Ein Datensatz je Provider** (`IntegrationStatus`, §2): Partnererkennung, Connector, Vertragsversionen, einer der **8 Zustände aus R0-19 §6** mit `state_reason`, letzter Erfolg und Fehler (Fehlerklasse, `ccap_*`-Code, Partnercode, Fehler-ID, Correlation-ID), Queue-Zähler aus `ccap_outbox_delivery`, Dead-Letter, Eingang, Datenschutzklasse und erlaubte Aktionen des aktuellen Betrachters. In R1 sind nur die Erkennungsfelder befüllt; alles andere ist `null` und wird erst durch einen registrierten Connector (R3) gefüllt.
 2. **R1 = lesend** (E-185): Unterseite „Integrationen“ (E-202) zeigt erkannte Partner aus einem festen **Partnerkatalog** (§1.3) mit Zustand, Version und Kompatibilität, **ohne** Knöpfe zum Einrichten, Testen oder Reparieren. Systemstatus H-34 fasst zusammen. Es gibt keine Installation, keine Aktivierung, keine Upselling-Hinweise (K-23, E-100).
 3. **R3 = Aktionen**: Verbindung einrichten/deaktivieren, testen, **Retry**, **Replay**, **Pause/Fortsetzen**, **Dead-Letter verwerfen**, Event-Klassen freigeben. Jede Aktion hat Capability, Obergrenze, Pflichtbegründung (wo nötig), Audit, Idempotenz-Schlüssel und CAS auf den Zustellzeilen (§4). Dieselben Aktionen Retry und Dead-Letter verwerfen gelten schon in **R1** für die **internen** Abonnenten (z. B. `notification`) im Betriebsdashboard R1-38.
 4. **Nichts wird gelöscht:** „Verwerfen“ setzt eine Zustellung auf `skipped` (`skip_reason = discarded`); solange das Event im Log liegt, ist ein Replay möglich. Replay erzeugt **nie** neue `event_id`s.
@@ -102,14 +102,14 @@ Phase: **R1** = in R1 befüllt; **R3** = erst mit registriertem Connector, vorhe
 | `paused` | `{since, by_role, reason_code}` \| null | R3 | L | Notfall-Pause (§4, R0-32 W6) |
 | `last_success` | `{at, kind: test\|delivery\|inbound}` \| null | R3 | L | letzte erfolgreiche Kommunikation (Kap. 30.3) |
 | `last_failure` | Objekt \| null | R3 | L | `{at, error_class, error_code, partner_code, error_id, correlation_id, event_type?, retryable}` |
-| `last_failure.error_class` | enum (R0-19 §6, 11 Werte) | R3 | L | `incompatible_contract` … `internal` |
-| `last_failure.error_code` | `cc_*` | R3 | L | Code aus R0-19 §3 |
+| `last_failure.error_class` | enum (R0-19 §6, 12 Werte einschließlich `retention`) | R3 | L | `incompatible_contract` … `internal` |
+| `last_failure.error_code` | `ccap_*` | R3 | L | Code aus R0-19 §3 |
 | `last_failure.partner_code` | string `^[a-z0-9_.:-]{1,64}$` \| `<redacted>` | R3 | L | Original-Code des Partners; alles, was das Muster verletzt, wird ersetzt |
 | `last_failure.error_id` | string | R3 | L | `delivery:<id>` bzw. `request_id` (GR-7); Suchschlüssel für Log/Audit |
 | `last_failure.correlation_id` | UUID | R3 | L | aus dem Envelope bzw. dem Vorgang (R0-19 §5.1) |
 | `queue` | Objekt | R3 | L | `{pending, dispatching, retry_wait, oldest_pending_at, next_attempt_at, stale_leases}`; `retry_wait` = `failed` mit `next_attempt_at` in der Zukunft; Zähler gekappt bei 10 000 (Anzeige „> 10 000“) |
-| `dead_letter` | Objekt | R3 | L | `{count, oldest_at, newest_at, by_error_class{}}` |
-| `skipped` | Objekt | R3 | A | `{count_30d, by_reason{discarded, hold_mode, privacy_not_granted, retention_expired}}` |
+| `dead_letter` | Objekt | R3 | L | `{count, oldest_at, newest_at, by_error_class{}}`; enthält `retention` für offene Zustellungen nach 30 Tagen (E-258, R0-19 §5.4 Nr. 2) |
+| `skipped` | Objekt | R3 | A | `{count_30d, by_reason{discarded, disabled, hold_mode, privacy_not_granted}}`; abgelaufene offene Zustellungen zählen nicht hier, sondern als `dead` mit `by_error_class.retention` (E-258) |
 | `inbound` | Objekt \| null | R3 | L | nur bei Webhook/Callback: `{accepted_24h, duplicate_24h, rejected_24h, last_rejected_class}` aus `ccap_inbox_event` und `webhook_rejected` |
 | `privacy.class` | enum (§2.4) | R1 | L | höchste Datenschutzklasse des Austauschs |
 | `privacy.required_tags[]` / `granted_tags[]` / `missing_tags[]` | list | R3 | L | `requiredPrivacyTags()` gegen Freigaben nach E-120 |
@@ -142,7 +142,7 @@ Phase: **R1** = in R1 befüllt; **R3** = erst mit registriertem Connector, vorhe
 | AB-1 | Erkennung läuft bei jedem Aufruf der Seite „Integrationen“/Systemstatus (Request-Memo) und stündlich in `ccap_hourly`. Sie ist **lesend** gegenüber dem Partner (keine Option schreiben, keine Partner-Hooks auslösen). |
 | AB-2 | Vorrang bei mehreren zutreffenden Gründen: `failed` > `degraded` > `needs_configuration` > `connected`; innerhalb von `degraded`: `paused_by_admin` > `hold_mode` > `outbound_catch` > `license_inactive` > `dead_letters_present` > `queue_stale` > `retries_pending` > `rate_limited`. |
 | AB-3 | `degraded/retries_pending`: mindestens eine Zustellung `failed` mit offenem Backoff. `queue_stale`: älteste `pending`-Zustellung > 15 min **oder** `dispatching` mit abgelaufenem `locked_until` (H-28, RC-5). |
-| AB-4 | `degraded/dead_letters_present`: ≥ 1 `dead`, Schwelle für `failed` nicht erreicht. **`failed/dead_letter_threshold`**: ≥ 10 neue `dead` in 60 min **oder** 3 aufeinanderfolgende fehlgeschlagene `healthCheck()` (D34-4; R0-19 §6 sieht `failed` schon beim ersten Dead-Letter vor). |
+| AB-4 | `degraded/dead_letters_present`: ≥ 1 `dead`, Schwelle für `failed` nicht erreicht. **`failed/dead_letter_threshold`**: ≥ 3 neue `dead` in 60 min (**E-311**, nicht schon beim ersten) **oder** 3 aufeinanderfolgende fehlgeschlagene `healthCheck()` (D34-4). |
 | AB-5 | `failed/auth_failed`: Fehlerklasse `auth_failed` bei Zustellung oder Test. `failed/permanent_rejection`: Partner lehnt alle Zustellungen eines Laufs permanent ab (`DeliveryResult::fail` ≥ 20 in Folge). |
 | AB-6 | Zustand `failed` stoppt den Dispatcher für diesen Abonnenten (Zustellungen bleiben `pending`). Rückkehr nach `connected` nur nach erfolgreichem Test (IA-02); vorhandene Dead-Letter bleiben sichtbar und halten den Zustand danach auf `degraded/dead_letters_present`, bis sie neu zugestellt oder verworfen sind. |
 | AB-7 | Pause (IA-05) ist kein eigener Zustand: `degraded/paused_by_admin`. Der Dispatcher überspringt pausierte Abonnenten im Claim (`WHERE subscriber_id NOT IN paused`), Events und Zustellzeilen entstehen weiter. |
@@ -203,7 +203,7 @@ Connectoren selbst haben **kein** Retry-Recht über fremde Abonnenten; `Delivery
   "opt_in": { "enabled": true, "enabled_at": "2026-11-02T10:00:00Z", "enabled_by_role": "administrator" },
   "paused": null,
   "last_success": { "at": "2026-11-16T09:29:41Z", "kind": "delivery" },
-  "last_failure": { "at": "2026-11-16T08:12:00Z", "error_class": "validation", "error_code": "cc_partner_error",
+  "last_failure": { "at": "2026-11-16T08:12:00Z", "error_class": "validation", "error_code": "ccap_partner_error",
                     "partner_code": "vcap_invalid_request", "error_id": "delivery:48213",
                     "correlation_id": "c0a8012e-7f3b-4a1c-9d2e-5b6a7c8d9e0f", "event_type": "grant.revoked", "retryable": false },
   "queue": { "pending": 3, "dispatching": 0, "retry_wait": 1, "oldest_pending_at": "2026-11-16T09:28:00Z",
@@ -237,7 +237,7 @@ Connectoren selbst haben **kein** Retry-Recht über fremde Abonnenten; `Delivery
 2. **Liste** (Tabelle mit Kartenansicht < 782 px): Name · Zustand (Text + Symbol, nie nur Farbe) · Version gefunden / benötigt · Vertrag · Datenschutzklasse · letzte erfolgreiche Kommunikation · offene Zustellungen · Dead-Letter · letzte Fehler-ID. In R1 nur die ersten fünf Spalten.
 3. **Filter:** „Nur erkannte“ (Standard) / „Alle bekannten“ (zeigt auch `not_installed`, E-256).
 4. **Detailansicht** je Provider (R3; in R1 nur Abschnitte a und b): a) Version & Vertrag, b) Erkennung & Kompatibilität mit Begründung, c) Freigabe & Datenschutz (Klasse, Event-Klassen nach E-120), d) Zustellung (Queue, nächster Versuch), e) Dead-Letter-Liste, f) letzte Fehler (20), g) Aktionen, h) Objekthistorie aus dem Audit (50).
-5. **Dead-Letter-Liste** (e): Spalten `event_id` (gekürzt, kopierbar), `event_type`, `object_type`, Versuche, Fehlerklasse, `cc_*`-Code, Partnercode, erster/letzter Versuch, `correlation_id`. **Kein** Payload, **kein** `user_ref`; Spalte „Person betroffen: ja/nein“, Link zur Lernenden-Detailansicht nur mit #13. Mehrfachauswahl für IA-04/IA-06, höchstens 1 000 je Aktion.
+5. **Dead-Letter-Liste** (e): Spalten `event_id` (gekürzt, kopierbar), `event_type`, `object_type`, Versuche, Fehlerklasse, `ccap_*`-Code, Partnercode, erster/letzter Versuch, `correlation_id`. **Kein** Payload, **kein** `user_ref`; Spalte „Person betroffen: ja/nein“, Link zur Lernenden-Detailansicht nur mit #13. Mehrfachauswahl für IA-04/IA-06, höchstens 1 000 je Aktion.
 
 ### 3.3 Zustände und Texte
 
@@ -281,13 +281,13 @@ Texte sind Vorschläge für die Übersetzungsbasis (de_DE, R0-15); Platzhalter i
 
 ### 4.1 Katalog
 
-Gemeinsamer Ablauf wie R0-13 §3 (Cap + Meta-Cap, Nonce je Aktion und Provider `cc_integration_<aktion>_<provider>`, Bestätigung mit Wirkung in Klartext und Anzahl, Begründung, eine TX je Schritt, Audit synchron in derselben TX, fail-closed).
+Gemeinsamer Ablauf wie R0-13 §3 (Cap + Meta-Cap, Nonce je Aktion und Provider `ccap_integration_<aktion>_<provider>`, Bestätigung mit Wirkung in Klartext und Anzahl, Begründung, eine TX je Schritt, Audit synchron in derselben TX, fail-closed).
 
 | Nr. | Aktion | Vorbedingung (Zustand) | Cap | Begründung | Wirkung | Obergrenze | Audit | Phase |
 |---|---|---|---|---|---|---|---|---|
 | IA-01 | **Verbindung einrichten** (Opt-in) | `active_compatible/not_enabled` | #20 | nein (Dialog zeigt Datenschutzklasse, Bestätigung Pflicht) | `opt_in.enabled = true`; ab jetzt Zustellzeilen für neue Events; optional Backfill = IA-03 | – | `integration_enabled` | R3 |
-| IA-02 | **Verbindung testen** | jeder Zustand ab `active_compatible` mit Connector | #20 | nein | `healthCheck()` ohne Personendaten, Timeout 10 s; Erfolg kann `failed → connected` bewirken (AB-6) | 10 je Provider und Stunde (`cc_rate_limited`, Bucket `integration_action`) | `integration_tested` (Ergebnis, Fehlerklasse) | R3 |
-| IA-03 | **Replay** (erneut zustellen ab Zeitpunkt/Typ) | `connected`/`degraded`, nicht `paused`, Lease frei | #20 + #23 | ja | für Events im Log ab `--since` (max. Retention, E-119) und passenden Typen: fehlende Zustellzeilen anlegen (`INSERT IGNORE`, UNIQUE `(event_uuid, subscriber_id)`), vorhandene `delivered/skipped/dead` → `pending`; **gleiche `event_id`**; Freigaben (E-120) neu geprüft | 10 000 Zustellungen je Lauf, ein Lauf je Provider gleichzeitig; bereits zugestellte nur mit zusätzlichem Häkchen „Auch erfolgreich zugestellte erneut senden“ (D34-7) | `deliveries_replayed` (Zeitraum, Typen, Anzahl neu/zurückgesetzt, Lauf-`correlation_id`) | R3 |
+| IA-02 | **Verbindung testen** | jeder Zustand ab `active_compatible` mit Connector | #20 | nein | `healthCheck()` ohne Personendaten, Timeout 10 s; Erfolg kann `failed → connected` bewirken (AB-6) | 10 je Provider und Stunde (`ccap_rate_limited`, Bucket `integration_action`) | `integration_tested` (Ergebnis, Fehlerklasse) | R3 |
+| IA-03 | **Replay** (erneut zustellen ab Zeitpunkt/Typ) | `connected`/`degraded`, nicht `paused`, Lease frei | #20 + #23 | ja | für Events im Log ab `--since` (max. Retention, E-119) und passenden Typen: fehlende Zustellzeilen anlegen (`INSERT IGNORE`, UNIQUE `(event_uuid, subscriber_id)`), vorhandene `delivered/skipped/dead` → `pending`; **gleiche `event_id`**; Freigaben (E-120) neu geprüft | 10 000 Zustellungen je Lauf, ein Lauf je Provider gleichzeitig; bereits zugestellte nur mit ausdrücklichem Flag (Häkchen „Auch erfolgreich zugestellte erneut senden“ bzw. CLI `--include-delivered`), Pflichtbegründung und Audit (**E-311**, D34-7) | `deliveries_replayed` (Zeitraum, Typen, Anzahl neu/zurückgesetzt, Lauf-`correlation_id`) | R3 |
 | IA-04 | **Retry** (Einzelne/ausgewählte Zustellungen) | Zustellung `failed` oder `dead`; Provider nicht `active_incompatible` | #20 | nein | Status → `pending`, `next_attempt_at = jetzt`, neuer Backoff-Zyklus (8 Versuche) | 5 manuelle Retries je Zustellung (`manual_retries`), danach nur Verwerfen; 1 000 Zeilen je Aktion | `delivery_retried` (Anzahl, IDs-Hash) | R3; intern R1 (#23) |
 | IA-05 | **Pause / Fortsetzen** | Pause: `connected`/`degraded`/`failed`; Fortsetzen: `paused` | #20 | Pause: ja; Fortsetzen: nein | Pause: Dispatcher überspringt Abonnenten (AB-7); laufende `dispatching` dürfen enden; Fortsetzen: normaler Claim | Pause ohne Ende; Erinnerung nach 7 Tagen (Admin-Hinweis) | `integration_paused` / `integration_resumed` | R3 |
 | IA-06 | **Dead-Letter verwerfen** | Zustellung `dead` (einzeln, Auswahl oder „alle mit Fehlerklasse X“) | #20 + #23 | ja | `dead → skipped`, `skip_reason = discarded`; Event bleibt im Log; Replay bleibt bis Retention-Ende möglich | 1 000 je Aktion; „alle“ nur bis 10 000 mit erneuter Bestätigung | `dead_letter_discarded` (Anzahl, Fehlerklassen) | R3; intern R1 (#23, = K-16) |
@@ -301,13 +301,13 @@ Gemeinsamer Ablauf wie R0-13 §3 (Cap + Meta-Cap, Nonce je Aktion und Provider `
 
 | Nr. | Regel |
 |---|---|
-| ID-1 | Jede Aktion trägt einen `request_key` (UUID aus dem Formular bzw. `--request-key` in der CLI) in `ccap_request_idempotency` mit Scope `integration_action:<provider>`; gleicher Key + gleicher Inhalt → gleiches Ergebnis ohne zweite Wirkung; gleicher Key + anderer Inhalt → `409 cc_idempotency_conflict` (R0-19 §2.1). |
+| ID-1 | Jede Aktion trägt einen `request_key` (UUID aus dem Formular bzw. `--request-key` in der CLI) in `ccap_request_idempotency` mit Scope `integration_action:<provider>`; gleicher Key + gleicher Inhalt → gleiches Ergebnis ohne zweite Wirkung; gleicher Key + anderer Inhalt → `409 ccap_idempotency_conflict` (R0-19 §2.1). |
 | ID-2 | Zusätzlich natürliche Idempotenz: Retry auf `pending` → `unchanged`; Pause auf pausiert → `unchanged`; Verwerfen auf `skipped` → `unchanged` (Ergebniscodes R0-19 §3.1). |
 | ID-3 | Zeilenwechsel per CAS: `UPDATE ccap_outbox_delivery SET status='pending', … WHERE id IN (…) AND subscriber_id=? AND status IN ('failed','dead')` bzw. `… status='dead'` für IA-06; gezählt wird `affected_rows`, nicht die Auswahl. Eine Zeile, die der Dispatcher inzwischen geclaimt hat (`dispatching`), wird nicht verändert und im Ergebnis als „übersprungen“ gemeldet. |
-| ID-4 | IA-03 und IA-06 (Massen) laufen als Lease `replay:<provider>` bzw. `discard:<provider>` (Rang M0, R0-21 §2.4), TTL 900 s, Schritte zu 500 Zeilen in eigener TX mit Fencing; belegt → `409 cc_resource_busy` (`reason: lock`). Abbruch und Wiederaufnahme über Cursor `ccap_outbox_event.id`. |
+| ID-4 | IA-03 und IA-06 (Massen) laufen als Lease `replay:<provider>` bzw. `discard:<provider>` (Rang M0, R0-21 §2.4), TTL 900 s, Schritte zu 500 Zeilen in eigener TX mit Fencing; belegt → `409 ccap_resource_busy` (`reason: lock`). Abbruch und Wiederaufnahme über Cursor `ccap_outbox_event.id`. |
 | ID-5 | Replay erzeugt keine neuen Events und keine neuen `event_id`s; Consumer deduplizieren über `event_id` (R0-19 §5.4 Nr. 5). Die Lauf-`correlation_id` steht im Audit und im `DeliveryContext`, nicht im Envelope. |
 | ID-6 | Keine externen Aufrufe in TX oder unter Mutex (R0-21 R-6); IA-02 ruft `healthCheck()` außerhalb der TX und schreibt das Ergebnis danach per CAS. |
-| ID-7 | Aktion nicht zulässig im aktuellen Zustand (z. B. Retry bei `active_incompatible`, Replay während Pause) → `409 cc_integration_state_invalid` (neu, Muster `cc_import_state_invalid`; Delta R0-19 §3.2) mit `details.state`, `details.state_reason`. |
+| ID-7 | Aktion nicht zulässig im aktuellen Zustand (z. B. Retry bei `active_incompatible`, Replay während Pause) → `409 ccap_integration_state_invalid` (neu, Muster `ccap_import_state_invalid`; Delta R0-19 §3.2) mit `details.state`, `details.state_reason`. |
 
 ### 4.3 Audit
 
@@ -321,10 +321,10 @@ Neue Aktionen im Bereich **settings/integrations** (R0-13 §4.1, bisher 4): `int
 
 | Nr. | Regel |
 |---|---|
-| SR-1 | R1 zeigt keine Aktionsknöpfe auf „Integrationen“; Aktionsrouten für Provider sind in R1 **nicht registriert** (kein toter Endpunkt, Antwort `404 cc_feature_unavailable`). |
+| SR-1 | R1 zeigt keine Aktionsknöpfe auf „Integrationen“; Aktionsrouten für Provider sind in R1 **nicht registriert** (kein toter Endpunkt, Antwort `404 ccap_feature_unavailable`). |
 | SR-2 | Replay und Retry prüfen Freigaben (E-120) und Opt-in **zum Zeitpunkt der Zustellung** erneut; entzogene Tags → `skipped/privacy_not_granted`. |
 | SR-3 | Im Haltemodus (E-85) sind Aktionen erlaubt, aber Zustellungen bleiben `pending`; der Bestätigungsdialog sagt das. |
-| SR-4 | Aktionen auf einen Provider eines anderen Abonnenten-Namens sind unmöglich: jede Aktion filtert `subscriber_id = provider_id`; fremde Zustellungs-IDs in der Auswahl → `404 cc_not_found` für die ganze Aktion (kein Existenz-Orakel). |
+| SR-4 | Aktionen auf einen Provider eines anderen Abonnenten-Namens sind unmöglich: jede Aktion filtert `subscriber_id = provider_id`; fremde Zustellungs-IDs in der Auswahl → `404 ccap_not_found` für die ganze Aktion (kein Existenz-Orakel). |
 | SR-5 | Pausiert der Betreiber länger als die Event-Retention, gilt E-258 (offene Zustellungen höchstens 30 Tage, danach Dead-Letter mit Grund `retention`); die Karte zeigt die Restfrist der ältesten wartenden Zustellung. |
 | SR-6 | Kein Lernender wird über Integrationsaktionen benachrichtigt (wie Reconcile, R0-13 K-14); Folgemails entstehen nur aus dem fachlichen Ablauf beim Partner bzw. Abonnenten. |
 
@@ -367,7 +367,7 @@ Erweiterung des Diagnosepakets aus R0-13 §2.2 (gleiche Erzeugung, Vorschau, Ein
 | INT-005 | P | Partner installiert, deaktiviert | `inactive/plugin_inactive`; bestehende Grants unverändert; Free-Lernen läuft | R1-38 | R0-19 CT-09 |
 | INT-006 | P | Form/Workflow/Review-Plugin-Attrappe aktiv | `active_incompatible/no_published_contract`, Text „kein abgestimmter Austauschvertrag“ | R1-38 | R0-32 F10 |
 | INT-007 | N | Erkennungslauf | keine Schreibzugriffe auf Partner-Optionen/-Tabellen (Query-Log), keine Partner-Hooks ausgelöst | R1-38, R3-16 | AB-1 |
-| INT-008 | N | R1: POST auf eine Provider-Aktionsroute bzw. `admin-post` mit gültiger Nonce | `404 cc_feature_unavailable`; keine Wirkung | R1-38 | SR-1, E-185 |
+| INT-008 | N | R1: POST auf eine Provider-Aktionsroute bzw. `admin-post` mit gültiger Nonce | `404 ccap_feature_unavailable`; keine Wirkung | R1-38 | SR-1, E-185 |
 | INT-009 | P | `ccap_support` öffnet „Integrationen“ | lesbar (L-Felder); A-Felder (`secrets`, `skipped`) fehlen im HTML und in `GET /integrations` | R1-38 | §2.5, E-255 |
 | INT-010 | N | Editor/Shop-Manager ohne `ccap_*`-Caps ruft Seite und `GET /integrations` | 403 bzw. kein Menüpunkt | R1-38 | R0-07 S-19 |
 | INT-011 | P | Systemstatus H-34 | eine Zeile je erkanntem Provider; `degraded`/`failed` = warn | R1-38 | R0-13 H-34 |
@@ -376,7 +376,7 @@ Erweiterung des Diagnosepakets aus R0-13 §2.2 (gleiche Erzeugung, Vorschau, Ein
 | INT-014 | P | Interne Dead-Letter verwerfen mit Begründung | `skipped/discarded`, Event bleibt im Log, Audit `dead_letter_discarded` mit Zähler | R1-38 | IA-06, K-16 |
 | INT-015 | N | Verwerfen ohne Begründung bzw. Freitext < 10 Zeichen | Feldfehler, keine Wirkung | R1-38, R3-10 | R0-13 §3 Schritt 3 |
 | INT-016 | P | Doppelklick „Retry“ (gleicher `request_key`) | eine Wirkung, zweite Antwort identisch, ein Audit-Eintrag | R1-38, R3-10 | ID-1 |
-| INT-017 | N | gleicher `request_key`, andere Auswahl | `409 cc_idempotency_conflict` | R1-38, R3-10 | ID-1 |
+| INT-017 | N | gleicher `request_key`, andere Auswahl | `409 ccap_idempotency_conflict` | R1-38, R3-10 | ID-1 |
 | INT-018 | P | Diagnosepaket „Nur Integration X“ | genau ein Eintrag `integrations[]`, Felder nach §5, Vorschau zeigt Redaktion | R1-38 | §5 |
 | INT-019 | N | Diagnose: bekannte Canaries (E-Mail, Secret, Webhook-URL mit Pfad/Query, Bearer-Token, `user:42`, Gutscheincode, Partner-Antworttext) in `last_error`, Settings und Endpunkt | 0 Treffer im Paket; Host nur als HMAC (analog SUP-017) | R1-38, R3-10 | §5 |
 | INT-020 | P | `GET /integrations` | Antwort entspricht Schema `IntegrationStatus` v1, `Cache-Control: no-store, private` | R1-38 | §2.6 |
@@ -385,23 +385,23 @@ Erweiterung des Diagnosepakets aus R0-13 §2.2 (gleiche Erzeugung, Vorschau, Ein
 | INT-023 | N | Connector-Update fordert zusätzlich `assessment_result` | `needs_configuration/privacy_not_granted` für neue Tags, bestehende Abos laufen weiter; keine Zustellung mit nicht freigegebenem Tag | R3-16 | §2.4, E-120 |
 | INT-024 | P | Zustellung scheitert mit `timeout` | `degraded/retries_pending`, `last_failure` mit Klasse, Code, Fehler-ID, Correlation-ID; nächster Versuch nach Backoff | R3-10 | AB-3 |
 | INT-025 | P | 8 Fehlversuche | Zustellung `dead`, Provider `degraded/dead_letters_present`, Action `course_captain_outbox_dead_lettered` | R3-10 | R0-19 §5.4 |
-| INT-026 | P | 10 neue `dead` in 60 min | `failed/dead_letter_threshold`, Dispatcher stoppt für diesen Abonnenten, Admin-Hinweis | R3-10 | AB-4, D34-4 |
+| INT-026 | P | 3 neue `dead` in 60 min (2 neue: weiter `degraded/dead_letters_present`) | `failed/dead_letter_threshold`, Dispatcher stoppt für diesen Abonnenten, Admin-Hinweis | R3-10 | AB-4, D34-4 |
 | INT-027 | P | `auth_failed` bei Zustellung | sofort `failed/auth_failed`; Text mit Hinweis auf Schlüssel | R3-10 | AB-5 |
 | INT-028 | P | `failed`, IA-02 Test erfolgreich, 2 Dead-Letter offen | `degraded/dead_letters_present`, Dispatcher läuft wieder | R3-10 | AB-6 |
-| INT-029 | N | IA-02 öfter als 10× je Stunde | `429 cc_rate_limited` (`bucket: integration_action`) | R3-10 | IA-02 |
+| INT-029 | N | IA-02 öfter als 10× je Stunde | `429 ccap_rate_limited` (`bucket: integration_action`) | R3-10 | IA-02 |
 | INT-030 | P | IA-04 Retry eines `dead` | `pending`, gleiche `event_id`, Partner erhält Event, Consumer-Wirkung einmal | R3-10 | IA-04, ID-5 |
-| INT-031 | N | 6. manueller Retry derselben Zustellung | abgelehnt (`cc_integration_state_invalid`, `reason` manual_retry_limit), nur Verwerfen angeboten | R3-10 | IA-04 |
+| INT-031 | N | 6. manueller Retry derselben Zustellung | abgelehnt (`ccap_integration_state_invalid`, `reason` manual_retry_limit), nur Verwerfen angeboten | R3-10 | IA-04 |
 | INT-032 | N | Retry während Dispatcher die Zeile hält (`dispatching`) | Zeile unverändert, im Ergebnis „übersprungen“ | R3-10 | ID-3 |
 | INT-033 | P | IA-03 Replay ab Datum nach Opt-in (Backfill) | fehlende Zustellzeilen angelegt, keine Duplikate (UNIQUE), keine neuen `event_id`s | R3-10 | IA-03 |
 | INT-034 | N | Replay mit Datum älter als Retention | auf Retention-Grenze begrenzt, Hinweis in Ergebnis | R3-10 | IA-03, E-119 |
-| INT-035 | N | zwei Replays desselben Providers parallel | zweiter `409 cc_resource_busy` (`reason: lock`) | R3-10 | ID-4 |
+| INT-035 | N | zwei Replays desselben Providers parallel | zweiter `409 ccap_resource_busy` (`reason: lock`) | R3-10 | ID-4 |
 | INT-036 | P | Replay-Worker stirbt nach Schritt 3, Lease läuft ab | Übernahme mit `fence + 1`, Fortsetzung ab Cursor, keine doppelten Zeilen; Zombie schreibt nichts | R3-10 | ID-4, R0-21 CON-012 |
 | INT-037 | N | Replay schließt Events mit entzogenem Tag ein | diese Zustellungen `skipped/privacy_not_granted` | R3-10 | SR-2 |
 | INT-038 | P | IA-05 Pause | `degraded/paused_by_admin`; Events und Zustellzeilen entstehen weiter, nichts wird zugestellt; Fortsetzen stellt in `object_version`-Reihenfolge zu | R3-10 | AB-7 |
-| INT-039 | N | Pause ohne Begründung; Replay während Pause | Feldfehler bzw. `409 cc_integration_state_invalid` | R3-10 | IA-05, ID-7 |
+| INT-039 | N | Pause ohne Begründung; Replay während Pause | Feldfehler bzw. `409 ccap_integration_state_invalid` | R3-10 | IA-05, ID-7 |
 | INT-040 | P | Pause > 7 Tage | Admin-Erinnerung; Karte zeigt Restfrist der ältesten wartenden Zustellung | R3-10 | SR-5, E-258 |
 | INT-041 | P | IA-06 Verwerfen „alle mit Fehlerklasse `validation`“ (1 200 Zeilen) | Bestätigung mit Anzahl; 1 200 → `skipped`, Replay danach möglich | R3-10 | IA-06 |
-| INT-042 | N | Auswahl enthält Zustellungs-ID eines anderen Providers | ganze Aktion `404 cc_not_found`, keine Teilwirkung | R3-10, R3-16 | SR-4 |
+| INT-042 | N | Auswahl enthält Zustellungs-ID eines anderen Providers | ganze Aktion `404 ccap_not_found`, keine Teilwirkung | R3-10, R3-16 | SR-4 |
 | INT-043 | P | IA-07 Deaktivieren | offene `pending` → `skipped/disabled`, Grants der Quelle unverändert, Zustand `active_compatible/not_enabled` | R3-10 | IA-07, R0-32 V4 |
 | INT-044 | P | Haltemodus aktiv (E-85) | alle verbundenen Provider `degraded/hold_mode`; Retry erlaubt, Zustellung erst nach K-17 | R3-10 | AB-8, SR-3 |
 | INT-045 | P | Zustand flattert 30× in 10 min zwischen `connected` und `degraded` | höchstens ein Audit `integration_status_changed` je Zustand und 10 min, Zähler im Kontext | R3-10 | AB-9 |
@@ -424,10 +424,10 @@ Summe: 52 (R1-38: 20, R3-10: 29 inkl. Doppelzuordnung, R3-16: 9 inkl. Doppelzuor
 | **D34-1** | Ort der lesenden R1-Anzeige | **E-254:** Unterseite „Integrationen“ schon in R1, nur lesend; H-34 als Zusammenfassung (Option a) |
 | **D34-2** | Lese-Cap für „Integrationen“ | **E-255:** auch `ccap_support` und Kursmanager lesend; umgesetzt über #22, Aktionen nur #20 (Option a) |
 | **D34-3** | Partner ohne veröffentlichten Vertrag, nicht installierte Partner | **E-256:** erkannte Partner anzeigen mit Hinweis „kein Vertrag verfügbar“; nicht installierte nicht bewerben (Option a) |
-| **D34-4** | Schwelle für `failed` | **nicht im Register** – siehe Offene Punkte; §2.3 AB-4 und INT-026 folgen vorläufig Option a) |
+| **D34-4** | Schwelle für `failed` | **E-311:** `failed` nach 3 Dead-Lettern innerhalb 1 h, nicht beim ersten (AB-4, INT-026) |
 | **D34-5** | Alarm-Mail an Admins bei `failed` (R3) | **E-257:** ja, gebündelt höchstens einmal je 24 h |
 | **D34-6** | Wartende Zustellungen und Retention | **E-258:** offene Zustellungen höchstens 30 Tage, danach Dead-Letter mit Grund `retention` (abweichend von Option a, 90 Tage) |
-| **D34-7** | Replay bereits erfolgreich zugestellter Events | **nicht im Register** – siehe Offene Punkte; IA-03 folgt vorläufig Option a) |
+| **D34-7** | Replay bereits erfolgreich zugestellter Events | **E-311:** nur mit ausdrücklichem Flag, Begründung und Audit (IA-03, R0-19 §5.4 Nr. 7) |
 | **D34-8** | Ownership-Claim durch Partner | **E-259:** erst in R3, nur mit sichtbarem Hinweis im Admin und Abschaltmöglichkeit (Option a) |
 
 ### Offene Punkte nach Einarbeitung
@@ -445,10 +445,10 @@ Summe: 52 (R1-38: 20, R3-10: 29 inkl. Doppelzuordnung, R3-16: 9 inkl. Doppelzuor
 
 | Dokument | Delta |
 |---|---|
-| R0-06 | `ccap_integrations` um Statusspalten und `row_version` (§2.6); `ccap_outbox_delivery` um `manual_retries`, `skip_reason` (`discarded`, `disabled`, `hold_mode`, `privacy_not_granted`, `retention_expired`), `discarded_at`; Index `(subscriber_id, status, next_attempt_at)`. |
-| R0-07 | S-19 lesend mit #22 (E-255); neue Nonce-Aktionen `cc_integration_{enable,disable,test,replay,retry,pause,resume,discard,event_classes}`; Massenaktionen #20 + #23. |
+| R0-06 | `ccap_integrations` um Statusspalten und `row_version` (§2.6); `ccap_outbox_delivery` um `manual_retries`, `skip_reason` (`discarded`, `disabled`, `hold_mode`, `privacy_not_granted`), `discarded_at`; Ablauf nach 30 Tagen als `dead` mit `last_error_class = retention` (E-258) – in R0-06 §4.6 eingearbeitet; Index `(subscriber_id, status, next_attempt_at)`. |
+| R0-07 | S-19 lesend mit #22 (E-255); neue Nonce-Aktionen `ccap_integration_{enable,disable,test,replay,retry,pause,resume,discard,event_classes}`; Massenaktionen #20 + #23. |
 | R0-13 | 10 neue Audit-Aktionen (§4.3, 88 → 98); H-34 mit Grund und Link; Diagnosepaket-Option „Nur Integration“ und Abschnitt `integrations[]` (§5); RC-5 „zurück in `queued`“ → `pending` (Statusnamen R0-19 §5.4); K-16 gilt für interne Outbox-Abonnenten wie IA-04/IA-06. |
-| R0-19 | §2.3 neue Routen `GET /integrations`, `GET /integrations/{connector}` (R1, #22) und R3-Aktionsrouten `POST /integrations/{connector}/{test,replay,retry,pause,resume,discard}` (**P**-Idempotenz); §3.2 neuer Code `cc_integration_state_invalid` (409), `cc_rate_limited` Bucket `integration_action`; §4.7 CLI `integrations pause\|resume\|enable\|disable`, `outbox discard <ids> --reason`, `diagnostics --integration`; §6 Ableitungsregeln AB-2…AB-9 und `failed`-Schwelle nach D34-4; `state_reason`-Enum §2.2. |
+| R0-19 | §2.3 neue Routen `GET /integrations`, `GET /integrations/{connector}` (R1, #22) und R3-Aktionsrouten `POST /integrations/{connector}/{test,replay,retry,pause,resume,discard}` (**P**-Idempotenz); §3.2 neuer Code `ccap_integration_state_invalid` (409), `ccap_rate_limited` Bucket `integration_action`; §4.7 CLI `integrations pause\|resume\|enable\|disable`, `outbox discard <ids> --reason`, `diagnostics --integration`; §6 Ableitungsregeln AB-2…AB-9 und `failed`-Schwelle nach E-311 (in R0-19 §6 eingearbeitet); `state_reason`-Enum §2.2. |
 | R0-27 | Nach E-257: Mailtyp `admin_integration_failed` (Klasse `informational`, Empfänger Site-Admin) in §3.2; nach E-258: Frist für offene Zustellungen 30 Tage (Default und Höchstwert; Schlüssel `privacy.retention.outbox_open_days`). |
 | R0-12 | OPS-06 „Integrationsstatus-Anzeige fehlt“ → INT-001…INT-020; R3-10/R3-16 Testzuordnung INT-021…INT-052. |
 | R0-24 | Zeilen 767 (SUITE-004) und 859 (FLOW-005, TODO-Stand nach Einfügung von R1-45/R1-46) auf R0-34 verweisen; R1-38 DoR „R0-34 fehlt“ → vorhanden (in R0-24 eingearbeitet). |

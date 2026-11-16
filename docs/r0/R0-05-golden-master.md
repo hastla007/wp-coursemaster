@@ -21,10 +21,12 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **E-168** | Text-/Dateiaufgaben mit Bewertung in R1 (R1-46), Zustandsautomat `draft/submitted/returned/graded` nach R0-08 §2.5: **GM-195/GM-196** (neu, ohne LB-Quelle). Die frühere R2-Fixture-Erweiterung `v1.1` entfällt; die Aufgaben stehen in PKG-X1 (§2.2, §2.9) |
 | **E-25a** | Bundle (ein Grant schaltet mehrere Kurse frei) in R1 Free: **GM-198** (Kern ohne Woo; LB kennt Bundles nur in der Woo-Statuslogik, §1.21) |
 | **E-26** | abhängige Zusatz-Grants in R1: **GM-199** (neu) |
-| **E-27** | Zugang je Modul (`module_id`, ganzer Kurs = NULL bzw. technisch 0 nach R0-06 Nachtrag): **GM-200** (neu); Bereichsangaben der Fixture-Grants unter Vorbehalt OP-05-2 |
+| **E-27** | Zugang je Modul (`module_id`, ganzer Kurs = 0 nach E-286): **GM-200** (neu) |
 | **E-23**, E-129, E-75 | Prüfungsregeln `status` + `purpose` statt `verified`; `evidence_eligible` statt `live` (GM-029, GM-032, GM-033, §2.4); Entwürfe nie als Übung startbar (GM-033); Ablauf = `evaluated` + `end_reason = expired` (GM-035) |
 | **E-45/E-45a** | `privacy.external_media_mode`: Default `always_load`, umschaltbar auf `click_to_load`; GM-013 prüft beide Modi; die Fixture setzt `click_to_load`, damit E2E keine Fremdverbindung aufbauen (§2.8, D-09) |
-| **E-10**, E-239 | Website-Härtung im Kern (R1-45): SE:279–631 ist nicht mehr ausgeschlossen (§1.21); GM-Fälle dazu sind noch nicht katalogisiert (OP-05-3) |
+| **E-10**, E-239, E-260, E-261, E-307…E-309 | Website-Härtung im Kern (R1-45): SE:279–631 ist nicht mehr ausgeschlossen; GM-Fälle **GM-201…GM-208** in §1.23 (Belege über Inventur C INV-C-138, -140…-146). Nicht in R1 nach E-261/E-308: User-Enumeration-Schutz, Autorenarchive, Benutzer-Sitemap, Anwendungspasswörter, Feed-Autor (§1.21, R4-Pool). Abweichungen A-03…A-05 (§5.1) |
+| **E-286** | `module_id NOT NULL DEFAULT 0` (0 = ganzer Kurs); Scopes `view/download/exam` bleiben innerhalb eines Moduls – die Bereichsangaben der Fixture-Grants (§2.8) gelten unverändert; GM-200 prüft zusätzlich den Fortschrittsnenner |
+| **E-288**, **E-290** | Aufgaben bewerten Trainer, Autor und Kursmanager des Kurses (GM-195); Benachrichtigungen N-14…N-16 werden in R0-27 NTF-035…NTF-037 geprüft, nicht im GM |
 | **E-16** | FAQ/Tipps-Mechanik in R1 Free: §1.20 gilt unbedingt |
 | **E-21** | Karteikarten: ein Typ mit zwei Modi (GM-062/GM-063, §2.5) |
 | **E-232** | Fortschrittseinsicht für Gruppenbesitzer nur in Pro (Opt-in): nicht im R1-Golden-Master (§1.21) |
@@ -225,7 +227,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Datei | MS:331, :332, :333, :334, :336 (§ MS:323) | Anhang geschützt ausliefern | MED-004 als Anhang | in den Schutzordner verschoben, `.htaccess`; Mediathek-URL geht über die Prüfung; Aufheben → zurück | GM-111 | R1-14 | nein |
 | Ablage | SE:73, :74, :75, :77, :78 (§ SE:70) | Ordner mit Geheimnis, Skriptsperre | leere Site | Ordnername enthält Geheimnis; kein erratbarer Pfad; `.htaccess` (2.2/2.4) + `index.php`; Medienordner sperrt php/html/svg | GM-112 | R1-14 | nein |
 | Umzug/Rückfall | SE:91, :93, :100, :101, :102, :104, :106 | Altordner verschieben; Rückfall ohne Datenverlust | Altlayout | vollständig verschoben; bei Fehler alter Ordner aktiv; Retry erst nach Wartezeit | GM-113 | R1-14, R1-40 | nein |
-| Privater Ordner | SE:115, :121, :122, :123, :132, :137 (§ SE:109) | Ablage außerhalb des Webroots | Konstante `CC_PRIVATE_DIR` | keine öffentliche URL; Selbsttest „privat“; Rückweg schreibt Pfade zurück | GM-114 | R1-14 | nein |
+| Privater Ordner | SE:115, :121, :122, :123, :132, :137 (§ SE:109) | Ablage außerhalb des Webroots | Konstante `COURSE_CAPTAIN_PRIVATE_DIR` | keine öffentliche URL; Selbsttest „privat“; Rückweg schreibt Pfade zurück | GM-114 | R1-14 | nein |
 | Selbsttest | SE:237, :238, :239, :241, :260, :266, :270, :275 (§ SE:217) | Direktabruf der Schutzordner prüfen | HTTP-Stub `pre_http_request` | 200 → kritisch mit nginx-Regel; 403 → grün; keine Antwort → gelb; Ergebnis zwischengespeichert | GM-115 | R1-14, R1-38 | nein |
 | Seiten-Cache | SE:735, :743, :744, :746, :747, :748, :753, :757 (§ SE:675) | Persönliche/geschützte Seiten nicht cachen | PAGE-1, PAGE-2 | normale Seite cachebar; geschützte: `DONOTCACHEPAGE` + nocache-Header; Objekt-/DB-Cache bleiben | GM-116 | R1-14, R1-25 | nein |
 | Restore-Check | OP:738, :739, :746, :747, :755 (§ OP:731) | Prüfung nach Wiederherstellung | Site nach Restore, MED-004 entfernt | nur lesend; fremder Ordner gemeldet, bleibt; fehlende geschützte Datei gemeldet | GM-117 | R1-23 | nein |
@@ -353,7 +355,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Seeder | FQ:63, :128, :144, :204; OP:605, :606, :607, :624, :627, :628 | Starter-Inhalte idempotent, nicht in Besucheranfragen, unter Sperre | 5 neutrale FAQ FX-FAQ-1…5 | 1 Import; Update-Lauf ohne Doppel; Besucheranfrage importiert nicht; Sperre freigegeben | GM-189 | R1-24 | nein |
 | Cache/REST/Gate | FQ:259, :262, :265, :311, :336, :341 | Änderungen sofort sichtbar; Gäste ohne Entwürfe; Gate im Block | FX-FAQ-3 mit Gate-Block | sofort aktualisiert; Gast ohne Entwurf; Gast Hinweis statt Abschnitt | GM-190 | R1-24 | nein |
 
-**Summe:** 200 GM-Tests (GM-001…GM-190 und GM-191…GM-200 in §1.22). 34 davon brauchen einen neuen Test (Lücke **ja**: GM-003, 013, 021, 026, 046, 052–054, 078, 079, 092, 106, 133–137, 144, 154, 162, 171, 181, 185, 187, 188, 191–196, 198–200), 9 sind teilweise belegt (GM-001, 011, 019, 033, 060, 071, 074, 094, 197).
+**Summe:** 208 GM-Tests (GM-001…GM-190, GM-191…GM-200 in §1.22, GM-201…GM-208 in §1.23). 34 davon brauchen einen neuen Test (Lücke **ja**: GM-003, 013, 021, 026, 046, 052–054, 078, 079, 092, 106, 133–137, 144, 154, 162, 171, 181, 185, 187, 188, 191–196, 198–200), 9 sind teilweise belegt (GM-001, 011, 019, 033, 060, 071, 074, 094, 197).
 
 ### 1.21 Bewusst nicht in den R1-Golden-Master (Herkunft für die Vollständigkeit)
 
@@ -365,7 +367,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | CF:260–380 (bis auf GM-007…GM-010), NC (bis auf § NC:230), `e2e/trainers-flow.mjs`, MS:831–886, MS:887–943 | Navigation, Funk, Gerätesimulation, Seekarte, Kombi-/Ergänzungsempfehlungen | `exclude_domain_specific` (Kap. 39.2) | – |
 | `exam-guide-test.php`, `e2e/guide-*` | Prüfungsanmeldung/-leitfaden | fachgebunden | – |
 | MA (Anmeldung, Token-Rotation, Universal Links, Rate-Limit Login) | App-API | E-05 (keine App-API in R1) | R2 |
-| SE:279–631 | Website-weite Härtung | **nicht mehr ausgeschlossen:** E-10 legt die Härtung in den Kern (R1-45, Umfang E-261); die GM-Fälle sind noch nicht katalogisiert (OP-05-3) | R1-45 |
+| SE:279–631 (Teil) | Website-weite Härtung: `/wp/v2/users` für Gäste, Autorenarchive, oEmbed-/Feed-Autor, Benutzer-Sitemap (auch Yoast), Anwendungspasswörter nur Redaktion (INV-C-138), E-Mail-Wechsel mit Passwort im Woo-Konto (INV-C-139) | E-261/E-308: nicht im R1-Härtungsmodul (Enumeration, Anwendungspasswörter → R4-Pool); INV-C-139 Woo-Adapter. Der übrige Abschnitt ist in §1.23 katalogisiert (GM-201…GM-208) | R4-Pool bzw. R3 |
 | RO:73–181 | eigener Update-Check | E-09: Free nur WordPress.org | entfällt |
 | – | Fortschrittseinsicht für Gruppenbesitzer/Delegierte | E-232: nur Pro als Opt-in-Gruppeneinstellung | R3-08 (R0-29 GRP-041) |
 | – | Gradebook, Tutor-Bewertung von Prüfungen | E-74, E-99: Oberfläche erst mit dem Gradebook (Pro); Aufgabenbewertung R1-46 ist in GM-195 enthalten | R3 |
@@ -386,9 +388,24 @@ Für diese Funktionen gibt es **keinen** LearnBoating-Quelltest und meist kein L
 | Lösungserklärungen (E-20) | Code LS:628 (`explanation_locked` ohne Feature `learning_explanations`); kein Test | Free liefert nie Erklärungstexte; Pro liefert sie; Lizenzende friert ein (E-268); Add-on deaktiviert blendet aus (E-269); Text bleibt gespeichert und exportierbar; Lösungsanzeige nach E-147 | Q-A1-001 mit `feedback_incorrect`; Entitlement-Stub `course.explanations` an/aus/abgelaufen; EP-A-1 mit `max_attempts=3` | Free: Lernmodus `correct`, `correct_ids`, kein `explanation`; Pro aktiv: `explanation` = Text der Token-Revision; Lizenz abgelaufen: weiter ausgeliefert; Add-on deaktiviert: nicht ausgeliefert, DB-Wert unverändert; Export enthält den Text in allen Fällen; Prüfung nach Abgabe mit Restversuchen nur richtig/falsch, ohne Restversuche oder bestanden zusätzlich die richtige Antwort | GM-197 | R1-09, R1-15 (Pro-Teil R3-08) | teilweise (LB sperrt per Feature, ohne Test) |
 | Bundle (E-25a) | – (Kern neu; LB nur Woo-Bundle, §1.21) | Ein Grant schaltet mehrere Kurse frei; Widerruf entzieht alle; andere Quellen bleiben | U-L6 mit BND-1 (FakeSource, Ziele C-A und C-B), zusätzlich G-16 (manuell, C-B) | C-A und C-B frei; Widerruf BND-1 → C-A gesperrt, C-B bleibt über G-16; ein Audit-Eintrag je Quellereignis mit beiden Zielen | GM-198 | R1-13 | **ja** (neu) |
 | Abhängiger Zusatz-Grant (E-26) | – (neu, ohne LB-Quelle) | Zusatzmodul läuft so lange wie der Basis-Grant | U-L5: G-14 (C-B, 30 d), G-15 (C-A, `module_id` = M-A3, abhängig von G-14) | M-A3 frei, M-A1 403 `no_access`; G-14 ausgesetzt → M-A3 gesperrt, fortgesetzt → frei; Clock +31 d (G-14 abgelaufen) → M-A3 gesperrt; Verlängerung von G-14 per `extend` vor Ablauf verlängert die Wirkung von G-15 ohne Änderung an G-15 | GM-199 | R1-13 | **ja** (neu) |
-| Zugang je Modul (E-27) | – (neu; LB vergibt je Kurs × Feature) | Freischaltprüfung je Modul; Grant ohne Modul = ganzer Kurs | U-L7 mit G-12 (C-A, `module_id` = M-A2); U-L1 mit G-1 (ganzer Kurs) | U-L7: Fragen, Lektionen und Downloads aus M-A2 frei, aus M-A1/M-A3 403 `no_access`; Smarttrainer zieht nur aus M-A2; Zufallsprüfung ER-A (Blueprint über M-A1…A3) nicht startbar (`no_access`, `requires` nennt die gesperrten Module); U-L1 unverändert frei | GM-200 | R1-13, R1-12 | **ja** (neu) |
+| Zugang je Modul (E-27) | – (neu; LB vergibt je Kurs × Feature) | Freischaltprüfung je Modul; Grant ohne Modul = ganzer Kurs | U-L7 mit G-12 (C-A, `module_id` = M-A2); U-L1 mit G-1 (ganzer Kurs) | U-L7: Fragen, Lektionen und Downloads aus M-A2 frei, aus M-A1/M-A3 403 `no_access`; Smarttrainer zieht nur aus M-A2; Zufallsprüfung ER-A (Blueprint über M-A1…A3) nicht startbar (`no_access`, `requires` nennt die gesperrten Module, E-286); `completion_ratio` von U-L7 hat als Nenner nur die Pflicht-Activities von M-A2, Anzeige „1 von 3 freigeschalteten Modulen“ (E-286); U-L1 unverändert frei | GM-200 | R1-13, R1-12 | **ja** (neu) |
 
 ---
+
+### 1.23 Website-Härtung (R1-45; E-10, E-239, E-260, E-261, E-307…E-309)
+
+Belege sind die Zeilen der Inventur C (`R0-02-inventar/C-infrastruktur-content.md`, INV-C-138, INV-C-140…INV-C-146, §4.2 Hook-Tabelle) mit ihren Quelltest-Verweisen (SE:279, :324, :428, :466, :585, :594). Der Abschnitt SE:279–631 war früher ausgeschlossen und ist in R0-05 nicht zeilengenau ausgewertet; die Zeilenbelege je `$check` werden beim Referenzlauf (E-56 gilt nicht, keine Rechenlogik) bzw. in R1-45 nachgetragen. Daher „teilweise“ in der Spalte Lücke. Erwartungswerte folgen dem LB-Verhalten, soweit §5.1 keine Abweichung führt; Grenzen nach R0-31 §3.4. Fixture: F-BASE, U-L1, U-ADM, Gast; Härtung im Tab bestätigt (`hardening.confirmed_at` gesetzt), sonst gilt GM-208.
+
+| Bereich | Quelltest(s) | Prüfaussage | Fixture | Erwartetes Ergebnis | GM-ID | Ziel-Task | Lücke |
+|---|---|---|---|---|---|---|---|
+| Login-Limit | SE:279 (INV-C-143, `LoginGuard.php:58…272`) | Fehlversuche über alle `wp_authenticate`-Wege mit gemeinsamen Zählern, atomar vorgemerkt | U-L1, IP A und B; `wp-login`, XML-RPC, REST Basic | 11. Fehlversuch von IP A (beliebige Konten) gesperrt; 6. Fehlversuch U-L1 von IP B gesperrt (Konto+IP); 31. Fehlversuch U-L1 über mehrere IPs in 15 min gesperrt (Konto); Zähler gelten wegübergreifend; nach Fensterende frei | GM-201 | R1-45 | teilweise |
+| Neutrale Antwort | SE:279 (INV-C-144, `LoginGuard.php:335…350`) | Kein Existenzorakel beim Login | bekanntes Konto U-L1, unbekanntes Konto `nobody` | gleiche Meldung für falsches Passwort und unbekanntes Konto; Dummy-Passwortprüfung für unbekannte Konten (Antwortzeit vergleichbar); Sperrmeldung neutral | GM-202 | R1-45 | teilweise |
+| Passwort vergessen | SE:428, :466 (INV-C-145, `LoginGuard.php:366…491`) | Gleiche Bestätigung, Limits, Antwort vor dem Mailversand | U-L1, `nobody` | unbekanntes Konto: gleiche Bestätigung wie bekanntes, keine Mail; 11. Anfrage je IP, 4. je Konto+IP, 11. je Konto in 1 h abgewiesen (gleiche Bestätigung); Antwort steht vor dem Mailversand | GM-203 | R1-45 | teilweise |
+| Bekanntes Gerät | SE:324 (INV-C-146, `KnownDevice.php:36…110`) | Signiertes Gerätecookie umgeht nur IP- und Konto+IP-Sperre | U-L1 mit gültigem Gerätecookie; IP A gesperrt | Anmeldung mit richtigem Passwort trotz IP-Sperre möglich; Kontosperre (30/15 min) gilt weiter; Cookie nach Passwortänderung ungültig; Laufzeit 180 Tage; Cookiename nach E-285 (`ccap_`), Inhalt ohne Klartext-Personenbezug (PRIV-033) | GM-204 | R1-45 | teilweise |
+| Registrierungslimit | SE:594 (INV-C-140, `Hardening.php:130`, Hooks `:94`, `:95`) | Registrierungen je IP begrenzen | `users_can_register = 1`, Gast, IP A | 11. Registrierung von IP A in 1 h abgewiesen; bei `users_can_register = 0` wirkungslos | GM-205 | R1-45 | teilweise |
+| XML-RPC | INV-C-138 (`Hardening.php:72…74`), SE:594 | XML-RPC und Pingback aus | Gast; U-L1 | authentifizierte XML-RPC-Methoden abgewiesen (Filter `xmlrpc_enabled`), `pingback.ping` und `system.multicall` entfernt, Header `X-Pingback` fehlt | GM-206 | R1-45 | teilweise |
+| Security-Header | SE:594 (INV-C-141, `Hardening.php:144`, `:162`) | Sicherheits-Header setzen | Startseite, Lernbereich `/lernen/` | website-weit `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Frame-Options: SAMEORIGIN`; `Permissions-Policy` nur auf Course-Captain-Antworten mit `camera=(), microphone=(), geolocation=(), payment=()` (**A-04**, E-309); kein Header doppelt, wenn Server oder anderes Plugin ihn bereits setzt (E-307) | GM-207 | R1-45 | teilweise |
+| Erkennung Security-Plugins | SE:585 (INV-C-142, `Hardening.php:173`, `:189`) | Bekanntes Sicherheits-Plugin erkannt → Login-Limit zieht sich zurück; Merkmal einzeln abschaltbar | Stub-Plugin mit Kennung aus der Konfliktliste (R0-20 §2.6); Merkmal per Einstellung aus | Login-Limit `held` (keine Hooks, keine Zähler), übrige Merkmale aktiv; abgeschaltetes Merkmal wirkt nicht. Vor der ersten Bestätigung durch den Admin wirkt **kein** Merkmal (**A-03**, E-260) | GM-208 | R1-45 | teilweise |
 
 ## 2. Neutrales Referenz-Fixture-Paket `cc-fixture-neutral-v1`
 
@@ -611,6 +628,9 @@ Jede bewusste Abweichung eines GM-Erwartungswerts vom belegten LB-Verhalten steh
 |---|---|---|---|---|---|
 | A-01 | GM-013 | externe Medien erst nach Einwilligung über ein Theme-Global (R0-10 §5) | Default `always_load`, Option `click_to_load` | Beschluss **E-45/E-45a** (Auftraggeber) | 16.11.2026 |
 | A-02 | GM-033 | Rückfall von `examRule()` auf die neueste nicht archivierte Regel, auch einen Entwurf, als Übung (CR:186-216) | Entwürfe nie startbar; Übung nur als veröffentlichte Regel mit `purpose=practice` | Beschluss **E-129** (Claude im Auftrag), E-23 | 16.11.2026 |
+| A-03 | GM-208 | Härtung wirkt ab Aktivierung (je Merkmal per Filter `bootspruefung_hardening` abschaltbar, INV-C-142) | alle Merkmale aus, bis der Admin im Setup-Assistenten oder Tab speichert; danach je Merkmal `auto` | Beschluss **E-260**, E-240 (Claude im Auftrag) | 16.11.2026 |
+| A-04 | GM-207 | `Permissions-Policy` website-weit mit `microphone=(self)` für das Funktraining (INV-C-141) | `Permissions-Policy` nur auf Course-Captain-Antworten mit `camera=(), microphone=(), geolocation=(), payment=()` | Beschluss **E-309** (Claude im Auftrag); Mikrofon-Freigabe war fachlich (`exclude_domain_specific`) | 16.11.2026 |
+| A-05 | – (§1.21) | Härtung umfasst auch `/wp/v2/users` für Gäste, Autorenarchive, Benutzer-Sitemap, oEmbed-/Feed-Autor, Anwendungspasswörter nur Redaktion (INV-C-138) | nicht im R1-Härtungsmodul; R4-Pool | Beschluss **E-261**, **E-308** (Claude im Auftrag) | 16.11.2026 |
 
 ### 5.2 Offene Punkte nach Einarbeitung
 
@@ -640,11 +660,14 @@ Jede bewusste Abweichung eines GM-Erwartungswerts vom belegten LB-Verhalten steh
 | PAR-10 | GM-137…144 | GM-138 | GM-142 | – | R1-05, R1-26, R1-36 |
 | PAR-11 | GM-145…162 | GM-151…154 | GM-148 | GM-149 | R1-03, R1-17, R1-28, R1-38 |
 | PAR-12 | GM-163…171, GM-178…186 | GM-153, GM-181 | – | GM-163…171 | R1-02, R1-23, R1-31, R1-40 |
-| Privacy | GM-172…177 | GM-173, GM-174 | – | – | R1-17 |
+| PAR-13 · Privacy (BS-19) | GM-172…177 | GM-173, GM-174 | – | – | R1-17 |
+| PAR-14 · SEO/Consent (BS-23) | GM-012, GM-013 | – | – | – | R1-34, R1-37 |
+| PAR-15 · Kurs-FAQ/Tipps (BS-24) | GM-189, GM-190 | – | – | – | R1-14, R1-28 |
 | Querschnitt | GM-187, GM-188 | – | GM-187 | – | R1-22, R1-42 |
 | Neue Funktionen (E-20, E-22, E-25a, E-26, E-27, E-69, E-168; ohne LB-Quelle) | GM-191…GM-200 | GM-195, GM-196, GM-200 | – | – | R1-06, R1-09, R1-13, R1-46 |
+| PAR-16 · Website-Härtung (BS-27, E-10) | GM-201…GM-208 | GM-202, GM-204 | – | – | R1-45 |
 
-LB-Bezug: LB-02 → GM-081…083; LB-03 → GM-094…106; LB-04 → GM-107…116; LB-06 → GM-012/013; LB-07/LB-13 → GM-118…136; LB-08 → Gesamtkatalog; LB-09 → GM-120/123/132; LB-10 → GM-017…023; LB-11 (Kern) → GM-088…090; LB-14 → GM-027…034, GM-052. LB-01/05/12/15 → nicht R1 (Abschnitt 1.21).
+LB-Bezug: LB-02 → GM-081…083; LB-03 → GM-094…106; LB-04 → GM-107…116; LB-06 → GM-012/013; LB-07/LB-13 → GM-118…136; LB-08 → Gesamtkatalog; LB-09 → GM-120/123/132; LB-10 → GM-017…023; LB-11 (Kern) → GM-088…090; LB-14 → GM-027…034, GM-052. LB-05 (Härtung, E-10) → GM-201…208 (§1.23); LB-01/12/15 → nicht R1 (Abschnitt 1.21).
 
 ## Nachweis
 

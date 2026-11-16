@@ -114,6 +114,7 @@ Spalten: **Kette** = Ebenen von allgemein nach spezifisch; **Einheit** = was ein
 | 26 | `enrollment.invite_valid_days` | global → Gruppe | Feld | 1 … globaler Wert (nur kürzer) | **G** | nein (Monotonie ersetzt Sperre) | – | INH-030 |
 | 27 | `pro.groups.advanced_enabled` | global → Gruppe | Feld | bool | L | ja (nur mit Pro) | C-2; P/R3 | INH-029 |
 | 28 | `privacy.external_media_mode` | global → Medium | Feld | nur strenger als global: `click_to_load` oder `link_only` (global Default `always_load`, E-45a) | L | nein (Monotonie) | C-1 | INH-033 |
+| 29 | `assignments.allowed_file_types`, `assignments.max_file_mb`, `assignments.max_files` | global → Aufgabe | Feld | nur strenger als global: Teilmenge der Typen, kleinere Werte (E-289, R0-08 §2.5 `file_rules`) | **K** | nein (Monotonie) | C-1 | INH-049 |
 | – | Nachteilsausgleich (`ccap_accommodation`) | Site → Kurs → Regel (spezifischste gilt) | Datensatz | Faktor 100–400 % oder ohne Limit | Versuchsstart | – (nicht sperrbar) | nie sichtbar in Ergebnis und Nachweis (E-122) | INH-016, INH-017, INH-034 |
 
 Nicht Teil der Vererbung: reine Global-, System- und Nutzerfelder aus R0-27 §1.3 (z. B. Slugs, Retention, `user.notification_prefs`), WordPress-Erbe (Locale, Zeitzone; R0-27 `WP:`) und Objektfelder ohne globalen Default (R0-27 §1.6, z. B. `passing_rule`).
@@ -295,7 +296,7 @@ Ebenen wie R0-27: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW*
 
 | ID | P/N | Gegeben / Aktion | Erwartung | Ebene | Ziel-Task | weitere |
 |---|---|---|---|---|---|---|
-| INH-001 | P | Resolver-Tabellentest über alle 28 Zeilen §1.4 × {erbt, Override, gesperrt, ruht} | Wert und `source` nach §1.3; jede Zeile hat Klasse und Sperrflag im Schema | PU | R1-33 | R1-31 |
+| INH-001 | P | Resolver-Tabellentest über alle 29 Zeilen §1.4 × {erbt, Override, gesperrt, ruht} | Wert und `source` nach §1.3; jede Zeile hat Klasse und Sperrflag im Schema | PU | R1-33 | R1-31 |
 | INH-002 | P/N | Kurs-Override `max_attempts = null` (unbegrenzt) gegen „erben“ bei globalem Wert 3 | `null` bleibt Override (unbegrenzt), Erben ergibt 3; im Speicher kein Sentinel `inherit` | PU | R1-33 | – |
 | INH-003 | N | Override-Key mit Scope `global` (z. B. `general.course_slug`) per Editor-POST, Import und CLI | abgelehnt bzw. verworfen, nichts gespeichert | PI | R1-33 | R1-36 |
 | INH-004 | P | Kurs `learning.feedback.visibility = after_submit`, Activity nur `show_correct_answers = false` | Activity: `after_submit` (Kurs) + `false` (Activity) + `show_explanations` (global); C-6 auf dem zusammengeführten Objekt | PU | R1-33 | R1-09 |
@@ -321,7 +322,7 @@ Ebenen wie R0-27: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW*
 | INH-024 | N | Filter `can_access` liefert `true`, Kurs erbt `self_enrollment = off` | kein Zugang ohne Grant (INV-S-11) | PI | R1-33 | R1-13 |
 | INH-025 | P | `default_access_days` 30 → 90, Kurs erbt; zwei Grants vor und nach der Änderung | alter Grant 30 Tage, neuer 90 Tage | PI | R1-33 | R1-13 |
 | INH-026 | P | Gruppen global aus, Kurs Override an | Kurs erlaubt neue Gruppen; bestehende Gruppen anderer Kurse bleiben aktiv | PI | R1-33 | R1-13 |
-| INH-027 | P/N | `auto_issue` global an, Kurs erbt; drei bereits abgeschlossene Lernende, ein neuer Abschluss; ein Abschluss nach Grant-Verlust | keine Nachausstellung für die drei; neuer Abschluss erhält Zertifikat; ohne Grant bei Abgabe kein automatisches Zertifikat (E-113) | PI | R1-33 | R1-44\* |
+| INH-027 | P/N | `auto_issue` global an, Kurs erbt; drei bereits abgeschlossene Lernende, ein neuer Abschluss; ein Abschluss nach Grant-Verlust | keine Nachausstellung für die drei; neuer Abschluss erhält Zertifikat; ohne Grant bei Abgabe kein automatisches Zertifikat (E-113) | PI | R1-33 | R1-44 |
 | INH-028 | P | Kurs überschreibt `issuer_name`; global `footer_text` geändert | neue Ausstellung: Kurs-Aussteller + neue Fußzeile, neue `template_version`; alte Nachweise unverändert gerendert | PI | R1-33 | R1-35 |
 | INH-029 | P | `pro.reminders` und `pro.groups.advanced_enabled` als Kurs-/Gruppen-Override, Pro deaktiviert | Free-Verhalten; Overrides gespeichert; nach Reaktivierung wieder wirksam | PI | R1-33 | R3-15 |
 | INH-030 | P/N | Gruppe `invite_valid_days` 7 bei global 30; Gruppe 40 | 7 gespeichert und in neuer Einladung eingefroren; 40 abgelehnt (nur kürzer) | PI | R1-33 | R1-13 |
@@ -343,6 +344,7 @@ Ebenen wie R0-27: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW*
 | INH-046 | P | Reimport, Override lokal geändert | lokal gewinnt, Diff je Key, Autor entscheidet (E-63) | PI | R1-33 | R1-15 |
 | INH-047 | P | Bericht „Bestehensquote je Prüfung“ und Ergebnisansicht nach mehreren globalen Änderungen | Werte aus `settings_provenance`, nie neu aufgelöst; alter Snapshot ohne Provenienz zeigt `unknown` (SN-3, SN-4) | PI | R1-33 | R1-12 |
 | INH-048 | N | Settings- oder Override-Speichern während W1; Versuchsstart während W1 | Speichern abgewiesen mit Hinweis, Eingaben erhalten; Start `503 ccap_maintenance`, kein Snapshot (SN-6) | PI | R1-33 | R1-40 |
+| INH-049 | P/N | global `assignments.max_file_mb = 20`; Aufgabe 10 MB und Typen {pdf}; danach global 5 MB; Aufgabe versucht 30 MB oder `zip` | Aufgabe wirkt mit 10 MB/{pdf} in der veröffentlichten Kursrevision; die globale Senkung auf 5 MB greift beim nächsten Upload als kleinster Wert (R0-10 §4.5), die Aufgabeneinstellung selbst bleibt in der Kursrevision eingefroren (Klasse K); 30 MB und `zip` abgewiesen (Monotonie) | PI | R1-33 | R1-46 |
 
 Ersetzt bzw. verfeinert: SET-056 (R0-27) wird durch INH-014, INH-019 und INH-038 abgedeckt; SET-062 durch INH-015.
 

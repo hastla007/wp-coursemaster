@@ -2,7 +2,7 @@
 
 **Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet. Es gibt weder Implementierung noch Tests. Alle Zeitwerte sind Zielwerte; R1-42 misst sie und gibt sie frei.
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-21 (Voraussetzung R0-06, R0-09), Ziel-Tasks **R1-25** (Cache- und Zustandskonsistenz) und **R1-42** (Parallelitäts-/Integritäts-Lastprofil); `docs/r0/R0-06-datenmodell-adr.md` §4.0 (CAS `row_version`), §4.8 (Transaktionsgrenzen), §6.4 (Migrations-Lock), Nachträge; `R0-09` §2.4 (Grant-TX), §3.4 (`access.changed`), §6 (L1…L4, R-01…R-13); `R0-08` §6.5 (Versuch-Locks), Zeile `start`/`saveAnswer`/`submit`; `R0-14` RB-01…RB-08, NFR-008/010/011/012, D-14-03; `R0-23` §6 (Nebenläufigkeit Revisionen); `R0-36` P4, §2.4/2.5 (Pass-Lehren); `R0-07` P-11 (Policy-Memo); `R0-19` §2.1 (Caching, Idempotenz, `cc_db_busy`); `R0-10` §4 (geschützte Medien, R10-D4); `R0-02-inventar/B` §5 (Lock-Liste), Befund 6, INV-B-161/175; `R0-02-inventar/C` INV-C-052/053/057/128, §3.4.
+**Bezug:** TODO R0-21 (Voraussetzung R0-06, R0-09), Ziel-Tasks **R1-25** (Cache- und Zustandskonsistenz) und **R1-42** (Parallelitäts-/Integritäts-Lastprofil); `docs/r0/R0-06-datenmodell-adr.md` §4.0 (CAS `row_version`), §4.8 (Transaktionsgrenzen), §6.4 (Migrations-Lock), Nachträge; `R0-09` §2.4 (Grant-TX), §3.4 (`access.changed`), §6 (L1…L4, R-01…R-13); `R0-08` §6.5 (Versuch-Locks), Zeile `start`/`saveAnswer`/`submit`; `R0-14` RB-01…RB-08, NFR-008/010/011/012, D-14-03; `R0-23` §6 (Nebenläufigkeit Revisionen); `R0-36` P4, §2.4/2.5 (Pass-Lehren); `R0-07` P-11 (Policy-Memo); `R0-19` §2.1 (Caching, Idempotenz, `ccap_db_busy`); `R0-10` §4 (geschützte Medien, R10-D4); `R0-02-inventar/B` §5 (Lock-Liste), Befund 6, INV-B-161/175; `R0-02-inventar/C` INV-C-052/053/057/128, §3.4.
 **Beschlüsse (verbindlich):** E-01 (Clean Room: LB- und Pass-Stellen sind Verhaltensbelege, kein Code wird übernommen), E-10 (Website-Härtung im Kern), E-46/E-152 (Rate-Limit-Speicher: Login, Reset, Registrierung, Claim, Einlösen, Einladungen, Einladungsversand, Datenschutzanträge, Import/Export fail-closed; Lernen fail-open; bekannte Geräte dürfen weiter einloggen), E-79 (Lernsperre `ccap_learner_lock`), E-113 (Abgabe nach Zugangsverlust wird gewertet), E-07/E-49 (Multisite je Site), E-198 (DB-Query-Caches nicht unterstützt), E-207 (Präfix `ccap_`).
 
 ## Beschlussstand
@@ -29,7 +29,7 @@ Die technischen Festlegungen D21-1…D21-6 (§6) sind übernommen; die Nachträg
 1. **Eine Lock-Infrastruktur** `LockService` mit genau zwei Betriebsarten: **Mutex** (`GET_LOCK`, verbindungsgebunden, für kurze kritische Abschnitte innerhalb eines Requests) und **Lease** (eigene Tabelle `ccap_lease`, über Requests hinweg, mit Besitzer, Heartbeat und Fencing). LB hat drei Varianten (`NamedLock`, Options-`Lock`, GET_LOCK-Kopie im Voucher-Connector); diese entfallen.
 2. **Entscheidungsregel je Operation** (§2.2): Einmal-Anlage → **UNIQUE**; Zustandswechsel einer bestehenden Zeile → **CAS**; Lesen-Ändern-Schreiben einer bestehenden Zeile mit Logik → **Row-Lock** (`FOR UPDATE` nur per PK/Unique auf **existierende** Zeilen) + CAS; Invariante über mehrere Zeilen → **Mutex** auf das Aggregat + DB-Guard (Unique/Nachzählung). Jede Invariante hat einen DB-Guard, der auch ohne `GET_LOCK` hält.
 3. **Globale Lock-Reihenfolge** M0 (Lease) → M1 Lernender → M2 Quelle → M3 Gruppe → M4 Kette → M5 Kurs-Publish → M6 Versuchsstart → DB-TX (Zeilen: Eltern vor Kind, feste Tabellenfolge, Schlüssel aufsteigend). Kein Lock in offener TX. Verstöße wirft der `LockService` in Debug/Test.
-4. **Fehlerregel (Pass P4):** Nach 1213/1205 oder irgendeinem Statement-Fehler die **ganze Operation** abbrechen (`ROLLBACK`), nie im Autocommit weiterlaufen; 1213 → komplette Wiederholung (max. 3, Jitter), 1205 → `503 cc_db_busy`. Kein `FOR UPDATE` auf fehlende Zeilen, kein Aufräumen in interaktiven TX.
+4. **Fehlerregel (Pass P4):** Nach 1213/1205 oder irgendeinem Statement-Fehler die **ganze Operation** abbrechen (`ROLLBACK`), nie im Autocommit weiterlaufen; 1213 → komplette Wiederholung (max. 3, Jitter), 1205 → `503 ccap_db_busy`. Kein `FOR UPDATE` auf fehlende Zeilen, kein Aufräumen in interaktiven TX.
 5. **Cache-Klassen K0…K4** (§3.1): Berechtigungs- und Entscheidungsdaten (K3) liegen **nie** in einem persistenten Cache, nur im Request-Memo. Persistenter Objektcache nur für unveränderliche (Revisions-ID im Schlüssel) oder generationsversionierte Daten. Alle personalisierten Antworten `no-store, private` + Page-Cache-/CDN-Signale; was zu spät erkannt wird, rendert **fail-closed**.
 6. **Stale reads** (§4): nie bei Zugriffsprüfung, Prüfungsaktionen, Downloads, Claims, Zertifikatsausstellung, Rechten und Sperren; erlaubt (≤ 5 min, read-your-writes) für Fortschrittsübersichten und Kennzahlen.
 7. **CON-001…CON-052** (§5) als Negativtests für R1-25/R1-42; technische Festlegungen D21-1…D21-6 übernommen (§6).
@@ -67,7 +67,7 @@ Die technischen Festlegungen D21-1…D21-6 (§6) sind übernommen; die Nachträg
 
 | Baustein | Technik | Lebensdauer | Einsatz | Nicht einsetzen für |
 |---|---|---|---|---|
-| **UNIQUE** | Unique-Index + `INSERT`; bei Duplicate-Key vorhandene Zeile lesen und vergleichen (gleich → idempotente Antwort, sonst `cc_idempotency_conflict`) | dauerhaft | Einmal-Anlage: Grant je Quelle, Inbox-Event, Idempotency-Key, Zertifikat je Evidenz, Aktivitätsabschluss, Start-Token, Kursrevision | Zählgrenzen („höchstens n“) |
+| **UNIQUE** | Unique-Index + `INSERT`; bei Duplicate-Key vorhandene Zeile lesen und vergleichen (gleich → idempotente Antwort, sonst `ccap_idempotency_conflict`) | dauerhaft | Einmal-Anlage: Grant je Quelle, Inbox-Event, Idempotency-Key, Zertifikat je Evidenz, Aktivitätsabschluss, Start-Token, Kursrevision | Zählgrenzen („höchstens n“) |
 | **CAS** | `UPDATE … SET …, row_version = row_version + 1 WHERE id = ? AND row_version = ? [AND status = ?]`; `affected_rows = 1` | eine Anweisung | Statuswechsel bestehender Zeilen (Grant, Seat-Claim, Session-Status, Kursfortschritt, Lease-Heartbeat) | Anlage; Mehrzeilen-Invarianten |
 | **Row-Lock** | `SELECT … FOR UPDATE` **nur** per PK/Unique-Gleichheit auf existierende Zeilen, innerhalb einer kurzen TX | TX | Lesen-Ändern-Schreiben mit Logik auf einer Elternzeile (Session + Session-Frage bei `saveAnswer`, Lernfortschritt je Frage) | Bereichs-/Nicht-Unique-Prädikate (Gap-Locks), fehlende Zeilen |
 | **Mutex** | `LockService::mutex(name, wait)` → `GET_LOCK` auf der Primärverbindung | bis Freigabe bzw. Verbindungsende | Invariante über mehrere Zeilen/Tabellen eines Aggregats (Plätze einer Gruppe, Laufzeitkette, Versuchsstart je Nutzer, Kurs-Publish, Quell-Diff) | Arbeit über mehrere Requests |
@@ -127,13 +127,13 @@ Prüfreihenfolge (erste zutreffende Zeile bestimmt den **primären** Schutz; der
 
 | Rang | Name | Art | Wartezeit interaktiv | Wartezeit Hintergrund | Bei Belegt |
 |---|---|---|---|---|---|
-| M0 | `schema-migration`; Leases `schema-migration`, `import` (je Site, Batch-ID im `owner`), `export:<job>`, `retention`, `reconcile:<connector>` (Pro), `batch:<job>` | Mutex 0 s / Lease | – | 0 s (nicht wartend) | überspringen bzw. `cc_job_busy` |
-| M1 | `learner:<user>` | Mutex | 2 s | 10 s | `409 cc_account_busy` |
-| M2 | `grant-source:<type>:<id>` | Mutex | 2 s | 10 s | Inbox-Retry / `409 cc_conflict` |
-| M3 | `group-seats:<group>` | Mutex | 2 s | 10 s | `409 cc_group_busy` (`retry_after: 2`) |
-| M4 | `grant-chain:<user>:<course>` (Kette je Ziel; bei Modul-Grants gilt der Kurs als Schlüssel, damit Ganzkurs- und Modulketten nicht parallel rechnen) | Mutex | 2 s | 10 s | `409 cc_conflict` |
-| M5 | `course_publish:<course>` | Mutex | 0 s | 0 s | `409 cc_publish_busy` |
-| M6 | `exam_start:<user>` | Mutex | 2 s (LB 10 s, D-14-03) | – | `409 cc_exam_busy` |
+| M0 | `schema-migration`; Leases `schema-migration`, `import` (je Site, Batch-ID im `owner`), `export:<job>`, `retention`, `reconcile:<connector>` (Pro), `batch:<job>` | Mutex 0 s / Lease | – | 0 s (nicht wartend) | überspringen bzw. `ccap_job_busy` |
+| M1 | `learner:<user>` | Mutex | 2 s | 10 s | `409 ccap_account_busy` |
+| M2 | `grant-source:<type>:<id>` | Mutex | 2 s | 10 s | Inbox-Retry / `409 ccap_conflict` |
+| M3 | `group-seats:<group>` | Mutex | 2 s | 10 s | `409 ccap_group_busy` (`retry_after: 2`) |
+| M4 | `grant-chain:<user>:<course>` (Kette je Ziel; bei Modul-Grants gilt der Kurs als Schlüssel, damit Ganzkurs- und Modulketten nicht parallel rechnen) | Mutex | 2 s | 10 s | `409 ccap_conflict` |
+| M5 | `course_publish:<course>` | Mutex | 0 s | 0 s | `409 ccap_publish_busy` |
+| M6 | `exam_start:<user>` | Mutex | 2 s (LB 10 s, D-14-03) | – | `409 ccap_exam_busy` |
 | DB | TX mit `innodb_lock_wait_timeout` = 5 s (Sitzung, interaktiv) bzw. 15 s (Hintergrund) | Row-Locks nach R-4 | – | – | 1205 → §2.6 |
 
 - **Reihenfolge (MUSS):** M0 → M1 → M2 → M3 → M4 → M5 → M6 → DB-TX. Gleicher Rang mit mehreren Schlüsseln: Schlüssel aufsteigend (z. B. zwei Konten bei M1, mehrere Quellen bei M2). Wiedereintritt (gleicher Name) ist erlaubt. Kein Mutex wird in einer offenen TX erworben (R0-09 §6.1).
@@ -156,12 +156,12 @@ LB läuft ohne Sperre weiter (CB-01). CC übernimmt das **nur**, weil jede Zeile
 Alle schreibenden Fachoperationen laufen über einen `TxRunner::run(callable $op, Policy $p)`:
 
 - **T-1** `START TRANSACTION`; jede Anweisung wird geprüft (`false`/`$wpdb->last_error`). Jeder Fehler → Ausnahme → `ROLLBACK` → kein weiterer Befehl dieser Operation.
-- **T-2** **1213 Deadlock:** InnoDB hat die TX schon zurückgerollt. `TxRunner` wiederholt **die ganze Operation** inklusive aller Lesezugriffe und Guard-Entscheidungen (nicht ab der fehlgeschlagenen Anweisung), höchstens 3-mal, Jitter 50–200 ms; danach `503 cc_db_busy` (`Retry-After: 2`). Voraussetzung: Die Operation hat bis zum Commit keine Seiteneffekte außerhalb der DB (R-6).
-- **T-3** **1205 Lock-Wait-Timeout:** Mit Standard `innodb_rollback_on_timeout = OFF` rollt InnoDB nur die **Anweisung** zurück, die TX bleibt offen. `TxRunner` sendet explizit `ROLLBACK`, wiederholt **nicht** serverseitig (Worker-Budget) und antwortet `503 cc_db_busy`; Client-Retry nach RB-03. Nie im Autocommit weiterlaufen (Pass P4a).
+- **T-2** **1213 Deadlock:** InnoDB hat die TX schon zurückgerollt. `TxRunner` wiederholt **die ganze Operation** inklusive aller Lesezugriffe und Guard-Entscheidungen (nicht ab der fehlgeschlagenen Anweisung), höchstens 3-mal, Jitter 50–200 ms; danach `503 ccap_db_busy` (`Retry-After: 2`). Voraussetzung: Die Operation hat bis zum Commit keine Seiteneffekte außerhalb der DB (R-6).
+- **T-3** **1205 Lock-Wait-Timeout:** Mit Standard `innodb_rollback_on_timeout = OFF` rollt InnoDB nur die **Anweisung** zurück, die TX bleibt offen. `TxRunner` sendet explizit `ROLLBACK`, wiederholt **nicht** serverseitig (Worker-Budget) und antwortet `503 ccap_db_busy`; Client-Retry nach RB-03. Nie im Autocommit weiterlaufen (Pass P4a).
 - **T-4** Nach `ROLLBACK` prüft der `TxRunner`, dass keine TX mehr offen ist (`@@in_transaction` auf MySQL 8 bzw. eigener Zähler auf MariaDB); geschachtelte `run()`-Aufrufe sind flach (innerer Aufruf läuft in der äußeren TX, Retry nur außen).
 - **T-5** Nach `COMMIT`: `afterCommit`-Callbacks (Cache-Invalidierung §3.7; mit Pro zusätzlich der lokale Hook `course_captain_event_v1`, R0-19 §5.4 Nr. 6, E-38). Nach Rollback werden sie verworfen.
 - **T-6** Deadlock-/Lock-Wait-Zähler je Operation (NFR-011) werden über die `TxRunner`-Telemetrie erfasst, nicht über `performance_schema` (R-S ohne Rechte, R0-14 §4.2).
-- **T-7** CAS-Fehlschlag (0 Zeilen) ist **kein** DB-Fehler: neu lesen, Guard erneut, höchstens 3 Versuche, dann `409 cc_conflict`/`cc_exam_conflict` (R0-09 §2.4, R0-08).
+- **T-7** CAS-Fehlschlag (0 Zeilen) ist **kein** DB-Fehler: neu lesen, Guard erneut, höchstens 3 Versuche, dann `409 ccap_conflict`/`ccap_exam_conflict` (R0-09 §2.4, R0-08).
 
 ---
 
@@ -254,7 +254,7 @@ Ausgeführt **synchron** in `afterCommit` der auslösenden TX (P-11 „sofort“
 | Kursbeziehung `contains` geändert (Bundle veröffentlicht, E-25a) | – | Bundle-Kurs und alle enthaltenen Kurse | – | K2 der Lernenden mit Bundle-Grant höchstens TTL alt; Zugang (K3) sofort |
 | Aufgabe abgegeben/bewertet/zurückgegeben (E-168) | Lernender | – | – | Bewertungsliste (K2) der Trainer mit TTL |
 | Rolle/Caps geändert, Staff-Zuordnung, Nutzer von Site entfernt | betroffener Nutzer | – | – | Core `clean_user_cache` |
-| Lernsperre gesetzt/aufgehoben (E-79) | betroffener Nutzer | – | – | nächster Request `403 cc_account_locked` |
+| Lernsperre gesetzt/aufgehoben (E-79) | betroffener Nutzer | – | – | nächster Request `403 ccap_account_locked` |
 | Fortschritt/Abschluss/Prüfungsergebnis | Nutzer | – | – | Gruppen-/Trainer-K2 mit TTL (eventual) |
 | Zertifikat ausgestellt/korrigiert/widerrufen | Nutzer | – | – | R-42 ist `no-store` |
 | Konto gelöscht/Daten gelöscht (Eraser) | Nutzer (neues Token, alte Schlüssel verwaist) | – | – | Transient-Hinweise des Nutzers löschen |
@@ -298,9 +298,9 @@ Art: U = Unit, I = Integration (WP-Testsuite, echte DB), P = Paralleltest (PHP-M
 
 | ID | Szenario | Erwartung | Art | Ziel | Bezug |
 |---|---|---|---|---|---|
-| CON-001 | 50 parallele Gruppenlink-Joins auf den **letzten** Platz | genau 1 aktiver Seat + 1 Grant-Satz; 49 × `cc_group_full`/`cc_group_busy`; Belegung ≤ Plätze | P | R1-42 | R-01 |
+| CON-001 | 50 parallele Gruppenlink-Joins auf den **letzten** Platz | genau 1 aktiver Seat + 1 Grant-Satz; 49 × `ccap_group_full`/`ccap_group_busy`; Belegung ≤ Plätze | P | R1-42 | R-01 |
 | CON-002 | Dasselbe Konto joint in 2 Tabs gleichzeitig | 1 Seat; zweite Antwort = bestehende Mitgliedschaft | P | R1-42 | R-02, Δ-21-2 |
-| CON-003 | Persönliche Einladung von 2 Konten gleichzeitig eingelöst | 1 Gewinner, anderer `cc_claim_used` | P | R1-42 | R-03 |
+| CON-003 | Persönliche Einladung von 2 Konten gleichzeitig eingelöst | 1 Gewinner, anderer `ccap_claim_used` | P | R1-42 | R-03 |
 | CON-004 | Platzreduktion parallel zu 20 Joins | nach Abschluss Belegung ≤ neue Platzzahl | P | R1-42 | R-09 |
 | CON-005 | 20 parallele Prüfungsstarts desselben Nutzers mit **verschiedenen** `request_key` | genau 1 Session `in_progress` je Form; alle Antworten liefern dieselbe `session_uid` | P | R1-42 | R0-08 `start`, Δ-21-3 |
 | CON-006 | CON-001, -002, -005 mit erzwungenem `GET_LOCK = NULL` | dieselben Invarianten; nur zusätzliche 409/Rückbauten; Zähler `named_lock_unavailable` > 0; Site-Health-Warnung | P | R1-42 | §2.5 |
@@ -308,21 +308,21 @@ Art: U = Unit, I = Integration (WP-Testsuite, echte DB), P = Paralleltest (PHP-M
 | CON-008 | Erstanlage `ccap_question_progress` durch 50 parallele erste Antworten auf dieselbe Frage | 1 Zeile; alle Antworten gezählt nach Idempotenzregel; 0 Deadlocks dank R-2 | P | R1-42 | R-1, R-2 |
 | CON-009 | Statischer Check: `FOR UPDATE`/`LOCK IN SHARE MODE` nur mit PK-/Unique-Gleichheit und nur nach Insert-Vorab bzw. auf Elternzeilen | CI-Regel (Query-Katalog/Grep + Review-Liste NFR-012) ohne Fund | U | R1-42 | R-1, R-3 |
 | CON-010 | `paid` und `refunded` desselben Quellobjekts parallel und vertauscht | 1 Grant; Endzustand = höchste `source_seq`; kein Wiederaufleben | P | R1-42 | R-04 |
-| CON-011 | Zwei Veröffentlichungen desselben Kurses gleichzeitig | eine erfolgreich, zweite `cc_publish_busy`; 1 neue Kursrevision | P | R1-42 | REV-038 |
+| CON-011 | Zwei Veröffentlichungen desselben Kurses gleichzeitig | eine erfolgreich, zweite `ccap_publish_busy`; 1 neue Kursrevision | P | R1-42 | REV-038 |
 | CON-012 | Import-Worker wird angehalten (SIGSTOP), Lease läuft ab, zweiter Worker übernimmt; erster wird fortgesetzt | erster Worker scheitert am Fencing (`affected_rows = 0`), schreibt keinen Schritt; kein Duplikat | I | R1-42 | §2.4 Fencing, RB-02 |
 | CON-013 | Ablauf-Cron und manuelle Verlängerung parallel | nie „aktiv mit `valid_until` in der Vergangenheit“ | P | R1-42 | R-10 |
 | CON-014 | Kontolöschung parallel zu Join/Grant | kein Seat/Grant auf gelöschtem Konto | P | R1-42 | R-12 |
 | CON-015 | Doppelte Rate-Limit-Zählung unter 100 parallelen Logins | Zählerstand = Requestzahl (±0); Speicher weg → Login, Reset, Registrierung, Claim, Einlösen, Einladungen, Datenschutzanträge fail-closed, Lernen fail-open; bekanntes Gerät darf einloggen | P | R1-42 | E-46, E-152, E-263 |
 | CON-049 | Aufgabe zweimal parallel abgeben (zwei Tabs) | genau ein Übergang `draft → submitted`; zweite Antwort 200 mit gleichem Stand | P | R1-42 | E-168 |
-| CON-050 | Zwei Trainer bewerten dieselbe Abgabe gleichzeitig | eine `evaluation_no` je Bewertung, keine verlorene Bewertung; zweiter erhält `cc_version_conflict` oder schreibt Revision + 1 | P | R1-42 | E-168, E-74 |
+| CON-050 | Zwei Trainer bewerten dieselbe Abgabe gleichzeitig | eine `evaluation_no` je Bewertung, keine verlorene Bewertung; zweiter erhält `ccap_version_conflict` oder schreibt Revision + 1 | P | R1-42 | E-168, E-74 |
 
 ### 5.2 Doppel-Submit und Idempotenz
 
 | ID | Szenario | Erwartung | Art | Ziel | Bezug |
 |---|---|---|---|---|---|
 | CON-016 | `submit` derselben Session 10× parallel (Doppelklick, zwei Tabs, Retry) | genau 1 Bewertung (`evaluation_no = 1`), alle Antworten identisches Ergebnis; höchstens 1 Zertifikat; 1 Outbox-Event | P | R1-42 | R0-08 `submit`, R-06 |
-| CON-017 | `submit` parallel zu `saveAnswer` | entweder Antwort vor Bewertung gespeichert und gewertet oder abgewiesen (`cc_exam_not_running`); nie gespeichert-aber-nicht-gewertet nach `evaluated` | P | R1-42 | R0-08 |
-| CON-018 | Gleicher `Idempotency-Key`, gleicher Body, parallel | eine Ausführung; zweite `409 cc_request_in_progress` oder gespeicherte Antwort; gleicher Key + anderer Body → `409 cc_idempotency_conflict` | P | R1-42 | R0-19 §2.1 |
+| CON-017 | `submit` parallel zu `saveAnswer` | entweder Antwort vor Bewertung gespeichert und gewertet oder abgewiesen (`ccap_exam_not_running`); nie gespeichert-aber-nicht-gewertet nach `evaluated` | P | R1-42 | R0-08 |
+| CON-018 | Gleicher `Idempotency-Key`, gleicher Body, parallel | eine Ausführung; zweite `409 ccap_request_in_progress` oder gespeicherte Antwort; gleicher Key + anderer Body → `409 ccap_idempotency_conflict` | P | R1-42 | R0-19 §2.1 |
 | CON-019 | Aktivitätsabschluss doppelt (zwei Geräte) | 1 `ccap_activity_progress`; Kursfortschritt einmal erhöht | P | R1-42 | REV-036 |
 
 ### 5.3 Deadlock- und Fehlerinjektion
@@ -331,21 +331,21 @@ Art: U = Unit, I = Integration (WP-Testsuite, echte DB), P = Paralleltest (PHP-M
 |---|---|---|---|---|---|
 | CON-040 | Echter Deadlock: Testoperation sperrt Zeilen A→B, zweiter Prozess B→A (nur Test-Fixture) | Opfer wird vom `TxRunner` vollständig wiederholt; Endstand korrekt; Deadlock gezählt | P | R1-42 | T-2, NFR-011 |
 | CON-041 | Injektion 1213 an Anweisung *k* für jedes *k* jeder schreibenden Fachoperation (Sweep über Fault-Hook im `TxRunner`) | Ergebnis entweder vollständig committet (nach Retry) oder nichts; **keine** Anweisung nach dem Fehler im Autocommit ausgeführt (Query-Log) | I | R1-42 | T-1, Pass P4a |
-| CON-042 | Injektion 1205 an Anweisung *k* (Sweep) | expliziter `ROLLBACK`; 0 Teil-Writes; `503 cc_db_busy` mit `Retry-After: 2`; keine offene TX danach | I | R1-42 | T-3 |
-| CON-043 | 3 aufeinanderfolgende 1213 | nach 3 Retries `503 cc_db_busy`; keine After-Commit-Callbacks (Cache/Hook) ausgelöst | I | R1-42 | T-2, T-5 |
+| CON-042 | Injektion 1205 an Anweisung *k* (Sweep) | expliziter `ROLLBACK`; 0 Teil-Writes; `503 ccap_db_busy` mit `Retry-After: 2`; keine offene TX danach | I | R1-42 | T-3 |
+| CON-043 | 3 aufeinanderfolgende 1213 | nach 3 Retries `503 ccap_db_busy`; keine After-Commit-Callbacks (Cache/Hook) ausgelöst | I | R1-42 | T-2, T-5 |
 | CON-044 | Zeile per zweiter Verbindung > 5 s gesperrt, interaktiver Request wartet | Abbruch nach ≤ 5 s (Sitzungs-`innodb_lock_wait_timeout`), Worker frei | I | R1-42 | D-14-03, RB-08 |
 | CON-045 | DB-Reconnect mitten in einem Lease-Schritt mit Mutex | Mutex gilt als verloren, Schritt bricht vor Commit ab und wird wiederholt | I | R1-42 | RB-05, §2.4 |
-| CON-046 | L5-Lastlauf aller P-Szenarien | Deadlocks und Lock-Waits je Szenario protokolliert; jeder Deadlock durch ≤ 3 Retries gelöst; `cc_db_busy` < 0,1 % | P | R1-42 | NFR-010/011 |
+| CON-046 | L5-Lastlauf aller P-Szenarien | Deadlocks und Lock-Waits je Szenario protokolliert; jeder Deadlock durch ≤ 3 Retries gelöst; `ccap_db_busy` < 0,1 % | P | R1-42 | NFR-010/011 |
 
 ### 5.4 Objektcache und Request-Memo
 
 | ID | Szenario | Erwartung | Art | Ziel | Bezug |
 |---|---|---|---|---|---|
-| CON-020 | **Stale access nach Refund mit Redis:** Käufer lädt Lektion (Caches warm), Refund-Webhook in anderem Prozess, nächster Request desselben Käufers | sofort Teaser/`403 cc_content_locked`, Medienroute 403, `saveAnswer` 403; kein Cache-Treffer für Zugang | I | R1-25 | K3, P-11 |
+| CON-020 | **Stale access nach Refund mit Redis:** Käufer lädt Lektion (Caches warm), Refund-Webhook in anderem Prozess, nächster Request desselben Käufers | sofort Teaser/`403 ccap_content_locked`, Medienroute 403, `saveAnswer` 403; kein Cache-Treffer für Zugang | I | R1-25 | K3, P-11 |
 | CON-021 | wie CON-020, aber Redis wird **während** des Refunds gestoppt (Invalidierung schlägt fehl) und danach wieder gestartet | weiterhin Zugang verweigert (K3 nie gecacht); K2-Übersicht höchstens 300 s alt | I | R1-25 | RB-06 |
-| CON-022 | Rolle entzogen / Lernsperre gesetzt in Prozess A; Prozess B mit derselben Sitzung | nächster Request 403 (`cc_account_locked` bzw. Cap fehlt) ohne Wartezeit | I | R1-25 | RBAC-006, E-79 |
+| CON-022 | Rolle entzogen / Lernsperre gesetzt in Prozess A; Prozess B mit derselben Sitzung | nächster Request 403 (`ccap_account_locked` bzw. Cap fehlt) ohne Wartezeit | I | R1-25 | RBAC-006, E-79 |
 | CON-023 | Kursrevision veröffentlicht; Lernender mit gewarmtem K1g-Cache | alle sehen die neue Revision (Vorwärtsrollen mit Besitzstand, E-103); alte K1-Einträge unverändert gültig | I | R1-25 | R0-23, E-103 |
-| CON-051 | Bundle-Grant widerrufen (Redis aktiv), Lernender ruft Lektion eines enthaltenen Kurses auf | sofort `403 cc_content_locked`, kein Cache-Treffer | I | R1-25 | E-25a, K3 |
+| CON-051 | Bundle-Grant widerrufen (Redis aktiv), Lernender ruft Lektion eines enthaltenen Kurses auf | sofort `403 ccap_content_locked`, kein Cache-Treffer | I | R1-25 | E-25a, K3 |
 | CON-052 | Basis-Grant läuft ab, abhängiger Zusatz-Grant ist gecacht angezeigt | Zugriff auf das Zusatzmodul sofort verweigert; K2 höchstens 300 s alt | I | R1-25 | E-26, K3 |
 | CON-024 | **Set-after-Invalidate:** Leser liest alte DB-Werte, künstliche Pause, Schreiber committet und erhöht Generation, Leser schreibt Cache | nachfolgende Requests sehen neuen Stand (Leser hat unter alter Generation geschrieben) | I | R1-25 | §3.3 Leseprotokoll |
 | CON-025 | `wp_set_current_user` innerhalb eines GET-Requests (Mobile-WebSession, Impersonation-Plugin) | Memo nach Wechsel leer; Antwort enthält keine Daten des ersten Nutzers | I | R1-25 | §3.2, CB-07 |
@@ -365,7 +365,7 @@ Art: U = Unit, I = Integration (WP-Testsuite, echte DB), P = Paralleltest (PHP-M
 | CON-034 | REST 403/404/409/429/503 im eigenen Namespace, anschließend berechtigter Request über Proxy | alle Fehler mit `no-store`; berechtigter Request bekommt 200 (kein negativer Cache-Treffer) | H | R1-25 | H-3, CB-12 |
 | CON-035 | Einladungs-/Gruppenlinkseite mit Token | H-T-Header inkl. `Referrer-Policy: no-referrer`; externe Ressourcen erhalten kein Token im Referer | H/E | R1-25 | H-T, D09-1 |
 | CON-036 | Geschützte Mediendatei nach Refund über CDN-Proxy | 403; keine CDN-Kopie (`no-store`/`Surrogate-Control`) | H | R1-25 | H-8, R10-D4 |
-| CON-037 | Zertifikat widerrufen; Verifikation über Proxy direkt vorher und nachher | nachher sofort `revoked` | H | R1-25 | R-42 |
+| CON-037 | Zertifikat widerrufen; Verifikation über Proxy direkt vorher und nachher | nachher sofort `revoked` | H | R1-25, R1-44 | R-42 |
 | CON-038 | Öffentliche Katalogseite (H-P) als eingeloggter Käufer gerendert und vom Cache gespeichert | gespeicherte Seite enthält keine personalisierten CC-Fragmente/Nonces (H-5) | H | R1-25 | H-5 |
 | CON-039 | Gemeinsamer Rechner: A sieht Lektion, meldet sich ab, Zurück-Taste; danach B meldet sich an | A's Lektion nicht sichtbar (bfcache-Reload, B-1); B sieht keine lokalen Prüfungsentwürfe von A (B-2) | E | R1-25 | §3.6 |
 | CON-047 | Kurs veröffentlicht/zurückgezogen; öffentliche Kursseite im Page-Cache | `course_captain_cache_purge` ausgelöst; nach Purge neuer Stand | H | R1-25 | H-7 |

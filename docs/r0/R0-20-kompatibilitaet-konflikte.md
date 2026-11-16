@@ -22,9 +22,9 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 | **E-10** | **Website-Härtung im Kern** (Login-Limit, XML-RPC, Security-Header); fail-closed auch für Login/Reset (E-46); **Konfliktmatrix mit Security-Plugins ist Pflicht**; Schalter und Erkennung vorhandener Security-Plugins | §2.6 neu gefasst, KOMP-057…059 |
 | E-239…E-242, E-260…E-263 | Härtungsmodul R1-45 in Free; aus bis zur Bestätigung im Assistenten, danach je Funktion `auto` (Rückzug bei erkanntem Security-Plugin); Umfang Login-Limit, Reset-Limit, bekanntes Gerät, XML-RPC, 4 Security-Header, Registrierungslimit/Geräte-Cookie; Notausschalter per Konstante `COURSE_CAPTAIN_HARDENING` und WP-CLI; eigener Tab „Website-Härtung“ | §2.6 |
 | **E-196** (D-20-07) | **Keine Lizenzen kommerzieller Plugins**; WP Rocket, Elementor Pro, WPML, LearnDash, Object Cache Pro u. a. nur „best effort“ | Stufen in §2.3, §2.4, §2.8, §2.10, §2.12 und Profile §4 angepasst |
-| E-197 (D-20-11) | Nur `cc_course` öffentlich, Standard-Slug `kurs` (änderbar), Lernbereich `/lernen/` | §3.1 |
+| E-197 (D-20-11) | Nur `ccap_course` öffentlich, Standard-Slug `kurs` (änderbar), Lernbereich `/lernen/` | §3.1 |
 | E-198 (D-20-06) | DB-Query-Caches nicht unterstützt, Systemstatus-Warnung | KOMP-034 |
-| **E-207** (revidiert D-20-03) | Präfix **`ccap_`** für CPTs, Caps, Rollen, Cron, Meta und Tabellen; vor R1-01 gegen aktuelle Richtlinie prüfen | §3.1/§3.2 umgestellt; `cc_…` an anderen Stellen dieses Dokuments sind Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
+| **E-207** (revidiert D-20-03) | Präfix **`ccap_`** für CPTs, Caps, Rollen, Cron, Meta und Tabellen; vor R1-01 gegen aktuelle Richtlinie prüfen | §3.1/§3.2 umgestellt; `ccap_…` an anderen Stellen dieses Dokuments sind Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
 | D-20-03 (Rest), -04, -05, -08, -09, -10 | Technisch festgelegt (ENTSCHEIDUNGEN §30): `course_captain_` für Optionen, AJAX, Query-Vars; CSS `ccap-`; Optimierer-Ausschlüsse und Purge für LiteSpeed/WP Rocket; Plain-Permalink-Fallback; serverseitige Verifikationsseite; `view_admin_dashboard` für CC-Rollen | §2, §3 |
 | E-194 | Nightly Koexistenztest gegen LB `9f37c77` mit lesendem Deploy-Key; LB nur installiert, nie verändert/weitergegeben | KOMP-114, KP-10 |
 | E-205 | Slug `course-captain` vor R1-Start prüfen und früh einreichen; Ersatz `course-captain-lms` | OP-20-1 |
@@ -216,7 +216,7 @@ Regel: Ist ein SEO-Plugin aktiv (Yoast, Rank Math, AIOSEO, SEOPress, The SEO Fra
 
 | ID | Kombination | Risiko | Erwartetes Verhalten | Test | Stufe |
 |---|---|---|---|---|---|
-| KOMP-060 | **Yoast SEO** | h | Kursdetailseite: genau ein Canonical, eine Description, ein `og:title`, kein zweiter `Course`-Graph; `/lernen/*`, `/lernen/nachweis/*`, geschützte Lektionen und Gruppen-/Einladungsseiten `noindex` (`wpseo_robots` (v)); Sitemap ohne `cc_module`/`cc_lesson`/`cc_tip`, ohne Entwürfe (`wpseo_sitemap_exclude_post_type` (v)); Breadcrumbs für `cc_course` | KP-03, KP-07: HTML-Parser zählt Tags; Sitemap-Abruf | **zugesichert** |
+| KOMP-060 | **Yoast SEO** | h | Kursdetailseite: genau ein Canonical, eine Description, ein `og:title`, kein zweiter `Course`-Graph; `/lernen/*`, `/lernen/nachweis/*`, geschützte Lektionen und Gruppen-/Einladungsseiten `noindex` (`wpseo_robots` (v)); Sitemap ohne `ccap_module`/`ccap_lesson`/`ccap_tip`, ohne Entwürfe (`wpseo_sitemap_exclude_post_type` (v)); Breadcrumbs für `ccap_course` | KP-03, KP-07: HTML-Parser zählt Tags; Sitemap-Abruf | **zugesichert** |
 | KOMP-061 | **Rank Math** | h | wie KOMP-060 über `rank_math/frontend/robots`, `rank_math/sitemap/exclude_post_type`, `rank_math/json_ld` (v) | KP-04 | **getestet** |
 | KOMP-062 | **ohne SEO-Plugin** | m | CC gibt für die Kursdetailseite Description, OG und (optional) JSON-LD aus; Canonical von WP-Kern; `noindex` über `wp_robots`; Core-Sitemap ohne nicht öffentliche CPTs (`wp_sitemaps_post_types`) | M-Z (Integration + HTML-Probe) | **zugesichert** |
 | KOMP-063 | AIOSEO, SEOPress, The SEO Framework | m | Erkennung → CC-Tags aus; `noindex` über `wp_robots` | Smoke | best effort |
@@ -227,7 +227,7 @@ Regel: Ist ein SEO-Plugin aktiv (Yoast, Rank Math, AIOSEO, SEOPress, The SEO Fra
 |---|---|---|---|---|---|
 | KOMP-070 | Block-Editor (Gutenberg) inkl. iframe-Editor, synchronisierte Muster, Template-Parts | m | Blocks `course-captain/*` (apiVersion 3) im Editor und Frontend; Gate in Template-Part/synchronisiertem Block → H-6 fail-closed | M-Z E2E | **zugesichert** |
 | KOMP-071 | Classic Editor (Plugin) bzw. klassischer Editor für CC-CPTs | m | Kursbau im eigenen Admin-Screen unverändert; Inhalte von Lektionen im TinyMCE; Shortcodes ersetzen Blocks (R0-19 §4.5) | KP-06 | **getestet** |
-| KOMP-072 | **Elementor** (free) inkl. Theme Builder, Shortcode-Widget | h | Gate auch für Elementor-Layoutdaten (LB-K-07-Muster); Shortcode-Widget mit `[course_captain_access]` sperrt serverseitig; Theme-Builder-Vorlage für `cc_course` erlaubt, nicht für `/lernen/` (eigene Shell) | KP-03 | **getestet** |
+| KOMP-072 | **Elementor** (free) inkl. Theme Builder, Shortcode-Widget | h | Gate auch für Elementor-Layoutdaten (LB-K-07-Muster); Shortcode-Widget mit `[ccap_access]` sperrt serverseitig; Theme-Builder-Vorlage für `ccap_course` erlaubt, nicht für `/lernen/` (eigene Shell) | KP-03 | **getestet** |
 | KOMP-073 | Elementor „Element Caching“ (Widget-Ausgabe gecacht) | h | gesperrter Inhalt darf nie aus dem Widget-Cache an andere Nutzer gehen. Erwartung: CC-Shortcodes und -Blocks melden sich als nicht cachebar (v); falls das nicht möglich ist, Systemstatus „kritisch“ und Doku | KP-03: zwei Nutzer, ein Gast | **getestet** |
 | KOMP-074 | Elementor Pro, Divi, Beaver Builder, Bricks, WPBakery | m | Shortcodes funktionieren, Gate fail-closed (H-6) | keine Lizenzen (E-196); Elementor Pro/Divi höchstens Smoke bei Gelegenheit | best effort |
 
@@ -246,7 +246,7 @@ Regel: Ist ein SEO-Plugin aktiv (Yoast, Rank Math, AIOSEO, SEOPress, The SEO Fra
 
 | ID | Kombination | Risiko | Erwartetes Verhalten | Test | Stufe |
 |---|---|---|---|---|---|
-| KOMP-090 | **WPML** | m | Koexistenz: kein Fatal, keine doppelten Tags, Lernbereich in korrekter Sprache; `cc_`-CPTs **nicht** übersetzbar (Systemstatus-Hinweis, D-25-06) | ohne Lizenz kein regelmäßiger Lauf (E-196) | best effort (kommerziell, E-196) |
+| KOMP-090 | **WPML** | m | Koexistenz: kein Fatal, keine doppelten Tags, Lernbereich in korrekter Sprache; `ccap_`-CPTs **nicht** übersetzbar (Systemstatus-Hinweis, D-25-06) | ohne Lizenz kein regelmäßiger Lauf (E-196) | best effort (kommerziell, E-196) |
 | KOMP-091 | **Polylang** | m | wie KOMP-090 (`pll_is_translated_post_type`) | = LOC-028 in KP-07 | **getestet** (Koexistenz) |
 | KOMP-092 | TranslatePress | m | Lernbereich und Lern-REST ausgenommen (Doku) | Smoke | best effort |
 | KOMP-093 | Weglot, GTranslate (Proxy-/JS-Übersetzung) | h | Übersetzung der Prüfungstexte verfälscht die Snapshot-Treue | – | **nicht unterstützt** für Lernbereich und Prüfung |
@@ -256,8 +256,8 @@ Regel: Ist ein SEO-Plugin aktiv (Yoast, Rank Math, AIOSEO, SEOPress, The SEO Fra
 | ID | Kombination | Risiko | Erwartetes Verhalten | Test | Stufe |
 |---|---|---|---|---|---|
 | KOMP-100 | ohne WooCommerce | n | Normalfall aller CI-Zeilen | J-22 | **zugesichert** |
-| KOMP-101 | WooCommerce aktiv (HPOS an und aus, Block-Checkout) | m | CC registriert keine Woo-Hooks, keine „Mein Konto“-Endpunkte (K-07) und lädt keine Assets auf Woo-Seiten; Woo lädt nichts in `/lernen/`; Aktivierungsreihenfolge beliebig; `shop_manager` erhält keine `cc_*`-Caps (D07-6) | KP-08 | **getestet** |
-| KOMP-102 | Woo „Admin-Zugang verhindern“ für Rollen ohne `edit_posts` | h | **Konflikt:** `cc_trainer`, `cc_support` und ggf. `cc_author` würden aus `wp-admin` auf „Mein Konto“ umgeleitet, die Admin-Leiste wäre ausgeblendet. Soll: Die CC-Rollen haben Zugang zu ihren CC-Screens (D-20-10) | KP-08: Login als `cc_trainer` → `admin.php?page=course-captain-reports` erreichbar | **zugesichert** (nach D-20-10) |
+| KOMP-101 | WooCommerce aktiv (HPOS an und aus, Block-Checkout) | m | CC registriert keine Woo-Hooks, keine „Mein Konto“-Endpunkte (K-07) und lädt keine Assets auf Woo-Seiten; Woo lädt nichts in `/lernen/`; Aktivierungsreihenfolge beliebig; `shop_manager` erhält keine `ccap_*`-Caps (D07-6) | KP-08 | **getestet** |
+| KOMP-102 | Woo „Admin-Zugang verhindern“ für Rollen ohne `edit_posts` | h | **Konflikt:** `ccap_trainer`, `ccap_support` und ggf. `ccap_author` würden aus `wp-admin` auf „Mein Konto“ umgeleitet, die Admin-Leiste wäre ausgeblendet. Soll: Die CC-Rollen haben Zugang zu ihren CC-Screens (D-20-10) | KP-08: Login als `ccap_trainer` → `admin.php?page=course-captain-reports` erreichbar | **zugesichert** (nach D-20-10) |
 | KOMP-103 | Action Scheduler doppelt (WooCommerce bündelt ihn, CC nutzt ihn ggf. ebenfalls, R0-19 §4) | m | Es lädt die neueste Kopie; CC-Gruppe `course-captain` bleibt getrennt; Deaktivierung von CC entfernt nur eigene Aktionen | KP-08 | **getestet** |
 | KOMP-104 | Woo „Coming soon“-Modus (ganze Site) | n | Gäste sehen auch `/lernen/` nicht, Eingeloggte schon; keine Fehlfunktion | KP-08 Smoke | best effort |
 | KOMP-105 | Woo-Bestellungen → Grants | – | – | – | **nicht in R1** (R3.1, E-53) |
@@ -298,8 +298,8 @@ Kollisionsbekannte Fremdkennungen stammen aus Modellwissen (v). Zeichenlimits ge
 | CPT-Rewrite-Slugs | `ccap_course`: konfigurierbarer Slug, Standard `kurs` (E-197); `ccap_module`/`ccap_lesson`/`ccap_tip`: **keine** öffentliche Permalink-Struktur (`publicly_queryable = false`, Darstellung nur im Lernbereich), `ccap_faq` nach E-16 | m (`course`/`courses`/`lessons` sind von LifterLMS/Tutor/LearnDash belegt) | F4.1 (R0-11): Kollisionsprüfung gegen Seiten-/Beitrags-Slugs, registrierte CPT-/Taxonomie-Slugs, Kategorie-/Schlagwort-/Autorenbasis und vorhandene Rewrite-Regeln (`$wp_rewrite->wp_rewrite_rules()`); Speichern erst nach Bestätigung | KOMP-132 |
 | Lernbereich | `/lernen/` (E-197; änderbar, Kap. 43.3), darunter `/lernen/nachweis/<token>` | m (deutsche Sites haben oft eine Seite „lernen“; CC-Regeln mit Priorität `top` würden sie verdecken) | wie oben; Rewrite-Flush nur nach Speichern bzw. Aktivierung, nie in normalen Requests | KOMP-132 |
 | Dateiroute | `/cc-file/<uid>/` | n | wie oben | KOMP-132 |
-| Query-Vars | `course_captain_app`, `course_captain_path` (D-20-03, statt kurzer `cc_*`-Namen) | m (Query-Vars sind global, kurze Namen kollidieren) | Scan registrierter Query-Vars | KOMP-130 |
-| Shortcodes | `[course_captain_access]`, `[course_captain_learning_link]`, `[course_captain_privacy_request]` | n | `shortcode_exists()` vor `add_shortcode` → Systemstatus | KOMP-131 |
+| Query-Vars | `course_captain_app`, `course_captain_path` (D-20-03, statt kurzer `ccap_*`-Namen) | m (Query-Vars sind global, kurze Namen kollidieren) | Scan registrierter Query-Vars | KOMP-130 |
+| Shortcodes | `[ccap_access]`, `[ccap_learning_link]`, `[ccap_privacy_request]` (E-285) | n | `shortcode_exists()` vor `add_shortcode` → Systemstatus | KOMP-131 |
 | Blocks | Namespace `course-captain/*` (5 Blocks), Script-/Style-Handles `course-captain-*`, Interactivity-Store `course-captain` | n | `WP_Block_Type_Registry::is_registered()` | KOMP-131 |
 | REST | `course-captain/v1`; CPT-`rest_base` unter `wp/v2` mit Rechten nach RG-21 | n | Routen-Snapshot (J-12 CT, C-7); Prüfung, dass kein fremder Namespace bedient wird | J-12 |
 | Rollen | `ccap_course_manager`, `ccap_author`, `ccap_trainer`, `ccap_support` (E-207) | n (fremd: `group_leader`, `tutor_instructor`, `instructor`, `student`, `lms_manager`) | `get_role()` vor `add_role` → existiert eine Rolle ohne CC-Marke, wird sie **nicht** verändert, Systemstatus „kritisch“ | KOMP-131 |
@@ -307,18 +307,18 @@ Kollisionsbekannte Fremdkennungen stammen aus Modellwissen (v). Zeichenlimits ge
 | Optionen, Transients, User-Optionen | bisher `cc_*` (R0-19 §1.2) → `course_captain_*` (D-20-03, technisch festgelegt) | **m** (Optionen sind siteweit, Kollisionen überschreiben still; `cc_` ist bei Cookie-Consent- und Credit-Card-Plugins verbreitet, R0-19 §1.2) | Ausnahmeliste und statischer Scan (MS-008-Muster) | KOMP-130 |
 | Post-Meta | `_ccap_*` (z. B. `_ccap_activity_type`; E-207) | n (nur an eigenen CPTs) | Scan | KOMP-130 |
 | Cron-Hooks, Action-Scheduler-Gruppe | `ccap_*` (E-207) / `course-captain` | n | Liste `CRON_HOOKS`, Deaktivierung trägt nur diese aus | J-21 |
-| AJAX/admin-post-Aktionen, Nonce-Aktionen | bisher `cc_*` → `course_captain_*` (D-20-03) | m (`wp_ajax_<action>` ist global) | Scan | KOMP-130 |
+| AJAX/admin-post-Aktionen, Nonce-Aktionen | bisher `cc_*` → `ccap_*` (**E-285**, ersetzt insoweit D-20-03 `course_captain_*`) | m (`wp_ajax_<action>` ist global) | Scan | KOMP-130 |
 | CSS-Klassen, Custom Properties | bisher `cc-` (R0-19 §1.2) → `ccap-` / `--ccap-*` (D-20-03) | **h** (verbreitete Cookie-Banner-Bibliotheken verwenden `cc-window`, `cc-banner`, `cc-btn`, `cc-revoke` bzw. `#cc-main`, `cc--*` (v)) | Stylelint-Regel „Selektorpräfix“; E2E-Fixture mit einem Cookie-Banner-Plugin in KP-03 | KOMP-133 |
 | JS-Globale | `window.courseCaptain` (einziges Global) | n | ESLint `no-implicit-globals` | KOMP-130 |
 | Plugin-Slug, Textdomain, Upload-Ordner, CLI | `course-captain`, `uploads/course-captain/`, `wp course-captain` | n, **aber:** Verfügbarkeit des Slugs auf WordPress.org ungeprüft; nach E-205 vor R1-Start prüfen und früh einreichen, Ersatz `course-captain-lms` | OP-20-1 | – |
-| Fehlercodes | `cc_*` (von E-207 nicht erfasst, siehe Offene Punkte) | n (stehen im eigenen REST-Namespace) | – | – |
+| Fehlercodes | `ccap_*` (E-285) | n (stehen im eigenen REST-Namespace) | – | – |
 
 ### 3.2 Tests
 
 | ID | Inhalt | Art | Ziel-Task |
 |---|---|---|---|
 | KOMP-130 | **Präfix-Scan** (CI, J-05-Erweiterung): Alle registrierten Hooks, Query-Vars, Optionen, Transients, Meta-Schlüssel, AJAX-Aktionen und JS-Globale tragen das Präfix aus §3.1; Ausnahmeliste versioniert | statisch + Laufzeit-Inventar (`wp eval` nach Aktivierung) | R1-01, R1-28 |
-| KOMP-131 | **Kollisions-Fixture** `cc-collider` (Test-Plugin, nur CI): registriert vorab `ccap_course`, eine Tabelle `{prefix}ccap_grant` ohne Marke, Rolle `ccap_trainer` mit anderen Caps, Shortcode `course_captain_access`, Block `course-captain/access-gate`. Erwartung: Aktivierung wird bei der Tabelle abgebrochen, ohne etwas zu schreiben; bei den übrigen Kennungen gibt es kein Überschreiben, Systemstatus „kritisch“ mit Fundstelle und keinen Fatal | Integration | R1-01, R1-38 |
+| KOMP-131 | **Kollisions-Fixture** `cc-collider` (Test-Plugin, nur CI): registriert vorab `ccap_course`, eine Tabelle `{prefix}ccap_grant` ohne Marke, Rolle `ccap_trainer` mit anderen Caps, Shortcode `ccap_access`, Block `course-captain/access-gate`. Erwartung: Aktivierung wird bei der Tabelle abgebrochen, ohne etwas zu schreiben; bei den übrigen Kennungen gibt es kein Überschreiben, Systemstatus „kritisch“ mit Fundstelle und keinen Fatal | Integration | R1-01, R1-38 |
 | KOMP-132 | **Slug-Kollisionen:** Seite `lernen`, Seite `kurs`, LifterLMS-CPT `course` mit Slug `course`, Kategoriebasis `kurs`. Erwartung: Feldfehler mit Alternativvorschlag (F4.1), kein Flush ohne Bestätigung, bestehende Seite bleibt erreichbar | Integration + E2E | R1-01, R1-16 |
 | KOMP-133 | **CSS-Isolation:** Cookie-Banner-Bibliothek und Astra aktiv; die Lern- und Prüfungs-UI zeigt keine fremden Stile auf CC-Elementen und keine CC-Stile auf fremden Elementen (Screenshot-Vergleich) | E2E | R1-19 |
 | KOMP-134 | **Mehr-LMS-Inventar:** In KP-09 werden `wp post-type list`, `wp role list`, `wp rewrite list`, REST-Index und Shortcode-Liste vor und nach der CC-Aktivierung verglichen: nur Zugänge mit CC-Präfix, keine Änderung an fremden Einträgen | Integration (Skript) | R1-30 |
@@ -360,7 +360,7 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §30 und Beschlussprotokoll, 1
 |---|---|---|---|
 | D-20-01 → **E-195** | PHP-Untergrenze (ersetzt E-57) | **PHP 8.3**, getestet 8.3/8.4/8.5; vor R1-GATE auf php.net verifizieren | R1-01, R1-18, R0-18 §1.3 |
 | D-20-02 → **E-58** | Status von MariaDB 10.6 / MySQL 8.0 | **best effort**; Aktivierung erlaubt (E-08), Systemstatus-Hinweis, nightly informativ (M-I2). CI-Pflicht: MariaDB 10.11 und 12.3 (bzw. 11.8 LTS), MySQL 8.4 | R1-01, R1-38 |
-| D-20-03 → technisch festgelegt, revidiert durch **E-207** | Präfixe | `course_captain_` für Optionen, Transients, User-Optionen, AJAX/admin-post, Nonce-Aktionen, Query-Vars; `ccap-`/`--ccap-` für CSS; Tabellen mit Eigentumsmarke `course-captain:<schema>`; **`ccap_`** (statt `cc_`) für CPTs, Caps, Rollen, Cron, Meta und Tabellen (E-207, vor R1-01 gegen aktuelle Richtlinie prüfen) | R1-01, R1-19, R0-19 |
+| D-20-03 → technisch festgelegt, revidiert durch **E-207** | Präfixe | `course_captain_` für Optionen, Transients, User-Optionen, Query-Vars (AJAX/admin-post und Nonce-Aktionen nach **E-285** `ccap_`); `ccap-`/`--ccap-` für CSS; Tabellen mit Eigentumsmarke `course-captain:<schema>`; **`ccap_`** (statt `cc_`) für CPTs, Caps, Rollen, Cron, Meta und Tabellen (E-207, vor R1-01 gegen aktuelle Richtlinie prüfen) | R1-01, R1-19, R0-19 |
 | D-20-04 | Ausschlüsse für JS-/CSS-Optimierer | Technisch festgelegt: Ausschlüsse nur für eigene Handles über öffentliche Filter, `data-cfasync="false"`; keine Änderung fremder Optionen | R1-19, R1-25 |
 | D-20-05 | Purge-Integrationen für H-7 | Technisch festgelegt: `course_captain_cache_purge` + `clean_post_cache` + lose gekoppelte Purge-Aufrufe für LiteSpeed Cache und WP Rocket | R1-25 |
 | D-20-06 → **E-198** | DB-/Query-Ergebnis-Caches | **Nicht unterstützt**, Warnung im Systemstatus | R1-25, R1-38 |
@@ -379,7 +379,7 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §30 und Beschlussprotokoll, 1
 ### Offene Punkte nach Einarbeitung
 
 - Die Regel „Untergrenze = älteste Version mit ≥ 6 Monaten Restpflege zum Release“ stammt aus der Empfehlung zu D-20-01; E-195 legt nur 8.3 fest. Sie gilt hier als Arbeitsregel, bis der Auftraggeber sie bestätigt.
-- E-207 nennt Fehlercodes nicht; ob `cc_*`-Fehlercodes (z. B. `cc_db_busy`) ebenfalls auf `ccap_` umgestellt werden, ist offen (R0-19).
+- E-207 nennt Fehlercodes nicht; ob `ccap_*`-Fehlercodes (z. B. `ccap_db_busy`) ebenfalls auf `ccap_` umgestellt werden, ist offen (R0-19).
 - Die lose gekoppelten Integrationen für WP Rocket (D-20-04/05) lassen sich ohne Lizenz (E-196) nicht prüfen; sie bleiben ungetestet.
 - Die genaue Vorrangregel bei doppelten Security-Headern (KOMP-059) und die Erkennungsliste für Security-Plugins legt R1-45 fest.
 

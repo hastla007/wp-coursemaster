@@ -2,7 +2,7 @@
 
 **Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet. Keine Implementierung, kein Commit.
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-37 (DoD: Lock-Strategie, Upgrade-Trigger, idempotente dbDelta-/Backfill-Schritte, unterbrochene Migration, Multisite-Scope, Rollback-Grenzen), Ziel-Task **R1-40** (Migration mit Lock und Wiederaufnahme), außerdem R1-02, R1-23, R1-42; `docs/r0/R0-06-datenmodell-adr.md` §6.1–6.6, E-52, D-1, D-3 und alle Nachträge (insb. R0-21: `ccap_lease`; R0-21 D21-4: generierte Spalten); `R0-16` §2.1 (Upgrade-Runbook, Abbruchtabelle, U-1…U-9), §2.2 (R-A…R-D), I-1…I-5, REC-006/007/008/011/021/024/025; `R0-21` §2.1 (Mutex/Lease), §2.4 (M0, TTL, Fencing, Verbindungsbindung), §2.5 (`GET_LOCK = NULL`), §2.6 (T-3), CON-012/045; `R0-36` §2.2/2.5 (Pass-Muster); `R0-25` MS-R-01/02/07/08 (Entwurf, ungetrackt); `R0-14` RB-01/02/05/08; `R0-19` §2.1 (`cc_maintenance`), §4.7 (`migrate`), Cron-Tabelle (`ccap_migrate`).
+**Bezug:** TODO R0-37 (DoD: Lock-Strategie, Upgrade-Trigger, idempotente dbDelta-/Backfill-Schritte, unterbrochene Migration, Multisite-Scope, Rollback-Grenzen), Ziel-Task **R1-40** (Migration mit Lock und Wiederaufnahme), außerdem R1-02, R1-23, R1-42; `docs/r0/R0-06-datenmodell-adr.md` §6.1–6.6, E-52, D-1, D-3 und alle Nachträge (insb. R0-21: `ccap_lease`; R0-21 D21-4: generierte Spalten); `R0-16` §2.1 (Upgrade-Runbook, Abbruchtabelle, U-1…U-9), §2.2 (R-A…R-D), I-1…I-5, REC-006/007/008/011/021/024/025; `R0-21` §2.1 (Mutex/Lease), §2.4 (M0, TTL, Fencing, Verbindungsbindung), §2.5 (`GET_LOCK = NULL`), §2.6 (T-3), CON-012/045; `R0-36` §2.2/2.5 (Pass-Muster); `R0-25` MS-R-01/02/07/08 (Entwurf, ungetrackt); `R0-14` RB-01/02/05/08; `R0-19` §2.1 (`ccap_maintenance`), §4.7 (`migrate`), Cron-Tabelle (`ccap_migrate`).
 **Beschlüsse (verbindlich):** E-01 (Clean Room: LB/Pass-Abläufe sind Verhaltensbelege, kein Code wird übernommen), E-07 (offiziell Single-Site, Aktivierung je Site korrekt), E-49 (Netzwerkaktivierung blockiert, Schema je Site), **E-90** (Downgrade um eine Minor ohne Restore nur ohne Contract-Schritt), **E-172…E-175** (früher D37-2…D37-5), E-93/E-94 (Pro-Lizenz/Add-on), E-207 (Präfix `ccap_`, Optionen `course_captain_*`). Technisch festgelegt (ENTSCHEIDUNGEN §26): Migrationszustand in `ccap_migration_step` (D37-1), Cron-Hook `ccap_migrate`, Lese-Kompatibilitätsregel K-2.
 
 ## Beschlussstand
@@ -30,7 +30,7 @@ Die Deltas §8 sind mit Status versehen.
 2. **Zwei Sperrschichten je Site:** nicht wartendes `GET_LOCK(name, 0)` (stirbt mit dem Prozess) **und** Lease `ccap_lease['schema-migration']` mit Fencing-Token. Der Mutex schließt Parallelläufe aus, die Lease hält im `NULL`-Fall und fängt „Zombies“ nach Verbindungsverlust ab (R0-21 §2.4). Wer die Sperre nicht bekommt, überspringt.
 3. **Phasen:** P0 Bootstrap → P1 Preflight → P2 `dbDelta` + Drift-Check → P3 Strukturschritte `NNNN_*` → P4 kleine Datenschritte → **Version setzen** (Wartungsfenster endet) → P5 Backfill online in Batches → P6 Contract nur in späterem Release und nur nach Freigabe.
 4. **Statusmodell je Schritt** in einer Tabelle `ccap_migration_step` (`pending/running/failed/done`), Statuswechsel und Datenänderung in **einer** TX mit Fencing-Prüfung. Abbruch (Timeout, Fatal, `kill -9`) bedeutet höchstens „Schritt bzw. Batch wiederholen“.
-5. **Wartungsfenster W1** (bis die Version gesetzt ist): schreibende Anfragen an `course-captain/v1` → `503 cc_maintenance` + `Retry-After: 30`; lesende laufen; CC-Hintergrundjobs pausieren. **W2** (Backfill): normaler Betrieb, neue Funktionen hinter einem Backfill-Gate.
+5. **Wartungsfenster W1** (bis die Version gesetzt ist): schreibende Anfragen an `course-captain/v1` → `503 ccap_maintenance` + `Retry-After: 30`; lesende laufen; CC-Hintergrundjobs pausieren. **W2** (Backfill): normaler Betrieb, neue Funktionen hinter einem Backfill-Gate.
 6. **Multisite:** alles je Site (`$wpdb->prefix`); Netzwerkaktivierung blockiert (E-49); Massenupgrade per CLI mit **einem Prozess je Site** (kein `switch_to_blog`, R0-25 MS-R-07).
 7. **Keine Rückmigration.** Downgrade nach E-90 über eine neue Kompatibilitätsmarke `course_captain_schema_compat_min`; sonst Restore DB + Dateien (R0-16 R-C).
 8. **MIG-001…MIG-027** für R1-40; D37-1 technisch festgelegt, D37-2…D37-5 beschlossen als E-172…E-175 (§9).
@@ -47,7 +47,7 @@ Die Deltas §8 sind mit Status versehen.
 | QB-04 | LB `Migrator.php:84-100` | **Doppelsperre**: `NamedLock` (`GET_LOCK`, 0 s) + Options-`Lock` (TTL); GET_LOCK echt erhalten, Options-Sperre belegt → Besitzer tot → Übernahme (T202) | Muster übernehmen, Options-Sperre → Lease mit Fencing (R0-21 D21-1) |
 | QB-05 | LB `Migrator.php:101-104` | `set_time_limit(0)`, `ignore_user_abort(true)` vor langen `ALTER` | übernehmen für Admin/Cron/CLI |
 | QB-06 | LB `Migrator.php:107-170` | ein Block: `dbDelta` aller Tabellen → Existenz- und Drift-Check → FKs (nicht fatal) → Version setzen → **Datenreparatur T196 nach dem Versionswechsel, ohne Schrittprotokoll** | Datenschritte bekommen Nummer und Status; Version erst nach P4 (§4) |
-| QB-07 | LB `Maintenance.php:15-80` | schreibende REST-Anfragen (nicht GET/HEAD/OPTIONS) 503, `RETRY_AFTER = 30`, stößt Migration an | übernehmen als `cc_maintenance` (R0-19) |
+| QB-07 | LB `Maintenance.php:15-80` | schreibende REST-Anfragen (nicht GET/HEAD/OPTIONS) 503, `RETRY_AFTER = 30`, stößt Migration an | übernehmen als `ccap_maintenance` (R0-19) |
 | QB-08 | LB `Plugin.php:75-79` | `activate(networkWide=true)` → `wp_die` | übernehmen (E-49, R0-25 MS-R-01) |
 | QB-09 | Pass `Installer.php:699-741` | Frontend vergleicht nur Fingerprint, plant **einmalig** `wpcap_run_upgrade`; nach `OVERDUE_AFTER = 300` s führt ein Frontend-Request aus | übernehmen (R0-06 §6.4 Nr. 2) |
 | QB-10 | Pass `Installer.php:751-767` | Doppelprüfung im Lock: Version direkt aus `wp_options`, am Options-Cache vorbei | übernehmen |
@@ -115,7 +115,7 @@ Die Deltas §8 sind mit Status versehen.
 
 **Fencing** (R0-21 §2.4, neu ggü. LB/Pass):
 
-- Jede Status-, Cursor- oder Datenänderung eines Schritts läuft in einer TX, die mit `UPDATE ccap_lease SET heartbeat_at=?, expires_at=? WHERE name='schema-migration' AND owner=? AND fence=?` beginnt; `affected_rows ≠ 1` → `ROLLBACK`, Lauf bricht ab (`cc_migration_fenced`, kein Fehlerstatus).
+- Jede Status-, Cursor- oder Datenänderung eines Schritts läuft in einer TX, die mit `UPDATE ccap_lease SET heartbeat_at=?, expires_at=? WHERE name='schema-migration' AND owner=? AND fence=?` beginnt; `affected_rows ≠ 1` → `ROLLBACK`, Lauf bricht ab (`ccap_migration_fenced`, kein Fehlerstatus).
 - **Vor jedem DDL** (nicht transaktional, impliziter Commit): Fencing-Update **und** `IS_USED_LOCK(name) = CONNECTION_ID()` (wenn L-A echt). Grund: Nach einem Reconnect (RB-05) ist L-A still verloren, PHP läuft weiter; ein zweiter Läufer kann L-A schon halten (CON-045).
 - **Restrisiko DDL:** Zwischen Prüfung und DDL kann ein zweiter Läufer übernehmen (nur bei Lease-Ablauf). Absicherung: DDL-Schritte sind Ist-Zustand-idempotent (§4.2); MySQL serialisiert DDL über Metadata-Locks; „Duplicate column/key“ (1060/1061/1826) gilt als Erfolg, wenn der Ist-Zustand danach dem Soll entspricht.
 
@@ -134,8 +134,8 @@ Die Deltas §8 sind mit Status versehen.
 
 | Anfrage | Verhalten |
 |---|---|
-| REST `course-captain/v1` schreibend (POST/PUT/PATCH/DELETE) | **`503 cc_maintenance`**, `Retry-After: 30`, `details.reason = migration`, `retry_after: 30` (R0-19). Keine Teilwrites. Pläne `ccap_migrate` (QB-07) |
-| REST lesend (GET/HEAD/OPTIONS) | **läuft** (Regel K-2 §3.4). Bricht ein Lesepfad trotzdem mit SQL-Fehler „unknown column/table“ ab → `503 cc_maintenance` statt 500 (Repository fängt 1054/1146 in W1) |
+| REST `course-captain/v1` schreibend (POST/PUT/PATCH/DELETE) | **`503 ccap_maintenance`**, `Retry-After: 30`, `details.reason = migration`, `retry_after: 30` (R0-19). Keine Teilwrites. Pläne `ccap_migrate` (QB-07) |
+| REST lesend (GET/HEAD/OPTIONS) | **läuft** (Regel K-2 §3.4). Bricht ein Lesepfad trotzdem mit SQL-Fehler „unknown column/table“ ab → `503 ccap_maintenance` statt 500 (Repository fängt 1054/1146 in W1) |
 | CC-Formulare über `admin-ajax.php`/`admin-post.php` (Frontend-Aktionen) | wie REST schreibend: Fehlermeldung „Wartung, bitte in 30 s erneut“; keine Ausführung |
 | Admin-Screens von CC | lesend erlaubt; Speichern von CC-Einstellungen/Kursen gesperrt mit Hinweis; Block-Editor-Speichern von CC-CPTs: CC-Metadaten-Hooks schreiben nicht, Post-Speichern wird mit `WP_Error` abgelehnt (nur CC-CPTs) |
 | Prüfungen (`saveAnswer`, `submit`, `start`) | 503; Client puffert und wiederholt (R0-14 RB-03/RB-08, Verhalten LB `Maintenance`). Frist nach **Beschluss E-173**: Der Server protokolliert das Wartungsfenster; für Sitzungen, deren Frist hineinfällt und deren Schreibversuche vor Fristende abgewiesen wurden, gilt Frist = Fensterende + 120 s, höchstens + 30 min |
@@ -281,7 +281,7 @@ Regel: Ein Lauf schreibt `failed` nur für den Schritt, an dem er gescheitert is
 - Neue Option **`course_captain_schema_compat_min`** (Δ-37-3): niedrigste Code-Version, die dieses Schema lesen **und** schreiben darf. Expand-Release N+1 setzt sie auf N (eine Minor zurück, E-90); ein Contract-Schritt setzt sie auf seine eigene Version.
 - Code mit Version `v` startet bei `course_captain_db_version > v`:
   - `v ≥ course_captain_schema_compat_min` → **Betrieb normal**, Admin-Info „Schema neuer als Code (Downgrade nach E-90)“, keine Migration, unbekannte Schritte in `ccap_migration_step` werden ignoriert (R0-16 R-B, REC-025).
-  - sonst → **WN gesperrt:** schreibend `503 cc_maintenance` (`details.reason = schema_newer`), lesend nach K-1 nicht garantiert → Lernbereich zeigt Wartung; Admin-Fehler wie LB `schema_newer` mit Verweis auf Restore (R0-16 R-C); CLI `migrate` Exit-Code ≠ 0 („Downgrade abgelehnt“, R0-19 §4.7).
+  - sonst → **WN gesperrt:** schreibend `503 ccap_maintenance` (`details.reason = schema_newer`), lesend nach K-1 nicht garantiert → Lernbereich zeigt Wartung; Admin-Fehler wie LB `schema_newer` mit Verweis auf Restore (R0-16 R-C); CLI `migrate` Exit-Code ≠ 0 („Downgrade abgelehnt“, R0-19 §4.7).
 - **Erneutes Upgrade nach Downgrade:** bekannte Schritte `done` werden übersprungen; jeder `done`-Backfill läuft einmal die **Verify-Abfrage** (§4.4), weil Code N Zeilen ohne neue Spalten geschrieben haben kann → bei Treffern `reopen` auf `pending`, Cursor 0, Gate schließt bis zum Abschluss (MIG-019).
 - Pro/Adapter: eigene Schritte zählen über den Moduldefinitions-Hash in `course_captain_db_version` (R0-06 §6.1); ein Pro-Downgrade folgt derselben Regel je Modul.
 
@@ -297,7 +297,7 @@ Werkzeuge: PU = PHPUnit-Integration mit echter MariaDB/MySQL; MP = Multi-Prozess
 | MIG-002 | Zwei CLI-`migrate` gleichzeitig auf derselben Site | einer läuft, der andere Exit 0 mit `skipped_locked` | MP/CLI | R1-40 | QB-11 |
 | MIG-003 | MIG-001 mit erzwungenem `GET_LOCK = NULL` | Lease allein schließt aus; Health-Warnung; Zähler `named_lock_unavailable` > 0 | MP | R1-40 | R0-21 §2.5, CON-006 |
 | MIG-004 | DB-Reconnect während eines Datenschritts (L-A verloren), zweiter Läufer startet | erster scheitert an `IS_USED_LOCK`/Fencing vor dem nächsten Write; kein doppelter Effekt | PU | R1-40 | CON-045, RB-05 |
-| MIG-005 | Zombie: Läufer per SIGSTOP angehalten (`NULL`-Modus), Lease läuft ab, zweiter übernimmt, erster läuft weiter | erster `cc_migration_fenced`, schreibt nichts; Schritt genau einmal | MP | R1-40 | CON-012 |
+| MIG-005 | Zombie: Läufer per SIGSTOP angehalten (`NULL`-Modus), Lease läuft ab, zweiter übernimmt, erster läuft weiter | erster `ccap_migration_fenced`, schreibt nichts; Schritt genau einmal | MP | R1-40 | CON-012 |
 | MIG-006 | `kill -9` in `dbDelta` (P2) | nächster Lauf: L-A frei, Lease übernommen, `dbDelta` + Drift-Check erneut, Erfolg | MP | R1-40 | REC-006a |
 | MIG-007 | `kill -9` nach DDL, vor Statuswrite (P3) | `isApplied() = true` → `done` ohne zweites DDL; `crash_count = 1` | MP | R1-40 | I-M3, REC-006b |
 | MIG-008 | **Abbruch mitten im Backfill:** `kill -9` innerhalb der Batch-TX bei 40 % | TX zurückgerollt; Fortsetzung ab letztem Cursor; Endwerte gleich Referenzlauf ohne Abbruch; kein Batch doppelt geschrieben | MP | R1-40 | REC-006c, I-M4 |
@@ -308,7 +308,7 @@ Werkzeuge: PU = PHPUnit-Integration mit echter MariaDB/MySQL; MP = Multi-Prozess
 | MIG-013 | **Doppel-Trigger:** `upgrader_process_complete` (alter Code) + `admin_init` im Folgerequest + Cron fällig + Reaktivierung | Update-Callback migriert nicht; genau ein Lauf; ein geplantes `ccap_migrate`; keine doppelten Cron-Ereignisse anderer Hooks | PU | R1-40 | §2.1 T-2 |
 | MIG-014 | Overdue-Fallback: `DISABLE_WP_CRON`, kein Admin, `ccap_migrate` 301 s überfällig, 30 parallele Frontend-Requests | genau ein Frontend-Request führt aus; übrige liefern normal (Lesen) bzw. 503 (Schreiben) | MP | R1-40 | QB-09 |
 | MIG-015 | **Migration während laufender Prüfungen:** 20 Sitzungen `in_progress` (davon 5 mit Frist im W1), Update einspielen | `saveAnswer`/`submit` 503 + `Retry-After`; Client puffert; nach W1 gehen Antworten und Abgabe durch; keine Doppelwertung (Idempotenz RB-03); Frist = Fensterende + 120 s, höchstens + 30 min (E-173); lesend 200 | PU + PW | R1-40 (R1-20) | REC-011 |
-| MIG-016 | Lese-Kompatibilität K-2: Smoke-Suite Code N+1 gegen Schema N | alle Lesepfade 200 oder 503 `cc_maintenance`, nie 500 | PU (CI) | R1-40 | §3.4 |
+| MIG-016 | Lese-Kompatibilität K-2: Smoke-Suite Code N+1 gegen Schema N | alle Lesepfade 200 oder 503 `ccap_maintenance`, nie 500 | PU (CI) | R1-40 | §3.4 |
 | MIG-017 | Backfill parallel zu neuen Writes (Dual-Write, 10 Schreiber) | Verify = 0; Gate öffnet erst nach `done`; keine Zeile verloren | MP | R1-40 (R1-42) | §4.4 |
 | MIG-018 | Contract-Schritt mit offenem Backfill bzw. ohne Freigabe | `blocked_reason = backfill_open` bzw. `contract_needs_approval`; Cron/Frontend lösen nie aus; mit `--allow-contract` und erfülltem Backfill einmal `done`, `course_captain_schema_compat_min` erhöht | PU | R1-40 | R0-16 U-3, E-172 |
 | MIG-019 | Downgrade E-90: (a) nur Expand, eine Minor; (b) mit Contract; (c) zwei Minor; danach Re-Upgrade | (a) Betrieb normal + Info; (b)(c) WN gesperrt, CLI Exit ≠ 0; Re-Upgrade: keine Schritte doppelt, Verify öffnet Backfill wieder und schließt ihn | PU/CLI | R1-40 (R1-23) | REC-025, §6.2 |

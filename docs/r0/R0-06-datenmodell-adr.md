@@ -15,16 +15,19 @@
 | Beschluss | Wirkung auf dieses ADR |
 |---|---|
 | E-01 Clean Room | LB-Tabellen in §1/§7 sind nur Befund; keine DDL, kein Code übernommen |
-| E-207 Präfix `ccap_` | Tabellen `{$wpdb->prefix}ccap_*`, CPTs, Post-Status, Meta, Caps, Rollen und Cron-Hooks `ccap_*`; Optionen und Transients `course_captain_*` (R0-27 T27, R0-20 D-20-03). Fehlercodes bleiben `cc_*` (siehe Offene Punkte) |
+| E-207 Präfix `ccap_` | Tabellen `{$wpdb->prefix}ccap_*`, CPTs, Post-Status, Meta, Caps, Rollen und Cron-Hooks `ccap_*`; Optionen und Transients `course_captain_*` (R0-27 T27, R0-20 D-20-03). Fehlercodes, AJAX-/admin-post-Aktionen, Nonces, Shortcodes und Cache-Gruppe ebenfalls `ccap_*`; öffentliche Hooks/Funktionen `course_captain_*` (**E-285**) |
 | E-47 (= D-2) | Hybrid freigegeben: Inhalte als CPT, Massendaten/Transaktionen als Tabellen |
 | E-48 (= D-1) | Harte FKs nur zwischen `ccap_`-Tabellen (Option B) |
 | E-49 (= D-3) | Netzwerkaktivierung in R1 blockiert, Schema je Site |
 | E-50 (= D-4) | Kursrevision fixiert nur Struktur und Regeln; Fragenrevisionen erst beim Versuchsstart |
 | E-51, E-150, E-243 (= D-5) | Aufbewahrungs-Defaults je Datentyp (§8, §10) |
 | E-52 (= D-6) | Lastannahmen A-01…A-18 bestätigt, A-15 = 500 gleichzeitige Prüfungen |
-| E-27 Zugang je Modul | `ccap_grant.module_id bigint unsigned NOT NULL DEFAULT 0` (0 = ganzer Kurs) im Grant-Schlüssel; `ccap_group_course.module_id` ebenso; Scopes bleiben zusätzlich (R0-40 Zielpaar `(course, module|0, scopes)`) |
+| E-27, **E-286** Zugang je Modul | `ccap_grant.module_id bigint unsigned NOT NULL DEFAULT 0` (0 = ganzer Kurs, E-286) im Grant-Schlüssel; `ccap_group_course.module_id` ebenso; Scopes `view/download/exam` bleiben **innerhalb eines Moduls** bestehen (E-286; R0-40 Zielpaar `(course, module|0, scopes)`). Kursfortschritt: Nenner = Pflicht-Activities der zugänglichen Module (`ccap_course_progress`, §3.3) |
 | E-25/E-25a Bundle | Kursbeziehung „enthält“ in R1 Free: neue Tabelle `ccap_course_relation`; ein Grant auf den Bundle-Kurs schaltet die enthaltenen Kurse über den effektiven Zugang frei. Mitgliederrabatt nur im Woo-Adapter (R3.1), kein Kernschema |
-| E-26 abhängige Zusatz-Grants | `ccap_grant.depends_on_course_id` (0 = unabhängig), Regel in R0-09 §3.5 |
+| E-26, **E-287** abhängige Zusatz-Grants | `ccap_grant.depends_on_course_id` (0 = unabhängig): Abhängigkeit vom **effektiven Zugang zum Basiskurs**, nicht von einem bestimmten Grant; der Zusatz-Grant ändert seinen Status nicht (E-287), Regel in R0-09 §3.5 |
+| **E-297** Bundles | eine Ebene: `ccap_course_relation` verbindet Bundle → Kurs, nie Bundle → Bundle; Zyklen abgewiesen; Gruppenplätze auf Bundles erlaubt (`ccap_group_course.course_id` = Bundle-Kurs) |
+| **E-296** Reset-Journal | eigene Tabelle `ccap_reset_journal`, 30 Tage (§4.10, E-138) |
+| **E-298** | Kursbeziehung „empfiehlt“ nicht im R1-Schema (R4-Pool); `relation_type` in R1 nur `contains` |
 | E-29, E-117 | `source_revision` im Grant-Schlüssel, kein Wiederaufleben |
 | E-38/E-182 | `ccap_outbox_event`/`ccap_outbox_delivery` bilden in Free nur die **interne** Outbox (Mails, Audit, Cache); öffentliche Events, Pull-API und Connector-Registry sind Pro |
 | E-39/E-39b | Grant-Quelle `workflow` nur über den Course-Pro-Connector; im Kernschema nur ein weiterer `source_type`-Wert |
@@ -126,7 +129,7 @@ Alle Nachträge aus Folge-Tasks (Tabelle am Ende) sind in §2–§11 eingearbeit
 | E-24 | Gewählte Optionen | `attempt_answer` (:508) | **T `ccap_attempt_answer`** | Lernen | Kindzeilen CASCADE. |
 | E-25 | Lernstand je Frage (MasteryState) | `progress` (:518) | **T `ccap_question_progress`** | Lernen/Smarttrainer | TX: `SELECT … FOR UPDATE` (`LearningService.php:498`); Unique `(user_id, question_id)`; `algorithm_version` (ADR-005). Trägt auch die Karteikarten-Modi (E-21, `praxis_progress` entfällt). |
 | E-26 | Activity-Fortschritt (LearningProgress/Completion) | `video_progress` (:619) | **T `ccap_activity_progress`** | Activity-Provider | V/TX: Unique `(user_id, activity_id)`. Verallgemeinert Video auf alle Activity-Typen. |
-| E-27 | Kursfortschritt (aggregiert) | – (neu; Konzept 9.2 `ccap_course_progress`) | **T `ccap_course_progress`** (materialisiert, aus E-23/E-25/E-26 neu aufbaubar) | Lernen | A: „Mein Lernen“ und Reports ohne Volltabellenscan (22.3). Die Detailtabellen bleiben die Wahrheit. |
+| E-27 | Kursfortschritt (aggregiert) | – (neu; Konzept 9.2 `ccap_course_progress`) | **T `ccap_course_progress`** (materialisiert, aus E-23/E-25/E-26 neu aufbaubar) | Lernen | A: „Mein Lernen“ und Reports ohne Volltabellenscan (22.3). Die Detailtabellen bleiben die Wahrheit. Bei Modul-Grants ist der Nenner von `completion_ratio` die Zahl der Pflicht-Activities der **zugänglichen** Module; Anzeige „x von y freigeschalteten Modulen“ (E-286). |
 | E-28 | Kompetenznachweis (CompetencyEvidence) | – (neu) | **abgel.**: bestandene `ccap_exam_session` + `ccap_certificate` + `competency_validity_days` (Beschluss E-73). Eine eigene Tabelle gibt es erst mit manuellen oder externen Nachweisen. | Prüfung | Nichts ohne Beleg erfinden. Die drei Dimensionen bleiben trotzdem getrennt (28.3). |
 | E-29 | Favorit | `favorite` (:535) | **T `ccap_favorite`** | Lernen | Unique, INSERT IGNORE (Inventur A §3.1). |
 | E-30 | Sammlung | `favorite_collection` (:544) | **T `ccap_collection`** | Lernen | 30 je Kurs (`CollectionService.php:19`). |
@@ -256,7 +259,7 @@ Alle Nachträge aus Folge-Tasks (Tabelle am Ende) sind in §2–§11 eingearbeit
 
 Plätze werden unter dem Mutex `group-seats:<group_id>` vergeben (Verhalten LB, Inventur B §5.4; LockService R0-21). „Ein aktiver Platz je Nutzer und Gruppe“ sichert zusätzlich `UNIQUE active_member` über die generierte Spalte; ein Re-Invite nach `removed` bleibt möglich, weil `active_user` dann NULL ist (Test in R1-42).
 
-**Bundle und abhängige Grants (E-25a, E-26):** Ein Grant auf einen Bundle-Kurs erzeugt **keine** Grants je enthaltenem Kurs; der effektive Zugang leitet sie über `ccap_course_relation` ab (R0-09 §3.1). Ein Grant mit `depends_on_course_id ≠ 0` wirkt nur, solange der Lernende effektiven Zugang zum Basiskurs hat (R0-09 §3.5).
+**Bundle und abhängige Grants (E-25a, E-26):** Ein Grant auf einen Bundle-Kurs erzeugt **keine** Grants je enthaltenem Kurs; der effektive Zugang leitet sie über `ccap_course_relation` ab (R0-09 §3.1). Ein Grant mit `depends_on_course_id ≠ 0` wirkt nur, solange der Lernende effektiven Zugang zum Basiskurs hat (R0-09 §3.5); sein Status bleibt dabei unverändert, der effektive Zugang wird berechnet (E-287). Bundles haben **eine Ebene** (E-297): `related_course_id` darf selbst kein Bundle sein (Prüfung beim Speichern, Zyklen ausgeschlossen); Gruppenplätze auf einen Bundle-Kurs sind erlaubt und leiten den Zugang zu den enthaltenen Kursen für jedes Mitglied ab.
 
 ### 4.4a Text-/Dateiaufgaben (Beschluss E-168, R1-46)
 
@@ -281,9 +284,9 @@ Zustandswechsel `draft → submitted → (returned → neue Zeile `draft`) | gra
 | `ccap_inbox_event` | `connector_id varchar(64)`, `event_id varchar(191)`, `contract_version varchar(16)`, `event_type varchar(64)`, `correlation_id char(36) NULL`, `payload longtext` (minimal, ohne Secrets), `payload_hash char(64)`, `status varchar(16)` (`received/processing/done/ignored/failed/quarantined`), `attempts smallint unsigned 0`, `next_attempt_at`/`locked_until datetime NULL`, `lock_owner varchar(64) NULL`, `last_error text NULL`, `occurred_at`/`received_at datetime`, `processed_at datetime NULL` | `UNIQUE connector_event (connector_id, event_id)` | `status_next (status, next_attempt_at)`, `correlation_id` | – |
 | `ccap_outbox_event` | `event_uuid char(36)`, `event_type varchar(64)`, `schema_version varchar(16)`, `contract_version varchar(16)`, `object_type varchar(32)`, `object_id char(36)`, `object_version int unsigned`, `course_uid char(36) NULL`, `user_ref varchar(32) NULL`, `actor_type varchar(16)`, `actor_ref varchar(64) NULL`, `correlation_id char(36) NULL`, `causation_id char(36) NULL`, `idempotency_key varchar(191)`, `privacy_tags varchar(191)`, `payload longtext` (Envelope R0-19 §5.1), `created_at` | `UNIQUE event_uuid` | `type_created (event_type, created_at)`, `object (object_type, object_id)`, `created_at` (Retention) | – |
 
-| `ccap_outbox_delivery` | `event_uuid char(36)`, `subscriber_id varchar(64)`, `status varchar(16)` (`pending/dispatching/delivered/failed/dead/skipped`), `attempts smallint unsigned 0`, `next_attempt_at`/`locked_until datetime NULL`, `lock_owner varchar(64) NULL`, `last_error_class varchar(32) NULL`, `last_error text NULL`, `created_at`, `delivered_at datetime NULL` | `UNIQUE event_subscriber (event_uuid, subscriber_id)` | `status_next (status, next_attempt_at)` | `event_uuid`→`ccap_outbox_event.event_uuid` (CASCADE) |
+| `ccap_outbox_delivery` | `event_uuid char(36)`, `subscriber_id varchar(64)`, `status varchar(16)` (`pending/dispatching/delivered/failed/dead/skipped`), `skip_reason varchar(32) NULL` (`discarded/disabled/hold_mode/privacy_not_granted`, R0-34), `manual_retries smallint unsigned 0`, `discarded_at datetime NULL`, `attempts smallint unsigned 0`, `next_attempt_at`/`locked_until datetime NULL`, `lock_owner varchar(64) NULL`, `last_error_class varchar(32) NULL`, `last_error text NULL`, `created_at`, `delivered_at datetime NULL` | `UNIQUE event_subscriber (event_uuid, subscriber_id)` | `status_next (status, next_attempt_at)` | `event_uuid`→`ccap_outbox_event.event_uuid` (CASCADE) |
 
-Zustellung je Abonnent nach R0-19 §5.4 (Dead-Letter nach 8 Versuchen). **Free (Beschluss E-38/E-182):** nur interne Abonnenten (Benachrichtigungen, Audit, Cache-Invalidierung); ein Event wird nur gespeichert, wenn mindestens ein interner Abonnent es abonniert; zugestellte Einträge 90 Tage (E-116, E-215), offene höchstens 30 Tage (E-258). **Pro:** externe Abonnenten, Pull-API und Event-Log auch ohne Abonnent 30 Tage (E-119).
+Zustellung je Abonnent nach R0-19 §5.4 (Dead-Letter nach 8 Versuchen). **Free (Beschluss E-38/E-182):** nur interne Abonnenten (Benachrichtigungen, Audit, Cache-Invalidierung); ein Event wird nur gespeichert, wenn mindestens ein interner Abonnent es abonniert; zugestellte Einträge 90 Tage (E-116, E-215), offene höchstens 30 Tage (E-258), danach `status = dead` mit `last_error_class = retention` (gleiche Grundfelder wie R0-19 §5.4 und R0-34 §2.1). Replay bereits zugestellter Events nur mit ausdrücklichem Flag, Begründung und Audit (E-311). **Pro:** externe Abonnenten, Pull-API und Event-Log auch ohne Abonnent 30 Tage (E-119).
 
 ### 4.7 Betrieb
 
@@ -307,6 +310,7 @@ Zustellung je Abonnent nach R0-19 §5.4 (Dead-Letter nach 8 Versuchen). **Free (
 | `ccap_migration_step` | Schritt, Modul, Art, Status `pending/running/failed/done`, Cursor, Fence, Fehler, Prüfsumme, Zeitstempel | R0-37 §4.3, D37-1 |
 | `ccap_import_issue` | Batch, Objekt-ID, Datei, JSON-Pointer, Regel, Schwere, Fehlerklasse, Meldung, Vorschlag; max. 100 000 je Batch | R0-38 §8 |
 | `ccap_notification` | höchstens ein Datensatz je Event, Typ und Empfänger (Dedupe der Mails), 90 Tage | R0-27 §3.3, N-1, E-215 |
+| `ccap_reset_journal` *(neu, E-296)* | Fortschritts-Reset: Lernender, Kurs/Objekt, gesicherter Vorzustand, ausgelöst von (Rolle), Zeitpunkt, Audit-Referenz; Rücknahme nur, solange kein neuer Fortschritt entstand (E-138); Löschung nach 30 Tagen | R0-13 §8, E-138, E-296 |
 | *Pro:* `ccap_source_saga` | Zwischenstand Voucher-/Woo-Abläufe (kein Ledger, keine Beträge) | R0-40 §3.2 Δ40-2, E-31, E-53 |
 | *Pro:* Woo-Adapter-Mapping | Produkt ↔ `(course, module|0, scopes)`, Sync-Schlüssel, Feld-Fingerprints für den Produkt-Sync | R0-40 §4.5, E-34, R3-02 |
 
@@ -535,7 +539,7 @@ Alle Zeilen sind **eingearbeitet** (Stand 16.11.2026, Spalte „Eingearbeitet in
 
 ## Offene Punkte nach Einarbeitung
 
-1. **Präfix der Fehlercodes:** E-207 nennt CPTs, Caps, Rollen, Cron, Meta und Tabellen, aber keine Fehlercodes; ENTSCHEIDUNGEN §19 und R0-19 führen Fehlercodes als `cc_*`, R0-30 verwendet `ccap_setting_invalid`. Hier bleiben Fehlercodes `cc_*`; Klärung vor R1-01 (zusammen mit der E-207-Richtlinienprüfung).
+1. **Präfix der Fehlercodes:** E-207 nennt CPTs, Caps, Rollen, Cron, Meta und Tabellen, aber keine Fehlercodes; ENTSCHEIDUNGEN §19 und R0-19 führen Fehlercodes als `ccap_*`, R0-30 verwendet `ccap_setting_invalid`. Hier bleiben Fehlercodes `ccap_*`; Klärung vor R1-01 (zusammen mit der E-207-Richtlinienprüfung).
 2. **Post-Status und Health-Kennungen:** `ccap_staged`/`ccap_archived` und Site-Health-Test-IDs wurden analog zu E-207 mit `ccap_` benannt; E-207 nennt Post-Status nicht ausdrücklich.
 3. **E-26 Abhängigkeitsziel:** Umgesetzt als Abhängigkeit vom effektiven Zugang zum **Basiskurs** (`depends_on_course_id`), nicht von einem einzelnen Grant (R0-04 K-04 nannte `depends_on_grant`). Das folgt dem Beschlusstext „läuft so lange wie der Basiskurs“; Bestätigung durch Architektur/Auftraggeber.
 4. **E-27 Text vs. Schema:** Der Beschluss nennt „`module_id` NULL = ganzer Kurs“; umgesetzt ist `NOT NULL DEFAULT 0` (0 = ganzer Kurs), weil UNIQUE mehrere NULL zulässt (R0-40 Δ40-1). Δ40-1 nennt zusätzlich `group_source`; hier liegt `module_id` in `ccap_group_course`, weil eine Gruppe mehrere Ziele hat.

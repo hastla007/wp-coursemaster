@@ -28,7 +28,7 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 | E-20, E-147 | Lösungserklärungen sind Pro; Free zeigt nach Abgabe richtig/falsch und (nach Einstellung) die richtige Antwort (A11Y-024) |
 | E-208 | Deutsches Sprachpaket über translate.wordpress.org, bis zur Freigabe zusätzlich im ZIP |
 | E-155…E-160 | Beantworten die Übergabefragen an R0-25 (§4) |
-| E-207 | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen. Namen wie `cc_accommodation`, `cc_manage_accommodations`, `cc_question` sind hier Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
+| E-207 | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen. Namen wie `ccap_accommodation`, `ccap_manage_accommodations`, `ccap_question` sind hier Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
 
 ---
 
@@ -270,8 +270,8 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
    - `practice`: Lernender kann vor dem Start „ohne Zeitlimit üben“ wählen oder während des Laufs verlängern (A11Y-072). Ergebnis gekennzeichnet „ohne Zeitlimit“, zählt nicht für Nachweise. Erfüllt 2.2.1 direkt.
    - `strict` (Standard für nachweisfähige Prüfungen): kein Selbst-Verlängern. Die Ausnahme „essenziell“ wird in der Regel dokumentiert (Autorenhinweis im Prüfungseditor A-08). **Pflichtausgleich:** Jede `strict`-Prüfung MUSS einen Zeitausgleich je Lernendem zulassen; ein Abschalten des Ausgleichs pro Regel ist nicht vorgesehen.
 3. **Zeitausgleich (Accommodation)** als eigene Zuordnung, nicht als Prüfungsregel:
-   - Datensatz (Delta zu R0-06; Präfix nach E-207 `ccap_`): `cc_accommodation (user_id, scope_type 'site'|'course'|'exam_rule', scope_id, time_factor_pct smallint 100–400 | NULL, unlimited tinyint, valid_until datetime NULL, created_by, created_at)`; **keine Freitext-Begründung, keine Diagnose** (Datenminimierung: ein Nachteilsausgleich lässt auf Gesundheitsdaten schließen, Art. 9 DSGVO; Bewertung in R0-17).
-   - Setzen/Ändern nur mit eigener Capability `cc_manage_accommodations` (Präfix nach E-207 `ccap_`; Default nur `administrator` und Kursmanager; Delta zu R0-07), jede Änderung mit Audit-Eintrag ohne Inhaltsdetails außer Faktor.
+   - Datensatz (Delta zu R0-06; Präfix nach E-207 `ccap_`): `ccap_accommodation (user_id, scope_type 'site'|'course'|'exam_rule', scope_id, time_factor_pct smallint 100–400 | NULL, unlimited tinyint, valid_until datetime NULL, created_by, created_at)`; **keine Freitext-Begründung, keine Diagnose** (Datenminimierung: ein Nachteilsausgleich lässt auf Gesundheitsdaten schließen, Art. 9 DSGVO; Bewertung in R0-17).
+   - Setzen/Ändern nur mit eigener Capability `ccap_manage_accommodations` (Präfix nach E-207 `ccap_`; Default nur `administrator` und Kursmanager; Delta zu R0-07), jede Änderung mit Audit-Eintrag ohne Inhaltsdetails außer Faktor.
    - Wirkung: beim Start `deadline_at = started_at + time_limit_seconds × time_factor_pct / 100` (bzw. ohne Frist bei `unlimited`); Faktor, Quelle und Wert stehen im Snapshot (Muster R0-08 §6.3). Grace (5 s) und Kulanz bleiben unverändert. Laufende Versuche ändern sich durch spätere Zuordnungen nicht; ein Admin KANN einem **laufenden** Versuch einmalig Zeit hinzufügen (Aktion mit Audit, R1-20-Negativtest: nur durch Berechtigte, nur `in_progress`).
    - Sichtbarkeit: Lernender sieht vor dem Start „Deine Bearbeitungszeit: 45 Minuten (inkl. Zeitausgleich)“. Ergebnis, Bericht A-12 und Nachweis zeigen den Ausgleich **nicht** (E-122); in A-09 nur für Berechtigte.
    - Mehrere Zuordnungen: die spezifischste gilt (Regel > Kurs > Site).
@@ -395,7 +395,7 @@ Nach **E-01 (Clean Room)** wird kein LB-Werkzeug kopiert. Die folgenden Punkte s
 
 **Was R0-15 festlegt (MUSS, unabhängig von der R0-25-Entscheidung):**
 
-1. Kurs und Frage tragen ein Sprachkennzeichen (BCP 47): `cc_question.language` existiert (R0-06), Kurs erhält `language` als Meta (LB-Paketformat `courses.language`, INV-E-004); Standard = Website-Sprache.
+1. Kurs und Frage tragen ein Sprachkennzeichen (BCP 47): `ccap_question.language` existiert (R0-06), Kurs erhält `language` als Meta (LB-Paketformat `courses.language`, INV-E-004); Standard = Website-Sprache.
 2. Inhaltscontainer (Lektion, Frage, Antworten, Erklärung, Zertifikatstext) bekommen `lang` und `dir` aus diesem Kennzeichen, wenn es von der UI-Sprache abweicht (A11Y-032; WCAG 3.1.2). Damit liest der Screenreader englische Fragen in einer deutschen Oberfläche richtig vor.
 3. Ein Zertifikat friert Inhaltssprache und UI-Sprache bei Ausstellung im Snapshot ein (R0-08 §7.2); die Verifikationsseite zeigt den Nachweis in der eingefrorenen Sprache, den Rahmen in der Besuchersprache.
 4. Untertitelspuren tragen `srclang`; die Standardspur folgt der UI-Sprache, sonst der Inhaltssprache (A11Y-090).
@@ -408,7 +408,7 @@ Nach **E-01 (Clean Room)** wird kein LB-Werkzeug kopiert. Die folgenden Punkte s
 | Ü-1 | Sprachversionen eines Kurses: eigener Kurs je Sprache mit Verknüpfung (`translation_group`) oder ein Kurs mit Sprachvarianten je Lektion/Frage? Wie verhalten sich Fortschritt, Mastery und Grants zwischen Sprachversionen? | **E-155:** eigener Kurs je Sprache, verknüpft über eine Übersetzungsgruppe; Fortschritt, Grants und Zertifikate je Kurs. **E-156:** kein Grant-Übertrag in R1, Sammelvergabe durch den Kursmanager |
 | Ü-2 | Gemischte Sprachen innerhalb eines Kurses/einer Prüfung zulässig? Prüfungs-Blueprint nur aus Fragen einer Sprache? | **E-157:** erlaubt mit `lang`-Kennzeichnung und Validator-Warnung |
 | Ü-3 | Locale-Fallback: fehlt eine Übersetzung einer Frage, Original zeigen (mit `lang`) oder Frage ausschließen? | Durch E-155 (eigener Kurs je Sprache) gibt es keine fehlenden Fragenübersetzungen innerhalb eines Kurses; UI-Locale-Fallback auf eine andere Variante derselben Sprache (`de_AT` → `de_DE`) ist technisch festgelegt (D-25-07) |
-| Ü-4 | Kompatibilität mit Übersetzungsplugins (WPML, Polylang, TranslatePress) für CPT-Inhalte: unterstützt, getestet oder nur dokumentiert? Was gilt für eigene `cc_`-Tabellen (Fragen), die solche Plugins nicht kennen? | Technisch festgelegt (D-25-06): Grenze nur dokumentieren, mit Systemstatus-Hinweis |
+| Ü-4 | Kompatibilität mit Übersetzungsplugins (WPML, Polylang, TranslatePress) für CPT-Inhalte: unterstützt, getestet oder nur dokumentiert? Was gilt für eigene `ccap_`-Tabellen (Fragen), die solche Plugins nicht kennen? | Technisch festgelegt (D-25-06): Grenze nur dokumentieren, mit Systemstatus-Hinweis |
 | Ü-5 | Mehrsprachige Mail-Vorlagen des Betreibers (I18N-R-33) und mehrsprachige Zertifikatsvorlagen (Pro). | **E-159:** Sprachvarianten für Mailvorlagen schon in Free. **E-158:** Zertifikat in der Kurssprache, im Snapshot eingefroren |
 | Ü-6 | Katalog L-01: Filter nach Inhaltssprache; SEO `hreflang` bleibt Sache des SEO-/Übersetzungsplugins (Kap. 21). | Kein eigener Beschluss; Details in R0-25 |
 | Ü-7 | Import (R0-10): Paket-`languages[]` vs. Zielsprache der Site; Verhalten bei Paket mit mehreren Sprachen. | Kein eigener Beschluss; Details in R0-25/R0-10 |
@@ -459,6 +459,6 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md`, 16.11.2026). Die D-Nummern bl
 
 ## 7. Nachweis dieser Arbeit
 
-- Gelesen: TODO R0-15, R0-25, R0-26, R1-19, R1-29; Konzept Kap. 10, 16, 21, 23 (und Fundstellen zu Barrierefreiheit/Locale per Suche); R0-11 §2–3; R0-14 §0, §3, §6; R0-08 §4.3, §6; R0-06 §7 und Tabellen `cc_question`/`cc_exam_*`; R0-10 Alt-Text-Regel; Inventur D (INV-D-004/-005/-006/-062/-068/-070/-152…-157) und E (INV-E-007, -046, -047, Doku-Tabelle); `ENTSCHEIDUNGEN.md` E-01…E-102.
+- Gelesen: TODO R0-15, R0-25, R0-26, R1-19, R1-29; Konzept Kap. 10, 16, 21, 23 (und Fundstellen zu Barrierefreiheit/Locale per Suche); R0-11 §2–3; R0-14 §0, §3, §6; R0-08 §4.3, §6; R0-06 §7 und Tabellen `ccap_question`/`ccap_exam_*`; R0-10 Alt-Text-Regel; Inventur D (INV-D-004/-005/-006/-062/-068/-070/-152…-157) und E (INV-E-007, -046, -047, Doku-Tabelle); `ENTSCHEIDUNGEN.md` E-01…E-102.
 - LB gelesen (@ `9f37c77`): `docs/barrierefreiheit-oesterreich.md`, `docs/uebersetzung.md`, `tools/i18n/check-domains.php`, `tools/i18n/make-pot.sh` vollständig; `assets/build/app.js` an den Stellen aus INV-D-152 sowie Fragenformular (:2067-2081), Dialog (:2138-2158), Prüfungstimer (:4369-4374); `assets/build/app.css` (Scroll-Margins, physische Eigenschaften gezählt); `templates/app.php` (Kopf, `main`); `src/` per Suche nach `wp_date`, `_n`, `switch_to_*locale`, `determine_locale`, `wp_set_script_translations`, `gmdate`; `tests/e2e/*.mjs` per Suche nach Tastatur- und Reflow-Prüfungen.
 - Nicht geprüft: Laufzeitverhalten von LB mit Screenreader (keine Testumgebung), aktuelle Fassung der harmonisierten EN 301 549 zum Release-Zeitpunkt.

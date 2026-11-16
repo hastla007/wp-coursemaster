@@ -22,7 +22,7 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 | D-25-06, -07, -08, -10 | Technisch festgelegt (ENTSCHEIDUNGEN §24): Grenze zu Übersetzungsplugins nur dokumentieren mit Systemstatus-Hinweis; Varianten-Fallback `de_AT` → `de_DE`; Haltemodus bei erzwungener Netzwerkaktivierung; Profilsprache für Angemeldete, Site-Sprache für Gäste | §2.3 Ü-4, §3.0, §1.2, §3.1 |
 | **E-196** | Keine Lizenzen kommerzieller Plugins | WPML-Koexistenz nur best effort; regelmäßig getestet wird Polylang (§2.3 Ü-4, LOC-028) |
 | E-25a | Bundle (ein Grant schaltet mehrere Kurse frei) in R1 Free | Mehrere Sprachversionen lassen sich schon in R1 über ein Bundle gemeinsam vergeben (§2.3 Ü-1) |
-| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen | `cc_course`, `_cc_translation_group`, `cc_`-Tabellen u. Ä. sind hier Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen | Bezeichner sind auf `ccap_` umgestellt (`ccap_course`, `_ccap_translation_group`, `ccap_`-Tabellen u. Ä.; E-285) |
 
 **Weitere zugrunde liegende Beschlüsse:**
 
@@ -45,7 +45,7 @@ Alle genannten Beschlüsse sind getroffen; die Abschnitte unten sind entsprechen
 1. **WordPress-Grenzen.** Eine Site hat eigene Tabellen (`$wpdb->prefix`), Optionen, Rollen (`{prefix}user_roles`), Cron (Option `cron`), Rewrite-Regeln und Uploads. Netzweit geteilt sind `wp_users` und `wp_usermeta`. Super-Admins bestehen auf jeder Site jede Capability außer `do_not_allow` (R0-07 §3).
 2. **LearnBoating** blockiert die Netzwerkaktivierung (`Plugin.php:75-79`, `activate(bool $networkWide)` → `wp_die`), lehnt den Netzwerk-Admin ab (`Infrastructure/Requirements.php:41`, INV-C-058), ergänzt `wpmu_drop_tables` um die eigenen Tabellen in umgekehrter Abhängigkeitsreihenfolge (`Plugin.php:160`, `dropTablesOnSiteDelete`, INV-C-007), findet Tabellen gelöschter Sites (`Plugin.php:176`, `orphanSiteTables`, INV-C-008; Begründung im Code: WP löscht sie nur, wenn das Plugin in der Lösch-Anfrage geladen ist), deinstalliert je Site mit `switch_to_blog` (INV-C-024), löscht Lerndaten bei netzweiter Kontolöschung auf allen Sites mit Tabellen (INV-C-148/-159) und hat `cleanup-sites [--apply]` (INV-C-173) samt Multisite-Integrationstest (INV-C-192). Super-Admins sind vor automatischer Kontolöschung geschützt (`Privacy/AccountDeletion.php:80`).
 3. **LearnBoating-Sprache:** Inhalte tragen `language varchar(10) 'de-DE'` (Kurs, Frage; Inventur C §Schema), die App bekommt `locale` aus `determine_locale()` (`Frontend/Router.php:190`), es gibt keinen Wechsel in die Empfängersprache bei Mails außer einer Stelle (`WithdrawalTexts.php:111`) und keine Sprachversionen von Kursen.
-4. **Course-Captain-Datenmodell (R0-06):** Kurs, Modul, Lektion sind CPTs (`cc_course`, `cc_module`, `cc_lesson`); Fragen, Prüfungsregeln, Versuche, Fortschritt, Grants und Zertifikate liegen in eigenen `cc_`-Tabellen. Übersetzungsplugins kennen die Tabellen nicht.
+4. **Course-Captain-Datenmodell (R0-06):** Kurs, Modul, Lektion sind CPTs (`ccap_course`, `ccap_module`, `ccap_lesson`); Fragen, Prüfungsregeln, Versuche, Fortschritt, Grants und Zertifikate liegen in eigenen `ccap_`-Tabellen. Übersetzungsplugins kennen die Tabellen nicht.
 5. **Offene Fragen:** R0-15 §4 übergibt Ü-1…Ü-7; R0-06 D-3 und Inventur C E-C-01 übergeben den Multisite-Umfang; Konzept Kap. 17 nennt „Mandanten“ ohne Definition; Konzept Kap. 21 verlangt eine „Modellentscheidung“ vor Kurs-Sprachvarianten.
 
 ---
@@ -64,17 +64,17 @@ Alle genannten Beschlüsse sind getroffen; die Abschnitte unten sind entsprechen
 | MS-R-01 | **Netzwerkaktivierung blockiert:** `activate( $network_wide = true )` bricht mit verständlicher Meldung ab, **bevor** Optionen, Caps, Tabellen, Cron oder Rewrite-Regeln geschrieben werden (auch über WP-CLI `--network`). Im Netzwerk-Admin wird der Aktionslink „Netzwerkweit aktivieren“ über `network_admin_plugin_action_links_{plugin}` entfernt. | `Plugin.php:77-79` | R1-01 |
 | MS-R-02 | **Erzwungene Netzwerkaktivierung** (Eintrag in `active_sitewide_plugins` direkt in der DB oder per Code): Das Plugin bootet im **Haltemodus** – keine Frontend-/REST-Routen, keine Migration, kein Cron; Hinweis im Netzwerk-Admin und auf jeder Site für Admins (→ D-25-08). | – (neu) | R1-01 |
 | MS-R-03 | Kein Course-Captain-Menü im Netzwerk-Admin; `is_network_admin()` lädt keine Admin-Screens. | `Requirements.php:41` | R1-01 |
-| MS-R-04 | **Je Site:** Tabellen `{$wpdb->prefix}cc_*`, Optionen, Locks, Schema-Version, Site-Identität (R0-16), Rewrite-Regeln, privater Ordner `<privat>/sites/<blog_id>/…` (Hauptsite ohne Unterordner, wie WP-Uploads), Capabilities an den Rollen **dieser** Site, Cron-Ereignisse in der Cron-Option **dieser** Site. | `Plugin.php` (Prefix), INV-C-004 | R1-01, R1-02 |
+| MS-R-04 | **Je Site:** Tabellen `{$wpdb->prefix}ccap_*`, Optionen, Locks, Schema-Version, Site-Identität (R0-16), Rewrite-Regeln, privater Ordner `<privat>/sites/<blog_id>/…` (Hauptsite ohne Unterordner, wie WP-Uploads), Capabilities an den Rollen **dieser** Site, Cron-Ereignisse in der Cron-Option **dieser** Site. | `Plugin.php` (Prefix), INV-C-004 | R1-01, R1-02 |
 | MS-R-05 | **Nutzerbezogene Werte** (Einstellungen der Lernenden, Hinweis-Quittungen, Onboarding-Status) MÜSSEN per `update_user_option()`/`get_user_option()` (Schlüssel mit Site-Präfix) gespeichert werden, **nie** per `update_user_meta()` mit festem Schlüssel. Einzige Ausnahme ist die WP-Profilsprache `locale` (WP-Kern, netzweit). | – (neu; LB nutzt teils feste Meta-Schlüssel) | R1-02, R1-03 |
 | MS-R-06 | Objekt-Cache nur in nicht-globalen Gruppen (WP trennt sie je Blog); PolicyService-Memo und Repository-Memos werden bei `switch_blog` verworfen (R0-07 §3). | – | R1-03, R1-25 |
 | MS-R-07 | `switch_to_blog()` nur in: Uninstall, netzweiter Kontolöschung, `cleanup-sites`, Orphan-Diagnose. Nie im normalen Request-Pfad. Jeder Wechsel endet in `finally` mit `restore_current_blog()`. | INV-C-024, -159 | R1-17, R1-23 |
 | MS-R-08 | **Upgrade lazy je Site** (R0-06 §6.6): Der Schema-Trigger läuft beim ersten Request der Site; CLI-Schleife über `wp site list` (R0-37). | – | R1-02, R1-40 |
 | MS-R-09 | **Neue Site im Netzwerk:** Da nur je Site aktiviert wird, passiert beim Anlegen nichts. Wird auf der neuen Site aktiviert, läuft die vollständige Aktivierung wie bei Single-Site. | – | R1-01 |
 | MS-R-10 | **Deaktivierung je Site** entfernt nur Cron-Ereignisse und Rewrite-Regeln dieser Site, keine Daten. | INV-C-004 | R1-01 |
-| MS-R-11 | **Site-Löschung räumt auf:** Filter `wpmu_drop_tables` ergänzt alle `cc_`-Tabellen der gelöschten Site (Präfix über `get_blog_prefix( $site_id )`) in umgekehrter Abhängigkeitsreihenfolge; Aktion `wp_uninitialize_site` löscht den privaten Ordner der Site. Läuft die Löschung ohne geladenes Plugin, findet die Diagnose (Health, A-16) Tabellen **und** private Ordner ohne Site; `wp course-captain cleanup-sites` zeigt sie (Trockenlauf) und löscht erst mit `--apply`. | `Plugin.php:160`, `:176`; INV-C-173 | R1-17, R1-38 |
+| MS-R-11 | **Site-Löschung räumt auf:** Filter `wpmu_drop_tables` ergänzt alle `ccap_`-Tabellen der gelöschten Site (Präfix über `get_blog_prefix( $site_id )`) in umgekehrter Abhängigkeitsreihenfolge; Aktion `wp_uninitialize_site` löscht den privaten Ordner der Site. Läuft die Löschung ohne geladenes Plugin, findet die Diagnose (Health, A-16) Tabellen **und** private Ordner ohne Site; `wp course-captain cleanup-sites` zeigt sie (Trockenlauf) und löscht erst mit `--apply`. | `Plugin.php:160`, `:176`; INV-C-173 | R1-17, R1-38 |
 | MS-R-12 | **Site archiviert / als Spam / deaktiviert markiert:** keine Datenänderung; Cron läuft dort ohnehin nicht. Nach Reaktivierung arbeitet die Site normal weiter (abgelaufene Fristen werden beim nächsten Lauf nachgezogen, R0-08). | – | R1-17 |
-| MS-R-13 | **Uninstall** (im Netzwerk einmal ausgelöst): Schleife über Sites mit `cc_`-Tabellen; Daten nur dort löschen, wo die Site `delete_data_on_uninstall` gesetzt hat; netzweite Nutzer-Meta nur, wenn **keine** Site ihre Daten behält (INV-C-024, R0-16, REC-019). | INV-C-024 | R1-23 |
-| MS-R-14 | **Nutzer und Site:** Konto ohne Rolle auf der Site (`remove_user_from_blog`) oder netzweit `spam`/`deleted` = gesperrter Nutzer (R0-07 §3: Lern-Caps verweigert, Grants unverändert, Daten bleiben). Netzweite Kontolöschung (`wpmu_delete_user`) startet den Eraser auf **allen** Sites mit `cc_`-Tabellen, auch wo das Plugin deaktiviert ist (INV-C-148/-159). Entfernen aus einer Site allein löscht keine Lerndaten. | INV-C-148, -154, -159 | R1-17, R1-34 |
+| MS-R-13 | **Uninstall** (im Netzwerk einmal ausgelöst): Schleife über Sites mit `ccap_`-Tabellen; Daten nur dort löschen, wo die Site `delete_data_on_uninstall` gesetzt hat; netzweite Nutzer-Meta nur, wenn **keine** Site ihre Daten behält (INV-C-024, R0-16, REC-019). | INV-C-024 | R1-23 |
+| MS-R-14 | **Nutzer und Site:** Konto ohne Rolle auf der Site (`remove_user_from_blog`) oder netzweit `spam`/`deleted` = gesperrter Nutzer (R0-07 §3: Lern-Caps verweigert, Grants unverändert, Daten bleiben). Netzweite Kontolöschung (`wpmu_delete_user`) startet den Eraser auf **allen** Sites mit `ccap_`-Tabellen, auch wo das Plugin deaktiviert ist (INV-C-148/-159). Entfernen aus einer Site allein löscht keine Lerndaten. | INV-C-148, -154, -159 | R1-17, R1-34 |
 | MS-R-15 | **Restore einer Site** lässt andere Sites unverändert; Locks und Site-Identität sind je Site (REC-024). | – | R1-23 |
 
 ### 1.3 Ausdrücklich **nicht** unterstützt (R1, kein Bug, kein Support)
@@ -115,19 +115,19 @@ Alle genannten Beschlüsse sind getroffen; die Abschnitte unten sind entsprechen
 
 | Objekt | Feld | Standard | Vererbung |
 |---|---|---|---|
-| Kurs `cc_course` | Meta `_cc_language` | Site-Sprache bei Anlage | – |
-| Modul `cc_module` | – | – | erbt vom Kurs (Module sind Struktur, kein eigener Text mit Sprache) |
-| Lektion `cc_lesson` | Meta `_cc_language` **optional** | leer = Kurssprache | Abschnitte darin über Block-Attribut `lang` des Editors (WP-Standard) |
-| Frage `cc_question` | Spalte `language` (R0-06) | Kurssprache des Ziel-Pools bei Anlage, sonst Site-Sprache | Antworten, Erklärung, Feedback erben von der Frage |
+| Kurs `ccap_course` | Meta `_ccap_language` | Site-Sprache bei Anlage | – |
+| Modul `ccap_module` | – | – | erbt vom Kurs (Module sind Struktur, kein eigener Text mit Sprache) |
+| Lektion `ccap_lesson` | Meta `_ccap_language` **optional** | leer = Kurssprache | Abschnitte darin über Block-Attribut `lang` des Editors (WP-Standard) |
+| Frage `ccap_question` | Spalte `language` (R0-06) | Kurssprache des Ziel-Pools bei Anlage, sonst Site-Sprache | Antworten, Erklärung, Feedback erben von der Frage |
 | Zertifikat | `snapshot.content_language`, `snapshot.locale` | §3.3 | eingefroren |
 | Mailvorlage | Schlüssel `locale` je Variante | §3.2 | – |
 
-- Kursrevision (`cc_course_revision.structure`) enthält `language` und je Lektion die effektive Sprache; eine Sprachänderung am veröffentlichten Kurs erzeugt eine neue Revision, laufende Versuche behalten ihren Snapshot (R0-23).
+- Kursrevision (`ccap_course_revision.structure`) enthält `language` und je Lektion die effektive Sprache; eine Sprachänderung am veröffentlichten Kurs erzeugt eine neue Revision, laufende Versuche behalten ihren Snapshot (R0-23).
 
 ### 2.3 Antworten auf R0-15 Ü-1…Ü-7
 
 **Ü-1 Sprachversionen eines Kurses → eigener Kurs je Sprache, verknüpft (Option A, beschlossen E-155).**
-- Jede Sprachversion ist ein vollständiger, eigenständiger `cc_course` mit eigenen Modulen, Lektionen, Fragen, Prüfungsregeln, Revisionen. Verknüpfung über Meta `_cc_translation_group` (UUID v4, gleich für alle Versionen) – keine eigene Tabelle.
+- Jede Sprachversion ist ein vollständiger, eigenständiger `ccap_course` mit eigenen Modulen, Lektionen, Fragen, Prüfungsregeln, Revisionen. Verknüpfung über Meta `_ccap_translation_group` (UUID v4, gleich für alle Versionen) – keine eigene Tabelle.
 - **MUSS:** je Gruppe höchstens ein Kurs je Inhaltssprache (Publish-Validator blockiert Duplikat → neue Regel VAL-0xx in R0-22, „In dieser Sprachgruppe gibt es schon einen Kurs auf {Sprache}.“). Prüfung unter dem Kurs-Lock beim Verknüpfen und beim Veröffentlichen.
 - Admin A-04 (Kurs bearbeiten › Metadaten): „Sprachversionen“ mit Liste der verknüpften Kurse, Aktionen „Mit bestehendem Kurs verknüpfen“, „Als neue Sprachversion kopieren“ (Kopie aller Strukturen als Entwurf, Inhaltssprache neu gesetzt, Fragen kopiert mit neuer `uid` und Quelle `local`), „Verknüpfung lösen“.
 - **Fortschritt, Mastery, Grants, Zertifikate sind je Kurs.** Kein automatischer Übertrag zwischen Sprachversionen in R1 (E-156): ein Grant gilt für genau einen Kurs bzw. die Kurse eines Bundles (R0-09, E-25a); Mastery hängt an `question_id`, und die Fragen der Versionen sind verschiedene Datensätze; ein Zertifikat nennt genau einen Kurs. Ein Wechsel der Sprachversion durch Lernende ist in R1 ein zusätzlicher Grant durch Berechtigte, auch als Sammelvergabe durch den Kursmanager (E-156). Mehrere Sprachversionen in einem Zugangsprodukt sind über ein Bundle schon in R1 Free möglich (E-25a; bisher „R2“).
@@ -136,7 +136,7 @@ Alle genannten Beschlüsse sind getroffen; die Abschnitte unten sind entsprechen
 
 **Ü-2 Gemischte Sprachen → zulässig, gekennzeichnet, gewarnt (beschlossen E-157).**
 - Ein Kurs darf Lektionen und Fragen in anderen Sprachen enthalten (Sprachkurse, Fachbegriffe, internationale Prüfungen). Jede abweichende Einheit bekommt `lang`/`dir` am Container (R0-15 §4 Punkt 2, A11Y-032).
-- Publish-Validator: weicht die Sprache einer Frage/Lektion von der Kurssprache ab, **Warnung** (nicht blockierend) „{n} Fragen sind auf {Sprache}, der Kurs auf {Kurssprache}.“ – unterdrückt, wenn am Kurs „Mehrsprachiger Kurs“ (Meta `_cc_mixed_language = 1`) gesetzt ist.
+- Publish-Validator: weicht die Sprache einer Frage/Lektion von der Kurssprache ab, **Warnung** (nicht blockierend) „{n} Fragen sind auf {Sprache}, der Kurs auf {Kurssprache}.“ – unterdrückt, wenn am Kurs „Mehrsprachiger Kurs“ (Meta `_ccap_mixed_language = 1`) gesetzt ist.
 - Prüfungs-Blueprint: **kein Sprachfilter in R1**; der Blueprint zieht aus den Modulpools wie gehabt. Wer einsprachige Prüfungen will, hält einsprachige Pools (Sprachversion = eigener Kurs, Ü-1). Snapshot speichert je Frage die Sprache (aus der Revision), damit Auswertung und Nachweis reproduzierbar sind.
 
 **Ü-3 Fehlende Übersetzung einer Frage → kein Laufzeit-Fallback für Inhalte.**
@@ -147,15 +147,15 @@ Alle genannten Beschlüsse sind getroffen; die Abschnitte unten sind entsprechen
 
 | Bereich | Grenze R1 |
 |---|---|
-| CPTs `cc_course`, `cc_module`, `cc_lesson` | Course Captain registriert sie **nicht** als übersetzbar. Ein vom Plugin dupliziertes „Übersetzungs“-Post wäre fachlich ein **neuer Kurs** ohne Fragen, Prüfungsregeln, Revisionen, Grants (die liegen in `cc_`-Tabellen). Empfehlung: diese CPTs im Übersetzungsplugin auf „nicht übersetzen“ lassen; Sprachversionen über Ü-1 anlegen. |
-| `cc_`-Tabellen (Fragen, Regeln, Versuche, Zertifikate) | werden von keinem Übersetzungsplugin erfasst; **nicht unterstützt** |
+| CPTs `ccap_course`, `ccap_module`, `ccap_lesson` | Course Captain registriert sie **nicht** als übersetzbar. Ein vom Plugin dupliziertes „Übersetzungs“-Post wäre fachlich ein **neuer Kurs** ohne Fragen, Prüfungsregeln, Revisionen, Grants (die liegen in `ccap_`-Tabellen). Empfehlung: diese CPTs im Übersetzungsplugin auf „nicht übersetzen“ lassen; Sprachversionen über Ü-1 anlegen. |
+| `ccap_`-Tabellen (Fragen, Regeln, Versuche, Zertifikate) | werden von keinem Übersetzungsplugin erfasst; **nicht unterstützt** |
 | String-Übersetzung von Einstellungen/Mailvorlagen über Plugin-String-Übersetzer | nicht unterstützt; Mailvorlagen haben eigene Sprachvarianten (Ü-5) |
 | Seiten mit Course-Captain-Blöcken/Shortcodes (Katalog-, Kursdetailseite) | dürfen vom Plugin übersetzt werden; der Block rendert seine UI-Texte in der vom Plugin gesetzten Request-Sprache (`determine_locale()`), die Kursinhalte in ihrer Inhaltssprache |
 | Lernbereich (eigene Route) | nicht vom Plugin übersetzt; Sprache nach §3.1 (Profilsprache gewinnt, → D-25-10) |
 | URL-Präfixe (`/en/…`), `hreflang`, Sitemaps | Sache des Übersetzungs-/SEO-Plugins (Kap. 21). Course Captain gibt für Sprachversionen keine eigenen `hreflang`-Tags aus. |
 | TranslatePress (Ausgabe-Übersetzung per HTML-Ersetzung) | Lernbereich und REST-Antworten der Lern-App sind ausgenommen (Doku-Hinweis); Ersetzen von Prüfungstexten im Ausgabestrom verfälscht Snapshot-Treue und ist nicht unterstützt |
 | Testmatrix | R1-30 prüft Koexistenz (kein Fatal, keine doppelten Tags, Lernbereich in korrekter Sprache) mit Polylang je aktueller Version; WPML ist kommerziell und ohne Lizenz nur best effort (E-196, R0-20 KOMP-090); TranslatePress nur Smoke-Test. Kein Funktionsversprechen darüber hinaus. |
-| Systemstatus A-16 | Hinweis, wenn ein Übersetzungsplugin aktiv ist **und** einen `cc_`-CPT als übersetzbar führt (WPML-Einstellung bzw. Polylang `pll_is_translated_post_type`), mit Link zur Doku. Nur Lesen, keine Konfigurationsänderung. |
+| Systemstatus A-16 | Hinweis, wenn ein Übersetzungsplugin aktiv ist **und** einen `ccap_`-CPT als übersetzbar führt (WPML-Einstellung bzw. Polylang `pll_is_translated_post_type`), mit Link zur Doku. Nur Lesen, keine Konfigurationsänderung. |
 
 **Ü-5 Mehrsprachige Mail- und Zertifikatsvorlagen → Sprachvarianten je Vorlage (beschlossen E-159; Zertifikat E-158).**
 - Jede betreiberdefinierte Mailvorlage (R1-21) hat eine **Standardvariante** (Sprache = Site-Sprache bei Anlage) und KANN Varianten für weitere installierte Sprachen haben (Auswahl nur installierter Locales). Speicherung je Variante mit Schlüssel `(template_key, locale)`; Auflösung nach §3.2. → **Delta zu R0-06/R0-27** (Speicherort der Vorlagen mit Locale-Schlüssel).
@@ -228,7 +228,7 @@ Werkzeuge: PU = PHPUnit-Integration (WP-Testsuite), PU-MS = PHPUnit mit `WP_TEST
 
 | ID | Prüfung (Erwartung) | Werkzeug | Ziel-Task |
 |---|---|---|---|
-| LOC-001 | Kurs auf Site `de_DE` anlegen: `_cc_language = de-DE`; Frage im Pool des Kurses erbt `de-DE`; Lektion ohne eigene Sprache meldet effektive Sprache `de-DE` | PU | R1-04, R1-06 |
+| LOC-001 | Kurs auf Site `de_DE` anlegen: `_ccap_language = de-DE`; Frage im Pool des Kurses erbt `de-DE`; Lektion ohne eigene Sprache meldet effektive Sprache `de-DE` | PU | R1-04, R1-06 |
 | LOC-002 | Sprach-Tag-Validierung: `en`, `pt-BR`, `zh-Hant-TW`, `sr-Latn` gültig; `de_DE`, `deutsch`, `xx-`, leer ungültig; WP-Locale `de_DE_formal` wird zu `de-DE` normalisiert | PU (Unit `LanguageTag`) | R1-04 |
 | LOC-003 | `dir`-Ableitung: `ar`, `he-IL`, `fa`, `ur`, `ku-Arab` → `rtl`; `de-DE`, `sr-Latn` → `ltr` | PU | R1-19 |
 | LOC-004 | Englische Frage in deutschem Kurs auf deutscher UI: Fragecontainer, Antworten, Erklärung tragen `lang="en"`; Seite `lang="de-DE"`; axe ohne `valid-lang`-Verstoß | PW, AXE | R1-16, R1-19 |
@@ -236,7 +236,7 @@ Werkzeuge: PU = PHPUnit-Integration (WP-Testsuite), PU-MS = PHPUnit mit `WP_TEST
 | LOC-006 | Kurssprache nicht als WP-Sprache installiert (`en` auf reiner `de_DE`-Site): Publish erlaubt, kein Fehler | PU | R1-26 |
 | LOC-007 | Gemischter Kurs: 3 von 10 Fragen `en` in `de-DE`-Kurs → Validator-Warnung mit Zahl; mit „Mehrsprachiger Kurs“ keine Warnung; Publish in beiden Fällen möglich | PU, PW | R1-26 |
 | LOC-008 | Sprachgruppe: zwei Kurse `de-DE`/`en` verknüpfen ok; dritter Kurs `de-DE` in dieselbe Gruppe → Validator blockiert; parallele Verknüpfung zweier `de-DE`-Kurse (zwei Requests) → genau einer erfolgreich | PU (Parallelität mit Lock) | R1-04, R1-26 |
-| LOC-009 | „Als neue Sprachversion kopieren“: Kopie ist Entwurf, gleiche `_cc_translation_group`, neue Inhaltssprache, Fragen mit neuen `uid`, Original unverändert; Kopie ohne Übersetzung → Warnung „Fragen noch auf {Originalsprache}“ | PU | R1-04, R1-05 |
+| LOC-009 | „Als neue Sprachversion kopieren“: Kopie ist Entwurf, gleiche `_ccap_translation_group`, neue Inhaltssprache, Fragen mit neuen `uid`, Original unverändert; Kopie ohne Übersetzung → Warnung „Fragen noch auf {Originalsprache}“ | PU | R1-04, R1-05 |
 | LOC-010 | Fortschritt/Grant je Sprachversion: Grant auf DE-Version gibt **keinen** Zugriff auf EN-Version (403/`no_access`); Mastery und Zertifikat der DE-Version erscheinen nicht in der EN-Version | PU, PW | R1-10, R1-13 |
 | LOC-011 | Prüfungs-Snapshot enthält je Frage die Sprache; spätere Sprachänderung der Frage ändert Auswertung und Anzeige eines laufenden/abgeschlossenen Versuchs nicht | PU | R1-08, R1-27 |
 | LOC-012 | UI-Kette Lernbereich: Site `en_US`, Profil `de_DE`, Einstellung an → UI deutsch, `lang="de-DE"`; Einstellung aus → UI englisch; Profil `de_AT` ohne `de_AT`-Datei → deutsche Texte aus `de_DE`, `lang="de-DE"` (aufgelöste Locale) | PW | R1-19 |
@@ -254,7 +254,7 @@ Werkzeuge: PU = PHPUnit-Integration (WP-Testsuite), PU-MS = PHPUnit mit `WP_TEST
 | LOC-024 | Kursdetailseite: `inLanguage` = Kurssprache; Course Captain gibt keine `hreflang`-Links aus | PU (HTML-Parse) | R1-37 |
 | LOC-025 | Import: Paket mit `de-DE`- und `en`-Kurs gleicher `translation_group` → zwei verknüpfte Kurse; Entität ohne `language` → Manifest-Sprache; ohne beides → Dry-run-Fehler; Kollision mit bestehender Gruppe → Konflikt; nicht installierte Sprache → Hinweis | PU | R1-15 |
 | LOC-026 | Export/Import-Rundlauf erhält `language` je Frage/Lektion und `translation_group` | PU (Golden Master) | R1-15, R1-18 |
-| LOC-027 | Systemstatus: WPML/Polylang aktiv und `cc_course` als übersetzbar eingestellt → Hinweis; nicht übersetzbar → kein Hinweis; Course Captain ändert die Plugin-Einstellung nicht | PU (Plugin-Stub), MAN | R1-38, R1-30 |
+| LOC-027 | Systemstatus: WPML/Polylang aktiv und `ccap_course` als übersetzbar eingestellt → Hinweis; nicht übersetzbar → kein Hinweis; Course Captain ändert die Plugin-Einstellung nicht | PU (Plugin-Stub), MAN | R1-38, R1-30 |
 | LOC-028 | Koexistenz Polylang (aktuelle Version; WPML nur best effort ohne regelmäßigen Lauf, E-196): Aktivierung beider Reihenfolgen ohne Fatal/Notice, keine doppelten Meta-/JSON-LD-Tags, Lernbereich nach LOC-012/014 | PW, MAN | R1-30 |
 | LOC-029 | Fallback-Tabelle §3.0 für JS: Profil `de_AT`, nur `de_DE`-JSON vorhanden → übersetzte Strings in der Lern-App | PW | R1-19 |
 
@@ -266,16 +266,16 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 
 | ID | Prüfung (Erwartung) | Werkzeug | Ziel-Task |
 |---|---|---|---|
-| MS-001 | Netzwerkaktivierung über Netzwerk-Admin: abgebrochen mit Meldung; danach keine `cc_`-Tabellen, Optionen, Caps, Cron-Ereignisse, Rewrite-Regeln auf irgendeiner Site; Plugin nicht in `active_sitewide_plugins` | PU-MS | R1-01 |
+| MS-001 | Netzwerkaktivierung über Netzwerk-Admin: abgebrochen mit Meldung; danach keine `ccap_`-Tabellen, Optionen, Caps, Cron-Ereignisse, Rewrite-Regeln auf irgendeiner Site; Plugin nicht in `active_sitewide_plugins` | PU-MS | R1-01 |
 | MS-002 | `wp plugin activate course-captain --network` → Exit ≠ 0, gleicher Endzustand wie MS-001 | CLI | R1-01 |
 | MS-003 | Link „Netzwerkweit aktivieren“ fehlt in der Netzwerk-Pluginliste | PU-MS (Filter) | R1-01 |
 | MS-004 | Erzwungene Netzwerkaktivierung (DB-Eintrag): Haltemodus – keine Routen, keine Migration, kein Cron; Hinweis im Netzwerk-Admin; Entfernen des Eintrags hebt den Zustand ohne Datenverlust auf | PU-MS | R1-01 |
-| MS-005 | Aktivierung auf Site 2: Tabellen `wp_2_cc_*`, Caps nur an Rollen von Site 2, Cron-Ereignisse nur in Site-2-Cron; Site 1 unverändert | PU-MS | R1-01, R1-02 |
+| MS-005 | Aktivierung auf Site 2: Tabellen `wp_2_ccap_*`, Caps nur an Rollen von Site 2, Cron-Ereignisse nur in Site-2-Cron; Site 1 unverändert | PU-MS | R1-01, R1-02 |
 | MS-006 | Aktivierung auf Site 1 und 2: Kurs-ID von Site 2 auf Site 1 abrufen → 404 (RBAC-010); Batch-ID fremder Site → 404 (RBAC-078) | PU-MS | R1-03 |
 | MS-007 | Gleiches Konto auf beiden Sites: Grant, Fortschritt, Zertifikat auf Site 1 erscheinen nicht auf Site 2; Nutzereinstellungen (Lernmodus, Quittungen) liegen in `wp_2_…` bzw. `wp_…`-präfixierten User-Optionen, nicht in festen Meta-Schlüsseln | PU-MS | R1-02, R1-10 |
 | MS-008 | Statischer Check: kein `update_user_meta`/`get_user_meta` mit Course-Captain-Schlüssel außerhalb einer Ausnahmeliste (MS-R-05) | Prüfskript in CI | R1-02 |
 | MS-009 | `switch_to_blog` in Uninstall/Eraser: Policy-Memo und Repository-Caches nach Wechsel leer; nach Exception ist `get_current_blog_id()` wieder die Ausgangs-Site | PU-MS | R1-03, R1-17 |
-| MS-010 | Site-Löschung mit geladenem Plugin: alle `wp_N_cc_*` gelöscht (abhängige zuerst, keine FK-Fehler), privater Ordner `sites/N` gelöscht; andere Sites unverändert | PU-MS | R1-17 |
+| MS-010 | Site-Löschung mit geladenem Plugin: alle `wp_N_ccap_*` gelöscht (abhängige zuerst, keine FK-Fehler), privater Ordner `sites/N` gelöscht; andere Sites unverändert | PU-MS | R1-17 |
 | MS-011 | Site-Löschung ohne geladenes Plugin (Plugin auf der Lösch-Anfrage nicht aktiv): Diagnose meldet verwaiste Tabellen und Ordner; `cleanup-sites` Trockenlauf listet sie ohne Löschung, `--apply` löscht nur diese; Hauptsite und bestehende Sites nie betroffen | PU-MS, CLI | R1-17, R1-38 |
 | MS-012 | Neue Site anlegen, während Plugin auf Site 1 aktiv: keine Tabellen/Cron auf der neuen Site | PU-MS | R1-01 |
 | MS-013 | Site archivieren/als Spam markieren und reaktivieren: Daten unverändert; nachgezogene Fristabläufe beim nächsten Cron-Lauf | PU-MS | R1-17 |
@@ -283,7 +283,7 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 | MS-015 | Uninstall im Netzwerk: Site 1 mit `delete_data_on_uninstall`, Site 2 ohne → nur Site 1 leer; globale Nutzer-Meta bleibt, weil Site 2 Daten behält | PU-MS | R1-23 |
 | MS-016 | Konto aus Site 2 entfernen: Lernzugriff auf Site 2 verweigert (gesperrter Nutzer), Grants und Daten unverändert; Site 1 unbeeinflusst | PU-MS | R1-03, R1-17 |
 | MS-017 | Konto netzweit als Spam markieren: auf allen Sites gesperrt (R0-07 §3 (c)), keine Datenänderung | PU-MS | R1-03 |
-| MS-018 | Netzweite Kontolöschung: Eraser läuft auf allen Sites mit `cc_`-Tabellen, auch auf Site mit deaktiviertem Plugin; Audit-Pseudonym je Site | PU-MS | R1-17, R1-34 |
+| MS-018 | Netzweite Kontolöschung: Eraser läuft auf allen Sites mit `ccap_`-Tabellen, auch auf Site mit deaktiviertem Plugin; Audit-Pseudonym je Site | PU-MS | R1-17, R1-34 |
 | MS-019 | Super-Admin ohne Mitgliedschaft auf Site 2: darf dort administrieren wie Admin (WP-Pass-through); Selbstbewertung und Selbstsperre verweigert (`do_not_allow`); Audit-Eintrag mit `actor_is_super_admin`; kein Course-Captain-Screen im Netzwerk-Admin; automatische Kontolöschung nicht anwendbar | PU-MS | R1-03, R1-17 |
 | MS-020 | Upgrade lazy: neue Schema-Version → Site 1 migriert beim ersten Request, Site 2 erst bei ihrem; gleichzeitige Requests auf zwei Sites blockieren sich nicht (Lock je Site) | PU-MS | R1-40 |
 | MS-021 | Restore Site 2 aus Backup: Site 1 unverändert, Site-Identität und Locks je Site (= REC-024) | MAN, PU-MS | R1-23 |
@@ -301,8 +301,8 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 | A3 | Netzweite Lernidentität (eine Lernhistorie über Sites) | widerspricht Site-Bindung von Grants (35.2) und Datenschutz je Site; erst mit Cross-Site-Identität R4. **Verworfen für R1**. |
 | A4 | Mandanten in einer Site (`tenant_id`) | §1.4. **Verworfen für R1.** |
 | B1 | **Eigener Kurs je Sprache, verknüpft** | gewählt: passt zu CPT-Modell, Revisionen, Snapshots, Grants (alles je Kurs); jede Version kann unabhängig veröffentlicht, korrigiert und geprüft werden; Fragenpools je Sprache halten Prüfungen sprachrein; keine Änderung an Bewertung und Mastery. Nachteil: Struktur- und Fragenänderungen müssen je Version gepflegt werden (Kopierhilfe, aber kein Sync). |
-| B2 | **Übersetzungsfelder** (ein Kurs; Titel, Lektionen, Fragen, Antworten je Sprache) | ein Fortschritt über Sprachen möglich, aber: jede Frage/Antwort/Erklärung bräuchte Sprachvarianten in `cc_question_revision`, der Snapshot müsste die Sprache je Versuch fixieren, Bewertung bei teilweise fehlender Übersetzung wäre unklar (Ü-3), Block-Editor kennt keine Feldvarianten je Sprache, Revision/Publish-Validator müssten Vollständigkeit je Sprache prüfen, Import-/Golden-Master-Format ändert sich. Hoher R1-Aufwand ohne LB-Beleg. **Verworfen für R1**, R4-Kandidat. |
-| B3 | Sprachversionen nur über WPML/Polylang | erfasst `cc_`-Tabellen nicht (Ü-4), erzeugt Kurse ohne Fragen/Regeln. **Verworfen.** |
+| B2 | **Übersetzungsfelder** (ein Kurs; Titel, Lektionen, Fragen, Antworten je Sprache) | ein Fortschritt über Sprachen möglich, aber: jede Frage/Antwort/Erklärung bräuchte Sprachvarianten in `ccap_question_revision`, der Snapshot müsste die Sprache je Versuch fixieren, Bewertung bei teilweise fehlender Übersetzung wäre unklar (Ü-3), Block-Editor kennt keine Feldvarianten je Sprache, Revision/Publish-Validator müssten Vollständigkeit je Sprache prüfen, Import-/Golden-Master-Format ändert sich. Hoher R1-Aufwand ohne LB-Beleg. **Verworfen für R1**, R4-Kandidat. |
+| B3 | Sprachversionen nur über WPML/Polylang | erfasst `ccap_`-Tabellen nicht (Ü-4), erzeugt Kurse ohne Fragen/Regeln. **Verworfen.** |
 | B4 | Inhaltssprache als WP-Locale (`de_DE`) statt BCP 47 | koppelt Inhalt an installierte Sprachpakete; `lang`-Attribut und Paketformat (R0-10, LB `de-DE`) brauchen BCP 47 ohnehin. **Verworfen.** |
 | C1 | UI immer nur Site-Sprache (LB-Verhalten) | widerspricht E-124 und I18N-R-30. **Verworfen.** |
 | C2 | Kein Varianten-Fallback (`de_AT` → Quelltexte) | österreichische/schweizerische Nutzer sähen Englisch, obwohl Deutsch vorliegt. **Verworfen** (D-25-07). |
@@ -313,7 +313,7 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 ## 6. Konsequenzen
 
 **Positiv**
-- Keine Schemaänderung für Sprachversionen: zwei Meta-Felder (`_cc_translation_group`, `_cc_mixed_language`) und eine optionale Lektion-Meta; Fragen haben `language` bereits (R0-06).
+- Keine Schemaänderung für Sprachversionen: zwei Meta-Felder (`_ccap_translation_group`, `_ccap_mixed_language`) und eine optionale Lektion-Meta; Fragen haben `language` bereits (R0-06).
 - Bewertung, Snapshots, Grants und Mastery bleiben je Kurs eindeutig; keine sprachabhängigen Sonderfälle in R0-08/R0-09.
 - Multisite-Datenhygiene (Site-Löschung, Orphans, Uninstall, Kontolöschung) wie LB, zusätzlich private Ordner und User-Optionen je Site.
 - Spätere Netzwerkaktivierung oder Übersetzungsfelder bleiben ohne Datenmigration der bestehenden Kurse möglich.
@@ -328,7 +328,7 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 
 | Dokument | Delta |
 |---|---|
-| R0-06 | Kurs-Meta `_cc_language`, `_cc_translation_group`, `_cc_mixed_language`; Lektion-Meta `_cc_language` (optional); Revisionsstruktur mit effektiver Sprache je Lektion; Mailvorlagen mit Schlüssel `(template_key, locale)`; Outbox `locale_requested`/`locale_resolved`; Zertifikats-Snapshot `content_language`, `locale`; §6.6 um MS-R-04 (privater Ordner je Site) und MS-R-05 (User-Optionen) ergänzen |
+| R0-06 | Kurs-Meta `_ccap_language`, `_ccap_translation_group`, `_ccap_mixed_language`; Lektion-Meta `_ccap_language` (optional); Revisionsstruktur mit effektiver Sprache je Lektion; Mailvorlagen mit Schlüssel `(template_key, locale)`; Outbox `locale_requested`/`locale_resolved`; Zertifikats-Snapshot `content_language`, `locale`; §6.6 um MS-R-04 (privater Ordner je Site) und MS-R-05 (User-Optionen) ergänzen |
 | R0-07 | Audit-Feld `actor_is_super_admin`; NS-05 als Regel; MS-016/-017 ergänzen RBAC-Negativfälle |
 | R0-08 §7.2 | Zertifikats-Locale nach §3.3; Snapshot je Frage mit Sprache |
 | R0-10 | optionales Kursfeld `translation_group` (UUID); Regel „ohne `language` und ohne Manifest-Sprache → Fehler“; nicht installierte Sprache → Hinweis |
@@ -366,6 +366,6 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §24, 16.11.2026). Zugrunde li
 
 ## 8. Nachweis dieser Arbeit
 
-- Gelesen: TODO R0-25 (und R1-Tasks als Zielzuordnung); Konzept Kap. 17, 21; R0-15 §0.1, §3, §4, §6; R0-06 §2–3 (CPT/Tabellen), `cc_question`, `cc_certificate`, §6.6, D-3; R0-07 §3 (Site, Super-Admin, gesperrter Nutzer), RBAC-010/-032/-078; R0-16 (Site-Identität, Uninstall, REC-019/-024); Inventur C (INV-C-004/-007/-008/-024/-058/-148/-153/-154/-157/-159/-173/-192, Schema `course`/`question`, E-C-01); R0-10 (Manifest `languages`, Gemeinsame Felder); R0-08 §7.2 (Verweis); R0-22 VAL-002; `ENTSCHEIDUNGEN.md` E-07, E-43, E-49, E-121…E-127.
+- Gelesen: TODO R0-25 (und R1-Tasks als Zielzuordnung); Konzept Kap. 17, 21; R0-15 §0.1, §3, §4, §6; R0-06 §2–3 (CPT/Tabellen), `ccap_question`, `ccap_certificate`, §6.6, D-3; R0-07 §3 (Site, Super-Admin, gesperrter Nutzer), RBAC-010/-032/-078; R0-16 (Site-Identität, Uninstall, REC-019/-024); Inventur C (INV-C-004/-007/-008/-024/-058/-148/-153/-154/-157/-159/-173/-192, Schema `course`/`question`, E-C-01); R0-10 (Manifest `languages`, Gemeinsame Felder); R0-08 §7.2 (Verweis); R0-22 VAL-002; `ENTSCHEIDUNGEN.md` E-07, E-43, E-49, E-121…E-127.
 - LB gelesen (@ `9f37c77`): `src/Plugin.php` (`activate`, `dropTablesOnSiteDelete`, `orphanSiteTables`); per Suche `is_network_admin`, `is_super_admin`, `switch_to_locale`, `determine_locale`, `wp_initialize_site` in `src/` (Treffer: `Requirements.php:41`, `AccountDeletion.php:80`, `Router.php:190`, `WithdrawalTexts.php:111`; kein `wp_initialize_site`/`wp_uninitialize_site`).
 - Nicht geprüft: Laufzeitverhalten mit WPML/Polylang/TranslatePress (keine Testumgebung); genaues Verhalten von `activate_plugin()` bei `wp_die` in der aktuellen WP-Version (MS-001/-002 belegen es in R1).

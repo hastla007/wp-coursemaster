@@ -271,10 +271,10 @@ STRIDE je Komponente (S = Spoofing, T = Tampering, R = Repudiation, I = Informat
 | T-65 | K17 | D/T | **Doppelsperren/Konflikte** mit Security-Plugins | Modus `auto` zieht sich bei erkanntem Plugin zurück (E-240); Konfliktmatrix R0-20 Pflicht (E-10) | SEC-050 | R1-45, R1-30 |
 | T-66 | K17 | I | User-Enumeration über Reset-Antwort | gleiche Bestätigung für unbekannte Konten (R0-31 §3.4); weiterer Enumeration-Schutz nicht in R1 (E-241/E-261) | SEC-048 | R1-45 |
 | T-67 | K17 | E | Härtung unbemerkt aktiv bzw. inaktiv | Default aus bis Admin-Bestätigung (E-260), Zustand je Funktion im Systemstatus (R0-13 H-38), `off`/`force` nur mit Bestätigung und Audit | SEC-051 | R1-45, R1-32 |
-| T-68 | K18 Aufgaben-Abgaben (E-168) | E/T | **Schadhafte Datei** (Polyglot, `x.php.pdf`, SVG/HTML mit Skript) | Allowlist + innere Endung + `finfo`, Ablage `protected` außerhalb Webroot, Auslieferung mit `nosniff`, `CSP: sandbox`, `attachment` (R0-10 §4.5) | SEC-052 | R1 (Aufgaben), R1-14 |
+| T-68 | K18 Aufgaben-Abgaben (E-168) | E/T | **Schadhafte Datei** (Polyglot, `x.php.pdf`, SVG/HTML mit Skript) | Allowlist + innere Endung + `finfo`, Ablage `protected` außerhalb Webroot, Auslieferung mit `nosniff`, `CSP: sandbox`, `attachment` (R0-10 §4.5) | SEC-052 | R1-46, R1-14 |
 | T-69 | K18 | I | **IDOR** auf fremde Abgaben | Policy je Objekt: nur Abgebende und Bewertende, 404 ohne Existenzauskunft (P-08) | SEC-053 | R1-14 |
-| T-70 | K18 | D | Speicherfüllung durch viele/große Uploads | Größenlimit, Rate-Limit je Nutzer und Aufgabe, Upload nur im Entwurf | SEC-054 | R1 (Aufgaben) |
-| T-71 | K18 | R | Bewertung oder Abgabezeitpunkt bestritten | Zustände `draft/submitted/returned/graded` mit Zeitstempel und Audit, Datei-Hash bei Abgabe | SEC-055 | R1 (Aufgaben) |
+| T-70 | K18 | D | Speicherfüllung durch viele/große Uploads | Größenlimit, Rate-Limit je Nutzer und Aufgabe, Upload nur im Entwurf | SEC-054 | R1-46 |
+| T-71 | K18 | R | Bewertung oder Abgabezeitpunkt bestritten | Zustände `draft/submitted/returned/graded` mit Zeitstempel und Audit, Datei-Hash bei Abgabe | SEC-055 | R1-46 |
 
 **Hinweis zu E-10 (überholt und ersetzt):** Nach dem Beschluss E-10 gehört die Website-Härtung **in den Free-Kern** (Task R1-45, E-239). Fail-closed nach E-46 gilt damit im Free-Kern für Login, Passwort-Reset und Registrierung ebenso wie für Claim, Einlösen, Einladungen und Datenschutzanträge (Komponente K17, §3.4). Bis der Admin im Assistenten oder im Tab „Website-Härtung“ bestätigt, ist alles aus (E-260); danach gilt je Funktion `auto` (E-240). Die Betreiberdoku empfiehlt zusätzlich Zwei-Faktor für Konten mit `ccap_*`-Verwaltungsrechten (Verhalten nach LB `sicherheit-entscheidungen.md` §3).
 
@@ -553,7 +553,7 @@ Art: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (R0-14 L5), E = 
 | SEC-031 | I | Paket mit externer Medien-URL; Netzwerk-Mitschnitt des Servers | kein ausgehender Abruf | R1-15 | MED-026 |
 | SEC-032 | E | Geschütztes Medium mit aktivem Seiten-Cache-Plugin und Reverse-Proxy (Staging-Compose); zweiter Nutzer ohne Grant | keine Auslieferung aus dem Cache; Header `private, no-store` | R1-14, R1-30 | T-24 |
 | SEC-033 | I | `/wp/v2/media`, Feeds, Sitemaps, oEmbed, `og:image`, Suchergebnisse für geschützte Medien und Lösungen | keine URL, kein Pfad | R1-14, R1-37 | AC-14 |
-| SEC-034 | I | Verifikation: unbekannter Token, widerrufenes Zertifikat, Statuswechsel mit vorherigem Abruf, 31. Abruf/min, Name ohne Opt-in | „nicht gefunden“ ohne Hinweise; `revoked` sofort; 429; kein Name; `noindex` | R1-35 | T-38…40 |
+| SEC-034 | I | Verifikation: unbekannter Token, widerrufenes Zertifikat, Statuswechsel mit vorherigem Abruf, 31. Abruf/min, Name ohne Opt-in | „nicht gefunden“ ohne Hinweise; `revoked` sofort; 429; kein Name; `noindex` | R1-35, R1-44 | T-38…40 |
 | SEC-035 | I | `/health?key=…` richtig; Header richtig; ohne Konstante | Query ignoriert; Header liefert Details; ohne Konstante nur Gesamtstatus | R1-38 | RBAC-094 |
 | SEC-036 | I | Secrets in Settings-Export, Site-Health-Info, Systemstatus, Logs | wie REC-022 | R1-23 | T-59 |
 | SEC-037 | I | Testplugin hängt an `course_captain_can_access` und gibt `true` für Nutzer ohne Grant | Zugriff verweigert | R1-03 | E-84 |
@@ -572,9 +572,9 @@ Art: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (R0-14 L5), E = 
 | SEC-050 | D | Security-Plugin aktiv (Liste R0-31 §3.4), Funktion `auto` | Härtungsfunktion zieht sich zurück, keine Doppelsperre | R1-45, R1-30 | T-65 |
 | SEC-051 | E | Frische Installation ohne Bestätigung; danach Bestätigung im Assistenten | vorher alle Funktionen aus; danach `auto`; Audit | R1-45, R1-32 | T-67, E-260 |
 | SEC-052 | E | Abgabe-Upload Polyglot, `a.php.pdf`, SVG, HTML | abgelehnt; erlaubte Datei nur mit `attachment`, `nosniff`, `sandbox` | R1-14 | T-68 |
-| SEC-053 | I | Abgabe einer anderen Person per ID/`media_uid` | 404 ohne Existenzauskunft | R1-14 | T-69 |
-| SEC-054 | D | Upload-Flut und Übergröße | Limit greift; nichts gespeichert | R1 (Aufgaben) | T-70 |
-| SEC-055 | R | Abgabe, Rückgabe, Bewertung | Zustandsfolge mit Zeitstempel, Datei-Hash, Audit | R1 (Aufgaben) | T-71 |
+| SEC-053 | I | Abgabe einer anderen Person per ID/`media_uid` | 404 ohne Existenzauskunft | R1-14, R1-46 | T-69 |
+| SEC-054 | D | Upload-Flut und Übergröße | Limit greift; nichts gespeichert | R1-46 | T-70 |
+| SEC-055 | R | Abgabe, Rückgabe, Bewertung | Zustandsfolge mit Zeitstempel, Datei-Hash, Audit | R1-46 | T-71 |
 
 ### 7.2 Datenschutz (PRIV)
 
@@ -602,9 +602,9 @@ Art: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (R0-14 L5), E = 
 | PRIV-020 | I | Manager öffnet fremde Versuchsdetails ohne/mit Begründung | ohne: abgewiesen; mit: Audit mit Grund | R1-03 | E-82 |
 | PRIV-021 | I | Mail-Inhalte (Einladung, Abschluss, Ergebnis, Zertifikat) | keine Punktzahl, kein Freitext, keine Antworten; Einladung nennt Absender, Zweck, Frist, Datenschutzlink | R1-21 | T-54 |
 | PRIV-022 | I | Logs/Diagnose nach komplettem E2E-Lauf durchsuchen | keine Klartext-E-Mail außer maskiert, keine Tokens, keine Antworten | R1-17, R1-38 | Konzept 20 |
-| PRIV-023 | I | Outbox-Payload und PHP-Read-API | nur UIDs/Status; keine E-Mail/Name | R1-28, R3-12 | T-50 |
+| PRIV-023 | I | Outbox-Payload und PHP-Read-API | nur UIDs/Status; keine E-Mail/Name | R1-43, R3-12 | T-50 |
 | PRIV-024 | I | `wp_add_privacy_policy_content` mit aktiven Modulen | Textbaustein nennt tatsächliche Speicherorte und Fristen aus den Settings | R1-17 | INV-D-044 |
-| PRIV-025 | I | Verifikation: Name-Opt-in setzen und zurücknehmen | Name erscheint bzw. verschwindet sofort, auch nach vorherigem Abruf | R1-35 | E-97 |
+| PRIV-025 | I | Verifikation: Name-Opt-in setzen und zurücknehmen | Name erscheint bzw. verschwindet sofort, auch nach vorherigem Abruf | R1-35, R1-44 | E-97 |
 | PRIV-026 | I | Uninstall mit Datenlöschung | wie REC-019; Journal-Ordner aus Konstante bleibt, Hinweis | R1-23 | REC-019 |
 | PRIV-027 | I | Rate-Limit-Tabelle nach Login-, Claim-, Antwortflut | nur Hashes, nach Fensterende gelöscht | R1-17 | T-62 |
 | PRIV-028 | I | Datenschutzanträge älter als 21 Tage | Dashboard-Warnung | R1-38 | §5.3 |

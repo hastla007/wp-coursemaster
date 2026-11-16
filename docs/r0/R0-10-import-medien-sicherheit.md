@@ -15,7 +15,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **E-03** | LB-Pakete nie im Core, höchstens separates Migrationswerkzeug (§1.7, IMP-004) |
 | **E-18** | Rechtestatus-Sperre in R1 Free, nur für importierte/fremde Inhalte (§2.2) |
 | **E-20**, E-95, E-147, E-268, E-269 | Erklärungstexte (`feedback_correct`, `feedback_incorrect`, `explanation_html`) werden auch in Free importiert, gespeichert und exportiert, aber nur mit Pro (`course.explanations`) ausgeliefert; Free zeigt richtig/falsch und nach Einstellung die richtige Antwort (§1.3, §4.3) |
-| **E-27** | Zugang je Modul statt Scopes: Medienprüfung über den effektiven Grant des Moduls bzw. Kurses (`module_id` NULL = ganzer Kurs) (§4.3, MED-002/003) |
+| **E-27** | Zugang je Modul statt Scopes: Medienprüfung über den effektiven Grant des Moduls bzw. Kurses (`module_id = 0` = ganzer Kurs, E-286) (§4.3, MED-002/003) |
 | **E-45/E-45a**, E-246 | Externe Medien: Einstellung `privacy.external_media_mode`, **Default „immer laden“**, umschaltbar auf „Klick zum Laden“; Consent-Adapter und Kategorie wirken nur im Modus „Klick zum Laden“; Offenlegung der Dienste in der readme und Hinweis im Setup (§5). Das Datenschutzrisiko ist als bewusst akzeptiertes Betreiberrisiko in R0-17 dokumentiert |
 | **E-46**, E-152 | Medienroute fail-open (Lernen); Import/Export fail-closed (§3.1, §4.3) |
 | **E-62** (R10-D1) | `own` aus fremdem Paket wird als `licensed` gespeichert (§2.2) |
@@ -24,6 +24,9 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **E-65** (R10-D4) | Zugangsgebundene Medien standardmäßig geschützt über PHP (§4.1, §4.3) |
 | **E-66** (R10-D5) | Fremd lizenzierte Inhalte im Export nur per Opt-in (§6.1) |
 | **E-168** | Text-/Dateiaufgaben mit Bewertung in R1: Upload-Sicherheit für Lernenden-Abgaben (§4.5) |
+| **E-288** | Abgaben bewerten und abrufen dürfen Trainer, Autor und Kursmanager des Kurses (§4.5) |
+| **E-289** | Abgabe-Allowlist pdf, docx, odt, txt, jpg, png; max. 20 MB je Datei, 5 Dateien je Abgabe (änderbar); kein eingebauter Virenscan, Hook für Scanner-Plugins; Aufbewahrung wie Rohantworten (E-51) (§4.5, MED-033/034) |
+| **E-312** | Widerspruch E-45a ↔ Konzept Kap. 43.3 („Consent vor Abruf“): **E-45a gilt**; §5 bleibt wie beschlossen, Kap. 43.3 wird redaktionell angepasst |
 | **E-176…E-181** | Großimport-Regeln (Objektfehler, Hintergrund, Ablageordner, Fehlerschwelle, Wiederaufnahme) nach R0-38 |
 | **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen; Optionen `course_captain_*`. Alle Bezeichner in diesem Dokument sind umgestellt |
 | **E-02, E-05, E-14, E-21, E-23, E-44** | unverändert genutzt (synthetische Fixtures, Cookie+Nonce, einfacher Drip, Karteikarten, Prüfungsstatus, Fristen) |
@@ -37,7 +40,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 3. **Importablauf** wie LB `ImportService`, belegter Zustandsautomat `uploaded → validated|failed → previewed → approved → importing → published` (+ `discarded`, „abgebrochen“). Course Captain ergänzt eine **Aktivierungsphase**: Lernende sehen bis zur Aktivierung den alten Stand (LB zeigt bei Abbruch einen Mischstand).
 4. **Geschützte Dateien** (E-65) liegen in einem privaten Ordner (bevorzugt außerhalb des Webroots), werden nur über eine PHP-Route mit Rechteprüfung, Range-Unterstützung und optional X-Sendfile/X-Accel-Redirect ausgeliefert. Ein Selbsttest im Health-Check erkennt Fehlkonfiguration, z. B. Nginx ohne Sperrregel. **Delta zu LB:** LB legt Paketmedien in einen **öffentlichen** Ordner. Course Captain legt zugangsgebundene Paketmedien standardmäßig geschützt ab. Dasselbe gilt für Datei-Abgaben in Aufgaben (E-168, §4.5).
 5. **Externe Medien** werden nach Beschluss E-45/E-45a standardmäßig **direkt geladen** (`privacy.external_media_mode = always_load`). Der Betreiber kann auf „Klick zum Laden“ umstellen; dann lädt ein Medium erst nach Klick oder vorhandener Einwilligung über einen Adapter (WP Consent API, Filter, JS-Ereignis). Course Captain hängt an **keinem** Theme-Global, LB dagegen an `window.kwConsent`. Die genutzten externen Dienste werden in der readme offengelegt; der Setup-Assistent weist auf die Umschaltung hin.
-6. **Export** eines Kurses als `cc-package` v1 ohne Lerndaten. Fremd lizenzierte Inhalte sind standardmäßig ausgeschlossen. Testfälle IMP-001…IMP-032, MED-001…MED-032 (MED-027…030: Datei-Abgaben, E-168).
+6. **Export** eines Kurses als `cc-package` v1 ohne Lerndaten. Fremd lizenzierte Inhalte sind standardmäßig ausgeschlossen. Testfälle IMP-001…IMP-032, MED-001…MED-034 (MED-027…030, MED-033/034: Datei-Abgaben, E-168, E-289).
 
 ---
 
@@ -398,14 +401,15 @@ Mit E-168 kommen Text- und Dateiaufgaben mit Bewertung (Workflow `draft → subm
 | Punkt | Regel |
 |---|---|
 | Weg | nur authentifizierte REST-Route mit Cookie + Nonce (E-05), Upload nur für den eigenen Entwurf (`draft` bzw. `returned`) einer Aufgabe, für die ein effektiver Grant des Moduls besteht (E-27); nach `submitted` keine Änderung mehr |
-| Typprüfung | wie V4 (§3.2): Endung aus Allowlist, keine gefährliche innere Endung, deklarierter und per `finfo` erkannter MIME passen zur Endung; svg/html/js/php nie, auch nicht per Filter. Die Allowlist je Aufgabe ist eine Teilmenge der globalen Allowlist |
-| Größe | kleinster Wert aus PHP-/WP-Limit und eingestelltem Aufgabenlimit; verständliche Fehlermeldung |
+| Typprüfung | wie V4 (§3.2): Endung aus Allowlist, keine gefährliche innere Endung, deklarierter und per `finfo` erkannter MIME passen zur Endung; svg/html/js/php nie, auch nicht per Filter. Abgabe-Allowlist (global, **E-289**): `pdf`, `docx`, `odt`, `txt`, `jpg`/`jpeg`, `png`; die Allowlist je Aufgabe ist eine Teilmenge davon |
+| Größe | Default **20 MB je Datei** und **5 Dateien je Abgabe** (E-289, änderbar); wirksam ist der kleinste Wert aus PHP-/WP-Limit und eingestelltem Limit; verständliche Fehlermeldung |
+| Virenscan | kein eingebauter Scanner (E-289); Filter-Hook `course_captain_assignment_file_scan` vor dem Übergang in die geschützte Ablage, Befund → Datei abgelehnt (`ccap_submission_file_rejected`, `reason: scan`) |
 | Ablage | Speicherklasse `protected` (§4.1) in eigenem Unterordner je Abgabe, Dateiname nur als Metadatum, Speicherschlüssel zufällig; nie in der WP-Mediathek, nie in `public` |
-| Auslieferung | nur über `ProtectedMediaService::serve()` (§4.3) mit `Content-Disposition: attachment` außer Rasterbild/PDF, `nosniff` und `CSP: sandbox`; berechtigt sind die abgebende Person und Personen mit Bewertungsrecht für den Kurs (Cap nach R0-07, Zuschnitt OP-10-4); jeder fremde Abruf wird mit Akteur auditiert (vgl. E-82) |
+| Auslieferung | nur über `ProtectedMediaService::serve()` (§4.3) mit `Content-Disposition: attachment` außer Rasterbild/PDF, `nosniff` und `CSP: sandbox`; berechtigt sind die abgebende Person und Personen mit Bewertungsrecht für den Kurs (Trainer, Autor, Kursmanager des Kurses nach **E-288**, Cap #15 R0-07); jeder fremde Abruf wird mit Akteur auditiert (vgl. E-82) |
 | Rate-Limit | je Nutzer und Aufgabe; Zählerausfall → fail-open wie Lernen (E-46) |
 | Datenschutz | Abgaben sind Lerndaten: Exporter und Eraser (R1-17) erfassen sie, Löschung entfernt die Dateien; Backup-Hinweis R0-16 |
-| Aufbewahrung | Default nach E-51 „Rohantworten 2 Jahre nach Kursende“ (Kursende nach E-244), änderbar; Bestätigung durch den Betreiber (siehe Offene Punkte) |
-| Testfälle | MED-027…MED-030 |
+| Aufbewahrung | wie Rohantworten: 2 Jahre nach Kursende (**E-289**, E-51; Kursende nach E-244), änderbar; juristische Bestätigung der Frist durch den Betreiber (E-51) |
+| Testfälle | MED-027…MED-030, MED-033, MED-034 |
 
 ---
 
@@ -538,12 +542,14 @@ Fixtures ausschließlich synthetisch und neutral (E-02, Konzept 26.3). LB-Tests 
 | MED-024 | Modus `click_to_load`: WP Consent API aktiv mit/ohne Einwilligung | lädt bzw. Platzhalter, ohne Theme-Global | – (neu) | R1-34, R1-30 |
 | MED-025 | Standard-Theme (z. B. Twenty Twenty-Five) ohne Consent-Plugin | beide Modi funktionieren, keine JS-Fehler | – (neu, Kap. 26) | R1-30 |
 | MED-026 | Paket-URL für externes Medium auf nicht registriertem Host / `http:` | Validierungsfehler; Server ruft die URL nie ab | – (neu) | R1-15 |
-| MED-027 | Abgabe-Upload `a.php.pdf`, `a.svg`, PDF mit falschem MIME | abgelehnt, nichts gespeichert | – (neu, E-168) | R1 (Aufgaben, ehem. R2-02) |
-| MED-028 | Abgabe einer anderen Person per `media_uid` abrufen (IDOR), ohne Bewertungsrecht | 403 bzw. 404 ohne Existenzauskunft | – (neu, E-168) | R1-14 |
-| MED-029 | Upload nach `submitted` / ohne Grant des Moduls | abgelehnt | – (neu, E-168, E-27) | R1 (Aufgaben) |
+| MED-027 | Abgabe-Upload `a.php.pdf`, `a.svg`, PDF mit falschem MIME | abgelehnt, nichts gespeichert | – (neu, E-168) | R1-46 |
+| MED-028 | Abgabe einer anderen Person per `media_uid` abrufen (IDOR), ohne Bewertungsrecht | 403 bzw. 404 ohne Existenzauskunft | – (neu, E-168) | R1-14, R1-46 |
+| MED-029 | Upload nach `submitted` / ohne Grant des Moduls | abgelehnt | – (neu, E-168, E-27) | R1-46, R1-14 |
 | MED-030 | Eraser für Lernenden mit Abgaben | Dateien und Metadaten entfernt, Audit ohne Inhalt | – (neu, E-168) | R1-17 |
 | MED-031 | Standard `always_load`, Lektion mit YouTube-Video | Einbettung über `youtube-nocookie.com` direkt geladen; Consent API wird nicht abgefragt (E-45a, E-246) | – (neu) | R1-07 |
 | MED-032 | readme und Setup | readme nennt alle registrierten externen Dienste; Setup-Schritt Datenschutz zeigt Hinweis und Umschalter | – (neu, E-45a) | R1-32, R1-39 |
+| MED-033 | Abgabe mit 6 Dateien; Datei mit 21 MB; `.docx`, `.odt`, `.txt` mit passendem MIME; `.zip` | 6. Datei und 21-MB-Datei abgelehnt mit Feldmeldung; docx/odt/txt angenommen; zip abgelehnt (E-289) | – (neu, E-289) | R1-46 |
+| MED-034 | Scanner-Plugin meldet über `course_captain_assignment_file_scan` einen Befund; ohne Scanner-Plugin | Datei abgelehnt, nichts in der geschützten Ablage; ohne Plugin läuft der Upload normal | – (neu, E-289) | R1-46 |
 
 ---
 
@@ -562,7 +568,7 @@ Alle Fragen dieses Dokuments sind entschieden (`ENTSCHEIDUNGEN.md`, 16.11.2026).
 | – | **E-45/E-45a**, E-246 | externe Medien Default `always_load`, umschaltbar auf `click_to_load`; Consent nur dort; readme-Offenlegung, Setup-Hinweis | §5 | R1-07, R1-32, R1-34, R1-39 |
 | – | **E-20**, E-268, E-269 | Erklärungstexte nur mit Pro ausgeliefert, in Free gespeichert/importiert/exportiert | §1.3, §4.3 | R1-15, R3 |
 | – | **E-27** | Medienzugriff je Modul | §4.3 | R1-14 |
-| – | **E-168** | Datei-Abgaben in Aufgaben in R1 | §4.5 | R1 (Aufgaben), R1-14, R1-17 |
+| – | **E-168** | Datei-Abgaben in Aufgaben in R1 | §4.5 | R1-46, R1-14, R1-17 |
 | – | **E-01**, **E-207** | Clean Room; Präfix `ccap_`/`course_captain_*` | ganzes Dokument | alle |
 
 ### 7.1 Offene Punkte nach Einarbeitung

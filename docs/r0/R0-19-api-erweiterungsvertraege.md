@@ -19,7 +19,7 @@
 | E-119 (= D19-3) | Event-Log ohne Abonnent 30 Tage – nur mit Pro (§5.4) |
 | E-120 (= D19-4) | Freigabe personenbezogener Event-Klassen je Connector – Pro (§5.7) |
 | D19-1, D19-5, D19-6 | technisch festgelegt (ENTSCHEIDUNGEN §19): Hooks/Funktionen `course_captain_*`, `enroll_v1` entfällt, Codes klein, `application/json` |
-| E-207, D-20-03 | §1.2: Tabellen, CPTs, Meta, Caps, Rollen, Cron `ccap_*`; Optionen, AJAX-Aktionen, Query-Vars `course_captain_*`; CSS `ccap-`; Fehlercodes `cc_*` (Offene Punkte) |
+| E-207, D-20-03, **E-285** | §1.2: Tabellen, CPTs, Meta, Caps, Rollen, Cron `ccap_*`; Optionen, Transients, Query-Vars, öffentliche Hooks/Funktionen `course_captain_*`; CSS `ccap-`; Fehlercodes, AJAX-/admin-post-Aktionen, Nonces, Shortcodes, Cache-Gruppe `ccap_*` (E-285) |
 | E-39/E-39b | Quelle `workflow` nur über den Course-Pro-Connector (§4.1, §5.8) |
 | E-27, E-25a, E-26 | Grant-Payload und Events mit `module_uid`; `depends_on_course_uid`; Bundle-Zugang abgeleitet (§4.1, §5.3, §5.8) |
 | E-168 | neue Routen R-54…R-58 für Text-/Dateiaufgaben (R1-46), Bewertungsliste R-46 |
@@ -52,8 +52,8 @@ Die Nachträge und die Deltas §8 sind eingearbeitet bzw. mit Status versehen.
 **Kernaussagen:**
 1. **Ein Envelope v1** (§5.1): Struktur aus Kap. 30.3 (Typ + Schemaversion + Objektversion + Payload getrennt), ergänzt um `idempotency_key` und `user_ref` aus Kap. 18 sowie `privacy_tags` und `causation_id` aus dem Suite-Abgleich (R0-32 W5/W13). Die Hooknamen aus Kap. 18 bleiben als lokale Aliase bestehen.
 2. **Eine Statusliste** (§6): die acht Zustände aus Kap. 33 (Produktentscheidung, jünger, Obermenge). `incompatible` aus Kap. 30.3 heißt `active_incompatible`; `incompatible_contract` ist **Fehlerklasse**, kein Zustand.
-3. **Ein Fehlerformat** (§3): LB-App-Problemobjekt (`type/title/status/detail/code/request_id` + `errors/details/retry_after`), WordPress-kompatibel (`code/message/data.status`), Codes `cc_*` in Kleinschreibung.
-4. **Präfixe:** öffentliche Hooks, PHP-Funktionen, Optionen, AJAX-Aktionen und Query-Vars `course_captain_*`; Tabellen, CPTs, Meta, Caps, Rollen und Cron-Hooks `ccap_*` (E-207); CSS `ccap-`; Fehlercodes `cc_*` (§1.2).
+3. **Ein Fehlerformat** (§3): LB-App-Problemobjekt (`type/title/status/detail/code/request_id` + `errors/details/retry_after`), WordPress-kompatibel (`code/message/data.status`), Codes `ccap_*` in Kleinschreibung.
+4. **Präfixe:** öffentliche Hooks, PHP-Funktionen, Optionen, Transients und Query-Vars `course_captain_*`; Tabellen, CPTs, Meta, Caps, Rollen, Cron-Hooks, Fehlercodes, AJAX-/admin-post-Aktionen, Nonces, Shortcodes und Cache-Gruppe `ccap_*` (E-207, E-285); CSS `ccap-` (§1.2).
 5. **Edition (E-38):** Free hat die interne Outbox und alle Lern-/Verwaltungsrouten; öffentliche Events, Read-API für Partner und Connector-Registry sind Pro.
 
 ---
@@ -69,9 +69,9 @@ Die Nachträge und die Deltas §8 sind eingearbeitet bzw. mit Status versehen.
 | V-03 | PHP-API (Funktionen) | `course_captain_<verb>_<objekt>_v1()` | Major im Namen | Funktionsname |
 | V-04 | Actions/Filter | `course_captain_*`; versionierte Verträge mit Suffix `_v1` | Major im Namen (nur bei Objekt-/Array-Parametern, sonst `@since`) | Hookname, PHPDoc `@since` |
 | V-05 | Events | `event_type` (`<aggregat>.<ereignis>`) | `schema_version` je Typ (`MAJOR.MINOR`) | Envelope |
-| V-06 | Fehlercodes | `cc_*` | gehört zu V-01 | REST-Body, `WP_Error::get_error_code()` |
+| V-06 | Fehlercodes | `ccap_*` | gehört zu V-01 | REST-Body, `WP_Error::get_error_code()` |
 | V-07 | Blocks | `course-captain/<name>` | `block.json` `version` + `deprecated`-Einträge | `block.json` |
-| V-08 | Shortcodes | `[course_captain_<name>]` | gehört zu V-01 | Doku |
+| V-08 | Shortcodes | `[ccap_<name>]` (E-285) | gehört zu V-01 | Doku |
 | V-09 | WP-CLI | `wp course-captain <kommando>` | gehört zu V-01; Ausgabeformat `--format=json` ist Vertrag | `wp help course-captain` |
 | V-10 | Activity-Provider | `contractVersion()` je Provider (R0-08 §2.3) | SemVer je Provider | Provider-Klasse, eingefrorene Definition |
 | V-11 | Connector (Pro, E-38) | `contractRange()` je Connector (§5.7) | SemVer-Bereich | Registry, Integrationsstatus |
@@ -83,10 +83,10 @@ Die Nachträge und die Deltas §8 sind eingearbeitet bzw. mit Status versehen.
 | Kennung | Präfix | Begründung |
 |---|---|---|
 | Öffentliche Actions/Filter, PHP-Funktionen, Konstanten | `course_captain_` / `COURSE_CAPTAIN_` | Konzept Kap. 13/18, R0-07 §4.8, ENTSCHEIDUNGEN §19 (D19-1). Ein kurzes Präfix im **globalen** Hook-Namensraum ist kollisionsanfällig |
-| Optionen, Transients, AJAX-/admin-post-Aktionen, Nonce-Aktionen, Query-Vars | `course_captain_` | R0-20 D-20-03, R0-27 T27 (Optionsnamen `course_captain_*`) |
+| Optionen, Transients, Query-Vars | `course_captain_` | R0-20 D-20-03, R0-27 T27 (Optionsnamen `course_captain_*`), E-285 |
 | Tabellen (`{$wpdb->prefix}ccap_*`), CPTs, Taxonomien, Post-Status, Meta, Capabilities, Rollen, Cron-Hooks | `ccap_` | Beschluss E-207 (WordPress.org-Review verlangt mindestens 4 Zeichen; vor R1-01 gegen die aktuelle Richtlinie prüfen) |
 | CSS-Klassen | `ccap-` | R0-20 D-20-03 |
-| Fehlercodes | `cc_` | ENTSCHEIDUNGEN §19 (klein, `cc_`-Präfix); E-207 nennt Fehlercodes nicht → Offene Punkte |
+| Fehlercodes, AJAX-/admin-post-Aktionen, Nonce-Aktionen, Shortcodes, Cache-Gruppe | `ccap_` | **E-285** (präzisiert E-207/E-06; ersetzt für AJAX/admin-post und Nonces die Festlegung D-20-03) |
 | PHP-Namensraum | `CourseCaptain\` | Kap. 13 |
 | REST / Blocks / CLI | `course-captain/v1`, `course-captain/<block>`, `wp course-captain` | Kap. 13, Kap. 26.2 |
 
@@ -142,21 +142,21 @@ Kein Bruch (Minor): neue optionale Parameter, neue Antwortfelder, neue Enum-Wert
 | Thema | Regel | LB-Herkunft |
 |---|---|---|
 | Namespace | `/wp-json/course-captain/v1/…`; keine zweite App-API, kein Tenant-Header (E-05) | INV-D-089; M1–M78 entfallen |
-| Auth | **C** = WP-Login-Cookie + `X-WP-Nonce` (`wp_rest`). Nutzer-ID nur aus der Sitzung (R0-07 P-09). Nonce-Erneuerung per AJAX `course_captain_rest_nonce`, Client wiederholt einmal bei `rest_cookie_invalid_nonce`. **Ö** = öffentlich (Rate-Limit), **K** = Monitor-Schlüssel im Header, **H** = HMAC-Signatur | D §6.1, NonceRefresh.php |
+| Auth | **C** = WP-Login-Cookie + `X-WP-Nonce` (`wp_rest`). Nutzer-ID nur aus der Sitzung (R0-07 P-09). Nonce-Erneuerung per AJAX `ccap_rest_nonce` (E-285), Client wiederholt einmal bei `rest_cookie_invalid_nonce`. **Ö** = öffentlich (Rate-Limit), **K** = Monitor-Schlüssel im Header, **H** = HMAC-Signatur | D §6.1, NonceRefresh.php |
 | Autorisierung | `permission_callback` prüft Anmeldung, Lernsperre und primitive Cap; Objektprüfung (Meta-Cap) im Callback **vor** jedem Seiteneffekt über den PolicyService (R0-07 §4.1). Nie `__return_true` außer bei **Ö**-Routen mit Kommentar | R0-07 P-02/P-03 |
-| Fremd = unsichtbar | fremde oder nicht sichtbare Objekte → `404 cc_not_found` (R0-07 P-08) | ExamService.php:1034-1042 |
+| Fremd = unsichtbar | fremde oder nicht sichtbare Objekte → `404 ccap_not_found` (R0-07 P-08) | ExamService.php:1034-1042 |
 | IDs | Pfadparameter sind UUID v4 (`uid`), Muster `[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}` (R0-08 §1.2). Ausnahmen: `{position}` (Ganzzahl ≥ 1), `{token}` (Einladungs-/Verifikationstoken), `{connector}` (`[a-z0-9-]{1,64}`). Post-IDs, Slugs und LB-Kurscodes sind **kein** Vertrag | LB: `code` `^[A-Za-z0-9-]+$` |
 | Request-Schema | `args` mit JSON-Schema, unbekannte Felder werden verworfen; Schemafehler liefert WordPress selbst (`rest_invalid_param`/`rest_missing_callback_param`, 400) | LearnerController args |
 | Response-Schema | jede Route liefert `get_item_schema()`/`schema`; Zeiten RFC 3339 UTC (`2026-11-16T09:30:00Z`); Punkte als Tausendstel-Ganzzahl (R0-08 Δ-3) | – |
-| Idempotenz | Header `Idempotency-Key: <UUID v4>`. **P** = Pflicht, **O** = optional, **N** = natürlich idempotent (PUT/DELETE auf Zustand, GET). Speicherung in `ccap_request_idempotency (user_id, scope, idem_key)` mit `request_hash`, 7 Tage; Eintrag „in Arbeit“ > 300 s gilt als verwaist. Gleicher Key + gleicher Hash → gespeicherte Antwort (gleicher Status); gleicher Key + anderer Hash → `409 cc_idempotency_conflict`; „in Arbeit“ → `409 cc_request_in_progress` mit `retry_after: 2`. Damit wird die **bedingte** Tabelle aus R0-06 zur festen Tabelle (Delta §8) | Idempotency.php:24-27, :140; INV-D-094 |
-| Nebenläufigkeit | Umbenennen/Ändern von Sammlungen und Gruppen KANN `If-Match: "<row_version>"` senden; Abweichung → `409 cc_version_conflict`. Antwort trägt `ETag` | M14 `expected_version`/If-Match |
+| Idempotenz | Header `Idempotency-Key: <UUID v4>`. **P** = Pflicht, **O** = optional, **N** = natürlich idempotent (PUT/DELETE auf Zustand, GET). Speicherung in `ccap_request_idempotency (user_id, scope, idem_key)` mit `request_hash`, 7 Tage; Eintrag „in Arbeit“ > 300 s gilt als verwaist. Gleicher Key + gleicher Hash → gespeicherte Antwort (gleicher Status); gleicher Key + anderer Hash → `409 ccap_idempotency_conflict`; „in Arbeit“ → `409 ccap_request_in_progress` mit `retry_after: 2`. Damit wird die **bedingte** Tabelle aus R0-06 zur festen Tabelle (Delta §8) | Idempotency.php:24-27, :140; INV-D-094 |
+| Nebenläufigkeit | Umbenennen/Ändern von Sammlungen und Gruppen KANN `If-Match: "<row_version>"` senden; Abweichung → `409 ccap_version_conflict`. Antwort trägt `ETag` | M14 `expected_version`/If-Match |
 | Pagination | `page` (≥ 1), `per_page` (1–100, Standard 20); Header `X-WP-Total`, `X-WP-TotalPages` | M24 |
 | Caching | `Cache-Control: no-store, private` für alle Antworten außer `R-42` (`no-store`, ohne `private`) | LearnerController.php:469-493 |
 | Korrelation | jede Antwort trägt `X-Request-Id: req_<32 hex>`; derselbe Wert steht im Fehlerkörper und im Audit | Problem.php:23-26 |
-| Wartung | schreibende Anfragen während Migration/Read-only-Fenster → `503 cc_maintenance`, `Retry-After: 30` (R0-16, Read-only-Fenster „B“) | Maintenance.php:59-77 |
-| Rate-Limits | Buckets je Zweck (§4.3 `course_captain_rate_limits`); Überschreitung → `429 cc_rate_limited` mit `Retry-After` und `details.bucket`; Zählerspeicher defekt: Einlösen/Einladen/Verifikation fail-closed (`503 cc_temporarily_unavailable`, `reason: limiter_unavailable`), Lern-/Antwort-Limits fail-open (E-46) | RateLimiter.php:115-120 |
+| Wartung | schreibende Anfragen während Migration/Read-only-Fenster → `503 ccap_maintenance`, `Retry-After: 30` (R0-16, Read-only-Fenster „B“) | Maintenance.php:59-77 |
+| Rate-Limits | Buckets je Zweck (§4.3 `course_captain_rate_limits`); Überschreitung → `429 ccap_rate_limited` mit `Retry-After` und `details.bucket`; Zählerspeicher defekt: Einlösen/Einladen/Verifikation fail-closed (`503 ccap_temporarily_unavailable`, `reason: limiter_unavailable`), Lern-/Antwort-Limits fail-open (E-46) | RateLimiter.php:115-120 |
 
-**Implizite Fehler jeder Route** (werden in §2.3 nicht wiederholt): `401 cc_auth_required` (außer **Ö**), `403 rest_cookie_invalid_nonce` (WP-Kern, durchgereicht), `403 cc_account_locked`, `400 rest_invalid_param`, `500 cc_internal_error`; bei schreibenden Routen zusätzlich `503 cc_maintenance`, `503 cc_db_busy`.
+**Implizite Fehler jeder Route** (werden in §2.3 nicht wiederholt): `401 ccap_auth_required` (außer **Ö**), `403 rest_cookie_invalid_nonce` (WP-Kern, durchgereicht), `403 ccap_account_locked`, `400 rest_invalid_param`, `500 ccap_internal_error`; bei schreibenden Routen zusätzlich `503 ccap_maintenance`, `503 ccap_db_busy`.
 
 ### 2.2 Abgeleitete Routengruppen
 
@@ -166,64 +166,64 @@ Gruppenbildung, Caps und Scope-Prüfungen stammen aus **R0-07 §4.1 (RG-01…RG-
 
 | # | Methode Pfad | LB | RG | Auth | Cap / Scope | Request (Kurz) | Response (Kurz) | Idem. | Fehlercodes (zusätzlich zu §2.1) |
 |---|---|---|---|---|---|---|---|---|---|
-| R-01 | `GET /status` | W1 | RG-01 | C | `ccap_view_system_status` | – | `{plugin_version, contract_version, schema_version, outbound_mode, hold_mode, checks[{id, status: ok\|warn\|fail, message}]}` | N | `cc_forbidden` |
-| R-02 | `GET /imports` | neu | RG-02 | C | M-21 | `page, per_page, status?` | Liste `{uid, status, created_by, created_at, counts}` | N | `cc_forbidden` |
-| R-03 | `GET /imports/{batch}` | neu | RG-02 | C | M-21 | – | `{uid, status, progress{processed,total}, report_url?, errors[]}` | N | `cc_not_found` |
-| R-04 | `POST /imports/{batch}/step` | W2 | RG-02 | C | M-21; `publish/activate` zusätzlich #3 | `{action: validate\|preview\|approve\|import\|activate\|discard}` | `{status, processed, total, done: bool}`; 250 Einträge je Schritt (LB) | N (Batch-Lock, Fortsetzung statt Wiederholung) | `cc_import_failed` 409, `cc_import_state_invalid` 409, `cc_resource_busy` 409 |
+| R-01 | `GET /status` | W1 | RG-01 | C | `ccap_view_system_status` | – | `{plugin_version, contract_version, schema_version, outbound_mode, hold_mode, checks[{id, status: ok\|warn\|fail, message}]}` | N | `ccap_forbidden` |
+| R-02 | `GET /imports` | neu | RG-02 | C | M-21 | `page, per_page, status?` | Liste `{uid, status, created_by, created_at, counts}` | N | `ccap_forbidden` |
+| R-03 | `GET /imports/{batch}` | neu | RG-02 | C | M-21 | – | `{uid, status, progress{processed,total}, report_url?, errors[]}` | N | `ccap_not_found` |
+| R-04 | `POST /imports/{batch}/step` | W2 | RG-02 | C | M-21; `publish/activate` zusätzlich #3 | `{action: validate\|preview\|approve\|import\|activate\|discard}` | `{status, processed, total, done: bool}`; 250 Einträge je Schritt (LB) | N (Batch-Lock, Fortsetzung statt Wiederholung) | `ccap_import_failed` 409, `ccap_import_state_invalid` 409, `ccap_resource_busy` 409 |
 | R-05 | `GET /me/courses` | W3 | RG-03 | C | angemeldet | – | Liste `{course_uid, title, permalink, access{state: active\|pending\|suspended\|expired\|limited\|not_granted, valid_until, scopes[], modules[]?, via_bundle?}, progress{completion_percent, mastery_percent}, next{type, ref}}` (`modules` nur bei Modul-Grants, E-27; `via_bundle` = Bundle-Kurs-UID, E-25a); **ohne** Shop-/Ticket-/Garantiefelder (K-16) | N | – |
-| R-06 | `GET /courses/{course}` | W4 | RG-04 | C | M-01; Features aus M-02 je Scope | – | `{course_uid, revision_no, title, modules[{uid, title, access{state, scopes[]}, lessons[{uid, title, type, locked_reason?}]}], access, progress, exam_summary, downloads[{media_uid, title}], contains[{course_uid, title}]?}`; Zugang je Modul (E-27), enthaltene Kurse bei Bundles (E-25a); Felder gesperrter Scopes/Module leer. Erweiterungsfelder nur über Response-Registry mit eigenem Schema (K-16) | N | `cc_not_found` |
-| R-07 | `GET /courses/{course}/next-question` | W5 | RG-05 | C | M-02(`view`) | `mode` (`smart\|new\|wrong\|topic\|module\|favorites\|collection\|exam_mistakes`, Standard `smart`), `module?`, `topic?` (≤190), `collection?`, `exam_session?` | `{question{uid, revision, type, text, answers[{id, text}], multi}, token, context, progress}`; **keine** Lösungen | N | `cc_not_found`, `cc_content_locked` (`reason: running_exam` u. a.) |
-| R-08 | `POST /answers` | W6 | RG-06 | C | M-02 zur Antwortzeit | `{token (≤2000), answer_ids[] (≤26), known: bool\|null, response_ms}` | `{correct, correct_ids[]` (nach Einstellung, E-147)`, explanation?` (nur Pro, E-20)`, learn_status, due_at}` | **P** | `cc_invalid_token` 422, `cc_question_token_expired` 422, `cc_validation_failed` 422, `cc_content_locked` 403, `cc_rate_limited` 429 (`bucket: answer`), `cc_idempotency_key_required` 428, `cc_idempotency_conflict` 409, `cc_request_in_progress` 409 |
-| R-09 | `POST /answers/reveal` | W7 | RG-06 | C | M-02 | `{token}` | `{correct_ids[], explanation?}` (Erklärung nur Pro, E-20); zählt als „nicht gewusst“ nach LB-Verhalten | N | `cc_invalid_token`, `cc_question_token_expired` |
-| R-10 | `PUT /courses/{course}/favorites/{question}` | W8 | RG-07 | C | M-02(`view`) | – | `{favorite: true}` | N | `cc_not_found` |
-| R-11 | `DELETE /courses/{course}/favorites/{question}` | W8 | RG-07 | C | M-02(`view`) | – | `{favorite: false}` | N | `cc_not_found` |
-| R-12 | `GET /courses/{course}/saved` | W9 | RG-07 | C | M-02(`view`) | `collection?, sort (saved_at\|assigned_at), order` (aus M34) | Liste `{question_uid, saved_at, collections[]}` | N | `cc_not_found` |
-| R-13 | `PUT /courses/{course}/saved/{question}` | W10 | RG-07 | C | M-02(`view`) | `{favorite: bool, collections[] (≤ MAX)}` | `{favorite, collections[]}` | N | `cc_not_found`, `cc_validation_failed` |
-| R-14 | `POST /courses/{course}/collections` | W11 | RG-07 | C | M-02(`view`) | `{name (≤200)}` | 201 `{uid, name, row_version}` | **O** | `cc_validation_failed` (Limit erreicht) |
-| R-15 | `PUT /courses/{course}/collections/{collection}` | W12 | RG-07 | C | M-02(`view`), eigene Sammlung | `{name}`; `If-Match` optional | `{uid, name, row_version}` | N | `cc_not_found`, `cc_version_conflict` |
-| R-16 | `DELETE /courses/{course}/collections/{collection}` | W12 | RG-07 | C | wie R-15 | – | 204 | N | `cc_not_found` |
-| R-17 | `GET /courses/{course}/exam` | W13 | RG-08 | C | M-02(`exam`) | – | `{rules[{uid, version, title, time_limit_s, reduced}], variants[], attempts{used, max, cooldown_until}, running_session?}` | N | `cc_not_found`, `cc_content_locked` |
-| R-18 | `POST /courses/{course}/exam-sessions` | W14 | RG-08 | C | M-02(`exam`) | `{rule_uid?, variant_uid?, activity_uid?}` | 201 `{session}` (neuer Versuch) bzw. 200 `{session}` (laufender Versuch wird fortgesetzt) | **P** (R0-08 `request_key`) | `cc_exam_not_startable` 422, `cc_exam_start_busy` 409, `cc_exam_attempts_exhausted` 422, `cc_rate_limited` 429 (`bucket: exam_start`) |
-| R-19 | `GET /exam-sessions/{session}` | W15 | RG-09 | C | M-09 | – | `{uid, status, mode, started_at, deadline_at, server_now, questions[{position, uid, text, answers[], answer_ids[], flagged}]}` | N | `cc_not_found` |
-| R-20 | `PUT /exam-sessions/{session}/answers/{position}` | W16 | RG-09 | C | M-08 | `{answer_ids[], known?, age_ms, answered_at}` | `{applied: bool, saved_at}`; `applied=false` bei älterem Stand (LB) | N (Stand-Vergleich über `age_ms`) | `cc_exam_expired` 410, `cc_exam_already_submitted` 409, `cc_exam_aborted` 409, `cc_exam_answer_locked` 422, `cc_exam_invalid_answer` 422, `cc_exam_conflict` 409 |
-| R-21 | `PUT /exam-sessions/{session}/answers/{position}/flag` | W17 | RG-09 | C | M-08 | `{flagged: bool}` | `{flagged}` | N | wie R-20 ohne `cc_exam_invalid_answer` |
-| R-22 | `POST /exam-sessions/{session}/answers/{position}/reveal` | W18 | RG-09 | C | M-08, nur wenn Regel Aufdecken erlaubt | – | `{correct_ids[], explanation?}` (nur Pro, E-20); Antwort danach gesperrt | N | wie R-21, `cc_forbidden` (Regel erlaubt es nicht) |
-| R-23 | `POST /exam-sessions/{session}/submit` | W19 | RG-09 | C | M-08 (Abgabe auch nach Zugangsende, R0-05) | – | `{status: evaluated, result{points_milli, max_points_milli, passed, parts[]}}`; zweite Abgabe liefert dasselbe Ergebnis (200) | N | `cc_exam_aborted` 409, `cc_exam_conflict` 409 |
-| R-24 | `POST /exam-sessions/{session}/abort` | W20 | RG-09 | C | M-08 | – | `{status: cancelled}`; Wiederholung 200 | N | `cc_exam_already_submitted` 409 |
-| R-25 | `GET /exam-sessions/{session}/review` | neu (M50) | RG-09 | C | M-09; Sichtbarkeit nach E-147, Erklärungen nur Pro (E-20) | – | `{result, items[{position, correct, points_milli, correct_ids?, explanation?}]}` | N | `cc_exam_not_submitted` 409, `cc_not_found` |
-| R-26 | `GET /courses/{course}/lessons` | W26 | RG-10 | C | M-02(`view`) | – | Liste `{uid, activity_uid, type, title, completion{state, reason_code}, locked_reason?}` | N | `cc_not_found` |
-| R-27 | `GET /courses/{course}/lessons/{lesson}` | W27 | RG-10 | C | M-02(`view`) | – | `{uid, activity_uid, type, render{…} (RendersActivity, R0-08 §2.2), progress}` | N | `cc_not_found`, `cc_content_locked` (`reason: scheduled_release\|rights_unclear\|partial_access`) |
-| R-28 | `PUT /courses/{course}/lessons/{lesson}/progress` | W28 | RG-10 | C | M-02(`view`) | `{kind: position\|confirm\|unconfirm\|card_status, payload}` (R0-08 `Interaction`) | `{completion{state, reason_code, rule_version}}` | **P** | `cc_validation_failed` (z. B. `unconfirm` bei nachweisbasiertem Abschluss, E-70), `cc_content_locked` |
-| R-29 | `GET /courses/{course}/flashcards` | W24 | RG-10 | C | M-02(`view`) | `set?` | Liste `{card_uid, status: open\|practice\|known, streak}` | N | `cc_not_found` |
-| R-30 | `PUT /courses/{course}/flashcards/{card}` | W25 | RG-10 | C | M-02(`view`) | Modus `self_assessment`: `{status}`; Modus `streak`: `{known: bool}` (E-21) | `{status, streak}` | **P** (Doppelklick-Schutz) | `cc_validation_failed` |
-| R-31 | `GET /groups/join/{token}` | W45 | RG-11 | C | M-17 (Vorschau) | – | `{group{name}, course_titles[], seats_free: bool, bound_to_other_address: bool}`; nur maskierte Daten | N | `cc_invalid_token` 422, `cc_invite_expired` 410, `cc_rate_limited` 429 |
-| R-32 | `POST /groups/join` | W46 | RG-11 | C | M-17 | `{token}` (`^[gi][0-9a-f]{32}$`, LB) | `{seat_uid, group_uid, status: active}`; bereits Mitglied → 200 gleiche Antwort | N | `cc_invalid_token` 422, `cc_invite_expired` 410, `cc_invite_other_account` 403, `cc_group_not_active` 409, `cc_group_full` 409, `cc_rate_limited` 429 |
+| R-06 | `GET /courses/{course}` | W4 | RG-04 | C | M-01; Features aus M-02 je Scope | – | `{course_uid, revision_no, title, modules[{uid, title, access{state, scopes[]}, lessons[{uid, title, type, locked_reason?}]}], access, progress, exam_summary, downloads[{media_uid, title}], contains[{course_uid, title}]?}`; Zugang je Modul (E-27), enthaltene Kurse bei Bundles (E-25a); Felder gesperrter Scopes/Module leer. Erweiterungsfelder nur über Response-Registry mit eigenem Schema (K-16) | N | `ccap_not_found` |
+| R-07 | `GET /courses/{course}/next-question` | W5 | RG-05 | C | M-02(`view`) | `mode` (`smart\|new\|wrong\|topic\|module\|favorites\|collection\|exam_mistakes`, Standard `smart`), `module?`, `topic?` (≤190), `collection?`, `exam_session?` | `{question{uid, revision, type, text, answers[{id, text}], multi}, token, context, progress}`; **keine** Lösungen | N | `ccap_not_found`, `ccap_content_locked` (`reason: running_exam` u. a.) |
+| R-08 | `POST /answers` | W6 | RG-06 | C | M-02 zur Antwortzeit | `{token (≤2000), answer_ids[] (≤26), known: bool\|null, response_ms}` | `{correct, correct_ids[]` (nach Einstellung, E-147)`, explanation?` (nur Pro, E-20)`, learn_status, due_at}` | **P** | `ccap_invalid_token` 422, `ccap_question_token_expired` 422, `ccap_validation_failed` 422, `ccap_content_locked` 403, `ccap_rate_limited` 429 (`bucket: answer`), `ccap_idempotency_key_required` 428, `ccap_idempotency_conflict` 409, `ccap_request_in_progress` 409 |
+| R-09 | `POST /answers/reveal` | W7 | RG-06 | C | M-02 | `{token}` | `{correct_ids[], explanation?}` (Erklärung nur Pro, E-20); zählt als „nicht gewusst“ nach LB-Verhalten | N | `ccap_invalid_token`, `ccap_question_token_expired` |
+| R-10 | `PUT /courses/{course}/favorites/{question}` | W8 | RG-07 | C | M-02(`view`) | – | `{favorite: true}` | N | `ccap_not_found` |
+| R-11 | `DELETE /courses/{course}/favorites/{question}` | W8 | RG-07 | C | M-02(`view`) | – | `{favorite: false}` | N | `ccap_not_found` |
+| R-12 | `GET /courses/{course}/saved` | W9 | RG-07 | C | M-02(`view`) | `collection?, sort (saved_at\|assigned_at), order` (aus M34) | Liste `{question_uid, saved_at, collections[]}` | N | `ccap_not_found` |
+| R-13 | `PUT /courses/{course}/saved/{question}` | W10 | RG-07 | C | M-02(`view`) | `{favorite: bool, collections[] (≤ MAX)}` | `{favorite, collections[]}` | N | `ccap_not_found`, `ccap_validation_failed` |
+| R-14 | `POST /courses/{course}/collections` | W11 | RG-07 | C | M-02(`view`) | `{name (≤200)}` | 201 `{uid, name, row_version}` | **O** | `ccap_validation_failed` (Limit erreicht) |
+| R-15 | `PUT /courses/{course}/collections/{collection}` | W12 | RG-07 | C | M-02(`view`), eigene Sammlung | `{name}`; `If-Match` optional | `{uid, name, row_version}` | N | `ccap_not_found`, `ccap_version_conflict` |
+| R-16 | `DELETE /courses/{course}/collections/{collection}` | W12 | RG-07 | C | wie R-15 | – | 204 | N | `ccap_not_found` |
+| R-17 | `GET /courses/{course}/exam` | W13 | RG-08 | C | M-02(`exam`) | – | `{rules[{uid, version, title, time_limit_s, reduced}], variants[], attempts{used, max, cooldown_until}, running_session?}` | N | `ccap_not_found`, `ccap_content_locked` |
+| R-18 | `POST /courses/{course}/exam-sessions` | W14 | RG-08 | C | M-02(`exam`) | `{rule_uid?, variant_uid?, activity_uid?}` | 201 `{session}` (neuer Versuch) bzw. 200 `{session}` (laufender Versuch wird fortgesetzt) | **P** (R0-08 `request_key`) | `ccap_exam_not_startable` 422, `ccap_exam_start_busy` 409, `ccap_exam_attempts_exhausted` 422, `ccap_rate_limited` 429 (`bucket: exam_start`) |
+| R-19 | `GET /exam-sessions/{session}` | W15 | RG-09 | C | M-09 | – | `{uid, status, mode, started_at, deadline_at, server_now, questions[{position, uid, text, answers[], answer_ids[], flagged}]}` | N | `ccap_not_found` |
+| R-20 | `PUT /exam-sessions/{session}/answers/{position}` | W16 | RG-09 | C | M-08 | `{answer_ids[], known?, age_ms, answered_at}` | `{applied: bool, saved_at}`; `applied=false` bei älterem Stand (LB) | N (Stand-Vergleich über `age_ms`) | `ccap_exam_expired` 410, `ccap_exam_already_submitted` 409, `ccap_exam_aborted` 409, `ccap_exam_answer_locked` 422, `ccap_exam_invalid_answer` 422, `ccap_exam_conflict` 409 |
+| R-21 | `PUT /exam-sessions/{session}/answers/{position}/flag` | W17 | RG-09 | C | M-08 | `{flagged: bool}` | `{flagged}` | N | wie R-20 ohne `ccap_exam_invalid_answer` |
+| R-22 | `POST /exam-sessions/{session}/answers/{position}/reveal` | W18 | RG-09 | C | M-08, nur wenn Regel Aufdecken erlaubt | – | `{correct_ids[], explanation?}` (nur Pro, E-20); Antwort danach gesperrt | N | wie R-21, `ccap_forbidden` (Regel erlaubt es nicht) |
+| R-23 | `POST /exam-sessions/{session}/submit` | W19 | RG-09 | C | M-08 (Abgabe auch nach Zugangsende, R0-05) | – | `{status: evaluated, result{points_milli, max_points_milli, passed, parts[]}}`; zweite Abgabe liefert dasselbe Ergebnis (200) | N | `ccap_exam_aborted` 409, `ccap_exam_conflict` 409 |
+| R-24 | `POST /exam-sessions/{session}/abort` | W20 | RG-09 | C | M-08 | – | `{status: cancelled}`; Wiederholung 200 | N | `ccap_exam_already_submitted` 409 |
+| R-25 | `GET /exam-sessions/{session}/review` | neu (M50) | RG-09 | C | M-09; Sichtbarkeit nach E-147, Erklärungen nur Pro (E-20) | – | `{result, items[{position, correct, points_milli, correct_ids?, explanation?}]}` | N | `ccap_exam_not_submitted` 409, `ccap_not_found` |
+| R-26 | `GET /courses/{course}/lessons` | W26 | RG-10 | C | M-02(`view`) | – | Liste `{uid, activity_uid, type, title, completion{state, reason_code}, locked_reason?}` | N | `ccap_not_found` |
+| R-27 | `GET /courses/{course}/lessons/{lesson}` | W27 | RG-10 | C | M-02(`view`) | – | `{uid, activity_uid, type, render{…} (RendersActivity, R0-08 §2.2), progress}` | N | `ccap_not_found`, `ccap_content_locked` (`reason: scheduled_release\|rights_unclear\|partial_access`) |
+| R-28 | `PUT /courses/{course}/lessons/{lesson}/progress` | W28 | RG-10 | C | M-02(`view`) | `{kind: position\|confirm\|unconfirm\|card_status, payload}` (R0-08 `Interaction`) | `{completion{state, reason_code, rule_version}}` | **P** | `ccap_validation_failed` (z. B. `unconfirm` bei nachweisbasiertem Abschluss, E-70), `ccap_content_locked` |
+| R-29 | `GET /courses/{course}/flashcards` | W24 | RG-10 | C | M-02(`view`) | `set?` | Liste `{card_uid, status: open\|practice\|known, streak}` | N | `ccap_not_found` |
+| R-30 | `PUT /courses/{course}/flashcards/{card}` | W25 | RG-10 | C | M-02(`view`) | Modus `self_assessment`: `{status}`; Modus `streak`: `{known: bool}` (E-21) | `{status, streak}` | **P** (Doppelklick-Schutz) | `ccap_validation_failed` |
+| R-31 | `GET /groups/join/{token}` | W45 | RG-11 | C | M-17 (Vorschau) | – | `{group{name}, course_titles[], seats_free: bool, bound_to_other_address: bool}`; nur maskierte Daten | N | `ccap_invalid_token` 422, `ccap_invite_expired` 410, `ccap_rate_limited` 429 |
+| R-32 | `POST /groups/join` | W46 | RG-11 | C | M-17 | `{token}` (`^[gi][0-9a-f]{32}$`, LB) | `{seat_uid, group_uid, status: active}`; bereits Mitglied → 200 gleiche Antwort | N | `ccap_invalid_token` 422, `ccap_invite_expired` 410, `ccap_invite_other_account` 403, `ccap_group_not_active` 409, `ccap_group_full` 409, `ccap_rate_limited` 429 |
 | R-33 | `GET /me/groups` | W47 | RG-12 | C | B-4 eigene Gruppen | – | Liste `{uid, name, status, seats{total, used}, invite_link_expires_at, members[{member_uid, display_name, email_masked, status}]}` (E-81) | N | – |
-| R-34 | `PUT /me/groups/{group}` | W48 | RG-12 | C | M-15 | `{name (≤190)}`; `If-Match` optional | `{uid, name, row_version}` | N | `cc_not_found`, `cc_version_conflict`, `cc_group_not_active` |
-| R-35 | `POST /me/groups/{group}/invite` | W49 | RG-12 | C | M-15 | `{emails[] (≤200), bind_to_address: bool}` | `{results[{email_masked, status: invited\|already_member\|invalid\|limited}]}` | **P** | `cc_group_not_active`, `cc_group_full`, `cc_rate_limited` (`bucket: group_invite`) |
-| R-36 | `POST /me/groups/{group}/token` | W50 | RG-12 | C | M-15 | – | `{invite_url, expires_at}`; alter Link ungültig | **O** | `cc_group_not_active` |
-| R-37 | `DELETE /me/groups/{group}/members/{member}` | W51 | RG-12 | C | M-15, Mitglied ∈ Gruppe | `{reason? (≤500)}` | 204; Platz frei, Grant des Mitglieds `revoked` (`group_member_removed`) | N | `cc_not_found` |
-| R-38 | `GET /courses/{course}/faqs` | LB `/customer-faqs` | RG-13 | C | M-02(`view`) | `category?` | Liste `{uid, question, answer_html, category}` | N | `cc_not_found`, `cc_content_locked` |
+| R-34 | `PUT /me/groups/{group}` | W48 | RG-12 | C | M-15 | `{name (≤190)}`; `If-Match` optional | `{uid, name, row_version}` | N | `ccap_not_found`, `ccap_version_conflict`, `ccap_group_not_active` |
+| R-35 | `POST /me/groups/{group}/invite` | W49 | RG-12 | C | M-15 | `{emails[] (≤200), bind_to_address: bool}` | `{results[{email_masked, status: invited\|already_member\|invalid\|limited}]}` | **P** | `ccap_group_not_active`, `ccap_group_full`, `ccap_rate_limited` (`bucket: group_invite`) |
+| R-36 | `POST /me/groups/{group}/token` | W50 | RG-12 | C | M-15 | – | `{invite_url, expires_at}`; alter Link ungültig | **O** | `ccap_group_not_active` |
+| R-37 | `DELETE /me/groups/{group}/members/{member}` | W51 | RG-12 | C | M-15, Mitglied ∈ Gruppe | `{reason? (≤500)}` | 204; Platz frei, Grant des Mitglieds `revoked` (`group_member_removed`) | N | `ccap_not_found` |
+| R-38 | `GET /courses/{course}/faqs` | LB `/customer-faqs` | RG-13 | C | M-02(`view`) | `category?` | Liste `{uid, question, answer_html, category}` | N | `ccap_not_found`, `ccap_content_locked` |
 | R-39 | `GET /tips` | LB `/tips` | RG-13 | C | angemeldet | `category?, page, per_page` | Liste `{uid, title, html, category}` | N | – |
 | R-40 | `GET /me/certificates` | neu | RG-14 | C | B-8 | – | Liste `{uid, course_uid, revision_no, status: valid\|corrected\|revoked, issued_at, valid_until, view_url, pdf_url?}` (HTML-/Druckansicht in Free, `pdf_url` nur Pro, E-96) | N | – |
-| *R-41* | `GET /certificates/{certificate}/pdf` | neu | RG-14 | C | M-18 | – | `application/pdf` (Snapshot, R0-08 §7.2, getaggt nach E-127) | N | `cc_not_found` — **Pro** (E-96) |
-| R-42 | `GET /certificates/verify/{token}` | neu | RG-14 | **Ö** | Token | – | `{status: valid\|revoked\|corrected\|expired, course_title, issued_at, holder_name?}` (Felder nach Datenschutz-Einstellung) | N | `cc_not_found` (unbekannt, kein Orakel), `cc_rate_limited` (`bucket: verify`, fail-closed) |
-| R-43 | `GET /reports/courses/{course}` | neu | RG-15 | C | #12 + Scope | `group?` (Gruppenfilter im Basisbericht, E-231), `format?` (`csv`, E-98) | Aggregat `{learners, completion_rate, pass_rate, …}` | N | `cc_not_found` |
-| R-44 | `GET /reports/courses/{course}/learners/{user}` | neu | RG-15 | C | M-11 | – | `{display_name, access, completion, attempts[{uid, passed, evaluated_at}]}`; keine Antworten | N | `cc_not_found` |
-| *R-45* | `GET /reports/groups/{group}` | neu | RG-15 | C | M-16 | – | Aggregat je Mitglied minimiert | N | `cc_not_found` — **Pro** (eigene Gruppenberichte, E-231; Fortschrittseinsicht für Besitzer nur Opt-in, E-232) |
-| R-46 | `GET /grading/queue` | neu | RG-16 | C | M-10 | `course, page, per_page` | Liste offener Abgaben `{type: assignment, submission_uid, submitted_at}` (E-168); mit Pro-Gradebook zusätzlich `{type: exam_answer, session_uid, position}` | N | `cc_not_found` |
-| *R-47* | `PUT /exam-sessions/{session}/grades/{position}` | neu | RG-16 | C | M-10 (nie eigener Versuch) | `{points_milli, comment?}` | `{evaluation_no, result}`; neue Auswertungsrevision (E-74; Datenvertrag ab R1) | **P** | `cc_forbidden`, `cc_validation_failed`, `cc_exam_conflict` — **Pro** (Gradebook, E-74, E-99) |
-| R-48 | `POST /me/privacy-requests` | neu (LB admin-post `bp_privacy_request`) | RG-17 | C | M-23 (auch bei Lernsperre) | `{type: export\|erase}` | 202 `{status: created\|resent\|confirmed}` (LB `SelfService.php:82`) | **O** | `cc_rate_limited` (`bucket: privacy`, 5/Tag) |
-| R-49 | `GET /media/{media}` | LB `/datei/<id>` | RG-18 | C | M-20 | `Range`/`If-Range` | Datei (200/206), `Content-Disposition`, `X-Content-Type-Options: nosniff` | N | `cc_not_found`, `cc_range_not_satisfiable` 416 |
+| *R-41* | `GET /certificates/{certificate}/pdf` | neu | RG-14 | C | M-18 | – | `application/pdf` (Snapshot, R0-08 §7.2, getaggt nach E-127) | N | `ccap_not_found` — **Pro** (E-96) |
+| R-42 | `GET /certificates/verify/{token}` | neu | RG-14 | **Ö** | Token | – | `{status: valid\|revoked\|corrected\|expired, course_title, issued_at, holder_name?}` (Felder nach Datenschutz-Einstellung) | N | `ccap_not_found` (unbekannt, kein Orakel), `ccap_rate_limited` (`bucket: verify`, fail-closed) |
+| R-43 | `GET /reports/courses/{course}` | neu | RG-15 | C | #12 + Scope | `group?` (Gruppenfilter im Basisbericht, E-231), `format?` (`csv`, E-98) | Aggregat `{learners, completion_rate, pass_rate, …}` | N | `ccap_not_found` |
+| R-44 | `GET /reports/courses/{course}/learners/{user}` | neu | RG-15 | C | M-11 | – | `{display_name, access, completion, attempts[{uid, passed, evaluated_at}]}`; keine Antworten | N | `ccap_not_found` |
+| *R-45* | `GET /reports/groups/{group}` | neu | RG-15 | C | M-16 | – | Aggregat je Mitglied minimiert | N | `ccap_not_found` — **Pro** (eigene Gruppenberichte, E-231; Fortschrittseinsicht für Besitzer nur Opt-in, E-232) |
+| R-46 | `GET /grading/queue` | neu | RG-16 | C | M-10 | `course, page, per_page` | Liste offener Abgaben `{type: assignment, submission_uid, submitted_at}` (E-168); mit Pro-Gradebook zusätzlich `{type: exam_answer, session_uid, position}` | N | `ccap_not_found` |
+| *R-47* | `PUT /exam-sessions/{session}/grades/{position}` | neu | RG-16 | C | M-10 (nie eigener Versuch) | `{points_milli, comment?}` | `{evaluation_no, result}`; neue Auswertungsrevision (E-74; Datenvertrag ab R1) | **P** | `ccap_forbidden`, `ccap_validation_failed`, `ccap_exam_conflict` — **Pro** (Gradebook, E-74, E-99) |
+| R-48 | `POST /me/privacy-requests` | neu (LB admin-post `bp_privacy_request`) | RG-17 | C | M-23 (auch bei Lernsperre) | `{type: export\|erase}` | 202 `{status: created\|resent\|confirmed}` (LB `SelfService.php:82`) | **O** | `ccap_rate_limited` (`bucket: privacy`, 5/Tag) |
+| R-49 | `GET /media/{media}` | LB `/datei/<id>` | RG-18 | C | M-20 | `Range`/`If-Range` | Datei (200/206), `Content-Disposition`, `X-Content-Type-Options: nosniff` | N | `ccap_not_found`, `ccap_range_not_satisfiable` 416 |
 | R-50 | `GET /monitor` | LB `/monitor` | RG-20 | **K** | Header `X-CC-Monitor-Key` (`hash_equals`), **kein** `?key=` | – | `{status: ok\|error, checks?}` (Details nur mit Schlüssel); 200/503 | N | – |
-| *R-51* | `POST /webhooks/{connector}` | LB `/webhooks/dispute` (Muster) | RG-19 | **H** | Connector aktiv; Signatur im `permission_callback` | Connector-Schema; Header `X-CC-Signature: t=<unix>,v1=<hex>`, `X-CC-Event-Id` | 202 `{status: accepted\|duplicate}` | N (Dedupe `ccap_inbox_event`) | `cc_signature_invalid` 401, `cc_connector_disabled` 403, `cc_incompatible_contract` 409 — **R3** (R3-01) |
-| *R-52* | `POST /me/codes/redeem` | M73–M75, K-14 | – | C | angemeldet; Connector-Fähigkeit `code_redeemer` | `{code (≤300), course_uid?}` | `{status: redeemed\|pending, grant_uid?, course_uid}` | **P** | `cc_code_*` (§3.4), `cc_rate_limited` (fail-closed) — **R3** (R3-04); ohne registrierten Redeemer nicht registriert |
+| *R-51* | `POST /webhooks/{connector}` | LB `/webhooks/dispute` (Muster) | RG-19 | **H** | Connector aktiv; Signatur im `permission_callback` | Connector-Schema; Header `X-CC-Signature: t=<unix>,v1=<hex>`, `X-CC-Event-Id` | 202 `{status: accepted\|duplicate}` | N (Dedupe `ccap_inbox_event`) | `ccap_signature_invalid` 401, `ccap_connector_disabled` 403, `ccap_incompatible_contract` 409 — **R3** (R3-01) |
+| *R-52* | `POST /me/codes/redeem` | M73–M75, K-14 | – | C | angemeldet; Connector-Fähigkeit `code_redeemer` | `{code (≤300), course_uid?}` | `{status: redeemed\|pending, grant_uid?, course_uid}` | **P** | `ccap_code_*` (§3.4), `ccap_rate_limited` (fail-closed) — **R3** (R3-04); ohne registrierten Redeemer nicht registriert |
 | *R-53* | `GET /events` | neu | – | C | `ccap_manage_integrations` | `after (event_id), types[], limit (≤500)` | `{events[envelope], next}` (Pull/Backfill, §5.5) | N | – — **Pro/R3** (R3-01, E-38) |
-| R-54 | `GET /courses/{course}/assignments/{lesson}` | neu (E-168) | RG-10 | C | M-02(`view`) für das Modul der Lektion | – | `{assignment{uid, type: text\|file\|text_file, max_files, allowed_types[]}, submissions[{uid, submission_no, status: draft\|submitted\|returned\|graded, submitted_at, grade?{points_milli, max_points_milli, passed, feedback}}]}` | N | `cc_not_found`, `cc_content_locked` |
-| R-55 | `PUT /courses/{course}/assignments/{lesson}/draft` | neu (E-168) | RG-10 | C | M-02(`view`) | `{text? , submission_uid?}`; `If-Match` optional | `{submission_uid, status: draft, row_version}`; legt bei Bedarf die nächste `submission_no` an (nach `returned`) | N | `cc_validation_failed` (`reason: not_editable`), `cc_version_conflict`, `cc_content_locked` |
-| R-56 | `POST /assignment-submissions/{submission}/files` | neu (E-168) | RG-10 | C | eigene Abgabe im Status `draft` | `multipart/form-data` (Upload-Regeln R0-10) | 201 `{file{media_uid, name, size_bytes}}` | **P** | `cc_validation_failed` (Typ, Größe, Anzahl), `cc_not_found`, `cc_rate_limited` |
-| R-57 | `POST /assignment-submissions/{submission}/submit` | neu (E-168) | RG-10 | C | eigene Abgabe | – | `{status: submitted, submitted_at}`; Wiederholung 200 | N | `cc_validation_failed` (`reason: empty`), `cc_version_conflict` |
-| R-58 | `PUT /assignment-submissions/{submission}/grade` | neu (E-168) | RG-16 | C | M-10 (nie eigene Abgabe) | `{action: grade\|return, points_milli?, feedback?, reason?}` | `{status: graded\|returned, evaluation_no}`; Neubewertung = neue `evaluation_no` mit Pflichtbegründung | **P** | `cc_forbidden`, `cc_validation_failed`, `cc_version_conflict` |
+| R-54 | `GET /courses/{course}/assignments/{lesson}` | neu (E-168) | RG-10 | C | M-02(`view`) für das Modul der Lektion | – | `{assignment{uid, type: text\|file\|text_file, max_files, allowed_types[]}, submissions[{uid, submission_no, status: draft\|submitted\|returned\|graded, submitted_at, grade?{points_milli, max_points_milli, passed, feedback}}]}` | N | `ccap_not_found`, `ccap_content_locked` |
+| R-55 | `PUT /courses/{course}/assignments/{lesson}/draft` | neu (E-168) | RG-10 | C | M-02(`view`) | `{text? , submission_uid?}`; `If-Match` optional | `{submission_uid, status: draft, row_version}`; legt bei Bedarf die nächste `submission_no` an (nach `returned`) | N | `ccap_validation_failed` (`reason: not_editable`), `ccap_version_conflict`, `ccap_content_locked` |
+| R-56 | `POST /assignment-submissions/{submission}/files` | neu (E-168) | RG-10 | C | eigene Abgabe im Status `draft` | `multipart/form-data` (Upload-Regeln R0-10) | 201 `{file{media_uid, name, size_bytes}}` | **P** | `ccap_validation_failed` (Typ, Größe, Anzahl), `ccap_not_found`, `ccap_rate_limited` |
+| R-57 | `POST /assignment-submissions/{submission}/submit` | neu (E-168) | RG-10 | C | eigene Abgabe | – | `{status: submitted, submitted_at}`; Wiederholung 200 | N | `ccap_validation_failed` (`reason: empty`), `ccap_version_conflict` |
+| R-58 | `PUT /assignment-submissions/{submission}/grade` | neu (E-168) | RG-16 | C | M-10 (nie eigene Abgabe) | `{action: grade\|return, points_milli?, feedback?, reason?}` | `{status: graded\|returned, evaluation_no}`; Neubewertung = neue `evaluation_no` mit Pflichtbegründung | **P** | `ccap_forbidden`, `ccap_validation_failed`, `ccap_version_conflict` |
 
 **Entfallende LB-Routen (Test: `404 rest_no_route`):** W21–W23 (Navigation; Ersatz ist der neutrale Fragetyp „Zahl mit Toleranz“, E-22), W29–W44 (Funk, Gerätesimulation), W52 (Prüfungsanmeldung) – `exclude_domain_specific` (Inventur D §4.1); öffentliche `/faqs` (INV-D-056, Website-FAQ ist Theme-Sache, E-16); `/webhooks/paypal`, `/webhooks/dispute` im Kern – das Verhalten wird nach E-33 im Woo-Adapter (Pro, R3.1) neu gebaut (R-51, R0-40 §4.4); App-API `boatingschool/v1` M1–M78 als eigene API (E-05). Übernommene App-Muster: Problem-Fehlerobjekt (§3), Idempotency-Key-Header (M23, M32), If-Match (M14), Range-Auslieferung (M17), Rate-Limit-Speicher.
 
@@ -239,7 +239,7 @@ LB-App-Format (`src/Mobile/Problem.php`: `type, title, status, detail, code, mes
 
 ```json
 {
-  "code": "cc_content_locked",
+  "code": "ccap_content_locked",
   "message": "Dieser Inhalt ist erst nach Ablauf der Freischaltfrist verfügbar.",
   "data": { "status": 403 },
   "type": "urn:course-captain:problem:content-locked",
@@ -259,15 +259,15 @@ LB-App-Format (`src/Mobile/Problem.php`: `type, title, status, detail, code, mes
 | `code` | ja | stabiler Code aus §3.2–3.4; **einziges** maschinenlesbares Unterscheidungsmerkmal neben `reason` |
 | `message` / `detail` | ja | übersetzter, nutzerverständlicher Text; nie technische Details, SQL, Pfade, Stacktraces |
 | `data.status` / `status` | ja | HTTP-Status (doppelt für `wp.apiFetch` und RFC-9457-Clients) |
-| `type` | ja | `urn:course-captain:problem:<code ohne cc_, _ → ->` |
+| `type` | ja | `urn:course-captain:problem:<code ohne ccap_, _ → ->` |
 | `title` | ja | kurzer, übersetzter Titel je Code |
 | `request_id` | ja | wie Header `X-Request-Id` |
 | `reason` | nein | Unterfall aus fester, dokumentierter Liste je Code (Enum, additiv erweiterbar) |
 | `retry_after` | bei 409-retryable, 429, 503 | Sekunden; zusätzlich Header `Retry-After` |
-| `errors` | bei `cc_validation_failed` | `{feld: [{code, message}]}` |
+| `errors` | bei `ccap_validation_failed` | `{feld: [{code, message}]}` |
 | `details` | nein | codespezifische, dokumentierte Zusatzdaten; nie personenbezogene Daten Dritter |
 
-**Content-Type:** `application/json; charset=UTF-8` (nicht `application/problem+json`), damit WordPress-Kern, `wp.apiFetch` und Caching-Plugins unverändert arbeiten (D19-6). **Codes in Kleinschreibung mit `cc_`-Präfix** statt LB-`UPPER_SNAKE`: WordPress-Fehlercodes sind klein (`rest_forbidden`), R0-05/R0-07/R0-08 verwenden bereits `cc_*`; der LB-Code steht in §3.2 als Herkunft. Durchgereichte WP-Kerncodes (`rest_*`) bleiben unverändert.
+**Content-Type:** `application/json; charset=UTF-8` (nicht `application/problem+json`), damit WordPress-Kern, `wp.apiFetch` und Caching-Plugins unverändert arbeiten (D19-6). **Codes in Kleinschreibung mit `ccap_`-Präfix** statt LB-`UPPER_SNAKE`: WordPress-Fehlercodes sind klein (`rest_forbidden`), das Präfix ist nach E-285 einheitlich `ccap_`; der LB-Code steht in §3.2 als Herkunft. Durchgereichte WP-Kerncodes (`rest_*`) bleiben unverändert.
 
 **PHP-API und Hooks** (§4.1) verwenden dieselben Codes: Fehler als `WP_Error( code, message, [ 'status' => int, 'retryable' => bool, 'reason' => ?string, 'partner_code' => ?string, 'request_id' => string ] )`. Erwartete **Erfolgsvarianten** (Duplikat einer idempotenten Anfrage, „nichts zu tun“) sind **kein** Fehler, sondern ein Ergebnis mit `success: true, code: created|duplicate|updated|unchanged` (Klärung R0-32 F2b; Kap. 18 `duplicate` wird damit Ergebniscode).
 
@@ -278,58 +278,58 @@ LB-App-Format (`src/Mobile/Problem.php`: `type, title, status, detail, code, mes
 | Code | HTTP | Bedeutung | `reason` (Enum) | R | LB-Herkunft (Web / App / Kap. 18) |
 |---|---|---|---|---|---|
 | **Allgemein** | | | | | |
-| `cc_auth_required` | 401 | nicht angemeldet | – | – | `bp_login_required` / `UNAUTHENTICATED` |
-| `cc_forbidden` | 403 | Objekt legitim bekannt, Aktion nicht erlaubt (R0-07 P-08) | `capability`, `rule`, `self_action` | – | `bp_forbidden` / – / `forbidden` |
-| `cc_account_locked` | 403 | Lernsperre oder Konto ohne Rolle auf der Site (E-79) | `learner_lock`, `no_role` | – | – (neu) |
-| `cc_content_locked` | 403 | Inhalt existiert und ist bekannt, aber derzeit nicht zugänglich | `not_granted`, `pending`, `suspended`, `expired`, `revoked`, `partial_access`, `scheduled_release`, `running_exam`, `rights_unclear`, `prerequisite` | – | – / `ENTITLEMENT_REQUIRED`, `…_EXPIRED`, `…_SUSPENDED`, `CONTENT_LOCKED` |
-| `cc_not_found` | 404 | unbekannt **oder fremd** (kein Existenz-Orakel) | – | – | `bp_not_found` / `RESOURCE_NOT_FOUND` / `not_found` |
-| `cc_validation_failed` | 422 | fachliche Validierung (nach Schemaprüfung) | – (Feldfehler in `errors`) | – | `bp_invalid` / `VALIDATION_FAILED` |
-| `cc_invalid_scope` | 422 | Scope/Ziel ungültig (z. B. Kurs nicht veröffentlicht, Scope oder Modul unbekannt, Abhängigkeit unzulässig) | `course_not_published`, `scope_unknown`, `module_unknown`, `dependency_invalid` | – | – / – / `invalid_scope` |
-| `cc_invalid_token` | 422 | Frage- oder Einladungstoken manipuliert, fremd oder falsches Format | `signature`, `other_account`, `format` | – | `RuntimeException` (QuestionPresenter.php:157-163) |
-| `cc_idempotency_key_required` | 428 | Pflicht-Header `Idempotency-Key` fehlt oder ist keine UUID | – | – | Text „Ungültiger Idempotency-Key.“ |
-| `cc_idempotency_conflict` | 409 | gleicher Key, anderer Inhalt bzw. anderer Nutzer/anderes Ziel | – | – | – / `IDEMPOTENCY_KEY_REUSED`; `lb_idempotency_conflict`; `vcap_idempotency_conflict` |
-| `cc_request_in_progress` | 409 | gleiche Anfrage läuft noch | – | R (`retry_after: 2`) | – / `REQUEST_IN_PROGRESS` |
-| `cc_version_conflict` | 409 | `If-Match` passt nicht mehr | – | – | – / `VERSION_CONFLICT` |
-| `cc_resource_busy` | 409 | Sperre belegt (Import, Gruppe, Grant) | `lock` | R | `bp_voucher_busy` (Muster) |
-| `cc_rate_limited` | 429 | Limit erreicht | – (`details.bucket`: `answer`, `exam_start`, `group_invite`, `group_join`, `privacy`, `verify`, `code_redeem`) | R (`retry_after`) | `bp_rate_limited` / `RATE_LIMITED`; `answer_rate_limited`, `exam_start_rate_limited` |
-| `cc_maintenance` | 503 | Migration oder Read-only-Fenster | `migration`, `read_only` | R (`retry_after: 30`) | `bp_maintenance` / `MAINTENANCE` |
-| `cc_db_busy` | 503 | Deadlock/Lock-Wait nach 3 Wiederholungen (R0-14 NFR-011) | – | R | – (neu) |
-| `cc_temporarily_unavailable` | 503 | vorübergehender Fehler, Partner oder Zählerspeicher nicht erreichbar | `limiter_unavailable`, `partner_unavailable`, `hold_mode` | R | – / `TEMPORARY_ERROR` / `retryable`; `vcap_temporary_failure` |
-| `cc_internal_error` | 500 | unerwarteter Fehler, ohne Details | – | – | `bp_internal` / `INTERNAL_ERROR` |
-| `cc_range_not_satisfiable` | 416 | ungültiger Byte-Bereich | – | – | – / `RANGE_NOT_SATISFIABLE` |
+| `ccap_auth_required` | 401 | nicht angemeldet | – | – | `bp_login_required` / `UNAUTHENTICATED` |
+| `ccap_forbidden` | 403 | Objekt legitim bekannt, Aktion nicht erlaubt (R0-07 P-08) | `capability`, `rule`, `self_action` | – | `bp_forbidden` / – / `forbidden` |
+| `ccap_account_locked` | 403 | Lernsperre oder Konto ohne Rolle auf der Site (E-79) | `learner_lock`, `no_role` | – | – (neu) |
+| `ccap_content_locked` | 403 | Inhalt existiert und ist bekannt, aber derzeit nicht zugänglich | `not_granted`, `pending`, `suspended`, `expired`, `revoked`, `partial_access`, `scheduled_release`, `running_exam`, `rights_unclear`, `prerequisite` | – | – / `ENTITLEMENT_REQUIRED`, `…_EXPIRED`, `…_SUSPENDED`, `CONTENT_LOCKED` |
+| `ccap_not_found` | 404 | unbekannt **oder fremd** (kein Existenz-Orakel) | – | – | `bp_not_found` / `RESOURCE_NOT_FOUND` / `not_found` |
+| `ccap_validation_failed` | 422 | fachliche Validierung (nach Schemaprüfung) | – (Feldfehler in `errors`) | – | `bp_invalid` / `VALIDATION_FAILED` |
+| `ccap_invalid_scope` | 422 | Scope/Ziel ungültig (z. B. Kurs nicht veröffentlicht, Scope oder Modul unbekannt, Abhängigkeit unzulässig) | `course_not_published`, `scope_unknown`, `module_unknown`, `dependency_invalid` | – | – / – / `invalid_scope` |
+| `ccap_invalid_token` | 422 | Frage- oder Einladungstoken manipuliert, fremd oder falsches Format | `signature`, `other_account`, `format` | – | `RuntimeException` (QuestionPresenter.php:157-163) |
+| `ccap_idempotency_key_required` | 428 | Pflicht-Header `Idempotency-Key` fehlt oder ist keine UUID | – | – | Text „Ungültiger Idempotency-Key.“ |
+| `ccap_idempotency_conflict` | 409 | gleicher Key, anderer Inhalt bzw. anderer Nutzer/anderes Ziel | – | – | – / `IDEMPOTENCY_KEY_REUSED`; `lb_idempotency_conflict`; `vcap_idempotency_conflict` |
+| `ccap_request_in_progress` | 409 | gleiche Anfrage läuft noch | – | R (`retry_after: 2`) | – / `REQUEST_IN_PROGRESS` |
+| `ccap_version_conflict` | 409 | `If-Match` passt nicht mehr | – | – | – / `VERSION_CONFLICT` |
+| `ccap_resource_busy` | 409 | Sperre belegt (Import, Gruppe, Grant) | `lock` | R | `bp_voucher_busy` (Muster) |
+| `ccap_rate_limited` | 429 | Limit erreicht | – (`details.bucket`: `answer`, `exam_start`, `group_invite`, `group_join`, `privacy`, `verify`, `code_redeem`) | R (`retry_after`) | `bp_rate_limited` / `RATE_LIMITED`; `answer_rate_limited`, `exam_start_rate_limited` |
+| `ccap_maintenance` | 503 | Migration oder Read-only-Fenster | `migration`, `read_only` | R (`retry_after: 30`) | `bp_maintenance` / `MAINTENANCE` |
+| `ccap_db_busy` | 503 | Deadlock/Lock-Wait nach 3 Wiederholungen (R0-14 NFR-011) | – | R | – (neu) |
+| `ccap_temporarily_unavailable` | 503 | vorübergehender Fehler, Partner oder Zählerspeicher nicht erreichbar | `limiter_unavailable`, `partner_unavailable`, `hold_mode` | R | – / `TEMPORARY_ERROR` / `retryable`; `vcap_temporary_failure` |
+| `ccap_internal_error` | 500 | unerwarteter Fehler, ohne Details | – | – | `bp_internal` / `INTERNAL_ERROR` |
+| `ccap_range_not_satisfiable` | 416 | ungültiger Byte-Bereich | – | – | – / `RANGE_NOT_SATISFIABLE` |
 | **Lernen** | | | | | |
-| `cc_question_token_expired` | 422 | Frage-Token älter als 2 h | – | – | `question_token_expired` (Web 422, App 409) |
+| `ccap_question_token_expired` | 422 | Frage-Token älter als 2 h | – | – | `question_token_expired` (Web 422, App 409) |
 | **Prüfung** (R0-08 §6.6, harmonisiert) | | | | | |
-| `cc_exam_not_startable` | 422 | keine gültige Regel, Variante unvollständig, keine Fragen | `no_rule`, `variant_incomplete`, `no_questions` | – | `exam_not_startable` / `EXAM_NOT_STARTABLE` |
-| `cc_exam_start_busy` | 409 | Startsperre belegt | – | R | `exam_start_busy` |
-| `cc_exam_attempts_exhausted` | 422 | `max_attempts` erreicht oder Sperrfrist | `max_attempts`, `cooldown` | – (`retry_after` bei `cooldown`) | – (neu) |
-| `cc_exam_expired` | 410 | Aktion nach Frist + Kulanz | – | – | `exam_expired` (Web 422) / `EXAM_EXPIRED` 410 |
-| `cc_exam_already_submitted` | 409 | Versuch bereits abgegeben/ausgewertet | – | – | `exam_finished` / `EXAM_ALREADY_SUBMITTED` |
-| `cc_exam_aborted` | 409 | Versuch abgebrochen | – | – | `exam_finished` / `EXAM_ABORTED` |
-| `cc_exam_not_submitted` | 409 | Ergebnis/Review vor Abgabe | – | – | – / `EXAM_NOT_SUBMITTED` |
-| `cc_exam_answer_locked` | 422 | Antwort nach Aufdecken gesperrt | – | – | `exam_answer_locked` / `EXAM_ANSWER_LOCKED` 409 |
-| `cc_exam_invalid_answer` | 422 | ungültige/leere Auswahl, falsche Anzahl | – | – | Text-`RuntimeException` |
-| `cc_exam_conflict` | 409 | CAS-Konflikt nach Wiederholung | – | R | – (neu) |
-| `cc_exam_snapshot_invalid` | 500 | Snapshot-Hash passt nicht; Health-Meldung | – | – | – (neu) |
+| `ccap_exam_not_startable` | 422 | keine gültige Regel, Variante unvollständig, keine Fragen | `no_rule`, `variant_incomplete`, `no_questions` | – | `exam_not_startable` / `EXAM_NOT_STARTABLE` |
+| `ccap_exam_start_busy` | 409 | Startsperre belegt | – | R | `exam_start_busy` |
+| `ccap_exam_attempts_exhausted` | 422 | `max_attempts` erreicht oder Sperrfrist | `max_attempts`, `cooldown` | – (`retry_after` bei `cooldown`) | – (neu) |
+| `ccap_exam_expired` | 410 | Aktion nach Frist + Kulanz | – | – | `exam_expired` (Web 422) / `EXAM_EXPIRED` 410 |
+| `ccap_exam_already_submitted` | 409 | Versuch bereits abgegeben/ausgewertet | – | – | `exam_finished` / `EXAM_ALREADY_SUBMITTED` |
+| `ccap_exam_aborted` | 409 | Versuch abgebrochen | – | – | `exam_finished` / `EXAM_ABORTED` |
+| `ccap_exam_not_submitted` | 409 | Ergebnis/Review vor Abgabe | – | – | – / `EXAM_NOT_SUBMITTED` |
+| `ccap_exam_answer_locked` | 422 | Antwort nach Aufdecken gesperrt | – | – | `exam_answer_locked` / `EXAM_ANSWER_LOCKED` 409 |
+| `ccap_exam_invalid_answer` | 422 | ungültige/leere Auswahl, falsche Anzahl | – | – | Text-`RuntimeException` |
+| `ccap_exam_conflict` | 409 | CAS-Konflikt nach Wiederholung | – | R | – (neu) |
+| `ccap_exam_snapshot_invalid` | 500 | Snapshot-Hash passt nicht; Health-Meldung | – | – | – (neu) |
 | **Gruppen und Einladungen** | | | | | |
-| `cc_invite_expired` | 410 | Einladung oder Beitrittslink abgelaufen | – | – | Mitgliedsstatus `expired` |
-| `cc_invite_other_account` | 403 | Einladung an eine andere Adresse gebunden (E-28) | – | – | – / `VOUCHER_NOT_ALLOWED` (Muster) |
-| `cc_group_not_active` | 409 | Gruppe ausgesetzt/widerrufen/abgelaufen | `suspended`, `revoked`, `expired` | – | – / `GROUP_NOT_ACTIVE` |
-| `cc_group_full` | 409 | kein freier Platz | – | – | – / `ACCESS_NOT_POSSIBLE` |
+| `ccap_invite_expired` | 410 | Einladung oder Beitrittslink abgelaufen | – | – | Mitgliedsstatus `expired` |
+| `ccap_invite_other_account` | 403 | Einladung an eine andere Adresse gebunden (E-28) | – | – | – / `VOUCHER_NOT_ALLOWED` (Muster) |
+| `ccap_group_not_active` | 409 | Gruppe ausgesetzt/widerrufen/abgelaufen | `suspended`, `revoked`, `expired` | – | – / `GROUP_NOT_ACTIVE` |
+| `ccap_group_full` | 409 | kein freier Platz | – | – | – / `ACCESS_NOT_POSSIBLE` |
 | **Import** | | | | | |
-| `cc_import_failed` | 409 | Importschritt fehlgeschlagen (Bericht im Batch) | – | – | `bp_import_failed` |
-| `cc_import_state_invalid` | 409 | Aktion im aktuellen Batch-Status nicht erlaubt | – | – | – (neu, ImportPage-Zustände) |
+| `ccap_import_failed` | 409 | Importschritt fehlgeschlagen (Bericht im Batch) | – | – | `bp_import_failed` |
+| `ccap_import_state_invalid` | 409 | Aktion im aktuellen Batch-Status nicht erlaubt | – | – | – (neu, ImportPage-Zustände) |
 | **Export und Datenschutz** | | | | | |
-| `cc_export_not_ready` | 409 | Export wird erstellt | – | R | – / `EXPORT_NOT_READY` |
-| `cc_export_expired` | 410 | Download abgelaufen | – | – | – / `EXPORT_EXPIRED` |
-| `cc_export_failed` | 410 | Export fehlgeschlagen | – | – | – / `EXPORT_FAILED` |
+| `ccap_export_not_ready` | 409 | Export wird erstellt | – | R | – / `EXPORT_NOT_READY` |
+| `ccap_export_expired` | 410 | Download abgelaufen | – | – | – / `EXPORT_EXPIRED` |
+| `ccap_export_failed` | 410 | Export fehlgeschlagen | – | – | – / `EXPORT_FAILED` |
 | **Integration / PHP-API** (Kap. 18 erweitert, R0-36 X4) | | | | | |
-| `cc_incompatible_contract` | 409 | Vertragsversion des Aufrufers/Connectors passt nicht | – | – | – / – / `incompatible_contract` |
-| `cc_connector_disabled` | 403 | Connector nicht freigegeben oder deaktiviert | – | – | – (R0-07 §3.4) |
-| `cc_source_not_allowed` | 403 | Connector schreibt auf fremde Grant-Quelle (z. B. Workflow-Connector auf Nicht-`workflow`-Grant, E-39b, R0-07 §4.8) | – | – | – (neu) |
-| `cc_signature_invalid` | 401 | Webhook-Signatur, Zeitstempel (±300 s) oder Secret ungültig | – | – | `DisputeWebhooks` 401 |
-| `cc_partner_error` | 502 | Partner meldet fachlichen Fehler ohne CC-Gegenstück; Original in `partner_code` | – | je `retryable` | – (neu, R0-36 §3.3 Nr. 3) |
-| `cc_feature_unavailable` | 404 | Funktion nicht aktiv (Modul/Pro/Connector fehlt, z. B. Pro-Routen ohne Pro); bewusst wie „nicht vorhanden“ | – | – | – / `COURSE_VOUCHERS_UNAVAILABLE` (503) |
+| `ccap_incompatible_contract` | 409 | Vertragsversion des Aufrufers/Connectors passt nicht | – | – | – / – / `incompatible_contract` |
+| `ccap_connector_disabled` | 403 | Connector nicht freigegeben oder deaktiviert | – | – | – (R0-07 §3.4) |
+| `ccap_source_not_allowed` | 403 | Connector schreibt auf fremde Grant-Quelle (z. B. Workflow-Connector auf Nicht-`workflow`-Grant, E-39b, R0-07 §4.8) | – | – | – (neu) |
+| `ccap_signature_invalid` | 401 | Webhook-Signatur, Zeitstempel (±300 s) oder Secret ungültig | – | – | `DisputeWebhooks` 401 |
+| `ccap_partner_error` | 502 | Partner meldet fachlichen Fehler ohne CC-Gegenstück; Original in `partner_code` | – | je `retryable` | – (neu, R0-36 §3.3 Nr. 3) |
+| `ccap_feature_unavailable` | 404 | Funktion nicht aktiv (Modul/Pro/Connector fehlt, z. B. Pro-Routen ohne Pro); bewusst wie „nicht vorhanden“ | – | – | – / `COURSE_VOUCHERS_UNAVAILABLE` (503) |
 | **Ergebniscodes (kein Fehler)** | 200/201 | `created`, `duplicate`, `updated`, `unchanged` im Ergebnisobjekt der PHP-API | – | – | Kap. 18 `duplicate`; Affiliate `created\|duplicate` |
 
 Summe R1: 46 Fehlercodes (ohne Ergebniscodes und durchgereichte `rest_*`).
@@ -339,21 +339,21 @@ Summe R1: 46 Fehlercodes (ohne Ergebniscodes und durchgereichte `rest_*`).
 1. Ausnahmen im Code (`AccessDenied`, `NotFound`, `DomainException`) werden **über den Code**, nie über den Text abgebildet (LB `BaseController.php:247-268`, R0-05 Fehlerhülle).
 2. Ein neuer fachlicher Unterfall bekommt zuerst einen `reason`-Wert; ein neuer Code nur, wenn Clients anders reagieren müssen (anderer HTTP-Status oder anderes Retry-Verhalten).
 3. Jeder Code ist in **genau einer** HTTP-Klasse. Der Status ändert sich nur per Major (§1.4).
-4. Kein Code verrät die Existenz fremder Objekte (`cc_not_found` statt `cc_forbidden`, R0-07 P-08); öffentliche Routen (R-42) antworten bei unbekanntem und widerrufenem Token unterschiedlich nur in `status`, nicht im Fehlerweg.
+4. Kein Code verrät die Existenz fremder Objekte (`ccap_not_found` statt `ccap_forbidden`, R0-07 P-08); öffentliche Routen (R-42) antworten bei unbekanntem und widerrufenem Token unterschiedlich nur in `status`, nicht im Fehlerweg.
 
 ### 3.4 Für R3 reservierte Codes (Einlösung, R3-04; Abbildung auf `vcap()->redemptions`)
 
 | Code | HTTP | Bedeutung | Abbildung Voucher Captain (R0-36 §3.2) | LB-App |
 |---|---|---|---|---|
-| `cc_code_invalid` | 422 | Code unbekannt, ungültig oder nicht einlösbar (neutral, keine Existenzauskunft, K-14); `reason`: `unknown\|not_redeemable\|insufficient_balance\|invalid_request` (R0-40 Δ40-4) | `vcap_not_found`, `vcap_not_redeemable`, `vcap_invalid_request` | `COUPON_INVALID`, `VOUCHER_INVALID`, `VOUCHER_NOT_FOR_COURSES` |
-| `cc_code_expired` | 410 | Code abgelaufen oder storniert; `reason`: `expired\|voided` | `vcap_expired`, `vcap_cancelled` | `VOUCHER_EXPIRED` |
-| `cc_code_not_yet_valid` | 422 | noch nicht gültig | `vcap_not_active` | `VOUCHER_NOT_YET_VALID` |
-| `cc_code_already_used` | 409 | bereits eingelöst (Erfolg nur, wenn Course den Grant zu **diesem** Key hält → Ergebnis `duplicate`) | `vcap_already_redeemed` | `VOUCHER_REDEEMED` |
-| `cc_code_in_progress` | 409 | Code gerade reserviert | `vcap_reserved` | `VOUCHER_RESERVED` |
-| `cc_code_wrong_target` | 422 | Code gilt für anderen Kurs | `vcap_target_unavailable` | `VOUCHER_WRONG_COURSE` |
-| `cc_code_not_allowed` | 403 | Code gehört zu anderem Konto | `vcap_not_allowed` | `VOUCHER_NOT_ALLOWED` |
+| `ccap_code_invalid` | 422 | Code unbekannt, ungültig oder nicht einlösbar (neutral, keine Existenzauskunft, K-14); `reason`: `unknown\|not_redeemable\|insufficient_balance\|invalid_request` (R0-40 Δ40-4) | `vcap_not_found`, `vcap_not_redeemable`, `vcap_invalid_request` | `COUPON_INVALID`, `VOUCHER_INVALID`, `VOUCHER_NOT_FOR_COURSES` |
+| `ccap_code_expired` | 410 | Code abgelaufen oder storniert; `reason`: `expired\|voided` | `vcap_expired`, `vcap_cancelled` | `VOUCHER_EXPIRED` |
+| `ccap_code_not_yet_valid` | 422 | noch nicht gültig | `vcap_not_active` | `VOUCHER_NOT_YET_VALID` |
+| `ccap_code_already_used` | 409 | bereits eingelöst (Erfolg nur, wenn Course den Grant zu **diesem** Key hält → Ergebnis `duplicate`) | `vcap_already_redeemed` | `VOUCHER_REDEEMED` |
+| `ccap_code_in_progress` | 409 | Code gerade reserviert | `vcap_reserved` | `VOUCHER_RESERVED` |
+| `ccap_code_wrong_target` | 422 | Code gilt für anderen Kurs | `vcap_target_unavailable` | `VOUCHER_WRONG_COURSE` |
+| `ccap_code_not_allowed` | 403 | Code gehört zu anderem Konto | `vcap_not_allowed` | `VOUCHER_NOT_ALLOWED` |
 
-Weitere Partnerfehler: `vcap_temporary_failure` → `cc_temporarily_unavailable` (`reason: partner_unavailable`, R); `vcap_rate_limited` → `cc_rate_limited` (`bucket: code_redeem`); `vcap_reservation_missing` → `cc_not_found` (Grant → `revoked`, Grund `voucher_reservation_lost`); `vcap_idempotency_conflict` → `cc_idempotency_conflict`; alles Übrige → `cc_partner_error` mit `partner_code`.
+Weitere Partnerfehler: `vcap_temporary_failure` → `ccap_temporarily_unavailable` (`reason: partner_unavailable`, R); `vcap_rate_limited` → `ccap_rate_limited` (`bucket: code_redeem`); `vcap_reservation_missing` → `ccap_not_found` (Grant → `revoked`, Grund `voucher_reservation_lost`); `vcap_idempotency_conflict` → `ccap_idempotency_conflict`; alles Übrige → `ccap_partner_error` mit `partner_code`.
 
 ---
 
@@ -383,7 +383,7 @@ Alle Funktionen existieren erst nach `course_captain_loaded_v1` (vorher: `functi
 | `course_captain_resolve_recipient( string $user_ref, string $purpose, array $context )` (ab Stabilisierung `_v1`) | – | L | registrierter Connector mit Fähigkeit `recipient_resolver`-Nutzung | – | `{display_name, email, locale}` nur zur Versandzeit, nie gespeichert (R0-32 W13, V3, E-41) | experimentell, R3 |
 | ~~`course_captain_enroll_v1`~~ | – | – | – | – | **entfällt** (D19-5): „Enrollment“ ist der abgeleitete Zustand aus Grants (Kap. 31.2); Einschreiben = `grant_access_v1` mit `source_type` des Aufrufers | – |
 
-**Grant-Payload (`grant_access_v1`):** `course_uid` (Pflicht), `module_uid?` (leer = ganzer Kurs, E-27), `depends_on_course_uid?` (E-26), `user_id` (Pflicht; Gastkauf erst nach Kontozuordnung, E-30), `source_type` (`[a-z0-9_]{1,32}`, = Connector-Quelle), `source_reference` (≤ 191, z. B. `order:123:item:7`, `redemption:<key>`), `source_line?`, `idempotency_key`, `scopes[]` (`view`, `download`, `exam`; Standard alle, E-27), `status` (`active`\|`pending`), `valid_from?`, `valid_until?`, `reason` (Code), `meta` (nur Schlüssel mit Präfix `<source_type>.`, ≤ 4 KB, nie PII/Secrets). Validierung: `cc_invalid_scope` (auch `module_unknown`, `dependency_invalid`), `cc_not_found` (Kurs/Nutzer), `cc_source_not_allowed` (Workflow nur `source_type = workflow`, E-39b), `cc_idempotency_conflict` (gleicher Key, anderer Nutzer/Kurs, LB INV-B-058).
+**Grant-Payload (`grant_access_v1`):** `course_uid` (Pflicht), `module_uid?` (leer = ganzer Kurs, E-27), `depends_on_course_uid?` (E-26), `user_id` (Pflicht; Gastkauf erst nach Kontozuordnung, E-30), `source_type` (`[a-z0-9_]{1,32}`, = Connector-Quelle), `source_reference` (≤ 191, z. B. `order:123:item:7`, `redemption:<key>`), `source_line?`, `idempotency_key`, `scopes[]` (`view`, `download`, `exam`; Standard alle, E-27), `status` (`active`\|`pending`), `valid_from?`, `valid_until?`, `reason` (Code), `meta` (nur Schlüssel mit Präfix `<source_type>.`, ≤ 4 KB, nie PII/Secrets). Validierung: `ccap_invalid_scope` (auch `module_unknown`, `dependency_invalid`), `ccap_not_found` (Kurs/Nutzer), `ccap_source_not_allowed` (Workflow nur `source_type = workflow`, E-39b), `ccap_idempotency_conflict` (gleicher Key, anderer Nutzer/Kurs, LB INV-B-058).
 
 ### 4.2 Lebenszyklus- und Registry-Actions
 
@@ -454,9 +454,9 @@ Alle Funktionen existieren erst nach `course_captain_loaded_v1` (vorher: `functi
 
 | Shortcode | Attribute | Ausgabe | Stab./Phase | LB-Herkunft |
 |---|---|---|---|---|
-| `[course_captain_access course="<uid>" scope="view\|download\|exam\|any" message=""]…[/course_captain_access]` | `course` (UUID, Pflicht), `scope` (Standard `any`), `message` (Text, escaped) | Inhalt nur bei M-02; sonst Hinweis + Angebot aus Slot `accessOffers` bzw. Login/Kontakt (INV-B-064); Feeds/Excerpt immer gesperrt | stabil, R1 | `[bootspruefung_zugang kurs funktion hinweis]` (ContentGate.php:74) |
-| `[course_captain_learning_link label=""]` | `label` | Knopf „Zum Lernbereich“ (`/lernen/`) | stabil, R1 | `[bootspruefung]` (Router.php:125) |
-| `[course_captain_privacy_request]` | – | Self-Service-Formular (R-48) | stabil, R1 | admin-post `bp_privacy_request`, Woo-Endpunkt „Meine Daten“ (K-07) |
+| `[ccap_access course="<uid>" scope="view\|download\|exam\|any" message=""]…[/ccap_access]` | `course` (UUID, Pflicht), `scope` (Standard `any`), `message` (Text, escaped) | Inhalt nur bei M-02; sonst Hinweis + Angebot aus Slot `accessOffers` bzw. Login/Kontakt (INV-B-064); Feeds/Excerpt immer gesperrt | stabil, R1 | `[bootspruefung_zugang kurs funktion hinweis]` (ContentGate.php:74) |
+| `[ccap_learning_link label=""]` | `label` | Knopf „Zum Lernbereich“ (`/lernen/`) | stabil, R1 | `[bootspruefung]` (Router.php:125) |
+| `[ccap_privacy_request]` | – | Self-Service-Formular (R-48) | stabil, R1 | admin-post `bp_privacy_request`, Woo-Endpunkt „Meine Daten“ (K-07) |
 
 Entfallen: `[bootspruefung_faq]` (Website-FAQ, E-16/INV-D-056). `[bootspruefung_vertrag_widerrufen]` entfällt im Kern; der Widerrufsbutton kommt nach E-33 aus dem Woo-Adapter (Pro, R3.1).
 
@@ -614,7 +614,7 @@ Entfallen: `bp_mobile_export_generate` (E-05), `update_check`/`media_relocate` (
 | `course_captain_certificate_issued_v1` | `certificate.issued` | `certificate.issued` | `course_captain_certificate_issued_v1` |
 | – | `certificate.revoked` | `certificate.revoked` | `course_captain_certificate_revoked_v1` |
 
-`assessment.*` heißt `exam.*`, weil auch bewertete Quizze über denselben Versuchsautomaten laufen (E-68) und `payload.mode` (`exam`\|`quiz`) unterscheidet; der Begriff deckt sich mit Routen (`exam-sessions`) und Fehlercodes (`cc_exam_*`).
+`assessment.*` heißt `exam.*`, weil auch bewertete Quizze über denselben Versuchsautomaten laufen (E-68) und `payload.mode` (`exam`\|`quiz`) unterscheidet; der Begriff deckt sich mit Routen (`exam-sessions`) und Fehlercodes (`ccap_exam_*`).
 
 ### 5.3 Eventkatalog v1
 
@@ -652,19 +652,19 @@ Alle Events entstehen **im selben Commit** wie die Fachänderung (Outbox, §5.4)
 ### 5.4 Outbox, Zustellung und Idempotenz (ADR-006)
 
 1. **Gleiche Transaktion:** Fachänderung + `ccap_grant_event`/Revision + `ccap_outbox_event` in **einem** Commit (R0-06 §4.8). Kein Event ohne Zustand, kein Zustand ohne Event.
-2. **Event-Log:** `ccap_outbox_event` speichert jedes Event **einmal**. **Free:** nur, wenn mindestens ein interner Abonnent den Typ abonniert; zugestellte Einträge 90 Tage (`course_captain_internal_outbox_retention_days`, E-116/E-215). **Pro:** unabhängig von Abonnenten, Aufbewahrung ohne Abonnent `course_captain_outbox_retention_days` (Standard 30 Tage, E-119); das ermöglicht Pull (`get_events_v1`, R-53), Backfill und Replay. Offene Zustellungen höchstens 30 Tage, dann Dead-Letter mit Grund `retention` (E-258).
+2. **Event-Log:** `ccap_outbox_event` speichert jedes Event **einmal**. **Free:** nur, wenn mindestens ein interner Abonnent den Typ abonniert; zugestellte Einträge 90 Tage (`course_captain_internal_outbox_retention_days`, E-116/E-215). **Pro:** unabhängig von Abonnenten, Aufbewahrung ohne Abonnent `course_captain_outbox_retention_days` (Standard 30 Tage, E-119); das ermöglicht Pull (`get_events_v1`, R-53), Backfill und Replay. Offene Zustellungen höchstens 30 Tage, dann Dead-Letter: Status `dead`, `last_error_class = retention` (E-258; Grundfelder wie R0-06 §4.6 und R0-34 §2.1).
 3. **Zustellung je Abonnent:** neue Tabelle `ccap_outbox_delivery` (`event_uuid`, `subscriber_id`, `status` `pending/dispatching/delivered/failed/dead/skipped`, `attempts`, `next_attempt_at`, `locked_until`, `lock_owner`, `last_error_class`, `last_error`, `delivered_at`; `UNIQUE (event_uuid, subscriber_id)`). Zustellstatus und Versuche wandern damit aus `ccap_outbox_event` (Delta R0-06, §8). Zeilen entstehen beim Commit nur für **aktive** Abonnenten mit passendem Typ und freigegebenen `privacy_tags` (interne Abonnenten gelten als freigegeben; externe nach E-120).
-4. **Dispatcher** `ccap_outbox_dispatch`: Lease über `locked_until` (60 s) + `lock_owner`; Zustellung in `object_version`-Reihenfolge je (Abonnent, Objekt); höchstens 100 Zustellungen je Lauf. Backoff 1 min, 5 min, 15 min, 1 h, 6 h, 24 h, 24 h, 24 h → nach **8** Versuchen `dead` (Form-Muster R0-32 F5), Action `course_captain_outbox_dead_lettered`, Admin-Hinweis. Permanente Fehler (`cc_validation_failed`, `cc_incompatible_contract`, `cc_forbidden`) gehen sofort auf `failed` (Kap. 31.3 Nr. 5).
+4. **Dispatcher** `ccap_outbox_dispatch`: Lease über `locked_until` (60 s) + `lock_owner`; Zustellung in `object_version`-Reihenfolge je (Abonnent, Objekt); höchstens 100 Zustellungen je Lauf. Backoff 1 min, 5 min, 15 min, 1 h, 6 h, 24 h, 24 h, 24 h → nach **8** Versuchen `dead` (Form-Muster R0-32 F5), Action `course_captain_outbox_dead_lettered`, Admin-Hinweis. Permanente Fehler (`ccap_validation_failed`, `ccap_incompatible_contract`, `ccap_forbidden`) gehen sofort auf `failed` (Kap. 31.3 Nr. 5).
 5. **Garantie:** at-least-once je Abonnent. Consumer MÜSSEN über `event_id` deduplizieren (Kap. 18) und `object_version` prüfen. `idempotency_key` erlaubt Dedupe auch nach erneuter Erzeugung (Backfill).
 6. **Lokaler Hook** `course_captain_event_v1` (+ Alias je Typ, nur Pro): feuert **nach Commit im selben Request**, at-most-once, **keine Zustellgarantie** (Kap. 30.3 „einmaliges `do_action` ist keine Zustellgarantie“). Für Caches/UI. Zuverlässige Consumer registrieren sich als `EventSubscriber` (§5.7, Pro). Die Cache-Invalidierung des Kerns läuft synchron in `afterCommit` (R0-21 §3.7), nicht über diesen Hook.
-7. **Replay:** `wp course-captain outbox retry|replay` bzw. Admin-Aktion setzt Zustellungen zurück auf `pending` mit **gleicher** `event_id`; nie neue IDs für dieselbe Tatsache. Replay prüft Rechte (`ccap_manage_integrations`) und Abo-Freigabe neu.
+7. **Replay:** `wp course-captain outbox retry|replay` bzw. Admin-Aktion setzt Zustellungen zurück auf `pending` mit **gleicher** `event_id`; nie neue IDs für dieselbe Tatsache. Replay prüft Rechte (`ccap_manage_integrations`) und Abo-Freigabe neu. Bereits **zugestellte** Events (`delivered`) werden nur mit ausdrücklichem Flag (CLI `--include-delivered`, Admin-Häkchen), Pflichtbegründung und Audit erneut gesendet (**E-311**).
 8. **Haltemodus / Ausgangsmodus:** Bei geänderter Site-Identität (E-85) und bei `COURSE_CAPTAIN_OUTBOUND = catch|off` (E-86) entstehen Events weiter, Zustellungen bleiben `pending` bzw. `skipped`; nach Restore werden Zustellungen mit `created_at` vor dem Erkennungszeitpunkt dem Admin zur Entscheidung vorgelegt, Standard „verwerfen“ (E-88, R0-16 Recovery-Schritt 9).
 9. **Eingang:** Webhooks und Partner-Callbacks deduplizieren über `ccap_inbox_event (connector_id, event_id)`; Replay → `202 duplicate` ohne Wirkung (R0-07 §4.8).
 10. **REST-Idempotenz** (§2.1) und **Grant-Idempotenz** (`grant_source_key` UNIQUE, K-01) sind getrennte Ebenen; ein Retry mit gleichem Schlüssel erzeugt weder neuen Grant noch neues Event.
 
 ### 5.5 Pull-Abfrage (nachholbare Abfrage, Pro)
 
-`course_captain_get_events_v1( $after_event_id, [ 'types' => [...], 'course_uid' => ?, 'limit' => ≤500 ] )` liefert Events in Commit-Reihenfolge (Sortierschlüssel `ccap_outbox_event.id`, nicht `occurred_at`) ab dem Cursor; Cursor älter als die Retention → `cc_not_found` mit `reason: cursor_expired`, der Consumer muss per Read-API neu abgleichen. Gleiche Filter auf `privacy_tags` wie bei Zustellung.
+`course_captain_get_events_v1( $after_event_id, [ 'types' => [...], 'course_uid' => ?, 'limit' => ≤500 ] )` liefert Events in Commit-Reihenfolge (Sortierschlüssel `ccap_outbox_event.id`, nicht `occurred_at`) ab dem Cursor; Cursor älter als die Retention → `ccap_not_found` mit `reason: cursor_expired`, der Consumer muss per Read-API neu abgleichen. Gleiche Filter auf `privacy_tags` wie bei Zustellung.
 
 ### 5.6 Abbildung auf Partner-Envelopes (nur Dokumentation, Partnernamen sind Entwürfe)
 
@@ -694,7 +694,7 @@ namespace CourseCaptain\Connector\Contract;
 
 interface ConnectorRegistry
 {
-    /** Doppelte ID ist ein Fehler (WP_Error cc_validation_failed), kein stilles Überschreiben. */
+    /** Doppelte ID ist ein Fehler (WP_Error ccap_validation_failed), kein stilles Überschreiben. */
     public function register(Connector $connector): void;
     public function get(string $id): ?Connector;
     /** @return array<string, Connector> */
@@ -769,7 +769,7 @@ interface SourceStatusMapper
 | `DesiredGrant` | `grantSourceKey` (= `source_type + source_id + source_line + source_revision + course + module`, K-01, E-27), `courseUid`, `moduleUid\|0`, `dependsOnCourseUid?`, `userId`, `scopes[]`, `targetStatus` (`active\|pending\|suspended\|revoked`), `reasonCode`, `validFrom?`, `validUntil?` |
 | `DesiredGrantSet` | `grants[]`, `noChange: bool` (unbekannter Quellstatus ⇒ `noChange = true`, **nichts ändern**, K-02), `warnings[]` (z. B. `no_account`, einmal je Anfrage protokolliert, LB T243) |
 
-**GrantReconciler (Kern, R1):** vergleicht `DesiredGrantSet` mit `ccap_grant` (Quelle + Referenz) und wendet Unterschiede über den GrantService an (CAS, `ccap_grant_event`, Outbox im selben Commit). Regeln: manuelle Entscheidung (`meta.manual`) wird nur durch `revoked` übersteuert (LB `EntitlementPlanner.php:150-154`); `revoked → active` nie automatisch (E-29, neue Revision statt Wiederaufleben); `expired → active` nur über `extend` (LB); Widerruf wirkt nur auf Grants **dieser** Quelle (Kap. 31.2). Auslöser: Partner-Hook im Adapter (Push) → `snapshot()` → Reconcile; Sicherheitsnetz `list()` im Task `ccap_woo_reconcile` bzw. `ccap_voucher_retry` (Pull). R1 liefert `FakeSourceAdapter` + Mapper als Testquelle (INV-B-169, R0-05 GM „Grant-API Idempotenz“). Echte Adapter (Woo, Voucher, Membership, Workflow nach E-39/E-39b) sind Pro. Registrierung als Connector-Fähigkeit `grant_source`; der Adapter darf `grant_access_v1` nur mit seiner `sourceType()` aufrufen (`cc_source_not_allowed`).
+**GrantReconciler (Kern, R1):** vergleicht `DesiredGrantSet` mit `ccap_grant` (Quelle + Referenz) und wendet Unterschiede über den GrantService an (CAS, `ccap_grant_event`, Outbox im selben Commit). Regeln: manuelle Entscheidung (`meta.manual`) wird nur durch `revoked` übersteuert (LB `EntitlementPlanner.php:150-154`); `revoked → active` nie automatisch (E-29, neue Revision statt Wiederaufleben); `expired → active` nur über `extend` (LB); Widerruf wirkt nur auf Grants **dieser** Quelle (Kap. 31.2). Auslöser: Partner-Hook im Adapter (Push) → `snapshot()` → Reconcile; Sicherheitsnetz `list()` im Task `ccap_woo_reconcile` bzw. `ccap_voucher_retry` (Pull). R1 liefert `FakeSourceAdapter` + Mapper als Testquelle (INV-B-169, R0-05 GM „Grant-API Idempotenz“). Echte Adapter (Woo, Voucher, Membership, Workflow nach E-39/E-39b) sind Pro. Registrierung als Connector-Fähigkeit `grant_source`; der Adapter darf `grant_access_v1` nur mit seiner `sourceType()` aufrufen (`ccap_source_not_allowed`).
 
 ---
 
@@ -786,11 +786,11 @@ interface SourceStatusMapper
 | `needs_configuration` | freigegeben, Pflichtangaben fehlen (Mapping, Secret) | `healthCheck()` | nein | fehlende Angaben |
 | `connected` | freigegeben, letzter Test bzw. letzte Zustellung erfolgreich | `healthCheck()`, Zustellstatistik | ja | Version, Vertrag, letzte erfolgreiche Kommunikation, Test-/Retry-Aktion |
 | `degraded` | verbunden, aber temporäre Fehler (Retries offen, Lizenz für Pro-Adapter inaktiv, Haltemodus) | Zustellungen `failed`/Backoff, `reason` | eingeschränkt; Events bleiben `pending` | letzte Fehlerklasse, offene Zustellungen, nächster Versuch |
-| `failed` | dauerhafter Fehler (Dead-Letter, Authentifizierung, permanente Ablehnung) | `dead`-Zustellungen, `healthCheck()` | nein, bis Admin-Aktion | Fehlerklasse, Fehler-ID, Reparaturweg |
+| `failed` | dauerhafter Fehler (≥ 3 Dead-Letter innerhalb 1 h, nicht schon beim ersten – **E-311**; Authentifizierung; permanente Ablehnung) | `dead`-Zustellungen, `healthCheck()` | nein, bis Admin-Aktion | Fehlerklasse, Fehler-ID, Reparaturweg |
 
-**Fehlerklassen** (`last_error_class`, datensparsam, ohne Payload/Secrets): `incompatible_contract`, `not_configured`, `auth_failed`, `timeout`, `network`, `rate_limited`, `partner_error`, `validation`, `license_inactive`, `hold_mode`, `internal`.
+**Fehlerklassen** (`last_error_class`, datensparsam, ohne Payload/Secrets): `incompatible_contract`, `not_configured`, `auth_failed`, `timeout`, `network`, `rate_limited`, `partner_error`, `validation`, `license_inactive`, `hold_mode`, `internal`, `retention` (offene Zustellung nach 30 Tagen, E-258; Status `dead`).
 
-**Übergänge:** `not_installed ↔ inactive ↔ (active_incompatible | active_compatible)` aus der Erkennung (bei jedem Admin-Seitenaufruf und stündlich); `active_compatible → needs_configuration → connected` nur durch Betreiberaktion; `connected ↔ degraded` automatisch; `degraded → failed` nach Dead-Letter oder Auth-Fehler; `failed → connected` nur nach erfolgreichem Test. Plugin-Update des Partners → Neuprüfung; Wechsel nach `active_incompatible` pausiert nur die betroffenen Zustellungen (R0-32 W15). Jeder Wechsel feuert `course_captain_connector_status_changed` und schreibt Audit.
+**Übergänge:** `not_installed ↔ inactive ↔ (active_incompatible | active_compatible)` aus der Erkennung (bei jedem Admin-Seitenaufruf und stündlich); `active_compatible → needs_configuration → connected` nur durch Betreiberaktion; `connected ↔ degraded` automatisch; `degraded → failed` nach 3 Dead-Lettern innerhalb 1 h (E-311) oder Auth-Fehler; ein einzelner Dead-Letter hält den Provider auf `degraded`; `failed → connected` nur nach erfolgreichem Test. Plugin-Update des Partners → Neuprüfung; Wechsel nach `active_incompatible` pausiert nur die betroffenen Zustellungen (R0-32 W15). Jeder Wechsel feuert `course_captain_connector_status_changed` und schreibt Audit.
 
 **Redaktionelle Folge:** Kap. 30.3 „Integrationszustände“ auf diese Liste verweisen; ENTSCHEIDUNGEN §7 nennt für diesen Widerspruch R0-34 – die Auflösung liegt jetzt hier, R0-34 übernimmt nur UX/Diagnose.
 
@@ -805,7 +805,7 @@ interface SourceStatusMapper
 | D19-3 | Event-Log ohne Abonnenten | **E-119:** 30 Tage – gilt nur mit Pro (E-38); Free speichert nur die interne Outbox |
 | D19-4 | Freigabe personenbezogener Event-Klassen | **E-120:** eigene Betreiberfreigabe je Klasse und Connector (Pro) |
 | D19-5 | `course_captain_enroll_v1` streichen | gestrichen (ENTSCHEIDUNGEN §19); Zugang nur über `grant_access_v1` |
-| D19-6 | Fehlerformat-Feinschnitt | Codes klein mit `cc_`-Präfix, `application/json` (ENTSCHEIDUNGEN §19, präzisiert E-06) |
+| D19-6 | Fehlerformat-Feinschnitt | Codes klein mit `ccap_`-Präfix (E-285), `application/json` (ENTSCHEIDUNGEN §19, präzisiert E-06) |
 
 **Weitere Beschlüsse:** E-38 (Edition §5), E-39/E-39b (Workflow-Schreibaktionen im Pro-Connector), E-37 (keine Affiliate-Meldung), E-30 (Kontopflicht), E-84 (Zugriffsfilter nur einschränkend), E-85/E-86/E-88 (Haltemodus/Ausgang), E-87 (Secrets), E-40 (Ort der Suite-Connectoren), E-41 (Empfänger-Resolver).
 
@@ -816,9 +816,9 @@ interface SourceStatusMapper
 | Dokument | Delta | Status |
 |---|---|---|
 | R0-06 | `ccap_request_idempotency` ist **nicht mehr bedingt** (Idempotency-Key-Header beschlossen, §2.1). Neue Tabelle `ccap_outbox_delivery` (§5.4 Nr. 3); `ccap_outbox_event` verliert `status/attempts/next_attempt_at/locked_until/lock_owner/last_error/delivered_at` und erhält `object_type`, `object_id char(36)`, `object_version`, `course_uid`, `user_ref`, `idempotency_key`, `privacy_tags`, `causation_id`, `contract_version` (bzw. Envelope als JSON + indizierte Spalten `event_type`, `object_id`, `created_at`). | eingearbeitet (R0-06 §4.6, §4.7) |
-| R0-05 | `cc_idempotency_key_reused` → `cc_idempotency_conflict`; 41. Prüfungsstart → `cc_rate_limited` mit `details.bucket = exam_start` (bereits so), Antwort-Limit ebenso `bucket = answer`. | an R0-05 übergeben |
-| R0-07 | RBAC-022 (fremdes Frage-Token): `422 cc_invalid_token` (`reason: other_account`) statt 403 – deckt sich mit R0-05 GM-024 und LB (`RuntimeException` → 422). `cc_account_locked` fest **403** (nicht 423). Webhook-Signaturheader `X-CC-Signature` (§5.7). | an R0-07 übergeben |
-| R0-08 §6.6 | `cc_exam_finished` → `cc_exam_already_submitted` bzw. `cc_exam_aborted` (LB-App-Parität); `cc_exam_start_rate_limited` und `cc_answer_rate_limited` → `cc_rate_limited` mit `bucket`; übrige Codes unverändert übernommen. | an R0-08 übergeben |
+| R0-05 | `ccap_idempotency_key_reused` → `ccap_idempotency_conflict`; 41. Prüfungsstart → `ccap_rate_limited` mit `details.bucket = exam_start` (bereits so), Antwort-Limit ebenso `bucket = answer`. | an R0-05 übergeben |
+| R0-07 | RBAC-022 (fremdes Frage-Token): `422 ccap_invalid_token` (`reason: other_account`) statt 403 – deckt sich mit R0-05 GM-024 und LB (`RuntimeException` → 422). `ccap_account_locked` fest **403** (nicht 423). Webhook-Signaturheader `X-CC-Signature` (§5.7). | an R0-07 übergeben |
+| R0-08 §6.6 | `ccap_exam_finished` → `ccap_exam_already_submitted` bzw. `ccap_exam_aborted` (LB-App-Parität); `ccap_exam_start_rate_limited` und `ccap_answer_rate_limited` → `ccap_rate_limited` mit `bucket`; übrige Codes unverändert übernommen. | an R0-08 übergeben |
 | R0-16 | CLI-Namen `maintenance`, `preflight`, `backup-check`, `identity`, `export grants`, `outbox` bestätigt (§4.7). | an R0-16 übergeben |
 | konzept.md | Kap. 18: Envelope-Feldliste durch Verweis auf R0-19 §5.1 ersetzen, `course_captain_enroll_v1` streichen (D19-5), Fehlercodes auf §3 verweisen; Kap. 30.3: Integrationszustände durch §6 ersetzen; Kap. 30.2 Workflow-Zeile: `assessment.*` → `exam.*`. | redaktionell offen (Konzept) |
 
@@ -826,20 +826,22 @@ interface SourceStatusMapper
 
 ## 9. Contract-Test-Anker (für R1-28 und R3-12)
 
-| Anker | Prüfung |
-|---|---|
-| CT-01 | Snapshot aller Routen (Pfad, Methode, `args`-Schema, Response-Schema, `x-cc-stability`) gegen `docs/api/routes.v1.json`; nicht deklarierte Änderung bricht CI |
-| CT-02 | Jede private Route ohne Cookie → 401 `cc_auth_required`; ohne Nonce → 403 `rest_cookie_invalid_nonce`; fremdes Objekt → 404 `cc_not_found` (R0-07 §5) |
-| CT-03 | Fehlerkörper enthält alle Pflichtfelder aus §3.1; `X-Request-Id` = `request_id`; keine Pfade/SQL im Text |
-| CT-04 | Idempotenz: gleicher Key → identische Antwort; anderer Body → 409; parallel → 409 `cc_request_in_progress` |
-| CT-05 | Jeder Hook aus §4.2/§4.3 existiert mit dokumentierter Signatur; veraltete Hooks melden `_deprecated_hook` genau dann, wenn genutzt |
-| CT-06 | Jeder Event-Typ: Payload validiert gegen JSON-Schema (`schema/events/<type>/<major>.json`); keine verbotenen Felder (E-Mail, Name, Antworten) – Negativtest per Schlüssel-Blacklist |
-| CT-07 | Outbox: Fachänderung mit Rollback erzeugt kein Event; Doppelzustellung → Consumer-Wirkung einmal; 8 Fehlversuche → `dead`; Replay behält `event_id` |
-| CT-08 | Handshake: Connector mit `contractRange` `>=2.0` → `active_incompatible`, wird nie aufgerufen, kein Fatal |
-| CT-09 | Partner deaktiviert/fehlend → `inactive`/`not_installed`, Free-Lernen unverändert (Kap. 31.6) |
-| CT-10 | `course_captain_can_access` liefert `true` nach Kern-`false` → bleibt verweigert, Audit-Eintrag (E-84) |
-| CT-11 | Webhook: falsche Signatur, Zeitstempel > 300 s, Replay derselben `event_id` → 401/401/202 `duplicate` ohne Wirkung |
-| CT-12 | Schema-Evolution: Consumer mit Major 1 erhält nach Einführung von Major 2 weiter Major-1-Events bis Fristende |
+Ziel-Spalte nach E-38/E-182 je Anker gesetzt: Prüfungen der **internen** Outbox (Envelope-Validierung, Transaktion, Dead-Letter) zielen auf **R1-43**; öffentliche Events, Handshake, Webhooks und Schema-Evolution für Partner sind Pro (**R3-01**, **R3-12**); die lesende Partnererkennung (CT-09) prüft R1-38 (E-185, E-254).
+
+| Anker | Prüfung | Ziel |
+|---|---|---|
+| CT-01 | Snapshot aller Routen (Pfad, Methode, `args`-Schema, Response-Schema, `x-cc-stability`) gegen `docs/api/routes.v1.json`; nicht deklarierte Änderung bricht CI | R1-28 |
+| CT-02 | Jede private Route ohne Cookie → 401 `ccap_auth_required`; ohne Nonce → 403 `rest_cookie_invalid_nonce`; fremdes Objekt → 404 `ccap_not_found` (R0-07 §5) | R1-28 |
+| CT-03 | Fehlerkörper enthält alle Pflichtfelder aus §3.1; `X-Request-Id` = `request_id`; keine Pfade/SQL im Text | R1-28 |
+| CT-04 | Idempotenz: gleicher Key → identische Antwort; anderer Body → 409; parallel → 409 `ccap_request_in_progress` | R1-28 |
+| CT-05 | Jeder Hook aus §4.2/§4.3 existiert mit dokumentierter Signatur; veraltete Hooks melden `_deprecated_hook` genau dann, wenn genutzt | R1-28 |
+| CT-06 | Jeder Event-Typ: Payload validiert gegen JSON-Schema (`schema/events/<type>/<major>.json`); keine verbotenen Felder (E-Mail, Name, Antworten) – Negativtest per Schlüssel-Blacklist | R1-43, R3-12 |
+| CT-07 | Outbox: Fachänderung mit Rollback erzeugt kein Event; Doppelzustellung → Consumer-Wirkung einmal; 8 Fehlversuche → `dead`; Replay behält `event_id` | R1-43 |
+| CT-08 | Handshake: Connector mit `contractRange` `>=2.0` → `active_incompatible`, wird nie aufgerufen, kein Fatal | R3-12 |
+| CT-09 | Partner deaktiviert/fehlend → `inactive`/`not_installed`, Free-Lernen unverändert (Kap. 31.6) | R1-38, R3-12 |
+| CT-10 | `course_captain_can_access` liefert `true` nach Kern-`false` → bleibt verweigert, Audit-Eintrag (E-84) | R1-28 |
+| CT-11 | Webhook: falsche Signatur, Zeitstempel > 300 s, Replay derselben `event_id` → 401/401/202 `duplicate` ohne Wirkung | R3-01, R3-12 |
+| CT-12 | Schema-Evolution: Consumer mit Major 1 erhält nach Einführung von Major 2 weiter Major-1-Events bis Fristende | R3-12 |
 
 ---
 
@@ -854,12 +856,12 @@ interface SourceStatusMapper
 
 | Datum | Quelle | Änderung | Status |
 |---|---|---|---|
-| 16.11.2026 | R0-20 D-20-03 | §1.2: CSS-Präfix `ccap-`; Optionen, AJAX-Aktionen und Query-Vars `course_captain_`. Tabellen, Caps und Cron-Hooks nach E-207 `ccap_`; Fehlercodes `cc_` | eingearbeitet (§1.2) |
+| 16.11.2026 | R0-20 D-20-03 | §1.2: CSS-Präfix `ccap-`; Optionen, AJAX-Aktionen und Query-Vars `course_captain_`. Tabellen, Caps und Cron-Hooks nach E-207 `ccap_`; Fehlercodes `ccap_` | eingearbeitet (§1.2) |
 | 16.11.2026 | R0-37 | Cron-Hook für Migration heißt `ccap_migrate` | eingearbeitet (§4.8) |
 
 ## Offene Punkte nach Einarbeitung
 
-1. **Präfix der Fehlercodes und Nonces:** E-207 nennt sie nicht; hier Fehlercodes `cc_*` (ENTSCHEIDUNGEN §19), Nonce-Aktionen `course_captain_` wie AJAX-Aktionen. R0-30 verwendet `ccap_setting_invalid` – vor R1-01 vereinheitlichen.
+1. **Präfix der Fehlercodes und Nonces:** E-207 nennt sie nicht; hier Fehlercodes `ccap_*` (ENTSCHEIDUNGEN §19), Nonce-Aktionen `course_captain_` wie AJAX-Aktionen. R0-30 verwendet `ccap_setting_invalid` – vor R1-01 vereinheitlichen.
 2. **Umfang „Read-API“ in E-38:** Hier als lesende Partner-PHP-API (`get_*_v1`, `verify_certificate_v1`) und Pull-Route R-53 ausgelegt; die Lern- und Verwaltungsrouten in §2.3 bleiben Free. Ob die schreibende PHP-API (`grant_access_v1` usw.) für Drittplugins ohne Pro gesperrt sein soll, regelt E-38 nicht ausdrücklich (hier: nur mit Pro).
 3. **Routen für Text-/Dateiaufgaben (R-54…R-58)** und deren Fehler-`reason`-Werte sind ein Erstentwurf; Feinschnitt in R1-46 mit R0-08/R0-10. Ob Events `assignment.submitted`/`assignment.graded` in den Katalog §5.3 gehören (z. B. für Benachrichtigungen), ist nicht beschlossen.
 4. **ADR-Nummern:** R0-24 §6.2 verlangt, ADR-007/008 wegen Kollision mit Kap. 28.2 umzubenennen; neue Nummern sind nicht festgelegt.

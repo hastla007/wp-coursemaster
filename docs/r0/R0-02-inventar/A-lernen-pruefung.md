@@ -416,7 +416,7 @@ R = liest, W = schreibt. Tabellen mit Präfix `{$wpdb->prefix}bp_`. Spalten nur,
 | Block | `bootspruefung/zugang` (Attribute `course`, `feature`, `message`; Skript `bp-restricted-block`) | `ContentGate.php:215-251` | reuse (neu benennen) |
 | Metabox | `bp-required-access` „Lernzugang erforderlich“ | `ContentGate.php:289` | reuse |
 | Mediathek-Felder | `bp_required_access`, `bp_file_slot` | `ProtectedFiles.php:141-144` | reuse / exclude (Slot) |
-| Post-Typen / Taxonomien | `bp_tip` / `bp_tip_category`; `bp_faq` / `bp_faq_category`; `bp_customer_faq` / `bp_cfaq_category` | `Tips.php:37`, `Faq.php:60`, `CustomerFaq.php:83` | reuse (Präfix `cc_`) |
+| Post-Typen / Taxonomien | `bp_tip` / `bp_tip_category`; `bp_faq` / `bp_faq_category`; `bp_customer_faq` / `bp_cfaq_category` | `Tips.php:37`, `Faq.php:60`, `CustomerFaq.php:83` | reuse (Präfix `ccap_`) |
 | CSS-Klassen/Markup | `bp-gate-notice`, `bp-requires-access`, `bp-access-locked`, `bp-faq*`, `data-bp-faq*`; mit Theme `kw-section kw-faq` | ContentGate, FaqShortcode | reuse / abstract (Theme) |
 
 ### 4.4 Cron, Hintergrundjobs, CLI
