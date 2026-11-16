@@ -358,7 +358,7 @@ final class SettingsScreen {
 		$result = isset( $request['ccap_result'] ) ? sanitize_key( (string) $request['ccap_result'] ) : '';
 		$html   = '<div class="wrap ccap-settings"><h1>' . esc_html__( 'Settings', 'course-captain' ) . '</h1>';
 		if ( user_can( $user_id, Settings::CAP ) ) {
-			$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SetupWizard::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Open the setup assistant', 'course-captain' ) . '</a></p>';
+			$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SetupWizard::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Open the setup assistant', 'course-captain' ) . '</a> · <a href="' . esc_url( admin_url( 'admin.php?page=' . SettingsBackup::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Back up settings', 'course-captain' ) . '</a></p>';
 		}
 		$html .= self::nav( $tabs, $tab );
 		if ( 'confirm' === $result ) {

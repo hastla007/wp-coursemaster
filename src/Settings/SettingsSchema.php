@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
  * Field contract: `type`, `default`, `cap` (`settings` = #19,
  * `admin` = #19 and administrator only), `privacy`
  * (public/internal/personal/secret), `side_effects`, `export`, plus type
- * rules (`min`, `max`, `nullable`, `values`, `fields`). Free core fields
+ * rules (`min`, `max`, `nullable`, `values`, `fields`). `export` is `true`,
+ * `false` or `never_env` (environment-bound, never exported or imported, R0-31 EX-2). Free core fields
  * only; `pro.*` keys are registered by the add-on (SR-8). Roles, mail
  * templates and the retention sub-keys have their own stores (R1-34,
  * R1-21, R1-17); `emails.types` is a strict object (R1-21).
@@ -390,6 +391,7 @@ final class SettingsSchema {
 					'max'     => 50,
 					'default' => array(),
 					'cap'     => 'admin',
+					'export'  => 'never_env',
 				),
 				'show_avatars'            => array(
 					'type'    => 'bool',
@@ -423,6 +425,7 @@ final class SettingsSchema {
 					'type'    => 'enum',
 					'values'  => array( 'php', 'x_sendfile', 'x_accel_redirect' ),
 					'default' => 'php',
+					'export'  => 'never_env',
 				),
 				'media_delete_grace_days'    => array(
 					'type'    => 'int',

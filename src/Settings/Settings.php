@@ -374,6 +374,16 @@ final class Settings {
 			}
 			$migrated[] = $tab;
 		}
+		// SET-009: correct autoload flags of existing tab options from the register (§2.1 rule 3).
+		$flags = array();
+		foreach ( SettingsSchema::TABS as $tab => $autoload ) {
+			if ( false !== get_option( self::OPTION_PREFIX . $tab ) ) {
+				$flags[ self::OPTION_PREFIX . $tab ] = $autoload;
+			}
+		}
+		if ( array() !== $flags && function_exists( 'wp_set_option_autoload_values' ) ) {
+			wp_set_option_autoload_values( $flags );
+		}
 		// A fresh install writes nothing; the first save sets the version.
 		if ( array() !== $migrated || false !== get_option( self::VERSION_OPTION ) ) {
 			update_option( self::VERSION_OPTION, SettingsSchema::VERSION, true );
@@ -398,7 +408,7 @@ final class Settings {
 			$values = array();
 			foreach ( self::values( $tab ) as $field => $value ) {
 				$def = $schema[ $field ];
-				if ( empty( $def['export'] ) || 'secret' === $def['privacy'] || ( 'personal' === $def['privacy'] && ! $include_personal ) ) {
+				if ( true !== $def['export'] || 'secret' === $def['privacy'] || ( 'personal' === $def['privacy'] && ! $include_personal ) ) {
 					continue;
 				}
 				$values[ $field ] = $value;

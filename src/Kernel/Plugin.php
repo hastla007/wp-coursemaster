@@ -218,6 +218,7 @@ final class Plugin {
 		\CourseCaptain\Admin\SetupWizard::register();
 		\CourseCaptain\Admin\RoleSettings::register();
 		\CourseCaptain\Admin\TestMail::register();
+		\CourseCaptain\Admin\SettingsBackup::register();
 		\CourseCaptain\Privacy\PrivacySettings::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
