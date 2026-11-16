@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T18:56:20+00:00\n"
+"POT-Creation-Date: 2026-11-16T19:19:15+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -20,11 +20,11 @@ msgstr ""
 #: course-captain.php:9
 #: src/Admin/EditorScreens.php:53
 #: src/Admin/Notices.php:120
-#: src/Notification/NotificationService.php:972
-#: src/Ops/HealthChecks.php:213
+#: src/Notification/NotificationService.php:978
+#: src/Ops/HealthChecks.php:236
 #: src/Privacy/PrivacyService.php:125
 #: src/Privacy/PrivacyService.php:135
-#: src/Privacy/PrivacyService.php:355
+#: src/Privacy/PrivacyService.php:357
 msgid "Course Captain"
 msgstr ""
 
@@ -171,6 +171,7 @@ msgstr ""
 
 #: src/Admin/EditorScreens.php:153
 #: src/Admin/Notices.php:148
+#: src/Ops/OpsStatus.php:149
 msgid "Warning"
 msgstr ""
 
@@ -217,6 +218,32 @@ msgstr ""
 msgid "Not saved: %s"
 msgstr ""
 
+#: src/Admin/IdentityNotice.php:53
+msgid "Course Captain: this site is marked as a copy. Messages are never sent from here."
+msgstr ""
+
+#. translators: %s: changed parts, e.g. "site address, database"
+#: src/Admin/IdentityNotice.php:56
+#, php-format
+msgid "Course Captain holds all outgoing messages because this site changed (%s). Was it restored, moved or copied? Held messages are not sent automatically; review them afterwards (by default they are discarded)."
+msgstr ""
+
+#: src/Admin/IdentityNotice.php:59
+msgid "Restored at the same place"
+msgstr ""
+
+#: src/Admin/IdentityNotice.php:60
+msgid "Moved to a new address"
+msgstr ""
+
+#: src/Admin/IdentityNotice.php:61
+msgid "Copy or staging (keep messages blocked)"
+msgstr ""
+
+#: src/Admin/IdentityNotice.php:88
+msgid "The site identity could not be confirmed."
+msgstr ""
+
 #: src/Admin/Notices.php:123
 msgid "Remind me tomorrow"
 msgstr ""
@@ -226,6 +253,7 @@ msgid "Dismiss"
 msgstr ""
 
 #: src/Admin/Notices.php:148
+#: src/Ops/OpsStatus.php:148
 #: src/Rest/RestContract.php:195
 msgid "Error"
 msgstr ""
@@ -328,6 +356,7 @@ msgid "unlimited"
 msgstr ""
 
 #: src/Certificate/CertificatePages.php:298
+#: src/Ops/OpsScreen.php:365
 msgid "Name"
 msgstr ""
 
@@ -457,7 +486,7 @@ msgstr ""
 msgid "Course Captain cannot be activated:"
 msgstr ""
 
-#: src/Kernel/HoldMode.php:95
+#: src/Kernel/HoldMode.php:96
 msgid "Course Captain is network activated, which is not supported. It is paused (hold mode): no course pages, no REST routes, no migrations and no scheduled tasks run. Deactivate it in the network admin and activate it on each site individually. No data has been deleted."
 msgstr ""
 
@@ -465,7 +494,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:370
+#: src/Kernel/Plugin.php:374
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -501,6 +530,26 @@ msgstr ""
 
 #: src/Kernel/RequirementFailure.php:70
 msgid "The database connection must support the utf8mb4 character set."
+msgstr ""
+
+#: src/Kernel/SiteIdentity.php:322
+msgid "site address"
+msgstr ""
+
+#: src/Kernel/SiteIdentity.php:324
+msgid "private file folder"
+msgstr ""
+
+#: src/Kernel/SiteIdentity.php:326
+msgid "database"
+msgstr ""
+
+#: src/Kernel/SiteIdentity.php:328
+msgid "environment type"
+msgstr ""
+
+#: src/Kernel/SiteIdentity.php:330
+msgid "database restored from an older state"
 msgstr ""
 
 #: src/Learner/LearningArea.php:108
@@ -891,39 +940,39 @@ msgstr ""
 msgid "Assignment graded"
 msgstr ""
 
-#: src/Notification/NotificationService.php:939
+#: src/Notification/NotificationService.php:945
 msgid "Course Captain mail delivery"
 msgstr ""
 
 #. translators: %s: outbound mode on, catch or off
-#: src/Notification/NotificationService.php:958
+#: src/Notification/NotificationService.php:964
 #, php-format
 msgid "Course Captain mails are delivered (mode: %s)."
 msgstr ""
 
 #. translators: 1: failed mails, 2: waiting mails
-#: src/Notification/NotificationService.php:962
+#: src/Notification/NotificationService.php:968
 #, php-format
 msgid "Course Captain mail delivery has problems: %1$d failed in 24 hours, %2$d waiting longer than one hour."
 msgstr ""
 
 #. translators: %d: failed mails
-#: src/Notification/NotificationService.php:966
+#: src/Notification/NotificationService.php:972
 msgid "The catch address for Course Captain mails is invalid; outbound mails are switched off."
 msgstr ""
 
 #. translators: %d: failed mails
-#: src/Notification/NotificationService.php:966
+#: src/Notification/NotificationService.php:972
 #, php-format
 msgid "%d Course Captain mails failed in the last 24 hours."
 msgstr ""
 
-#: src/Notification/NotificationService.php:975
+#: src/Notification/NotificationService.php:981
 msgid "Mails are handed to WordPress (wp_mail); an SMTP plugin stays in charge of delivery."
 msgstr ""
 
 #. translators: %d: number of failed mails
-#: src/Notification/NotificationService.php:998
+#: src/Notification/NotificationService.php:1004
 #, php-format
 msgid "%d Course Captain message could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin."
 msgid_plural "%d Course Captain messages could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin."
@@ -1105,132 +1154,669 @@ msgstr ""
 msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
-#: src/Ops/AuditView.php:116
+#: src/Ops/AuditView.php:64
+msgid "Job retried"
+msgstr ""
+
+#: src/Ops/AuditView.php:65
+msgid "Dead letters discarded"
+msgstr ""
+
+#: src/Ops/AuditView.php:66
+msgid "Cache emptied"
+msgstr ""
+
+#: src/Ops/AuditView.php:67
+msgid "Diagnostics package exported"
+msgstr ""
+
+#: src/Ops/AuditView.php:68
+msgid "Site identity confirmed after restore, move or copy"
+msgstr ""
+
+#: src/Ops/AuditView.php:121
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:116
+#: src/Ops/AuditView.php:121
 msgid "System"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:95
+#: src/Ops/HealthChecks.php:96
 msgid "Course Captain protected storage"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:99
+#: src/Ops/HealthChecks.php:100
 msgid "Course Captain maintenance"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:103
+#: src/Ops/HealthChecks.php:104
 msgid "Course Captain event delivery"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:108
+#: src/Ops/HealthChecks.php:109
 msgid "Course Captain database"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:122
+#: src/Ops/HealthChecks.php:113
+msgid "Course Captain site identity"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:127
+msgid "This site is marked as a copy: Course Captain never sends messages here."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:127
+msgid "If this copy became a site of its own, confirm \"moved\" with \"wp course-captain identity confirm moved\"."
+msgstr ""
+
+#. translators: %s: changed parts, e.g. "site address, database"
+#: src/Ops/HealthChecks.php:132
+#, php-format
+msgid "Course Captain holds all outgoing messages because the site changed (%s)."
+msgstr ""
+
+#. translators: %s: changed parts, e.g. "site address, database"
+#: src/Ops/HealthChecks.php:132
+msgid "After a restore or move, confirm it in the notice on the dashboard or with \"wp course-captain identity confirm same_place|moved|copy\". Held messages are then listed for release; by default they are discarded."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:134
+msgid "The site identity is unchanged."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:145
 msgid "Run \"wp course-captain migrate\" or check the database permissions."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:125
+#: src/Ops/HealthChecks.php:148
+#: src/Ops/OpsStatus.php:166
 msgid "The database schema is newer than the plugin."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:125
+#: src/Ops/HealthChecks.php:148
+#: src/Ops/OpsStatus.php:166
 msgid "Install the matching plugin version or restore database and files together."
 msgstr ""
 
 #. translators: %s: step IDs
-#: src/Ops/HealthChecks.php:128
+#: src/Ops/HealthChecks.php:151
 #, php-format
 msgid "The database update stopped after repeated aborts: %s"
 msgstr ""
 
 #. translators: %s: step IDs
-#: src/Ops/HealthChecks.php:131
+#: src/Ops/HealthChecks.php:154
 #, php-format
 msgid "The database update failed: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:133
+#: src/Ops/HealthChecks.php:156
+#: src/Ops/OpsStatus.php:174
 msgid "The database update is running."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:135
+#: src/Ops/HealthChecks.php:158
+#: src/Ops/OpsStatus.php:172
 msgid "A database update is due."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:137
+#: src/Ops/HealthChecks.php:160
+#: src/Ops/OpsStatus.php:176
 msgid "Existing data is being updated in the background."
 msgstr ""
 
 #. translators: %s: step IDs
-#: src/Ops/HealthChecks.php:141
+#: src/Ops/HealthChecks.php:164
 #, php-format
 msgid "Completed update steps were changed afterwards: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:144
+#: src/Ops/HealthChecks.php:167
 msgid "The database does not support named locks; updates are protected by a lease only."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:146
+#: src/Ops/HealthChecks.php:169
+#: src/Ops/OpsStatus.php:178
 msgid "The database schema is up to date."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:161
+#: src/Ops/HealthChecks.php:184
 msgid "Protected files are stored in a guarded folder."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:161
+#: src/Ops/HealthChecks.php:184
 msgid "The protected folder is missing or not writable."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:161
+#: src/Ops/HealthChecks.php:184
 msgid "On nginx add a rule that denies direct access to the course-captain protected and packages folders, or set COURSE_CAPTAIN_PRIVATE_DIR outside the web root."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:175
+#: src/Ops/HealthChecks.php:198
 msgid "The hourly maintenance is not scheduled."
 msgstr ""
 
 #. translators: %s: step names
-#: src/Ops/HealthChecks.php:179
+#: src/Ops/HealthChecks.php:202
 #, php-format
 msgid "Maintenance steps failed: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:182
+#: src/Ops/HealthChecks.php:205
 msgid "The maintenance has not run in the last three hours."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:182
+#. translators: %s: UTC time
+#: src/Ops/HealthChecks.php:205
+#: src/Ops/OpsStatus.php:260
 msgid "Check that WP-Cron or a server cron job runs regularly."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:184
+#: src/Ops/HealthChecks.php:207
 msgid "Maintenance runs regularly."
 msgstr ""
 
 #. translators: %d: number
-#: src/Ops/HealthChecks.php:196
+#: src/Ops/HealthChecks.php:219
 msgid "All internal events were delivered."
 msgstr ""
 
 #. translators: %d: number
-#: src/Ops/HealthChecks.php:196
+#: src/Ops/HealthChecks.php:219
 #, php-format
 msgid "%d event delivery failed permanently."
 msgid_plural "%d event deliveries failed permanently."
 msgstr[0] ""
 msgstr[1] ""
 
+#: src/Ops/IntegrationStatus.php:285
+msgid "Not installed"
+msgstr ""
+
+#. translators: %s: plugin name
+#: src/Ops/IntegrationStatus.php:287
+#, php-format
+msgid "%s is not installed on this site. Course Captain works without this plugin."
+msgstr ""
+
+#: src/Ops/IntegrationStatus.php:290
+msgid "Deactivated"
+msgstr ""
+
+#. translators: %s: plugin name
+#: src/Ops/IntegrationStatus.php:292
+#, php-format
+msgid "%s is installed but not active. Existing access stays in place."
+msgstr ""
+
+#: src/Ops/IntegrationStatus.php:296
+msgid "Not compatible"
+msgstr ""
+
+#. translators: 1: plugin name, 2: found version, 3: required version
+#: src/Ops/IntegrationStatus.php:298
+#, php-format
+msgid "Found: %1$s %2$s. Required: %3$s. Until then Course Captain exchanges no data."
+msgstr ""
+
+#: src/Ops/IntegrationStatus.php:301
+msgid "No contract"
+msgstr ""
+
+#. translators: %s: plugin name
+#: src/Ops/IntegrationStatus.php:303
+#, php-format
+msgid "%s is active. There is no agreed exchange contract for this plugin yet; no data is exchanged."
+msgstr ""
+
+#: src/Ops/IntegrationStatus.php:306
+#: src/Ops/IntegrationStatus.php:311
+msgid "Detected"
+msgstr ""
+
+#. translators: %s: plugin name
+#: src/Ops/IntegrationStatus.php:308
+#, php-format
+msgid "%s is active. Course Captain sends no data to this plugin."
+msgstr ""
+
+#. translators: 1: plugin name, 2: version
+#: src/Ops/IntegrationStatus.php:313
+#, php-format
+msgid "%1$s %2$s is active and compatible. A connector is needed for a data exchange; none is installed."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:55
+#: src/Ops/OpsScreen.php:188
+msgid "System status"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:103
+msgid "You are not allowed to export diagnostics."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:213
+#: src/Ops/OpsScreen.php:279
+#: src/Ops/OpsScreen.php:313
+msgid "Status"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:214
+msgid "Jobs"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:215
+#: src/Ops/OpsScreen.php:365
+msgid "Integrations"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:216
+msgid "Diagnostics"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:218
+msgid "System status: areas"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:245
+msgid "The form has expired. Reload the page and try again."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:246
+msgid "You are not allowed to run this action."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:247
+msgid "This action needs a confirmation. Tick the confirmation box and submit again."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:248
+msgid "Reason: required, at least 10 characters (for example the ticket number and the cause)."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:249
+msgid "The user, course or action was not found."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:250
+msgid "This form was already used for another action. Reload the page."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:251
+msgid "The action is still running. Reload the page in a moment."
+msgstr ""
+
+#. translators: %d: number of affected entries
+#: src/Ops/OpsScreen.php:255
+#, php-format
+msgid "Done. Affected entries: %d."
+msgstr ""
+
+#. translators: %s: migration result
+#: src/Ops/OpsScreen.php:259
+#, php-format
+msgid "The database update did not finish (result: %s). See the status below."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:262
+msgid "The action failed."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:276
+#: src/Ops/OpsScreen.php:279
+msgid "Checks"
+msgstr ""
+
+#. translators: %s: overall status word
+#: src/Ops/OpsScreen.php:278
+#, php-format
+msgid "Overall: %s"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:279
+msgid "Check"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:279
+msgid "Result"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:279
+msgid "What to do"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:279
+msgid "IDs"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:286
+msgid "Database update"
+msgstr ""
+
+#. translators: 1: state, 2: stored schema version, 3: code schema version
+#: src/Ops/OpsScreen.php:288
+#, php-format
+msgid "State: %1$s. Schema: %2$s (code %3$s)."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:299
+msgid "Retry now"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:299
+msgid "Runs the database update immediately, ignores the waiting time and tries a blocked step again (like \"wp course-captain migrate\")."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:313
+msgid "Internal deliveries"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:313
+msgid "Deliveries by status"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:313
+msgid "Number"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:324
+msgid "Retry dead letters"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:324
+msgid "Delivers the events again with the same event ID. Fix the cause first."
+msgstr ""
+
+#. translators: %d: number of dead letters
+#: src/Ops/OpsScreen.php:326
+msgid "Discard dead letters"
+msgstr ""
+
+#. translators: %d: number of dead letters
+#: src/Ops/OpsScreen.php:326
+#, php-format
+msgid "%d dead letters are marked as discarded and no longer delivered. The events stay in the log."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:330
+msgid "Messages"
+msgstr ""
+
+#. translators: 1: held, 2: failed in 24 h, 3: unknown, 4: waiting
+#: src/Ops/OpsScreen.php:332
+#, php-format
+msgid "Held: %1$d · failed in 24 hours: %2$d · outcome unknown: %3$d · waiting: %4$d"
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsScreen.php:335
+msgid "Send held messages"
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsScreen.php:335
+#, php-format
+msgid "%d held messages are sent. Only do this if the site identity is confirmed (same site)."
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsScreen.php:337
+msgid "Discard held messages"
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsScreen.php:337
+#, php-format
+msgid "%d held messages are discarded and never sent."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:341
+msgid "Cache"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:342
+msgid "Empty cache"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:342
+msgid "Starts a new cache generation. Access decisions are never cached, so this is always safe. Optionally limit it to one user or course."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:356
+msgid "Here you see which plugins Course Captain detects and whether a data exchange is set up. Course Captain does not install or activate other plugins."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:361
+msgid "Only detected"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:361
+msgid "All known"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:363
+msgid "No partner plugin is installed. Course Captain works without them."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:365
+msgid "State"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:365
+msgid "Version found / required"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:365
+msgid "Contract"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:365
+msgid "Privacy class"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:369
+msgid "No personal data. Course Captain only checks version and contract."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:380
+msgid "The diagnostics package helps the technical operator or the Course Captain support without an account on this site. It contains versions, settings of the environment, check results, failed jobs and imports with error codes."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:381
+msgid "Never included: names, email addresses, logins, user IDs, IP addresses, answers, course contents, audit entries, secrets, tokens, file paths and the domain in plain text. Error messages are redacted."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:382
+msgid "Download diagnostics package"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:399
+msgid "User ID (optional)"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:399
+msgid "Course ID (optional)"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:402
+msgid "Reason (required, at least 10 characters)"
+msgstr ""
+
+#: src/Ops/OpsScreen.php:402
+msgid "Ticket number and cause. No health data, passwords or payment data."
+msgstr ""
+
+#: src/Ops/OpsScreen.php:405
+msgid "I have read the effect and want to continue."
+msgstr ""
+
+#. translators: 1: plugin version, 2: schema version, 3: contract version
+#: src/Ops/OpsStatus.php:55
+#, php-format
+msgid "Course Captain %1$s, schema %2$s, contract %3$s"
+msgstr ""
+
+#: src/Ops/OpsStatus.php:150
+msgid "Info"
+msgstr ""
+
+#: src/Ops/OpsStatus.php:151
+msgid "OK"
+msgstr ""
+
+#: src/Ops/OpsStatus.php:163
+msgid "Use \"Retry now\" below or run \"wp course-captain migrate\"."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:168
+msgid "The database update stopped after repeated aborts."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:170
+msgid "The database update failed."
+msgstr ""
+
+#. translators: %s: outbound mode on, catch or off
+#: src/Ops/OpsStatus.php:205
+#, php-format
+msgid "Outbound mode: %s"
+msgstr ""
+
+#: src/Ops/OpsStatus.php:207
+msgid "Mails and deliveries are switched off on a production site."
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsStatus.php:219
+#, php-format
+msgid "Hold mode is active; %d messages are held."
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsStatus.php:219
+msgid "Check the site identity, then release or discard the held messages."
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsStatus.php:223
+#, php-format
+msgid "%d messages are still held."
+msgstr ""
+
+#. translators: %d: number of held messages
+#: src/Ops/OpsStatus.php:223
+msgid "Release or discard the held messages."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:225
+msgid "No messages are held."
+msgstr ""
+
+#. translators: %d: number of deliveries
+#: src/Ops/OpsStatus.php:240
+#, php-format
+msgid "%d internal delivery failed permanently (dead letter)."
+msgid_plural "%d internal deliveries failed permanently (dead letters)."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of deliveries
+#: src/Ops/OpsStatus.php:240
+msgid "Fix the cause (usually mail or storage), then retry or discard the dead letters."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:244
+msgid "Deliveries with an expired lease wait for the next dispatch run."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:244
+msgid "The next run takes them over automatically; check that WP-Cron runs."
+msgstr ""
+
+#. translators: %d: number of waiting deliveries
+#: src/Ops/OpsStatus.php:247
+#, php-format
+msgid "No dead letters; %d deliveries waiting."
+msgstr ""
+
+#. translators: %s: UTC time
+#: src/Ops/OpsStatus.php:260
+#, php-format
+msgid "The oldest open delivery is from %s (UTC)."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:262
+msgid "No delivery backlog."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:276
+msgid "No failed or stuck access grants."
+msgstr ""
+
+#. translators: 1: failed grants, 2: pending grants
+#: src/Ops/OpsStatus.php:280
+#, php-format
+msgid "Access grants: %1$d failed, %2$d pending for more than 24 hours."
+msgstr ""
+
+#. translators: 1: failed grants, 2: pending grants
+#: src/Ops/OpsStatus.php:280
+msgid "Clarify the source, then process the grant again; avoid manual duplicate grants."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:293
+msgid "No broken exam attempts."
+msgstr ""
+
+#. translators: %d: number of attempts
+#: src/Ops/OpsStatus.php:297
+#, php-format
+msgid "%d exam attempt is broken."
+msgid_plural "%d exam attempts are broken."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of attempts
+#: src/Ops/OpsStatus.php:297
+msgid "The exam snapshot is damaged; contact the technical operator."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:309
+msgid "No stalled imports."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:311
+msgid "Imports without a heartbeat for more than 15 minutes."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:311
+msgid "Resume or discard the import in the import screen."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:321
+msgid "COURSE_CAPTAIN_SECRET_KEY is set (from constant)."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:323
+msgid "COURSE_CAPTAIN_SECRET_KEY is not set; keys are derived from the WordPress salts."
+msgstr ""
+
+#: src/Ops/OpsStatus.php:323
+msgid "Set the constant in wp-config.php so a salt change does not invalidate tokens."
+msgstr ""
+
+#. translators: %d: number of detected plugins
+#: src/Ops/OpsStatus.php:340
+#, php-format
+msgid "%d partner plugins detected; no data exchange in the free edition."
+msgstr ""
+
 #: src/Privacy/PrivacyService.php:221
 msgid "Course Captain keeps the audit log (tamper protection) and course content."
 msgstr ""
 
-#: src/Privacy/PrivacyService.php:354
+#: src/Privacy/PrivacyService.php:356
 msgid "Course Captain stores learning progress, answers, exam attempts, course access and group memberships of logged-in learners. Learning answers are kept for 2 years after the end of a course, exam attempts for 10 years, ended access records for 10 years and the audit log for 4 years. Personal data can be exported and erased with the WordPress privacy tools."
 msgstr ""
 

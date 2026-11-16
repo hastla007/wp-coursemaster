@@ -328,7 +328,7 @@
   - **Ergebnis/Definition of Done:** Große Kurs-/Fragenmengen, parallele Prüfungen, Query-/Index-Analyse, Job-Backlog und Performancebudgets nachgewiesen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-23 · Upgrade-, Restore- und Uninstall-Proben**
+- [x] **R1-23 · Upgrade-, Restore- und Uninstall-Proben** — erledigt 16.11.2026: Nachweis `docs/r1/R1-23-nachweis.md`; Site-Identität mit Restore-/Kopie-Erkennung (Epoche + Journal-Kopf) und Haltemodus für Mails, Bestätigung per Admin-Hinweis/CLI mit Audit, Upgrade-Proben bei offener Outbox/Lease, Uninstall mit/ohne Datenlöschung inkl. eigener Beiträge (Single/Multisite), Manifest-Abdeckung, `delete_data_on_uninstall` nur mit Site-Namen-Bestätigung (E-89); Integration 288, Multisite 300. backup-check/preflight, Lösch-Tombstones mit Wiederanwendung offen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-15,R1-17.
   - **Ergebnis/Definition of Done:** Migration von Vorversionen, Backup-Restore, Plugin-Deaktivierung, sichere Datenaufbewahrung und explizite Uninstall-Policy getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
