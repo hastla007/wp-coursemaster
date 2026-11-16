@@ -503,3 +503,9 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-03, E-18, E-45 
 - `kwConsent` in LB: nur in `assets/build/app.js` (Plugin) und `themes/kurswasser/` (Theme).
 - Öffentliche Paketmedien in LB: `MediaStorage.php:12` („media/<key> ausgelieferte Medien (öffentlich …)“), `mediaDir()` unter `baseDir()` = `uploads/bootspruefung` (`:64-67`, `:127-134`).
 - Keine Änderung an LearnBoating, keine Implementierung, kein Commit.
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung |
+|---|---|---|
+| 16.11.2026 | R0-17 §3 | Import per URL: IP-Pinning gegen DNS-Rebinding, nur Port 443, keine privaten/link-lokalen Ziele |

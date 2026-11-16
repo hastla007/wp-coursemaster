@@ -94,7 +94,7 @@
   - **Ergebnis/Definition of Done:** Upgrade-/Rollback-/Restore-Runbook, Backup-Konsistenz, Staging, Secret-Handling und Recovery-Tests beschrieben.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-17 · Threat Model und Datenschutz-Folgenabschätzung prüfen**
+- [ ] **R0-17 · Threat Model und Datenschutz-Folgenabschätzung prüfen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-17-threat-model-dsfa.md` (Datenflüsse und 9 Vertrauensgrenzen, 14 Datenkategorien, 62 Bedrohungen, 14 Abuse Cases, Prüfungsintegrität mit Grenzen, Tombstone-Design, DSFA-Kriterien nach WP 248, SEC-001…046, PRIV-001…030; keine Rechtsberatung); Entscheidung offen → E-146…E-154
   - **Voraussetzung:** R0-07,R0-09.
   - **Ergebnis/Definition of Done:** Datenflüsse, Schutzbedarf, Abuse Cases, Prüfungsintegrität, Consent, Lösch-/Exportfristen und DPIA-Bedarf bewertet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

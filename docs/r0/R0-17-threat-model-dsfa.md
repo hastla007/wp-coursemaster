@@ -13,7 +13,7 @@
 
 | Größe | Wert |
 |---|---:|
-| Akteure / Vertrauensgrenzen (§1) | 11 / 9 |
+| Angreiferklassen / Vertrauensgrenzen (§1) | 8 / 9 |
 | Datenkategorien mit Schutzbedarf (§2) | 14 |
 | Komponenten im STRIDE-Raster / Bedrohungen (§3.2) | 16 / 62 |
 | Abuse Cases (§3.3) | 14 |
@@ -211,7 +211,7 @@ STRIDE je Komponente (S = Spoofing, T = Tampering, R = Repudiation, I = Informat
 | T-31 | K7 | I | externe Medien-URL im Paket wird vom Server abgerufen | Server ruft nie ab (MED-026); Embed-URL wird aus Provider-Registry gebaut, kein oEmbed-Abruf | MED-026 | R1-15 |
 | T-32 | K8 Gruppen / Claims | S | **Token-Bruteforce** (Claim, Gruppenlink) | 256 Bit, nur Hash (E-112), Formatprüfung vor DB, Rate-Limit fail-closed (E-46) | SEC-020, ID-005 | R1-13 |
 | T-33 | K8 | I | Token-Leck über Referer, Logs, Audit, Export | `Referrer-Policy: no-referrer`, `no-store`, nie in Logs/Audit/Export (R0-09 §1.2) | SEC-021, ID-002 | R1-13 |
-| T-34 | K8 | I | **Einladungs-Sharing** (weitergeleitete Mail/Link) | Standard `transferable` (E-28) ist bewusst; Option `invited_address_only`; Platzgrenze; Rotation; Kennzahl Umverteilungen (D09-4) | SEAT-014/015, SEC-047 → siehe AC-07 | R1-13 |
+| T-34 | K8 | I | **Einladungs-Sharing** (weitergeleitete Mail/Link) | Standard `transferable` (E-28) ist bewusst; Option `invited_address_only`; Platzgrenze; Rotation; Kennzahl Umverteilungen (D09-4) | SEAT-014/015, ID-007 | R1-13 |
 | T-35 | K8 | D | Mail-Relay über Einladungen | Budget max(20, 2 × Plätze)/24 h, fail-closed | SEAT-022, SEC-023 | R1-13 |
 | T-36 | K8 | T | Race um den letzten Platz | R0-09 §6 (R-01…R-03) | SEAT-003…005 | R1-42 |
 | T-37 | K8 | I | Besitzer sieht Adressen/Lernstand der Mitglieder | E-81, RBAC-036/059 | SEAT-017, PRIV-019 | R1-13 |
@@ -253,7 +253,7 @@ STRIDE je Komponente (S = Spoofing, T = Tampering, R = Repudiation, I = Informat
 | **AC-04** | **Antwort-Leak vor Abgabe** | A-3 | (a) Lösungen aus REST-/DOM-Daten lesen; (b) Versuch abbrechen und Lösungen ansehen; (c) `open_text`-Musterantwort aufdecken und „gewusst“ wählen; (d) Fragen im Lernmodus parallel nachschlagen | (a) keine Lösungsfelder vor `evaluated`; (b) keine Lösungen nach `abort`, Abbruch zählt (E-71); (c) Validator-Warnung, `open_text_in_score` (R0-08); (d) Fragen der laufenden Prüfung im Lernmodus gesperrt (G-5) | (c) ist Designgrenze; (d) gilt nur für dieselben Fragen, nicht für Suchmaschine/Notizen | SEC-009, SEC-015, SEC-016 |
 | **AC-05** | **Antwort-Weitergabe nach Abgabe** | A-3 → andere | Ergebnisansicht mit richtigen Lösungen wird geteilt; Lernender macht danach einen zweiten Versuch | R17-D2; Zufallsziehung, Varianten, Antwortmischung je Versuch | Bei kleinem Pool bleibt Weitergabe wirksam | SEC-010 |
 | **AC-06** | **Token-Bruteforce** | A-1/A-2 | Claim-/Gruppenlink-/Verifikations-Token durchprobieren | 256 Bit (Raum 2²⁵⁶), Rate-Limit je IP/Konto, fail-closed für Claim | praktisch keins | SEC-020, ID-005 |
-| **AC-07** | **Einladungs-Sharing** | A-4 / Mitglied | Gruppenlink in Foren posten; persönliche Einladung weiterleiten; Platz nach Prüfung umverteilen | Platzgrenze; `invited_address_only` (deaktiviert Gruppenlink); Rotation; Umverteilungs-Kennzahl (D09-4); Vorschau zeigt maskierte Adresse (ID-007) | Bei `transferable` ist Weitergabe gewollt; Kontrolle beim Besitzer | SEC-047, SEAT-014/015 |
+| **AC-07** | **Einladungs-Sharing** | A-4 / Mitglied | Gruppenlink in Foren posten; persönliche Einladung weiterleiten; Platz nach Prüfung umverteilen | Platzgrenze; `invited_address_only` (deaktiviert Gruppenlink); Rotation; Umverteilungs-Kennzahl (D09-4); Vorschau zeigt maskierte Adresse (ID-007) | Bei `transferable` ist Weitergabe gewollt; Kontrolle beim Besitzer | SEAT-014/015, ID-007 |
 | **AC-08** | **Gutschein-Race** | A-2/A-3 | dieselbe Gutscheinnummer parallel aus mehreren Sitzungen einlösen; Abbruch zwischen Reserve und Commit | Voucher Captain reserviert; Course-Grant mit Idempotenzschlüssel; Lock je Code; Kompensation (CORE-03/08) | – | SEC-024, SEC-025 |
 | **AC-09** | **IDOR** | A-2…A-5 | fremde Versuch-, Gruppen-, Datei-, Export-IDs | Policy je Objekt, 404 (P-08) | – | RBAC-001…096, SEC-003 |
 | **AC-10** | **CSRF** | A-1 | fremde Seite sendet Formular an Claim/Grant/Löschantrag | Nonce + Cap, kein GET mit Wirkung | – | SEC-001, ID-004 |

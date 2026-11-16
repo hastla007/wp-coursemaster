@@ -287,3 +287,19 @@ Technisch festgelegt: Der Monitor-Schlüssel wird nur noch im Header akzeptiert,
 | E-143 | Debug- und Fehlerprotokolle | **Debug-Fenster höchstens 24 h** (Standard 2 h), Dateien 7 Tage; Fehlertabelle und Job-Fehler 30 Tage | R0-13 D8 | R1-38 |
 | E-144 | Eine Supportrolle oder zwei? | **Eine Rolle `cc_support`** (lesen + Lernsperre); Grant-Korrekturen durch den Kursmanager oder per gezielter Cap-Zuweisung | R0-13 D9 | R1-38 |
 | E-145 | Akteure in der Betroffenenauskunft | **Nur als Rolle** („Support“, „Administrator“, „System“), keine Namen der Mitarbeitenden | R0-13 D10 | R1-38 |
+
+## 23. Threat Model und Datenschutz (aus R0-17)
+
+Hauptrestrisiko ist die **Prüfungsintegrität**: Fragen und Antworten können über den Lernmodus gesammelt und nach der Abgabe weitergegeben werden. Das lässt sich bremsen (E-146, E-147), aber nicht verhindern; Course Captain verspricht kein Proctoring. **Klarstellung zu E-46:** Wegen E-10 hat der Free-Kern keine Login- bzw. Reset-Limits. Fail-closed gilt dort für Claim, Einlösen, Einladungen und Datenschutzanträge. Login und Reset folgen erst mit dem optionalen Härtungsmodul.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-146** | Fragen nur für Prüfungen (gegen Scraping: im Lernmodus ist mit Lösungen jeder Pool abrufbar) | **Kennzeichen `exam_only`** je Frage bzw. Pool in Free, standardmäßig aus; Hinweis im Editor | R0-17 D1 | R1-06, R1-08 |
+| E-147 | Lösungen nach Abgabe, wenn noch Versuche offen sind | **Einstellung**, Default: nur richtig/falsch je Frage; Lösungen erst ohne Restversuche oder nach Bestehen (präzisiert E-20) | R0-17 D2 | R1-09 |
+| E-148 | Tab- und Fokuswechsel in Prüfungen protokollieren? | **Nein**: unzuverlässig und Verhaltensüberwachung ohne echten Integritätsgewinn | R0-17 D3 | R1-20 |
+| E-149 | Gleicher Versuch in mehreren Tabs/Geräten | **Letzter Stand gewinnt** plus sichtbarer Hinweis „in anderem Fenster geöffnet“ | R0-17 D4 | R1-20 |
+| **E-150** | Löschantrag gegen Nachweis-Aufbewahrung (E-51: Versuche/Zertifikate 10 Jahre). Ohne gesetzliche Pflicht ist Behalten gegen einen Löschantrag riskant | **Eraser löscht standardmäßig.** Einstellung „Nachweise trotz Löschantrag pseudonymisiert aufbewahren“ (Default aus, Pflichtbegründung, im Eraser-Ergebnis sichtbar). Präzisiert E-51; juristische Bestätigung durch den Betreiber | R0-17 D5 | R1-17 |
+| E-151 | Tombstones (zu E-92): Ablage und Frist | **Tabelle plus Journal** außerhalb des Backups (`COURSE_CAPTAIN_PRIVACY_JOURNAL_DIR`); Frist = maximales Backup-Alter + 30 Tage (Default 120 Tage); zurückgehaltene Mails 30 Tage | R0-17 D6 | R1-17, R1-23 |
+| E-152 | Rate-Limit-Defaults | **Tabelle R0-17 §3.4 als Defaults**; fail-closed zusätzlich für Einladungsversand, Datenschutzanträge und Import/Export | R0-17 D7 | R1-03, R1-42 |
+| E-153 | DSFA- und VVT-Baustein für Betreiber | **Doku-Vorlage plus generierte Verarbeitungsübersicht im Systemstatus**; keine fertige DSFA, keine Rechtsbewertung | R0-17 D8 | R1-24, R1-38 |
+| E-154 | Lerndaten inaktiver Konten | **Optionaler Job** „Lerndaten nach x Jahren ohne Anmeldung und ohne aktiven Grant löschen“, Default aus, mit Vorschau | R0-17 D9 | R1-17 |
