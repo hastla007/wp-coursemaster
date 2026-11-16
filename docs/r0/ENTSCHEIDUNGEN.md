@@ -354,3 +354,14 @@ Technisch festgelegt: Migrationszustand in Tabelle `cc_migration_step` (D37-1); 
 | E-179 | Kurse mit Publish-Blocker nach dem Import | **Zurückstellen**, die übrigen Kurse aktivieren | R0-38 D4 | R1-41 |
 | E-180 | Fehlerschwelle, ab der ein Import anhält | **max(100 Fehler, 2 % der Objekte)** | R0-38 D5 | R1-41 |
 | E-181 | Automatische Wiederaufnahme abgebrochener Importe | **Ja**, nach Vorprüfungen (Lease abgelaufen, Paketkopie unverändert) | R0-38 D6 | R1-41 |
+
+## 28. Tests, Gates und R1-Backlog (aus R0-12)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-182** | Neuer Task **R1-43** „Domain-Events, Outbox und Connector-Registry im Free-Kern“? (Nach E-38/E-119 gehört das in Free, R1-Tests setzen es voraus, kein R1-Task baut es) | **Ja, aufnehmen** | R0-12 D12-1 | R1-Backlog |
+| **E-183** | Zertifikate: neuer Task **R1-44** „Basisnachweis-Domäne“ oder R1-35 teilen? (R1-27 braucht Zertifikate, R1-35 hängt von R1-27 ab) | **R1-44 aufnehmen** (Domäne und Ausstellung), R1-35 bleibt Verwaltung und UI | R0-12 D12-2 | R1-27, R1-35 |
+| E-184 | Gate-Schwelle und Abzeichnung | **100 % der R1-Pflichttests grün**, Ausnahmen nur per E-Nummer oder freigegebener GM-Abweichung (E-55); Abzeichnung durch den Auftraggeber | R0-12 D12-3 | R1-GATE |
+| E-185 | Partnererkennung (welche Suite-Plugins sind installiert) schon in R1? | **Lesend in R1** (nur Anzeige im Systemstatus), alle Aktionen erst in R3 | R0-12 D12-4 | R1-38, R3-16 |
+| E-186 | COMMERCE- und SUITEFLOW-Testkataloge | **Eingangsbedingung von R3-01**, nicht von Gate A | R0-12 D12-5 | R3-01 |
+| E-187 | Benachrichtigungsvertrag (Versand-Einmaligkeit, Zustellfehler, Opt-out, Rate-Limit, Mail-Sink) | **In R0-27 spezifizieren** | R0-12 D12-6 | R0-27, R1-21 |

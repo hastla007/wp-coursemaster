@@ -69,7 +69,7 @@
   - **Ergebnis/Definition of Done:** Jede Funktion und jeder Admin-/Learner-Screen eindeutig einer Edition/Phase zugeordnet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-12 · Tests, Gates und R1-Backlog abgleichen**
+- [ ] **R0-12 · Tests, Gates und R1-Backlog abgleichen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-12-tests-gates-backlog.md` (67 Fälle → Task/Test/Gate, 920 Katalogtests in 15 Dokumenten, jeder R1-Task mit Test, 46 dokumentierte Lücken, Gate-Kriterien A–D, Top-15-Risiken, Prüfskript); Entscheidung offen → E-182…E-187 (u. a. neue Tasks R1-43/R1-44)
   - **Voraussetzung:** R0-05, R0-07, R0-08, R0-09, R0-10, R0-11.
   - **Ergebnis/Definition of Done:** 55 FLOW + 12 CORE, Traceability, Akzeptanzfälle und Risiken ohne unzugeordnete Pflichtfunktion.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
@@ -427,6 +427,14 @@
   - **Voraussetzung:** R1-20,R1-22,R1-40.
   - **Ergebnis/Definition of Done:** Gleichzeitige Enrollment-/Seat-/Attempt-/Completion-Operationen gegen echte DB, Unique-Invarianten, Deadlock-/Retry- und Messprotokoll.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
+
+- [ ] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — *Vorschlag aus R0-12, Aufnahme offen (E-182).*
+  - **Voraussetzung:** R1-02, R1-03.
+  - **Ergebnis/Definition of Done:** Event-Envelope v1, Outbox mit Zustellung/Backoff/Dead-Letter, Connector-Registry und GrantSourceAdapter nach R0-19 §5; Tests aus R0-19/R0-21.
+
+- [ ] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — *Vorschlag aus R0-12, Aufnahme offen (E-183).*
+  - **Voraussetzung:** R1-02, R1-10.
+  - **Ergebnis/Definition of Done:** Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation nach R0-08 §7 und R0-23 §5; R1-35 baut darauf Verwaltung und UI.
 
 - [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
 
