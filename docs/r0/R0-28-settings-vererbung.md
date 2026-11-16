@@ -1,10 +1,23 @@
-# R0-28 · Global-/Kurs-/Prüfungs-Vererbung, Snapshots und konfliktfreie Default-Änderung (Entwurf)
+# R0-28 · Global-/Kurs-/Prüfungs-Vererbung, Snapshots und konfliktfreie Default-Änderung
 
-**Status:** Entwurf zur Abnahme, **nicht abgehakt**. Keine Implementierung, kein Testlauf, kein Commit. Die DoD verlangt Feld-/UI-Vertrag, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe. · **Stand:** 16.11.2026
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Keine Implementierung, kein Testlauf, kein Commit. Die DoD verlangt Feld-/UI-Vertrag, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe. · **Stand:** 16.11.2026
 **Bezug:** TODO R0-28 (Voraussetzungen R0-08, R0-23, R0-27; DoD: „Override-Priorität, Snapshots, laufende Versuche, Reset und konfliktfreie Default-Änderung als Zustandsmatrix“), Ziel-Task **R1-33** (DoD: „Vererbung, Preview, Änderung laufender Versuche und historische Auswertung getestet“), daneben R1-08, R1-20, R1-26, R1-27, R1-31, R1-36; Konzept Kap. 43.1 (Konsens „Globaler Default → expliziter Kurs-/Prüfungs-Override → unveränderlicher Snapshot“), 43.2 (UX-Vertrag), 43.4 („Default und Vererbungsquelle“), 43.5 („Kurs-Overrides und ihre Snapshots“).
 **Quellen (nur gelesen):** `konzept.md` Kap. 43; `TODO-WETTBEWERBSANALYSE.md` R0-27, R0-28, R1-33; `docs/r0/ENTSCHEIDUNGEN.md` Beschlussprotokoll und E-01…E-224; R0-27 §1.1 (SR-1…SR-8), §1.3 (Scope-Spalte aller 72 Register-Zeilen), §1.5, §2.1…§2.5, §4, §7 („R0-28: Override-Speicherorte und Materialisierung aus SR-3 und §2.3 übernehmen“); R0-08 §4.1, §4.3…§4.5, §6.3, §7.1…§7.3 und Nachträge; R0-23 §1.2, §2.1 (Hinweis „Vererbung regelt R0-28/R1-33“), §2.3 RV-01/RV-17, §3.2; R0-15 §2.3 (`timer_mode`, `cc_accommodation`); R0-37 Wartungsfenster W1/W2, D37-3; R0-10 Paketschema `courses.settings`, `cc_override` (Rechtestatus); R0-07 M-03, M-06, M-15, `cc_manage_accommodations`.
 
-**Beschlüsse (verbindlich):** **E-01** Clean Room – dieses Dokument beschreibt nur Verhalten; es übernimmt und zitiert keinen LB-Code. **E-20** Lösungserklärungen sind Pro – `show_explanations` wirkt in Free nie (§1.5 C-3), der gespeicherte Wert bleibt erhalten. **Arbeitsannahmen:** alle übrigen Empfehlungen aus `ENTSCHEIDUNGEN.md`, insbesondere E-50, E-68, E-71, E-94, E-100, E-104, E-107, E-108, E-110, E-113, E-122, E-123, E-128, E-137, E-147, E-173, E-174, E-215…E-224. Neue Fragen: §6.
+### Beschlussstand
+
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). In dieses Dokument eingearbeitet:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | dieses Dokument beschreibt nur Verhalten; es übernimmt und zitiert keinen LB-Code |
+| **E-20**, E-268, E-269 | Lösungserklärungen sind Pro: `show_explanations` wirkt in Free nie (C-3), bei abgelaufener Lizenz eingefroren weiter, bei deaktiviertem Add-on nicht; der gespeicherte Wert bleibt |
+| **E-45/E-45a** | `privacy.external_media_mode` global Default `always_load`, umschaltbar auf `click_to_load`; Medium-Override nur strenger (#28, INH-033) |
+| **E-225 … E-230** (früher D28-1 … D28-6) | Sperre ab nächstem Versuchsstart, Sammel-Reset nur in Entwürfen, Neuauflösung bei neuer Regelversion, explizite Übernahme beim Import, keine Kursebene für `exams.*`, Sperren in Tab-Reset und Export (§6) |
+| **E-229** | T28-1 ist in R0-08 §4.5 eingearbeitet (`learning.feedback` Kurs → Quiz; `exams.feedback` global → Prüfungsregel) |
+| **E-22, E-69, E-168** | neue Fragetypen und Aufgaben bringen noch keine Register-Zeilen mit; Vererbung offen (OP-28-1) |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen; Optionen `course_captain_*`. Alle Bezeichner in diesem Dokument sind umgestellt |
+| übrige | unverändert angewandt: E-50, E-68, E-71, E-94, E-100, E-104, E-107, E-108, E-110, E-113, E-122, E-123, E-128, E-137, E-147, E-173, E-174, E-215…E-224 |
 
 **Normative Sprache:** **MUSS** / **SOLL** / **KANN** wie in R0-08.
 
@@ -15,7 +28,7 @@
 3. **Jedes Feld hat genau einen Auflösungszeitpunkt** (Klasse L, K, R, G, E, A in §1.2). Danach ist der Wert eingefroren. Eine Default-Änderung wirkt deshalb nie auf laufende oder abgeschlossene Versuche, Abschlüsse, Grants oder Zertifikate.
 4. **Konfliktfrei** heißt: Eine Default-Änderung verändert kein historisches Objekt, erzeugt keinen ungültigen wirksamen Zustand und zeigt vorher, was sie betrifft („betrifft N Kurse“, §3.3). Hinweis und Wirkung kommen aus demselben Resolver.
 5. **Kurs-Overrides wandern im Kurspaket**, nicht im Settings-Export (R0-27 §2.5). Reset auf „erben“ gibt es je Feld, je Kurs und als Sammelaktion; keiner davon berührt Lerndaten.
-6. Testfälle **INH-001…INH-048** (Ziel R1-33), neue Entscheidungen **E-225…E-230**, technische Deltas **T28-1…T28-7**.
+6. Testfälle **INH-001…INH-048** (Ziel R1-33), Beschlüsse **E-225…E-230**, technische Deltas **T28-1…T28-7** (T28-1 in R0-08 eingearbeitet).
 
 ---
 
@@ -89,7 +102,7 @@ Spalten: **Kette** = Ebenen von allgemein nach spezifisch; **Einheit** = was ein
 | 14 | `exams.late_tolerance_seconds` | global → Prüfung | Feld | 0–600 | **R** | ja | Filter wird auf 0–600 begrenzt und **vor** dem Snapshot angewandt | INH-019 |
 | 15 | `exams.shuffle_questions` | global → Prüfung | Feld | typabhängig (feste Variante nur `none`) | **R** | **nein** (typabhängig, eine Sperre wäre für feste Varianten ungültig) | Default je Prüfungsart (T27-3) | INH-015 |
 | 16 | `exams.shuffle_answers` | global → Prüfung | Feld | bool | **R** | ja | `pinned` bleibt fest | INH-015 |
-| 17 | `exams.feedback` | global → Prüfung | Blatt: `visibility`, `show_score`, `show_correct_answers`, `show_explanations`, `show_correct_answers_when` | wie global | **R** | ja (ganzes Objekt) | C-3, C-4, E-147; Kurs-Ebene → E-229 | INH-020, INH-021 |
+| 17 | `exams.feedback` | global → Prüfung | Blatt: `visibility`, `show_score`, `show_correct_answers`, `show_explanations`, `show_correct_answers_when` | wie global | **R** | ja (ganzes Objekt) | C-3, C-4, E-147; keine Kurs-Ebene (E-229) | INH-020, INH-021 |
 | 18 | `exams.auto_submit_inactive_days` | global → Prüfung | Feld | `null` oder 1–365 | **R** | ja | nur ohne Zeitlimit (C-6) | INH-015 |
 | 19 | `enrollment.self_enrollment` | global → Kurs | Feld | `on`, `off` | L (zum Zeitpunkt der Anmeldeanfrage) | ja | „Einschreibung geschlossen“ (E-108, `_cc_enrollment = closed`) schlägt jeden Wert; erzeugt immer einen Grant (INV-S-11); Risiko R | INH-023, INH-024 |
 | 20 | `enrollment.default_access_days` | global → Kurs | Feld | `null` oder 1–3650 | **G** | ja | bestehende Grants unverändert (SET-071) | INH-025 |
@@ -100,7 +113,7 @@ Spalten: **Kette** = Ebenen von allgemein nach spezifisch; **Einheit** = was ein
 | 25 | `enrollment.claim_policy` | global → Gruppe | Feld | Enum | **G** (Einladung) | ja | – | INH-030 |
 | 26 | `enrollment.invite_valid_days` | global → Gruppe | Feld | 1 … globaler Wert (nur kürzer) | **G** | nein (Monotonie ersetzt Sperre) | – | INH-030 |
 | 27 | `pro.groups.advanced_enabled` | global → Gruppe | Feld | bool | L | ja (nur mit Pro) | C-2; P/R3 | INH-029 |
-| 28 | `privacy.external_media_mode` | global → Medium | Feld | nur strenger (`link_only`) | L | nein (Monotonie) | C-1 | INH-033 |
+| 28 | `privacy.external_media_mode` | global → Medium | Feld | nur strenger als global: `click_to_load` oder `link_only` (global Default `always_load`, E-45a) | L | nein (Monotonie) | C-1 | INH-033 |
 | – | Nachteilsausgleich (`cc_accommodation`) | Site → Kurs → Regel (spezifischste gilt) | Datensatz | Faktor 100–400 % oder ohne Limit | Versuchsstart | – (nicht sperrbar) | nie sichtbar in Ergebnis und Nachweis (E-122) | INH-016, INH-017, INH-034 |
 
 Nicht Teil der Vererbung: reine Global-, System- und Nutzerfelder aus R0-27 §1.3 (z. B. Slugs, Retention, `user.notification_prefs`), WordPress-Erbe (Locale, Zeitzone; R0-27 `WP:`) und Objektfelder ohne globalen Default (R0-27 §1.6, z. B. `passing_rule`).
@@ -111,7 +124,7 @@ Nicht Teil der Vererbung: reine Global-, System- und Nutzerfelder aus R0-27 §1.
 |---|---|---|
 | **C-1** | Datenschutz-Felder: Override nur strenger als global (SR-3) | Wird der globale Wert strenger als ein Override, gilt der globale Wert (`chain: stricter_global`); der Override bleibt gespeichert und wird in der UI als „ruht“ markiert |
 | **C-2** | Pro-Felder (`pro.*`) bei deaktiviertem Add-on: Free-Verhalten; bei abgelaufener Lizenz: eingefrorene Konfiguration wirkt weiter (E-94) | Override bleibt gespeichert, kein Datenverlust |
-| **C-3** | `show_explanations` (#8, #17) wirkt nur mit Pro-Entitlement (**E-20**, beschlossen) | effektiv `false` ohne Pro; gespeicherter Wert bleibt; Free-UI zeigt den Schalter nicht (E-100) |
+| **C-3** | `show_explanations` (#8, #17) wirkt nur mit Pro-Entitlement (**E-20**) | effektiv `false` ohne Pro und bei deaktiviertem Add-on (E-269); bei abgelaufener Lizenz eingefroren weiter wirksam (E-268); gespeicherter Wert bleibt; Free-UI zeigt den Schalter nicht (E-100) |
 | **C-4** | In einem laufenden bewerteten Versuch nie Lösungen; `always` wird dort wie `after_submit` behandelt (R0-08 §4.5); Lösungen bei offenen Restversuchen nach E-147 | fest, nicht überschreibbar |
 | **C-5** | Nachteilsausgleich wird nach einer Sperre auf `time_limit_minutes` trotzdem angewandt | fest |
 | **C-6** | Abhängige Felder: `show_*` nur bei `visibility ≠ never`; `auto_submit_inactive_days` nur ohne Zeitlimit | Prüfung auf dem **zusammengeführten** Objekt (Blätter aus verschiedenen Ebenen), nicht je Ebene |
@@ -314,7 +327,7 @@ Ebenen wie R0-27: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW*
 | INH-030 | P/N | Gruppe `invite_valid_days` 7 bei global 30; Gruppe 40 | 7 gespeichert und in neuer Einladung eingefroren; 40 abgelehnt (nur kürzer) | PI | R1-33 | R1-13 |
 | INH-031 | P | Sperre `course_completion_default = required_modules_and_exam`; Kurs ohne Prüfung | Preflight: veröffentlichter Kurs bleibt gültig (Klasse K wirkt erst bei Veröffentlichung), Dialog nennt ihn; nächste Veröffentlichung: Publish-Blocker | PI | R1-33 | R1-26 |
 | INH-032 | N | Sperre `timer_mode = practice` bei vorhandener Nachweisregel | Sperre abgelehnt mit Liste; kein Teilzustand | PI | R1-33 | – |
-| INH-033 | P/N | Medium `link_only` bei global `click_to_load`; global danach `link_only`; Medium-Override `click_to_load` | erster Override gültig; Lockerung abgelehnt | PI | R1-33 | R1-17 |
+| INH-033 | P/N | global `always_load` (Default, E-45a): Medium `click_to_load` gültig; Medium `link_only` bei global `click_to_load`; global danach `link_only`; Medium-Override `click_to_load` | erster Override gültig; Lockerung abgelehnt | PI | R1-33 | R1-17 |
 | INH-034 | N | Ausgleich durch Nutzer ohne `cc_manage_accommodations`; Ausgleich nach Start eines Versuchs angelegt | 403; laufender Versuch unverändert, nächster Start mit Ausgleich | PI | R1-33 | R1-20 |
 | INH-035 | P | Sperre setzen auf `late_tolerance_seconds = 0` bei drei Regeln mit eigenem Wert 120 (E-225 a) | Dialog „3 eigene Werte ruhen“; neue Starts mit 0, `source = global_lock`; Regeln unverändert gespeichert | PI | R1-33 | R1-20 |
 | INH-036 | P | Sperre aus INH-035 aufheben | neue Starts wieder 120; Audit `settings_lock_removed` mit Anzahl reaktivierter Overrides | PI | R1-33 | – |
@@ -363,7 +376,7 @@ Weitere hier angewandte Beschlüsse: E-20 (C-3), E-45/E-45a (#28, INH-033), E-50
 
 | Nr. | Delta | Betroffen |
 |---|---|---|
-| **T28-1** | §4.5 „Einstellung je Kurs, überschreibbar je Quiz/Prüfungsregel“ präzisieren: Kurs → Quiz für `learning.feedback`; global → Prüfungsregel für `exams.feedback` (nach E-229) | R0-08 §4.5 |
+| **T28-1** | §4.5 „Einstellung je Kurs, überschreibbar je Quiz/Prüfungsregel“ präzisieren: Kurs → Quiz für `learning.feedback`; global → Prüfungsregel für `exams.feedback` (nach E-229) – **in R0-08 §4.5 eingearbeitet** | R0-08 §4.5 |
 | **T28-2** | Snapshot um `settings_provenance {key: {v, src, ref}}`, Ausgleich `{factor_pct | unlimited, scope}` und `deadline_adjustments[]` (außerhalb des Hash) ergänzen | R0-08 §6.3, R0-06 |
 | **T28-3** | `cc_course_revision.settings {overrides, resolved}` (K-Felder materialisiert); Regel `settings` als `{key: {v, src}}` | R0-06, R0-08 §7.1 |
 | **T28-4** | Paketschema `courses.settings` → `settings {schema, overrides}` je Kurs und Activity, Regeln `{v, src}`; Name „Setting-Override“ klar von `cc_override` (Rechtestatus) trennen; Option `course_captain_override_index` (abgeleitet, kein Autoload) | R0-10, R0-27 §2.1/§2.7 |
@@ -371,7 +384,7 @@ Weitere hier angewandte Beschlüsse: E-20 (C-3), E-45/E-45a (#28, INH-033), E-50
 | **T28-6** | Resolver als einzige Quelle für Laufzeit, Snapshot, Vorschau, Hinweis und Bericht; öffentliche PHP-API nur lesend (`course_captain_get_setting( $key, $context )`), kein Filter, der nach dem Snapshot greift | R0-19 §4 |
 | **T28-7** | Audit-Ereignisse `settings_lock_set`, `settings_lock_removed`, `course_settings_reset`, `settings_overrides_bulk_reset`; `impact` in `settings_saved`; Fehlercode `cc_setting_locked` (422) | R0-13 §4.1, R0-19 Fehlerkatalog |
 
-Weitere Deltas: `ENTSCHEIDUNGEN.md` E-225…E-230 aufnehmen; R0-23 §2.1 („Nicht hier geregelt …“) auf dieses Dokument verweisen; R0-24 R1-33 Inputs = R0-28 §1–§5, Testliste INH-001…048; R0-27 SET-056/SET-062 auf INH verweisen; R0-30 Wireframes für §1.7 und §3.3.
+Weitere Deltas: `ENTSCHEIDUNGEN.md` E-225…E-230 – erledigt (beschlossen); R0-23 §2.1 („Nicht hier geregelt …“) auf dieses Dokument verweisen; R0-24 R1-33 Inputs = R0-28 §1–§5, Testliste INH-001…048; R0-27 SET-056/SET-062 auf INH verweisen; R0-30 Wireframes für §1.7 und §3.3.
 
 ---
 
