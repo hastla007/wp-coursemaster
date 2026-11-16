@@ -220,3 +220,16 @@ Außerdem zur Bestätigung: Die Teilumfangsprüfung im laufenden Versuch läuft 
 | E-109 | Pflichtmedium einer Frage wird während eines laufenden Versuchs rechtlich gesperrt | **Frage bei der Auswertung neutralisieren** (aus Punkten und Maximum, Grund im Ergebnis) | R0-23 R23-D7 | R1-27 |
 | E-110 | Bestehende Zertifikate im neuen Layout neu ausstellen | **Nicht in R1** (alte Template-Version wird weiter gerendert); Sammel-Neuausstellung als Pro-Kandidat | R0-23 R23-D8 | R1-27 |
 | E-111 | Kursabschluss, wenn eine Revision die letzte offene Pflicht-Activity entfernt | **Automatisch** beim Umstellen; Zertifikat nach Kurseinstellung | R0-23 R23-D9 | R1-27 |
+
+## 18. Identität, Plätze, Grants (aus R0-09)
+
+Technisch festgelegt und nicht abzustimmen: In LB können Grants auf drei Wegen wieder aufleben (nach Refund, per `extend()` nach Ablauf, beim Aufheben eines manuellen Widerrufs). Alle drei sind in Course Captain verboten; das folgt aus E-29 und Konzept 35.2.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-112 | Gruppen-Einladungslink nur als Hash speichern (nach der Anlage nicht mehr anzeigbar, nur neu erzeugbar)? | **Ja** (LB speichert Tokens im Klartext) | R0-09 D09-1 | R1-13, R3-03 |
+| E-113 | Prüfungsabgabe nach Verlust des Zugangs (z. B. Refund während der Prüfung) | **Wird gewertet**; automatisches Zertifikat nur, wenn bei Start **und** Abgabe ein Grant aktiv war | R0-09 D09-2 | R1-13, R3-03 |
+| E-114 | Werkzeug zum Zusammenführen von Konten in R1? | **Nein**; nur die Support-Aktion „Zugang übertragen“ mit Audit | R0-09 D09-3 | R1-13, R3-03 |
+| E-115 | Grenze für das Umverteilen von Gruppenplätzen in Free? | **Keine Grenze** | R0-09 D09-4 | R1-13, R3-03 |
+| E-116 | Aufbewahrung von Inbox/Outbox-Ereignissen | **90 Tage**, danach löschen | R0-09 D09-5 | R1-13, R3-03 |
+| E-117 | Kundenwechsel in der Quelle (z. B. Woo-Bestellung wird einem anderen Kunden zugeordnet) | **Neue Grant-Revision** statt stillem Umhängen wie in LB | R0-09 D09-6 | R1-13, R3-03 |

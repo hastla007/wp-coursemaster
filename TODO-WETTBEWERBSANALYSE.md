@@ -54,7 +54,7 @@
   - **Ergebnis/Definition of Done:** Activity-Provider, Bewertung, Completion/Mastery/Competency, Snapshots, Versionen spezifiziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-09 · Identity-/Seat-/Grant-Zustandsautomaten finalisieren**
+- [ ] **R0-09 · Identity-/Seat-/Grant-Zustandsautomaten finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-09-identity-seat-grant-automaten.md` (Claim-Vertrag mit gehashten Tokens, Grant-Automat G-01…15 ohne Wiederaufleben, effektiver Zugang, Seat-Automat, Refund-Matrix RF-01…19, Races R-01…13, GRANT/SEAT/ID-Tests); Entscheidung offen → E-112…E-117
   - **Voraussetzung:** R0-06, R0-07.
   - **Ergebnis/Definition of Done:** Claim, Quellen, Mehrfachgrants, Suspend/Expire/Refund, Race Conditions und Privacy festgelegt.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
