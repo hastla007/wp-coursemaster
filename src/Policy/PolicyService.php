@@ -122,16 +122,16 @@ final class PolicyService {
 	}
 
 	/**
-	 * Forget all memoized decisions and the shared instance (P-11,
-	 * `switch_to_blog`).
+	 * Forget all memoized decisions (P-11, `switch_to_blog`).
 	 *
 	 * @return void
 	 */
 	public static function flush(): void {
+		// Keep the instance: services hold a reference and must see the flush too.
+		// Relations read `$wpdb->prefix` live, so `switch_to_blog` needs no new instance.
 		if ( null !== self::$instance ) {
 			self::$instance->memo = array();
 		}
-		self::$instance = null;
 	}
 
 	/**

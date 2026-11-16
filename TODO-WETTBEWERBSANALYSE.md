@@ -243,7 +243,7 @@
   - **Ergebnis/Definition of Done:** Kurs- und Lektionseditor, Preview, Reihenfolge, Validierung und Accessibility.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-06 · Fragenbank und neutrale Fragetypen**
+- [x] **R1-06 · Fragenbank und neutrale Fragetypen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-06-nachweis.md`; 9 Fragetypen inkl. E-22/E-69, Revisionen, Modul-Pool, signiertes Frage-Token, Seed-Randomizer; GM-017/019/020/022/023/024/025/026, GM-191…194, SEC-016 grün; Unit 82, Integration 63, Multisite 72. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04.
   - **Ergebnis/Definition of Done:** Single/Multi/Open/weitere belegte Typen, Revisionen, Medien und Feedback.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
