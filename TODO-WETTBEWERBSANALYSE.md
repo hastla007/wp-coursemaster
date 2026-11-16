@@ -19,12 +19,12 @@
   - **Ergebnis/Definition of Done:** LearnBoating-Commit, Course-Captain-Stand, Verzeichnis-/Modulkarte und Quellrechte dokumentiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-02 · Originalfunktionen vollständig inventarisieren**
+- [x] **R0-02 · Originalfunktionen vollständig inventarisieren** — erledigt 16.11.2026: 5 Teilinventuren `docs/r0/R0-02-inventar/A…E` (alle Quell-PHP-Dateien von Plugin, Connectors, Theme vollständig; Schemas, 52 Web- + 78 App-Routen, 56 Tabellen, 7 Cron-Events, 15 CLI-Kommandos). Fachliche Tests nach Prüfabschnitten erfasst; zeilengenaue Testbelege in R0-05.
   - **Voraussetzung:** R0-01.
   - **Ergebnis/Definition of Done:** Jede UI-, PHP-, Daten-, API-, Cron-, Import-, Test- und Commerce-Funktion mit Quellpfad erfasst.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [x] **R0-03 · Jede Originalfunktion klassifizieren** — erledigt 16.11.2026: 822 Einträge in `docs/r0/R0-02-inventar/` (reuse 318, abstract 328, replace 65, exclude 111, **unknown 0**); Übersicht `docs/r0/R0-02-inventar/README.md`; Produktentscheidungen → `docs/r0/ENTSCHEIDUNGEN.md`
+- [x] **R0-03 · Jede Originalfunktion klassifizieren** — erledigt 16.11.2026: 835 Einträge in `docs/r0/R0-02-inventar/` (reuse 321, abstract 334, replace 69, exclude 111, **unknown 0**); Übersicht `docs/r0/R0-02-inventar/README.md`; Produktentscheidungen → `docs/r0/ENTSCHEIDUNGEN.md`
   - **Voraussetzung:** R0-02.
   - **Ergebnis/Definition of Done:** Jede Funktion reuse/abstract/replace/exclude_domain_specific; keine unknown.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

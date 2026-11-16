@@ -79,6 +79,7 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 |---|---|---|---|---|
 | E-43 | Konto nach bestätigtem Datenschutz-Löschantrag automatisch löschen? | **Standard aus**, nur als Opt-in | C/E-C-05 | R0-17, R0-31 |
 | E-44 | Aufbewahrungsfristen | **LB-Werte als änderbare Defaults** (Audit 4 Jahre, Zugänge 10 Jahre, Import-Protokoll 14/180 Tage); juristische Bestätigung durch Betreiber | C/E-C-06 | R0-31 |
+| E-46 | Verhalten der Rate-Limits bei Ausfall des Zählerspeichers (LB: alles durchlassen, nur loggen) | **Login, Passwort-Reset und Einlösen sperren (fail-closed); Lern-Limits durchlassen (fail-open)**; als ADR festhalten | D/E11 (INV-D-146) | R0-17, R0-21 |
 | E-45 | Einwilligung für externe Medien (YouTube/Vimeo) | **Standard „Klick zum Laden“**, kein eigenes Cookie-Banner | E/D-E-04 | R0-10, R0-31 |
 
 ## 7. Konzept-Widersprüche, die mit diesen Entscheidungen aufgelöst werden

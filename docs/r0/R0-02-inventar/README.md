@@ -8,9 +8,9 @@
 | A | `A-lernen-pruefung.md` | Learning, Exams, Trainers, Gate, ExamGuide, Tips, Faq · 39 PHP-Dateien, 10 033 Zeilen | 154 | 80 | 33 | 9 | 32 |
 | B | `B-commerce.md` | Commerce, WooCommerce, Affiliate-/Voucher-Connector · 55 PHP-Dateien, 14 375 Zeilen | 177 | 65 | 89 | 16 | 7 |
 | C | `C-infrastruktur-content.md` | Bootstrap, Content/Import/Medien, Infrastruktur, Settings, Security, Privacy, CLI, Extensions, 17 JSON-Schemas · 49 PHP-Dateien, 12 374 Zeilen | 199 | 97 | 71 | 20 | 11 |
-| D | `D-admin-frontend-api.md` | Admin, Frontend, REST (52 Web-Routen), Mobile-API (78 Routen), Templates, Assets | 144 | 54 | 70 | 6 | 14 |
+| D | `D-admin-frontend-api.md` | Admin, Frontend, REST (52 Web-Routen), Mobile-API (78 Routen), Templates, Assets | 157 | 57 | 76 | 10 | 14 |
 | E | `E-theme-tools-content-docs.md` | Theme, tools, schema, staging, content-source, docs, Test-/CI-Infrastruktur | 148 | 22 | 65 | 14 | 47 |
-| **Summe** | | | **822** | **318** | **328** | **65** | **111** |
+| **Summe** | | | **835** | **321** | **334** | **69** | **111** |
 
 **`unknown`: 0.** Damit ist die DoD von R0-03 erfüllt.
 
@@ -19,7 +19,7 @@ Zählkommando: `grep -E '^\| INV-' <datei> | grep -c '<klasse>'`.
 ## Abdeckung und Restpunkte
 
 - **Vollständig gelesen:** Teile A, B und C (sämtliche PHP-Dateien), die Schemas in C, die Routen in D sowie der Großteil von D.
-- **Rest in Teil D:** Einige Mobile-Hilfsklassen und `assets/app.js` waren zunächst nur strukturell gelesen. Ein Nachlesen läuft; danach wird R0-02 abgehakt.
+- **Teil D nachgelesen:** Mobile-Mapper, Settings, RateLimiter, WebSession, TokenAuth, Idempotency, Problem, `app.js`, `admin/import.js` vollständig (INV-D-145…157). Funk-/Simulator-Ansichten in `app.js` nur mechanisch (exclude).
 - **Tests:** Fachliche Testdateien sind nach Prüfabschnitten ausgewertet, nicht Zeile für Zeile. Die Zeilengenauigkeit für Golden-Master-Tests liefert R0-05.
 - **Bewusst summarisch und als `exclude` eingestuft:** Gerätesimulation, Produktbilder, CSS, `content-source/` (Laravel-Snapshot).
 
@@ -38,6 +38,8 @@ Zählkommando: `grep -E '^\| INV-' <datei> | grep -c '<klasse>'`.
 | Alle Integrationstests laufen gegen das Boots-Inhaltspaket; Fixtures müssen neutral ersetzt werden | A, C | R0-05 |
 | Harte Kurscode-Tabellen (`SectionFiles::PARTS`, `RUBRIC_KEYS`, `SCHEIN_KEYS`), Theme-Filter, Rate-Limiter im Mobile-Namespace | A | R0-04 |
 | Für Prüfungsstart-Limit und `wrongQuestionIds` gibt es keinen direkten Test | A | R0-05 |
+| Kernfunktionen (Web-Login, Registrierung, Limits, Gutscheine, Webhooks, Privacy-Self-Service) hängen an `Mobile\RateLimiter`/`ApiException` – müssen in den Kern, auch ohne App-API | D (INV-D-145) | R0-04, R0-19 |
+| Rate-Limiter ist „fail-open“ bei Speicherausfall | D (INV-D-146) | R0-17, ENTSCHEIDUNGEN E-46 |
 | In der Quelle fehlen SAST, Dependency-Scan und Paketsignatur | E | R0-18 |
 
 Offene Produktentscheidungen aus allen Teilen: `../ENTSCHEIDUNGEN.md`.
