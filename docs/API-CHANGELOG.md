@@ -14,3 +14,4 @@ Jeder Eintrag nennt: Version · Art (added/deprecated/removed/security) · Eleme
 - **added** · Filter `course_captain_seo_indexable( bool $indexable, int $course )` (experimentell; kann Indexierbarkeit nur einschränken, R0-33 §1.3)
 - **added** · `X-Robots-Tag: noindex, nofollow` auf allen Antworten von `course-captain/v1` (R0-33 LK-23)
 - **added** · Action `course_captain_migration_fault` (intern, nur mit `COURSE_CAPTAIN_TESTING`; Fehlerinjektion für Migrationstests, R1-40) und WP-CLI `wp course-captain migrate [--status] [--format=json]`
+- **added** · WP-CLI `wp course-captain status [--format=json]` (Exit 1 bei `fail`), `cache flush [--user=<id>] [--course=<id>]`, `outbox status|retry|discard [--reason=<text>] [--yes]` (interne Abonnenten), `integrations status [--detected] [--format=json]` (nur Partnererkennung), `diagnostics [--output=<datei>]` (R1-38); keine neuen Hooks oder REST-Routen

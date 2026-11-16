@@ -893,13 +893,14 @@ final class NotificationService {
 	/**
 	 * Release held mails (hold mode confirmed "same site").
 	 *
-	 * @param Actor $actor Admin.
+	 * @param Actor       $actor  Admin.
+	 * @param string|null $reason Justification (operations screen, R1-38).
 	 * @return int Rows.
 	 */
-	public function release_held( Actor $actor ): int {
+	public function release_held( Actor $actor, ?string $reason = null ): int {
 		self::assert_admin( $actor );
 		$count = $this->db->execute( 'UPDATE `' . $this->db->table( 'ccap_notification' ) . "` SET status = 'queued' WHERE status = 'held'" );
-		AuditLog::write( $this->db, $actor, 'notifications_released', 'notification', 'held', null, array( 'count' => $count ) );
+		AuditLog::write( $this->db, $actor, 'notifications_released', 'notification', 'held', $reason, array( 'count' => $count ) );
 		self::schedule( 5 );
 		return $count;
 	}
@@ -907,13 +908,14 @@ final class NotificationService {
 	/**
 	 * Discard held mails (default action, E-88).
 	 *
-	 * @param Actor $actor Admin.
+	 * @param Actor       $actor  Admin.
+	 * @param string|null $reason Justification (operations screen, R1-38).
 	 * @return int Rows.
 	 */
-	public function discard_held( Actor $actor ): int {
+	public function discard_held( Actor $actor, ?string $reason = null ): int {
 		self::assert_admin( $actor );
 		$count = $this->db->execute( 'UPDATE `' . $this->db->table( 'ccap_notification' ) . "` SET status = 'discarded', reason_code = 'held_discarded' WHERE status = 'held'" );
-		AuditLog::write( $this->db, $actor, 'notifications_discarded', 'notification', 'held', null, array( 'count' => $count ) );
+		AuditLog::write( $this->db, $actor, 'notifications_discarded', 'notification', 'held', $reason, array( 'count' => $count ) );
 		return $count;
 	}
 
