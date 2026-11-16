@@ -15,6 +15,7 @@ use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\DeletionGuard;
 use CourseCaptain\Course\ObjectIdentity;
 use CourseCaptain\Course\PostTypes;
+use CourseCaptain\Event\OutboxDispatcher;
 use CourseCaptain\Policy\EscalationGuard;
 use CourseCaptain\Policy\Invalidation;
 use CourseCaptain\Policy\MetaCaps;
@@ -185,6 +186,7 @@ final class Plugin {
 		add_action( 'upgrader_process_complete', array( $this, 'on_upgrader_process_complete' ), 10, 2 );
 		add_action( CronHooks::HOURLY, array( CronHooks::class, 'run_hourly' ) );
 		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
+		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
 		MetaCaps::register();
 		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
 		ObjectIdentity::register();
@@ -254,6 +256,19 @@ final class Plugin {
 		}
 		flush_rewrite_rules( false );
 		update_option( self::REWRITE_VERSION_OPTION, self::REWRITE_VERSION, true );
+	}
+
+	/**
+	 * `ccap_outbox_dispatch`: deliver, then re-schedule when more is due.
+	 *
+	 * @return void
+	 */
+	public static function run_outbox_dispatch(): void {
+		$dispatcher = OutboxDispatcher::current();
+		$stats      = $dispatcher->dispatch();
+		if ( $stats['delivered'] + $stats['retried'] + $stats['failed'] + $stats['dead'] + $stats['skipped'] >= OutboxDispatcher::BATCH ) {
+			OutboxDispatcher::schedule_soon();
+		}
 	}
 
 	/**

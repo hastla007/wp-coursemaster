@@ -84,5 +84,6 @@ final class CronHooks {
 		\CourseCaptain\Access\GrantService::current()->expire_due();
 		\CourseCaptain\Access\GrantService::current()->fail_stale_pending();
 		\CourseCaptain\Access\GroupService::current()->expire_invitations();
+		\CourseCaptain\Event\OutboxDispatcher::current()->purge();
 	}
 }

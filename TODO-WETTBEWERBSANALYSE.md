@@ -428,7 +428,7 @@
   - **Ergebnis/Definition of Done:** Gleichzeitige Enrollment-/Seat-/Attempt-/Completion-Operationen gegen echte DB, Unique-Invarianten, Deadlock-/Retry- und Messprotokoll.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — *Aufgenommen (E-182, angepasst an E-38): nur **interne** Outbox im Free-Kern; öffentliche Events/Read-API/Registry sind Pro (R3).*
+- [x] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — erledigt 16.11.2026: Nachweis `docs/r1/R1-43-nachweis.md`; Outbox-Dispatcher (Lease, Backoff, Dead-Letter, Retention, Replay), GrantSourceAdapter/Mapper/FakeSource/Reconciler; Unit 85, Integration 87, Multisite 96. Review durch zweite Person vor Merge ausstehend (AG-05). — *Aufgenommen (E-182, angepasst an E-38): nur **interne** Outbox im Free-Kern; öffentliche Events/Read-API/Registry sind Pro (R3).*
   - **Voraussetzung:** R1-02, R1-03.
   - **Ergebnis/Definition of Done:** Event-Envelope v1, Outbox mit Zustellung/Backoff/Dead-Letter, Connector-Registry und GrantSourceAdapter nach R0-19 §5; Tests aus R0-19/R0-21.
 

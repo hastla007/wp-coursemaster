@@ -139,6 +139,7 @@ final class Outbox {
 				array( 'created_at' )
 			);
 		}
+		OutboxDispatcher::schedule_soon();
 		return $uuid;
 	}
 }
