@@ -44,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
 final class NotificationService {
 
 	public const SUBSCRIBER          = 'notification';
-	public const EVENTS              = array( 'access.changed', 'grant.expired', 'seat.invited', 'seat.claimed', 'course.completed', 'exam.reevaluated' );
+	public const EVENTS              = array( 'access.changed', 'grant.expired', 'seat.invited', 'seat.claimed', 'course.completed', 'exam.reevaluated', 'assignment.submitted', 'assignment.returned', 'assignment.graded' );
 	public const TASK                = 'notification_send';
 	public const LEASE_SECONDS       = 600;
 	public const BATCH               = 50;
@@ -194,6 +194,23 @@ final class NotificationService {
 			case 'exam.reevaluated':
 				if ( $user > 0 ) {
 					$rows[] = array( 'grading_completed', $user, null, (string) ( $payload['session_uid'] ?? '' ) . ':' . (int) ( $payload['evaluation_no'] ?? 0 ) );
+				}
+				break;
+			case 'assignment.submitted':
+				// N-14 (E-290): each assigned trainer of the course covering the learner, once per version (NTF-035).
+				$sub = (string) ( $payload['submission_uid'] ?? '' );
+				foreach ( $this->assignment_trainers( (int) ( $payload['course_id'] ?? 0 ), $user ) as $trainer ) {
+					$rows[] = array( 'assignment_submitted', $trainer, null, $sub . ':' . (int) ( $payload['submission_no'] ?? 0 ) );
+				}
+				break;
+			case 'assignment.returned':
+				if ( $user > 0 ) {
+					$rows[] = array( 'assignment_returned', $user, null, (string) ( $payload['submission_uid'] ?? '' ) . ':returned' );
+				}
+				break;
+			case 'assignment.graded':
+				if ( $user > 0 ) {
+					$rows[] = array( 'assignment_graded', $user, null, (string) ( $payload['submission_uid'] ?? '' ) . ':' . (int) ( $payload['evaluation_no'] ?? 0 ) );
 				}
 				break;
 		}
@@ -654,6 +671,21 @@ final class NotificationService {
 				$ok      = null !== $session && 'evaluated' === $session['status'];
 				$course  = null === $session ? 0 : (int) $session['course_id'];
 				break;
+			case 'assignment_submitted':
+			case 'assignment_returned':
+			case 'assignment_graded':
+				// N-14…N-16: never text, comment or points in the mail, only the link (R0-27 §3.2).
+				$sub    = $this->db->row( $this->db->prepare( 'SELECT id, user_id, course_id, status FROM `' . $this->db->table( 'ccap_assignment_submission' ) . '` WHERE uid = %s', (string) ( $payload['submission_uid'] ?? '' ) ) );
+				$want   = array(
+					'assignment_submitted' => 'submitted',
+					'assignment_returned'  => 'returned',
+					'assignment_graded'    => 'graded',
+				)[ $type ];
+				$ok     = null !== $sub && $want === $sub['status'] && ( 'assignment_submitted' === $type
+					? \CourseCaptain\Policy\PolicyService::instance()->decide( \CourseCaptain\Policy\Actor::user( $uid ), \CourseCaptain\Policy\PolicyService::GRADE_SUBMISSION, array( (int) $sub['id'] ) )->allowed
+					: (int) $sub['user_id'] === $uid );
+				$course = null === $sub ? 0 : (int) $sub['course_id'];
+				break;
 			default:
 				return array( 'suppress' => 'not_wired' );
 		}
@@ -669,6 +701,22 @@ final class NotificationService {
 			$out['vars']['result_url']    = $out['vars']['course_url'];
 		}
 		return $out;
+	}
+
+	/**
+	 * Trainers of a course (`ccap_course_staff`, role `trainer`) whose scope covers the learner.
+	 *
+	 * @param int $course  Course.
+	 * @param int $learner Learner (never a recipient).
+	 * @return list<int>
+	 */
+	private function assignment_trainers( int $course, int $learner ): array {
+		if ( $course <= 0 || $learner <= 0 ) {
+			return array();
+		}
+		$relations = new Relations( $this->db );
+		$ids       = array_map( 'intval', array_column( $this->db->rows( $this->db->prepare( 'SELECT DISTINCT user_id FROM `' . $this->db->table( 'ccap_course_staff' ) . "` WHERE course_id = %d AND role = 'trainer' ORDER BY user_id", $course ) ), 'user_id' ) );
+		return array_values( array_filter( $ids, static fn( int $id ): bool => $id !== $learner && $relations->trainer_covers_learner( $id, $learner, $course ) ) );
 	}
 
 	/**

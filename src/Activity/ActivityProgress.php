@@ -62,23 +62,9 @@ final class ActivityProgress {
 		}
 		\CourseCaptain\Access\ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
 		$definition = ActivityService::definition( $lesson_id );
-		$table      = $this->db->table( 'ccap_activity_progress' );
-		$now        = $this->db->now();
-		$this->db->execute(
-			$this->db->prepare(
-				"INSERT IGNORE INTO `{$table}` (user_id, activity_id, course_id, activity_type, status, last_access_at, created_at) VALUES (%d, %d, %d, %s, 'started', %s, %s)",
-				$actor->user_id,
-				$lesson_id,
-				$course_id,
-				'' === $definition['type'] ? 'lesson' : $definition['type'],
-				$now,
-				$now
-			)
-		);
-		$row  = (array) $this->state( $actor->user_id, $lesson_id );
-		$data = json_decode( (string) ( $row['data'] ?? '' ), true );
-		$data = is_array( $data ) ? $data : array();
-		$pos  = (int) $row['position_seconds'];
+		$row        = $this->ensure_row( $actor->user_id, $course_id, $lesson_id, $definition['type'] );
+		$data       = self::data_of( $row );
+		$pos        = (int) $row['position_seconds'];
 		switch ( $kind ) {
 			case 'position':
 				// GM-011: an update without position keeps the stored position.
@@ -105,6 +91,85 @@ final class ActivityProgress {
 		if ( 'flashcard' === $definition['type'] ) {
 			$data = \CourseCaptain\Learning\Flashcards::current()->counts( $actor->user_id, $lesson_id ) + $data;
 		}
+		$this->store( $actor->user_id, $course_id, $lesson, $definition, $row, $data, $pos );
+		return (array) $this->state( $actor->user_id, $lesson_id );
+	}
+
+	/**
+	 * Server-side evidence of a provider workflow (assignment `submitted`,
+	 * `graded`, `passed`; R0-08 §2.5). No access check: the evidence was
+	 * produced by a checked workflow (a grade stays effective after the
+	 * learner lost access). Completion stays monotonic.
+	 *
+	 * @param int                 $user_id   Learner.
+	 * @param int                 $course_id Course.
+	 * @param int                 $lesson_id Lesson (activity).
+	 * @param array<string, bool> $flags     Evidence flags merged into the progress data.
+	 * @return array<string, mixed> Stored state.
+	 */
+	public function record_evidence( int $user_id, int $course_id, int $lesson_id, array $flags ): array {
+		$lesson = $this->relations->post( $lesson_id, Relations::LESSON_TYPE );
+		if ( null === $lesson || $user_id <= 0 ) {
+			return array();
+		}
+		$definition = ActivityService::definition( $lesson_id );
+		$row        = $this->ensure_row( $user_id, $course_id, $lesson_id, $definition['type'] );
+		$this->store( $user_id, $course_id, $lesson, $definition, $row, $flags + self::data_of( $row ), (int) $row['position_seconds'] );
+		return (array) $this->state( $user_id, $lesson_id );
+	}
+
+	/**
+	 * Progress row, created as `started` when missing.
+	 *
+	 * @param int    $user_id   Learner.
+	 * @param int    $course_id Course.
+	 * @param int    $lesson_id Lesson.
+	 * @param string $type      Activity type.
+	 * @return array<string, mixed>
+	 */
+	private function ensure_row( int $user_id, int $course_id, int $lesson_id, string $type ): array {
+		$table = $this->db->table( 'ccap_activity_progress' );
+		$now   = $this->db->now();
+		$this->db->execute(
+			$this->db->prepare(
+				"INSERT IGNORE INTO `{$table}` (user_id, activity_id, course_id, activity_type, status, last_access_at, created_at) VALUES (%d, %d, %d, %s, 'started', %s, %s)",
+				$user_id,
+				$lesson_id,
+				$course_id,
+				'' === $type ? 'lesson' : $type,
+				$now,
+				$now
+			)
+		);
+		return (array) $this->state( $user_id, $lesson_id );
+	}
+
+	/**
+	 * Decoded progress data.
+	 *
+	 * @param array<string, mixed> $row Row.
+	 * @return array<string, mixed>
+	 */
+	private static function data_of( array $row ): array {
+		$data = json_decode( (string) ( $row['data'] ?? '' ), true );
+		return is_array( $data ) ? $data : array();
+	}
+
+	/**
+	 * Evaluate the completion rule (monotonic) and store the row.
+	 *
+	 * @param int                  $user_id    Learner.
+	 * @param int                  $course_id  Course.
+	 * @param \WP_Post             $lesson     Lesson.
+	 * @param array<string, mixed> $definition Activity definition.
+	 * @param array<string, mixed> $row        Stored row.
+	 * @param array<string, mixed> $data       New data.
+	 * @param int                  $pos        Position.
+	 * @return void
+	 */
+	private function store( int $user_id, int $course_id, \WP_Post $lesson, array $definition, array $row, array $data, int $pos ): void {
+		$table  = $this->db->table( 'ccap_activity_progress' );
+		$now    = $this->db->now();
 		$status = (string) $row['status'];
 		$reason = $row['reason_code'];
 		if ( 'completed' !== $status ) {
@@ -146,8 +211,7 @@ final class ActivityProgress {
 		 * @param int $course_id Course.
 		 * @param int $lesson_id Lesson.
 		 */
-		do_action( 'course_captain_activity_progress_changed', $actor->user_id, $course_id, $lesson_id );
-		return (array) $this->state( $actor->user_id, $lesson_id );
+		do_action( 'course_captain_activity_progress_changed', $user_id, $course_id, (int) $lesson->ID );
 	}
 
 	/**
