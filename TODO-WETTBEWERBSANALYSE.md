@@ -582,6 +582,10 @@
   - **Ergebnis/Definition of Done:** Voucher-Reserve/Commit/Release, Teilrefund, doppelte Kauf-/Affiliate-Events, Replay, inkompatible Version und Recovery mit konkreten E2E-Fixtures.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
+- [ ] **R3-20 · Membership-Adapter** — *Aufgenommen (E-203, E-301).*
+  - **Voraussetzung:** R3-01.
+  - **Ergebnis/Definition of Done:** Mitgliedschaft als Grant-Quelle über den GrantSourceAdapter (Pro), Statusabbildung nach R0-40, Tests FIN-080/081.
+
 - [ ] **R3-GATE · R3-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. R3-Integrations-Gate.
 
 ### R4 – Nur nach Nachfrage und eigener Freigabe

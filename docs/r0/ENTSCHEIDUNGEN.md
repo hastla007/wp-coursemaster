@@ -309,6 +309,39 @@ Alle folgenden Punkte sind technische, gestalterische oder Prozessentscheidungen
 | E-273 | **Pro-Add-on wird in `captain-pro/addons/course-captain-pro` gebaut** (Konzept-Plan). Voraussetzung: Zugriff auf das private Repo captain-pro für Prüfung von Kernel, FeatureRegistry, TARIFE, ARCHITECTURE | **ja** |
 | E-195 | PHP 8.3 als Untergrenze bestätigt | nein |
 
+### Folgeklärungen nach Einarbeitung (Claude im Auftrag, 16.11.2026)
+
+| ID | Frage | Beschluss |
+|---|---|---|
+| E-285 | Präfix für Fehlercodes, AJAX/admin-post-Aktionen, Nonces, Shortcodes, Cache-Gruppe | **Einheitlich `ccap_`** (auch Fehlercodes, z. B. `ccap_setting_invalid`); Optionen/Transients `course_captain_*`; öffentliche Hooks/Funktionen `course_captain_*`. Präzisiert E-207/E-06 |
+| E-286 | Zugang je Modul (E-27): Semantik | `module_id NOT NULL DEFAULT 0` (0 = ganzer Kurs). Scopes `view/download/exam` bleiben innerhalb eines Moduls. Eine Kursprüfung ist startbar, wenn Zugang zu allen Modulen besteht, aus denen ihr Blueprint zieht. Kursfortschritt: Nenner = Pflicht-Activities der zugänglichen Module, Anzeige „x von y freigeschalteten Modulen“ |
+| E-287 | Abhängige Zusatz-Grants (E-26) | Abhängigkeit vom **effektiven Zugang zum Basiskurs**, nicht von einem bestimmten Grant; der Zusatz-Grant ändert seinen Status nicht, der effektive Zugang wird berechnet |
+| E-288 | Wer bewertet Aufgaben in R1 (E-168 vs. E-99)? | **Trainer, Autor und Kursmanager des Kurses bewerten Aufgaben in R1 Free** (Note/bestanden + Feedback, Rückgabe). Gradebook, Bewertungsraster und Tutor-Workflows bleiben Pro. E-99 gilt für die Tutor-Bewertungsfunktionen darüber hinaus |
+| E-289 | Grenzwerte für Datei-Abgaben | Erlaubt: pdf, docx, odt, txt, jpg, png; max. 20 MB je Datei, 5 Dateien je Abgabe (änderbar); kein eingebauter Virenscan, aber Hook für Scanner-Plugins; Aufbewahrung wie Rohantworten (E-51, 2 Jahre nach Kursende) |
+| E-290 | Benachrichtigungen bei Aufgaben | „Abgabe eingereicht“ an zuständige Trainer, „zurückgegeben“ und „bewertet“ an Lernende; alle informativ (abbestellbar); Events `assignment.*` nur in der internen Outbox |
+| E-291 | Schreibende öffentliche PHP-API (`grant_access_v1` u. a.) ohne Pro? | **Nur mit Pro** (E-38); Free vergibt Zugänge über Admin-UI, Gruppen, Selbstanmeldung und CLI |
+| E-292 | Nachbewertung (R-47, E-74) | Datenvertrag (`evaluation_no`) in R1, Route und Oberfläche Pro |
+| E-293 | Offene (unbezahlte) Woo-Bestellung | **Kein Grant**, auch nicht `pending`, bis zur Zahlung (präzisiert E-276); E-201 gilt nur für Quellen mit bestätigter Zahlung, aber ausstehender Course-Verarbeitung |
+| E-294 | Gutschein nach 24 h freigegeben (E-277) | `failed` ist endgültig für diesen Idempotenzschlüssel; ein neuer Einlöseversuch erzeugt einen neuen Schlüssel |
+| E-295 | Verlorener Dispute (E-275): `refunded` oder `cancelled`? | `refunded`, wenn Geld zurückgebucht wurde; `cancelled` nur, wenn die Bestellung vor Zahlung storniert wurde |
+| E-296 | Speicherort des Reset-Journals (E-138) | Eigene Tabelle `ccap_reset_journal`, 30 Tage |
+| E-297 | Verschachtelte Bundles und Bundles in Gruppen | **Eine Ebene** in R1 (Bundle enthält Kurse, keine Bundles); Gruppenplätze auf Bundles erlaubt |
+| E-298 | Kursbeziehung „empfiehlt“ (INV-B-068/B-134) | **R4-Pool** (keine Zugangswirkung, reine Darstellung) |
+| E-299 | ADR-Nummern aus R0-19 kollidieren mit Kap. 28.2 | R0-19-ADRs werden **ADR-009** (Fehlerformat) und **ADR-010** (Event-Envelope) |
+| E-300 | Lease-Name der Migration | `schema-migration` |
+| E-301 | Task für den Membership-Adapter (E-203) | **Neue Task R3-20** „Membership-Adapter“ |
+| E-302 | WordPress.org-Einreichung (E-205 „früh“ vs. Richtlinie: nur vollständige Plugins) | Slug früh **prüfen**, Einreichung erst, wenn die R1-Release-Checkliste RC-001…078 grün ist |
+| E-303 | Sicherheitsfristen (E-211) | Erstreaktion ≤ 72 h; Fix kritisch ≤ 7 Tage, hoch ≤ 30 Tage; zweiter Committer optional |
+| E-304 | Shared-Hosting-Aussage (E-59) | Nur „bis 50 gleichzeitige Prüfungen“; keine Zahl für aktive Lernende |
+| E-305 | Voucher-Kanal bei zwei Zieltypen (E-31) | Neutrales Ziel über Kanal `course-captain` (Einlöse-API), Woo-Produkt-Ziel über den Woo-Checkout von Voucher Captain |
+| E-306 | Pro-Events/Connectoren und geplante Pro-Jobs nach Lizenzende | **Eingefroren** (E-93/E-94): bestehende Abonnements und geplante Jobs laufen weiter, keine neuen |
+| E-307 | Doppelte Security-Header (Härtung vs. Security-Plugin) | Course Captain setzt keinen Header, den ein anderes Plugin oder der Server bereits setzt |
+| E-308 | User-Enumeration-Schutz (E-241 Opt-in vs. E-261 R4) | **E-261 gilt** (R4-Pool); E-241 insoweit überholt |
+| E-309 | Inhalt `Permissions-Policy` | `camera=(), microphone=(), geolocation=(), payment=()` nur auf Course-Captain-Antworten |
+| E-310 | Paketserien beim Großimport (E-178) | Nicht Pflicht in R1; R4-Pool |
+| E-311 | Integrationsstatus `failed` (D34-4) und Replay zugestellter Events (D34-7) | `failed` nach 3 Dead-Lettern innerhalb 1 h (nicht beim ersten); Replay zugestellter Events nur mit ausdrücklichem Flag, Begründung und Audit |
+| E-312 | Widerspruch E-45a zu Konzept Kap. 43.3/R0-10 (externe Medien) | **Beschluss E-45a gilt** (jüngere Entscheidung, Kap. 46.1); Kap. 43.3 wird redaktionell angepasst |
+
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
 | ID | Frage | Empfehlung | Herkunft | Blockiert |

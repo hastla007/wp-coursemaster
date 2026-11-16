@@ -1,6 +1,6 @@
-# R0-34 · Integrationsstatus und Support-Vertrag (Entwurf)
+# R0-34 · Integrationsstatus und Support-Vertrag
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Architektur offen.** Task R0-34 ist **nicht** abgehakt. Es gibt keine Implementierung und keinen Code. Dieses Dokument ist die Spezifikation für **R1-38** (lesende Anzeige, Reparatur interner Zustellungen, Diagnose), **R3-10** (Monitoring, Support-Recovery, Alarmierung) und **R3-16** (Providerstatus-Anzeige) und schließt FLOW-005 (Partnererkennung) auf Vertragsebene.
+**Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet. Task R0-34 ist nach Review abhakbar. Es gibt keine Implementierung und keinen Code. Dieses Dokument ist die Spezifikation für **R1-38** (lesende Anzeige, Reparatur interner Zustellungen, Diagnose), **R3-10** (Monitoring, Support-Recovery, Alarmierung) und **R3-16** (Providerstatus-Anzeige) und schließt FLOW-005 (Partnererkennung) auf Vertragsebene.
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-34 (Voraussetzung R0-19, R0-21, R0-27; DoD: „Provider-ID/Version/Contract, letzter Erfolg, Queue, Correlation-ID, Fehlercode, Retry-Rechte und Datenschutzklasse spezifiziert“), R1-38, R3-10, R3-16, FLOW-005; `konzept.md` Kap. 30.3 (Integrationszustände, Admin-Anzeige, Transport) und Kap. 33 (Suite-Erkennung, 8 Zustände, kein Ersatz für Freigabe); `R0-19` §1.6 (Handshake), §3 (Fehlerkatalog), §5.4 (Outbox/Zustellung), §5.7 (Registry), §6 (8 Zustände, Fehlerklassen, Übergänge); `R0-21` §2 (Lease M0, CAS, R-6); `R0-27` SR-2 (Privacy-Klassen der Felder), INV-S-08, §2.5; `R0-13` §1.2, §2.1 H-27/H-28/H-34, §2.2, §3, §4; `R0-17` §2 (DK-01…DK-14); `R0-32` F5, F10, V4, W6, W9, W13, W18; `R0-36` §1, C8.
 
@@ -21,7 +21,7 @@ Die Annahmen und die Fragen D34-1…D34-8 sind entschieden (`ENTSCHEIDUNGEN.md`,
 | E-259 | Übernahme einer Course-Aktion durch einen Partner erst in R3, mit sichtbarem Hinweis und Abschaltmöglichkeit |
 | E-119, E-120 | Event-Speicherung ohne Abonnent und Freigabe je Event-Klasse gelten nur mit Pro |
 | **E-207** | Präfix `ccap_` für Tabellen, Caps, Rollen und Cron (`ccap_integrations`, `ccap_outbox_delivery`, `ccap_support`, `ccap_hourly` …); Fehlercodes und Nonce-Aktionen vorerst `cc_` wie R0-19 |
-**Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional. Präfixe wie in R0-19 (`cc_` für Tabellen/Caps/Codes); bei Annahme von E-207 gilt `ccap_` für Tabellen und Caps.
+**Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional. Präfixe: `ccap_` für Tabellen, Caps, Rollen und Cron (E-207); Fehlercodes und Nonce-Aktionen vorerst `cc_` wie in R0-19.
 
 ---
 
@@ -33,7 +33,7 @@ Die Annahmen und die Fragen D34-1…D34-8 sind entschieden (`ENTSCHEIDUNGEN.md`,
 4. **Nichts wird gelöscht:** „Verwerfen“ setzt eine Zustellung auf `skipped` (`skip_reason = discarded`); solange das Event im Log liegt, ist ein Replay möglich. Replay erzeugt **nie** neue `event_id`s.
 5. **Diagnose je Integration** (§5): Abschnitt `integrations[]` im Diagnosepaket aus R0-13 §2.2, nach Allowlist, ohne Payloads, Personenreferenzen im Klartext, Secrets, Endpunkt-URLs oder Partner-Antworttexte.
 6. **Keine Cross-Plugin-Datenzugriffe** (R3-16): Course zeigt nur, was Course gesendet, empfangen und geprüft hat; Partnerzustand nur über dokumentierte öffentliche Versions-/Status-APIs.
-7. **INT-001…INT-052** (§6) für R1-38, R3-10, R3-16; **E-254…E-259** (§7) als neue Entscheidungen.
+7. **INT-001…INT-052** (§6) für R1-38, R3-10, R3-16; **D34-1…D34-8** (§7) beschlossen als E-254…E-259 (D34-4, D34-7 ohne Registereintrag).
 
 ---
 
@@ -325,7 +325,7 @@ Neue Aktionen im Bereich **settings/integrations** (R0-13 §4.1, bisher 4): `int
 | SR-2 | Replay und Retry prüfen Freigaben (E-120) und Opt-in **zum Zeitpunkt der Zustellung** erneut; entzogene Tags → `skipped/privacy_not_granted`. |
 | SR-3 | Im Haltemodus (E-85) sind Aktionen erlaubt, aber Zustellungen bleiben `pending`; der Bestätigungsdialog sagt das. |
 | SR-4 | Aktionen auf einen Provider eines anderen Abonnenten-Namens sind unmöglich: jede Aktion filtert `subscriber_id = provider_id`; fremde Zustellungs-IDs in der Auswahl → `404 cc_not_found` für die ganze Aktion (kein Existenz-Orakel). |
-| SR-5 | Pausiert der Betreiber länger als die Event-Retention, gilt E-258; die Karte zeigt die Restfrist der ältesten wartenden Zustellung. |
+| SR-5 | Pausiert der Betreiber länger als die Event-Retention, gilt E-258 (offene Zustellungen höchstens 30 Tage, danach Dead-Letter mit Grund `retention`); die Karte zeigt die Restfrist der ältesten wartenden Zustellung. |
 | SR-6 | Kein Lernender wird über Integrationsaktionen benachrichtigt (wie Reconcile, R0-13 K-14); Folgemails entstehen nur aus dem fachlichen Ablauf beim Partner bzw. Abonnenten. |
 
 ---
@@ -405,7 +405,7 @@ Erweiterung des Diagnosepakets aus R0-13 §2.2 (gleiche Erzeugung, Vorschau, Ein
 | INT-043 | P | IA-07 Deaktivieren | offene `pending` → `skipped/disabled`, Grants der Quelle unverändert, Zustand `active_compatible/not_enabled` | R3-10 | IA-07, R0-32 V4 |
 | INT-044 | P | Haltemodus aktiv (E-85) | alle verbundenen Provider `degraded/hold_mode`; Retry erlaubt, Zustellung erst nach K-17 | R3-10 | AB-8, SR-3 |
 | INT-045 | P | Zustand flattert 30× in 10 min zwischen `connected` und `degraded` | höchstens ein Audit `integration_status_changed` je Zustand und 10 min, Zähler im Kontext | R3-10 | AB-9 |
-| INT-046 | P | Alarmierung bei Wechsel nach `failed` | Admin-Hinweis; Mail nach E-257 höchstens 1 je Provider und 24 h, ohne Personendaten | R3-10 | §3.4 |
+| INT-046 | P | Alarmierung bei Wechsel nach `failed` | Admin-Hinweis; Mail nach E-257 gebündelt höchstens 1 je 24 h (E-257), ohne Personendaten | R3-10 | §3.4 |
 | INT-047 | N | `ccap_support` versucht IA-02…IA-09 | 403; Knöpfe fehlen | R3-16 | §2.5 |
 | INT-048 | N | Admin mit #20, ohne #23, versucht Replay/Verwerfen | 403; Retry und Pause erlaubt | R3-10 | §2.5 |
 | INT-049 | P | Dead-Letter-Liste | kein Payload, kein `user_ref`; „Person betroffen“ ja/nein; Link zur Person nur mit #13 | R3-16 | §3.2 |
@@ -417,20 +417,27 @@ Summe: 52 (R1-38: 20, R3-10: 29 inkl. Doppelzuordnung, R3-16: 9 inkl. Doppelzuor
 
 ---
 
-## 7. Entscheidungsbedarf (neu, gegen E-01…E-224 geprüft)
+## 7. Entscheidungsbedarf (beschlossen)
 
-| Nr. | Frage | Optionen | Empfehlung | Wer | Blockiert |
-|---|---|---|---|---|---|
-| **D34-1** | **Ort der lesenden R1-Anzeige:** E-185 nennt „nur Anzeige im Systemstatus“, E-202 die Unterseite „Integrationen“. Gibt es die Unterseite schon in R1? | a) Unterseite „Integrationen“ in R1, nur lesend; H-34 im Systemstatus als Zusammenfassung · b) R1 nur H-34, Unterseite ab R3 · c) beides erst R3 | **a)** – eine Stelle für Kompatibilität und Hilfe; R3 ergänzt nur Aktionen, ohne Navigation zu ändern | Auftraggeber | R1-32, R1-38 |
-| **D34-2** | **Lese-Cap für „Integrationen“:** R0-07 S-19 verlangt #20 (nur Admin). Sollen Support und Kursmanager den Status sehen? | a) Lesen mit #22 (L-Felder), alles mit A-Kennzeichnung und alle Aktionen nur #20 · b) nur #20 (wie S-19) | **a)** – Support braucht Fehler-ID und Zustand für die Eskalation (R0-13 Stufe 1), Secrets bleiben unsichtbar | Auftraggeber | R1-38, R3-16 |
-| **D34-3** | **Partner ohne veröffentlichten Vertrag** (Form/Workflow/Review, Pass ohne belegte Versions-API) und **nicht installierte** Partner: anzeigen? | a) erkannt → `active_incompatible/no_published_contract` mit neutralem Text; `not_installed` nur im Filter „Alle bekannten“ · b) gar nicht anzeigen · c) alle Katalogpartner immer anzeigen | **a)** – ehrlich ohne „geplant/kompatibel“ (R0-32 F10) und ohne Werbewirkung (E-100) | Auftraggeber | R1-38, R3-16 |
-| **D34-4** | **Schwelle für `failed`:** R0-19 §6 setzt `failed` schon beim ersten Dead-Letter (alle Zustellungen stoppen). | a) einzelner Dead-Letter → `degraded`; `failed` erst bei Auth-Fehler, ≥ 10 Dead-Letter in 60 min oder 3 fehlgeschlagenen Tests · b) wie R0-19: erster Dead-Letter → `failed` | **a)** – ein fehlerhaftes Event darf nicht alle anderen Zugangs-Events blockieren; R0-19 §6 wird angepasst | Architektur | R3-10, R3-12 |
-| **D34-5** | **Alarm-Mail an Admins** bei `failed` (R3-10 „Alarmierung“)? | a) Mail an die Admin-Adresse der Site, Default **an**, Klasse `informational`, höchstens 1 je Provider und 24 h, ohne Personendaten · b) nur Admin-Hinweis und `/health` · c) Mail an frei wählbare Adresse | **a)**; eigene Adresse später als Pro-Kandidat | Auftraggeber | R3-10 |
-| **D34-6** | **Wartende Zustellungen und Event-Retention:** E-119/E-215 regeln Events ohne Abonnent (30 d) und zugestellte (90 d), nicht **offene**. Was passiert, wenn ein Partner pausiert oder `failed` länger als 30 Tage ist? | a) Events mit offener Zustellung bleiben bis 90 d (E-116-Obergrenze), danach `skipped/retention_expired` mit Audit und Admin-Hinweis · b) nach 30 d verwerfen · c) unbegrenzt halten | **a)** – keine stillen Verluste, aber keine unbegrenzte Speicherung | Auftraggeber (Datenschutz) | R3-10, R1-17 |
-| **D34-7** | **Replay bereits erfolgreich zugestellter Events** zulassen? | a) ja, nur mit zusätzlicher Bestätigung und #23; Consumer deduplizieren · b) nein, nur `dead`/`skipped`/fehlende | **a)** – nötig nach Datenverlust beim Partner; Risiko durch Dedupe-Pflicht (R0-19 §5.4) begrenzt | Architektur | R3-10, R3-12 |
-| **D34-8** | **Ownership-Claim** (R0-32 W18): Darf ein Partner (z. B. Workflow) eine Course-Aktion wie einen Mailtyp übernehmen, und wie wird das sichtbar? | a) nur nach ausdrücklicher Annahme durch den Admin je Typ auf der Provider-Detailseite; sichtbar in `ownership_claims[]`; bei `inactive`/`failed`/Lizenzende fällt die Aktion automatisch an Course zurück · b) Partner übernimmt bei Erkennung · c) keine Claims in v1 | **c) für R3-Start, a) als Ziel mit R3-17** – E-39 schließt schreibende Workflow-Aktionen in v1 schon aus; der Datenvertrag hält das Feld bereit | Auftraggeber | R3-16, R3-17 |
+| Nr. | Frage | Beschluss |
+|---|---|---|
+| **D34-1** | Ort der lesenden R1-Anzeige | **E-254:** Unterseite „Integrationen“ schon in R1, nur lesend; H-34 als Zusammenfassung (Option a) |
+| **D34-2** | Lese-Cap für „Integrationen“ | **E-255:** auch `ccap_support` und Kursmanager lesend; umgesetzt über #22, Aktionen nur #20 (Option a) |
+| **D34-3** | Partner ohne veröffentlichten Vertrag, nicht installierte Partner | **E-256:** erkannte Partner anzeigen mit Hinweis „kein Vertrag verfügbar“; nicht installierte nicht bewerben (Option a) |
+| **D34-4** | Schwelle für `failed` | **nicht im Register** – siehe Offene Punkte; §2.3 AB-4 und INT-026 folgen vorläufig Option a) |
+| **D34-5** | Alarm-Mail an Admins bei `failed` (R3) | **E-257:** ja, gebündelt höchstens einmal je 24 h |
+| **D34-6** | Wartende Zustellungen und Retention | **E-258:** offene Zustellungen höchstens 30 Tage, danach Dead-Letter mit Grund `retention` (abweichend von Option a, 90 Tage) |
+| **D34-7** | Replay bereits erfolgreich zugestellter Events | **nicht im Register** – siehe Offene Punkte; IA-03 folgt vorläufig Option a) |
+| **D34-8** | Ownership-Claim durch Partner | **E-259:** erst in R3, nur mit sichtbarem Hinweis im Admin und Abschaltmöglichkeit (Option a) |
 
-**Keine neue Entscheidung, nur Abhängigkeit:** 8 Zustände → R0-19 §6; Freigabe je Event-Klasse → E-120; Halte-/Ausgangsmodus → E-85/E-86/E-88; Secrets → E-87; Connector-Ort/Edition → E-40/E-53; Hersteller nur über Diagnosepaket → E-142; Fehler-/Debug-Fristen → E-143; kein Upselling → E-100; kanonisches Zugangs-Event `enrollment.created` → bereits R0-19 §5.3 (R0-32 W9); Empfänger-Resolver → E-41, R0-19 §4.1.
+### Offene Punkte nach Einarbeitung
+
+1. **D34-4 und D34-7** stehen nicht in `ENTSCHEIDUNGEN.md`; beide betreffen nur R3 (R3-10). Die Spezifikation folgt bis zu einem Eintrag der damaligen Empfehlung a); vor R3-10 ins Register aufnehmen.
+2. **E-258 und das Feldschema:** E-258 verlangt nach 30 Tagen einen Dead-Letter mit Grund `retention`; §2.1 führt dafür bisher `skipped.by_reason.retention_expired`. Status (`dead` statt `skipped`) und Grundname sind in R0-19 §5.4/R0-06 anzugleichen.
+3. **Registry in R1:** Nach E-38 gibt es in R1 keine `ConnectorRegistry`; die Zugriffswege in §2.6 (PHP `ConnectorRegistry::status()`) gelten ab Pro. Ob R1 eine schmale interne Status-API für den Partnerkatalog bereitstellt, ist in R0-19 festzulegen.
+4. **E-39b** setzt eine Änderung am Workflow-Captain-Konzept voraus; bis dahin bleibt `workflow-captain` ohne Vertrag.
+
+**Weitere Abhängigkeiten (beschlossen):** 8 Zustände → R0-19 §6; Freigabe je Event-Klasse → E-120; Halte-/Ausgangsmodus → E-85/E-86/E-88; Secrets → E-87; Connector-Ort/Edition → E-40/E-53; Hersteller nur über Diagnosepaket → E-142; Fehler-/Debug-Fristen → E-143; kein Upselling → E-100; kanonisches Zugangs-Event `enrollment.created` → bereits R0-19 §5.3 (R0-32 W9); Empfänger-Resolver → E-41, R0-19 §4.1.
 
 ---
 
@@ -439,12 +446,12 @@ Summe: 52 (R1-38: 20, R3-10: 29 inkl. Doppelzuordnung, R3-16: 9 inkl. Doppelzuor
 | Dokument | Delta |
 |---|---|
 | R0-06 | `ccap_integrations` um Statusspalten und `row_version` (§2.6); `ccap_outbox_delivery` um `manual_retries`, `skip_reason` (`discarded`, `disabled`, `hold_mode`, `privacy_not_granted`, `retention_expired`), `discarded_at`; Index `(subscriber_id, status, next_attempt_at)`. |
-| R0-07 | S-19 lesend mit #22 (D34-2); neue Nonce-Aktionen `cc_integration_{enable,disable,test,replay,retry,pause,resume,discard,event_classes}`; Massenaktionen #20 + #23. |
+| R0-07 | S-19 lesend mit #22 (E-255); neue Nonce-Aktionen `cc_integration_{enable,disable,test,replay,retry,pause,resume,discard,event_classes}`; Massenaktionen #20 + #23. |
 | R0-13 | 10 neue Audit-Aktionen (§4.3, 88 → 98); H-34 mit Grund und Link; Diagnosepaket-Option „Nur Integration“ und Abschnitt `integrations[]` (§5); RC-5 „zurück in `queued`“ → `pending` (Statusnamen R0-19 §5.4); K-16 gilt für interne Outbox-Abonnenten wie IA-04/IA-06. |
 | R0-19 | §2.3 neue Routen `GET /integrations`, `GET /integrations/{connector}` (R1, #22) und R3-Aktionsrouten `POST /integrations/{connector}/{test,replay,retry,pause,resume,discard}` (**P**-Idempotenz); §3.2 neuer Code `cc_integration_state_invalid` (409), `cc_rate_limited` Bucket `integration_action`; §4.7 CLI `integrations pause\|resume\|enable\|disable`, `outbox discard <ids> --reason`, `diagnostics --integration`; §6 Ableitungsregeln AB-2…AB-9 und `failed`-Schwelle nach D34-4; `state_reason`-Enum §2.2. |
-| R0-27 | Falls D34-5 a): Mailtyp `admin_integration_failed` (Klasse `informational`, Empfänger Site-Admin) in §3.2; falls D34-6 a): Unterschlüssel `privacy.retention.outbox_open_days` (Default 90, Max. 90). |
+| R0-27 | Nach E-257: Mailtyp `admin_integration_failed` (Klasse `informational`, Empfänger Site-Admin) in §3.2; nach E-258: Frist für offene Zustellungen 30 Tage (Default und Höchstwert; Schlüssel `privacy.retention.outbox_open_days`). |
 | R0-12 | OPS-06 „Integrationsstatus-Anzeige fehlt“ → INT-001…INT-020; R3-10/R3-16 Testzuordnung INT-021…INT-052. |
-| R0-24 | Zeilen 759 (SUITE-004) und 851 (FLOW-005) auf R0-34 verweisen; R1-38 DoR „R0-34 fehlt“ → vorhanden (Entwurf). |
+| R0-24 | Zeilen 767 (SUITE-004) und 859 (FLOW-005, TODO-Stand nach Einfügung von R1-45/R1-46) auf R0-34 verweisen; R1-38 DoR „R0-34 fehlt“ → vorhanden (in R0-24 eingearbeitet). |
 | konzept.md | Kap. 30.3 „Integrationszustände“ verweist auf R0-19 §6 und R0-34 §3.3; Kap. 33 „Diagnose, Hilfe und Datenschutzinformation“ → §2.4, §5. |
 
 ---
@@ -452,5 +459,5 @@ Summe: 52 (R1-38: 20, R3-10: 29 inkl. Doppelzuordnung, R3-16: 9 inkl. Doppelzuor
 ## 9. Nachweis
 
 - Gelesen (Planung): `TODO-WETTBEWERBSANALYSE.md` (R0-34, R1-38, R3-10, R3-16, FLOW-005), `konzept.md` Kap. 30.3, 33; `docs/r0/ENTSCHEIDUNGEN.md` (Beschlussprotokoll E-01…E-20, Empfehlungen bis E-224); `R0-19` §1.1, §1.6, §2.3, §3, §4.2, §4.7, §4.8, §5.1–§5.8, §6–§9; `R0-21` §0, §2; `R0-27` §1.1, §1.2, §1.6, §2.5, §3; `R0-13` §0–§4, §6–§8; `R0-17` §2; `R0-32` §3–§9; `R0-36` §1, §2.1, §5.1, §7; `R0-07` §3.1, S-19/S-22; `R0-12` OPS-06; `R0-24` Zeilen 115, 162, 438.
-- Partnerproben stützen sich ausschließlich auf die in R0-36 §1 mit Commit belegten Angaben; Pass-Captain-Probe und Form/Workflow/Review sind bewusst offen (D34-3).
-- Kein Code, keine Tests ausführbar (keine Implementierung). Abhaken von R0-34 erst nach Freigabe dieses Entwurfs, Beschluss D34-1…D34-8 und Übernahme der Deltas (§8).
+- Partnerproben stützen sich ausschließlich auf die in R0-36 §1 mit Commit belegten Angaben; Pass-Captain-Probe und Form/Workflow/Review sind bewusst offen (E-256).
+- Kein Code, keine Tests ausführbar (keine Implementierung). Beschlüsse vom 16.11.2026 eingearbeitet; Abhaken von R0-34 nach Review und Übernahme der Deltas (§8).
