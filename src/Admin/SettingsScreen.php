@@ -370,10 +370,19 @@ final class SettingsScreen {
 		if ( 'reset_confirm' === $result ) {
 			return $html . self::reset_page( $tab, $user_id ) . '</div>';
 		}
-		$form  = self::take_form( $user_id, $tab );
-		$html .= self::message( $tab, $result, absint( $request['ccap_count'] ?? 0 ), $form );
-		$html .= self::tab_form( $tab, $user_id, $form );
-		return $html . '<div class="screen-reader-text" role="status" aria-live="polite" id="ccap-status"></div></div>';
+		$form   = self::take_form( $user_id, $tab );
+		$html  .= self::message( $tab, $result, absint( $request['ccap_count'] ?? 0 ), $form );
+		$html  .= self::tab_form( $tab, $user_id, $form );
+		$status = '';
+		if ( 'certificates' === $tab ) {
+			// The base template is edited on the certificates screen (A-11), not a second form here.
+			$html .= '<h3>' . esc_html__( 'Base template', 'course-captain' ) . '</h3><p><a href="' . esc_url( admin_url( 'admin.php?page=course-captain-certificates' ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Edit the base template under Certificates', 'course-captain' ) . '</a></p>';
+		}
+		if ( 'emails' === $tab ) {
+			$html  .= '<h3>' . esc_html__( 'Test mail', 'course-captain' ) . '</h3>' . TestMail::form( $user_id, 'settings' );
+			$status = TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' );
+		}
+		return $html . '<div role="status" aria-live="polite" id="ccap-status">' . esc_html( $status ) . '</div></div>';
 	}
 
 	/**

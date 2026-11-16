@@ -629,7 +629,7 @@ final class SetupWizard {
 			$html .= self::step_form( $step, $state, $form );
 		}
 		$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SettingsScreen::SLUG ) ) . '" data-ccap-leave="' . esc_attr( SettingsScreen::leave_text() ) . '">' . esc_html__( 'Leave setup – your progress is kept', 'course-captain' ) . '</a></p>';
-		return $html . '<div class="screen-reader-text" role="status" aria-live="polite" id="ccap-status">' . ( 'saved' === $result ? esc_html( self::saved_text( $state ) ) : '' ) . '</div></div>';
+		return $html . '<div class="screen-reader-text" role="status" aria-live="polite" id="ccap-status">' . ( 'saved' === $result ? esc_html( self::saved_text( $state ) ) : esc_html( TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' ) ) ) . '</div></div>';
 	}
 
 	/**
@@ -797,6 +797,9 @@ final class SetupWizard {
 		if ( $prev >= 0 ) {
 			$html .= '<a class="button" href="' . esc_url( add_query_arg( array( 'page' => self::SLUG, 'step' => SetupState::STEPS[ $prev ] ), admin_url( 'admin.php' ) ) ) . '" data-ccap-leave="' . esc_attr( SettingsScreen::leave_text() ) . '">' . esc_html__( 'Back', 'course-captain' ) . '</a> '; // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short URL args.
 		}
+		if ( 'mail_privacy' === $step ) {
+			$html .= ' ' . TestMail::form( get_current_user_id(), 'setup' );
+		}
 		$html .= '<form id="cc-skip" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ccap-inline-form"><input type="hidden" name="action" value="' . esc_attr( self::SKIP ) . '"><input type="hidden" name="step" value="' . esc_attr( $step ) . '">' . wp_nonce_field( 'ccap_setup_skip_' . $step, '_wpnonce', true, false ) . '<button type="submit" class="button">' . esc_html__( 'Skip', 'course-captain' ) . '</button></form>';
 		return $html;
 	}
@@ -845,7 +848,8 @@ final class SetupWizard {
 					/* translators: %s: page title */
 					? sprintf( __( 'Privacy policy: “%s”.', 'course-captain' ), get_the_title( $policy ) )
 					: __( 'Warning: no privacy policy is set.', 'course-captain' );
-				return '<p>' . esc_html( $text ) . ' ' . esc_html__( 'Text modules for Course Captain are in the WordPress guide for the privacy policy.', 'course-captain' ) . '</p>';
+				return '<p>' . esc_html( $text ) . ' ' . esc_html__( 'Text modules for Course Captain are in the WordPress guide for the privacy policy.', 'course-captain' ) . '</p>'
+					. '<p>' . esc_html__( 'Retention periods are changeable suggestions; have them checked legally before you collect learning data. All periods: Settings › Privacy & security.', 'course-captain' ) . '</p>';
 			case 'hardening':
 				$conflicts = array_unique( array_values( Hardening::conflicts() ) );
 				return '<h2>' . esc_html__( 'Detected security plugins', 'course-captain' ) . '</h2>' . ( array() === $conflicts ? '<p>' . esc_html__( 'No security plugin detected.', 'course-captain' ) . '</p>' : '<ul><li>' . implode( '</li><li>', array_map( 'esc_html', $conflicts ) ) . '</li></ul>' ) . '<h2>' . esc_html__( 'Protective functions', 'course-captain' ) . '</h2>';

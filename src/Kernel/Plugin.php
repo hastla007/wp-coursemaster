@@ -216,6 +216,9 @@ final class Plugin {
 		\CourseCaptain\Admin\EditorScreens::register();
 		\CourseCaptain\Admin\SettingsScreen::register();
 		\CourseCaptain\Admin\SetupWizard::register();
+		\CourseCaptain\Admin\RoleSettings::register();
+		\CourseCaptain\Admin\TestMail::register();
+		\CourseCaptain\Privacy\PrivacySettings::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();

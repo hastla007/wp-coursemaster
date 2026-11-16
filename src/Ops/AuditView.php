@@ -40,6 +40,8 @@ final class AuditView {
 			'attempt_graded'                 => array( 'attempt', __( 'Exam attempt re-evaluated', 'course-captain' ) ),
 			'settings_saved'                 => array( 'settings', __( 'Settings saved', 'course-captain' ) ),
 			'settings_reset'                 => array( 'settings', __( 'Settings reset', 'course-captain' ) ),
+			'role_caps_changed'              => array( 'settings', __( 'Role permissions changed', 'course-captain' ) ),
+			'privacy_request_automated'      => array( 'privacy', __( 'Data request processed automatically', 'course-captain' ) ),
 			'outbox.replayed'                => array( 'ops', __( 'Event delivery replayed', 'course-captain' ) ),
 			'import_approved'                => array( 'import', __( 'Import approved', 'course-captain' ) ),
 			'import_published'               => array( 'import', __( 'Import published', 'course-captain' ) ),

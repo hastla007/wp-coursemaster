@@ -1,4 +1,5 @@
 {
+    "course_captain_account_deletion_protected": "filter",
     "course_captain_activity_progress_changed": "action",
     "course_captain_allow_unmoved_protected_file": "filter",
     "course_captain_cache_purge": "action",

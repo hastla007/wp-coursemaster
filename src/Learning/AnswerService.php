@@ -176,13 +176,17 @@ final class AnswerService {
 	}
 
 	/**
-	 * Learning feedback setting `show_correct_answers` (default true, R0-08 §4.5).
+	 * Learning feedback: `show_correct_answers` (default true, R0-08 §4.5),
+	 * only effective while `visibility` is not `never` (R0-27 SET-064, B-5).
 	 *
 	 * @return bool
 	 */
 	private static function show_correct_answers(): bool {
 		$feedback = \CourseCaptain\Settings\Settings::get( 'learning.feedback' );
-		return ! is_array( $feedback ) || false !== ( $feedback['show_correct_answers'] ?? true );
+		if ( ! is_array( $feedback ) ) {
+			return true;
+		}
+		return 'never' !== ( $feedback['visibility'] ?? 'always' ) && false !== ( $feedback['show_correct_answers'] ?? true );
 	}
 
 	/**

@@ -116,7 +116,6 @@ final class SettingsFields {
 			case 'certificates':
 				return array(
 					array( __( 'Issuing', 'course-captain' ), array( 'auto_issue', 'holder_name_policy' ) ),
-					array( __( 'Base template', 'course-captain' ), array( 'base_template.issuer_name', 'base_template.footer_text', 'base_template.logo_id', 'base_template.signature_label' ) ),
 				);
 			case 'emails':
 				return array(

@@ -55,6 +55,9 @@ final class SettingsRules {
 			case 'set':
 			case 'bool':
 				return 'choice';
+			case 'object':
+				// Strict objects (`emails.types`): an unknown key is a required mail type (F-64).
+				return ! empty( $field['strict'] ) && is_array( $value ) && array() !== array_diff( array_keys( $value ), array_keys( (array) $field['fields'] ) ) ? 'required_mail' : 'invalid';
 		}
 		return 'invalid';
 	}

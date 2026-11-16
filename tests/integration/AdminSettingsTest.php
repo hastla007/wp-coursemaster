@@ -123,7 +123,7 @@ final class AdminSettingsTest extends SchemaTestCase {
 		$html = SettingsScreen::html( array( 'tab' => 'exams' ), $this->admin );
 		self::assertStringContainsString( 'aria-label="Settings: areas"', $html );
 		self::assertStringContainsString( 'nav-tab-active" aria-current="page', $html );
-		self::assertSame( array( 'general', 'display', 'learning', 'exams', 'enrollment', 'certificates', 'emails', 'privacy', 'hardening', 'advanced' ), SettingsScreen::tabs_for( $this->admin ) );
+		self::assertSame( SettingsFields::TAB_ORDER, SettingsScreen::tabs_for( $this->admin ) );
 		self::assertSame( 11, count( SettingsFields::TAB_ORDER ) );
 
 		$manager = (int) self::factory()->user->create( array( 'role' => Roles::COURSE_MANAGER ) );
