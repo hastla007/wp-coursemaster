@@ -4,7 +4,7 @@
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-07 (DoD: WP-Capabilities, Rollen, Objekt-Scope, REST/Admin/Medien/CLI/Export-Matrix), R0-RBAC-001, R0-RBAC-002, CORE-SPEC-001, ID-01…ID-06 (Konzept 34.1); Konzept Kap. 17, 35.1, 36, 43.2/43.3; `docs/r0/R0-06-datenmodell-adr.md` (Entitäten E-01…E-52, Tabellen §4); `docs/r0/R0-02-inventar/D-admin-frontend-api.md` (§3 Admin-Menü, §4.1 W1–W52, §3.3 admin-post/AJAX, §6.1 Auth), `C-infrastruktur-content.md` (§2.5 Privacy, §2.6/§4.4 CLI, §3.5 Ablage, §4.3 Cron, §4.5 Exporter/Eraser), `A-lernen-pruefung.md` (§2.2 AccessService, §2.5 Gate/geschützte Dateien), `B-commerce.md` (§2.4 Gruppen, §4.1 Webhooks); `docs/r0/R0-05-golden-master.md` (Fixtures §2.7, GM-049/058/151/154); `docs/r0/R0-10-import-medien-sicherheit.md` (§4.3 Auslieferung, R10-D4).
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen, nicht verändert). Pfade in Abschnitt 6 sind relativ zu `bootspruefung-learning/`.
-**Arbeitsannahmen aus `ENTSCHEIDUNGEN.md` (noch nicht beschlossen):** Annahme **E-05** (nur `course-captain/v1`, Cookie + Nonce, keine Token-Auth in R1), Annahme **E-06** (einheitlicher Fehlerkatalog), Annahme **E-07/E-49** (Single-Site, Netzwerkaktivierung blockiert), Annahme **E-14/E-15** (Drip und Teilumfang in Free), Annahme **E-17** (Gruppenbesitzer verwaltet in Free), Annahme **E-18** (Rechtestatus-Sperre), Annahme **E-19** (Audit-Viewer Free), Annahme **E-21** (Karteikarte statt Praxis), Annahme **E-27** (Scopes `view`, `download`, `exam`), Annahme **E-28** (Option „nur die eingeladene Adresse“), Annahme **E-30** (Kontopflicht beim Gastkauf), Annahme **E-39** (keine schreibenden Workflow-Aktionen in v1), Annahme **E-46** (fail-closed bei Einlösen), Annahme **E-47/E-48** (Hybrid-Speicherung, FKs nur zwischen `cc_`-Tabellen). Weicht ein Beschluss ab, sind die markierten Zeilen anzupassen.
+**Arbeitsannahmen aus `ENTSCHEIDUNGEN.md` (noch nicht beschlossen):** Annahme **E-05** (nur `course-captain/v1`, Cookie + Nonce, keine Token-Auth in R1), Annahme **E-06** (einheitlicher Fehlerkatalog), Annahme **E-07/E-49** (Single-Site, Netzwerkaktivierung blockiert), Annahme **E-14/E-15** (Drip und Teilumfang in Free), Annahme **E-17** (Gruppenbesitzer verwaltet in Free), Annahme **E-18** (Rechtestatus-Sperre), Annahme **E-19** (Audit-Viewer Free), Annahme **E-21** (Karteikarte statt Praxis), Annahme **E-27** (Scopes `view`, `download`, `exam`), Annahme **E-28** (Option „nur die eingeladene Adresse“), Annahme **E-30** (Kontopflicht beim Gastkauf), Annahme **E-39** (keine schreibenden Workflow-Aktionen in v1), Annahme **E-46** (fail-closed bei Einlösen), Annahme **E-47/E-48** (Hybrid-Speicherung, FKs nur zwischen `ccap_`-Tabellen). Weicht ein Beschluss ab, sind die markierten Zeilen anzupassen.
 
 ---
 
@@ -13,9 +13,9 @@
 | Größe | Wert |
 |---|---:|
 | Fachrollen (Abschnitt 2) | 8 |
-| neue WP-Rollen (`cc_course_manager`, `cc_author`, `cc_trainer`, `cc_support`) | 4 |
-| genutzte WP-Kernrollen (`administrator`, `subscriber`) | 2 (nur `administrator` erhält `cc_*`-Caps) |
-| primitive Capabilities `cc_*` (Abschnitt 3.1) | 24 |
+| neue WP-Rollen (`ccap_course_manager`, `ccap_author`, `ccap_trainer`, `ccap_support`) | 4 |
+| genutzte WP-Kernrollen (`administrator`, `subscriber`) | 2 (nur `administrator` erhält `ccap_*`-Caps) |
+| primitive Capabilities `ccap_*` (Abschnitt 3.1) | 24 |
 | Meta-Capabilities mit `map_meta_cap`-Regel (Abschnitt 3.2) | 24 |
 | Objektbeziehungen (Abschnitt 3.3) | 9 |
 | REST-Routengruppen `course-captain/v1` (Abschnitt 4.1) | 21 (aus W1–W52 + 10 Nebenrouten; W21–W23, W29–W44, W52 entfallen) |
@@ -36,14 +36,14 @@
 | P-02 | Jede Entscheidung = **Capability + Objektbeziehung + Site + Status** (Nutzer, Kurs, Grant, Versuch). Ein zentraler `PolicyService::decide(actor, action, object, context)` liefert `allow` oder `deny` mit Grund. Die WP-Meta-Caps (3.2) sind seine Fassade für `current_user_can()`. | Konzept 36, R1-03 |
 | P-03 | **Alle Einstiege nutzen denselben Dienst:** REST, admin-post, AJAX, Block-Editor/Core-REST, Shortcode/Block-Render, `the_content`/Feeds/Suche, Medien-Endpunkt, Upload, Cron, CLI, Webhook, PHP-API, Exporter/Eraser. | Konzept 36 „Prüfpunkte“ |
 | P-04 | **Nonce ≠ Recht.** Nonce schützt nur vor CSRF. Jede schreibende Aktion prüft zusätzlich die Cap. REST: `X-WP-Nonce` (`wp_rest`), admin-post/AJAX: Nonce je Aktion **und Objekt-ID** (`cc_<aktion>_<id>`). | Konzept 36, LB D §3.3 |
-| P-05 | `manage_options` wird **nie** als LMS-Autorisierung verwendet. Auch Protokoll, Einstellungen und Systemstatus bekommen eigene `cc_*`-Caps. | Konzept 36 |
-| P-06 | **WP-Administrator ≠ Inhaltseigentümer.** Der Administrator hat alle `cc_*`-Caps, wird dadurch aber nicht Autor oder Trainer eines Kurses. Lesen fremder Versuchsdaten ist auch für ihn auditpflichtig. | Konzept 36 |
+| P-05 | `manage_options` wird **nie** als LMS-Autorisierung verwendet. Auch Protokoll, Einstellungen und Systemstatus bekommen eigene `ccap_*`-Caps. | Konzept 36 |
+| P-06 | **WP-Administrator ≠ Inhaltseigentümer.** Der Administrator hat alle `ccap_*`-Caps, wird dadurch aber nicht Autor oder Trainer eines Kurses. Lesen fremder Versuchsdaten ist auch für ihn auditpflichtig. | Konzept 36 |
 | P-07 | **Rollen addieren keine Objekte.** Wer Autor von Kurs A und Lernender in Kurs B ist, hat Autorenrechte nur auf A und Lernrechte nur auf B. | Konzept 35.1 |
 | P-08 | **Fremd = unsichtbar.** Fremde oder nicht sichtbare Objekte ergeben **404 `cc_not_found`**, identisch zu einer nicht existierenden ID (kein Existenz-Orakel). **403 `cc_forbidden`** nur, wenn das Objekt dem Akteur legitim bekannt ist (z. B. veröffentlichter Kurs ohne Grant, eigener Versuch nach Widerruf). **401 `cc_auth_required`** ohne Anmeldung. **423/403 `cc_account_locked`** bei Lernsperre (D07-2). | LB `ExamService.php:1034-1042`, Annahme E-06 |
 | P-09 | **Keine Nutzer-ID aus dem Payload** für „eigene“ Aktionen. Die ID kommt aus der Sitzung. Parameter wie `user_id` sind nur in Staff-Routen zulässig und werden dort über Meta-Caps geprüft. | LB `LearnerController.php:24-26` |
-| P-10 | **Fremde Rollen bleiben unangetastet.** Aktivierung ergänzt Caps nur bei `administrator` und legt die vier `cc_`-Rollen an. Deaktivierung entfernt nichts, Deinstallation entfernt nur `cc_*`-Caps und die eigenen Rollen (Option, Nutzer behalten ihre übrigen Rollen). | Konzept 17 |
+| P-10 | **Fremde Rollen bleiben unangetastet.** Aktivierung ergänzt Caps nur bei `administrator` und legt die vier `ccap_`-Rollen an. Deaktivierung entfernt nichts, Deinstallation entfernt nur `ccap_*`-Caps und die eigenen Rollen (Option, Nutzer behalten ihre übrigen Rollen). | Konzept 17 |
 | P-11 | **Änderungen wirken sofort.** Rollen-, Grant-, Staff- und Sperränderungen invalidieren Policy-Memo, Objekt-Cache-Gruppe `cc_policy` und markieren Antworten `no-store` (R1-25). Kein Warten auf Cron. | Konzept 17 |
-| P-12 | **Systemakteure** (`system:cron`, `system:cli`, `connector:<id>`) rufen nie `current_user_can()` auf. Sie haben eine feste, je Job/Kommando definierte Erlaubnis (4.6–4.8) und schreiben einen Audit-Eintrag mit `actor_type`. | R0-06 `cc_grant_event.actor_type` |
+| P-12 | **Systemakteure** (`system:cron`, `system:cli`, `connector:<id>`) rufen nie `current_user_can()` auf. Sie haben eine feste, je Job/Kommando definierte Erlaubnis (4.6–4.8) und schreiben einen Audit-Eintrag mit `actor_type`. | R0-06 `ccap_grant_event.actor_type` |
 
 ---
 
@@ -51,16 +51,16 @@
 
 | Fachrolle (Konzept 35.1) | WP-Abbildung (Default) | Woher kommt das Objektrecht? | Was die Rolle **nie** darf |
 |---|---|---|---|
-| **Lernender** (`learner`) | WP `subscriber` (oder jede Rolle mit `read`); **keine** `cc_*`-Cap (Annahme gemäß Konzept 43.3 „WP Subscriber oder eigene minimal privilegierte Rolle“) | effektiver Grant (`cc_grant` aktiv, Scope, Gültigkeit) oder Free-Regel (`cc_access_rule`) | fremde Versuche, Antworten, Zertifikate, Fortschritte; Inhalte ohne Grant |
-| **Käufer** (`buyer`) | keine Rolle; WP-Konto mit `read`. Beziehung über `cc_group.owner_user_id` bzw. `cc_grant.source_*` (R0-06 E-38) | Besitz eines Platz-Pools (Gruppe) aus Kauf oder manueller Anlage | Lernleistungen der Platzinhaber; eigener Lernzugang nur, wenn ihm ein Platz/Grant zugewiesen ist (35.1) |
+| **Lernender** (`learner`) | WP `subscriber` (oder jede Rolle mit `read`); **keine** `ccap_*`-Cap (Annahme gemäß Konzept 43.3 „WP Subscriber oder eigene minimal privilegierte Rolle“) | effektiver Grant (`ccap_grant` aktiv, Scope, Gültigkeit) oder Free-Regel (`ccap_access_rule`) | fremde Versuche, Antworten, Zertifikate, Fortschritte; Inhalte ohne Grant |
+| **Käufer** (`buyer`) | keine Rolle; WP-Konto mit `read`. Beziehung über `ccap_group.owner_user_id` bzw. `ccap_grant.source_*` (R0-06 E-38) | Besitz eines Platz-Pools (Gruppe) aus Kauf oder manueller Anlage | Lernleistungen der Platzinhaber; eigener Lernzugang nur, wenn ihm ein Platz/Grant zugewiesen ist (35.1) |
 | **Gruppenverwalter** | Free: identisch mit Gruppenbesitzer (`owner_user_id`, Annahme E-17). Pro: delegierte Verwalter (künftige Relation, D07-1) | eigene bzw. delegierte Gruppe | Fortschritt/Antworten der Mitglieder (nur Platz- und Einladungsstatus); fremde Gruppen |
-| **Trainer / Tutor** (`trainer`) | neue Rolle `cc_trainer` (`read`, `cc_view_reports`, `cc_view_learner_details`, `cc_grade_attempts`) | **Staff-Zuweisung** je Kurs, optional eingeschränkt auf Gruppen (`cc_course_staff`, D07-1) | Inhalte bearbeiten (nur mit Zusatz-Cap), Grants ändern, Zertifikate allein widerrufen, eigene Versuche bewerten |
-| **Autor** (`course_author`) | neue Rolle `cc_author` (`read`, `upload_files`, `cc_edit_courses`) | `post_author` des `cc_course` oder Staff-Zuweisung `author` | veröffentlichen (ohne `cc_publish_courses`), fremde Kurse, Lernerdaten, Grants, Prüfungsdaten (35.1 „Autorenrechte verleihen keine Prüfungs- oder Bestellverwaltung“) |
-| **Kursmanager** (`course_manager`) | neue Rolle `cc_course_manager` (alle fachlichen Caps 1–18, 22, 24; Tabelle 3.1) | Default **alle Kurse der Site** (Konzept 17); kursbezogener Manager siehe D07-3 | Einstellungen, Integrationen/Secrets, Wartung; sich selbst Admin-Caps geben |
-| **Support** | neue Rolle `cc_support` (`read`, `cc_view_learner_details`, `cc_lock_learners`, `cc_view_system_status`, `cc_view_audit_log`) | site-weit, **minimiert** (Status, Grants, Gruppenplätze; keine Antworten, Konzept 43.3 „Supportzugriff“) | Versuchsdetails, Grants ändern, Inhalte |
-| **Admin** (`site_admin`) | WP `administrator`; erhält bei Aktivierung **alle 24** `cc_*`-Caps (P-06) | Site | Bewerten eigener Versuche (`do_not_allow`, RBAC-032); Lesen fremder Antworten ohne Audit |
+| **Trainer / Tutor** (`trainer`) | neue Rolle `ccap_trainer` (`read`, `ccap_view_reports`, `ccap_view_learner_details`, `ccap_grade_attempts`) | **Staff-Zuweisung** je Kurs, optional eingeschränkt auf Gruppen (`ccap_course_staff`, D07-1) | Inhalte bearbeiten (nur mit Zusatz-Cap), Grants ändern, Zertifikate allein widerrufen, eigene Versuche bewerten |
+| **Autor** (`course_author`) | neue Rolle `ccap_author` (`read`, `upload_files`, `ccap_edit_courses`) | `post_author` des `ccap_course` oder Staff-Zuweisung `author` | veröffentlichen (ohne `ccap_publish_courses`), fremde Kurse, Lernerdaten, Grants, Prüfungsdaten (35.1 „Autorenrechte verleihen keine Prüfungs- oder Bestellverwaltung“) |
+| **Kursmanager** (`course_manager`) | neue Rolle `ccap_course_manager` (alle fachlichen Caps 1–18, 22, 24; Tabelle 3.1) | Default **alle Kurse der Site** (Konzept 17); kursbezogener Manager siehe D07-3 | Einstellungen, Integrationen/Secrets, Wartung; sich selbst Admin-Caps geben |
+| **Support** | neue Rolle `ccap_support` (`read`, `ccap_view_learner_details`, `ccap_lock_learners`, `ccap_view_system_status`, `ccap_view_audit_log`) | site-weit, **minimiert** (Status, Grants, Gruppenplätze; keine Antworten, Konzept 43.3 „Supportzugriff“) | Versuchsdetails, Grants ändern, Inhalte |
+| **Admin** (`site_admin`) | WP `administrator`; erhält bei Aktivierung **alle 24** `ccap_*`-Caps (P-06) | Site | Bewerten eigener Versuche (`do_not_allow`, RBAC-032); Lesen fremder Antworten ohne Audit |
 
-**Weitere WP-Rollen:** `editor`, `author`, `contributor`, `shop_manager` erhalten **keine** `cc_*`-Caps automatisch (D07-6). Ein Shop-Manager hat damit keine LMS-Rechte (ID-04 „keine implizite Eskalation über Woo-/Suite-Rolle“). Betreiber können Caps über den Tab „Rollen & Rechte“ oder ein Rollen-Plugin zuweisen; geprüft werden Caps, nie Rollennamen (Konzept 43.3).
+**Weitere WP-Rollen:** `editor`, `author`, `contributor`, `shop_manager` erhalten **keine** `ccap_*`-Caps automatisch (D07-6). Ein Shop-Manager hat damit keine LMS-Rechte (ID-04 „keine implizite Eskalation über Woo-/Suite-Rolle“). Betreiber können Caps über den Tab „Rollen & Rechte“ oder ein Rollen-Plugin zuweisen; geprüft werden Caps, nie Rollennamen (Konzept 43.3).
 
 ---
 
@@ -68,36 +68,36 @@
 
 ### 3.1 Primitive Capabilities (24) und Rollen-Defaults
 
-`A` = administrator, `M` = cc_course_manager, `S` = cc_support, `Au` = cc_author, `T` = cc_trainer. Lernende, Käufer und Gruppenverwalter haben **keine** primitive `cc_*`-Cap.
+`A` = administrator, `M` = ccap_course_manager, `S` = ccap_support, `Au` = ccap_author, `T` = ccap_trainer. Lernende, Käufer und Gruppenverwalter haben **keine** primitive `ccap_*`-Cap.
 
 | # | Slug | Bedeutung (Objektgrenze über Meta-Cap 3.2) | A | M | S | Au | T |
 |---|---|---|---|---|---|---|---|
-| 1 | `cc_edit_courses` | eigene/zugewiesene Kurse, Module, Lektionen, FAQ, Tipps, Prüfungsregeln und Fragen anlegen und bearbeiten | ✓ | ✓ | – | ✓ | – |
-| 2 | `cc_edit_others_courses` | alle Kurse der Site bearbeiten, Entwürfe anderer lesen | ✓ | ✓ | – | – | – |
-| 3 | `cc_publish_courses` | Kurs-/Prüfungsregel veröffentlichen, archivieren (Kursrevision, R0-06 E-02) | ✓ | ✓ | – | – | – |
-| 4 | `cc_delete_courses` | Kurs/Modul/Lektion in Papierkorb (nur ohne Lernhistorie endgültig) | ✓ | ✓ | – | – | – |
-| 5 | `cc_manage_question_bank` | kursübergreifende Fragenbank: Tags, Wiederverwendung, Massenänderung, Fragen ohne Kurs | ✓ | ✓ | – | – | – |
-| 6 | `cc_import_content` | Pakete hochladen, prüfen, freigeben, Rollback (Veröffentlichung braucht zusätzlich #3) | ✓ | ✓ | – | – | – |
-| 7 | `cc_export_content` | Kurs-/Paketexport (R1-15, R10-D5) | ✓ | ✓ | – | – | – |
-| 8 | `cc_release_rights` | Rechtestatus freigeben/sperren, Sammelfreigabe mit Begründung (Annahme E-18) | ✓ | ✓ | – | – | – |
-| 9 | `cc_manage_grants` | Grants manuell anlegen, verlängern, aussetzen, widerrufen (Audit, Begründung) | ✓ | ✓ | – | – | – |
-| 10 | `cc_manage_access_rules` | Free-/Teilumfang-/Drip-Regeln je Kurs | ✓ | ✓ | – | – | – |
-| 11 | `cc_manage_groups` | alle Gruppen anlegen, verwalten, Besitzer ändern (Besitzer selbst brauchen keine Cap) | ✓ | ✓ | – | – | – |
-| 12 | `cc_view_reports` | aggregierte Berichte (Kurs, Gruppe) | ✓ | ✓ | – | – | ✓ |
-| 13 | `cc_view_learner_details` | personenbezogene Lernübersicht (Status, Fortschritt, Grants, Plätze), minimiert | ✓ | ✓ | ✓ | – | ✓ |
-| 14 | `cc_view_attempt_details` | Antworten/Snapshots fremder Versuche lesen (immer Audit, Begründung D07-5) | ✓ | ✓ | – | – | – |
-| 15 | `cc_grade_attempts` | offene Antworten bewerten (R1-09) | ✓ | ✓ | – | – | ✓ |
-| 16 | `cc_manage_learner_progress` | Fortschritt zurücksetzen, Versuch annullieren (mit Grund) | ✓ | ✓ | – | – | – |
-| 17 | `cc_manage_certificates` | Zertifikat ausstellen, korrigieren, widerrufen (CORE-SPEC-006) | ✓ | ✓ | – | – | – |
-| 18 | `cc_lock_learners` | Lernsperre setzen/aufheben (D07-2) | ✓ | ✓ | ✓ | – | – |
-| 19 | `cc_manage_settings` | Einstellungs-Tabs, Pro-Lizenz | ✓ | – | – | – | – |
-| 20 | `cc_manage_integrations` | Connectoren, Webhooks, Secrets | ✓ | – | – | – | – |
-| 21 | `cc_view_audit_log` | Protokollansicht (Annahme E-19), Redaction bleibt | ✓ | – | ✓ | – | – |
-| 22 | `cc_view_system_status` | Systemstatus, `/status`, Diagnose | ✓ | ✓ | ✓ | – | – |
-| 23 | `cc_run_maintenance` | Reparaturaktionen, Migration anstoßen, Speicher-Neuprüfung (R1-38) | ✓ | – | – | – | – |
-| 24 | `cc_assign_staff` | Autor-/Trainer-Zuweisungen und `cc_`-Rollen vergeben (nie `administrator`, nie Caps über dem eigenen Satz) | ✓ | ✓ | – | – | – |
+| 1 | `ccap_edit_courses` | eigene/zugewiesene Kurse, Module, Lektionen, FAQ, Tipps, Prüfungsregeln und Fragen anlegen und bearbeiten | ✓ | ✓ | – | ✓ | – |
+| 2 | `ccap_edit_others_courses` | alle Kurse der Site bearbeiten, Entwürfe anderer lesen | ✓ | ✓ | – | – | – |
+| 3 | `ccap_publish_courses` | Kurs-/Prüfungsregel veröffentlichen, archivieren (Kursrevision, R0-06 E-02) | ✓ | ✓ | – | – | – |
+| 4 | `ccap_delete_courses` | Kurs/Modul/Lektion in Papierkorb (nur ohne Lernhistorie endgültig) | ✓ | ✓ | – | – | – |
+| 5 | `ccap_manage_question_bank` | kursübergreifende Fragenbank: Tags, Wiederverwendung, Massenänderung, Fragen ohne Kurs | ✓ | ✓ | – | – | – |
+| 6 | `ccap_import_content` | Pakete hochladen, prüfen, freigeben, Rollback (Veröffentlichung braucht zusätzlich #3) | ✓ | ✓ | – | – | – |
+| 7 | `ccap_export_content` | Kurs-/Paketexport (R1-15, R10-D5) | ✓ | ✓ | – | – | – |
+| 8 | `ccap_release_rights` | Rechtestatus freigeben/sperren, Sammelfreigabe mit Begründung (Annahme E-18) | ✓ | ✓ | – | – | – |
+| 9 | `ccap_manage_grants` | Grants manuell anlegen, verlängern, aussetzen, widerrufen (Audit, Begründung) | ✓ | ✓ | – | – | – |
+| 10 | `ccap_manage_access_rules` | Free-/Teilumfang-/Drip-Regeln je Kurs | ✓ | ✓ | – | – | – |
+| 11 | `ccap_manage_groups` | alle Gruppen anlegen, verwalten, Besitzer ändern (Besitzer selbst brauchen keine Cap) | ✓ | ✓ | – | – | – |
+| 12 | `ccap_view_reports` | aggregierte Berichte (Kurs, Gruppe) | ✓ | ✓ | – | – | ✓ |
+| 13 | `ccap_view_learner_details` | personenbezogene Lernübersicht (Status, Fortschritt, Grants, Plätze), minimiert | ✓ | ✓ | ✓ | – | ✓ |
+| 14 | `ccap_view_attempt_details` | Antworten/Snapshots fremder Versuche lesen (immer Audit, Begründung D07-5) | ✓ | ✓ | – | – | – |
+| 15 | `ccap_grade_attempts` | offene Antworten bewerten (R1-09) | ✓ | ✓ | – | – | ✓ |
+| 16 | `ccap_manage_learner_progress` | Fortschritt zurücksetzen, Versuch annullieren (mit Grund) | ✓ | ✓ | – | – | – |
+| 17 | `ccap_manage_certificates` | Zertifikat ausstellen, korrigieren, widerrufen (CORE-SPEC-006) | ✓ | ✓ | – | – | – |
+| 18 | `ccap_lock_learners` | Lernsperre setzen/aufheben (D07-2) | ✓ | ✓ | ✓ | – | – |
+| 19 | `ccap_manage_settings` | Einstellungs-Tabs, Pro-Lizenz | ✓ | – | – | – | – |
+| 20 | `ccap_manage_integrations` | Connectoren, Webhooks, Secrets | ✓ | – | – | – | – |
+| 21 | `ccap_view_audit_log` | Protokollansicht (Annahme E-19), Redaction bleibt | ✓ | – | ✓ | – | – |
+| 22 | `ccap_view_system_status` | Systemstatus, `/status`, Diagnose | ✓ | ✓ | ✓ | – | – |
+| 23 | `ccap_run_maintenance` | Reparaturaktionen, Migration anstoßen, Speicher-Neuprüfung (R1-38) | ✓ | – | – | – | – |
+| 24 | `ccap_assign_staff` | Autor-/Trainer-Zuweisungen und `ccap_`-Rollen vergeben (nie `administrator`, nie Caps über dem eigenen Satz) | ✓ | ✓ | – | – | – |
 
-**Abgleich mit Konzept 17/36:** `cc_manage_courses` → #1/#2; `cc_manage_question_bank` → #5; `cc_grade_assessments`/`cc_grade_assigned` → #15 + Zuweisung; `cc_manage_enrollments` → #9/#10; `cc_view_course_reports` → #12; `cc_manage_integrations` → #20; `cc_manage_settings` → #19; `cc_manage_certificates` → #17; `cc_view_own_learning`, `cc_manage_own_seats`, `cc_export_personal_data` werden **Meta-Caps** (M-02, M-15, M-23), weil sie keine Rolle, sondern eine Objektbeziehung ausdrücken.
+**Abgleich mit Konzept 17/36:** `ccap_manage_courses` → #1/#2; `ccap_manage_question_bank` → #5; `ccap_grade_assessments`/`ccap_grade_assigned` → #15 + Zuweisung; `ccap_manage_enrollments` → #9/#10; `ccap_view_course_reports` → #12; `ccap_manage_integrations` → #20; `ccap_manage_settings` → #19; `ccap_manage_certificates` → #17; `ccap_view_own_learning`, `ccap_manage_own_seats`, `ccap_export_personal_data` werden **Meta-Caps** (M-02, M-15, M-23), weil sie keine Rolle, sondern eine Objektbeziehung ausdrücken.
 
 ### 3.2 Meta-Capabilities (24) und `map_meta_cap`-Regel
 
@@ -105,67 +105,67 @@ Umsetzung: Filter `map_meta_cap` (Priorität 10). Rückgabe ist eine Liste primi
 
 | # | Meta-Cap (Argumente) | Regel → primitive Caps | Beziehung |
 |---|---|---|---|
-| M-01 | `cc_view_course` (course) | veröffentlicht → `read` (Katalog, auch Gast über Block); Entwurf/archiviert → `cc_edit_course` (Vorschau); sonst `do_not_allow` → 404 | – |
-| M-02 | `cc_learn` (course, scope=`view\|download\|exam`) | Kurs veröffentlicht **und** nicht gesperrt **und** (effektiver Grant mit Scope, gültig jetzt **oder** Free-Regel/Teilumfang) **und** Drip frei → `read`; sonst `do_not_allow` | eigener Grant |
-| M-03 | `cc_edit_course` (course) | eigener/zugewiesener Kurs → `cc_edit_courses`; fremder → `cc_edit_others_courses`; Kurs mit veröffentlichter Revision zusätzlich `cc_publish_courses`, wenn die Änderung sofort live ginge (sonst entsteht ein Entwurf) | eigener Kurs, zugewiesener Kurs (author) |
-| M-04 | `cc_publish_course` (course) | M-03 **und** `cc_publish_courses` | wie M-03 |
-| M-05 | `cc_delete_course` (course) | M-03 **und** `cc_delete_courses`; mit Lernhistorie nur Archiv | wie M-03 |
-| M-06 | `cc_edit_course_item` (module\|lesson\|faq\|tip\|exam_rule\|blueprint\|variant) | Kurs des Objekts auflösen (Modul über `cc_course_module`, Lektion über `post_parent`, Regel über `course_id`) → M-03 für **jeden** Kurs, der das Modul nutzt | eigener Kurs |
-| M-07 | `cc_edit_question` (question) | Frage nur in Pools eigener/zugewiesener Kurse **oder** `author_user_id` = Akteur und in keinem fremden Kurs → `cc_edit_courses`; sonst `cc_edit_others_courses` bzw. `cc_manage_question_bank` | eigener Kurs |
-| M-08 | `cc_use_attempt` (exam_session) | `user_id` = Akteur **und** Status `running` **und** Frist nicht abgelaufen **und** M-02(`exam`) jetzt → `read`; fremd → `do_not_allow` (404) | eigener Versuch |
-| M-09 | `cc_view_attempt` (exam_session\|attempt) | eigener Versuch → `read` (Feedback-Regel E-20 gilt); zugewiesener Kurs/Gruppe und Versuch in Bewertung → `cc_grade_attempts`; sonst → `cc_view_attempt_details` (+ Audit); fremd ohne Beziehung → `do_not_allow` | eigener Versuch, zugewiesener Kurs/Gruppe |
-| M-10 | `cc_grade_attempt` (exam_session) | Versuch des Akteurs selbst → `do_not_allow` (auch Admin); zugewiesener Kurs/Gruppe → `cc_grade_attempts`; sonst `cc_grade_attempts` + `cc_edit_others_courses` | zugewiesener Kurs |
-| M-11 | `cc_view_learner` (user, course?) | Akteur = user → `read`; Trainer: user hat Grant/Platz in zugewiesenem Kurs bzw. zugewiesener Gruppe → `cc_view_learner_details`; Manager/Support → `cc_view_learner_details`; Gruppenbesitzer → `do_not_allow` | zugewiesener Kurs/Gruppe |
-| M-12 | `cc_manage_learner_progress` (user, course) | Akteur = user (eigenen Fortschritt zurücksetzen, falls Kurs erlaubt) → `read`; sonst `cc_manage_learner_progress` | – |
-| M-13 | `cc_manage_grant` (grant) | `cc_manage_grants`; Grant fremder Site → `do_not_allow`; Grant mit externer Quelle (Woo/Voucher) → nur Suspend/Notiz, kein Löschen (R0-09) | – |
-| M-14 | `cc_create_grant` (course) | `cc_manage_grants` **und** M-01 | – |
-| M-15 | `cc_manage_group` (group) | `owner_user_id` = Akteur (Free, Annahme E-17) → `read`; delegierter Verwalter (Pro, D07-1) → `read`; sonst `cc_manage_groups`; Gruppe `revoked` → nur Lesen | eigene Gruppe |
-| M-16 | `cc_view_group_progress` (group) | Besitzer → `do_not_allow` (35.1); Trainer mit Gruppenzuweisung → `cc_view_reports`; sonst `cc_view_reports` + Manager-Scope | zugewiesene Gruppe |
-| M-17 | `cc_claim_seat` (seat\|join_token) | angemeldet, Token-Hash gültig und nicht abgelaufen, Gruppe aktiv, freier Platz; bei Option „nur eingeladene Adresse“ (Annahme E-28) E-Mail des Kontos = Einladung → `read` | – |
-| M-18 | `cc_view_certificate` (certificate) | `user_id` = Akteur → `read`; sonst `cc_manage_certificates` bzw. M-11; öffentliche Verifikation läuft **ohne** Meta-Cap über Token mit Minimaldaten | eigenes Zertifikat |
-| M-19 | `cc_manage_certificate` (certificate) | `cc_manage_certificates`; eigenes Zertifikat → `do_not_allow` | – |
-| M-20 | `cc_download_file` (media_uid\|attachment) | Objekt geschützt? nein → nicht über diesen Endpunkt (404); ja → M-03 für einen referenzierenden Kurs **oder** M-02(`download` bzw. `view`) für mindestens einen veröffentlichten referenzierenden Kurs; Prüfungsmedien nur Inhaber des laufenden Versuchs (R0-10 §4.3) | eigener Grant |
-| M-21 | `cc_manage_import` (import_batch) | `cc_import_content`; Schritt `publish/activate` zusätzlich `cc_publish_courses`; Batch fremder Site → `do_not_allow` | – |
-| M-22 | `cc_download_export` (export) | Ersteller = Akteur **und** nicht abgelaufen **und** Recht der Exportart (Inhalt #7, Bericht #12, Grants #9) noch vorhanden; sonst `do_not_allow` | eigener Export |
-| M-23 | `cc_export_personal_data` (user) | Akteur = user → `read` (auch bei Lernsperre, Betroffenenrecht); sonst WP-Kern `export_others_personal_data` bzw. `erase_others_personal_data` | – |
-| M-24 | `cc_lock_learner` (user) | `cc_lock_learners`; Ziel hat höhere Caps als Akteur (z. B. Admin) → `do_not_allow`; sich selbst → `do_not_allow` | – |
+| M-01 | `ccap_view_course` (course) | veröffentlicht → `read` (Katalog, auch Gast über Block); Entwurf/archiviert → `ccap_edit_course` (Vorschau); sonst `do_not_allow` → 404 | – |
+| M-02 | `ccap_learn` (course, scope=`view\|download\|exam`) | Kurs veröffentlicht **und** nicht gesperrt **und** (effektiver Grant mit Scope, gültig jetzt **oder** Free-Regel/Teilumfang) **und** Drip frei → `read`; sonst `do_not_allow` | eigener Grant |
+| M-03 | `ccap_edit_course` (course) | eigener/zugewiesener Kurs → `ccap_edit_courses`; fremder → `ccap_edit_others_courses`; Kurs mit veröffentlichter Revision zusätzlich `ccap_publish_courses`, wenn die Änderung sofort live ginge (sonst entsteht ein Entwurf) | eigener Kurs, zugewiesener Kurs (author) |
+| M-04 | `ccap_publish_course` (course) | M-03 **und** `ccap_publish_courses` | wie M-03 |
+| M-05 | `ccap_delete_course` (course) | M-03 **und** `ccap_delete_courses`; mit Lernhistorie nur Archiv | wie M-03 |
+| M-06 | `ccap_edit_course_item` (module\|lesson\|faq\|tip\|exam_rule\|blueprint\|variant) | Kurs des Objekts auflösen (Modul über `ccap_course_module`, Lektion über `post_parent`, Regel über `course_id`) → M-03 für **jeden** Kurs, der das Modul nutzt | eigener Kurs |
+| M-07 | `ccap_edit_question` (question) | Frage nur in Pools eigener/zugewiesener Kurse **oder** `author_user_id` = Akteur und in keinem fremden Kurs → `ccap_edit_courses`; sonst `ccap_edit_others_courses` bzw. `ccap_manage_question_bank` | eigener Kurs |
+| M-08 | `ccap_use_attempt` (exam_session) | `user_id` = Akteur **und** Status `running` **und** Frist nicht abgelaufen **und** M-02(`exam`) jetzt → `read`; fremd → `do_not_allow` (404) | eigener Versuch |
+| M-09 | `ccap_view_attempt` (exam_session\|attempt) | eigener Versuch → `read` (Feedback-Regel E-20 gilt); zugewiesener Kurs/Gruppe und Versuch in Bewertung → `ccap_grade_attempts`; sonst → `ccap_view_attempt_details` (+ Audit); fremd ohne Beziehung → `do_not_allow` | eigener Versuch, zugewiesener Kurs/Gruppe |
+| M-10 | `ccap_grade_attempt` (exam_session) | Versuch des Akteurs selbst → `do_not_allow` (auch Admin); zugewiesener Kurs/Gruppe → `ccap_grade_attempts`; sonst `ccap_grade_attempts` + `ccap_edit_others_courses` | zugewiesener Kurs |
+| M-11 | `ccap_view_learner` (user, course?) | Akteur = user → `read`; Trainer: user hat Grant/Platz in zugewiesenem Kurs bzw. zugewiesener Gruppe → `ccap_view_learner_details`; Manager/Support → `ccap_view_learner_details`; Gruppenbesitzer → `do_not_allow` | zugewiesener Kurs/Gruppe |
+| M-12 | `ccap_manage_learner_progress` (user, course) | Akteur = user (eigenen Fortschritt zurücksetzen, falls Kurs erlaubt) → `read`; sonst `ccap_manage_learner_progress` | – |
+| M-13 | `ccap_manage_grant` (grant) | `ccap_manage_grants`; Grant fremder Site → `do_not_allow`; Grant mit externer Quelle (Woo/Voucher) → nur Suspend/Notiz, kein Löschen (R0-09) | – |
+| M-14 | `ccap_create_grant` (course) | `ccap_manage_grants` **und** M-01 | – |
+| M-15 | `ccap_manage_group` (group) | `owner_user_id` = Akteur (Free, Annahme E-17) → `read`; delegierter Verwalter (Pro, D07-1) → `read`; sonst `ccap_manage_groups`; Gruppe `revoked` → nur Lesen | eigene Gruppe |
+| M-16 | `ccap_view_group_progress` (group) | Besitzer → `do_not_allow` (35.1); Trainer mit Gruppenzuweisung → `ccap_view_reports`; sonst `ccap_view_reports` + Manager-Scope | zugewiesene Gruppe |
+| M-17 | `ccap_claim_seat` (seat\|join_token) | angemeldet, Token-Hash gültig und nicht abgelaufen, Gruppe aktiv, freier Platz; bei Option „nur eingeladene Adresse“ (Annahme E-28) E-Mail des Kontos = Einladung → `read` | – |
+| M-18 | `ccap_view_certificate` (certificate) | `user_id` = Akteur → `read`; sonst `ccap_manage_certificates` bzw. M-11; öffentliche Verifikation läuft **ohne** Meta-Cap über Token mit Minimaldaten | eigenes Zertifikat |
+| M-19 | `ccap_manage_certificate` (certificate) | `ccap_manage_certificates`; eigenes Zertifikat → `do_not_allow` | – |
+| M-20 | `ccap_download_file` (media_uid\|attachment) | Objekt geschützt? nein → nicht über diesen Endpunkt (404); ja → M-03 für einen referenzierenden Kurs **oder** M-02(`download` bzw. `view`) für mindestens einen veröffentlichten referenzierenden Kurs; Prüfungsmedien nur Inhaber des laufenden Versuchs (R0-10 §4.3) | eigener Grant |
+| M-21 | `ccap_manage_import` (import_batch) | `ccap_import_content`; Schritt `publish/activate` zusätzlich `ccap_publish_courses`; Batch fremder Site → `do_not_allow` | – |
+| M-22 | `ccap_download_export` (export) | Ersteller = Akteur **und** nicht abgelaufen **und** Recht der Exportart (Inhalt #7, Bericht #12, Grants #9) noch vorhanden; sonst `do_not_allow` | eigener Export |
+| M-23 | `ccap_export_personal_data` (user) | Akteur = user → `read` (auch bei Lernsperre, Betroffenenrecht); sonst WP-Kern `export_others_personal_data` bzw. `erase_others_personal_data` | – |
+| M-24 | `ccap_lock_learner` (user) | `ccap_lock_learners`; Ziel hat höhere Caps als Akteur (z. B. Admin) → `do_not_allow`; sich selbst → `do_not_allow` | – |
 
-**CPT-Mapping (Block-Editor):** `cc_course`, `cc_module`, `cc_lesson`, `cc_faq`, `cc_tip` registrieren `map_meta_cap => true` und `capabilities` mit `edit_posts → cc_edit_courses`, `edit_others_posts → cc_edit_others_courses`, `publish_posts → cc_publish_courses`, `read_private_posts → cc_edit_others_courses`, `delete_posts → cc_delete_courses`, `delete_others_posts → cc_edit_others_courses`, `create_posts → cc_edit_courses`. WP-Meta-Caps `edit_post`/`delete_post`/`read_post` für diese Typen leitet der Filter auf M-03/M-05/M-06 um, damit Staff-Zuweisungen zählen (WP allein kennt nur `post_author`).
+**CPT-Mapping (Block-Editor):** `ccap_course`, `ccap_module`, `ccap_lesson`, `ccap_faq`, `ccap_tip` registrieren `map_meta_cap => true` und `capabilities` mit `edit_posts → ccap_edit_courses`, `edit_others_posts → ccap_edit_others_courses`, `publish_posts → ccap_publish_courses`, `read_private_posts → ccap_edit_others_courses`, `delete_posts → ccap_delete_courses`, `delete_others_posts → ccap_edit_others_courses`, `create_posts → ccap_edit_courses`. WP-Meta-Caps `edit_post`/`delete_post`/`read_post` für diese Typen leitet der Filter auf M-03/M-05/M-06 um, damit Staff-Zuweisungen zählen (WP allein kennt nur `post_author`).
 
 ### 3.3 Objektbeziehungen
 
 | Nr. | Beziehung | Datenquelle | Prüfung |
 |---|---|---|---|
-| B-1 | **eigener Kurs** | `wp_posts.post_author` des `cc_course` | `post_author = actor` |
-| B-2 | **zugewiesener Kurs** (Autor/Trainer) | **neu:** `cc_course_staff (course_id, user_id, staff_role, group_id NULL, assigned_by, created_at)`, `UNIQUE (course_id, user_id, staff_role, group_id)` – fehlt in R0-06 (D07-1) | Zeile mit passender `staff_role`, Kurs auf derselben Site |
-| B-3 | **zugewiesene Gruppe** (Trainer) | `cc_course_staff.group_id` + `cc_group_course` | Lernender hat aktiven Platz (`cc_seat.status=active`) in dieser Gruppe |
-| B-4 | **eigene Gruppe** (Besitzer) | `cc_group.owner_user_id` | `= actor`; Pro: zusätzliche Verwalter-Relation (D07-1) |
-| B-5 | **eigener Versuch** | `cc_exam_session.user_id`, `cc_attempt.user_id` | `= actor` |
-| B-6 | **eigener Grant / effektiver Zugang** | `cc_grant` (`user_id`, `course_id`, `scopes`, `status=active`, `valid_from ≤ now ≤ valid_until`) ∪ `cc_access_rule` | Laufzeitprüfung gegen `now`, **nicht** abhängig vom Ablauf-Cron (LB `AccessService.php:408-409`) |
-| B-7 | **eigener Platz** | `cc_seat.user_id` | `= actor`; Käufer sieht Plätze über B-4, nicht über B-7 |
-| B-8 | **eigenes Zertifikat** | `cc_certificate.user_id` | `= actor` |
-| B-9 | **eigener Export/Import** | `cc_import_batch.created_by`, Export-Datensatz (R1-15/R1-17) | Ersteller; Import ist site-weit für #6 sichtbar |
+| B-1 | **eigener Kurs** | `wp_posts.post_author` des `ccap_course` | `post_author = actor` |
+| B-2 | **zugewiesener Kurs** (Autor/Trainer) | **neu:** `ccap_course_staff (course_id, user_id, staff_role, group_id NULL, assigned_by, created_at)`, `UNIQUE (course_id, user_id, staff_role, group_id)` – fehlt in R0-06 (D07-1) | Zeile mit passender `staff_role`, Kurs auf derselben Site |
+| B-3 | **zugewiesene Gruppe** (Trainer) | `ccap_course_staff.group_id` + `ccap_group_course` | Lernender hat aktiven Platz (`ccap_seat.status=active`) in dieser Gruppe |
+| B-4 | **eigene Gruppe** (Besitzer) | `ccap_group.owner_user_id` | `= actor`; Pro: zusätzliche Verwalter-Relation (D07-1) |
+| B-5 | **eigener Versuch** | `ccap_exam_session.user_id`, `ccap_attempt.user_id` | `= actor` |
+| B-6 | **eigener Grant / effektiver Zugang** | `ccap_grant` (`user_id`, `course_id`, `scopes`, `status=active`, `valid_from ≤ now ≤ valid_until`) ∪ `ccap_access_rule` | Laufzeitprüfung gegen `now`, **nicht** abhängig vom Ablauf-Cron (LB `AccessService.php:408-409`) |
+| B-7 | **eigener Platz** | `ccap_seat.user_id` | `= actor`; Käufer sieht Plätze über B-4, nicht über B-7 |
+| B-8 | **eigenes Zertifikat** | `ccap_certificate.user_id` | `= actor` |
+| B-9 | **eigener Export/Import** | `ccap_import_batch.created_by`, Export-Datensatz (R1-15/R1-17) | Ersteller; Import ist site-weit für #6 sichtbar |
 
 ### 3.4 Site-Scope und Statusregeln
 
-- **Site:** Alle `cc_`-Tabellen sind je Site (R0-06 §6.6). Der PolicyService lädt Objekte nur aus `$wpdb->prefix` der aktuellen Site. Nach `switch_to_blog()` wird der Memo verworfen. Super-Admins bestehen WP-bedingt jede Cap außer `do_not_allow`. Deshalb sind strukturelle Verbote (Selbstbewertung M-10, Selbstsperre M-24) als `do_not_allow` formuliert. Cross-Site-Identität bleibt R4 (ID-06, Annahme E-07/E-49).
-- **„Gesperrter Nutzer“** ist für Tests (Abschnitt 5) dreifach definiert: (a) **Lernsperre** `cc_learner_lock` mit Grund und Audit (D07-2); (b) Konto **ohne Rolle** auf der Site (kein `read`); (c) Multisite `spam`/`deleted` (bedingt). Folgen: alle Lern-Meta-Caps (M-02, M-08, M-17) verweigert; Grants bleiben unverändert (keine Datenänderung, R0-09); eigene Zertifikate sind nicht herunterladbar, die öffentliche Verifikation bleibt; Datenschutzanträge bleiben möglich (M-23).
+- **Site:** Alle `ccap_`-Tabellen sind je Site (R0-06 §6.6). Der PolicyService lädt Objekte nur aus `$wpdb->prefix` der aktuellen Site. Nach `switch_to_blog()` wird der Memo verworfen. Super-Admins bestehen WP-bedingt jede Cap außer `do_not_allow`. Deshalb sind strukturelle Verbote (Selbstbewertung M-10, Selbstsperre M-24) als `do_not_allow` formuliert. Cross-Site-Identität bleibt R4 (ID-06, Annahme E-07/E-49).
+- **„Gesperrter Nutzer“** ist für Tests (Abschnitt 5) dreifach definiert: (a) **Lernsperre** `ccap_learner_lock` mit Grund und Audit (D07-2); (b) Konto **ohne Rolle** auf der Site (kein `read`); (c) Multisite `spam`/`deleted` (bedingt). Folgen: alle Lern-Meta-Caps (M-02, M-08, M-17) verweigert; Grants bleiben unverändert (keine Datenänderung, R0-09); eigene Zertifikate sind nicht herunterladbar, die öffentliche Verifikation bleibt; Datenschutzanträge bleiben möglich (M-23).
 - **Kursstatus:** Entwurf/archiviert → Lernen und Prüfungsstart 404 (R0-05 GM-00x „Kursstatus“); laufende Versuche eines archivierten Kurses dürfen abgegeben werden (R0-23).
 - **Grantstatus:** nur `active` innerhalb `valid_from/valid_until` zählt. `pending_*`, `suspended`, `expired`, `revoked`, `failed` → `cc_content_locked` mit Grund (`pending`, `suspended`, `expired`, `revoked`). Der Lernende sieht seinen eigenen Status (kein 404, P-08).
 - **Connector deaktiviert:** PHP-API- und Webhook-Aufrufe dieses Connectors → `forbidden`/`connector_disabled`; bestehende Grants bleiben (Konzept 36).
 
 ### 3.5 Rollenwechsel und Eskalationsschutz
 
-1. Caps werden je Anfrage aus der Rolle gelesen. Der Memo wird bei `set_user_role`, `add_user_role`, `remove_user_role`, `profile_update`, `remove_user_from_blog`, Änderungen an `cc_course_staff`, `cc_grant`, `cc_seat`, `cc_learner_lock` verworfen (P-11).
+1. Caps werden je Anfrage aus der Rolle gelesen. Der Memo wird bei `set_user_role`, `add_user_role`, `remove_user_role`, `profile_update`, `remove_user_from_blog`, Änderungen an `ccap_course_staff`, `ccap_grant`, `ccap_seat`, `ccap_learner_lock` verworfen (P-11).
 2. Ein gültiges REST-Nonce überlebt eine Rollenänderung. Das ist zulässig, weil die Cap bei jeder Anfrage neu geprüft wird (RBAC-006).
-3. `cc_assign_staff` darf nur `cc_author`/`cc_trainer` (Manager zusätzlich `cc_support`) vergeben. `administrator` und `cc_course_manager` vergibt nur, wer `promote_users` **und** alle Caps der Zielrolle besitzt (Filter `editable_roles`). Niemand ändert die eigenen Rollen über CC-Oberflächen.
+3. `ccap_assign_staff` darf nur `ccap_author`/`ccap_trainer` (Manager zusätzlich `ccap_support`) vergeben. `administrator` und `ccap_course_manager` vergibt nur, wer `promote_users` **und** alle Caps der Zielrolle besitzt (Filter `editable_roles`). Niemand ändert die eigenen Rollen über CC-Oberflächen.
 4. Lernsperre gegen Konten mit höheren Caps als der Akteur ist verboten (M-24).
 5. Kontolöschung/Merge: Staff-Zuweisungen werden gelöscht, Gruppenbesitz wird `0` (LB `GroupService.php:444-469`), Versuche bleiben nach Retention (Annahme E-51). Merge nur nach R0-09.
-6. Datenschutz-Schutzliste für automatische Kontolöschung (LB `AccountDeletion.php:76-83`) wird um alle Konten mit `cc_*`-Caps ergänzt.
+6. Datenschutz-Schutzliste für automatische Kontolöschung (LB `AccountDeletion.php:76-83`) wird um alle Konten mit `ccap_*`-Caps ergänzt.
 
 ### 3.6 Audit-Pflichten (Minimum)
 
-Auditpflichtig (`cc_audit_log`, Akteur, Objekt, Grund): Lesen fremder Versuchsdetails (M-09 über #14), Bewertung, Grant-Änderung, Lernsperre, Staff-/Rollenzuweisung, Zertifikat ausstellen/korrigieren/widerrufen, Import-Freigabe/Rollback, Rechtefreigabe, Export von Personendaten (Bericht, Grants), Einstellungen, Integrationen, Wartungsaktionen, CLI-Schreibkommandos, Webhook-Ablehnungen (gedrosselt).
+Auditpflichtig (`ccap_audit_log`, Akteur, Objekt, Grund): Lesen fremder Versuchsdetails (M-09 über #14), Bewertung, Grant-Änderung, Lernsperre, Staff-/Rollenzuweisung, Zertifikat ausstellen/korrigieren/widerrufen, Import-Freigabe/Rollback, Rechtefreigabe, Export von Personendaten (Bericht, Grants), Einstellungen, Integrationen, Wartungsaktionen, CLI-Schreibkommandos, Webhook-Ablehnungen (gedrosselt).
 
 ---
 
@@ -179,7 +179,7 @@ Konvention: `permission_callback` prüft Anmeldung, Sperre und primitive Cap. Di
 
 | RG | Route(n) (Vorschlag) | aus LB | Cap | Scope-Prüfung | Auth/Nonce |
 |---|---|---|---|---|---|
-| RG-01 | `GET /status` | W1 | `cc_view_system_status` | – | Cookie+Nonce |
+| RG-01 | `GET /status` | W1 | `ccap_view_system_status` | – | Cookie+Nonce |
 | RG-02 | `GET /imports`, `GET /imports/{batch}`, `POST /imports/{batch}/step` | W2 | M-21 | Batch auf aktueller Site; Status erlaubt Schritt; `publish/activate` nur mit #3 | Cookie+Nonce |
 | RG-03 | `GET /me/courses` | W3 | angemeldet, nicht gesperrt | nur Kurse mit eigenem Grant/Free-Regel/Platz; kein `user`-Parameter | Cookie+Nonce |
 | RG-04 | `GET /courses/{course}` | W4 | M-01; Features aus M-02 je Scope | Entwurf/Archiv → 404 außer M-03 (Vorschau); Antwort ohne Inhalte gesperrter Scopes | Cookie+Nonce |
@@ -197,9 +197,9 @@ Konvention: `permission_callback` prüft Anmeldung, Sperre und primitive Cap. Di
 | RG-16 | `GET /grading/queue?course=`, `PUT /exam-sessions/{s}/grades/{pos}` | neu (R1-09) | M-10 | zugewiesener Kurs/Gruppe; nie eigener Versuch | Cookie+Nonce |
 | RG-17 | `POST /me/privacy-requests` | neu (LB admin-post `bp_privacy_request`) | M-23 | nur eigenes Konto; Limit 5/Tag (LB `SelfService.php:82`) | Cookie+Nonce |
 | RG-18 | `GET /media/{media_uid}` (+ Rewrite `/cc-file/{uid}/`) | LB `/datei/<id>` (kein REST) | M-20 | R0-10 §4.3: unbekannt/nicht geschützt → 404 | Cookie (+Nonce bei REST) |
-| RG-19 | `POST /webhooks/{connector}` (R3) | LB `/webhooks/paypal`, `/webhooks/dispute` | Connector aktiv | **Signatur im `permission_callback`** (HMAC, Zeitstempel ±300 s), Dedupe `cc_inbox_event` | HMAC, keine Cookies |
+| RG-19 | `POST /webhooks/{connector}` (R3) | LB `/webhooks/paypal`, `/webhooks/dispute` | Connector aktiv | **Signatur im `permission_callback`** (HMAC, Zeitstempel ±300 s), Dedupe `ccap_inbox_event` | HMAC, keine Cookies |
 | RG-20 | `GET /monitor` | LB `/monitor` | Schlüssel | nur Header `X-CC-Monitor-Key`, `hash_equals`; ohne Schlüssel nur Gesamtstatus; **kein** `?key=` (L-W8) | Header |
-| RG-21 | WP-Kern `/wp/v2/cc_course`, `cc_module`, `cc_lesson`, `cc_faq`, `cc_tip`, `/wp/v2/media` | LB `/wp/v2/bp_tip`, `bp_faq`, … | CPT-Mapping 3.2 | `context=edit` nur M-03/M-06; `context=view` für `cc_lesson`/`cc_module`: **kein** `content.rendered` ohne M-02 bzw. M-03 (eigener Controller wie LB `TipsPostsController`); Medien ohne Pfad/Dateiname für geschützte Anhänge (LB `ProtectedFiles.php:331`) | Cookie+Nonce |
+| RG-21 | WP-Kern `/wp/v2/ccap_course`, `ccap_module`, `ccap_lesson`, `ccap_faq`, `ccap_tip`, `/wp/v2/media` | LB `/wp/v2/bp_tip`, `bp_faq`, … | CPT-Mapping 3.2 | `context=edit` nur M-03/M-06; `context=view` für `ccap_lesson`/`ccap_module`: **kein** `content.rendered` ohne M-02 bzw. M-03 (eigener Controller wie LB `TipsPostsController`); Medien ohne Pfad/Dateiname für geschützte Anhänge (LB `ProtectedFiles.php:331`) | Cookie+Nonce |
 
 **Entfallende LB-Routen:** W21–W23 (Navigation), W29–W44 (Funk, Gerätesimulation), W52 (Prüfungsanmeldung) sind `exclude_domain_specific` (Inventur D §4.1). Test: Route existiert nicht (`rest_no_route` 404). Die App-API `boatingschool/v1` entfällt in R1 (Annahme E-05). Nonce-Erneuerung als AJAX `wp_ajax(_nopriv)_cc_rest_nonce` wie LB (`NonceRefresh.php:24-25`), ohne Rechtewirkung.
 
@@ -276,7 +276,7 @@ Alle Aktionen: `current_user_can(Cap)` **vor** `check_admin_referer('cc_<aktion>
 
 | Oberfläche | Cap | Scope | Schutz gegen Umgehung |
 |---|---|---|---|
-| CPT-Bearbeitung (`post.php`, Block-Editor, Autosave, Revisionen) | CPT-Mapping → M-03/M-06 | Staff-Zuweisung; Revisions-Endpunkt `/wp/v2/cc_lesson/{id}/revisions` gleicher Check | Vorschau-Links nur für M-03 |
+| CPT-Bearbeitung (`post.php`, Block-Editor, Autosave, Revisionen) | CPT-Mapping → M-03/M-06 | Staff-Zuweisung; Revisions-Endpunkt `/wp/v2/ccap_lesson/{id}/revisions` gleicher Check | Vorschau-Links nur für M-03 |
 | Block „Inhalt nur mit Zugang“, Shortcode `[cc_restricted course scope]` | Render: M-02 | Kurs/Scope aus Attributen; unbekannter Kurs → gesperrt | Editor-Speichern: Attribut-Kurs muss M-01 bestehen |
 | `the_content`, `the_excerpt`, `the_content_feed`, Suche, Sitemaps, oEmbed, REST `content.rendered` | M-02 bzw. Bypass M-03/`edit_post` | Pflichtangabe am Beitrag | Filter früh und spät (LB `ContentGate.php:132`), Auszug nur manuell (`:162`), Page-Builder-Daten verwerfen (`:151-157`), `NoCache` |
 | Lernbereich `/lernen/…` (App-Shell) | angemeldet; Daten nur über RG-03…RG-12 | – | Shell enthält keine Kursinhalte |
@@ -289,7 +289,7 @@ Alle Aktionen: `current_user_can(Cap)` **vor** `check_admin_referer('cc_<aktion>
 |---|---|---|---|
 | Geschützte Dateien `GET /media/{uid}`, `/cc-file/{uid}/` | M-20 | R0-10 §4.3 Schritt 2 (Kursbezug, Drip, Rechtestatus, Prüfungsmedien) | Cookie; Gast → Login-Redirect; Range; `no-store` |
 | Mediathek-Abfrage (`query-attachments`, `/wp/v2/media`) | WP `upload_files` | geschützte Anhänge nur, wenn M-03 für einen referenzierenden Kurs (Filter `ajax_query_attachments_args`, `rest_attachment_query`) | URL umgeschrieben, kein Pfad (LB `ProtectedFiles.php:281`, `:331`) |
-| Upload im Editor | WP `upload_files` (Rolle `cc_author` hat es) | – | MIME-/Endungsprüfung R0-10, SVG nur bereinigt oder verboten |
+| Upload im Editor | WP `upload_files` (Rolle `ccap_author` hat es) | – | MIME-/Endungsprüfung R0-10, SVG nur bereinigt oder verboten |
 | Schützen/Freigeben eines Anhangs | M-03 auf Zielkurs + `edit_post(attachment)` | Verschieben vor Statuswechsel (LB `ProtectedFiles.php:191`) | Audit |
 | Import-Medien (Paket) | über M-21 | – | private Ablage, `.htaccess`/außerhalb Webroot (Inventur C §3.5) |
 | Fragen-/Lektionsmedien in Ausgabe | M-02 bzw. M-08 | Speicherklasse nach **R10-D4** (keine neue Entscheidung hier) | – |
@@ -299,14 +299,14 @@ Alle Aktionen: `current_user_can(Cap)` **vor** `check_admin_referer('cc_<aktion>
 
 | Job (aus LB `Plugin::hourly`, Inventur C §4.3) | Erlaubnis | Regeln |
 |---|---|---|
-| `cc_exam_expire` | Status `running` → `evaluated(expired)` | nur abgelaufene Sitzungen; keine Nutzeraktion; Ergebnis nur für Inhaber sichtbar |
-| `cc_grant_expire` | Status `active` → `expired` | rein kosmetisch: Zugriff ist ab `valid_until` schon verweigert (B-6) |
-| `cc_group_invites_expire` | Einladungen `expired`, Adresse nach 30 Tagen löschen | LB `GroupService.php:665-684` |
-| `cc_import_retention`, `cc_audit_prune`, `cc_rate_limit_cleanup` | löschen nach Retention (Annahme E-44/E-51) | je Lauf begrenzt (LB 5 000/20 000) |
-| `cc_expiry_reminder` (Pro, Annahme E-24) | Mail an Grant-Inhaber | nur eigener Grant; Opt-out respektiert |
-| `cc_migrate` | Schema | Lock, nicht über HTTP auslösbar außer #23 |
-| `cc_privacy_export_generate` | Export für bestätigten Antrag | nur `request_id` aus WP-Kern; Nutzer aus Antrag, nicht aus Argument |
-| `cc_outbox_dispatch` (R3/Pro) | Ereignisse senden | Payload minimal (Konzept 18) |
+| `ccap_exam_expire` | Status `running` → `evaluated(expired)` | nur abgelaufene Sitzungen; keine Nutzeraktion; Ergebnis nur für Inhaber sichtbar |
+| `ccap_grant_expire` | Status `active` → `expired` | rein kosmetisch: Zugriff ist ab `valid_until` schon verweigert (B-6) |
+| `ccap_group_invites_expire` | Einladungen `expired`, Adresse nach 30 Tagen löschen | LB `GroupService.php:665-684` |
+| `ccap_import_retention`, `ccap_audit_prune`, `ccap_rate_limit_cleanup` | löschen nach Retention (Annahme E-44/E-51) | je Lauf begrenzt (LB 5 000/20 000) |
+| `ccap_expiry_reminder` (Pro, Annahme E-24) | Mail an Grant-Inhaber | nur eigener Grant; Opt-out respektiert |
+| `ccap_migrate` | Schema | Lock, nicht über HTTP auslösbar außer #23 |
+| `ccap_privacy_export_generate` | Export für bestätigten Antrag | nur `request_id` aus WP-Kern; Nutzer aus Antrag, nicht aus Argument |
+| `ccap_outbox_dispatch` (R3/Pro) | Ereignisse senden | Payload minimal (Konzept 18) |
 
 Allgemein: Jobargumente enthalten nur IDs. Der Job lädt den aktuellen Zustand neu und verwirft unpassende Objekte (andere Site, gelöscht, Status geändert) ohne Fehlerkaskade (RBAC-090). Cron ruft keine REST-Route mit Nutzerkontext auf.
 
@@ -329,7 +329,7 @@ CLI setzt Shell-Zugang voraus und gilt als Systemakteur. Ohne `--user` prüft CC
 | Einstieg | Auth | Cap/Scope | Regeln |
 |---|---|---|---|
 | Eingehende Webhooks (R3, RG-19) | HMAC-Signatur, Zeitstempel, Connector-Secret | Connector aktiv; Aktion nur auf Grants mit eigener `source_type` | Dedupe `UNIQUE (connector_id, event_id)`; Replay → 200 ohne Wirkung; Ablehnung ohne Details |
-| PHP-Write-API `course_captain_grant_access_v1`, `_revoke_access_v1`, `_enroll_v1` (Konzept 18) | `context.actor` Pflicht: `connector:<id>` (registriert, aktiv) **oder** Nutzer mit `cc_manage_grants` | nur eigene Quelle (`source_type` des Connectors), Annahme E-39 | Aufruf im Kontext eines normalen Nutzers ohne Cap → `forbidden` (RBAC-047) |
+| PHP-Write-API `course_captain_grant_access_v1`, `_revoke_access_v1`, `_enroll_v1` (Konzept 18) | `context.actor` Pflicht: `connector:<id>` (registriert, aktiv) **oder** Nutzer mit `ccap_manage_grants` | nur eigene Quelle (`source_type` des Connectors), Annahme E-39 | Aufruf im Kontext eines normalen Nutzers ohne Cap → `forbidden` (RBAC-047) |
 | PHP-Read-API `course_captain_get_enrollment_v1(user_id, …)` | `context.actor` | eigener Nutzer oder M-11 bzw. registrierter Connector mit Lese-Scope | keine E-Mail, keine Antworten (Konzept 18 Payload) |
 | Filter `course_captain_can_access` | – | **darf nur einschränken** (D07-7) | Erweiterung nur über Grants mit Quelle |
 | Ausgehende Webhooks (Pro) | Secret je Ziel | #20 zum Konfigurieren | Payload minimal, Secrets nie in Export/REST/Diagnose (Konzept 43.4) |
@@ -357,10 +357,10 @@ Vorhanden aus R0-05: Kurse **C-A**, **C-B** (veröffentlicht), **C-C** (Entwurf)
 
 | ID | Neu für R0-07 | Zweck |
 |---|---|---|
-| RF-AU2 | `cc_fx_author2`, Rolle `cc_author`, `post_author` von C-B | Autor-Scope |
-| RF-TRB | `cc_fx_trainer_b`, `cc_trainer`, Staff C-A nur Gruppe GRP-1 | Gruppen-Scope |
-| RF-MGR | `cc_fx_manager2`, `cc_course_manager` | Manager-Grenzen |
-| RF-SUP | `cc_fx_support`, `cc_support` | Support-Minimierung |
+| RF-AU2 | `cc_fx_author2`, Rolle `ccap_author`, `post_author` von C-B | Autor-Scope |
+| RF-TRB | `cc_fx_trainer_b`, `ccap_trainer`, Staff C-A nur Gruppe GRP-1 | Gruppen-Scope |
+| RF-MGR | `cc_fx_manager2`, `ccap_course_manager` | Manager-Grenzen |
+| RF-SUP | `cc_fx_support`, `ccap_support` | Support-Minimierung |
 | RF-BLK | `cc_fx_locked`, `subscriber`, aktiver Grant C-A, Lernsperre gesetzt | gesperrter Nutzer (a) |
 | RF-NOROLE | `cc_fx_norole`, ohne Rolle auf der Site, früherer Grant C-A | gesperrter Nutzer (b) |
 | RF-S-L1 | laufender Prüfungsversuch von U-L1 in C-A; RF-S-L1E (ausgewertet) | Versuchs-IDOR |
@@ -390,15 +390,15 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 |---|---|---|---|---|---|---|
 | RBAC-001 | F | U-X (kein Grant C-A) | `GET /courses/C-A`, dann `GET /courses/C-A/next-question` | 200 mit allen Features `false`, keine Inhalte; zweiter Aufruf 403 `cc_content_locked` | R1-03 | ID-01 |
 | RBAC-002 | F | U-L1 | `GET /courses/C-C` (Entwurf), `/courses/C-D` (archiviert), `/courses/999999` | dreimal 404, gleicher Körper | R1-03 | R0-05 Kursstatus |
-| RBAC-003 | F | RF-AU2 (Autor C-B) | `POST /wp/v2/cc_course/<C-A>`; `post.php?post=<C-A>&action=edit` | 403 `rest_cannot_edit`; `wp_die` 403; Post unverändert | R1-03 | M-03 |
+| RBAC-003 | F | RF-AU2 (Autor C-B) | `POST /wp/v2/ccap_course/<C-A>`; `post.php?post=<C-A>&action=edit` | 403 `rest_cannot_edit`; `wp_die` 403; Post unverändert | R1-03 | M-03 |
 | RBAC-004 | R | RF-AU2 | eigenen Kurs C-B veröffentlichen (`status=publish`) | 403; Status bleibt Entwurf/Revision unverändert | R1-03 | M-04 |
 | RBAC-005 | R | U-TUT (Trainer C-A) | C-A bearbeiten (Core-REST, Editor) | 403 | R1-03 | 35.1 |
-| RBAC-006 | R | RF-AU2, gültiges REST-Nonce | Rolle → `subscriber`; gleiche Sitzung `POST /wp/v2/cc_course/<C-B>` | 403 sofort, kein Cache-Treffer | R1-03 | P-11 |
+| RBAC-006 | R | RF-AU2, gültiges REST-Nonce | Rolle → `subscriber`; gleiche Sitzung `POST /wp/v2/ccap_course/<C-B>` | 403 sofort, kein Cache-Treffer | R1-03 | P-11 |
 | RBAC-007 | R | U-TUT | Staff-Zuweisung C-A entfernen; `GET /reports/courses/C-A` | 403 sofort | R1-03 | B-2 |
 | RBAC-008 | G | RF-BLK | `GET /me/courses`, `GET /courses/C-A/next-question` | `cc_account_locked`; Grant-Zeile unverändert | R1-03 | 3.4 |
 | RBAC-009 | A | U-X (G-7 abgelaufen, Ablauf-Cron **nicht** gelaufen) | `GET /courses/C-B/next-question` | 403 `cc_content_locked` `reason=expired`; `/me/courses` zeigt `expired` | R1-03 | B-6 |
 | RBAC-010 | F | U-ADM auf Site 1 | `GET /courses/<Kurs-ID von RF-SITE2>` | 404 (bedingt, Annahme E-07) | R1-03 | ID-06 |
-| RBAC-011 | E | RF-AU2 | Kurs C-A per Core-REST mit `author=<RF-AU2>` übernehmen; im eigenen Kurs C-B `author` auf U-X umsetzen | beide 403 (Autorwechsel braucht `cc_edit_others_courses`); `post_author` unverändert | R1-03 | B-1, P-06 |
+| RBAC-011 | E | RF-AU2 | Kurs C-A per Core-REST mit `author=<RF-AU2>` übernehmen; im eigenen Kurs C-B `author` auf U-X umsetzen | beide 403 (Autorwechsel braucht `ccap_edit_others_courses`); `post_author` unverändert | R1-03 | B-1, P-06 |
 
 #### Lektion
 
@@ -406,8 +406,8 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 |---|---|---|---|---|---|---|
 | RBAC-012 | F | U-L1 | `GET /courses/C-A/lessons/<L-B-01>` (Lektion aus C-B) | 404 | R1-03 | LB `VideoService.php:273-283` |
 | RBAC-013 | A | U-L3 (Teilumfang) | Lektion jenseits der Freigrenze | 403 `reason=partial_access`; kein Fortschritt | R1-14 | E-15 |
-| RBAC-014 | A | U-L4 (Drip gesperrt) | `GET` und `PUT …/progress` auf gesperrte Lektion | 403 `reason=scheduled_release`; keine Zeile in `cc_activity_progress` | R1-14 | E-14 |
-| RBAC-015 | F | Gast und U-X | `/wp/v2/cc_lesson/<id>?context=view`, Feed, Suche `?s=`, Sitemap, oEmbed | kein `content.rendered`, kein automatischer Auszug | R1-14 | 4.4 |
+| RBAC-014 | A | U-L4 (Drip gesperrt) | `GET` und `PUT …/progress` auf gesperrte Lektion | 403 `reason=scheduled_release`; keine Zeile in `ccap_activity_progress` | R1-14 | E-14 |
+| RBAC-015 | F | Gast und U-X | `/wp/v2/ccap_lesson/<id>?context=view`, Feed, Suche `?s=`, Sitemap, oEmbed | kein `content.rendered`, kein automatischer Auszug | R1-14 | 4.4 |
 | RBAC-016 | F | U-X | Permalink einer Lektion mit Zugangsvorgabe (inkl. Page-Builder-Layout) | Gate-Hinweis ohne Inhalt; Builder-Daten verworfen | R1-14 | LB `ContentGate.php:151` |
 | RBAC-017 | F | RF-AU2 | Vorschau-Link einer Entwurfslektion von C-A | 403/404; eigene Entwurfslektion C-B 200 | R1-14 | M-06 |
 | RBAC-018 | R | RF-AU2 | Rolle entziehen; Vorschau eigener Entwurfslektion C-B | 404 (kein M-03 mehr) | R1-14 | P-11 |
@@ -418,14 +418,14 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 
 | Test-ID | Var. | Akteur / Vorbedingung | Aktion | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|---|
-| RBAC-021 | F | U-L1 (kein Grant C-B) | `PUT /courses/C-A/favorites/<Frage nur in C-B>` | 404; keine Zeile in `cc_favorite` | R1-03 | L-W5 |
-| RBAC-022 | F | U-L1 | `POST /answers` mit Frage-Token, das für U-X ausgestellt wurde | 403 `cc_invalid_token`; kein `cc_attempt` | R1-03 | LB `QuestionPresenter.php:155-158` |
+| RBAC-021 | F | U-L1 (kein Grant C-B) | `PUT /courses/C-A/favorites/<Frage nur in C-B>` | 404; keine Zeile in `ccap_favorite` | R1-03 | L-W5 |
+| RBAC-022 | F | U-L1 | `POST /answers` mit Frage-Token, das für U-X ausgestellt wurde | 403 `cc_invalid_token`; kein `ccap_attempt` | R1-03 | LB `QuestionPresenter.php:155-158` |
 | RBAC-023 | F | U-L1 | `next-question?module=<M-B1>` bzw. `?collection=<Sammlung von U-X>` auf C-A | 404; R0-05 GM-058 | R1-03 | RG-05 |
-| RBAC-024 | F | RF-AU2 | `cc_edit_question` auf Frage nur in C-A; auf RF-Q-SH (C-A und C-B) | beide 403 (geteilte Frage braucht Recht auf alle Kurse) | R1-03 | M-07 |
+| RBAC-024 | F | RF-AU2 | `ccap_edit_question` auf Frage nur in C-A; auf RF-Q-SH (C-A und C-B) | beide 403 (geteilte Frage braucht Recht auf alle Kurse) | R1-03 | M-07 |
 | RBAC-025 | R | U-TUT | Frage in C-A bearbeiten (Admin-Fragenbank) | 403 | R1-03 | 35.1 |
 | RBAC-026 | R | RF-AU2 | Rolle → `subscriber`; eigene Frage (`author_user_id`) speichern | 403 | R1-03 | M-07 |
 | RBAC-027 | A | U-X | Token wird vor `valid_until` ausgegeben, Antwort danach gesendet | 403 `reason=expired`; kein Versuch gezählt | R1-03 | LB `LearningService.php:177-188` |
-| RBAC-028 | G | RF-BLK | Token vor Sperre ausgegeben, Antwort nach Sperre | `cc_account_locked`; kein `cc_attempt` | R1-03 | 3.4 |
+| RBAC-028 | G | RF-BLK | Token vor Sperre ausgegeben, Antwort nach Sperre | `cc_account_locked`; kein `ccap_attempt` | R1-03 | 3.4 |
 
 #### Versuch
 
@@ -453,7 +453,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-043 | C | RF-MGR | `cc_grant_change` mit Nonce von Grant G-1 auf Grant G-10 | 403; G-10 unverändert | R1-03 | P-04 |
 | RBAC-044 | C | RF-MGR | `cc_grant_change` per GET bzw. ohne Nonce | 403/405; keine Änderung | R1-03 | P-04 |
 | RBAC-045 | F | RF-AU2 | `cc_grant_change` (revoke) mit manipulierter Grant-ID | 403 | R1-03 | M-13 |
-| RBAC-046 | A | RF-MGR | G-7 (abgelaufen) „verlängern“ | neue Revision/Ereignis in `cc_grant_event`, kein stilles Wiederaufleben; Zugriff erst danach | R1-03 | Annahme E-29 |
+| RBAC-046 | A | RF-MGR | G-7 (abgelaufen) „verlängern“ | neue Revision/Ereignis in `ccap_grant_event`, kein stilles Wiederaufleben; Zugriff erst danach | R1-03 | Annahme E-29 |
 | RBAC-047 | E | U-L1 (Theme-Formular ruft PHP-API) | `course_captain_grant_access_v1()` im Kontext U-L1 ohne Connector | `forbidden`; kein Grant | R1-03 | 4.8 |
 | RBAC-048 | E | registrierter, **deaktivierter** Connector | `course_captain_grant_access_v1` | `connector_disabled`; kein Grant | R1-03 | Annahme E-39 |
 | RBAC-049 | R | RF-MGR | Manager-Rolle entziehen; offene Seite S-13 „Widerrufen“ absenden | 403 | R1-03 | P-11 |
@@ -479,7 +479,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 |---|---|---|---|---|---|---|
 | RBAC-060 | F | U-X | `GET /certificates/<uid RF-CERT1>/pdf` | 404 | R1-03 | M-18 |
 | RBAC-061 | F | Gast | `GET /certificates/verify/<VT-1>`; numerische ID statt Token | Minimaldaten; numerische ID → 404; Rate-Limit greift | R1-14 | CORE-SPEC-006 |
-| RBAC-062 | R | U-TUT | `cc_certificate_revoke` RF-CERT1 | 403 („bewerten, nicht allein widerrufen“) | R1-03 | 36 |
+| RBAC-062 | R | U-TUT | `ccap_certificate_revoke` RF-CERT1 | 403 („bewerten, nicht allein widerrufen“) | R1-03 | 36 |
 | RBAC-063 | R | RF-MGR | Manager-Rolle entziehen; Korrektur absenden | 403; keine neue Revision | R1-03 | P-11 |
 | RBAC-064 | E | U-L1 mit #17 (Testrolle) | eigenes Zertifikat korrigieren | 403 `do_not_allow` | R1-03 | M-19 |
 | RBAC-065 | A | U-L1, Grant G-1 widerrufen/abgelaufen | eigenes Zertifikat-PDF | 200 (Historie bleibt, CORE-Defaults) | R1-03 | 35.4 |
@@ -528,11 +528,11 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | Test-ID | Var. | Akteur / Vorbedingung | Aktion | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|---|
 | RBAC-090 | F | `system:cron` | Job mit Grant-ID einer anderen Site / gelöschtem Grant | No-op mit Log, kein Fehlerabbruch | R1-03 | 4.6 |
-| RBAC-091 | E | RF-MGR | Tab „Rollen & Rechte“: sich selbst `cc_manage_settings` geben; Nutzer zu `administrator` machen | 403; `administrator` nicht wählbar | R1-03 | 3.5 |
+| RBAC-091 | E | RF-MGR | Tab „Rollen & Rechte“: sich selbst `ccap_manage_settings` geben; Nutzer zu `administrator` machen | 403; `administrator` nicht wählbar | R1-03 | 3.5 |
 | RBAC-092 | E | RF-SUP | RF-MGR bzw. U-ADM sperren; sich selbst sperren | 403 (`do_not_allow`) | R1-03 | M-24 |
 | RBAC-093 | E | Webhook ohne/mit falscher Signatur; Replay derselben `event_id` | `POST /webhooks/<connector>` | 401 ohne Details, keine Inbox-Zeile; Replay 200 ohne zweiten Grant | R1-03 | 4.8 |
 | RBAC-094 | E | Monitor | `GET /monitor?key=<richtig>` | Schlüssel im Query wird ignoriert → nur Gesamtstatus | R1-03 | L-W8 |
-| RBAC-095 | E | Deaktivierung/Deinstallation | Plugin deaktivieren, deinstallieren | Fremdrollen unverändert; `cc_*` nur bei Deinstallation entfernt | R1-03 | P-10 |
+| RBAC-095 | E | Deaktivierung/Deinstallation | Plugin deaktivieren, deinstallieren | Fremdrollen unverändert; `ccap_*` nur bei Deinstallation entfernt | R1-03 | P-10 |
 | RBAC-096 | F | Messreihe über RBAC-002/029/052/060/068 | „fremd“ vs. „nicht existent“ | Körper byte-gleich (bis Request-ID), Status gleich | R1-03 | P-08 |
 
 **Abdeckung je Objekttyp (F/R/G/A):** Kurs 001–003,010 / 004–007,011 / 008 / 009 · Lektion 012,015–017 / 018 / 020 / 013,014,019 · Frage 021–024 / 025,026 / 028 / 027 · Versuch 029–036 / 039 / 038 / 037 · Grant 041,045 / 042,049 / 050 / 046 · Gruppe 051–054,058,059 / 057 / 056 / 055 · Zertifikat 060,061 / 062,063 / 066 / 065 · Datei 067–070,075 / 073 / 074 / 072 · Import 077–079 / 083 / 084 / 084 (Ersatz: überholter Batch, Grants gibt es dort nicht) · Export 085–087 / 088 / 089 / 089 (Ablauf des Exports).
@@ -576,7 +576,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | L-W10 | Gruppenbesitzer erhält E-Mail-Adressen auch aktiver Mitglieder | `src/Rest/Controllers/GroupController.php:135` | Datenminimierung (35.1) | D07-4, RBAC-059 |
 | L-W11 | Geschützte Datei: 403-Hinweis nennt Kurs und Feature, 404/403 unterscheidet „geschützt“ | `src/Gate/ProtectedFiles.php:352-365` | geringes Orakel | Hinweis nur bei M-01-sichtbaren Kursen; RBAC-068 |
 
-**Neutral (nur festgehalten):** Gruppen-Verwaltung über Service erlaubt zusätzlich `manage_bp_entitlements` (`GroupService.php:756-764`), die REST-Route nur dem Besitzer (`GroupController.php:109-115`). CC trennt das sauber über M-15 (Besitzer im Frontend, #11 im Admin). Schutzliste für automatische Kontolöschung arbeitet mit Rollennamen und Caps (`AccountDeletion.php:76-83`) → in CC um `cc_*` ergänzt (3.5 Nr. 6).
+**Neutral (nur festgehalten):** Gruppen-Verwaltung über Service erlaubt zusätzlich `manage_bp_entitlements` (`GroupService.php:756-764`), die REST-Route nur dem Besitzer (`GroupController.php:109-115`). CC trennt das sauber über M-15 (Besitzer im Frontend, #11 im Admin). Schutzliste für automatische Kontolöschung arbeitet mit Rollennamen und Caps (`AccountDeletion.php:76-83`) → in CC um `ccap_*` ergänzt (3.5 Nr. 6).
 
 ---
 
@@ -584,12 +584,12 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 
 | Nr. | Frage | Optionen | Empfehlung | Wer | Blockiert |
 |---|---|---|---|---|---|
-| **D07-1** | **Staff-Zuweisung als eigene Tabelle** (`cc_course_staff`), die R0-06 nicht enthält? Ohne sie gibt es keinen „zugewiesenen Kurs“ für Trainer/Autoren (Konzept 17, 36). | a) Tabelle `cc_course_staff (course_id, user_id, staff_role, group_id NULL)`; b) Post-Meta am Kurs (keine Abfrage „Kurse eines Trainers“ ohne Meta-Scan); c) nur `post_author` (kein Trainer-Scope) | **a)**; delegierte Gruppenverwalter (Pro) später als `staff_role = group_manager` mit `group_id`. Delta an R0-06 (Tabelle Nr. 40+1) | Architektur | R0-06, R1-02, R1-03 |
-| **D07-2** | **Lernsperre:** eigenes Sperrkennzeichen oder nur WP-Mittel (Rolle entziehen)? | a) `cc_learner_lock` (Grund, Akteur, Zeitpunkt; Audit) zusätzlich zu Rollenentzug; optional Sitzungen beenden; b) nur Rollenentzug; c) Sperre über Grant-Suspendierung aller Grants | **a)** ohne automatische Sitzungsbeendigung (Option). c) verfälscht Grant-Historie | Auftraggeber | R0-09, R1-03, R1-34 |
+| **D07-1** | **Staff-Zuweisung als eigene Tabelle** (`ccap_course_staff`), die R0-06 nicht enthält? Ohne sie gibt es keinen „zugewiesenen Kurs“ für Trainer/Autoren (Konzept 17, 36). | a) Tabelle `ccap_course_staff (course_id, user_id, staff_role, group_id NULL)`; b) Post-Meta am Kurs (keine Abfrage „Kurse eines Trainers“ ohne Meta-Scan); c) nur `post_author` (kein Trainer-Scope) | **a)**; delegierte Gruppenverwalter (Pro) später als `staff_role = group_manager` mit `group_id`. Delta an R0-06 (Tabelle Nr. 40+1) | Architektur | R0-06, R1-02, R1-03 |
+| **D07-2** | **Lernsperre:** eigenes Sperrkennzeichen oder nur WP-Mittel (Rolle entziehen)? | a) `ccap_learner_lock` (Grund, Akteur, Zeitpunkt; Audit) zusätzlich zu Rollenentzug; optional Sitzungen beenden; b) nur Rollenentzug; c) Sperre über Grant-Suspendierung aller Grants | **a)** ohne automatische Sitzungsbeendigung (Option). c) verfälscht Grant-Historie | Auftraggeber | R0-09, R1-03, R1-34 |
 | **D07-3** | **Kursmanager-Scope:** site-weit oder nur zugewiesene Kurse? | a) site-weit (Konzept 17); b) nur Kurse mit `staff_role = manager`; c) beides, Umschalter | **a) in R1**, b) als Pro-/R2-Option über D07-1 | Auftraggeber | R1-03, R0-29 |
 | **D07-4** | **E-Mail-Sichtbarkeit** für Gruppenbesitzer und Trainer (LB zeigt Besitzern alle Mitglieder-Adressen) | a) Besitzer sieht Adresse nur bei offenen Einladungen, nach Claim Name + maskierte Adresse; Trainer Name ohne Adresse; b) wie LB; c) nur Name | **a)** | Auftraggeber (Datenschutz) | R1-13, R1-35, R1-10 |
 | **D07-5** | **Pflichtbegründung beim Lesen fremder Versuchsdaten** (Admin/Manager über #14) | a) Begründungsfeld + Audit; b) nur Audit; c) Zeitlich begrenzte Freigabe („Break-glass“) | **a)** für #14; zugewiesene Trainer bei Bewertung ohne Begründung (nur Audit) | Auftraggeber | R1-03, R1-09 |
-| **D07-6** | **Default-Rollen bei Aktivierung:** Welche Rollen erhalten `cc_*`-Caps automatisch? (Konzept 43.5 „Standardrollen“) | a) nur `administrator` + vier neue `cc_`-Rollen; b) zusätzlich `editor` → Autor-Caps; c) zusätzlich `shop_manager` → Grants | **a)**; Zuweisung weiterer Rollen bewusst im Tab „Rollen & Rechte“ | Auftraggeber | R1-01, R1-03, R1-34 |
+| **D07-6** | **Default-Rollen bei Aktivierung:** Welche Rollen erhalten `ccap_*`-Caps automatisch? (Konzept 43.5 „Standardrollen“) | a) nur `administrator` + vier neue `ccap_`-Rollen; b) zusätzlich `editor` → Autor-Caps; c) zusätzlich `shop_manager` → Grants | **a)**; Zuweisung weiterer Rollen bewusst im Tab „Rollen & Rechte“ | Auftraggeber | R1-01, R1-03, R1-34 |
 | **D07-7** | **Erweiterungsfilter für Zugriffsentscheidungen:** darf Fremdcode Zugang gewähren? | a) Filter `course_captain_can_access` nur einschränkend; Gewähren nur über Grants mit Quelle; b) wie LB frei erweiterbar; c) kein Filter | **a)** (Audit- und Grant-Vertrag bleiben vollständig) | Architektur | R0-19, R1-03, R1-28 |
 
 **Keine neue Entscheidung, nur Abhängigkeit:** Speicherklasse der Fragen-/Lektionsmedien → **R10-D4** (R0-10); Support ohne Antwortzugriff ist Konzept 43.3; Gastkauf-Claim → Annahme E-30; Einladungsbindung → Annahme E-28; Workflow-Schreibaktionen → Annahme E-39; Retention → Annahme E-44/E-51.
@@ -600,9 +600,9 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 
 | Dokument | Delta |
 |---|---|
-| R0-06 | Tabelle `cc_course_staff` (D07-1); Kennzeichen `cc_learner_lock` als User-Meta oder Tabelle (D07-2); `cc_import_batch.created_by` und Export-Datensatz mit Ersteller und Ablauf (B-9) bestätigen |
-| R0-05 | Fixtures RF-* (5.1) ergänzen. Platzhalter `cc_manage_content` (R0-05 U-EDT, R0-10 §4.3) = hier `cc_edit_others_courses` (site-weit) bzw. Meta-Cap `cc_edit_course` (objektbezogen); `cc_edit_course` ist als Meta-Cap M-03 bestätigt |
-| R0-10 | Rechteprüfung §4.3 Schritt 2 = M-20; „Wer `cc_manage_content` für das Objekt hat“ → M-03 auf einen referenzierenden Kurs |
+| R0-06 | Tabelle `ccap_course_staff` (D07-1); Kennzeichen `ccap_learner_lock` als User-Meta oder Tabelle (D07-2); `ccap_import_batch.created_by` und Export-Datensatz mit Ersteller und Ablauf (B-9) bestätigen |
+| R0-05 | Fixtures RF-* (5.1) ergänzen. Platzhalter `ccap_manage_content` (R0-05 U-EDT, R0-10 §4.3) = hier `ccap_edit_others_courses` (site-weit) bzw. Meta-Cap `ccap_edit_course` (objektbezogen); `ccap_edit_course` ist als Meta-Cap M-03 bestätigt |
+| R0-10 | Rechteprüfung §4.3 Schritt 2 = M-20; „Wer `ccap_manage_content` für das Objekt hat“ → M-03 auf einen referenzierenden Kurs |
 | R0-19 | Fehlercodes `cc_account_locked`, `cc_invite_other_account`, `cc_group_not_active`, `cc_export_expired`, `cc_invalid_token` in den Katalog (Annahme E-06) |
 | R0-09 | Lernsperre ändert keine Grants; Grant-Verlängerung nach Ablauf als neue Revision (RBAC-046) |
 | R0-08 | Bewertungsrecht M-10 inkl. Verbot der Selbstbewertung |
@@ -624,5 +624,5 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | Datum | Quelle | Änderung |
 |---|---|---|
 | 16.11.2026 | R0-13 R13-D5, E-140 | §4.9: Audit-Export (gefiltert, Begründungspflicht) ist **Free**, nicht Pro |
-| 16.11.2026 | R0-15 §2.3, E-122 | Neue Cap `cc_manage_accommodations` (Nachteilsausgleich setzen/lesen), Default nur Kursmanager und Admin |
-| 16.11.2026 | E-99 | `cc_trainer` wird in R1 angelegt; Tutor-Bewertung erst mit dem Gradebook (Pro) |
+| 16.11.2026 | R0-15 §2.3, E-122 | Neue Cap `ccap_manage_accommodations` (Nachteilsausgleich setzen/lesen), Default nur Kursmanager und Admin |
+| 16.11.2026 | E-99 | `ccap_trainer` wird in R1 angelegt; Tutor-Bewertung erst mit dem Gradebook (Pro) |

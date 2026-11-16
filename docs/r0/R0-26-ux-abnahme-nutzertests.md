@@ -1,6 +1,6 @@
 # R0-26 · UX- und Accessibility-Abnahme mit Nutzertests
 
-**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Dies ist ein Testplan. Es gibt noch keine Implementierung, keine Teilnehmenden und keine Messwerte. Alle Zahlen in den Spalten „Schwelle“ und „Zielzeit“ sind **Vorgaben**, keine Ergebnisse. Durchgeführt wird der Plan in **R1-29** (Voraussetzungen R1-16, R1-19, R1-26). Das Ergebnis geht in **R1-GATE** ein (Gates B/C, Konzept 28.6).
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Dies ist ein Testplan. Es gibt noch keine Implementierung, keine Teilnehmenden und keine Messwerte. Alle Zahlen in den Spalten „Schwelle“ und „Zielzeit“ sind **Vorgaben**, keine Ergebnisse. Durchgeführt wird der Plan in **R1-29** (Voraussetzungen R1-16, R1-19, R1-26 und für die Aufgaben R1-46, E-168). Das Ergebnis geht in **R1-GATE** ein (Gates B/C, Konzept 28.6).
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-26 (DoD: „Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert“), R1-29 (DoD: „Referenzaufgaben durchgespielt; Tastatur, Screenreader, mobile Prüfungen und Fehlerbehebung mit dokumentierten Befunden“), TODO-Punkte „Drei neutrale Autorentests“, „Lernenden-E2E und Accessibility“, „Praxis-Benchmark“, „Messkonzept erstellen“. Konzept Kap. 15.2 (E2E-Nutzerreisen 1, 2, 3, 6), 16.1/16.3, 23.3, 27.4, 28.4 Nr. 5/6, 28.6. `R0-11-free-pro-matrix-ux.md` (Screens A-01…A-18, L-01…L-21, Zustände Z-x, Flows 1–4). `R0-15-barrierefreiheit-i18n.md` (A11Y-001…112, §2.3 Zeitausgleich, §2.4 Matrix, §5). `R0-14-nichtfunktionale-ziele.md` §3 (Browser/Geräte). `R0-05-golden-master.md` §2 (`cc-fixture-neutral-v1`). `R0-22-kursvalidierung-publish.md` §2.3/§3 (Vorschau, Validierungspanel).
 **Abgrenzung:** Automatisierte A11Y-, E2E- und Golden-Master-Prüfungen gehören zu R1-18 und R1-19. Dieses Dokument regelt nur, was **Menschen** prüfen: Nutzertests mit Teilnehmenden und manuelle Expertendurchläufe mit Hilfstechnik (A11Y-102…104). Rechtliche Konformitätsaussagen trifft es nicht (vgl. R0-15, E-125). Telemetrie nach dem Launch (Kap. 23.3) wird hier nicht gebaut. §7 liefert nur die Baselines dafür.
@@ -484,23 +484,32 @@ Konversion Free→Pro wird hier nicht gemessen. Es werden **keine** erfundenen Z
 
 ---
 
-## 8. Entscheidungsbedarf (neu, nicht in `ENTSCHEIDUNGEN.md`)
+## 8. Entscheidungsbedarf (beschlossen)
 
-Nummern für `ENTSCHEIDUNGEN.md` werden beim Zusammenführen vergeben.
+Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` Abschnitt 25; E-161, E-162, E-168 im Beschlussprotokoll, die übrigen „Von Claude entschieden“):
 
-| ID | Frage | Optionen | Empfehlung | Betrifft |
-|---|---|---|---|---|
-| D-26-01 | **Wer rekrutiert** die Teilnehmenden? | a) Auftraggeber aus eigenem Netzwerk und Kundenkreis · b) externer Rekrutierungsdienst für alle Rollen · c) gemischt: a) für Autor, Admin und Gruppenverwalter, für Personen mit Hilfstechnik ein spezialisierter Dienstleister oder Kontakt über Selbsthilfe- und Blindenverbände | **c)**. Personen mit Hilfstechnik sind über allgemeine Panels schwer zu finden, und ihre Teilnahme muss fair bezahlt werden. Personen aus dem Kundenkreis dürfen die CC-Oberfläche nicht vorab kennen | R1-29 Schritt 1 |
-| D-26-02 | **Budget**: Aufwandsentschädigung, Testgeräte, gegebenenfalls Dienstleister | a) nur Sachpreis · b) feste Pauschale je Sitzung nach Dauer, für Personen mit Hilfstechnik höher (längere Sitzung, Anreise), dazu Beschaffung der Testgeräte §3.2 · c) Gesamtauftrag an einen UX-Dienstleister | **b)**. Mengengerüst: Runde 1 mit 25 Sitzungen (6 × 120, 9 × 75–90, 5 × 30, 5 × 60 min) plus Runde 2 mit ca. 10–12 Sitzungen, Pilot 4, Expertendurchläufe ca. 3 Personentage. Die Höhe der Pauschale legt der Auftraggeber fest. Hier wurde kein Marktpreis geprüft | R1-29 |
-| D-26-03 | **Umfang** je Rolle | a) wie §2.1 (6/5+4/5/5) · b) reduziert 3 je Rolle + 2 mit Hilfstechnik · c) erweitert 8 je Rolle | **a)**. b) reicht nicht für die 80-%-Regel und deckt die Hilfstechnik-Matrix nicht ab | §2.1, §2.5 |
-| D-26-04 | **Wer moderiert** und wertet aus? | a) Projektteam · b) projektinterne Person, die nicht an der Entwicklung beteiligt ist · c) externe UX- bzw. A11Y-Fachperson | **b)** für Moderation, **c)** mindestens für die Expertendurchläufe und die Triage der A11Y-Befunde. Entwickler der geprüften Funktion moderieren nicht („neutrale Autorentests“) | §4.2 |
-| D-26-05 | Umfang der **Autorenaufgabe** | a) alle 50 Fragen manuell in der Sitzung (geschätzt ≥ 3 h) · b) 10 manuell + 40 per Import, 50 manuell nur im Praxis-Benchmark (UX-090) · c) nur 10 Fragen | **b)**. Hält die Sitzung bei 120 min und misst den Editor und den Import. Die Vollzeit für 50 Fragen liefert UX-090 | §1.2, UX-013 |
-| D-26-06 | **Schwellenwerte** | a) wie §2.5 (Erfolg ≥ 80 %, SUS ≥ 70, Autor ≤ 90/120 min, Setup ≤ 10 min, Wiederaufnahme ≤ 1 min) · b) strenger (SUS ≥ 80, Erfolg ≥ 90 %) · c) nur berichten, keine Schwelle | **a)**, einmalige Justierung von S-06…S-10 nach Benchmark und Pilot, danach eingefroren | §2.5 |
-| D-26-07 | Aufzeichnung und **Löschfrist** | a) keine Aufzeichnung, nur Protokoll · b) Bildschirm und Ton, Löschung 6 Monate nach R1-GATE · c) Aufbewahrung bis R3-GATE | **b)**, Gesicht nur auf Wunsch. Bewertung in R0-17 | §4.1 |
-| D-26-08 | **Aufgabe (Abgabe) in den Referenzkursen** trotz Konzept 27.4/28.4 | a) R1 ohne Aufgabe, Nachtest mit `RK-v1.1` nach R2-02 · b) R1-29 wartet auf R2-02 · c) Aufgabe als einfache Lektion „bitte bestätigen“ simulieren | **a)**. b) verschiebt R1-GATE auf R2, c) misst nichts Echtes | §0.2 Nr. 1 |
-| D-26-09 | **Testsprache** | a) nur de_DE · b) de_DE, zusätzlich 1 Admin-Sitzung in en_US · c) zwei Sprachen je Rolle | **b)**. Deutsch ist die Hauptzielgruppe. en_US prüft die Quellstrings (E-121). Der Übersetzer-Review I18N-015 bleibt getrennt | §3.3 |
-| D-26-10 | **Wiederholung** der Nutzertests | a) nur vor R1-GATE · b) volle Runde vor R1-GATE und R3-GATE (Pro-UI), vor R2-GATE nur Flow 1/2 mit je 3 Personen und 2 mit Hilfstechnik, vor jedem Minor-Release nur Expertendurchläufe (D-15-05) · c) volle Runde vor jedem Minor-Release | **b)** | §6 |
-| D-26-11 | Umgang mit **S2 vor R1-GATE** | a) S2 muss immer behoben sein · b) S2 akzeptierbar nach §4.4 (Workaround, Patch-Termin, nicht bei WCAG-Bezug in Lernenden-Flows) · c) S2 frei akzeptierbar | **b)** | §4.4 |
+| Früher | Beschluss | Inhalt | Wirkung hier |
+|---|---|---|---|
+| D-26-01 | **E-161** | Rekrutierung gemischt: eigene Kontakte für Autoren und Admins, Dienstleister bzw. Verbände für Personen mit Hilfstechnik | R1-29 Schritt 1; Personen aus dem Kundenkreis dürfen die CC-Oberfläche nicht vorab kennen (§2.1) |
+| D-26-02 | **E-162** | Budget für Nutzertests kommt; den Betrag nennt der Auftraggeber vor R1-29 | Mengengerüst bleibt: Runde 1 mit 25 Sitzungen, Runde 2 ca. 10–12, Pilot 4, Expertendurchläufe ca. 3 Personentage, Testgeräte §3.2 |
+| D-26-03 | **E-163** | 6 Autoren, 5 + 4 Lernende (davon 4 mit Hilfstechnik), 5 Gruppenverwalter, 5 Admins; Nachtest mit mindestens 3 neuen Personen | §2.1 |
+| D-26-04 | **E-164** | Moderation durch eine Person, die nicht an der Entwicklung beteiligt ist; extern für die Barrierefreiheitssitzungen | §4.2 |
+| D-26-05 | **E-165** | 10 Fragen manuell, 40 per Import; alle 50 manuell nur im Praxis-Benchmark | §1.2, UX-013, UX-090 |
+| D-26-06 | **E-166** | Erfolg ≥ 80 % je Aufgabe, SUS ≥ 70, Referenzkurs veröffentlichen Median ≤ 90 min, Setup ≤ 10 min, Prüfung fortsetzen ≤ 1 min ohne Antwortverlust; jede Person mit Hilfstechnik löst jede kritische Aufgabe ohne sehende Hilfe | §2.5 |
+| D-26-07 | **E-167** | Aufzeichnung mit Einwilligung, Löschung 6 Monate nach R1-GATE | §4.1 |
+| D-26-08 | **E-168** (Auftraggeber, **abweichend** von der Empfehlung a) | Text-/Dateiaufgaben mit Bewertung in R1 (R1-46); Referenzkurs mit Aufgabe schon in den R1-Nutzertests | §0.2 Nr. 1, §1.1, AU-T12/T13, LE-T11/T12, UX-016/017/036/037/081 |
+| D-26-09 | **E-169** | de_DE plus eine Admin-Sitzung in en_US | §3.3 |
+| D-26-10 | **E-170** | Wiederholung gezielt für geänderte Flows vor R2-GATE und R3-GATE | §6 |
+| D-26-11 | **E-171** | S2-Befunde vor R1-GATE nur mit dokumentierter Akzeptanz des Auftraggebers, nie bei WCAG-Bezug in Lernenden-Flows; S1 immer beheben | §4.4 |
+
+### 8.1 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-26-1 | Die Autorensitzung (120 min) enthält jetzt zusätzlich AU-T12 (Aufgabe) und AU-T13 (Bewertung); die beschlossene Schwelle „Referenzkurs ≤ 90 min Median“ (E-166) gilt für AU-GES einschließlich AU-T12 | Ob 120 min Sitzungsdauer reichen, zeigt erst der Pilot; E-166 ist unveränderlich, die Sitzungsdauer nicht beschlossen | Pilot (§4.2 Schritt 3), Auftraggeber |
+| OP-26-2 | Budgetbetrag (E-162) | nennt der Auftraggeber vor R1-29 | Auftraggeber |
+| OP-26-3 | Wer bewertet in den Tests (Kursmanager oder Trainer)? AU-T13 nutzt die Rolle Course Manager | Bewertungsrecht in R1 nicht abschließend geregelt (R0-08 OP-08-1) | Auftraggeber / R0-07 |
+| OP-26-4 | Typmix und Aufgabenkonfiguration der Referenzkurse (§1.1) sind an E-22/E-69/E-168 angepasste Vorschläge | keine Vorgabe in den Beschlüssen | Produkt (vor Erstellung von `cc-fx-rk-v1`) |
 
 ---
 
