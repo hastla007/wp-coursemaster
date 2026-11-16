@@ -44,7 +44,7 @@
   - **Ergebnis/Definition of Done:** Entitäten, CPT/Tabellen, Indizes, Uniques, Revisions-/Migration-/Rollbackregeln beschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-07 · RBAC-/IDOR-Matrix finalisieren**
+- [ ] **R0-07 · RBAC-/IDOR-Matrix finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-07-rbac-idor-matrix.md` (8 Fachrollen, 4 neue WP-Rollen, 24 Caps + 24 Meta-Caps, Matrix über REST/Admin/AJAX/Medien/Cron/CLI/Export, 96 Negativtests RBAC-001…096, LB-Abgleich 14 stärker/11 schwächer); Entscheidung offen → E-78…E-84
   - **Voraussetzung:** R0-06.
   - **Ergebnis/Definition of Done:** WP-Capabilities, Rollen, Objekt-Scope, REST/Admin/Medien/CLI/Export-Matrix beschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

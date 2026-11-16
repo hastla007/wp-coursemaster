@@ -160,3 +160,17 @@ Die technischen Punkte D-14-03 (kürzere Lock-Wartezeiten), D-14-04 (FULLTEXT-Su
 | E-75 | `expired` als eigener Endzustand (Konzept 28.3) oder als `evaluated` mit `end_reason=expired` (LB)? | **`evaluated` mit `end_reason`** (LB-Parität); Konzept 28.3 wird redaktionell angepasst | R0-08 D-09 | R1-08 |
 | E-76 | Standard-Abschlussregel für Videos | **`manual_confirm`** als Standard; „≥ 90 % angesehen“ als Option mit Hinweis auf Selbstauskunft des Players | R0-08 D-10 | R1-07 |
 | E-77 | Teilpunkt-Strategien in R1 | **`all_or_nothing` und `proportional_penalty`**; `per_option` erst nach didaktischem Review | R0-08 D-11 | R1-06, R1-09 |
+
+## 14. Rollen und Rechte (aus R0-07)
+
+Wichtigster Sicherheitsbefund in LB: Der Default `default_access = logged_in` gibt jedem angemeldeten Konto Vollzugang zu allen Kursen. Course Captain übernimmt das **nicht**; der Default ist „nur mit Grant“. Das ist technisch zwingend und keine Auftraggeber-Frage.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-78 | Neue Tabelle `cc_course_staff` für die Zuweisung von Autoren und Trainern zu Kursen | **Ja** (Delta zu R0-06) | R0-07 D07-1 | R1-03 |
+| E-79 | Eigene Lernsperre (`cc_learner_lock`) zusätzlich zum Rollenentzug | **Ja**; LB hat keine Konto- oder Lernsperre | R0-07 D07-2 | R1-03, R1-14 |
+| E-80 | Kursmanager-Rolle | **In R1 site-weit**, kursbezogene Kursmanager erst später | R0-07 D07-3 | R1-03 |
+| E-81 | Sichtbarkeit von E-Mail-Adressen für Gruppenbesitzer und Trainer (LB: alle Adressen sichtbar) | **Minimieren**: Name bzw. Anzeigename, E-Mail-Adresse nur maskiert oder per eigener Cap | R0-07 D07-4 | R1-13, R0-17 |
+| E-82 | Pflichtbegründung, wenn Support oder Trainer fremde Versuchsdaten lesen | **Ja, mit Audit-Eintrag** | R0-07 D07-5 | R1-03, R0-13 |
+| E-83 | Wer bekommt bei der Aktivierung Course-Captain-Caps? | **Nur `administrator`**; `editor` und `shop_manager` nicht automatisch | R0-07 D07-6 | R1-01, R1-03 |
+| E-84 | Darf der Zugriffsfilter Zugang gewähren? (LB: `bootspruefung_can_access` kann Zugang beliebig erweitern) | **Nein, er darf nur einschränken.** Zugang entsteht ausschließlich über einen Grant | R0-07 D07-7 | R0-19, R1-14 |
