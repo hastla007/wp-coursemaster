@@ -522,7 +522,7 @@ final class SettingsSchema {
 					'value' => array_values( array_intersect( (array) $field['values'], $value ) ),
 				);
 			case 'slug':
-				return is_string( $value ) && 1 === preg_match( '/^[a-z0-9][a-z0-9-]{0,63}$/', $value ) ? array(
+				return is_string( $value ) && 1 === preg_match( '/^[a-z0-9][a-z0-9-]{0,48}[a-z0-9]$/', $value ) ? array(
 					'ok'    => true,
 					'value' => $value,
 				) : $bad;
@@ -597,6 +597,7 @@ final class SettingsSchema {
 			return true;
 		}
 		$max = str_contains( $parts[0], ':' ) ? 128 : 32;
-		return 1 === preg_match( '/^\d{1,3}$/', $parts[1] ) && (int) $parts[1] <= $max;
+		// `0.0.0.0/0` and `::/0` would trust every address (F-82, SET-115).
+		return 1 === preg_match( '/^\d{1,3}$/', $parts[1] ) && (int) $parts[1] <= $max && (int) $parts[1] > 0;
 	}
 }

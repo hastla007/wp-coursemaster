@@ -113,32 +113,27 @@ final class Settings {
 	}
 
 	/**
-	 * Partial save of a tab.
+	 * Validate a partial save without writing (S-2…S-5): the candidate of
+	 * the tab and the field errors as `field => rule` (rules from
+	 * {@see SettingsRules}).
 	 *
 	 * @param Actor                $actor  Admin.
 	 * @param string               $tab    Tab.
 	 * @param array<string, mixed> $input  Submitted values.
 	 * @param array                $fields Rendered fields (`_fields[]`).
-	 * @param int                  $rev    `_rev` the form was rendered with.
 	 * @phpstan-param list<string> $fields
-	 * @return array{changed: list<string>, rev: int}
-	 * @throws CourseException `ccap_forbidden`, `ccap_validation_failed` (with field list), `ccap_settings_conflict`.
+	 * @return array{before: array<string, mixed>, candidate: array<string, mixed>, errors: array<string, string>, changed: list<string>}
+	 * @throws CourseException `ccap_not_found`, `ccap_forbidden`.
 	 */
-	public static function save( Actor $actor, string $tab, array $input, array $fields, int $rev ): array {
-		$schema = SettingsSchema::fields()[ $tab ] ?? null;
-		if ( null === $schema ) {
-			throw new CourseException( 'ccap_not_found', 'Unknown settings tab.', 404 );
-		}
+	public static function check( Actor $actor, string $tab, array $input, array $fields ): array {
+		$schema = self::tab_schema( $tab );
 		if ( ! self::can( $actor, 'settings' ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to change settings.', 403 );
-		}
-		$stored = self::stored( $tab );
-		if ( $rev !== $stored['_rev'] ) {
-			throw new CourseException( 'ccap_settings_conflict', 'Settings were changed in the meantime.', 409 );
 		}
 		$before    = self::values( $tab );
 		$candidate = $before;
 		$errors    = array();
+		$touched   = array();
 		foreach ( array_values( array_unique( $fields ) ) as $field ) {
 			if ( ! isset( $schema[ $field ] ) || ! array_key_exists( $field, $input ) ) {
 				continue;
@@ -148,20 +143,61 @@ final class Settings {
 			}
 			$check = SettingsSchema::validate( $schema[ $field ], $input[ $field ] );
 			if ( ! $check['ok'] ) {
-				$errors[] = $field;
+				$errors[ $field ] = SettingsRules::invalid_rule( $schema[ $field ], $input[ $field ] );
 				continue;
 			}
 			// E-89: switching data deletion on needs the typed site name (R0-27 §1.3, R0-16 §2.5).
 			if ( 'general' === $tab && UninstallManifest::DELETE_DATA_KEY === $field && true === $check['value'] && true !== $before[ $field ] && ! self::site_name_confirmed( $input ) ) {
-				$errors[] = $field;
+				$errors[ $field ] = 'site_name';
 				continue;
 			}
 			$candidate[ $field ] = $check['value'];
+			$touched[]           = $field;
 		}
-		if ( array() !== $errors ) {
-			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', $errors ) ), 422 );
-		}
+		$errors += SettingsRules::check( $actor, $tab, $candidate, $before, $touched );
 		$changed = array_keys( array_filter( $candidate, static fn( $value, $key ) => $value !== $before[ $key ], ARRAY_FILTER_USE_BOTH ) );
+		return array(
+			'before'    => $before,
+			'candidate' => $candidate,
+			'errors'    => $errors,
+			'changed'   => $changed,
+		);
+	}
+
+	/**
+	 * Partial save of a tab.
+	 *
+	 * `$context` is added to the audit entry: `context` (`settings`,
+	 * `setup`, `import`), `step` (setup step key) and `confirmed_risks`
+	 * (RC numbers, R0-30 D-8). Risk tokens are enforced by the admin
+	 * entry points ({@see RiskConfirm}); this service trusts its caller.
+	 *
+	 * @param Actor                $actor   Admin.
+	 * @param string               $tab     Tab.
+	 * @param array<string, mixed> $input   Submitted values.
+	 * @param array                $fields  Rendered fields (`_fields[]`).
+	 * @param int                  $rev     `_rev` the form was rendered with.
+	 * @param array<string, mixed> $context Audit context.
+	 * @phpstan-param list<string> $fields
+	 * @return array{changed: list<string>, rev: int}
+	 * @throws CourseException `ccap_forbidden`, `ccap_validation_failed` (field list, `data.fields` = field => rule), `ccap_settings_conflict`.
+	 */
+	public static function save( Actor $actor, string $tab, array $input, array $fields, int $rev, array $context = array() ): array {
+		$schema = self::tab_schema( $tab );
+		if ( ! self::can( $actor, 'settings' ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to change settings.', 403 );
+		}
+		$stored = self::stored( $tab );
+		if ( $rev !== $stored['_rev'] ) {
+			throw new CourseException( 'ccap_settings_conflict', 'Settings were changed in the meantime.', 409, array( 'rev' => $stored['_rev'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
+		}
+		$result = self::check( $actor, $tab, $input, $fields );
+		if ( array() !== $result['errors'] ) {
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', array_keys( $result['errors'] ) ) ), 422, array( 'fields' => $result['errors'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
+		}
+		$before    = $result['before'];
+		$candidate = $result['candidate'];
+		$changed   = $result['changed'];
 		if ( array() === $changed && 0 !== $stored['_rev'] ) {
 			return array(
 				'changed' => array(),
@@ -171,12 +207,49 @@ final class Settings {
 		$new_rev = self::write( $tab, $candidate + $stored['passthrough'], $actor, $stored['_rev'] );
 		self::side_effects( $schema, $changed );
 		if ( array() !== $changed ) {
-			self::audit( $actor, 'settings_saved', $tab, $schema, $changed, $before, $candidate );
+			self::audit( $actor, 'settings_saved', $tab, $schema, $changed, $before, $candidate, $context );
 		}
 		return array(
 			'changed' => $changed,
 			'rev'     => $new_rev,
 		);
+	}
+
+	/**
+	 * Display name and time of the last writer of a tab (T-7).
+	 *
+	 * @param string $tab Tab.
+	 * @return array{user_id: int, at: string}
+	 */
+	public static function last_writer( string $tab ): array {
+		$raw = get_option( self::OPTION_PREFIX . $tab );
+		return array(
+			'user_id' => is_array( $raw ) ? (int) ( $raw['_updated_by'] ?? 0 ) : 0,
+			'at'      => is_array( $raw ) ? (string) ( $raw['_updated_at'] ?? '' ) : '',
+		);
+	}
+
+	/**
+	 * Whether the undo slot of a tab is filled and not expired.
+	 *
+	 * @param string $tab Tab.
+	 * @return int Expiry timestamp, 0 when there is nothing to undo.
+	 */
+	public static function undo_until( string $tab ): int {
+		$undo = get_option( self::UNDO_PREFIX . $tab );
+		$exp  = is_array( $undo ) ? (int) ( $undo['expires_at'] ?? 0 ) : 0;
+		return $exp >= time() && is_array( $undo['values'] ?? null ) ? $exp : 0;
+	}
+
+	/**
+	 * Whether the actor may see/change fields of a cap class.
+	 *
+	 * @param Actor  $actor Actor.
+	 * @param string $cap   settings|admin.
+	 * @return bool
+	 */
+	public static function allowed( Actor $actor, string $cap ): bool {
+		return self::can( $actor, $cap );
 	}
 
 	/**
@@ -473,10 +546,11 @@ final class Settings {
 	 * @param array                               $changed Changed keys.
 	 * @param array<string, mixed>                $before  Before.
 	 * @param array<string, mixed>                $after   After.
+	 * @param array<string, mixed>                $context Extra audit context (`context`, `step`, `confirmed_risks`).
 	 * @phpstan-param list<string> $changed
 	 * @return void
 	 */
-	private static function audit( Actor $actor, string $action, string $tab, array $schema, array $changed, array $before, array $after ): void {
+	private static function audit( Actor $actor, string $action, string $tab, array $schema, array $changed, array $before, array $after, array $context = array() ): void {
 		$diff = array();
 		foreach ( $changed as $field ) {
 			$privacy        = (string) $schema[ $field ]['privacy'];
@@ -497,7 +571,7 @@ final class Settings {
 			array(
 				'tab'     => $tab,
 				'changed' => $diff,
-			)
+			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks' ) ) )
 		);
 	}
 
