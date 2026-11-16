@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Course;
 
+use CourseCaptain\Activity\ActivityRegistry;
+use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
@@ -247,6 +249,7 @@ final class CoursePublisher {
 					'lesson_id'      => (int) $lesson->ID,
 					'activity_uid'   => (string) get_post_meta( (int) $lesson->ID, ObjectIdentity::ACTIVITY_UID_META, true ),
 					'activity_type'  => (string) get_post_meta( (int) $lesson->ID, ObjectIdentity::ACTIVITY_TYPE_META, true ),
+					'activity'       => self::frozen_activity( (int) $lesson->ID ),
 					'menu_order'     => (int) $lesson->menu_order,
 					'required'       => true,
 					'wp_revision_id' => self::latest_wp_revision( $lesson ),
@@ -278,6 +281,19 @@ final class CoursePublisher {
 			'exam_rules'     => $exam_rules,
 			'access_rules'   => $access_rules,
 		);
+	}
+
+	/**
+	 * Frozen activity definition (contract/settings version, settings hash,
+	 * completion rule; R0-08 §2.3). Lessons without a type count as `lesson`.
+	 *
+	 * @param int $lesson_id Lesson.
+	 * @return array<string, mixed>
+	 */
+	private static function frozen_activity( int $lesson_id ): array {
+		$definition = ActivityService::definition( $lesson_id );
+		$type       = '' === $definition['type'] ? 'lesson' : $definition['type'];
+		return ActivityRegistry::instance()->freeze( $type, $definition['settings'], $definition['rule'] );
 	}
 
 	/**

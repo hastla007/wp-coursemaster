@@ -68,6 +68,7 @@ final class QuestionPresenter {
 			'r'   => (int) $revision['id'],
 			'c'   => $course_id,
 			'm'   => $module_id,
+			'a'   => 0,
 			'o'   => $delivery['order'],
 			'exp' => $this->db->time() + self::TOKEN_TTL,
 		);
@@ -79,11 +80,58 @@ final class QuestionPresenter {
 	}
 
 	/**
+	 * Deliver an inline question of a lesson (lesson quiz, GM-007).
+	 *
+	 * @param Actor           $actor       Learner.
+	 * @param int             $course_id   Course.
+	 * @param int             $lesson_id   Lesson.
+	 * @param int             $question_id Question.
+	 * @param Randomizer|null $randomizer  Injected for tests.
+	 * @return array{question: array<string, mixed>, token: string}
+	 * @throws CourseException When not allowed or not deliverable.
+	 */
+	public function deliver_inline( Actor $actor, int $course_id, int $lesson_id, int $question_id, ?Randomizer $randomizer = null ): array {
+		$module_id = (int) wp_get_post_parent_id( $lesson_id );
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ), array( 'module' => $module_id ) ), 'No learning access.' );
+		$revision = $this->inline_revision( $lesson_id, $question_id );
+		$this->assert_not_in_running_exam( $actor->user_id, $question_id );
+		$uid      = (string) $this->db->scalar( $this->db->prepare( 'SELECT uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
+		$delivery = QuestionTypes::deliver( $revision, $randomizer ?? Randomizer::fresh(), $uid );
+		$claims   = array(
+			'u'   => $actor->user_id,
+			'q'   => $question_id,
+			'r'   => (int) $revision['id'],
+			'c'   => $course_id,
+			'm'   => $module_id,
+			'a'   => $lesson_id,
+			'o'   => $delivery['order'],
+			'exp' => $this->db->time() + self::TOKEN_TTL,
+		);
+		return array(
+			'question' => $delivery['payload'] + array( 'uid' => $uid ),
+			'token'    => self::sign( $claims ),
+		);
+	}
+
+	/**
+	 * Inline questions of a lesson in order (ccap_activity_question).
+	 *
+	 * @param int $lesson_id Lesson.
+	 * @return list<int>
+	 */
+	public function inline_questions( int $lesson_id ): array {
+		$aq   = $this->db->table( 'ccap_activity_question' );
+		$q    = $this->db->table( 'ccap_question' );
+		$rows = $this->db->rows( $this->db->prepare( "SELECT aq.question_id FROM `{$aq}` aq JOIN `{$q}` q ON q.id = aq.question_id WHERE aq.activity_id = %d AND q.status = 'published' ORDER BY aq.sort_order, aq.question_id", $lesson_id ) );
+		return array_map( static fn( array $row ): int => (int) $row['question_id'], $rows );
+	}
+
+	/**
 	 * Verify a token for the acting learner and re-check access now.
 	 *
 	 * @param Actor  $actor Learner.
 	 * @param string $token Token.
-	 * @return array{u: int, q: int, r: int, c: int, m: int, o: list<string>, exp: int}
+	 * @return array{u: int, q: int, r: int, c: int, m: int, a: int, o: list<string>, exp: int}
 	 * @throws CourseException `ccap_invalid_token` (422), access errors, or 404 when no longer deliverable.
 	 */
 	public function verify( Actor $actor, string $token ): array {
@@ -95,7 +143,11 @@ final class QuestionPresenter {
 			throw new CourseException( 'ccap_content_locked', 'expired', 403 );
 		}
 		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $claims['c'] ), array( 'module' => $claims['m'] ) ), 'No learning access.' );
-		$this->deliverable_revision( $claims['m'], $claims['q'] );
+		if ( $claims['a'] > 0 ) {
+			$this->inline_revision( $claims['a'], $claims['q'] );
+		} else {
+			$this->deliverable_revision( $claims['m'], $claims['q'] );
+		}
 		$this->assert_not_in_running_exam( $actor->user_id, $claims['q'] );
 		return $claims;
 	}
@@ -169,6 +221,26 @@ final class QuestionPresenter {
 	}
 
 	/**
+	 * Published current revision of an inline question of a lesson.
+	 *
+	 * @param int $lesson_id   Lesson.
+	 * @param int $question_id Question.
+	 * @return array<string, mixed>
+	 * @throws CourseException 404 when not deliverable.
+	 */
+	private function inline_revision( int $lesson_id, int $question_id ): array {
+		if ( ! in_array( $question_id, $this->inline_questions( $lesson_id ), true ) ) {
+			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
+		}
+		$current  = (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
+		$revision = $this->questions->revision( $current );
+		if ( null === $revision || 'published' !== $revision['editorial_status'] ) {
+			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
+		}
+		return $revision;
+	}
+
+	/**
 	 * SEC-016 / R0-08 §1.4 Nr. 5: questions of the learner's running exam are
 	 * locked in learning mode (no looking up answers during the exam).
 	 *
@@ -216,7 +288,7 @@ final class QuestionPresenter {
 	 * Check signature and shape.
 	 *
 	 * @param string $token Token.
-	 * @return array{u: int, q: int, r: int, c: int, m: int, o: list<string>, exp: int}|null
+	 * @return array{u: int, q: int, r: int, c: int, m: int, a: int, o: list<string>, exp: int}|null
 	 */
 	private static function unsign( string $token ): ?array {
 		$parts = explode( '.', $token );
@@ -241,6 +313,7 @@ final class QuestionPresenter {
 			'r'   => $claims['r'],
 			'c'   => $claims['c'],
 			'm'   => $claims['m'],
+			'a'   => isset( $claims['a'] ) && is_int( $claims['a'] ) ? $claims['a'] : 0,
 			'o'   => array_values( array_map( 'strval', $claims['o'] ) ),
 			'exp' => $claims['exp'],
 		);

@@ -149,8 +149,10 @@ final class UninstallManifest {
 	 * @var list<string>
 	 */
 	public const POST_META = array(
+		'_ccap_activity_settings',
 		'_ccap_activity_type',
 		'_ccap_activity_uid',
+		'_ccap_completion_rule',
 		'_ccap_current_revision_id',
 		'_ccap_language',
 	);

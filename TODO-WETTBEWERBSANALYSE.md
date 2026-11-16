@@ -248,7 +248,7 @@
   - **Ergebnis/Definition of Done:** Single/Multi/Open/weitere belegte Typen, Revisionen, Medien und Feedback.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-07 · Activity-Provider und Lernmedien**
+- [x] **R1-07 · Activity-Provider und Lernmedien** — erledigt 16.11.2026: Nachweis `docs/r1/R1-07-nachweis.md`; Provider-Vertrag + Registry, 7 R1-Typen mit Abschlussregeln, Einfrieren in die Kursrevision, Fortschritt (GM-011), Video/Fremdhost/Consent-Modus (GM-008/012/013/014), Lektionsquiz (GM-007), Lernmedien; Unit 85, Integration 68, Multisite 77. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04, R1-06.
   - **Ergebnis/Definition of Done:** Versionierte Activity-Verträge, Video/Schritte/Downloads, externe Medien-Consent.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
