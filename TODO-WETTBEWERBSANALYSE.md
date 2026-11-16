@@ -104,7 +104,7 @@
   - **Ergebnis/Definition of Done:** CI-Matrix, PHP-/JS-Checks, Unit/Integration/E2E, SAST, Dependency-Scan, Paket-Signierung und Releaseartefakte definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-19 · Öffentliche API- und Erweiterungsverträge inventarisieren**
+- [ ] **R0-19 · Öffentliche API- und Erweiterungsverträge inventarisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-19-api-erweiterungsvertraege.md` (Versionierung/Deprecation, 50 REST-Routen, 46+7 Fehlercodes, 14 PHP-Funktionen, 13 Actions, 24 Filter, 3 Shortcodes, 5 Blocks, 15 CLI-Kommandos, Event-Envelope v1 mit 27 Typen, Connector-Registry, Integrationsstatus); Entscheidung offen → E-118…E-120
   - **Voraussetzung:** R0-02,R0-08.
   - **Ergebnis/Definition of Done:** Alle Hooks, Filter, REST-Routen, Shortcodes, Blocks, CLI-Kommandos und geplanten Events mit Versionierung, Auth, Fehlercodes und Deprecation-Policy tabellarisch spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

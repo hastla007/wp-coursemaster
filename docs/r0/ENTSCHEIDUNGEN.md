@@ -86,8 +86,8 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 
 | Widerspruch | Aufgelöst durch |
 |---|---|
-| Kap. 18 und Kap. 30.3 enthalten zwei verschiedene Event-Envelopes „v1“ | R0-19: ein Envelope wird festgelegt (technisch, keine Produktentscheidung) |
-| Kap. 30.3 und Kap. 33 nennen unterschiedliche Integrationsstatus-Listen | R0-34 (technisch) |
+| Kap. 18 und Kap. 30.3 enthalten zwei verschiedene Event-Envelopes „v1“ | **aufgelöst in R0-19 §5** (Struktur Kap. 30.3 plus Felder aus Kap. 18) |
+| Kap. 30.3 und Kap. 33 nennen unterschiedliche Integrationsstatus-Listen | **aufgelöst in R0-19 §6** (8 Zustände aus Kap. 33) |
 | Kap. 18.2: Pass-Check-in löst Kursabschluss aus; Kap. 30.2/31: höchstens Zugang | **Kap. 31 gilt** (jüngere Entscheidung nach Kap. 46.1); Kap. 18.2 wird redaktionell korrigiert |
 | Kap. 8/30.2: Workflow-Aktion `course.enroll`/`revoke` | E-39 |
 | Kap. 32: „Voucher allein“, Voucher setzt aber WooCommerce voraus | Faktenkorrektur: Test „Voucher allein“ entfällt; R3.3-Gate prüft „Woo allein“ und „Woo + Voucher“ |
@@ -233,3 +233,13 @@ Technisch festgelegt und nicht abzustimmen: In LB können Grants auf drei Wegen 
 | E-115 | Grenze für das Umverteilen von Gruppenplätzen in Free? | **Keine Grenze** | R0-09 D09-4 | R1-13, R3-03 |
 | E-116 | Aufbewahrung von Inbox/Outbox-Ereignissen | **90 Tage**, danach löschen | R0-09 D09-5 | R1-13, R3-03 |
 | E-117 | Kundenwechsel in der Quelle (z. B. Woo-Bestellung wird einem anderen Kunden zugeordnet) | **Neue Grant-Revision** statt stillem Umhängen wie in LB | R0-09 D09-6 | R1-13, R3-03 |
+
+## 19. Öffentliche API (aus R0-19)
+
+Technisch festgelegt und nicht abzustimmen (Architektur): öffentliche Hooks und Funktionen heißen `course_captain_*`, interne Kennungen (Tabellen, Caps, Cron, Fehlercodes) `cc_*`. `course_captain_enroll_v1` entfällt, Zugang entsteht nur über `grant_access_v1`. Fehlercodes sind klein mit `cc_`-Präfix, Content-Type `application/json` (WordPress-kompatibel, präzisiert E-06). Die Widersprüche Kap. 18 vs. 30.3 (Event-Envelope) und Kap. 30.3 vs. 33 (Integrationsstatus) sind in R0-19 §5/§6 aufgelöst.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-118 | Deprecation-Frist für stabile öffentliche Verträge (Hooks, REST, PHP-API, Events) | **Mindestens 2 Minor-Releases und 6 Monate**; ein alter Major-Namespace bleibt 12 Monate parallel. Ausnahme bei Sicherheitsproblemen, mit Changelog | R0-19 D19-2 | R1-28, R3-12 |
+| E-119 | Werden Events auch ohne aktiven Connector gespeichert? | **Ja, 30 Tage** (änderbar im Datenschutz-Tab), minimal und pseudonym; nötig für Pull, Backfill und Replay | R0-19 D19-3 | R1-17, R3-01 |
+| E-120 | Freigabe personenbezogener Event-Klassen (Lernfortschritt, Prüfungsergebnis, Zertifikat) je Connector | **Eigene Betreiberfreigabe je Klasse und Connector**; nur der Zugangsstatus ist ohne Extra-Freigabe dabei | R0-19 D19-4 | R3-01, R3-16 |
