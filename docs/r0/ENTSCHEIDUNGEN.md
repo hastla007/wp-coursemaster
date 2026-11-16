@@ -55,6 +55,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-41 | Review Captain prüft die Kommunikationsberechtigung; Course liefert nur den Empfänger | nein |
 | E-42 | Produkt `course-captain-pro` bei License Captain vor R3-18 beauftragen (nach Neuzuschnitt E-95); Zugriff auf captain-pro für die Prüfung nötig | nein |
 | E-43 | Automatische Kontolöschung nach Löschantrag standardmäßig aus, Opt-in | nein |
+| E-44 | LB-Aufbewahrungsfristen als änderbare Defaults; juristische Bestätigung durch den Betreiber | nein |
+| E-45 | **Externe Medien werden ohne Klick-Einwilligung direkt geladen.** Hinweis: Das widerspricht R0-10 §5, R0-17 (Consent) und R0-31 (Privacy by Default) und ist datenschutzrechtlich riskant (Übermittlung an YouTube/Vimeo ohne Einwilligung); WordPress.org verlangt die Offenlegung externer Dienste in der readme. Rückfrage dazu in E-45a | **ja** |
+| E-46 | Fail-closed für Login, Reset, Registrierung, Claim, Einlösen, Einladungen, Datenschutzanträge; Lernen fail-open; bekannte Geräte dürfen weiter einloggen | nein |
+| E-47 | Hybrid: Inhalte als CPT, Massendaten/Transaktionen in eigenen Tabellen | nein |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
