@@ -403,7 +403,7 @@
   - **Ergebnis/Definition of Done:** Öffentliche Kursseiten SEO-kompatibel; private Prüfungen, Profile, Medien und Grants nicht indexierbar oder per API abrufbar; Yoast-Konflikttests.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R1-38 · Betriebsdashboard mit sicheren Reparaturaktionen**
+- [x] **R1-38 · Betriebsdashboard mit sicheren Reparaturaktionen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-38-nachweis.md`; Statusseite (Prüfliste, Jobs, Integrationen, Diagnose), Reparaturaktionen mit Recht/Nonce/Begründung/Audit/Idempotenz (Migration erneut, Dead-Letter, gehaltene Mails, Cache), Integrationsstatus nur über Versions-APIs, Diagnosepaket mit Scrubber, WP-CLI `status|cache flush|outbox|integrations|diagnostics`. Korrekturdialoge K-01…K-15 und Reconcile offen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-24,R0-34.
   - **Ergebnis/Definition of Done:** Cron/Jobs/Import/Grant-Fehler mit IDs und sicheren Retry/Reconcile-Aktionen, Rollen-/Dedupe-Tests, redigiertem Diagnoseexport.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
