@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Security;
 
 use CourseCaptain\Event\AuditLog;
+use CourseCaptain\Ops\Compatibility;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
@@ -169,23 +170,8 @@ final class Hardening {
 	 * @return array<string, string> feature => reason slug
 	 */
 	public static function conflicts(): array {
-		$login = null;
-		$known = array(
-			'wordfence'              => defined( 'WORDFENCE_VERSION' ),
-			'solid-security'         => defined( 'ITSEC_CORE_FILE' ) || class_exists( '\ITSEC_Core' ),
-			'limit-login-attempts'   => class_exists( '\LLAR\Core\LimitLoginAttempts' ) || defined( 'LLA_PLUGIN_URL' ),
-			'loginizer'              => defined( 'LOGINIZER_VERSION' ),
-			'all-in-one-wp-security' => defined( 'AIO_WP_SECURITY_VERSION' ),
-			'wp-cerber'              => defined( 'CERBER_VER' ),
-			'shield'                 => defined( 'ICWP_WPSF_FULL_PATH' ),
-		);
-		foreach ( $known as $slug => $present ) {
-			if ( $present ) {
-				$login = $slug;
-				break;
-			}
-		}
-		$jetpack = defined( 'JETPACK__VERSION' );
+		$login   = Compatibility::security_plugin();
+		$jetpack = Compatibility::constant( 'JETPACK__VERSION' );
 		if ( null === $login && $jetpack && is_callable( array( 'Jetpack', 'is_module_active' ) ) && call_user_func( array( 'Jetpack', 'is_module_active' ), 'protect' ) ) {
 			$login = 'jetpack-protect';
 		}
@@ -200,6 +186,9 @@ final class Hardening {
 		}
 		if ( $jetpack ) {
 			$out['xmlrpc'] = 'jetpack';
+		} elseif ( self::foreign_xmlrpc_rule() ) {
+			// KOMP-058: another plugin already switches XML-RPC off; `auto` steps back.
+			$out['xmlrpc'] = 'other_plugin';
 		}
 		/**
 		 * Conflicts per feature (maintained with the conflict matrix R1-30).
@@ -268,7 +257,7 @@ final class Hardening {
 				array( 'filter', array( self::class, 'registration' ), 99, 3, 'registration_errors' ),
 			),
 			'xmlrpc'             => array(
-				array( 'filter', '__return_false', 99, 1, 'xmlrpc_enabled' ),
+				array( 'filter', array( self::class, 'xmlrpc_off' ), 99, 1, 'xmlrpc_enabled' ),
 				array( 'filter', array( self::class, 'xmlrpc_methods' ), 99, 1, 'xmlrpc_methods' ),
 				array( 'filter', array( self::class, 'remove_pingback_header' ), 99, 1, 'wp_headers' ),
 			),
@@ -354,7 +343,7 @@ final class Hardening {
 	 * @return string
 	 */
 	private static function ip(): string {
-		$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( (string) $_SERVER['REMOTE_ADDR'] ) ) : 'unknown';
+		$ip = ClientIp::get();
 		if ( false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
 			$packed = (string) inet_pton( $ip );
 			return 'v6:' . bin2hex( substr( $packed, 0, 8 ) );
@@ -600,6 +589,34 @@ final class Hardening {
 	}
 
 	/**
+	 * `xmlrpc_enabled` callback of the own XML-RPC block (distinct from foreign `__return_false`).
+	 *
+	 * @return bool
+	 */
+	public static function xmlrpc_off(): bool {
+		return false;
+	}
+
+	/**
+	 * Whether another plugin already disables XML-RPC (KOMP-058). The own
+	 * callback is left out of the evaluation.
+	 *
+	 * @return bool
+	 */
+	public static function foreign_xmlrpc_rule(): bool {
+		$own      = array( self::class, 'xmlrpc_off' );
+		$priority = has_filter( 'xmlrpc_enabled', $own );
+		if ( false !== $priority ) {
+			remove_filter( 'xmlrpc_enabled', $own, (int) $priority );
+		}
+		$enabled = (bool) apply_filters( 'xmlrpc_enabled', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter probed read-only.
+		if ( false !== $priority ) {
+			add_filter( 'xmlrpc_enabled', $own, (int) $priority );
+		}
+		return ! $enabled;
+	}
+
+	/**
 	 * XML-RPC: drop multicall and pingbacks; authenticated methods are off via `xmlrpc_enabled`.
 	 *
 	 * @param mixed $methods Methods.
@@ -664,7 +681,11 @@ final class Hardening {
 	public static function rest_permissions_policy( $response, $server, $request ) {
 		unset( $server );
 		if ( $response instanceof \WP_HTTP_Response && $request instanceof \WP_REST_Request && 0 === strpos( $request->get_route(), '/course-captain/' ) ) {
-			$response->header( 'Permissions-Policy', self::PERMISSIONS_POLICY );
+			// E-307: a header another plugin already set on this response rests.
+			$present = array_change_key_case( $response->get_headers(), CASE_LOWER );
+			if ( ! isset( $present['permissions-policy'] ) ) {
+				$response->header( 'Permissions-Policy', self::PERMISSIONS_POLICY );
+			}
 		}
 		return $response;
 	}
@@ -746,7 +767,7 @@ final class Hardening {
 		$states = self::states();
 		$items  = '';
 		foreach ( $states as $feature => $state ) {
-			$items .= '<li>' . esc_html( $feature . ': ' . $state ) . '</li>';
+			$items .= '<li>' . esc_html( $feature . ': ' . $state ) . "</li>\n";
 		}
 		$warning = self::kill_switch() || ( self::confirmed() && 'off' === ( $states['login_limit'] ?? 'off' ) );
 		return array(

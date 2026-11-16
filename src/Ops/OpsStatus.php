@@ -66,7 +66,10 @@ final class OpsStatus {
 			self::imports_check( $db ),
 			self::secret_check(),
 			self::integrations_check( $integrations ),
+			self::from_site_health( 'hardening', \CourseCaptain\Security\Hardening::health_result() ),
 		);
+		// R1-30: conflicts with other plugins and the server setup (R0-20 §2, §3).
+		$checks = array_merge( $checks, Compatibility::checks() );
 		return array(
 			'overall'       => self::overall( $checks ),
 			'checks'        => $checks,

@@ -33,13 +33,13 @@ final class PolicyUnitTest extends TestCase {
 		self::assertSame( array( 'ccap_course_manager', 'ccap_author', 'ccap_trainer', 'ccap_support' ), Roles::ALL );
 		foreach ( Roles::capabilities() as $slug => $caps ) {
 			foreach ( $caps as $cap ) {
-				self::assertTrue( in_array( $cap, Capabilities::PRIMITIVE, true ) || in_array( $cap, array( 'read', 'upload_files' ), true ), "{$slug}: {$cap}" );
+				self::assertTrue( in_array( $cap, Capabilities::PRIMITIVE, true ) || in_array( $cap, Roles::BASE_CAPS, true ), "{$slug}: {$cap}" );
 			}
 			foreach ( array( 'ccap_manage_settings', 'ccap_manage_integrations', 'ccap_run_maintenance' ) as $admin_only ) {
 				self::assertNotContains( $admin_only, $caps, $slug );
 			}
 		}
-		self::assertCount( 22, Roles::capabilities()[ Roles::COURSE_MANAGER ], 'read, upload_files + caps 1–18, 22, 24' );
+		self::assertCount( 23, Roles::capabilities()[ Roles::COURSE_MANAGER ], 'read, view_admin_dashboard, upload_files + caps 1–18, 22, 24' );
 	}
 
 	/**

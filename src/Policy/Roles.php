@@ -35,6 +35,15 @@ final class Roles {
 	public const ALL = array( self::COURSE_MANAGER, self::AUTHOR, self::TRAINER, self::SUPPORT );
 
 	/**
+	 * Core/shop capabilities besides the `ccap_*` caps: `view_admin_dashboard`
+	 * keeps wp-admin reachable when a shop plugin locks out roles without
+	 * `edit_posts` (D-20-10, KOMP-102).
+	 *
+	 * @var list<string>
+	 */
+	public const BASE_CAPS = array( 'read', 'view_admin_dashboard', 'upload_files' );
+
+	/**
 	 * Default capabilities per role (R0-07 §3.1 table, §2).
 	 *
 	 * @return array<string, list<string>>
@@ -44,6 +53,7 @@ final class Roles {
 			// Caps 1–18, 22, 24.
 			self::COURSE_MANAGER => array(
 				'read',
+				'view_admin_dashboard',
 				'upload_files',
 				'ccap_edit_courses',
 				'ccap_edit_others_courses',
@@ -66,9 +76,9 @@ final class Roles {
 				'ccap_view_system_status',
 				'ccap_assign_staff',
 			),
-			self::AUTHOR         => array( 'read', 'upload_files', 'ccap_edit_courses' ),
-			self::TRAINER        => array( 'read', 'ccap_view_reports', 'ccap_view_learner_details', 'ccap_grade_attempts' ),
-			self::SUPPORT        => array( 'read', 'ccap_view_learner_details', 'ccap_lock_learners', 'ccap_view_system_status', 'ccap_view_audit_log' ),
+			self::AUTHOR         => array( 'read', 'view_admin_dashboard', 'upload_files', 'ccap_edit_courses' ),
+			self::TRAINER        => array( 'read', 'view_admin_dashboard', 'ccap_view_reports', 'ccap_view_learner_details', 'ccap_grade_attempts' ),
+			self::SUPPORT        => array( 'read', 'view_admin_dashboard', 'ccap_view_learner_details', 'ccap_lock_learners', 'ccap_view_system_status', 'ccap_view_audit_log' ),
 		);
 	}
 
@@ -90,6 +100,9 @@ final class Roles {
 	/**
 	 * Create missing roles and add missing default capabilities. Never
 	 * removes capabilities an operator added (idempotent re-activation).
+	 * A role of the same name without a `ccap_*` capability belongs to
+	 * another plugin and stays untouched (KOMP-131; reported by the system
+	 * status as collision).
 	 *
 	 * @return void
 	 */
@@ -101,12 +114,30 @@ final class Roles {
 				add_role( $slug, $labels[ $slug ], array_fill_keys( $caps, true ) );
 				continue;
 			}
+			if ( ! self::owned( $role ) ) {
+				continue;
+			}
 			foreach ( $caps as $cap ) {
 				if ( ! $role->has_cap( $cap ) ) {
 					$role->add_cap( $cap );
 				}
 			}
 		}
+	}
+
+	/**
+	 * Ownership marker of a role: at least one `ccap_*` capability (KOMP-131).
+	 *
+	 * @param \WP_Role $role Role.
+	 * @return bool
+	 */
+	public static function owned( \WP_Role $role ): bool {
+		foreach ( array_keys( $role->capabilities ) as $cap ) {
+			if ( 0 === strpos( (string) $cap, 'ccap_' ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

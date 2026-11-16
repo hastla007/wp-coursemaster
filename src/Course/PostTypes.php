@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Course;
 
+use CourseCaptain\Ops\Compatibility;
 use CourseCaptain\Policy\MetaCaps;
 use CourseCaptain\Policy\Relations;
 
@@ -46,9 +47,11 @@ final class PostTypes {
 			'rewrite'             => false,
 			'query_var'           => false,
 			'can_export'          => false,
+			// Ownership marker (KOMP-131): a foreign type of the same name is never overwritten.
+			'ccap_owner'          => true,
 		);
 
-		register_post_type(
+		self::register_type(
 			Relations::COURSE_TYPE,
 			array(
 				'labels'              => self::labels( __( 'Courses', 'course-captain' ), __( 'Course', 'course-captain' ) ),
@@ -64,22 +67,22 @@ final class PostTypes {
 				'supports'            => array( 'title', 'editor', 'excerpt', 'thumbnail', 'revisions', 'author' ),
 			) + $base
 		);
-		register_post_type(
+		self::register_type(
 			Relations::MODULE_TYPE,
 			array(
 				'labels'       => self::labels( __( 'Modules', 'course-captain' ), __( 'Module', 'course-captain' ) ),
 				'hierarchical' => false,
 			) + $base
 		);
-		register_post_type(
+		self::register_type(
 			Relations::LESSON_TYPE,
 			array(
 				'labels'   => self::labels( __( 'Lessons', 'course-captain' ), __( 'Lesson', 'course-captain' ) ),
 				'supports' => array( 'title', 'editor', 'revisions', 'author', 'page-attributes' ),
 			) + $base
 		);
-		register_post_type( Relations::FAQ_TYPE, array( 'labels' => self::labels( __( 'Course FAQs', 'course-captain' ), __( 'Course FAQ', 'course-captain' ) ) ) + $base );
-		register_post_type( Relations::TIP_TYPE, array( 'labels' => self::labels( __( 'Learning tips', 'course-captain' ), __( 'Learning tip', 'course-captain' ) ) ) + $base );
+		self::register_type( Relations::FAQ_TYPE, array( 'labels' => self::labels( __( 'Course FAQs', 'course-captain' ), __( 'Course FAQ', 'course-captain' ) ) ) + $base );
+		self::register_type( Relations::TIP_TYPE, array( 'labels' => self::labels( __( 'Learning tips', 'course-captain' ), __( 'Learning tip', 'course-captain' ) ) ) + $base );
 
 		register_post_status(
 			self::STATUS_ARCHIVED,
@@ -107,6 +110,20 @@ final class PostTypes {
 				'show_in_admin_status_list' => false,
 			)
 		);
+	}
+
+	/**
+	 * Register unless a foreign type holds the slug (KOMP-131).
+	 *
+	 * @param string               $type Post type.
+	 * @param array<string, mixed> $args Arguments.
+	 * @phpstan-param lowercase-string&non-empty-string $type
+	 * @return void
+	 */
+	private static function register_type( string $type, array $args ): void {
+		if ( Compatibility::post_type_available( $type ) ) {
+			register_post_type( $type, $args );
+		}
 	}
 
 	/**

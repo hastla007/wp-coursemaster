@@ -100,7 +100,7 @@ final class HardeningTest extends SchemaTestCase {
 		Hardening::apply();
 		self::assertSame( 'off:unconfirmed', Hardening::states()['login_limit'] );
 		self::assertFalse( has_filter( 'authenticate', array( Hardening::class, 'authenticate' ) ) );
-		self::assertFalse( has_filter( 'xmlrpc_enabled', '__return_false' ) );
+		self::assertFalse( has_filter( 'xmlrpc_enabled', array( Hardening::class, 'xmlrpc_off' ) ) );
 		$this->confirm();
 		self::assertSame( 'active', Hardening::states()['login_limit'] );
 		self::assertNotFalse( has_filter( 'authenticate', array( Hardening::class, 'authenticate' ) ) );

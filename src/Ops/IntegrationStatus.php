@@ -230,12 +230,12 @@ final class IntegrationStatus {
 		$version  = null;
 		$contract = null;
 		$api      = false;
-		if ( '' !== $entry['version_constant'] && defined( $entry['version_constant'] ) && ( '' === $entry['function'] || function_exists( $entry['function'] ) ) ) {
-			$version = self::semver( constant( $entry['version_constant'] ) );
+		if ( '' !== $entry['version_constant'] && Compatibility::constant( $entry['version_constant'] ) && ( '' === $entry['function'] || Compatibility::has_function( $entry['function'] ) ) ) {
+			$version = self::semver( Compatibility::constant_value( $entry['version_constant'] ) );
 			$api     = null !== $version;
 		}
-		if ( '' !== $entry['contract_constant'] && defined( $entry['contract_constant'] ) ) {
-			$contract = self::semver( constant( $entry['contract_constant'] ) );
+		if ( '' !== $entry['contract_constant'] && Compatibility::constant( $entry['contract_constant'] ) ) {
+			$contract = self::semver( Compatibility::constant_value( $entry['contract_constant'] ) );
 			$api      = $api || null !== $contract;
 		}
 		if ( $api || ! empty( $plugins[ $entry['slug'] ] ) ) {

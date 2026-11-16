@@ -45,6 +45,7 @@ final class Settings {
 
 	/** Input key carrying the typed site name when data deletion is switched on (E-89). */
 	public const CONFIRM_SITE_FIELD = '_confirm_site_name';
+	public const CONFIRM_SLUG_FIELD = '_confirm_slug_conflict';
 
 	/**
 	 * Guard against recursion in the foreign-writer filter.
@@ -158,8 +159,26 @@ final class Settings {
 			}
 			$candidate[ $field ] = $check['value'];
 		}
+		// F4.1 / KOMP-132: a changed public slug that is already in use needs a confirmation.
+		$slug_conflicts = array();
+		if ( 'general' === $tab && empty( $input[ self::CONFIRM_SLUG_FIELD ] ) ) {
+			foreach ( array( 'learning_area_slug', 'course_slug' ) as $field ) {
+				if ( in_array( $field, $errors, true ) || $candidate[ $field ] === $before[ $field ] ) {
+					continue;
+				}
+				$found = \CourseCaptain\Ops\Compatibility::slug_conflicts( (string) $candidate[ $field ], $field );
+				if ( array() !== $found ) {
+					$errors[]                 = $field;
+					$slug_conflicts[ $field ] = array(
+						'conflicts'  => $found,
+						'suggestion' => \CourseCaptain\Ops\Compatibility::slug_suggestion( (string) $candidate[ $field ], $field ),
+					);
+				}
+			}
+		}
 		if ( array() !== $errors ) {
-			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', $errors ) ), 422 );
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Structured data for the caller, never printed.
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', $errors ) ), 422, array() === $slug_conflicts ? array() : array( 'slug_conflicts' => $slug_conflicts ) );
 		}
 		$changed = array_keys( array_filter( $candidate, static fn( $value, $key ) => $value !== $before[ $key ], ARRAY_FILTER_USE_BOTH ) );
 		if ( array() === $changed && 0 !== $stored['_rev'] ) {

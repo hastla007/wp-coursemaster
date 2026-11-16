@@ -348,7 +348,10 @@ final class ContentGateTest extends SchemaTestCase {
 		self::assertStringContainsString( 'Deny from all', (string) file_get_contents( $dir . '/.htaccess' ) );
 		self::assertFileExists( $dir . '/index.php' );
 		self::assertStringContainsString( 'svgz?', (string) file_get_contents( ProtectedStorage::dir( 'media' ) . '/.htaccess' ) );
+		$this->set_permalink_structure( '/%postname%/' );
 		self::assertStringEndsWith( '/cc-file/' . $uids[0] . '/', (string) wp_get_attachment_url( $attach[0] ), 'GM-111: URL via the check' );
+		$this->set_permalink_structure( '' );
+		self::assertStringEndsWith( '?course_captain_file=' . $uids[0], (string) wp_get_attachment_url( $attach[0] ), 'KOMP-016: query fallback' );
 
 		// GM-015: partial access lists all, only the first is free.
 		$trial = Actor::user( $this->learner( false ) );

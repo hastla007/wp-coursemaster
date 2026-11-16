@@ -91,7 +91,7 @@ final class ManifestCoverageTest extends TestCase {
 	 */
 	public function test_REC_020_registered_post_types_are_in_the_manifest(): void {
 		$code = (string) file_get_contents( self::root() . '/src/Course/PostTypes.php' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Source scan.
-		preg_match_all( '/register_post_type\(\s*Relations::([A-Z_]+)/', $code, $m );
+		preg_match_all( '/(?:register_post_type|self::register_type)\(\s*Relations::([A-Z_]+)/', $code, $m );
 		$registered = array_map( static fn( string $name ): string => (string) constant( Relations::class . '::' . $name ), $m[1] );
 
 		self::assertCount( 5, $registered );

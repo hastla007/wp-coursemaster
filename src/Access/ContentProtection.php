@@ -53,8 +53,10 @@ final class ContentProtection {
 		add_filter( 'the_excerpt_rss', array( self::class, 'filter_content' ), PHP_INT_MAX );
 		add_action( 'rest_api_init', array( self::class, 'register_rest' ) );
 		add_action( 'template_redirect', array( self::class, 'no_cache' ), 1 );
-		add_shortcode( self::SHORTCODE, array( self::class, 'shortcode' ) );
-		add_shortcode( self::SHORTCODE_LEGACY, array( self::class, 'shortcode' ) );
+		// KOMP-072: Elementor layout data outside `the_content` (templates, Theme Builder) (v).
+		add_filter( 'elementor/frontend/builder_content_data', array( self::class, 'filter_builder_data' ), 10, 2 );
+		\CourseCaptain\Ops\Compatibility::add_shortcode( self::SHORTCODE, array( self::class, 'shortcode' ) );
+		\CourseCaptain\Ops\Compatibility::add_shortcode( self::SHORTCODE_LEGACY, array( self::class, 'shortcode' ) );
 		add_action( 'course_captain_policy_changed', array( self::class, 'flush' ) );
 		add_action( 'set_current_user', array( self::class, 'flush' ) );
 	}
@@ -189,6 +191,21 @@ final class ContentProtection {
 	}
 
 	/**
+	 * Page-builder layout data of a protected post is dropped (KOMP-072, LB-K-07 behaviour).
+	 *
+	 * @param mixed $data    Element data.
+	 * @param mixed $post_id Post.
+	 * @return mixed
+	 */
+	public static function filter_builder_data( $data, $post_id = 0 ) {
+		if ( is_array( $data ) && array() !== $data && self::is_locked( (int) $post_id, get_current_user_id() ) ) {
+			self::mark_uncacheable();
+			return array();
+		}
+		return $data;
+	}
+
+	/**
 	 * Protected pages are not page-cached (GM-116).
 	 *
 	 * @return void
@@ -210,9 +227,29 @@ final class ContentProtection {
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- Page-cache convention.
 		}
+		/**
+		 * LiteSpeed Cache: mark the response as not cacheable (KOMP-032, LB-K-04 behaviour) (v).
+		 */
+		do_action( 'litespeed_control_set_nocache', 'course-captain' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Foreign plugin action, inert without it.
 		if ( ! headers_sent() ) {
 			nocache_headers();
+			foreach ( self::uncacheable_headers() as $name => $value ) {
+				header( $name . ': ' . $value );
+			}
 		}
+	}
+
+	/**
+	 * H-X headers for HTML responses (R0-21 §3.5): page caches, LiteSpeed,
+	 * nginx `fastcgi_cache`, Varnish/CDN (KOMP-013, KOMP-014, KOMP-037, KOMP-041).
+	 * Robots stay a decision of the SEO layer.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function uncacheable_headers(): array {
+		$headers = \CourseCaptain\Cache\CacheInvalidation::NO_STORE;
+		unset( $headers['X-Robots-Tag'] );
+		return $headers;
 	}
 
 	/**
