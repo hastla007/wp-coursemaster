@@ -353,7 +353,7 @@
   - **Ergebnis/Definition of Done:** Versuche bleiben revisionsfest, Fortschritt bleibt konsistent, archivierte Inhalte und Zertifikate nachvollziehbar.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-28 · Öffentliche API-/Block-/Shortcode-Verträge absichern**
+- [x] **R1-28 · Öffentliche API-/Block-/Shortcode-Verträge absichern** — erledigt 16.11.2026: Nachweis `docs/r1/R1-28-nachweis.md`; Fehlerformat nach R0-19 §3.1 mit Request-ID, Deprecation-Header, Routen-/Hook-Snapshots als Contract-Gate, anonyme 401 für alle privaten Routen, Shortcode-Präfix `ccap_` mit Alias, Block-Versionen, `docs/API.md` + Changelog; Integration 216, Multisite 225. Idempotency-Header/Route-Schemas folgen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-03,R1-14,R1-16.
   - **Ergebnis/Definition of Done:** Versionierung, Permissions, Fehlerformate, Sanitization, Deprecation- und Contract-Tests für freigegebene Einstiegspunkte.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

@@ -425,9 +425,9 @@ final class ContentGateTest extends SchemaTestCase {
 
 		// GM-109: section.
 		wp_set_current_user( $outsider );
-		self::assertStringNotContainsString( 'Hidden part', do_shortcode( '[course_captain_protected course="' . $this->course . '"]Hidden part[/course_captain_protected]' ) );
+		self::assertStringNotContainsString( 'Hidden part', do_shortcode( '[ccap_protected course="' . $this->course . '"]Hidden part[/ccap_protected]' ) );
 		wp_set_current_user( $member );
-		self::assertStringContainsString( 'Hidden part', do_shortcode( '[course_captain_protected course="' . $this->course . '"]Hidden part[/course_captain_protected]' ) );
+		self::assertStringContainsString( 'Hidden part', do_shortcode( '[ccap_protected course="' . $this->course . '"]Hidden part[/ccap_protected]' ) );
 
 		// GM-110: a new free rule frees at once (memo flushed).
 		$this->rule( 'free', null, null );

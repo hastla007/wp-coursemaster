@@ -212,6 +212,7 @@ final class Plugin {
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		\CourseCaptain\Cache\CacheInvalidation::register();
+		\CourseCaptain\Rest\RestContract::register();
 		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );
 

@@ -27,7 +27,12 @@ defined( 'ABSPATH' ) || exit;
 final class ContentProtection {
 
 	public const META      = '_ccap_protected_course';
-	public const SHORTCODE = 'course_captain_protected';
+	public const SHORTCODE = 'ccap_protected';
+
+	/**
+	 * Pre-release tag, kept as deprecated alias (R0-19 §1.5, E-285).
+	 */
+	public const SHORTCODE_LEGACY = 'course_captain_protected';
 
 	/**
 	 * Memo: "user:course" → locked.
@@ -49,6 +54,7 @@ final class ContentProtection {
 		add_action( 'rest_api_init', array( self::class, 'register_rest' ) );
 		add_action( 'template_redirect', array( self::class, 'no_cache' ), 1 );
 		add_shortcode( self::SHORTCODE, array( self::class, 'shortcode' ) );
+		add_shortcode( self::SHORTCODE_LEGACY, array( self::class, 'shortcode' ) );
 		add_action( 'course_captain_policy_changed', array( self::class, 'flush' ) );
 		add_action( 'set_current_user', array( self::class, 'flush' ) );
 	}
@@ -218,7 +224,9 @@ final class ContentProtection {
 	 * @return string
 	 */
 	public static function shortcode( $atts, $content = null, $tag = '' ): string {
-		unset( $tag );
+		if ( self::SHORTCODE_LEGACY === $tag ) {
+			_deprecated_function( '[' . esc_html( self::SHORTCODE_LEGACY ) . ']', '0.1.0', '[' . esc_html( self::SHORTCODE ) . ']' );
+		}
 		$atts   = shortcode_atts( array( 'course' => 0 ), (array) $atts, self::SHORTCODE );
 		$course = (int) $atts['course'];
 		self::mark_uncacheable();
