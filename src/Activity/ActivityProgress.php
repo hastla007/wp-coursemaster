@@ -100,10 +100,16 @@ final class ActivityProgress {
 			case 'download':
 				$data['downloaded'] = true;
 				break;
+			case 'cards':
+				// Card counts are always computed server-side below.
+				break;
 			default:
 				throw new CourseException( 'ccap_invalid_param', 'Unknown interaction.', 400 );
 		}
 
+		if ( 'flashcard' === $definition['type'] ) {
+			$data = \CourseCaptain\Learning\Flashcards::current()->counts( $actor->user_id, $lesson_id ) + $data;
+		}
 		$status = (string) $row['status'];
 		$reason = $row['reason_code'];
 		if ( 'completed' !== $status ) {

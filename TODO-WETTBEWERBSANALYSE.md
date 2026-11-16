@@ -268,7 +268,7 @@
   - **Ergebnis/Definition of Done:** Getrennte Zustände, Resume, Revisionsschutz, Datenschutz.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-11 · Karteikarten, Favoriten und Fehlertraining**
+- [x] **R1-11 · Karteikarten, Favoriten und Fehlertraining** — erledigt 16.11.2026: Nachweis `docs/r1/R1-11-nachweis.md`; Karteikarten in zwei Modi (E-21), Favoriten/Sammlungen mit Grenzen, Kaskaden und Sortierung, Fehlertraining aus Lern- und Prüfungsantworten; GM-055…063, 070, 071 grün; Unit 85, Integration 112, Multisite 121. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-06, R1-10.
   - **Ergebnis/Definition of Done:** Alle belegten neutralen Lern- und Wiederholungsfunktionen mit Persistenz.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
