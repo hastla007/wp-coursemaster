@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Privacy;
 
+use CourseCaptain\Certificate\CertificateService;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
@@ -19,7 +20,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Every own table is classified (GM-173). Export groups contain only the
  * person's own rows, never hashes or tokens. The eraser removes learning
- * data, favorites, answers, exam attempts, manual/group grants, staff
+ * data, favorites, answers, exam attempts, certificates (RT-09/RT-10:
+ * deleted, verification then `ccap_not_found`), manual/group grants, staff
  * assignments, locks, accommodations, notifications and assignment
  * submissions; seats are released (address and token emptied); owned
  * groups lose their owner (GM-102). Audit rows are kept (hash chain,
@@ -106,7 +108,6 @@ final class PrivacyService {
 		'cc-exams'         => array( 'Exam attempts', 'ccap_exam_session', 'user_id', array( 'course_id', 'mode', 'status', 'started_at', 'submitted_at', 'points_milli', 'max_points_milli', 'passed' ) ),
 		'cc-grants'        => array( 'Course access', 'ccap_grant', 'user_id', array( 'course_id', 'module_id', 'status', 'source_type', 'valid_from', 'valid_until', 'created_at' ) ),
 		'cc-seats'         => array( 'Group seats', 'ccap_seat', 'user_id', array( 'group_id', 'status', 'invited_at', 'claimed_at', 'removed_at' ) ),
-		'cc-certificates'  => array( 'Certificates', 'ccap_certificate', 'user_id', array( 'certificate_uid', 'course_id', 'status' ) ),
 		'cc-notifications' => array( 'Notifications', 'ccap_notification', 'recipient_user_id', array( 'type', 'status', 'created_at', 'sent_at' ) ),
 		'cc-submissions'   => array( 'Assignment submissions', 'ccap_assignment_submission', 'user_id', array( 'course_id', 'activity_id', 'status', 'text_answer', 'submitted_at', 'graded_at' ) ),
 	);
@@ -192,7 +193,8 @@ final class PrivacyService {
 				),
 			);
 		}
-		$data = array_merge( $data, self::invitations( (string) $user->user_email ) );
+		// Certificates with their snapshot data, without hashes or tokens (R0-29 CF-12).
+		$data = array_merge( $data, CertificateService::current()->export_items( (int) $user->ID ), self::invitations( (string) $user->user_email ) );
 		return array(
 			'data' => $data,
 			'done' => true,
@@ -262,6 +264,8 @@ final class PrivacyService {
 					$del( $table, 'user_id' );
 				}
 				$del( 'ccap_notification', 'recipient_user_id' );
+				// RT-09/RT-10: without `keep_evidence_on_erasure` (not yet registered) certificates are deleted.
+				$n += CertificateService::erase( $db, $user_id );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_seat' ) . "` SET status = IF(status = 'active', 'removed', status), removed_at = COALESCE(removed_at, %s), user_id = NULL, invite_email = NULL, claim_token_hash = NULL WHERE user_id = %d", $db->now(), $user_id ) );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_group' ) . '` SET owner_user_id = 0 WHERE owner_user_id = %d', $user_id ) );
 				return $n;

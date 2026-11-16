@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T17:09:01+00:00\n"
+"POT-Creation-Date: 2026-11-16T17:45:09+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -20,10 +20,11 @@ msgstr ""
 #: course-captain.php:9
 #: src/Admin/EditorScreens.php:53
 #: src/Admin/Notices.php:120
+#: src/Notification/NotificationService.php:972
 #: src/Ops/HealthChecks.php:172
-#: src/Privacy/PrivacyService.php:124
-#: src/Privacy/PrivacyService.php:134
-#: src/Privacy/PrivacyService.php:331
+#: src/Privacy/PrivacyService.php:125
+#: src/Privacy/PrivacyService.php:135
+#: src/Privacy/PrivacyService.php:350
 msgid "Course Captain"
 msgstr ""
 
@@ -55,7 +56,7 @@ msgid "This content is available to course participants."
 msgstr ""
 
 #: src/Admin/AuthoringRoutes.php:123
-#: src/Learner/LearnerRoutes.php:114
+#: src/Learner/LearnerRoutes.php:147
 msgid "Please log in."
 msgstr ""
 
@@ -227,12 +228,169 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
+#: src/Certificate/CertificatePages.php:110
+msgid "Certificate verification"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:133
+msgid "My certificates"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:138
+msgid "You do not have any certificates yet."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:144
+msgid "Recertification possible"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:170
+#: src/Certificate/CertificatePages.php:175
+msgid "Certificate"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:172
+msgid "Back to my certificates"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:218
+msgid "Shown in the standard layout."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:223
+msgid "Status:"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:232
+#: src/Certificate/CertificatePages.php:292
+msgid "Issued on"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:234
+#: src/Certificate/CertificatePages.php:293
+msgid "Valid until"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:240
+#: src/Certificate/CertificatePages.php:294
+msgid "Certificate number"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:241
+#: src/Certificate/CertificatePages.php:295
+msgid "Check code"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:244
+#: src/Certificate/CertificatePages.php:305
+msgid "Learning objectives"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:262
+msgid "Verify this certificate at:"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:263
+msgid "Print"
+msgstr ""
+
+#. translators: %s: date
+#: src/Certificate/CertificatePages.php:277
+#, php-format
+msgid "This certificate was revoked on %s."
+msgstr ""
+
+#. translators: %s: date
+#: src/Certificate/CertificatePages.php:281
+#, php-format
+msgid "This version was replaced by the version of %s."
+msgstr ""
+
+#. translators: %s: date
+#: src/Certificate/CertificatePages.php:286
+#, php-format
+msgid "Validity ended on %s."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:290
+msgid "Issuer"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:291
 #: src/Course/PostTypes.php:54
-msgid "Courses"
+msgid "Course"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:293
+msgid "unlimited"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:298
+msgid "Name"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:336
+msgid "Verification code"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:336
+msgid "Verify"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:359
+msgid "Valid"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:360
+msgid "Issued validly, validity expired"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:361
+msgid "Replaced by a corrected version"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:362
+msgid "Revoked"
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:375
+msgid "No certificate was found for this code."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:376
+msgid "Too many requests. Please try again in a minute."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:377
+msgid "Verification is temporarily unavailable."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:378
+msgid "Your account is locked."
+msgstr ""
+
+#: src/Certificate/CertificatePages.php:380
+msgid "This certificate is not available."
+msgstr ""
+
+#: src/Certificate/CertificateService.php:1118
+msgid "Certificate of achievement"
+msgstr ""
+
+#: src/Certificate/CertificateService.php:1118
+msgid "Certificate of completion"
+msgstr ""
+
+#: src/Certificate/CertificateService.php:1119
+msgid "has passed the assessment of the course"
+msgstr ""
+
+#: src/Certificate/CertificateService.php:1119
+msgid "has successfully completed the course"
 msgstr ""
 
 #: src/Course/PostTypes.php:54
-msgid "Course"
+msgid "Courses"
 msgstr ""
 
 #: src/Course/PostTypes.php:77
@@ -305,7 +463,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:342
+#: src/Kernel/Plugin.php:347
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -461,6 +619,315 @@ msgstr ""
 msgid "not started"
 msgstr ""
 
+#: src/Notification/MailTemplates.php:195
+msgid "Hello {{recipient_display_name}},"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:199
+#: src/Notification/MailTemplates.php:244
+msgid "Your access to {{course_title}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:200
+msgid "You now have access to the course {{course_title}}."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:200
+#: src/Notification/MailTemplates.php:245
+#: src/Notification/MailTemplates.php:265
+#: src/Notification/MailTemplates.php:270
+#: src/Notification/MailTemplates.php:275
+msgid "Open the course: {{course_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:204
+msgid "Invitation to {{group_name}} on {{site_name}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:205
+msgid "{{inviter_display_name}} has invited you to the group {{group_name}}."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:205
+msgid "Accept the invitation: {{claim_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:205
+msgid "The invitation is valid until {{invite_expires_at}}."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:209
+msgid "Welcome to {{course_title}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:210
+msgid "You have joined the group and can now learn in {{course_title}}."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:210
+msgid "Go to your learning area: {{learning_area_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:214
+msgid "You have completed {{course_title}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:215
+msgid "Congratulations, you have completed the course {{course_title}}."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:215
+msgid "View the course: {{course_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:219
+msgid "Your certificate for {{course_title}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:220
+msgid "Your certificate is ready: {{certificate_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:224
+msgid "Your certificate was corrected"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:225
+msgid "Your certificate was corrected ({{reason_label}}). Current version: {{certificate_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:229
+msgid "Your certificate was revoked"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:230
+msgid "Your certificate was revoked ({{reason_label}})."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:234
+msgid "An exam attempt was voided"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:235
+msgid "Your attempt {{attempt_title}} was voided ({{reason_label}}). Details: {{result_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:239
+msgid "An exam result was annulled"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:240
+msgid "The result of {{attempt_title}} was annulled ({{reason_label}}). Details: {{result_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:245
+msgid "Access to the course {{course_title}} was transferred to you."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:249
+msgid "Your exam was graded"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:250
+msgid "The grading of {{attempt_title}} is complete."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:250
+msgid "View it in your learning area: {{result_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:254
+msgid "Your access to {{course_title}} has ended"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:255
+msgid "Your access to the course {{course_title}} ended on {{access_end_at}}."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:255
+msgid "Your learning area: {{learning_area_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:259
+msgid "Test message from {{site_name}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:260
+msgid "This is a test message. Mail delivery from Course Captain works."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:264
+msgid "New submission in {{course_title}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:265
+msgid "A new assignment submission in {{course_title}} is waiting for your review."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:269
+msgid "Your submission in {{course_title}} was returned"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:270
+msgid "Your assignment submission was returned for revision."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:274
+msgid "Your submission in {{course_title}} was graded"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:275
+msgid "Your assignment submission was graded."
+msgstr ""
+
+#: src/Notification/MailTemplates.php:348
+msgid "Alex Example"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:350
+msgid "Sample course"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:352
+msgid "Sample group"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:353
+msgid "Sam Example"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:358
+msgid "Correction"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:359
+msgid "Final exam"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:419
+msgid "You no longer want these messages? Unsubscribe: {{unsubscribe_url}}"
+msgstr ""
+
+#: src/Notification/MailTemplates.php:423
+msgid "You receive this message because it is necessary for your account or your course participation."
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:167
+#: src/Notification/NotificationPrefs.php:180
+msgid "Notifications"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:187
+msgid "This link is not valid. Nothing was changed."
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:194
+msgid "Do you want to stop receiving this kind of message?"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:194
+msgid "Unsubscribe"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:201
+msgid "You have been unsubscribed."
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:208
+msgid "Log in to manage your notifications."
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:225
+msgid "Messages I want to receive"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:225
+msgid "Messages that are necessary for your account or course participation are always sent."
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:225
+msgid "Save"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:238
+msgid "New course access"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:239
+msgid "Group membership confirmed"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:240
+msgid "Course completed"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:241
+msgid "Certificate issued"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:242
+msgid "Access transferred to me"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:243
+msgid "Exam graded"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:244
+msgid "Access ended"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:245
+msgid "New assignment submission (trainers)"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:246
+msgid "Assignment returned"
+msgstr ""
+
+#: src/Notification/NotificationPrefs.php:247
+msgid "Assignment graded"
+msgstr ""
+
+#: src/Notification/NotificationService.php:939
+msgid "Course Captain mail delivery"
+msgstr ""
+
+#. translators: %s: outbound mode on, catch or off
+#: src/Notification/NotificationService.php:958
+#, php-format
+msgid "Course Captain mails are delivered (mode: %s)."
+msgstr ""
+
+#. translators: 1: failed mails, 2: waiting mails
+#: src/Notification/NotificationService.php:962
+#, php-format
+msgid "Course Captain mail delivery has problems: %1$d failed in 24 hours, %2$d waiting longer than one hour."
+msgstr ""
+
+#. translators: %d: failed mails
+#: src/Notification/NotificationService.php:966
+msgid "The catch address for Course Captain mails is invalid; outbound mails are switched off."
+msgstr ""
+
+#. translators: %d: failed mails
+#: src/Notification/NotificationService.php:966
+#, php-format
+msgid "%d Course Captain mails failed in the last 24 hours."
+msgstr ""
+
+#: src/Notification/NotificationService.php:975
+msgid "Mails are handed to WordPress (wp_mail); an SMTP plugin stays in charge of delivery."
+msgstr ""
+
+#. translators: %d: number of failed mails
+#: src/Notification/NotificationService.php:998
+#, php-format
+msgid "%d Course Captain message could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin."
+msgid_plural "%d Course Captain messages could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin."
+msgstr[0] ""
+msgstr[1] ""
+
 #: src/Ops/AuditScreen.php:31
 #: src/Ops/AuditScreen.php:59
 msgid "Audit log"
@@ -581,14 +1048,54 @@ msgid "Maintenance task failed"
 msgstr ""
 
 #: src/Ops/AuditView.php:50
+msgid "Mail template saved"
+msgstr ""
+
+#: src/Ops/AuditView.php:51
+msgid "Notification opt-out changed"
+msgstr ""
+
+#: src/Ops/AuditView.php:52
+msgid "Notification sent again"
+msgstr ""
+
+#: src/Ops/AuditView.php:53
+msgid "Group invitation sent again"
+msgstr ""
+
+#: src/Ops/AuditView.php:54
+msgid "Held notifications released"
+msgstr ""
+
+#: src/Ops/AuditView.php:55
+msgid "Held notifications discarded"
+msgstr ""
+
+#: src/Ops/AuditView.php:56
 msgid "Course revision published"
 msgstr ""
 
-#: src/Ops/AuditView.php:103
+#: src/Ops/AuditView.php:57
+msgid "Certificate issued manually"
+msgstr ""
+
+#: src/Ops/AuditView.php:58
+msgid "Certificate corrected"
+msgstr ""
+
+#: src/Ops/AuditView.php:59
+msgid "Certificate revoked"
+msgstr ""
+
+#: src/Ops/AuditView.php:60
+msgid "Certificate needs review after re-evaluation"
+msgstr ""
+
+#: src/Ops/AuditView.php:113
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:103
+#: src/Ops/AuditView.php:113
 msgid "System"
 msgstr ""
 
@@ -651,11 +1158,11 @@ msgid_plural "%d event deliveries failed permanently."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Privacy/PrivacyService.php:205
+#: src/Privacy/PrivacyService.php:221
 msgid "Course Captain keeps the audit log (tamper protection) and course content."
 msgstr ""
 
-#: src/Privacy/PrivacyService.php:330
+#: src/Privacy/PrivacyService.php:349
 msgid "Course Captain stores learning progress, answers, exam attempts, course access and group memberships of logged-in learners. Learning answers are kept for 2 years after the end of a course, exam attempts for 10 years, ended access records for 10 years and the audit log for 4 years. Personal data can be exported and erased with the WordPress privacy tools."
 msgstr ""
 
@@ -815,12 +1322,22 @@ msgstr ""
 msgid "Not published: the course check found blockers. Open \"Publish revision\" for details."
 msgstr ""
 
-#: src/Storage/Database.php:302
+#: src/Storage/Database.php:332
 msgid "Invalid identifier."
 msgstr ""
 
 #: src/Storage/Migrator.php:171
 msgid "Course Captain is updating its database. Please try again in a few seconds."
+msgstr ""
+
+#: blocks/certificate-verify/block.json
+msgctxt "block title"
+msgid "Certificate verification"
+msgstr ""
+
+#: blocks/certificate-verify/block.json
+msgctxt "block description"
+msgid "Form to verify a certificate by its verification code."
 msgstr ""
 
 #: blocks/course-catalog/block.json

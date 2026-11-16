@@ -318,7 +318,7 @@
   - **Ergebnis/Definition of Done:** Serverzeit/Timeout, Verbindungsabbruch, Doppelabgabe, Browser-Reload, Offline-Grenzen, Replay und Manipulationsschutz getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-21 · Benachrichtigungen und E-Mail-Vorlagen**
+- [x] **R1-21 · Benachrichtigungen und E-Mail-Vorlagen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-21-nachweis.md`; Outbox-Abonnent `notification`, 16 Mailtypen mit Variablen-Allowlist, Vorlagen je Sprache, Opt-out mit signiertem Link, Versandlauf mit Retry/Limits, Halte-/Ausgabemodus; Typen ohne Auslöser-Event folgen mit R1-38/R1-46, Mails N-05…N-07 an R1-44 anzuschließen; Integration 208, Multisite 217. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-13,R1-17.
   - **Ergebnis/Definition of Done:** Einladung, Claim, Ablauf, Abschluss, Fehler und Opt-out mit WP-Mail, Rate-Limits, Datenschutz und Test-Mail-Sink.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
@@ -432,7 +432,7 @@
   - **Voraussetzung:** R1-02, R1-03.
   - **Ergebnis/Definition of Done:** Event-Envelope v1, Outbox mit Zustellung/Backoff/Dead-Letter, Connector-Registry und GrantSourceAdapter nach R0-19 §5; Tests aus R0-19/R0-21.
 
-- [ ] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — *Aufgenommen (E-183).*
+- [x] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — erledigt 16.11.2026: Nachweis `docs/r1/R1-44-nachweis.md`; CertificateService (Ausstellung über Outbox, Korrektur als Revision, Widerruf, Verifikation mit gehashtem Token, Snapshot-Hash), Seiten/Block/REST R-40/R-42, Datenschutz/Retention; Vorlagen-Tabelle, Kurs-Override und keep_evidence folgen (R1-33/R1-35); Klärungsfragen im Nachweis. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02, R1-10.
   - **Ergebnis/Definition of Done:** Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation nach R0-08 §7 und R0-23 §5; R1-35 baut darauf Verwaltung und UI.
 

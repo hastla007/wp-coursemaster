@@ -54,6 +54,10 @@ final class AuditView {
 			'notifications_released'      => array( 'notifications', __( 'Held notifications released', 'course-captain' ) ),
 			'notifications_discarded'     => array( 'notifications', __( 'Held notifications discarded', 'course-captain' ) ),
 			'course_published'            => array( 'content', __( 'Course revision published', 'course-captain' ) ),
+			'certificate_issued'          => array( 'certificates', __( 'Certificate issued manually', 'course-captain' ) ),
+			'certificate_corrected'       => array( 'certificates', __( 'Certificate corrected', 'course-captain' ) ),
+			'certificate_revoked'         => array( 'certificates', __( 'Certificate revoked', 'course-captain' ) ),
+			'certificate_review_required' => array( 'certificates', __( 'Certificate needs review after re-evaluation', 'course-captain' ) ),
 		);
 	}
 

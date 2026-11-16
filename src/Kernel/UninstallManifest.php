@@ -78,6 +78,8 @@ final class UninstallManifest {
 		'course_captain_extensions_seen',
 		// Notifications (R1-21): mail state (template errors).
 		'course_captain_mail_state',
+		// Base certificate template versions (R1-44, R0-29 CF-04).
+		'course_captain_certificate_templates',
 	);
 
 	/**
@@ -143,7 +145,7 @@ final class UninstallManifest {
 	 *
 	 * @var list<string>
 	 */
-	public const USER_META = array( 'ccap_notice_state' );
+	public const USER_META = array( 'ccap_notice_state', 'ccap_certificate_name_public' );
 
 	/**
 	 * Per-site user options (stored as `<blog prefix><name>` user meta, MS-R-05).

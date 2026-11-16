@@ -789,8 +789,10 @@ final class NotificationTest extends SchemaTestCase {
 		$grading = end( $this->sink );
 		self::assertIsArray( $grading );
 		self::assertStringContainsString( 'graded', (string) $grading['subject'] );
+		// Signatures and UIDs in links are random hex and may contain digit runs: strip them before checking.
+		$text = (string) preg_replace( '/[0-9a-f]{8}-[0-9a-f-]{27}|[0-9a-f]{32,}/', '', (string) $grading['message'] . (string) $grading['subject'] );
 		foreach ( array( '7345', '7.3', '9000', '81.6', '81 %' ) as $forbidden ) {
-			self::assertStringNotContainsString( $forbidden, (string) $grading['message'] . (string) $grading['subject'] );
+			self::assertStringNotContainsString( $forbidden, $text );
 		}
 	}
 
