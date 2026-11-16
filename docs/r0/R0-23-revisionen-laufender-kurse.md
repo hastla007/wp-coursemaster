@@ -369,7 +369,7 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-29, E-50, E-74,
 ## 9. Nachweis
 
 - Quelle: Clone `…/scratchpad/lb` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (`git log -1`), nur gelesen.
-- Gelesen: CR `deliverableQuestionSql` (:88-97), `questionsForModules` (:117-133), `revision` (:140-145), `answers` (:148-157), `papers` (:228-236); IS `rollback` (:139-164), `restoreActive` (:383-391); EI Kopfkommentar (:14-21), `deprecated` (:264, :314); ES `saveAnswer` (:405-484), `runningSession` (:1044-1069); LS `tokenContext` (:177-190), `answer` (:199-230), `summary` (:431-458), `setFavorite` (:460-470); VS `progress` (:236-262).
+- Gelesen: CR `deliverableQuestionSql` (:88-97), `questionsForModules` (:117-133), `revision` (:140-145), `answers` (:148-157), `papers` (:228-236); IS `rollback` (:139-164), `restoreActive` (:383-391); EI Kopfkommentar (:14-21), `deprecated` (:264, :314); ES `saveAnswer` (:405-484), `runningSession` (:1044-1069); LS `tokenContext` (:177-190), `answer` (:200-230), `summary` (:431-458), `setFavorite` (:460-470); VS `progress` (:236-262).
 - Neu gegenüber R0-08: Befund B-5 (Teilumfangsprüfung im laufenden Versuch gegen Live-Variantenliste), B-4 (Lernmodus bewertet gegen Token-Revision, Auslieferbarkeit nur auf Fragenebene).
 - Abgleich: R0-06 §4–§5 und Nachträge, R0-08 §1.3, §1.4, §2.3, §4.4, §5, §6, §7, R0-10 §3.4/§3.6, Konzept 28.3, 35, 37, `ENTSCHEIDUNGEN.md` (E-29, E-50, E-74, E-75 und weitere in §8).
 - Keine Änderung an LearnBoating, keine Implementierung, kein Commit.
