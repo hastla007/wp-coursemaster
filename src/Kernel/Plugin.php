@@ -201,6 +201,7 @@ final class Plugin {
 		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
 		\CourseCaptain\Ops\MigrateCommand::register();
 		\CourseCaptain\Ops\OpsCommand::register();
+		\CourseCaptain\Ops\IdentityCommand::register();
 		MetaCaps::register();
 		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
 		ObjectIdentity::register();
@@ -211,6 +212,7 @@ final class Plugin {
 		\CourseCaptain\Settings\Settings::register();
 		\CourseCaptain\Admin\AuthoringRoutes::register();
 		\CourseCaptain\Admin\Notices::register();
+		\CourseCaptain\Admin\IdentityNotice::register();
 		\CourseCaptain\Admin\EditorScreens::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();

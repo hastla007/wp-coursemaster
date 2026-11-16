@@ -15,15 +15,16 @@ defined( 'ABSPATH' ) || exit;
  * Scaffold for the hold mode.
  *
  * R1-01 detects the forced network activation (R0-25 MS-R-02, D-25-08).
- * The site identity hold mode after restore or copy (E-85, R0-16) reuses this
- * class later; its reason constant is reserved here and not detected yet.
+ * The site identity hold mode after restore or copy (E-85, R0-16) is softer:
+ * the plugin keeps running and only outbound effects are held. It lives in
+ * {@see SiteIdentity} (R1-23); the reason constant below stays reserved.
  */
 final class HoldMode {
 
 	/** Plugin listed in `active_sitewide_plugins` (MS-R-02). */
 	public const REASON_NETWORK_FORCED = 'network_forced';
 
-	/** Reserved: site identity changed after restore/copy (E-85). Not detected in R1-01. */
+	/** Reserved: site identity changed after restore/copy (E-85); detected by SiteIdentity, not here. */
 	public const REASON_SITE_IDENTITY = 'site_identity';
 
 	/**

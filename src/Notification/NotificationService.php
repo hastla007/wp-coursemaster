@@ -284,6 +284,10 @@ final class NotificationService {
 				++$stats[ $key ];
 			}
 		}
+		if ( $stats['sent'] > 0 ) {
+			// Irreversible outbound effect: a later restore of an older DB is detected (R1-23, R0-17 §5.5).
+			\CourseCaptain\Kernel\SiteIdentity::bump_epoch();
+		}
 		$stats['remaining'] = (int) $this->db->scalar( $this->db->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE status IN ('queued', 'retry_wait') AND (next_attempt_at IS NULL OR next_attempt_at <= %s)", $this->db->now() ) );
 		if ( $stats['remaining'] > 0 ) {
 			self::schedule( self::CONTINUE_AFTER );

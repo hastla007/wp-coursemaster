@@ -12,6 +12,7 @@ namespace CourseCaptain\Settings;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Kernel\Plugin;
+use CourseCaptain\Kernel\UninstallManifest;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
 
@@ -41,6 +42,9 @@ final class Settings {
 	public const UNDO_PREFIX    = 'course_captain_settings_undo_';
 	public const UNDO_TTL       = 2592000;
 	public const CAP            = 'ccap_manage_settings';
+
+	/** Input key carrying the typed site name when data deletion is switched on (E-89). */
+	public const CONFIRM_SITE_FIELD = '_confirm_site_name';
 
 	/**
 	 * Guard against recursion in the foreign-writer filter.
@@ -147,6 +151,11 @@ final class Settings {
 				$errors[] = $field;
 				continue;
 			}
+			// E-89: switching data deletion on needs the typed site name (R0-27 §1.3, R0-16 §2.5).
+			if ( 'general' === $tab && UninstallManifest::DELETE_DATA_KEY === $field && true === $check['value'] && true !== $before[ $field ] && ! self::site_name_confirmed( $input ) ) {
+				$errors[] = $field;
+				continue;
+			}
 			$candidate[ $field ] = $check['value'];
 		}
 		if ( array() !== $errors ) {
@@ -168,6 +177,24 @@ final class Settings {
 			'changed' => $changed,
 			'rev'     => $new_rev,
 		);
+	}
+
+	/**
+	 * Whether the input carries the exact site name (E-89 confirmation).
+	 *
+	 * @param array<string, mixed> $input Submitted values.
+	 * @return bool
+	 */
+	public static function site_name_confirmed( array $input ): bool {
+		$typed = $input[ self::CONFIRM_SITE_FIELD ] ?? null;
+		if ( ! is_string( $typed ) ) {
+			return false;
+		}
+		$name = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
+		if ( '' === $name ) {
+			$name = (string) wp_parse_url( (string) get_option( 'home' ), PHP_URL_HOST );
+		}
+		return '' !== $name && trim( $typed ) === $name;
 	}
 
 	/**

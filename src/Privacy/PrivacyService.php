@@ -287,6 +287,8 @@ final class PrivacyService {
 				array( 'rows' => $count )
 			);
 			\CourseCaptain\Cache\CacheStore::bump_user( $user_id );
+			// A later restore of an older DB is detected through the epoch (E-92 detection part, R1-23).
+			\CourseCaptain\Kernel\SiteIdentity::bump_epoch();
 			do_action( 'course_captain_policy_changed' );
 		}
 		return $count;

@@ -65,6 +65,7 @@ final class AuditView {
 			'job_discarded'                  => array( 'ops', __( 'Dead letters discarded', 'course-captain' ) ),
 			'cache_flushed'                  => array( 'ops', __( 'Cache emptied', 'course-captain' ) ),
 			'diagnostics_exported'           => array( 'ops', __( 'Diagnostics package exported', 'course-captain' ) ),
+			'site_identity_confirmed'        => array( 'ops', __( 'Site identity confirmed after restore, move or copy', 'course-captain' ) ),
 		);
 	}
 
