@@ -31,6 +31,18 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-18 | Rechtestatus-Sperre in R1 Free, nur für importierte/fremde Inhalte | nein |
 | E-19 | Admin-Protokollansicht in R1 Free | nein |
 | E-20 | **Lösungserklärungen sind ein eigenes Pro-Feature.** Free zeigt nur richtig/falsch und die richtige Antwort nach E-147; Erklärungstexte werden nur mit Pro ausgeliefert. Folgen: R0-08 §4.5, R0-11 Matrix, E-147 und Entitlement-Zuschnitt E-95 anpassen; Free-Kern speichert Erklärungstexte trotzdem (Import/Export, kein Datenverlust bei Pro-Ende) | **ja** |
+| E-21 | Ein Karteikartentyp mit zwei Modi, R1 Free | nein |
+| E-22 | **Neutraler Fragetyp „Zahl mit Toleranz“ in R1 Free** (Ersatz für den Navigationstrainer, ohne Code aus NavigationCheck; Fallstudie nicht). Folge: R0-08 §3 Fragetypen, R0-22 Validierung (Toleranz, Einheit), R0-04/E-69 anpassen | **ja** |
+| E-23 | Prüfungsmodus „offiziell“ gestrichen; Regel freigegeben/Entwurf + Kennzeichen „verkürzt“ | nein |
+| E-24 | Erinnerung vor Ablauf in Pro, nur zahlende Käufer | nein |
+| E-25 | **Kursbeziehung „enthält“ (Bundle) und Mitgliederrabatt werden wie in LB übernommen** (Phase siehe E-25a) | **ja** |
+| E-26 | **Abhängige Zusatz-Grants in R1** (Zusatzmodul läuft so lange wie der Basiskurs). Folge: R0-09 Grant-Automat um Abhängigkeitskette erweitern | **ja** |
+| E-27 | **Zugang je Modul** statt je Kurs mit Scopes. Folge: Grant-Schlüssel in R0-06/R0-09 bekommt `module_id` (NULL = ganzer Kurs), effektiver Zugang und Freischaltprüfung (R0-08 §1) arbeiten je Modul, Gruppenplätze und Woo-Mapping je Modul möglich | **ja** |
+| E-28 | Einladungslinks nach LB-Regeln übertragbar, plus Option „nur eingeladene Adresse“ | nein |
+| E-25a | Bundle (ein Grant schaltet mehrere Kurse frei) in R1 Free; Mitgliederrabatt im WooCommerce-Adapter R3.1 | nein |
+| E-29 | Kein Wiederaufleben nach Refund; neuer Kauf = neue Grant-Revision mit Audit | nein |
+| E-30 | R3.1 mit Kontopflicht; Claim-Token später (bewusste Abweichung von CORE-SPEC-002) | nein |
+| E-31 | **Gutscheinziel kann beides sein:** neutrales Course-Captain-Zugangsangebot **oder** WooCommerce-Produkt. Folge: Voucher-Connector (R3.2) unterstützt zwei Zieltypen; R0-40 und R3-04 müssen beide Wege spezifizieren | **ja** (erweitert) |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
