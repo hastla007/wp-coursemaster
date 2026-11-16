@@ -129,7 +129,7 @@
   - **Ergebnis/Definition of Done:** Kursupdate bei laufendem Versuch, gelöschter Lektion, umsortierten Inhalten, Mastery, Zertifikaten und Migrations-/Grandfathering-Policy spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-24 · Anforderungs-Traceability und Task-Definition-of-Ready einführen**
+- [ ] **R0-24 · Anforderungs-Traceability und Task-Definition-of-Ready einführen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-24-traceability-dor.md` (alle 147 Registerzeilen → genau eine führende R-Task, 40 Duplikate zurückgeführt, PAR/LB → Baustein/INV/Task/GM, R2-Zuordnungen ohne Task, DoR-Template angewandt auf R1-01…44, Prüfskript fehlerfrei); Entscheidung offen → E-199…E-204
   - **Voraussetzung:** R0-12.
   - **Ergebnis/Definition of Done:** Jeder FLOW/CORE/PAR/LB-Fall einer Task, einem Test und Gate zugeordnet; Template für Inputs, Dateien, Negativfälle, Abnahme, Reviewer und offene Fragen verbindlich.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
@@ -169,7 +169,7 @@
   - **Ergebnis/Definition of Done:** Retention-Entscheidungen, Medien/Consent, Secret-Handling, RBAC, Audit, Export/Reset und Testmatrix freigegeben.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-32 · Suite-Konzeptabgleich als Traceability-Matrix**
+- [ ] **R0-32 · Suite-Konzeptabgleich als Traceability-Matrix** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-32-suite-traceability.md` (Quellen mit Repo@Commit und Datei:Zeile; captain-pro nicht zugänglich); Abgleich mit R0-19/R0-24 erfolgt; Entscheidung offen → E-38…E-42
   - **Voraussetzung:** R0-19,R0-24.
   - **Ergebnis/Definition of Done:** Form/Workflow/Review-Quellen mit Quellkapitel, Course-Relevanz, bestehender Abdeckung, Delta und explizitem Nichtumfang erfasst.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
@@ -189,7 +189,7 @@
   - **Ergebnis/Definition of Done:** Plugin-Slug, Readme, Lizenz/Assets, Übersetzungen, Support, Paketbuild, Free/Pro-ZIPs und Update/Restore als Releasecheckliste.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-36 · Weitere Suite-Quellen und Vertragsdeltas nachweisen**
+- [ ] **R0-36 · Weitere Suite-Quellen und Vertragsdeltas nachweisen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-36-suite-vertragsdeltas.md` (Quellen mit Repo@Commit und Datei:Zeile; captain-pro nicht zugänglich); Abgleich mit R0-19/R0-24 erfolgt; Entscheidung offen → E-38…E-42
   - **Voraussetzung:** R0-32,R0-19.
   - **Ergebnis/Definition of Done:** Pass/Voucher/Affiliate/License/Captain-Pro-Dokumente mit Version/Quellpfad, LMS-Relevanz, vorhandenem Task, offenem Delta und Nichtumfang abgeglichen.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.

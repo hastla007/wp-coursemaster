@@ -374,7 +374,7 @@ Hinweis: E-58 nennt für die CI MariaDB 10.11, R0-14 nimmt MariaDB 12.3 als Ziel
 |---|---|---|---|---|
 | **E-188** | Sichtbarkeit des Repositorys und GitHub-Ausstattung (CodeQL, Secret Scanning, Dependabot-Alerts sind für private Repos kostenpflichtig) | **Privat mit freien Werkzeugen als Pflichtbasis** (Semgrep, Psalm, gitleaks, OSV, composer/npm audit); **öffentlich spätestens zur ersten WordPress.org-Veröffentlichung**, dann GitHub-Funktionen zusätzlich | R0-18 D18-1 | R1-01, R1-39 |
 | E-189 | Signatur der Free-Artefakte | **GitHub Artifact Attestation + Sigstore keyless**, keine eigene Schlüsselverwaltung | R0-18 D18-2 | R1-01, R1-39 |
-| E-190 | Signatur der Pro-ZIPs | **License Captain signiert beim Upload**, der Pro-Client prüft vor der Installation (abhängig vom License-Captain-Vertrag, E-42) | R0-18 D18-3 | R1-01, R1-39 |
+| E-190 | Signatur der Pro-ZIPs | **License Captain signiert beim Upload**, der Pro-Client prüft vor der Installation (abhängig vom License-Captain-Vertrag, E-42) | R0-18 D18-3 | R3-18 |
 | E-191 | Browser-Abdeckung über Playwright hinaus | **Playwright je PR/nightly**; echtes iOS/Android/Safari **manuell vor jedem Minor-Release** | R0-18 D18-4 | R1-01, R1-39 |
 | E-192 | Messumgebung R-M für Performance-Releases | **Cloud-VM mit festem Instanztyp**, je Lauf erzeugt und danach gelöscht (Kosten beim Auftraggeber) | R0-18 D18-5 | R1-01, R1-39 |
 | **E-193** | Wer gibt Deploys zu WordPress.org bzw. License Captain frei? | **Der Auftraggeber** (Vertretung benennen); Selbstfreigabe durch den Tag-Ersteller ausgeschlossen | R0-18 D18-6 | R1-01, R1-39 |
@@ -390,3 +390,16 @@ Technisch festgelegt: CSS-Präfix `ccap-` (kollidiert sonst mit Cookie-Banner-Bi
 | E-196 | Lizenzen für kommerzielle Plugins in den Kompatibilitätstests (WP Rocket, Elementor Pro u. a.) | **Stellt der Auftraggeber**; ohne Lizenz wird die Kombination als „best effort“ geführt | R0-20 D-20-07 | R1-30 |
 | E-197 | Öffentlicher URL-Slug für Kurse (`course`/`courses` sind von LifterLMS, Tutor, LearnDash belegt) | **Nur `cc_course` bekommt eine öffentliche URL**, Standard-Slug `kurs` (in den Einstellungen änderbar); Lernbereich `/lernen/` | R0-20 D-20-11 | R1-04, R1-37 |
 | E-198 | DB-Query-Caches (z. B. W3TC-Datenbankcache) | **Nicht unterstützt**, mit Warnung im Systemstatus (Gefahr veralteter Zugriffsentscheidungen) | R0-20 D-20-06 | R1-25, R1-30 |
+
+## 31. Traceability und Definition of Ready (aus R0-24)
+
+Technisch festgelegt: Die Verweise an den 40 Duplikaten im TODO-Register werden eingetragen (D24-9), es gibt keine gestaffelte Readiness (D24-8), PAR-13…15 für BS-19/23/24 werden in Kap. 38 ergänzt (D24-6). Korrekturen aus R0-24 §6.2: Die ADR-Nummern 007/008 in R0-19 kollidieren mit Kap. 28.2 und werden in R0-19 umbenannt. Webhook-Replay antwortet einheitlich `202 duplicate` (RBAC-093/SEC-026 angepasst, RBAC-093 Ziel R3). E-190 blockiert R3-18, nicht R1-01/R1-39. Tests werden per `@group R1-xx` je Task auswählbar.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-199 | Eigene R2-Task für die Fragetypen Zuordnung, Sortieren und Lückentext (E-69) | **Ja, neue R2-08** „Zusätzliche neutrale Fragetypen“ (Voraussetzung R2-04) | R0-24 D24-1 | R2 |
+| E-200 | XLSX-Fragenimport (LB-Werkzeug außerhalb des Plugins) | **R4-Pool**; R1 importiert nur cc-package | R0-24 D24-2 | R1-41 |
+| E-201 | Timeout für Grants im Zustand `pending` | **24 h**, danach `failed` mit Grund `pending_timeout`, Support-Hinweis und Event | R0-24 D24-3 | R1-13, R3-02 |
+| E-202 | Suite-Navigationsmuster | **Eigenes Course-Captain-Hauptmenü**, Suite-Status als Unterseite „Integrationen“; gemeinsames Suite-Menü frühestens mit R3-16 | R0-24 D24-4 | R1-32, R3-16 |
+| E-203 | Mitgliedschaften (Membership) als Zugangsweg | **Kein eigener Vertrag**: Mitgliedschaft ist eine Grant-Quelle über den GrantSourceAdapter, Adapter erst in R3 | R0-24 D24-5 | R1-43, R3 |
+| **E-204** | Wer besetzt die Reviewer-Rollen (Technik-Lead, Architektur, Security, Barrierefreiheit, Betrieb, Produkt)? | **Der Auftraggeber benennt je Rolle eine Person und eine Vertretung**; Vier-Augen-Prinzip, Autor ≠ Reviewer | R0-24 D24-7 | alle R1-Tasks (DoR) |

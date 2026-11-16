@@ -2,7 +2,7 @@
 
 **Status:** Entwurf zur Abnahme, **nicht abgehakt**. Keine Implementierung, kein Testlauf, kein Commit. Die DoD verlangt Review und Freigabe. · **Stand:** 16.11.2026
 **Bezug:** TODO R0-24 (Voraussetzung R0-12; DoD: „Jeder FLOW/CORE/PAR/LB-Fall einer Task, einem Test und Gate zugeordnet; Template für Inputs, Dateien, Negativfälle, Abnahme, Reviewer und offene Fragen verbindlich“), Folgetasks R0-27, R0-32, R0-35 (Voraussetzung R0-24); Entscheidung **E-54** (R2-Zuordnungen ohne R2-Task); R0-12 §1 (Pflichtvorlage für die 67 Prozess- und Kernfälle), §2.2 Nr. 7 (Testdubletten), §7 (Delta „R0-24“); Konzept Kap. 28.2 (ADR-001…008), 29, 38 (PAR-01…12), 39 (LB-01…15), 40, 46.
-**Quellen (nur gelesen):** `TODO-WETTBEWERBSANALYSE.md` vollständig (R-Plan Z. 7–596, Register Z. 641–907); `konzept.md` Kap. 28.2, 38, 39; `docs/r0/ENTSCHEIDUNGEN.md` (E-01…E-194, E-188…E-194 aus dem während dieser Arbeit hinzugekommenen R0-18); `R0-12-tests-gates-backlog.md` vollständig; R0-04 §1, §2, §4, §6; R0-05 §1.21, §6; R0-02-Inventar (Spalten Phase/Edition und Task-ID je INV-Zeile); Kopfzeilen und Gliederung aller übrigen R0-Dokumente einschließlich R0-18; Testkataloge in R0-05, R0-07, R0-09, R0-10, R0-13…R0-17, R0-19, R0-21…R0-23, R0-25, R0-26, R0-37, R0-38.
+**Quellen (nur gelesen):** `TODO-WETTBEWERBSANALYSE.md` vollständig (R-Plan Z. 7–596, Register Z. 641–907); `konzept.md` Kap. 28.2, 38, 39; `docs/r0/ENTSCHEIDUNGEN.md` (E-01…E-198; E-188…E-194 aus R0-18 und E-195…E-198 aus R0-20 kamen während dieser Arbeit hinzu); `R0-12-tests-gates-backlog.md` vollständig; R0-04 §1, §2, §4, §6; R0-05 §1.21, §6; R0-02-Inventar (Spalten Phase/Edition und Task-ID je INV-Zeile); Kopfzeilen und Gliederung aller übrigen R0-Dokumente einschließlich R0-18 und R0-20 (beide während dieser Arbeit hinzugekommen); Testkataloge in R0-05, R0-07, R0-09, R0-10, R0-13…R0-17, R0-19…R0-23, R0-25, R0-26, R0-37, R0-38.
 
 **Kernzahlen** (per Skript, §5)
 
@@ -11,10 +11,10 @@
 | Checkboxen im Register unterhalb des R-Plans (Z. 641–907) | 147 |
 | davon bereits abgehakt (Z. 683, 708, 901) | 3 |
 | offene Registereinträge | 144 |
-| … führend (eigene Abarbeitung über genau eine R-Task) | 103 |
-| … Duplikat, auf einen führenden Eintrag zurückgeführt | 39 |
+| … führend (eigene Abarbeitung über genau eine R-Task) | 102 |
+| … Duplikat, auf einen führenden Eintrag zurückgeführt | 40 |
 | … obsolet durch Entscheidung (Kap. 29, Kap. 33) | 2 |
-| führende Einträge „abgedeckt (Entwurf)“ / „offen“ | 47 / 56 |
+| führende Einträge „abgedeckt (Entwurf)“ / „offen“ | 38 / 64 |
 | führende R-Tasks, die Registereinträge tragen | 53 |
 | Registereinträge mit unbekannter Test-ID / unbekannter R-Task / unbekannter E-Nummer | 0 / 0 / 0 |
 | PAR-01…12 und LB-01…15 mit genau einer führenden Task | 27 / 27 |
@@ -22,10 +22,10 @@
 | INV-Zeilen mit „R2“ in Phase/Edition | 42 (davon 3 mit R2-Task, 39 ohne) |
 | weitere R2-Zuordnungen aus Entscheidungen ohne R2-Task | 5 |
 | R1-Tasks mit DoR-Zeile (R1-01…R1-42, R1-43\*, R1-44\*) | 44 |
-| davon „nicht ready“, weil die führende R0-Spezifikation fehlt | 13 |
-| Testdubletten (Race, Webhook, Secret) → führender Test | 9 Fälle in 4 Gruppen |
+| davon „nicht ready“, weil die führende R0-Spezifikation fehlt | 11 |
+| Testdubletten (Race, Webhook, Secret) → führender Test | 8 Duplikate in 6 Gruppen |
 
-**Lesehilfe.** „Z.“ = Zeilennummer in `TODO-WETTBEWERBSANALYSE.md` (Stand Commit `c1d8997`). „Führende Task“ = **die eine** R-Task aus dem R-Plan, mit deren Abnahme der Registereintrag abgehakt wird; Gates (R0-GATE, R1-GATE) zählen als Task. Test-IDs mit „…“ sind lückenlose Bereiche; ein Stern (\*) markiert einen **vorgeschlagenen** Test aus R0-12 §1.3 bzw. eine vorgeschlagene Task (R1-43\*, R1-44\*). Ein Kreuz (†) markiert ein R0-Dokument, das noch nicht geschrieben ist. „–“ heißt: nichts vorhanden bzw. nicht anwendbar.
+**Lesehilfe.** „Z.“ = Zeilennummer in `TODO-WETTBEWERBSANALYSE.md` (Stand Commit `d7ca58d`). „Führende Task“ = **die eine** R-Task aus dem R-Plan, mit deren Abnahme der Registereintrag abgehakt wird; Gates (R0-GATE, R1-GATE) zählen als Task. Test-IDs mit „…“ sind lückenlose Bereiche; ein Stern (\*) markiert einen **vorgeschlagenen** Test aus R0-12 §1.3 bzw. eine vorgeschlagene Task (R1-43\*, R1-44\*). Ein Kreuz (†) markiert ein R0-Dokument, das noch nicht geschrieben ist. „–“ heißt: nichts vorhanden bzw. nicht anwendbar.
 
 ---
 
@@ -38,7 +38,7 @@
 | **RT-1** | **Eine Reihenfolge.** Abgearbeitet wird nur der R-Plan (Z. 7–596). Ein Registereintrag hat **keine** eigene Position in der Reihenfolge, sondern genau eine führende R-Task. Er wird abgehakt, wenn diese Task mit Nachweis abgenommen ist und der Eintrag in ihrer DoD-Prüfung genannt wurde. |
 | **RT-2** | **Spezifikation vs. Nachweis.** Ein Eintrag, der etwas *spezifiziert, entscheidet oder inventarisiert*, führt eine R0-Task. Ein Eintrag, der etwas *umsetzt, testet oder nachweist*, führt die R1/R2/R3/R4-Task, die den Nachweis erbringt. Das abdeckende R0-Dokument steht dann in Spalte „R0-Abdeckung“. |
 | **RT-3** | **Duplikate.** Beschreiben zwei Einträge dieselbe Arbeit, führt der Eintrag mit der präziseren DoD (bei Gleichstand der zuerst stehende). Das Duplikat erbt die führende Task und wird gemeinsam mit dem führenden Eintrag abgehakt. Ein Duplikat verweist nie auf ein anderes Duplikat (Skript §5). |
-| **RT-4** | **Sammelpunkte** (Z. 724, 745, 746, 862, 882) bündeln mehrere führende Einträge. Sie gelten als Duplikat des ersten genannten Eintrags und werden erst abgehakt, wenn **alle** dort genannten Einträge abgehakt sind. |
+| **RT-4** | **Sammelpunkte** (Z. 724, 745, 746, 799, 800, 862) bündeln mehrere führende Einträge. Sie gelten als Duplikat des ersten genannten Eintrags und werden erst abgehakt, wenn **alle** dort genannten Einträge abgehakt sind. |
 | **RT-5** | **Status.** `abgedeckt (Entwurf)` = ein R0-Entwurf deckt den Inhalt vollständig ab; abhakbar erst nach Freigabe des Dokuments und Abnahme der führenden Task. `offen` = Inhalt fehlt ganz oder teilweise (Bemerkung nennt, was fehlt). `obsolet (…)` = durch Entscheidung erledigt, abhakbar mit Verweis. `Duplikat → Z.n` nach RT-3. `erledigt` = bereits abgehakt. |
 | **RT-6** | **Neue Einträge** im Register sind nur mit führender Task und Status nach diesem Schema zulässig (Arbeitsregel im TODO, Kap. 46.3). Eine neue R-Task entsteht nur mit Delta-Beleg. |
 
@@ -267,9 +267,9 @@ So sieht die Reihenfolge aus Sicht des R-Plans aus: Wer eine Task bearbeitet, pr
 | R4-01 | 657, 658, 664, 665, 666, 674, 778, 779, 852 | 670, 671, 672, 746 | 13 |
 **Befunde zu §1**
 
-1. **Kein Registereintrag ohne Task.** Alle 144 offenen Einträge haben genau eine führende R-Task. 13 Einträge führen R4-01 (Nachfragepool); davon sind 9 eigenständig (Diskussionen, interaktive Medien, Gamification, SCORM, Kohorten, Anforderungsmatrix, SUITE-201/202, Dashboard-Option).
-2. **Eine Reihenfolge.** 39 Duplikate und 5 Sammelpunkte (RT-4) fallen als eigenständige Arbeit weg. Größte Bündel: Kap. 29 Release-Plan (16 Einträge, davon 11 Duplikate von P0-, FLOW- und R0-PAR-Einträgen), Kap. 31 SEAM-1xx (7 Duplikate von SUITE-, R3-FIRST- und FLOW-Einträgen), die Paritätspunkte P0/Kap. 29/R0-PAR/LB-AUDIT (8 Einträge auf 4 führende).
-3. **Fehlende R0-Dokumente** bestimmen den Großteil der offenen Spezifikationspunkte: R0-34 (Z. 759, 851), R0-39 (Z. 760, 770), R0-40 (Z. 790, 818), R0-20 (Z. 805, 820), R0-29 (Z. 878), R0-30 (Z. 792).
+1. **Kein Registereintrag ohne Task.** Alle 144 offenen Einträge haben genau eine führende R-Task. 13 Einträge hängen an R4-01 (Nachfragepool): 9 führend (Diskussionen, interaktive Medien, Gamification, SCORM, Kohorten, Anforderungsmatrix, SUITE-201, SUITE-202 und die obsolete Dashboard-Option), 4 Duplikate.
+2. **Eine Reihenfolge.** 40 Duplikate (darunter 6 Sammelpunkte nach RT-4) fallen als eigenständige Arbeit weg. Größte Bündel: Kap. 29 Release-Plan (16 Einträge, davon 15 Duplikate von P0-, FLOW- und R0-PAR-Einträgen), Kap. 31 SEAM-1xx (7 Duplikate von SUITE-, R3-FIRST- und FLOW-Einträgen), die Paritätspunkte P0/Kap. 29/R0-PAR/LB-AUDIT (10 Einträge auf die 4 führenden Z. 643, 892, 893, 894).
+3. **Fehlende R0-Dokumente** bestimmen den Großteil der offenen Spezifikationspunkte: R0-34 (Z. 759, 851), R0-39 (Z. 760, 770), R0-40 (Z. 790, 818), R0-29 (Z. 878), R0-30 (Z. 792). R0-20 liegt seit dieser Arbeit als Entwurf vor und deckt Z. 820 nur für die Koexistenz ab.
 4. **ADR-Nummernkonflikt** (Z. 689): R0-19 vergibt ADR-007 (Fehlerformat) und ADR-008 (Event-Envelope) neu. Kap. 28.2 belegt diese Nummern mit „Lizenz-/Produktzugang“ und „Rollen und Datenschutz“. R0-12 A-8 („8/8 ADRs“) ist deshalb nicht prüfbar → T-1.
 5. **FLOW-002-Dimensionen** (Z. 848): R0-12 §7 übergibt an R0-24 Spalten je Fall für Ablehnung, Duplicate, Parallelität, Timeout, Partnerausfall, Retry, Widerruf, Recovery. Dieser Entwurf liefert sie **nicht**; sie sind fachliche Testableitung je Fall (67 × 8) und gehören zur Freigabe von R0-12 → T-4.
 
@@ -448,7 +448,7 @@ Module sind **Vorschläge für die Neuanlage** (kein Course-Captain-Code im Repo
 
 | Task | Dateien/Module (Vorschlag) · LB-Referenz | Negativfälle (Auswahl) | Testkommando | Abnahme | Reviewer | Offene Fragen |
 |---|---|---|---|---|---|---|
-| R1-01 | `CourseCaptain\Kernel` (Plugin, Requirements, Activator), `uninstall.php`; Ref. BS-01 | MS-001…MS-003, GM-158, KOMP-001, SA-001* | `composer test -- --group=R1-01` · `npx playwright test --grep @R1-01` | aktivierbar/deaktivierbar ohne Woo/Suite/Pro; Mindestversionen geprüft; Gate B-6 | TL, ARC | R0-20 D-20-01…03 noch nicht im Register |
+| R1-01 | `CourseCaptain\Kernel` (Plugin, Requirements, Activator), `uninstall.php`; Ref. BS-01 | MS-001…MS-003, GM-158, KOMP-001, SA-001* | `composer test -- --group=R1-01` · `npx playwright test --grep @R1-01` | aktivierbar/deaktivierbar ohne Woo/Suite/Pro; Mindestversionen geprüft; Gate B-6 | TL, ARC | E-195 ersetzt E-57 (PHP 8.3) |
 | R1-02 | `CourseCaptain\Storage` (Schema, Migrator, Repositories); Ref. BS-02 | GM-163, GM-164, GM-168, MIG-001 | `composer test -- --group=R1-02` · `npx playwright test --grep @R1-02` | Install/Upgrade/Backfill ohne Datenverlust; Gate C-8 | TL, ARC | FK-Strategie (E-48) |
 | R1-03 | `CourseCaptain\Policy` (Caps, Meta-Caps, PolicyService); Ref. BS-03 | RBAC-001…RBAC-096, RBAC-097*, SEC-003, SEC-004 | `composer test -- --group=R1-03` · `npx playwright test --grep @R1-03` | Gate C-1; RBAC-096 ohne Ausnahme | TL, SEC | Zielkorrektur RBAC-093 (T-2) |
 | R1-04 | `CourseCaptain\Course` (CPT Kurs/Modul/Lektion, Revision); Ref. BS-04 | GM-002, GM-003, REV-047*, GM-193* | `composer test -- --group=R1-04` · `npx playwright test --grep @R1-04` | LEARN-01; Gate B-1 (PAR-01) | TL, ARC | Teilkurs-Relation (E-25) |
@@ -477,7 +477,7 @@ Module sind **Vorschläge für die Neuanlage** (kein Course-Captain-Code im Repo
 | R1-27 | `CourseCaptain\Course\Revision` (Staging-Kopie, Besitzstand) | REV-001…REV-046, REV-047* | `composer test -- --group=R1-27` · `npx playwright test --grep @R1-27` | Gate B-2 | TL, ARC, PO | braucht R1-44 (E-183) |
 | R1-28 | `CourseCaptain\Rest`, `CourseCaptain\Contract`, Shortcodes, Blöcke, CLI; Ref. BS-18 | CT-01…CT-12, GM-145…GM-155 | `composer test -- --group=R1-28` · `npx playwright test --grep @R1-28` | Gate C-7; Routen-Snapshot | TL, ARC, SEC | – |
 | R1-29 | Sitzungsprotokolle nach R0-26 §4, Referenzpaket `cc-fx-rk-v1` | UX-001…UX-015, UX-050 | `composer test -- --group=R1-29` · `npx playwright test --grep @R1-29` | Gate C-11 (Schwellen E-166) | PO, A11Y | Rekrutierung, Budget |
-| R1-30 | Testinstallationen KP-xx nach R0-20 §4; Ref. BS-23, BS-26 | KOMP-101, KOMP-102, LOC-014, MED-024 | `composer test -- --group=R1-30` · `npx playwright test --grep @R1-30` | Gate C-14 | TL, OPS | R0-20 D-20-04…11 noch nicht im Register |
+| R1-30 | Testinstallationen KP-xx nach R0-20 §4; Ref. BS-23, BS-26 | KOMP-101, KOMP-102, LOC-014, MED-024 | `composer test -- --group=R1-30` · `npx playwright test --grep @R1-30` | Gate C-14 | TL, OPS | Lizenzen kommerzieller Plugins (E-196) |
 | R1-31 | `CourseCaptain\Settings` (Register, Schema, Migration); Ref. BS-21 | GM-178, GM-180, GM-181 | `composer test -- --group=R1-31` · `npx playwright test --grep @R1-31` | Feldverträge R0-27 grün | TL, SEC | R0-27 fehlt |
 | R1-32 | `CourseCaptain\Admin\Setup`, Settings-Tabs; Ref. BS-21 | GM-179, UX-060 | `composer test -- --group=R1-32` · `npx playwright test --grep @R1-32` | Wireframes R0-30; A11Y | TL, A11Y, PO | R0-30 fehlt |
 | R1-33 | `CourseCaptain\Settings\Inheritance` | GM-031, REV-020 | `composer test -- --group=R1-33` · `npx playwright test --grep @R1-33` | Zustandsmatrix R0-28 | TL, ARC | R0-28 fehlt |
@@ -507,7 +507,7 @@ Die Rollen stammen aus dem Expertenreview (TODO Z. 609: Chefarchitekt, Produktst
 
 **Befunde zu §4**
 
-1. **13 von 44 Tasks sind nicht ready**, weil ihr führendes R0-Dokument fehlt: R0-20 (R1-01, R1-30), R0-27 (R1-21, R1-31, R1-36), R0-28 (R1-33), R0-29 (R1-35, R1-44\*), R0-30 (R1-32), R0-31 (R1-34), R0-33 (R1-37), R0-34 (R1-38), R0-35 (R1-39). R1-01 ist der Einstieg in R1; **R0-20 ist damit der kritische Pfad** für den R1-Start.
+1. **11 von 44 Tasks sind nicht ready**, weil ihr führendes R0-Dokument fehlt: R0-27 (R1-21, R1-31, R1-36), R0-28 (R1-33), R0-29 (R1-35, R1-44\*), R0-30 (R1-32), R0-31 (R1-34), R0-33 (R1-37), R0-34 (R1-38), R0-35 (R1-39). **R0-27** trägt drei Tasks und ist Voraussetzung von R0-28…R0-31 und R0-33; es ist damit der kritische Pfad zu Gate A. R1-01 (Einstieg in R1) hat mit dem R0-20-Entwurf alle Inputs, hängt aber an 17 Entscheidungen (u. a. E-195 PHP-Untergrenze, E-188…E-194 aus R0-18).
 2. **R1-43\* und R1-44\*** sind erst nach E-182 bzw. E-183 Teil des R-Plans. R1-25 braucht R1-43\* (K-06), R1-27 braucht R1-44\* (R0-12 §2.2 Nr. 6).
 3. **R1-01** trägt durch R0-18 sieben neue Entscheidungen (E-188…E-194); deren „Blockiert“-Spalte nennt R1-01 und R1-39. Die Signatur der Pro-ZIPs (E-190) betrifft fachlich R3-18, nicht R1-01 → Hinweis an R0-18.
 4. **Testkommando:** R0-18 legt die Jobs fest (J-11 Unit, J-12 Integration, J-13 GM, J-14 E2E), aber nicht die Auswahl nach Task. Die Konvention T-5 schließt die Lücke ohne neue Entscheidung.
@@ -627,57 +627,17 @@ PY
 Ergebnis am 16.11.2026:
 
 ```
-Fälle 67 {'ID': 6, 'LEARN': 10, 'ACCESS': 9, 'COMMERCE': 10, 'SUITEFLOW': 10, 'OPS': 10, 'CORE': 12}
-R1-Fälle 45 | ohne R1-Task [] | ohne Test []
-unbekannte Test-IDs []
-Fälle mit Lücke 50
-Katalogtests 511 {'CT': 12, 'GM': 190, 'GRANT': 29, 'ID': 15, 'IMP': 32, 'MED': 26, 'NFR': 18, 'RBAC': 96, 'REC': 25, 'REV': 46, 'SEAT': 22}
-ohne Ziel [] | mit R1-Ziel 505
-R1-01 Tests 1 | Fälle OPS-07 OPS-10
-R1-02 Tests 7 | Fälle OPS-07
-R1-03 Tests 89 | Fälle CORE-09 ID-01 ID-04 ID-05 OPS-02
-R1-04 Tests 8 | Fälle ACCESS-07 LEARN-01
-R1-05 Tests 5 | Fälle LEARN-01 LEARN-02
-R1-06 Tests 6 | Fälle LEARN-04
-R1-07 Tests 14 | Fälle LEARN-02
-R1-08 Tests 23 | Fälle LEARN-04 LEARN-05
-R1-09 Tests 6 | Fälle LEARN-04 LEARN-05
-R1-10 Tests 14 | Fälle LEARN-03 LEARN-07
-R1-11 Tests 10 | Fälle LEARN-06
-R1-12 Tests 10 | Fälle LEARN-06
-R1-13 Tests 61 | Fälle ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03
-R1-14 Tests 53 | Fälle ACCESS-05 ACCESS-08 LEARN-02
-R1-15 Tests 52 | Fälle LEARN-10
-R1-16 Tests 9 | Fälle ID-01 LEARN-03 OPS-08
-R1-17 Tests 25 | Fälle ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06
-R1-18 Tests 9 | Fälle CORE-10 OPS-10
-R1-19 Tests 2 | Fälle OPS-08
-R1-20 Tests 10 | Fälle LEARN-03 LEARN-04 LEARN-05 OPS-04
-R1-21 Tests 2 | Fälle OPS-08
-R1-22 Tests 16 | Fälle OPS-05 OPS-09
-R1-23 Tests 28 | Fälle ID-06 OPS-07
-R1-24 Tests 2 | Fälle OPS-06
-R1-25 Tests 4 | Fälle ACCESS-05 ACCESS-06
-R1-26 Tests 6 | Fälle LEARN-01
-R1-27 Tests 42 | Fälle ACCESS-06 LEARN-01 LEARN-10
-R1-28 Tests 25 | Fälle OPS-02 SUITEFLOW-01
-R1-29 Tests 0 | Fälle OPS-08
-R1-30 Tests 2 | Fälle ID-06
-R1-31 Tests 3 | Fälle ID-04
-R1-32 Tests 1 | Fälle OPS-07
-R1-33 Tests 2 | Fälle LEARN-04
-R1-34 Tests 8 | Fälle ID-04 OPS-01
-R1-35 Tests 11 | Fälle CORE-02 CORE-06 CORE-11 ID-03 LEARN-08
-R1-36 Tests 2 | Fälle OPS-07
-R1-37 Tests 1 | Fälle ACCESS-08 LEARN-01
-R1-38 Tests 9 | Fälle ID-05 OPS-05 OPS-06
-R1-39 Tests 1 | Fälle OPS-07
-R1-40 Tests 15 | Fälle OPS-07
-R1-41 Tests 11 | Fälle LEARN-10
-R1-42 Tests 22 | Fälle CORE-03 OPS-04 OPS-09
+Register 147 | TODO 147 | fehlend [] | überzählig []
+erledigt 3 | offen 144 | führend 102 | Duplikat 40 | obsolet 2
+führend: abgedeckt 38 | offen 64 | führende Tasks 53
+Fehler {} | unbekannte E [] | unbekannte R-Tasks []
+§1.4 Zeilen 53 | Abweichungen []
+PAR 12 | LB 15 | Lead ungültig [] | BS doppelt [] | R1-BS fehlend [] | INV-Summe falsch [] | INV R1 546 | GM fehlend 0
+INV mit R2 42 | nicht in §3 []
+DoR-Zeilen 44 / 44 | abweichend [] | nicht ready 11
 ```
 
-**Grenzen der Zählung:** Das Skript prüft Existenz, Eindeutigkeit und Vollständigkeit der Zuordnung, nicht ihre fachliche Richtigkeit (Review). Test-IDs gelten als bekannt, wenn sie in einer Katalogzeile der genannten R0-Dokumente stehen; vorgeschlagene IDs (\*) müssen in R0-12 §1.3 stehen. Bereiche „A…B“ werden aufgelöst und jede ID einzeln geprüft. Die Spalte „E zusätzlich“ der DoR-Tabelle wird nur auf Existenz geprüft; „E direkt“ und „E über Dokument“ müssen exakt der Berechnung aus `ENTSCHEIDUNGEN.md` entsprechen. Die Zeilennummern beziehen sich auf den Stand `c1d8997`; jede Änderung am TODO oberhalb von Z. 641 verschiebt sie (das Skript meldet dann `fehlend`/`überzählig`).
+**Grenzen der Zählung:** Das Skript prüft Existenz, Eindeutigkeit und Vollständigkeit der Zuordnung, nicht ihre fachliche Richtigkeit (Review). Test-IDs gelten als bekannt, wenn sie in einer Katalogzeile der genannten R0-Dokumente stehen; vorgeschlagene IDs (\*) müssen in R0-12 §1.3 stehen. Bereiche „A…B“ werden aufgelöst und jede ID einzeln geprüft. Die Spalte „E zusätzlich“ der DoR-Tabelle wird nur auf Existenz geprüft; „E direkt“ und „E über Dokument“ müssen exakt der Berechnung aus `ENTSCHEIDUNGEN.md` entsprechen. Die Zeilennummern beziehen sich auf den Stand `d7ca58d`; jede Änderung am TODO oberhalb von Z. 641 verschiebt sie (das Skript meldet dann `fehlend`/`überzählig`).
 
 ---
 
@@ -685,7 +645,7 @@ R1-42 Tests 22 | Fälle CORE-03 OPS-04 OPS-09
 
 ### 6.1 Entscheidungsbedarf (neu, nicht in `ENTSCHEIDUNGEN.md`)
 
-Geprüft gegen E-01…E-194. Bereits registriert und hier nur genutzt: E-01, E-05, E-10, E-14, E-16, E-22, E-25, E-30, E-54, E-69, E-182…E-186.
+Geprüft gegen E-01…E-198 und die offenen Punkte D-20-xx aus R0-20. Bereits registriert und hier nur genutzt: E-01, E-05, E-10, E-14, E-16, E-22, E-25, E-30, E-54, E-69, E-182…E-186.
 
 | ID | Frage | Optionen | Empfehlung | Blockiert |
 |---|---|---|---|---|
@@ -697,7 +657,7 @@ Geprüft gegen E-01…E-194. Bereits registriert und hier nur genutzt: E-01, E-0
 | **D24-6** | Kap. 38 um drei PAR-Zeilen ergänzen (Datenschutz/Audit BS-19, SEO/Consent BS-23, FAQ/Tipps BS-24; zusammen 60 INV-IDs) und BS-22 (E-Mail) einen Golden Master geben? | a) PAR-13…PAR-15 ergänzen, BS-22 über NTF-001…007\* statt GM · b) Kap. 38 unverändert, Zuordnung nur in R0-24 §2.1 · c) PAR-Liste neu schneiden | **a)**: Gate B/C misst „100 % der Paritätsmatrix“; ohne PAR-Zeile fehlen 60 IDs in der Messung | R0-05, R0-GATE, Konzept Kap. 38 |
 | **D24-7** | Wer besetzt die Reviewer-Rollen TL, ARC, SEC, A11Y, OPS, PO (§4.4)? E-184 regelt nur die Gate-Abzeichnung | a) Auftraggeber benennt je Rolle eine Person und eine Vertretung; Vier-Augen-Prinzip, Autor ≠ Reviewer · b) TL allein für alle Tasks · c) externe Reviews für SEC und A11Y | **a)**, SEC und A11Y bei Bedarf extern (c) | DoR-12 aller R1-Tasks |
 | **D24-8** | Gestaffelte Readiness: Darf eine R1-Task vor vollständigem Gate A starten, wenn ihre Spalten in §4.2 beschlossen sind? | a) nein, Gate A bleibt hart; §4.2 steuert nur die Reihenfolge der Antworten · b) ja, für R1-01…R1-03 nach Beschluss ihrer E-Nummern und R0-20 · c) ja, für alle Tasks | **a)**: TODO „R0-GATE … harte Voraussetzung“; b) nur mit ausdrücklicher Änderung der Arbeitsregel | R1-Start |
-| **D24-9** | Dürfen Duplikat-Einträge im TODO einen Verweis „→ Z.n / R-Task“ erhalten (redaktionelle Änderung am Register, kein Löschen)? | a) ja, Verweis und Status nach RT-5 im Eintrag ergänzen · b) nur in R0-24 führen | **a)**: sonst bleiben 39 Einträge als scheinbar eigene Arbeit sichtbar | TODO-Register, RT-1 |
+| **D24-9** | Dürfen Duplikat-Einträge im TODO einen Verweis „→ Z.n / R-Task“ erhalten (redaktionelle Änderung am Register, kein Löschen)? | a) ja, Verweis und Status nach RT-5 im Eintrag ergänzen · b) nur in R0-24 führen | **a)**: sonst bleiben 40 Einträge als scheinbar eigene Arbeit sichtbar | TODO-Register, RT-1 |
 
 ### 6.2 Technische Korrekturen (ohne Auftraggeber-Entscheidung, mit Freigabe der betroffenen Dokumente einzuarbeiten)
 
@@ -716,7 +676,7 @@ Geprüft gegen E-01…E-194. Bereits registriert und hier nur genutzt: E-01, E-0
 
 | Dokument | Delta |
 |---|---|
-| TODO | nach D24-9: Verweise „→ Z.n“ bzw. führende Task an den 39 Duplikaten und 5 Sammelpunkten; nach D24-1 R2-08 ergänzen; R0-24-DoD: DoR-Template §4.1 als Pflichtfeld jedes R1-Tickets |
+| TODO | nach D24-9: Verweise „→ Z.n“ bzw. führende Task an den 40 Duplikaten (davon 6 Sammelpunkte); nach D24-1 R2-08 ergänzen; R0-24-DoD: DoR-Template §4.1 als Pflichtfeld jedes R1-Tickets |
 | `ENTSCHEIDUNGEN.md` | D24-1…D24-9 übernehmen; T-6 |
 | Konzept Kap. 38 | nach D24-6: PAR-13…PAR-15 |
 | R0-05 | nach D24-6: PAR-13…15 in §6; Hinweis „BS-22 ohne GM“ |
@@ -731,5 +691,5 @@ Geprüft gegen E-01…E-194. Bereits registriert und hier nur genutzt: E-01, E-0
 
 - Gelesen: `TODO-WETTBEWERBSANALYSE.md` vollständig (alle 157 Checkboxen ab Z. 552; Register ab Z. 641); `konzept.md` Kap. 28.2, 38, 39; `docs/r0/ENTSCHEIDUNGEN.md` (E-01…E-194, Spalte „Blockiert“ maschinell ausgewertet); `R0-12-tests-gates-backlog.md` vollständig; R0-04 §1, §2, §4, §6; R0-05 §1.21, §6; R0-18 §1.4, §1.5, §4, §5, §6; R0-02-Inventar (Spalten Phase/Edition, Task-ID; Stichproben der Leit-INV-IDs in §2.2). Von den übrigen R0-Dokumenten wurden Kopf („Bezug“), Gliederung und Testkataloge ausgewertet, nicht der volle Fließtext.
 - Zählungen: Skript in §5, Ergebnis dort wörtlich. Die fachliche Zuordnung (führende Task, Duplikat, Status) ist hergeleitet und muss im Review gegengeprüft werden.
-- Während der Arbeit kamen R0-18 und E-188…E-194 hinzu (Commit `c1d8997`); sie sind berücksichtigt.
+- Während der Arbeit kamen R0-18 mit E-188…E-194 (Commit `c1d8997`) und R0-20 mit E-195…E-198 (Commit `d7ca58d`) hinzu; beide sind als Entwurf berücksichtigt.
 - Nicht erfolgt: keine Änderung an anderen Dateien, keine Implementierung, kein Testlauf, kein Commit.
