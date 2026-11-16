@@ -253,7 +253,7 @@
   - **Ergebnis/Definition of Done:** Versionierte Activity-Verträge, Video/Schritte/Downloads, externe Medien-Consent.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-08 · Prüfungsblueprints und Versuche**
+- [x] **R1-08 · Prüfungsblueprints und Versuche** — erledigt 16.11.2026: Nachweis `docs/r1/R1-08-nachweis.md`; Regeln/Blueprints/Varianten, Versuchsstart mit Snapshot, Antworten/Abgabe/Abbruch mit CAS, Fristablauf, Bewertung gegen Snapshot; GM-021/027…047/210, GRANT-027 grün; Unit 85, Integration 99, Multisite 108. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-06, R1-07.
   - **Ergebnis/Definition of Done:** Zufalls-/feste Prüfungen, Timer, immutable Snapshots, idempotente Abgabe.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

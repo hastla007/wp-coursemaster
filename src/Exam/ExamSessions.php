@@ -1,0 +1,843 @@
+<?php
+/**
+ * Exam attempt state machine (R0-08 §4.3–§4.4, §6).
+ *
+ * @package CourseCaptain
+ */
+
+declare(strict_types=1);
+
+namespace CourseCaptain\Exam;
+
+use CourseCaptain\Course\CourseException;
+use CourseCaptain\Policy\Actor;
+use CourseCaptain\Policy\PolicyService;
+use CourseCaptain\Policy\Relations;
+use CourseCaptain\Question\QuestionRepository;
+use CourseCaptain\Question\QuestionTypes;
+use CourseCaptain\Question\Randomizer;
+use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\NamedLock;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * States: in_progress → evaluated | cancelled | broken. Session, all
+ * session questions and the snapshot are written in one transaction;
+ * every write locks the session row (`FOR UPDATE`) and uses CAS. The
+ * evaluation only uses the snapshot and the frozen question revisions.
+ */
+final class ExamSessions {
+
+	public const FORMAT_VERSION    = 1;
+	public const EVALUATOR_VERSION = '1.0.0';
+	public const UNLIMITED_LOCK    = 86400;
+	private const START_LOCK_WAIT  = 10;
+
+	/**
+	 * Clock override (tests).
+	 *
+	 * @var int|null
+	 */
+	private ?int $fixed_now = null;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Database           $db        Database access.
+	 * @param PolicyService      $policy    Policy.
+	 * @param ExamRules          $rules     Rules.
+	 * @param QuestionRepository $questions Question bank.
+	 */
+	public function __construct( private Database $db, private PolicyService $policy, private ExamRules $rules, private QuestionRepository $questions ) {
+	}
+
+	/**
+	 * Instance for the current site.
+	 *
+	 * @return self
+	 */
+	public static function current(): self {
+		$db = Database::current();
+		return new self( $db, PolicyService::instance(), new ExamRules( $db, PolicyService::instance() ), QuestionRepository::current() );
+	}
+
+	/**
+	 * Start (or resume) an attempt.
+	 *
+	 * @param Actor           $actor       Learner.
+	 * @param int             $rule_id     Published rule.
+	 * @param int|null        $variant_id  Fixed variant or null (random from blueprints).
+	 * @param string          $request_key Client UUID (`start_token`).
+	 * @param Randomizer|null $randomizer  Injected for tests.
+	 * @return int Session ID (the running one on repeats).
+	 * @throws CourseException With `ccap_exam_*` codes.
+	 */
+	public function start( Actor $actor, int $rule_id, ?int $variant_id, string $request_key, ?Randomizer $randomizer = null ): int {
+		$rule = $this->rules->get( $rule_id );
+		if ( null === $rule ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown exam.', 404 );
+		}
+		$course = (int) $rule['course_id'];
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course ), array( 'scope' => 'exam' ) ), 'No exam access.' );
+		if ( 'published' !== $rule['status'] || null === $rule['passing_rule'] || array() !== ExamRules::validate_passing_rule( $rule['passing_rule'] ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'rule_unavailable', 422 );
+		}
+
+		$lock = NamedLock::for_key( $this->db, 'exam_start:' . $actor->user_id );
+		if ( NamedLock::BUSY === $lock->acquire( self::START_LOCK_WAIT ) ) {
+			throw new CourseException( 'ccap_exam_start_busy', 'Start in progress.', 409 );
+		}
+		try {
+			$this->expire_for_user( $actor->user_id );
+			$form_key = null === $variant_id ? 'random:' . $rule_id : 'variant:' . $variant_id;
+			$table    = $this->db->table( 'ccap_exam_session' );
+			$running  = $this->db->scalar( $this->db->prepare( "SELECT id FROM `{$table}` WHERE user_id = %d AND form_key = %s AND status = 'in_progress'", $actor->user_id, $form_key ) );
+			if ( null !== $running ) {
+				return (int) $running;
+			}
+			$known = $this->db->scalar( $this->db->prepare( "SELECT id FROM `{$table}` WHERE start_token = %s AND user_id = %d", $request_key, $actor->user_id ) );
+			if ( null !== $known ) {
+				return (int) $known;
+			}
+			$this->assert_attempts_left( $actor->user_id, $rule );
+
+			$randomizer = $randomizer ?? Randomizer::fresh();
+			$plan       = null === $variant_id ? $this->draw( $actor, $rule, $randomizer ) : $this->variant( $actor, $rule, $variant_id );
+			if ( array() === $plan['questions'] ) {
+				throw new CourseException( 'ccap_exam_not_startable', 'no_questions', 422 );
+			}
+			return $this->create_session( $actor, $rule, $variant_id, $form_key, $request_key, $randomizer, $plan );
+		} finally {
+			$lock->release();
+		}
+	}
+
+	/**
+	 * Learner view of a session: never solutions while running (GM-028).
+	 *
+	 * @param Actor $actor   Learner.
+	 * @param int   $session Session.
+	 * @return array<string, mixed>
+	 */
+	public function view( Actor $actor, int $session ): array {
+		$this->expire_if_due( $session );
+		$row      = $this->owned( $actor, $session, false );
+		$snapshot = (array) json_decode( (string) $row['snapshot'], true );
+		$items    = array();
+		foreach ( $this->session_questions( $session ) as $sq ) {
+			$revision  = (array) $this->questions->revision( (int) $sq['revision_id'] );
+			$order     = (array) json_decode( (string) $sq['answer_order'], true );
+			$delivered = QuestionTypes::deliver( $revision, new Randomizer( (string) $snapshot['randomizer']['seed'] ), (string) $sq['question_id'] );
+			$items[]   = array(
+				'position' => (int) $sq['position'],
+				'question' => self::reorder( $delivered['payload'], $order ),
+				'answered' => null !== $sq['answered_at'],
+				'flagged'  => '1' === (string) $sq['flagged'],
+				'revealed' => null !== $sq['revealed_at'],
+			);
+		}
+		$deadline = null === $row['deadline_at'] ? null : (string) $row['deadline_at'];
+		return array(
+			'session_id'        => $session,
+			'status'            => (string) $row['status'],
+			'remaining_seconds' => null === $deadline ? null : max( 0, (int) strtotime( $deadline . ' UTC' ) - $this->now() ),
+			'questions'         => $items,
+			'result'            => 'evaluated' === $row['status'] ? json_decode( (string) $row['result'], true ) : null,
+		);
+	}
+
+	/**
+	 * Save an answer (empty input withdraws the answer).
+	 *
+	 * @param Actor $actor    Learner.
+	 * @param int   $session  Session.
+	 * @param int   $position Position.
+	 * @param mixed $answer   Answer.
+	 * @return array{applied: bool}
+	 * @throws CourseException With `ccap_exam_*` codes.
+	 */
+	public function save_answer( Actor $actor, int $session, int $position, $answer ): array {
+		return $this->mutate(
+			$actor,
+			$session,
+			$position,
+			function ( array $row, array $sq ) use ( $answer ): array {
+				$revision = (array) $this->questions->revision( (int) $sq['revision_id'] );
+				if ( QuestionTypes::OPEN_TEXT === $revision['question_type'] && null === $sq['revealed_at'] ) {
+					throw new CourseException( 'ccap_exam_answer_locked', 'Reveal the model answer first.', 422 );
+				}
+				$order      = (array) json_decode( (string) $sq['answer_order'], true );
+				$evaluation = QuestionTypes::evaluate( $revision, $answer, array_values( array_map( 'strval', $order ) ) );
+				if ( ! $evaluation->valid ) {
+					throw new CourseException( 'ccap_exam_invalid_answer', 'Invalid answer.', 422 );
+				}
+				if ( ! $evaluation->answered ) {
+					return array(
+						'given_answer' => null,
+						'answered_at'  => null,
+						'is_correct'   => null,
+					);
+				}
+				return array(
+					'given_answer' => (string) wp_json_encode( $answer ),
+					'answered_at'  => $this->now_sql(),
+					'is_correct'   => $evaluation->correct() ? 1 : 0,
+				);
+			}
+		);
+	}
+
+	/**
+	 * Flag or unflag a position (idempotent).
+	 *
+	 * @param Actor $actor    Learner.
+	 * @param int   $session  Session.
+	 * @param int   $position Position.
+	 * @param bool  $on       Flag state.
+	 * @return array{applied: bool}
+	 */
+	public function flag( Actor $actor, int $session, int $position, bool $on ): array {
+		return $this->mutate( $actor, $session, $position, static fn(): array => array( 'flagged' => $on ? 1 : 0 ) );
+	}
+
+	/**
+	 * Reveal the model answer of an open question (once).
+	 *
+	 * @param Actor $actor    Learner.
+	 * @param int   $session  Session.
+	 * @param int   $position Position.
+	 * @return string Model answer.
+	 * @throws CourseException For other types.
+	 */
+	public function reveal( Actor $actor, int $session, int $position ): string {
+		$model = '';
+		$this->mutate(
+			$actor,
+			$session,
+			$position,
+			function ( array $row, array $sq ) use ( &$model ): array {
+				$revision = (array) $this->questions->revision( (int) $sq['revision_id'] );
+				if ( QuestionTypes::OPEN_TEXT !== $revision['question_type'] ) {
+					throw new CourseException( 'ccap_invalid_param', 'Nothing to reveal.', 400 );
+				}
+				$model = (string) ( $revision['answers'][0]['text'] ?? '' );
+				return null === $sq['revealed_at'] ? array( 'revealed_at' => $this->now_sql() ) : array();
+			}
+		);
+		return $model;
+	}
+
+	/**
+	 * Submit and evaluate (idempotent: a finished attempt returns its result).
+	 *
+	 * @param Actor $actor   Learner.
+	 * @param int   $session Session.
+	 * @return array<string, mixed> Result.
+	 */
+	public function submit( Actor $actor, int $session ): array {
+		$row = $this->owned( $actor, $session, false );
+		if ( 'in_progress' === $row['status'] ) {
+			$this->finish( $session, 'submitted' );
+		}
+		$after = (array) $this->db->row( $this->db->prepare( 'SELECT status, result FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		return array( 'status' => $after['status'] ) + (array) json_decode( (string) $after['result'], true );
+	}
+
+	/**
+	 * Cancel without evaluation; an expired attempt is evaluated instead (GM-041).
+	 *
+	 * @param Actor $actor   Learner.
+	 * @param int   $session Session.
+	 * @return string Resulting status.
+	 */
+	public function cancel( Actor $actor, int $session ): string {
+		$row = $this->owned( $actor, $session, false );
+		if ( 'in_progress' !== $row['status'] ) {
+			return (string) $row['status'];
+		}
+		if ( $this->is_overdue( $row ) ) {
+			$this->finish( $session, 'expired' );
+			return 'evaluated';
+		}
+		$this->db->transaction(
+			function ( Database $db ) use ( $session ): void {
+				$table = $db->table( 'ccap_exam_session' );
+				$row   = (array) $db->row( $db->prepare( "SELECT row_version, status FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
+				if ( 'in_progress' === $row['status'] ) {
+					$db->compare_and_swap(
+						'ccap_exam_session',
+						$session,
+						(int) $row['row_version'],
+						array(
+							'status'       => 'cancelled',
+							'end_reason'   => 'user',
+							'submitted_at' => $this->now_sql(),
+						)
+					);
+				}
+			}
+		);
+		do_action( 'course_captain_policy_changed' );
+		return 'cancelled';
+	}
+
+	/**
+	 * Cron: evaluate attempts past deadline + late tolerance (GM-035).
+	 *
+	 * @return int Number of evaluated sessions.
+	 */
+	public function expire_due(): int {
+		$table = $this->db->table( 'ccap_exam_session' );
+		$rows  = $this->db->rows( $this->db->prepare( "SELECT id, snapshot, deadline_at FROM `{$table}` WHERE status = 'in_progress' AND deadline_at IS NOT NULL AND deadline_at < %s ORDER BY id LIMIT 200", $this->now_sql() ) );
+		$count = 0;
+		foreach ( $rows as $row ) {
+			if ( $this->is_overdue( $row ) ) {
+				$this->finish( (int) $row['id'], 'expired' );
+				++$count;
+			}
+		}
+		return $count;
+	}
+
+	/**
+	 * Fix the clock (tests).
+	 *
+	 * @param int|null $now Unix time or null.
+	 * @return void
+	 */
+	public function set_now( ?int $now ): void {
+		$this->fixed_now = $now;
+	}
+
+	/**
+	 * Draw questions per blueprint (pool shuffled per section, grouped by section).
+	 *
+	 * @param Actor                $actor      Learner.
+	 * @param array<string, mixed> $rule       Rule.
+	 * @param Randomizer           $randomizer Randomizer.
+	 * @return array{questions: list<array{question_id: int, section: int, points: int}>, reduced: bool}
+	 * @throws CourseException When a blueprint module is not accessible (E-286).
+	 */
+	private function draw( Actor $actor, array $rule, Randomizer $randomizer ): array {
+		$questions = array();
+		$reduced   = false;
+		foreach ( $rule['blueprints'] as $blueprint ) {
+			$module = (int) $blueprint['module_id'];
+			CourseException::unless_allowed(
+				$this->policy->decide(
+					$actor,
+					PolicyService::LEARN,
+					array( (int) $rule['course_id'] ),
+					array(
+						'module' => $module,
+						'scope'  => 'exam',
+					)
+				),
+				'No access to a blueprint module.'
+			);
+			$meta   = (array) json_decode( (string) $blueprint['rules'], true );
+			$pool   = $randomizer->shuffle( $this->questions->pool( $module ), 'pool:' . $module );
+			$count  = (int) $blueprint['question_count'];
+			$picked = array_slice( $pool, 0, $count );
+			if ( count( $picked ) < $count ) {
+				$reduced = true;
+			}
+			foreach ( $picked as $question ) {
+				$questions[] = array(
+					'question_id' => (int) $question,
+					'section'     => $module,
+					'points'      => (int) ( $meta['points'] ?? 1 ),
+				);
+			}
+		}
+		return array(
+			'questions' => $questions,
+			'reduced'   => $reduced,
+		);
+	}
+
+	/**
+	 * Questions of a fixed variant in position order.
+	 *
+	 * @param Actor                $actor      Learner.
+	 * @param array<string, mixed> $rule       Rule.
+	 * @param int                  $variant_id Variant.
+	 * @return array{questions: list<array{question_id: int, section: int, points: int}>, reduced: bool}
+	 * @throws CourseException For variants of other courses or with unavailable questions.
+	 */
+	private function variant( Actor $actor, array $rule, int $variant_id ): array {
+		$variant = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_variant' ) . "` WHERE id = %d AND status = 'published'", $variant_id ) );
+		if ( null === $variant || (int) $variant['course_id'] !== (int) $rule['course_id'] ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown variant.', 404 );
+		}
+		$rows      = $this->db->rows( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d ORDER BY position', $variant_id ) );
+		$relations = new Relations( $this->db );
+		$questions = array();
+		foreach ( $rows as $row ) {
+			$question = (int) $row['question_id'];
+			$sections = array_values( array_filter( $this->modules_of_question( $question ), static fn( int $m ): bool => in_array( (int) $rule['course_id'], $relations->courses_of_module( $m ), true ) ) );
+			$section  = $sections[0] ?? 0;
+			if ( 0 !== $section ) {
+				CourseException::unless_allowed(
+					$this->policy->decide(
+						$actor,
+						PolicyService::LEARN,
+						array( (int) $rule['course_id'] ),
+						array(
+							'module' => $section,
+							'scope'  => 'exam',
+						)
+					),
+					'No access to a variant module.'
+				);
+			}
+			$current = $this->db->row( $this->db->prepare( 'SELECT q.status, r.editorial_status FROM `' . $this->db->table( 'ccap_question' ) . '` q JOIN `' . $this->db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE q.id = %d', $question ) );
+			if ( null === $current || 'published' !== $current['status'] || 'published' !== $current['editorial_status'] ) {
+				throw new CourseException( 'ccap_exam_not_startable', 'variant_incomplete', 422 );
+			}
+			$questions[] = array(
+				'question_id' => $question,
+				'section'     => $section,
+				'points'      => 1,
+			);
+		}
+		return array(
+			'questions' => $questions,
+			'reduced'   => false,
+		);
+	}
+
+	/**
+	 * Write session, session questions and snapshot in one transaction.
+	 *
+	 * @param Actor                $actor       Learner.
+	 * @param array<string, mixed> $rule        Rule.
+	 * @param int|null             $variant_id  Variant.
+	 * @param string               $form_key    Form key.
+	 * @param string               $request_key Start token.
+	 * @param Randomizer           $randomizer  Randomizer.
+	 * @param array<string, mixed> $plan        Questions and reduced flag.
+	 * @return int
+	 */
+	private function create_session( Actor $actor, array $rule, ?int $variant_id, string $form_key, string $request_key, Randomizer $randomizer, array $plan ): int {
+		$settings = (array) $rule['settings'];
+		$items    = array();
+		foreach ( $plan['questions'] as $i => $q ) {
+			$current  = (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $q['question_id'] ) );
+			$revision = (array) $this->questions->revision( $current );
+			$order    = empty( $settings['shuffle_answers'] ) ? array() : QuestionTypes::deliver( $revision, $randomizer, (string) $q['question_id'] )['order'];
+			$items[]  = $q + array(
+				'position'    => $i + 1,
+				'revision_id' => $current,
+				'order'       => array_values( $order ),
+				'scoring'     => (string) ( $revision['settings']['scoring'] ?? QuestionTypes::ALL_OR_NOTHING ),
+			);
+		}
+		$limit    = null === $rule['time_limit_seconds'] ? null : (int) $rule['time_limit_seconds'];
+		$started  = $this->now();
+		$practice = 'practice' === ( $settings['purpose'] ?? 'evidence' );
+		$snapshot = array(
+			'format_version'     => self::FORMAT_VERSION,
+			'rule'               => array(
+				'id'      => (int) $rule['id'],
+				'uid'     => (string) $rule['uid'],
+				'version' => (string) $rule['version'],
+				'hash'    => 'sha256:' . hash( 'sha256', (string) wp_json_encode( array( $rule['passing_rule'], $rule['settings'], $rule['blueprints'] ) ) ),
+			),
+			'evidence_eligible'  => ! $practice && ! $plan['reduced'],
+			'reduced'            => $plan['reduced'],
+			'practice'           => $practice,
+			'timing'             => array(
+				'time_limit_seconds'     => $limit,
+				'grace_seconds'          => (int) $settings['grace_seconds'],
+				'late_tolerance_seconds' => (int) $settings['late_tolerance_seconds'],
+				'timer_mode'             => (string) $settings['timer_mode'],
+			),
+			'passing_rule'       => $rule['passing_rule'],
+			'randomizer'         => array(
+				'seed'               => $randomizer->seed(),
+				'randomizer_version' => Randomizer::VERSION,
+			),
+			'scoring'            => array_map(
+				static fn( array $item ): array => array(
+					'position' => $item['position'],
+					'points'   => $item['points'],
+					'scoring'  => $item['scoring'],
+					'section'  => $item['section'],
+				),
+				$items
+			),
+			'feedback'           => $settings['feedback'],
+			'attempt_policy'     => $settings['attempt_policy'],
+			'open_text_in_score' => (bool) $settings['open_text_in_score'],
+			'evaluator_version'  => self::EVALUATOR_VERSION,
+		);
+		ksort( $snapshot );
+		$json = (string) wp_json_encode( $snapshot );
+		$id   = $this->db->transaction(
+			function ( Database $db ) use ( $actor, $rule, $variant_id, $form_key, $request_key, $randomizer, $items, $json, $limit, $started ): int {
+				$session = $db->insert(
+					'ccap_exam_session',
+					array(
+						'uid'                => $db->uuid(),
+						'user_id'            => $actor->user_id,
+						'course_id'          => (int) $rule['course_id'],
+						'course_revision_id' => ( function () use ( $rule ): ?int {
+							$rev = get_post_meta( (int) $rule['course_id'], '_ccap_current_revision_id', true );
+							return '' === $rev ? null : (int) $rev;
+						} )(),
+						'rule_id'            => (int) $rule['id'],
+						'variant_id'         => $variant_id,
+						'mode'               => null === $variant_id ? 'random' : 'variant',
+						'form_key'           => $form_key,
+						'status'             => 'in_progress',
+						'start_token'        => $request_key,
+						'snapshot'           => $json,
+						'snapshot_hash'      => 'sha256:' . hash( 'sha256', $json ),
+						'seed'               => (int) $randomizer->seed(),
+						'evaluator_version'  => self::EVALUATOR_VERSION,
+						'started_at'         => gmdate( 'Y-m-d H:i:s', $started ),
+						'deadline_at'        => null === $limit ? null : gmdate( 'Y-m-d H:i:s', $started + $limit ),
+					)
+				);
+				foreach ( $items as $item ) {
+					$db->insert(
+						'ccap_exam_session_question',
+						array(
+							'session_id'   => $session,
+							'position'     => $item['position'],
+							'question_id'  => $item['question_id'],
+							'revision_id'  => $item['revision_id'],
+							'answer_order' => (string) wp_json_encode( $item['order'] ),
+						)
+					);
+				}
+				return $session;
+			}
+		);
+		do_action( 'course_captain_policy_changed' );
+		return $id;
+	}
+
+	/**
+	 * Evaluate against the snapshot and close the attempt.
+	 *
+	 * @param int    $session    Session.
+	 * @param string $end_reason submitted|expired.
+	 * @return void
+	 */
+	private function finish( int $session, string $end_reason ): void {
+		$this->db->transaction(
+			function ( Database $db ) use ( $session, $end_reason ): void {
+				$table = $db->table( 'ccap_exam_session' );
+				$row   = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
+				if ( 'in_progress' !== $row['status'] ) {
+					return;
+				}
+				$snapshot = json_decode( (string) $row['snapshot'], true );
+				if ( ! is_array( $snapshot ) || 'sha256:' . hash( 'sha256', (string) $row['snapshot'] ) !== $row['snapshot_hash'] ) {
+					$db->compare_and_swap(
+						'ccap_exam_session',
+						$session,
+						(int) $row['row_version'],
+						array(
+							'status' => 'broken',
+							'result' => (string) wp_json_encode( array( 'error' => 'ccap_exam_snapshot_invalid' ) ),
+						)
+					);
+					return;
+				}
+				$result = $this->evaluate( $row, $snapshot );
+				$db->compare_and_swap(
+					'ccap_exam_session',
+					$session,
+					(int) $row['row_version'],
+					array(
+						'status'           => 'evaluated',
+						'end_reason'       => $end_reason,
+						'submitted_at'     => $this->now_sql(),
+						'evaluated_at'     => $this->now_sql(),
+						'evaluation_no'    => 1,
+						'points_milli'     => $result['points_milli'],
+						'max_points_milli' => $result['max_points_milli'],
+						'passed'           => $result['passed'] ? 1 : 0,
+						'result'           => (string) wp_json_encode( $result ),
+					)
+				);
+			}
+		);
+		do_action( 'course_captain_policy_changed' );
+	}
+
+	/**
+	 * Evaluation (R0-08 §6.2 "Bewertung"): answers count only up to
+	 * deadline + grace; unanswered = 0; pass = total and all parts.
+	 *
+	 * @param array<string, mixed> $row      Session row.
+	 * @param array<string, mixed> $snapshot Snapshot.
+	 * @return array{points_milli: int, max_points_milli: int, passed: bool, expired: bool, correct: int, total: int, sections: array<int, array{points: int, max: int}>}
+	 */
+	private function evaluate( array $row, array $snapshot ): array {
+		$cutoff   = null === $row['deadline_at'] ? null : gmdate( 'Y-m-d H:i:s', (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) $snapshot['timing']['grace_seconds'] );
+		$scoring  = array_column( (array) $snapshot['scoring'], null, 'position' );
+		$points   = 0;
+		$max      = 0;
+		$correct  = 0;
+		$sections = array();
+		foreach ( $this->session_questions( (int) $row['id'] ) as $sq ) {
+			$position = (int) $sq['position'];
+			$meta     = $scoring[ $position ] ?? array(
+				'points'  => 1,
+				'scoring' => null,
+				'section' => 0,
+			);
+			$revision = (array) $this->questions->revision( (int) $sq['revision_id'] );
+			if ( QuestionTypes::OPEN_TEXT === $revision['question_type'] && empty( $snapshot['open_text_in_score'] ) ) {
+				continue;
+			}
+			$weight  = 1000 * (int) $meta['points'];
+			$max    += $weight;
+			$got     = 0;
+			$counted = null !== $sq['answered_at'] && null !== $sq['given_answer'] && ( null === $cutoff || (string) $sq['answered_at'] <= $cutoff );
+			if ( $counted ) {
+				$evaluation = QuestionTypes::evaluate( $revision, json_decode( (string) $sq['given_answer'], true ), array_values( array_map( 'strval', (array) json_decode( (string) $sq['answer_order'], true ) ) ), $weight, $meta['scoring'] );
+				$got        = $evaluation->points_milli;
+				if ( $evaluation->correct() ) {
+					++$correct;
+				}
+			}
+			$points                        += $got;
+			$section                        = (int) $meta['section'];
+			$sections[ $section ]['points'] = ( $sections[ $section ]['points'] ?? 0 ) + $got;
+			$sections[ $section ]['max']    = ( $sections[ $section ]['max'] ?? 0 ) + $weight;
+		}
+		$ratio  = (array) $snapshot['passing_rule']['min_ratio'];
+		$passed = $max > 0 && $points * (int) $ratio['den'] >= (int) $ratio['num'] * $max;
+		foreach ( (array) ( $snapshot['passing_rule']['parts'] ?? array() ) as $part ) {
+			$section = (int) ( $part['section'] ?? 0 );
+			if ( ! isset( $sections[ $section ] ) ) {
+				$passed = $passed && 'fail' !== ( $snapshot['passing_rule']['empty_part_policy'] ?? 'pass' );
+				continue;
+			}
+			$need   = (array) $part['min_ratio'];
+			$passed = $passed && $sections[ $section ]['points'] * (int) $need['den'] >= (int) $need['num'] * $sections[ $section ]['max'];
+		}
+		return array(
+			'points_milli'     => $points,
+			'max_points_milli' => $max,
+			'passed'           => $passed,
+			'expired'          => null !== $row['deadline_at'] && $this->now_sql() >= (string) $row['deadline_at'],
+			'correct'          => $correct,
+			'total'            => count( $scoring ),
+			'sections'         => $sections,
+		);
+	}
+
+	/**
+	 * Locked write on one session question.
+	 *
+	 * @param Actor    $actor    Learner.
+	 * @param int      $session  Session.
+	 * @param int      $position Position.
+	 * @param callable $change   fn(session row, question row): array of columns.
+	 * @return array{applied: bool}
+	 * @throws CourseException With `ccap_exam_*` codes.
+	 */
+	private function mutate( Actor $actor, int $session, int $position, callable $change ): array {
+		$this->expire_if_due( $session );
+		$this->owned( $actor, $session, true );
+		return $this->db->transaction(
+			function ( Database $db ) use ( $session, $position, $change ): array {
+				$table = $db->table( 'ccap_exam_session' );
+				$row   = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
+				if ( 'in_progress' !== $row['status'] ) {
+					throw new CourseException( 'ccap_exam_finished', 'The attempt is finished.', 409 );
+				}
+				$snapshot = (array) json_decode( (string) $row['snapshot'], true );
+				if ( null !== $row['deadline_at'] && $this->now() > (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) ( $snapshot['timing']['grace_seconds'] ?? 5 ) ) {
+					throw new CourseException( 'ccap_exam_expired', 'The time is over.', 410 );
+				}
+				$qtable = $db->table( 'ccap_exam_session_question' );
+				$sq     = $db->row( $db->prepare( "SELECT * FROM `{$qtable}` WHERE session_id = %d AND position = %d FOR UPDATE", $session, $position ) );
+				if ( null === $sq ) {
+					throw new CourseException( 'ccap_not_found', 'Unknown position.', 404 );
+				}
+				$columns = $change( $row, $sq );
+				if ( array() === $columns ) {
+					return array( 'applied' => false );
+				}
+				$sets   = array();
+				$values = array();
+				foreach ( $columns as $column => $value ) {
+					Database::assert_identifier( $column );
+					if ( null === $value ) {
+						$sets[] = "`{$column}` = NULL";
+						continue;
+					}
+					$sets[]   = "`{$column}` = " . ( is_int( $value ) ? '%d' : '%s' );
+					$values[] = $value;
+				}
+				$values[] = (int) $sq['id'];
+				$db->execute( $db->prepare( "UPDATE `{$qtable}` SET " . implode( ', ', $sets ) . ' WHERE id = %d', ...$values ) );
+				if ( ! $db->compare_and_swap( 'ccap_exam_session', $session, (int) $row['row_version'], array( 'status' => 'in_progress' ) ) ) {
+					throw new CourseException( 'ccap_exam_conflict', 'Concurrent change.', 409 );
+				}
+				return array( 'applied' => true );
+			}
+		);
+	}
+
+	/**
+	 * Own session or 404; for writes also M-08 (access now, R-05).
+	 *
+	 * @param Actor $actor   Learner.
+	 * @param int   $session Session.
+	 * @param bool  $write   Write access needed.
+	 * @return array<string, mixed>
+	 * @throws CourseException 404/403.
+	 */
+	private function owned( Actor $actor, int $session, bool $write ): array {
+		$decision = $this->policy->decide( $actor, PolicyService::VIEW_ATTEMPT, array( $session ) );
+		$row      = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		if ( null === $row || (int) $row['user_id'] !== $actor->user_id || ! $decision->allowed ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown attempt.', 404 );
+		}
+		if ( $write && 'in_progress' === $row['status'] ) {
+			CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::USE_ATTEMPT, array( $session ) ), 'No access to this attempt.' );
+		}
+		return $row;
+	}
+
+	/**
+	 * Max attempts and cooldown (§4.4, GM-210).
+	 *
+	 * @param int                  $user Learner.
+	 * @param array<string, mixed> $rule Rule.
+	 * @return void
+	 * @throws CourseException `ccap_exam_attempts_exhausted`.
+	 */
+	private function assert_attempts_left( int $user, array $rule ): void {
+		$policy  = (array) $rule['settings']['attempt_policy'];
+		$table   = $this->db->table( 'ccap_exam_session' );
+		$counted = empty( $policy['count_cancelled'] ) ? "status = 'evaluated'" : "(status = 'evaluated' OR (status = 'cancelled' AND end_reason NOT IN ('withdrawn', 'support_void')))";
+		if ( null !== ( $policy['max_attempts'] ?? null ) ) {
+			$used = (int) $this->db->scalar( $this->db->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE user_id = %d AND rule_id = %d AND {$counted}", $user, (int) $rule['id'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed condition.
+			if ( $used >= (int) $policy['max_attempts'] ) {
+				throw new CourseException( 'ccap_exam_attempts_exhausted', 'No attempts left.', 422 );
+			}
+		}
+		$cooldown = (int) ( $policy['cooldown_seconds'] ?? 0 );
+		if ( $cooldown > 0 ) {
+			$last = $this->db->scalar( $this->db->prepare( "SELECT MAX(submitted_at) FROM `{$table}` WHERE user_id = %d AND rule_id = %d AND status = 'evaluated' AND passed = 0", $user, (int) $rule['id'] ) );
+			if ( null !== $last && (int) strtotime( $last . ' UTC' ) + $cooldown > $this->now() ) {
+				throw new CourseException( 'ccap_exam_attempts_exhausted', 'cooldown', 422 );
+			}
+		}
+	}
+
+	/**
+	 * Expire due attempts of one user before starting.
+	 *
+	 * @param int $user Learner.
+	 * @return void
+	 */
+	private function expire_for_user( int $user ): void {
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT id, snapshot, deadline_at FROM `' . $this->db->table( 'ccap_exam_session' ) . "` WHERE user_id = %d AND status = 'in_progress' AND deadline_at IS NOT NULL", $user ) );
+		foreach ( $rows as $row ) {
+			if ( $this->is_overdue( $row ) ) {
+				$this->finish( (int) $row['id'], 'expired' );
+			}
+		}
+	}
+
+	/**
+	 * Evaluate one session if it is overdue.
+	 *
+	 * @param int $session Session.
+	 * @return void
+	 */
+	private function expire_if_due( int $session ): void {
+		$row = $this->db->row( $this->db->prepare( 'SELECT id, status, snapshot, deadline_at FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		if ( null !== $row && 'in_progress' === $row['status'] && $this->is_overdue( $row ) ) {
+			$this->finish( $session, 'expired' );
+		}
+	}
+
+	/**
+	 * Past deadline + late tolerance (frozen in the snapshot).
+	 *
+	 * @param array<string, mixed> $row Session row with snapshot and deadline.
+	 * @return bool
+	 */
+	private function is_overdue( array $row ): bool {
+		if ( null === $row['deadline_at'] ) {
+			return false;
+		}
+		$snapshot = (array) json_decode( (string) $row['snapshot'], true );
+		return $this->now() > (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) ( $snapshot['timing']['late_tolerance_seconds'] ?? 120 );
+	}
+
+	/**
+	 * Session questions in position order.
+	 *
+	 * @param int $session Session.
+	 * @return list<array<string, mixed>>
+	 */
+	private function session_questions( int $session ): array {
+		return $this->db->rows( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session_question' ) . '` WHERE session_id = %d ORDER BY position', $session ) );
+	}
+
+	/**
+	 * Modules whose pool contains a question.
+	 *
+	 * @param int $question Question.
+	 * @return list<int>
+	 */
+	private function modules_of_question( int $question ): array {
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT module_id FROM `' . $this->db->table( 'ccap_module_question' ) . '` WHERE question_id = %d ORDER BY module_id', $question ) );
+		return array_map( static fn( array $r ): int => (int) $r['module_id'], $rows );
+	}
+
+	/**
+	 * Apply the stored answer order to a delivered payload.
+	 *
+	 * @param array<string, mixed> $payload Payload.
+	 * @param array<int, mixed>    $order   Stored keys.
+	 * @return array<string, mixed>
+	 */
+	private static function reorder( array $payload, array $order ): array {
+		foreach ( array( 'options', 'right', 'items' ) as $list ) {
+			if ( ! isset( $payload[ $list ] ) || array() === $order ) {
+				continue;
+			}
+			$by_key = array_column( (array) $payload[ $list ], null, 'key' );
+			$sorted = array();
+			foreach ( $order as $key ) {
+				if ( isset( $by_key[ (string) $key ] ) ) {
+					$sorted[] = $by_key[ (string) $key ];
+				}
+			}
+			$payload[ $list ] = $sorted;
+		}
+		return $payload;
+	}
+
+	/**
+	 * Current Unix time.
+	 *
+	 * @return int
+	 */
+	private function now(): int {
+		return $this->fixed_now ?? $this->db->time();
+	}
+
+	/**
+	 * Current UTC time as SQL datetime.
+	 *
+	 * @return string
+	 */
+	private function now_sql(): string {
+		return gmdate( 'Y-m-d H:i:s', $this->now() );
+	}
+}

@@ -242,7 +242,8 @@ final class QuestionPresenter {
 
 	/**
 	 * SEC-016 / R0-08 §1.4 Nr. 5: questions of the learner's running exam are
-	 * locked in learning mode (no looking up answers during the exam).
+	 * locked in learning mode (no looking up answers during the exam); without
+	 * a time limit at most 24 h after the start (GM-044).
 	 *
 	 * @param int $user_id     Learner.
 	 * @param int $question_id Question.
@@ -254,9 +255,10 @@ final class QuestionPresenter {
 		$questions = $this->db->table( 'ccap_exam_session_question' );
 		$running   = $this->db->scalar(
 			$this->db->prepare(
-				"SELECT 1 FROM `{$questions}` sq JOIN `{$sessions}` s ON s.id = sq.session_id WHERE s.user_id = %d AND s.status = 'in_progress' AND sq.question_id = %d LIMIT 1",
+				"SELECT 1 FROM `{$questions}` sq JOIN `{$sessions}` s ON s.id = sq.session_id WHERE s.user_id = %d AND s.status = 'in_progress' AND sq.question_id = %d AND (s.deadline_at IS NOT NULL OR s.started_at > %s) LIMIT 1",
 				$user_id,
-				$question_id
+				$question_id,
+				$this->db->now( -\CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
 			)
 		);
 		if ( null !== $running ) {
