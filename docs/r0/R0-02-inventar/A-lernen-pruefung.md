@@ -19,28 +19,26 @@ Abgleich mit der Modulkarte in R0-01: Learning 4 Dateien / 1 829 Zeilen, Exams 1
 
 | # | Datei | Zeilen | | # | Datei | Zeilen |
 |---|---|---|---|---|---|---|
-| 1 | `Learning/Services/LearningService.php` | 826 | | 21 | `ExamGuide/ExamGuideService.php` | 234 |
-| 2 | `Learning/Services/AccessService.php` | 520 | | 22 | `ExamGuide/GuideCorrections.php` | 131 |
-| 3 | `Learning/Services/CollectionService.php` | 267 | | 23 | `Tips/Tips.php` | 201 |
-| 4 | `Learning/Services/QuestionPresenter.php` | 216 | | 24 | `Tips/StarterTips.php` | 72 |
-| 5 | `Exams/Services/ExamService.php` | 1 086 | | 25 | `Tips/TipsRest.php` | 27 |
-| 6 | `Trainers/TrainerService.php` | 319 | | 26 | `Tips/TipsPostsController.php` | 21 |
-| 7 | `Trainers/VideoService.php` | 309 | | 27 | `Tips/TipsTermsController.php` | 21 |
-| 8 | `Trainers/RadioService.php` | 399 | | 28 | `Faq/Faq.php` | 135 |
-| 9 | `Trainers/RadioPracticeService.php` | 249 | | 29 | `Faq/FaqTerms.php` | 89 |
-| 10 | `Trainers/DeviceSimService.php` | 492 | | 30 | `Faq/FaqRepository.php` | 251 |
-| 11 | `Trainers/NavigationCheck.php` | 523 | | 31 | `Faq/FaqShortcode.php` | 234 |
-| 12 | `Trainers/RadioText.php` | 96 | | 32 | `Faq/FaqImporter.php` | 370 |
-| 13 | `Trainers/RadioChecks.php` | 50 | | 33 | `Faq/DefaultFaqs.php` | 492 |
-| 14 | `Gate/ContentGate.php` | 336 | | 34 | `Faq/DefaultFaqHistory.php` | 119 |
-| 15 | `Gate/ProtectedFiles.php` | 433 | | 35 | `Faq/CustomerFaq.php` | 168 |
-| 16 | `Gate/Charts.php` | 150 | | 36 | `Faq/CustomerFaqRepository.php` | 195 |
-| 17 | `Gate/SectionFiles.php` | 89 | | 37 | `Faq/CustomerFaqImporter.php` | 509 |
-| 18 | `Gate/DownloadService.php` | 88 | | 38 | `Faq/DefaultCustomerFaqs.php` | 247 |
-| 19 | – | – | | 39 | `Faq/CustomerFaqRestGuard.php` | 27 |
-| 20 | – | – | | 40 | `Faq/CustomerFaqPostsController.php` / `CustomerFaqTermsController.php` | 21 / 21 |
-
-(Zeilen 19/20 frei; Nr. 40 sind zwei Dateien. Gesamt: 39 Dateien, Zeilenzahlen per `wc -l`.)
+| 1 | `Learning/Services/LearningService.php` | 826 | | 21 | `Tips/Tips.php` | 201 |
+| 2 | `Learning/Services/AccessService.php` | 520 | | 22 | `Tips/StarterTips.php` | 72 |
+| 3 | `Learning/Services/CollectionService.php` | 267 | | 23 | `Tips/TipsRest.php` | 27 |
+| 4 | `Learning/Services/QuestionPresenter.php` | 216 | | 24 | `Tips/TipsPostsController.php` | 21 |
+| 5 | `Exams/Services/ExamService.php` | 1 086 | | 25 | `Tips/TipsTermsController.php` | 21 |
+| 6 | `Trainers/TrainerService.php` | 319 | | 26 | `Faq/Faq.php` | 135 |
+| 7 | `Trainers/VideoService.php` | 309 | | 27 | `Faq/FaqTerms.php` | 89 |
+| 8 | `Trainers/RadioService.php` | 399 | | 28 | `Faq/FaqRepository.php` | 251 |
+| 9 | `Trainers/RadioPracticeService.php` | 249 | | 29 | `Faq/FaqShortcode.php` | 234 |
+| 10 | `Trainers/DeviceSimService.php` | 492 | | 30 | `Faq/FaqImporter.php` | 370 |
+| 11 | `Trainers/NavigationCheck.php` | 523 | | 31 | `Faq/DefaultFaqs.php` | 492 |
+| 12 | `Trainers/RadioText.php` | 96 | | 32 | `Faq/DefaultFaqHistory.php` | 119 |
+| 13 | `Trainers/RadioChecks.php` | 50 | | 33 | `Faq/CustomerFaq.php` | 168 |
+| 14 | `Gate/ContentGate.php` | 336 | | 34 | `Faq/CustomerFaqRepository.php` | 195 |
+| 15 | `Gate/ProtectedFiles.php` | 433 | | 35 | `Faq/CustomerFaqImporter.php` | 509 |
+| 16 | `Gate/Charts.php` | 150 | | 36 | `Faq/DefaultCustomerFaqs.php` | 247 |
+| 17 | `Gate/SectionFiles.php` | 89 | | 37 | `Faq/CustomerFaqRestGuard.php` | 27 |
+| 18 | `Gate/DownloadService.php` | 88 | | 38 | `Faq/CustomerFaqPostsController.php` | 21 |
+| 19 | `ExamGuide/ExamGuideService.php` | 234 | | 39 | `Faq/CustomerFaqTermsController.php` | 21 |
+| 20 | `ExamGuide/GuideCorrections.php` | 131 | | | **Summe** | **10 033** |
 
 ### 1.2 Ausgewertete Quelltests (Golden-Master-Kandidaten)
 
@@ -272,10 +270,10 @@ Eine Zeile pro fachlicher Funktion. Private Hilfsmethoden werden der öffentlich
 
 | Klassifikation | Anzahl | Anteil |
 |---|---|---|
-| reuse | 76 | 49 % |
-| abstract | 34 | 22 % |
+| reuse | 80 | 52 % |
+| abstract | 33 | 21 % |
 | replace | 9 | 6 % |
-| exclude_domain_specific | 35 | 23 % |
+| exclude_domain_specific | 32 | 21 % |
 | **Summe** | **154** | 100 % |
 
 Kein Eintrag ist `unknown`. Die Zählung ergibt sich aus der Spalte „Klass.“ (Prüfkommando in Abschnitt 7).
@@ -418,7 +416,7 @@ R = liest, W = schreibt. Tabellen mit Präfix `{$wpdb->prefix}bp_`. Spalten nur,
 | Block | `bootspruefung/zugang` (Attribute `course`, `feature`, `message`; Skript `bp-restricted-block`) | `ContentGate.php:215-251` | reuse (neu benennen) |
 | Metabox | `bp-required-access` „Lernzugang erforderlich“ | `ContentGate.php:289` | reuse |
 | Mediathek-Felder | `bp_required_access`, `bp_file_slot` | `ProtectedFiles.php:141-144` | reuse / exclude (Slot) |
-| Post-Typen / Taxonomien | `bp_tip` / `bp_tip_category`; `bp_faq` / `bp_faq_category`; `bp_customer_faq` / `bp_cfaq_category` | `Tips.php:109`, `Faq.php:60`, `CustomerFaq.php:83` | reuse (Präfix `cc_`) |
+| Post-Typen / Taxonomien | `bp_tip` / `bp_tip_category`; `bp_faq` / `bp_faq_category`; `bp_customer_faq` / `bp_cfaq_category` | `Tips.php:37`, `Faq.php:60`, `CustomerFaq.php:83` | reuse (Präfix `cc_`) |
 | CSS-Klassen/Markup | `bp-gate-notice`, `bp-requires-access`, `bp-access-locked`, `bp-faq*`, `data-bp-faq*`; mit Theme `kw-section kw-faq` | ContentGate, FaqShortcode | reuse / abstract (Theme) |
 
 ### 4.4 Cron, Hintergrundjobs, CLI
@@ -514,7 +512,7 @@ Snapshot-Felder (`rule_snapshot`): `rule_id, rule_source_id, version, live, redu
 | `NotFound` | Frage, Bogen, Sitzung, Lektion, Aufgabe unbekannt oder fremd | diverse | 404 |
 | `RuntimeException` (Text) | Validierung (z. B. „Bitte genau eine Antwort auswählen.“, „Ungültiger Idempotency-Key.“, „Nur für offene Fragen.“, Sammlungsfehler) | diverse | 422 `bp_invalid` |
 | `InvalidArgumentException` | Seekarte unbekannt/nicht schützbar, Lizenznachweis fehlt | Charts L152, L159, L173 | Admin |
-| `WP_Error rest_forbidden` | Core-REST für Tipps/Kunden-FAQ | TipsRest L19, CustomerFaqRestGuard L22 | 401/403 |
+| `WP_Error rest_forbidden` | Core-REST für Tipps/Kunden-FAQ | TipsRest L25, CustomerFaqRestGuard L25 | 401/403 |
 | `WP_Error bp_login_required` | Kunden-FAQ ohne Anmeldung | CustomerFaq L164 | 401 |
 | HTTP direkt | Download: 404 / Login-Weiterleitung / 403 mit Hinweis | ProtectedFiles L353-365 | – |
 
@@ -536,5 +534,5 @@ Nur Fälle, bei denen die Klassifikation von einer Produktentscheidung des Auftr
 - Quelle: `…/scratchpad/lb` = Clone von `hastla007/learnboating` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd`, nicht verändert.
 - Zeilenzahlen: `wc -l bootspruefung-learning/src/{Learning,Exams,Trainers,Gate,ExamGuide,Tips,Faq}/**/*.php` (Summe 10 033).
 - Testzuordnung: `grep -rl` der Klassennamen in `bootspruefung-learning/tests/`.
-- Klassifikationszählung: `grep -oE '^\| INV-A-[0-9]+ \|[^|]*\|[^|]*\|[^|]*\| (reuse|abstract|replace|exclude) ' A-lernen-pruefung.md | awk '{print $NF}' | sort | uniq -c`.
+- Klassifikationszählung: `grep '^| INV-A-' A-lernen-pruefung.md | awk -F' \\| ' '{print $5}' | sort | uniq -c` (Spalte 5 = „Klass.“; maskierte `\|` in Zellen trennen nicht).
 - Keine Laufzeitausführung der Quelltests, keine Codeänderung, kein Commit.
