@@ -343,3 +343,14 @@ Technisch festgelegt: Migrationszustand in Tabelle `cc_migration_step` (D37-1); 
 | E-173 | Prüfungsfrist, wenn während eines laufenden Versuchs migriert wird | **Frist = Ende des Wartungsfensters + 120 s**, höchstens 30 min Verlängerung | R0-37 D37-3 | R1-20, R1-40 |
 | E-174 | WordPress-Auto-Updates während laufender `strict`-Prüfungen | **Aufschieben**, höchstens 24 h | R0-37 D37-4 | R1-40 |
 | E-175 | Verhalten nach dauerhaft fehlgeschlagener Migration | **Schreibzugriffe bleiben gesperrt**, Lesen weiter möglich; kein Notbetrieb; Admin-Hinweis mit Runbook | R0-37 D37-5 | R1-40 |
+
+## 27. Großimporte (aus R0-38)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-176 | Ein fehlerhafter Datensatz im Großimport (LB bricht den ganzen Import ab) | **Fehler am einzelnen Objekt isolieren**; der Rest läuft weiter, Abhängige werden mitmarkiert | R0-38 D1 | R1-41 |
+| E-177 | Standard-Ausführungsweg für Importe | **Hintergrund** (Action Scheduler bzw. WP-Cron) mit Fortschrittsanzeige; Browser-Polling und WP-CLI als Alternativen, mitten im Lauf wechselbar | R0-38 D2 | R1-41 |
+| E-178 | Pakete über 200 MB (Upload-Grenze im Admin) | **Ablageordner auf dem Server oder WP-CLI**, mit höheren Grenzwerten | R0-38 D3 | R1-41 |
+| E-179 | Kurse mit Publish-Blocker nach dem Import | **Zurückstellen**, die übrigen Kurse aktivieren | R0-38 D4 | R1-41 |
+| E-180 | Fehlerschwelle, ab der ein Import anhält | **max(100 Fehler, 2 % der Objekte)** | R0-38 D5 | R1-41 |
+| E-181 | Automatische Wiederaufnahme abgebrochener Importe | **Ja**, nach Vorprüfungen (Lease abgelaufen, Paketkopie unverändert) | R0-38 D6 | R1-41 |

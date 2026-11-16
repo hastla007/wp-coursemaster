@@ -509,3 +509,4 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-03, E-18, E-45 
 | Datum | Quelle | Änderung |
 |---|---|---|
 | 16.11.2026 | R0-17 §3 | Import per URL: IP-Pinning gegen DNS-Rebinding, nur Port 443, keine privaten/link-lokalen Ziele |
+| 16.11.2026 | R0-38 Δ-38, E-176 | Fehler in Validierungsstufe V6 sind **Objektfehler** statt `failed` für den ganzen Batch; die Grenze von 50 Fehlern gilt nur noch für die Bildschirmliste, der vollständige Report liegt in `cc_import_issue` |

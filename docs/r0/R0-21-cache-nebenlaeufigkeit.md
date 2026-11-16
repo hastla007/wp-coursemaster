@@ -381,3 +381,10 @@ Nicht in `ENTSCHEIDUNGEN.md` (E-01…E-117). Alle Punkte sind Architekturfestleg
 - LB gelesen: `src/Infrastructure/NamedLock.php` (vollständig, 118 Z.), `Lock.php:1-40`, `RequestMemo.php` (vollständig, 123 Z.), `Frontend/NoCache.php` (vollständig), `Gate/ContentGate.php:1-51` + Aufrufe `NoCache::mark` (`grep -rn "NoCache::mark" src`: `ContentGate.php:138, 207, 243`, `Router.php:148`, `WithdrawalFunction.php:212`), `Rest/Controllers/LearnerController.php:465-480`, `Gate/ProtectedFiles.php:353-390`, `Mobile/WebSession.php:239-242`, `Content/Repositories/ContentCache.php:14-53`; `grep -rn "RequestMemo::get" src` (`AccessService.php:317, 395, 459`, `ProductAccessRepository.php:155`, `WooCommerce/Integration.php:425`); `grep -rn "wp_cache_\|set_transient\|get_transient" src` (kein Treffer in `AccessService`/`EntitlementService`).
 - Pass gelesen: `src/Orders.php:160-175`, `CHANGELOG.md:167-168`, `docs/TESTING.md:30, 57, 80-93`; `grep -rn "FOR UPDATE" src` (u. a. `Refunds.php`, `Waitlists.php`, `Orders.php`).
 - Keine Änderung an LB oder Pass, keine Implementierung, kein Commit.
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung |
+|---|---|---|
+| 16.11.2026 | R0-38 §8 | Lease-Name für Importe ist global `import` je Site; die Batch-ID steht im `owner` |
+| 16.11.2026 | R0-37 | Lease `migration` je Site mit Fencing; vor jedem DDL Prüfung, ob der Lauf die Sperre noch hält |

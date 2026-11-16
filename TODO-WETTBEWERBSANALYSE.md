@@ -199,7 +199,7 @@
   - **Ergebnis/Definition of Done:** Lock-Strategie, Upgrade-Trigger, idempotente dbDelta-/Backfill-Schritte, unterbrochene Migration, Multisite-Scope und Rollback-Grenzen beschlossen.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-38 · Großimporte mit Dry-run, Batches und Resume spezifizieren**
+- [ ] **R0-38 · Großimporte mit Dry-run, Batches und Resume spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-38-grossimporte.md` (Validierungsreport je Objekt mit Export, Provenienz/Dedupe, NDJSON-Spool und adaptive Chunks, Lease mit Resume, drei Ausführungswege, Fehlerklassen und Schwelle, Grenzwerte und Messgrößen M-01…16, BIG-001…040); Entscheidung offen → E-176…E-181
   - **Voraussetzung:** R0-10,R0-16,R0-21.
   - **Ergebnis/Definition of Done:** Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback und Fehlerklassen definiert.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
