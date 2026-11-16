@@ -144,7 +144,7 @@
   - **Ergebnis/Definition of Done:** Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-27 · Settings-Register mit Feldverträgen erstellen**
+- [ ] **R0-27 · Settings-Register mit Feldverträgen erstellen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-27-settings-register.md` (alle 57 Zeilen aus Kap. 43.3 zugeordnet, Register mit 72 Feldern, Speicherregeln ohne Teilformular-Reset, Benachrichtigungsvertrag mit 13 Mailtypen, SET-001…085, NTF-001…034, Prüfskript fehlerfrei); Entscheidung offen → E-215…E-224
   - **Voraussetzung:** R0-07,R0-11,R0-24.
   - **Ergebnis/Definition of Done:** Alle Kapitel-43-Felder haben Key, Typ, Scope, Default, Capability, Validierung, Edition, Migration, Audit und Tests.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.

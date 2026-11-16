@@ -23,6 +23,14 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-10 | **Website-Härtung im Kern** (Login-Limit, XML-RPC, Security-Header). Folge: E-46 fail-closed gilt auch für Login/Reset im Free-Kern; Konfliktmatrix mit Security-Plugins (R0-20) wird Pflicht; Härtung braucht Schalter und Erkennung vorhandener Security-Plugins | **ja** |
 | E-11 | PHPUnit + WP-Testsuite und Playwright | nein |
 | E-12 | **Plattformmatrix neu festlegen**, LB-Werte nicht als Startwert (R0-20/E-195 bilden die eigenständige Festlegung) | **ja** |
+| E-13 | CI-Deploy zu WordPress.org nur bei grüner CI, Tag auf main und manueller Freigabe | nein |
+| E-14 | Einfacher Drip in Free, Kampagnen/Gruppen-Drip in Pro | nein |
+| E-15 | Schnupperbereich in R1 Free | nein |
+| E-16 | FAQ/Tipps-Mechanik R1 Free, Starttexte R2; öffentliche Website-FAQ bleibt Theme/Drittplugin | nein |
+| E-17 | Gruppen in Free, auch ohne Kauf; Besitzer verwaltet; delegierte Verwaltung/Reporting Pro | nein |
+| E-18 | Rechtestatus-Sperre in R1 Free, nur für importierte/fremde Inhalte | nein |
+| E-19 | Admin-Protokollansicht in R1 Free | nein |
+| E-20 | **Lösungserklärungen sind ein eigenes Pro-Feature.** Free zeigt nur richtig/falsch und die richtige Antwort nach E-147; Erklärungstexte werden nur mit Pro ausgeliefert. Folgen: R0-08 §4.5, R0-11 Matrix, E-147 und Entitlement-Zuschnitt E-95 anpassen; Free-Kern speichert Erklärungstexte trotzdem (Import/Export, kein Datenverlust bei Pro-Ende) | **ja** |
 
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
@@ -438,3 +446,20 @@ WordPress.org-Details beruhen auf Modellwissen und werden über RC-001 vor R1-39
 | **E-212** | Wer betreut das wp.org-Forum, wo läuft Pro-Support? | **Auftraggeber benennt eine Person**; Pro-Support über eigenen Kanal | R0-35 D35-8 | R1-39 |
 | E-213 | Lizenz des Pro-Add-ons | **GPL-2.0-or-later** | R0-35 D35-9 | R1-39 |
 | E-214 | Live Preview auf WordPress.org | **Erst ab R2-03** | R0-35 D35-10 | R1-39 |
+
+## 33. Settings-Register und Benachrichtigungen (aus R0-27)
+
+Technische Korrekturen aus R0-27 (T27-1…8) sind übernommen, u. a. Optionsnamen `course_captain_*` in R0-06/R0-16 und kein PDF-Link in Free-Mails (E-96).
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-215 | Aufbewahrung: Inbox/Outbox 90 Tage (E-116) und Event-Log 30 Tage (E-119) – Widerspruch? Und welche Frist für das Benachrichtigungsprotokoll? | **Kein echter Widerspruch:** Inbox und zugestellte Outbox-Einträge 90 Tage; Events ohne Abonnent 30 Tage; Benachrichtigungsprotokoll 90 Tage | R0-27 D27-1 | R1-21, R1-31 |
+| E-216 | Welche Mails sind Pflicht (nicht abbestellbar), welche informativ? | **Pflicht:** Claim/Einladung, Sicherheits- und Kontomails, Datenschutzanträge; alle übrigen abbestellbar (Tabelle R0-27 §3.2) | R0-27 D27-2 | R1-21, R1-31 |
+| E-217 | Mail „Zugang abgelaufen“ in Free | **Vorhanden, standardmäßig aus**, ohne Kauf- oder Verlängerungslink | R0-27 D27-3 | R1-21, R1-31 |
+| E-218 | Versand-Grenzwerte | **Retry 5×** (5 min, 30 min, 2 h, 12 h); max. 10 Mails je Empfänger und 24 h; 3 Neuversendungen je Einladung; 5 Testmails je Admin und Stunde | R0-27 D27-4 | R1-21, R1-31 |
+| E-219 | Eigener Absender für Course-Captain-Mails | **Optionale Felder Name/Adresse**, leer = WordPress-Standard | R0-27 D27-5 | R1-21, R1-31 |
+| E-220 | Slug-Änderung (Lernbereich, Kurs): alte Links auf Zertifikaten und in Mails | **Frühere Slugs dauerhaft merken und per 301 weiterleiten**, solange keine andere Seite den alten Slug belegt | R0-27 D27-6 | R1-21, R1-31 |
+| E-221 | Rate-Limits im UI änderbar? | **Nein, nur per Filter**; die wirksamen Werte werden im Tab „Erweitert“ angezeigt | R0-27 D27-7 | R1-21, R1-31 |
+| E-222 | Gruppen-Grundfunktion standardmäßig an? | **Aus**, im Setup-Assistenten aktivierbar | R0-27 D27-8 | R1-21, R1-31 |
+| E-223 | Automatischer Datenexport nach bestätigtem Datenschutzantrag | **An** (LB-Parität), Download-Link an die bestätigte Adresse | R0-27 D27-9 | R1-21, R1-31 |
+| E-224 | Content-Security-Policy für Course-Captain-Antworten | **Erzwingen (`enforce`)**, Umschalten auf `report_only` mit Bestätigung | R0-27 D27-10 | R1-21, R1-31 |
