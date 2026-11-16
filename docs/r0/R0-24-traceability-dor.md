@@ -140,13 +140,13 @@
 | 802 | K31 R3 | SEAM-105 | R3-16 | R0-19 §6 | – | Duplikat → Z.772 |  |
 | 803 | K31 R3 | SEAM-106 | R3-13 | R0-11 §3 | – | Duplikat → Z.865 |  |
 | 804 | K31 R3 | SEAM-107 | R3-13 | R0-11 §3 | – | Duplikat → Z.865 |  |
-| 805 | K31 R3 | SEAM-108 | R3-11 | R0-16; R0-37 §6 | – | offen | R0-20 fehlt |
+| 805 | K31 R3 | SEAM-108 | R3-11 | R0-16; R0-37 §6; R0-20 §1 | – | offen | Partner- und Mischversionsmatrix fehlt |
 | 806 | K31 R3 | SEAM-109 | R3-10 | R0-13 §2; R0-26 §7 | – | offen |  |
 | 807 | K31 R3 | SEAM-110 | R3-09 | R0-19 | – | Duplikat → Z.774 |  |
 | 817 | K32 R0 | R3-FIRST-001 | R3-01 | R0-09 §2, §5; R0-04 §3 (K-01…K-04) | GRANT-004, GRANT-023 | offen | Kern abgedeckt; Woo-Teil Eingangsbedingung R3-01 (E-186), Code-Gegenprüfung Z.881 |
 | 818 | K32 R0 | R3-FIRST-002 | R0-40 | R0-36 §3 | – | offen | R0-40 fehlt; E-31, E-35 |
 | 819 | K32 R0 | R3-FIRST-003 | R0-09 | R0-09 §1, §5, §6 | ID-001…ID-015, GRANT-023…GRANT-026, CON-010 | abgedeckt (Entwurf) | Entscheidungen E-29, E-30, E-35, E-36 offen |
-| 820 | K32 R0 | R3-FIRST-004 | R0-20 | – | – | offen | R0-20 fehlt |
+| 820 | K32 R0 | R3-FIRST-004 | R0-20 | R0-20 §1, §2.11 (Entwurf) | KOMP-100, KOMP-101 | offen | Teil abgedeckt: Versionen und Woo-Koexistenz (HPOS an/aus, Block-Checkout); Adapter-Matrix Classic/Blocks und Pluginversionen offen bis R3-01 |
 | 824 | K32 R3.1 | R3-FIRST-101 | R3-02 | R0-09; R0-04 BS-31 | GRANT-004, GRANT-005 | offen | E-34, E-53 |
 | 825 | K32 R3.1 | R3-FIRST-102 | R3-03 | R0-09 §5 | GRANT-023, GRANT-025, GRANT-029, SEAT-020 | offen | führend für Z.799 |
 | 829 | K32 R3.2 | R3-FIRST-103 | R3-04 | R0-36 §3; R0-04 BS-32 | GRANT-024, GRANT-026, SEC-024 | offen | führend für Z.767; E-31, E-35 |
@@ -398,10 +398,10 @@ Spalten: „direkt“ = `ENTSCHEIDUNGEN.md` nennt die Task in „Blockiert“; �
 
 | Task | Voraussetzung (R-Plan) | führendes R0-Dokument | Nebenquellen | E direkt | E über Dokument | E zusätzlich | Ready |
 |---|---|---|---|---|---|---|---|
-| R1-01 | R0-GATE | R0-20† | R0-07 §2, R0-16, R0-25, R0-35† | E-83, E-121, E-188, E-189, E-190, E-191, E-192, E-193, E-194 | E-08, E-12, E-57, E-58, E-61 | E-07, E-49 | nein: R0-20 fehlt |
+| R1-01 | R0-GATE | R0-20 | R0-07 §2, R0-16, R0-25, R0-35† | E-83, E-121, E-188, E-189, E-190, E-191, E-192, E-193, E-194, E-195 | E-08, E-12, E-57, E-58, E-61 | E-07, E-49 | nach Beschluss |
 | R1-02 | R1-01 | R0-06, R0-37 | R0-16 | E-47, E-48 | E-07, E-08, E-27, E-49 | – | nach Beschluss |
 | R1-03 | R1-02 | R0-07 | R0-17 | E-78, E-79, E-80, E-82, E-83, E-152 | – | E-99 | nach Beschluss |
-| R1-04 | R1-02, R1-03 | R0-08, R0-23 | R0-06, R0-25 | E-47, E-67 | E-20, E-21, E-22, E-23, E-50 | E-25 | nach Beschluss |
+| R1-04 | R1-02, R1-03 | R0-08, R0-23 | R0-06, R0-25 | E-47, E-67, E-197 | E-20, E-21, E-22, E-23, E-50 | E-25 | nach Beschluss |
 | R1-05 | R1-04 | R0-22 | R0-11, R0-15 | – | E-18, E-23 | E-128, E-131 | nach Beschluss |
 | R1-06 | R1-04 | R0-08 | R0-17 | E-69, E-77, E-146 | E-20, E-21, E-22, E-23, E-50 | – | nach Beschluss |
 | R1-07 | R1-04, R1-06 | R0-08, R0-10 | – | E-67, E-68, E-76 | E-03, E-18, E-20, E-21, E-22, E-23, E-45, E-50 | – | nach Beschluss |
@@ -422,19 +422,19 @@ Spalten: „direkt“ = `ENTSCHEIDUNGEN.md` nennt die Task in „Blockiert“; �
 | R1-22 | R1-17,R1-20 | R0-14 | – | E-52, E-59 | – | – | nach Beschluss |
 | R1-23 | R1-15,R1-17 | R0-16 | R0-17 §5.5, R0-37 | E-85, E-86, E-87, E-88, E-89, E-90, E-91, E-92, E-151 | – | – | nach Beschluss |
 | R1-24 | R1-16,R1-21 | R0-13 | R0-16 §5, R0-35† | E-59, E-125, E-153 | E-19, E-82 | – | nach Beschluss |
-| R1-25 | R1-02,R1-13 | R0-21 | – | – | E-46 | E-182 | nach Beschluss |
+| R1-25 | R1-02,R1-13 | R0-21 | – | E-198 | E-46 | E-182 | nach Beschluss |
 | R1-26 | R1-04,R1-05,R1-06,R1-08 | R0-22 | – | E-128, E-129, E-130, E-131, E-132, E-133, E-134, E-135 | E-18, E-23 | – | nach Beschluss |
 | R1-27 | R1-08,R1-10,R1-15 | R0-23 | – | E-103, E-104, E-105, E-106, E-107, E-108, E-109, E-110, E-111, E-183 | E-50 | – | nach Beschluss |
 | R1-28 | R1-03,R1-14,R1-16 | R0-19 | – | E-05, E-118 | E-06, E-32, E-38, E-39, E-84 | – | nach Beschluss |
 | R1-29 | R1-16,R1-19,R1-26 | R0-26 | – | E-126, E-161, E-162, E-163, E-164, E-165, E-166, E-167, E-168, E-169, E-170, E-171 | – | – | nach Beschluss |
-| R1-30 | R1-17,R1-22,R1-28 | R0-20† | R0-25 | – | E-08, E-12, E-57, E-58, E-61 | – | nein: R0-20 fehlt |
+| R1-30 | R1-17,R1-22,R1-28 | R0-20 | R0-25 | E-196, E-198 | E-08, E-12, E-57, E-58, E-61 | – | nach Beschluss |
 | R1-31 | R1-02,R1-03,R0-27 | R0-27† | – | – | E-20, E-187 | – | nein: R0-27 fehlt |
 | R1-32 | R1-05,R1-31,R0-30 | R0-30† | R0-11 Flow 4 | – | – | E-102 | nein: R0-30 fehlt |
 | R1-33 | R1-08,R1-27,R1-31,R0-28 | R0-28† | R0-23 | – | – | – | nein: R0-28 fehlt |
 | R1-34 | R1-17,R1-21,R1-31,R0-31 | R0-31† | R0-10 §5 | – | E-43, E-44, E-45, E-51 | – | nein: R0-31 fehlt |
 | R1-35 | R1-13,R1-27,R0-29 | R0-29† | R0-09 | E-183 | E-17, E-93, E-94, E-95, E-96, E-97, E-98, E-99, E-100, E-101, E-102 | E-28 | nein: R0-29 fehlt |
 | R1-36 | R1-32,R1-33,R1-34,R1-35 | R0-27† | – | – | E-20, E-187 | – | nein: R0-27 fehlt |
-| R1-37 | R1-14,R1-28,R0-33 | R0-33† | R0-25 | – | – | – | nein: R0-33 fehlt |
+| R1-37 | R1-14,R1-28,R0-33 | R0-33† | R0-25 | E-197 | – | – | nein: R0-33 fehlt |
 | R1-38 | R1-17,R1-24,R0-34 | R0-13, R0-34† | – | E-136, E-137, E-138, E-139, E-140, E-141, E-142, E-143, E-144, E-145, E-153, E-185 | E-19, E-82 | – | nein: R0-34 fehlt |
 | R1-39 | R1-23,R1-24,R1-30,R0-35 | R0-35† | – | E-188, E-189, E-190, E-191, E-192, E-193, E-194 | E-09, E-13, E-121 | – | nein: R0-35 fehlt |
 | R1-40 | R1-02,R1-23,R0-37 | R0-37 | R0-16 | E-85, E-86, E-87, E-88, E-89, E-90, E-91, E-92, E-172, E-173, E-174, E-175 | E-07, E-49 | – | nach Beschluss |
@@ -448,7 +448,7 @@ Module sind **Vorschläge für die Neuanlage** (kein Course-Captain-Code im Repo
 
 | Task | Dateien/Module (Vorschlag) · LB-Referenz | Negativfälle (Auswahl) | Testkommando | Abnahme | Reviewer | Offene Fragen |
 |---|---|---|---|---|---|---|
-| R1-01 | `CourseCaptain\Kernel` (Plugin, Requirements, Activator), `uninstall.php`; Ref. BS-01 | MS-001…MS-003, GM-158, SA-001* | `composer test -- --group=R1-01` · `npx playwright test --grep @R1-01` | aktivierbar/deaktivierbar ohne Woo/Suite/Pro; Mindestversionen geprüft; Gate B-6 | TL, ARC | Mindestversionen erst mit R0-20 |
+| R1-01 | `CourseCaptain\Kernel` (Plugin, Requirements, Activator), `uninstall.php`; Ref. BS-01 | MS-001…MS-003, GM-158, KOMP-001, SA-001* | `composer test -- --group=R1-01` · `npx playwright test --grep @R1-01` | aktivierbar/deaktivierbar ohne Woo/Suite/Pro; Mindestversionen geprüft; Gate B-6 | TL, ARC | R0-20 D-20-01…03 noch nicht im Register |
 | R1-02 | `CourseCaptain\Storage` (Schema, Migrator, Repositories); Ref. BS-02 | GM-163, GM-164, GM-168, MIG-001 | `composer test -- --group=R1-02` · `npx playwright test --grep @R1-02` | Install/Upgrade/Backfill ohne Datenverlust; Gate C-8 | TL, ARC | FK-Strategie (E-48) |
 | R1-03 | `CourseCaptain\Policy` (Caps, Meta-Caps, PolicyService); Ref. BS-03 | RBAC-001…RBAC-096, RBAC-097*, SEC-003, SEC-004 | `composer test -- --group=R1-03` · `npx playwright test --grep @R1-03` | Gate C-1; RBAC-096 ohne Ausnahme | TL, SEC | Zielkorrektur RBAC-093 (T-2) |
 | R1-04 | `CourseCaptain\Course` (CPT Kurs/Modul/Lektion, Revision); Ref. BS-04 | GM-002, GM-003, REV-047*, GM-193* | `composer test -- --group=R1-04` · `npx playwright test --grep @R1-04` | LEARN-01; Gate B-1 (PAR-01) | TL, ARC | Teilkurs-Relation (E-25) |
@@ -477,7 +477,7 @@ Module sind **Vorschläge für die Neuanlage** (kein Course-Captain-Code im Repo
 | R1-27 | `CourseCaptain\Course\Revision` (Staging-Kopie, Besitzstand) | REV-001…REV-046, REV-047* | `composer test -- --group=R1-27` · `npx playwright test --grep @R1-27` | Gate B-2 | TL, ARC, PO | braucht R1-44 (E-183) |
 | R1-28 | `CourseCaptain\Rest`, `CourseCaptain\Contract`, Shortcodes, Blöcke, CLI; Ref. BS-18 | CT-01…CT-12, GM-145…GM-155 | `composer test -- --group=R1-28` · `npx playwright test --grep @R1-28` | Gate C-7; Routen-Snapshot | TL, ARC, SEC | – |
 | R1-29 | Sitzungsprotokolle nach R0-26 §4, Referenzpaket `cc-fx-rk-v1` | UX-001…UX-015, UX-050 | `composer test -- --group=R1-29` · `npx playwright test --grep @R1-29` | Gate C-11 (Schwellen E-166) | PO, A11Y | Rekrutierung, Budget |
-| R1-30 | Testinstallationen nach R0-20; Ref. BS-23, BS-26 | LOC-014, MED-024 | `composer test -- --group=R1-30` · `npx playwright test --grep @R1-30` | Gate C-14 | TL, OPS | R0-20 fehlt |
+| R1-30 | Testinstallationen KP-xx nach R0-20 §4; Ref. BS-23, BS-26 | KOMP-101, KOMP-102, LOC-014, MED-024 | `composer test -- --group=R1-30` · `npx playwright test --grep @R1-30` | Gate C-14 | TL, OPS | R0-20 D-20-04…11 noch nicht im Register |
 | R1-31 | `CourseCaptain\Settings` (Register, Schema, Migration); Ref. BS-21 | GM-178, GM-180, GM-181 | `composer test -- --group=R1-31` · `npx playwright test --grep @R1-31` | Feldverträge R0-27 grün | TL, SEC | R0-27 fehlt |
 | R1-32 | `CourseCaptain\Admin\Setup`, Settings-Tabs; Ref. BS-21 | GM-179, UX-060 | `composer test -- --group=R1-32` · `npx playwright test --grep @R1-32` | Wireframes R0-30; A11Y | TL, A11Y, PO | R0-30 fehlt |
 | R1-33 | `CourseCaptain\Settings\Inheritance` | GM-031, REV-020 | `composer test -- --group=R1-33` · `npx playwright test --grep @R1-33` | Zustandsmatrix R0-28 | TL, ARC | R0-28 fehlt |
@@ -533,13 +533,13 @@ done = {i for i, l in boxes.items() if l.startswith('- [x]')}
 tasks = set(re.findall(r'^- \[[ x]\] \*\*(R\d-(?:\d\d|GATE))\b', '\n'.join(todo[:start]), re.M))
 E = set(re.findall(r'^\| \**(E-\d+)\**', ent, re.M))
 # Testkataloge (ohne R0-12; in R0-05 nur GM) und Vorschläge aus R0-12 §1.3
-PFX = r'(?:GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX|MIG|BIG)-\d{3}|CT-\d{2}'
+PFX = r'(?:GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX|MIG|BIG|KOMP)-\d{3}|CT-\d{2}'
 cat = set()
 for f in glob.glob(D + 'R0-*.md'):
     if 'R0-12' in f or 'R0-24' in f: continue
-    for t in re.findall(r'^\| (' + PFX + r') \|', open(f, encoding='utf-8').read(), re.M):
-        if 'R0-05' in f and not t.startswith('GM-'): continue
-        cat.add(t)
+    txt = open(f, encoding='utf-8').read()
+    if 'R0-05' in f: cat |= set(re.findall(r'\| (GM-\d{3}) \|', txt)); continue
+    cat |= set(re.findall(r'^\| (' + PFX + r')\b[^|]*\|', txt, re.M))
 r12 = open(D + 'R0-12-tests-gates-backlog.md', encoding='utf-8').read()
 prop = set(re.findall(r'^\| ([A-Z0-9]+-\d{3}) \|', r12.split('### 1.3')[1].split('### 1.4')[0], re.M))
 def expand(tok):
@@ -562,7 +562,7 @@ for z, c in reg.items():
     for tok in ([] if tests == '–' else tests.split(', ')):
         for t in expand(tok):
             if (tok.endswith('*') and t not in prop) or (not tok.endswith('*') and t not in cat): err['test'].append((z, t))
-unknownE = sorted({e for e in re.findall(r'\bE-\d{2,3}\b', doc) if e not in E})
+unknownE = sorted({e for e in re.findall(r'(?<![A-Z]-)\bE-\d{2,3}\b', doc) if e not in E})
 unknownR = sorted({t for t in re.findall(r'\bR\d-\d\d\b', doc) if t not in tasks} - {'R2-08'})
 open_ = [c for z, c in reg.items() if c[6] != 'erledigt']
 lead_ = [c for c in open_ if not c[6].startswith(('Duplikat', 'obsolet'))]
