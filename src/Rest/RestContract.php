@@ -191,6 +191,10 @@ final class RestContract {
 			'ccap_exam_answer_locked'        => __( 'Answer locked', 'course-captain' ),
 			'ccap_exam_invalid_answer'       => __( 'Invalid answer', 'course-captain' ),
 			'ccap_exam_conflict'             => __( 'Changed in the meantime', 'course-captain' ),
+			'ccap_submission_not_editable'   => __( 'Cannot be changed', 'course-captain' ),
+			'ccap_submission_incomplete'     => __( 'Submission incomplete', 'course-captain' ),
+			'ccap_submission_file_rejected'  => __( 'File not accepted', 'course-captain' ),
+			'ccap_grade_invalid'             => __( 'Check the grading', 'course-captain' ),
 		);
 		return $titles[ $code ] ?? __( 'Error', 'course-captain' );
 	}
@@ -226,6 +230,10 @@ final class RestContract {
 			'ccap_exam_answer_locked'        => __( 'This answer can no longer be changed.', 'course-captain' ),
 			'ccap_exam_invalid_answer'       => __( 'Please choose a valid answer.', 'course-captain' ),
 			'ccap_exam_conflict'             => __( 'The attempt changed in the meantime. Please try again.', 'course-captain' ),
+			'ccap_submission_not_editable'   => __( 'This submission can no longer be changed.', 'course-captain' ),
+			'ccap_submission_incomplete'     => __( 'Please add the required text or file before submitting.', 'course-captain' ),
+			'ccap_submission_file_rejected'  => __( 'This file was not accepted. Please check its type and size.', 'course-captain' ),
+			'ccap_grade_invalid'             => __( 'Please check the points and add the required comment or reason.', 'course-captain' ),
 		);
 	}
 }

@@ -145,6 +145,24 @@ final class SettingsSchema {
 					'type'    => 'bool',
 					'default' => true,
 				),
+				// Register `assignments.*` (R0-27 SET-134, E-289): a task may only be stricter.
+				'assignment_file_types'     => array(
+					'type'    => 'set',
+					'values'  => \CourseCaptain\Activity\Providers\AssignmentProvider::FILE_TYPES,
+					'default' => \CourseCaptain\Activity\Providers\AssignmentProvider::FILE_TYPES,
+				),
+				'assignment_max_file_mb'    => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 100,
+					'default' => 20,
+				),
+				'assignment_max_files'      => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 20,
+					'default' => 5,
+				),
 				'feedback'                  => array(
 					'type'    => 'object',
 					'fields'  => array(

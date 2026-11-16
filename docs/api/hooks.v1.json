@@ -1,6 +1,7 @@
 {
     "course_captain_activity_progress_changed": "action",
     "course_captain_allow_unmoved_protected_file": "filter",
+    "course_captain_assignment_file_scan": "filter",
     "course_captain_cache_purge": "action",
     "course_captain_certificate_fallback_rendered": "action",
     "course_captain_certificate_renderers": "filter",

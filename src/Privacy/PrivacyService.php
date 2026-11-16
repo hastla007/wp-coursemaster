@@ -10,6 +10,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Privacy;
 
+use CourseCaptain\Assignment\AssignmentService;
 use CourseCaptain\Certificate\CertificateService;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
@@ -109,7 +110,6 @@ final class PrivacyService {
 		'cc-grants'        => array( 'Course access', 'ccap_grant', 'user_id', array( 'course_id', 'module_id', 'status', 'source_type', 'valid_from', 'valid_until', 'created_at' ) ),
 		'cc-seats'         => array( 'Group seats', 'ccap_seat', 'user_id', array( 'group_id', 'status', 'invited_at', 'claimed_at', 'removed_at' ) ),
 		'cc-notifications' => array( 'Notifications', 'ccap_notification', 'recipient_user_id', array( 'type', 'status', 'created_at', 'sent_at' ) ),
-		'cc-submissions'   => array( 'Assignment submissions', 'ccap_assignment_submission', 'user_id', array( 'course_id', 'activity_id', 'status', 'text_answer', 'submitted_at', 'graded_at' ) ),
 	);
 
 	/**
@@ -194,7 +194,8 @@ final class PrivacyService {
 			);
 		}
 		// Certificates with their snapshot data, without hashes or tokens (R0-29 CF-12).
-		$data = array_merge( $data, CertificateService::current()->export_items( (int) $user->ID ), self::invitations( (string) $user->user_email ) );
+		// Assignment versions with text, return comments, file metadata and evaluations (R0-08 §2.5).
+		$data = array_merge( $data, AssignmentService::export_items( $db, (int) $user->ID ), CertificateService::current()->export_items( (int) $user->ID ), self::invitations( (string) $user->user_email ) );
 		return array(
 			'data' => $data,
 			'done' => true,
@@ -264,6 +265,8 @@ final class PrivacyService {
 					$del( $table, 'user_id' );
 				}
 				$del( 'ccap_notification', 'recipient_user_id' );
+				// B-4 / MED-030: submissions with evaluations, file rows and the files themselves.
+				$n += AssignmentService::erase( $db, $user_id );
 				// RT-09/RT-10: without `keep_evidence_on_erasure` (not yet registered) certificates are deleted.
 				$n += CertificateService::erase( $db, $user_id );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_seat' ) . "` SET status = IF(status = 'active', 'removed', status), removed_at = COALESCE(removed_at, %s), user_id = NULL, invite_email = NULL, claim_token_hash = NULL WHERE user_id = %d", $db->now(), $user_id ) );

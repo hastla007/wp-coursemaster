@@ -26,7 +26,9 @@ defined( 'ABSPATH' ) || exit;
  * `Content-Disposition` with ASCII fallback and `filename*=UTF-8''`
  * (RFC 6266/8187, GM-016); inline only for PDF, raster images, audio,
  * video, VTT. Single byte ranges → 206, unsatisfiable → 416, multiple
- * ranges → whole file.
+ * ranges → whole file. Assignment files (`source_system = assignment`,
+ * R1-46) are authorized by `AssignmentFiles::resolve()` and always served
+ * as download with `sandbox`.
  */
 final class ProtectedFiles {
 
@@ -122,19 +124,27 @@ final class ProtectedFiles {
 		if ( null === $media || 'protected' !== $media['access'] || 'active' !== $media['status'] ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown file.', 404 );
 		}
-		$this->authorize( $actor, $uid, (int) $media['id'], $course_id );
-		$path = (string) get_attached_file( (int) $media['attachment_id'], true );
-		if ( '' === $path || ! is_file( $path ) || ( ! ProtectedStorage::is_protected_path( $path ) && ! apply_filters( 'course_captain_allow_unmoved_protected_file', false, $path ) ) ) {
-			throw new CourseException( 'ccap_not_found', 'File not available.', 404 );
+		if ( \CourseCaptain\Assignment\AssignmentFiles::SOURCE === (string) $media['source_system'] ) {
+			// Learner submissions (R0-10 §4.5): owner or grader, always as download.
+			$file    = \CourseCaptain\Assignment\AssignmentFiles::current()->resolve( $actor, $media );
+			$path    = $file['path'];
+			$size    = (int) filesize( $path );
+			$headers = self::headers( $file['name'], $file['mime'], $size, true );
+		} else {
+			$this->authorize( $actor, $uid, (int) $media['id'], $course_id );
+			$path = (string) get_attached_file( (int) $media['attachment_id'], true );
+			if ( '' === $path || ! is_file( $path ) || ( ! ProtectedStorage::is_protected_path( $path ) && ! apply_filters( 'course_captain_allow_unmoved_protected_file', false, $path ) ) ) {
+				throw new CourseException( 'ccap_not_found', 'File not available.', 404 );
+			}
+			$size    = (int) filesize( $path );
+			$mime    = (string) $media['mime_type'];
+			$name    = self::download_name( (string) get_post_field( 'post_title', (int) $media['attachment_id'], 'raw' ), $path );
+			$headers = self::headers( $name, $mime, $size );
 		}
-		$size    = (int) filesize( $path );
-		$mime    = (string) $media['mime_type'];
-		$name    = self::download_name( (string) get_post_field( 'post_title', (int) $media['attachment_id'], 'raw' ), $path );
-		$headers = self::headers( $name, $mime, $size );
-		$span    = self::range( $range, $size );
-		$status  = 200;
-		$offset  = 0;
-		$length  = $size;
+		$span   = self::range( $range, $size );
+		$status = 200;
+		$offset = 0;
+		$length = $size;
 		if ( false === $span ) {
 			$status                   = 416;
 			$headers['Content-Range'] = 'bytes */' . $size;
@@ -218,13 +228,14 @@ final class ProtectedFiles {
 	/**
 	 * Response headers for a file.
 	 *
-	 * @param string $name File name.
-	 * @param string $mime MIME type.
-	 * @param int    $size Size.
+	 * @param string $name       File name.
+	 * @param string $mime       MIME type.
+	 * @param int    $size       Size.
+	 * @param bool   $attachment Always download (learner uploads), with `sandbox`.
 	 * @return array<string, string>
 	 */
-	public static function headers( string $name, string $mime, int $size ): array {
-		$inline  = in_array( $mime, self::INLINE, true ) || str_starts_with( $mime, 'audio/' ) || str_starts_with( $mime, 'video/' );
+	public static function headers( string $name, string $mime, int $size, bool $attachment = false ): array {
+		$inline  = ! $attachment && ( in_array( $mime, self::INLINE, true ) || str_starts_with( $mime, 'audio/' ) || str_starts_with( $mime, 'video/' ) );
 		$headers = array(
 			'Content-Type'           => $inline ? $mime : 'application/octet-stream',
 			'Content-Disposition'    => self::content_disposition( $name, $inline ? 'inline' : 'attachment' ),
@@ -233,7 +244,7 @@ final class ProtectedFiles {
 			'Accept-Ranges'          => 'bytes',
 			'Content-Length'         => (string) $size,
 		);
-		if ( 'application/pdf' !== $mime ) {
+		if ( $attachment || 'application/pdf' !== $mime ) {
 			$headers['Content-Security-Policy'] = 'sandbox';
 		}
 		return $headers;

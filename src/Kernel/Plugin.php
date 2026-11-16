@@ -219,6 +219,7 @@ final class Plugin {
 		\CourseCaptain\Learner\LearningArea::register();
 		\CourseCaptain\Certificate\CertificateService::register();
 		\CourseCaptain\Certificate\CertificateRoutes::register();
+		\CourseCaptain\Assignment\AssignmentRoutes::register();
 		\CourseCaptain\Certificate\CertificatePages::register();
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();

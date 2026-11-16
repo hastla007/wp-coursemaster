@@ -15,9 +15,9 @@ defined( 'ABSPATH' ) || exit;
  * Class (`required`/`informational`), operator default and the variable
  * allowlist of every R1 mail type. `wired` marks types whose triggering
  * event exists in the code today; the others (certificates, support
- * dialogs, transfers, assignments) are catalogued so that templates,
- * settings and opt-out already cover them, and are wired by the tasks that
- * add their events (R1-44, R1-38, R1-46).
+ * dialogs, transfers) are catalogued so that templates, settings and
+ * opt-out already cover them, and are wired by the tasks that add their
+ * events (R1-44, R1-38). Assignments (N-14…N-16) are wired since R1-46.
  */
 final class NotificationTypes {
 
@@ -49,9 +49,9 @@ final class NotificationTypes {
 		'grading_completed'     => array( self::INFORMATIONAL, true, true, array( 'course_title', 'course_url', 'attempt_title', 'result_url' ) ),
 		'access_expired'        => array( self::INFORMATIONAL, false, true, array( 'course_title', 'course_url', 'access_end_at' ) ),
 		'test_mail'             => array( self::REQUIRED, true, true, array() ),
-		'assignment_submitted'  => array( self::INFORMATIONAL, true, false, array( 'course_title', 'course_url' ) ),
-		'assignment_returned'   => array( self::INFORMATIONAL, true, false, array( 'course_title', 'course_url' ) ),
-		'assignment_graded'     => array( self::INFORMATIONAL, true, false, array( 'course_title', 'course_url' ) ),
+		'assignment_submitted'  => array( self::INFORMATIONAL, true, true, array( 'course_title', 'course_url' ) ),
+		'assignment_returned'   => array( self::INFORMATIONAL, true, true, array( 'course_title', 'course_url' ) ),
+		'assignment_graded'     => array( self::INFORMATIONAL, true, true, array( 'course_title', 'course_url' ) ),
 	);
 
 	/**

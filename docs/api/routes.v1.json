@@ -8,6 +8,63 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files/(?P<media>[0-9a-f-]+)",
+        "methods": [
+            "DELETE"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/grade",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "action": {
+                "type": "string",
+                "required": true
+            },
+            "feedback": {
+                "type": "string",
+                "required": false
+            },
+            "points_milli": {
+                "type": "integer",
+                "required": false
+            },
+            "reason": {
+                "type": "string",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/submit",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/certificates/verify/(?P<token>[0-9a-zA-Z]{1,64})",
         "methods": [
             "GET"
@@ -21,6 +78,31 @@
             "GET"
         ],
         "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\\d+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\\d+)/draft",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "submission_uid": {
+                "type": "string",
+                "required": false
+            },
+            "text": {
+                "type": "string",
+                "required": false
+            }
+        },
         "public": false
     },
     {
@@ -154,6 +236,27 @@
             "POST"
         ],
         "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/grading/queue",
+        "methods": [
+            "GET"
+        ],
+        "args": {
+            "course": {
+                "type": "string",
+                "required": false
+            },
+            "page": {
+                "type": "integer",
+                "required": false
+            },
+            "per_page": {
+                "type": "integer",
+                "required": false
+            }
+        },
         "public": false
     },
     {

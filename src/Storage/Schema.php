@@ -830,6 +830,11 @@ final class Schema {
 					'submission_no'      => 'smallint(5) unsigned NOT NULL DEFAULT 1',
 					'status'             => "varchar(16) NOT NULL DEFAULT 'draft'",
 					'text_answer'        => 'longtext NULL',
+					// R0-08 Δ-8 / §7.1: frozen at submit (R1-46).
+					'content_hash'       => self::HASHN,
+					'settings_hash'      => self::HASHN,
+					'settings'           => self::JSONN,
+					'return_comment'     => 'longtext NULL',
 					'submitted_at'       => self::DTN,
 					'returned_at'        => self::DTN,
 					'graded_at'          => self::DTN,
