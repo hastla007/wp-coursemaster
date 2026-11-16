@@ -243,3 +243,17 @@ Technisch festgelegt und nicht abzustimmen (Architektur): öffentliche Hooks und
 | E-118 | Deprecation-Frist für stabile öffentliche Verträge (Hooks, REST, PHP-API, Events) | **Mindestens 2 Minor-Releases und 6 Monate**; ein alter Major-Namespace bleibt 12 Monate parallel. Ausnahme bei Sicherheitsproblemen, mit Changelog | R0-19 D19-2 | R1-28, R3-12 |
 | E-119 | Werden Events auch ohne aktiven Connector gespeichert? | **Ja, 30 Tage** (änderbar im Datenschutz-Tab), minimal und pseudonym; nötig für Pull, Backfill und Replay | R0-19 D19-3 | R1-17, R3-01 |
 | E-120 | Freigabe personenbezogener Event-Klassen (Lernfortschritt, Prüfungsergebnis, Zertifikat) je Connector | **Eigene Betreiberfreigabe je Klasse und Connector**; nur der Zugangsstatus ist ohne Extra-Freigabe dabei | R0-19 D19-4 | R3-01, R3-16 |
+
+## 20. Barrierefreiheit und i18n (aus R0-15)
+
+Zielstandard **WCAG 2.2 AA**. Technisch festgelegt und nicht abzustimmen: axe-Verstöße blockieren die CI (D-15-05); bei unzureichendem Kontrast schlägt das System die nächste konforme Farbe vor (D-15-07); fehlender Alt-Text blockiert die Veröffentlichung, fehlende Untertitel erzeugen eine Warnung (D-15-10); RTL-Fähigkeit ist Release-Gate (D-15-11, Konzept Kap. 21).
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-121** | Quellsprache der Oberflächen-Strings | **Englisch (en_US)**, Deutsch als erste Übersetzung. Voraussetzung für translate.wordpress.org; LB nutzt Deutsch | R0-15 D-15-01 | R1-01, R1-19, R0-35 |
+| **E-122** | Nachteilsausgleich in Prüfungen | **Ja:** Zeitfaktor 100–400 % oder ohne Limit je Lernendem, nur durch Berechtigte, ohne Begründungstext, im Snapshot eingefroren, in Ergebnis und Nachweis nicht sichtbar. Datenschutzbewertung (Art. 9) in R0-17 | R0-15 D-15-02 | R1-08, R0-17 |
+| E-123 | Timer-Modi je Prüfungsregel | **`strict`** (Standard für Nachweise) und **`practice`** (von Lernenden abschaltbar und verlängerbar, nicht nachweisfähig) | R0-15 D-15-03 | R1-08 |
+| E-124 | Sprache des Lernbereichs und Zeitzonen | **Einstellung „Profilsprache“**, standardmäßig an bei mehr als einer installierten Sprache; Fristen mit Zonenkennung, keine eigene Nutzerzeitzone in R1 | R0-15 D-15-04 | R1-19, R0-25 |
+| E-125 | Konformitätsbericht Barrierefreiheit je Release | **Ja**, WCAG-2.2-AA-Tabelle in der Doku. Keine Vorlage für die Barrierefreiheitserklärung (vgl. E-04), nur ein neutraler Hinweis, welche Angaben der Betreiber braucht | R0-15 D-15-06 | R1-24 |
+| E-126 | Zugesicherte Screenreader | **NVDA und VoiceOver (macOS, iOS)**; TalkBack best effort, JAWS nicht zugesichert | R0-15 D-15-08 | R1-29 |
+| E-127 | Barrierefreie PDF-Nachweise im Pro-Zertifikatsdesigner | **Ja**, getaggtes PDF (an PDF/UA orientiert) als Pro-Abnahmekriterium | R0-15 D-15-09 | R3 |

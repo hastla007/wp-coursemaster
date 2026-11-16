@@ -457,3 +457,4 @@ Basis aus **Konzept 22.3** (Ziel, kein Messwert): 10 000 Lernende, 100 Kurse, 10
 | 16.11.2026 | R0-23 §8 | Δ-23-1…8, u. a. `completed_revision_id`, `cycle_no`, Post-Status `cc_staged`/`cc_archived`, `end_reason = withdrawn` (Details in R0-23 §8) |
 | 16.11.2026 | R0-09 §9 | Δ-1…Δ-13 (neue Spalten für Claim-Hash, Ursprungs-Zahldatum für die Kettenordnung, Pseudonymisierung per HMAC u. a.; Details in R0-09 §9) |
 | 16.11.2026 | R0-19 §8 | `cc_request_idempotency` wird feste Tabelle; neue Tabelle `cc_outbox_delivery` (eine Zeile je Empfänger, Backoff, Dead-Letter nach 8 Versuchen); Spalten von `cc_outbox_event` ergänzt (`causation_id`, `privacy_tags`) |
+| 16.11.2026 | R0-15 §2.3 | Neue Tabelle `cc_accommodation` (Lernender, Scope Site/Kurs/Regel, Zeitfaktor oder unbegrenzt, gesetzt_von, Zeitraum; nur mit Cap `cc_manage_accommodations` lesbar). Datenschutzklasse besonders schützenswert (R0-17) |

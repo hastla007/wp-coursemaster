@@ -84,7 +84,7 @@
   - **Ergebnis/Definition of Done:** Performancebudgets für große Fragenbanken/gleichzeitige Prüfungen, Lastprofile, Browser-/PHP-/WP-Matrix und Messverfahren festgelegt.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-15 · Barrierefreiheit und Internationalisierung spezifizieren**
+- [ ] **R0-15 · Barrierefreiheit und Internationalisierung spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-15-barrierefreiheit-i18n.md` (WCAG 2.2 AA, Komponentenregeln K-01…18, A11Y-001…112, Zeitlimit-/Nachteilsausgleich-Lösung, I18N-R-01…34, I18N-001…015, Übergabe Ü-1…7 an R0-25); Entscheidung offen → E-121…E-127
   - **Voraussetzung:** R0-11.
   - **Ergebnis/Definition of Done:** WCAG-Ziel, Tastatur-/Screenreader-/Kontrastfälle, Übersetzbarkeit, RTL, Zeitzonen, Datums-/Zahlenformate und Sprachwechsel definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
