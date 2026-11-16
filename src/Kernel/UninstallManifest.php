@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Kernel;
 
+use CourseCaptain\Storage\Schema;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -19,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
  * the paid add-on, survives (INV-C-026, R0-39 FG-10). A CI scan (REC-020)
  * fails when code uses an own key that is missing here.
  *
- * Later tasks extend the lists (tables: R1-02, roles: R1-03, ...).
+ * Later tasks extend the lists (roles: R1-03, ...); tables come from `Storage\Schema` (R1-02).
  */
 final class UninstallManifest {
 
@@ -56,6 +58,7 @@ final class UninstallManifest {
 		'course_captain_backfill_open',
 		'course_captain_lock_migration',
 		'course_captain_fk_issues',
+		'course_captain_migration_bootstrap_lock',
 		'course_captain_migration_failed',
 		'course_captain_cron_state',
 		'course_captain_lock_import',
@@ -147,13 +150,6 @@ final class UninstallManifest {
 	public const POST_META = array();
 
 	/**
-	 * Own tables without the site prefix, children first. Filled by R1-02.
-	 *
-	 * @var list<string>
-	 */
-	public const TABLES = array();
-
-	/**
 	 * Own roles. Filled by R1-03.
 	 *
 	 * @var list<string>
@@ -193,7 +189,7 @@ final class UninstallManifest {
 	 * @return list<string>
 	 */
 	public static function tables(): array {
-		return self::TABLES;
+		return Schema::drop_order();
 	}
 
 	/**

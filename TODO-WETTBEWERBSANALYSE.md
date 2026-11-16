@@ -223,7 +223,7 @@
   - **Ergebnis/Definition of Done:** Plugin aktivierbar/deaktivierbar, Mindestversionen, Upgrade/Uninstall-Policy, keine Suite-Pflicht.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-02 · Storage, Migration und Repositories**
+- [x] **R1-02 · Storage, Migration und Repositories** — erledigt 16.11.2026: Nachweis `docs/r1/R1-02-nachweis.md`; 53 Kern-Tabellen, 37 FKs, Migrator P0–P3 mit Named Lock + Lease/Fencing, KOMP-131 (R1-01 O-7); phpcs 0/0, PHPStan L8 0, Unit 68/2369, Integration 25/314, Multisite 34/367, MS-002 OK. Absturz-/Backfill-/Contract-Pfade an R1-40 übergeben. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-01.
   - **Ergebnis/Definition of Done:** Schema versioniert; sichere Install/Upgrade/Backfill-Tests; keine verlorenen Lernstände.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

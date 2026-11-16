@@ -11,7 +11,7 @@ namespace CourseCaptain\Kernel;
 
 use CourseCaptain\Contract\Api;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
-use CourseCaptain\Infrastructure\Migration\NullMigrationRunner;
+use CourseCaptain\Storage\Migrator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -64,6 +64,13 @@ final class Plugin {
 	private HoldMode $hold_mode;
 
 	/**
+	 * Test override for the migration runner.
+	 *
+	 * @var MigrationRunner|null
+	 */
+	private static ?MigrationRunner $runner_override = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string          $basename   Plugin basename.
@@ -83,9 +90,29 @@ final class Plugin {
 	 */
 	public static function boot_instance(): void {
 		if ( null === self::$instance ) {
-			self::$instance = new self( plugin_basename( COURSE_CAPTAIN_FILE ), new NullMigrationRunner() );
+			self::$instance = new self( plugin_basename( COURSE_CAPTAIN_FILE ), self::migration_runner() );
 			self::$instance->boot();
 		}
+	}
+
+	/**
+	 * Migration runner for this site (overridable in tests only).
+	 *
+	 * @return MigrationRunner
+	 */
+	public static function migration_runner(): MigrationRunner {
+		return self::$runner_override ?? Migrator::for_current_site();
+	}
+
+	/**
+	 * Test seam: replace the migration runner of the static hooks.
+	 *
+	 * @internal Only for the test suites; never called by plugin code.
+	 * @param MigrationRunner|null $runner Runner or null for the real migrator.
+	 * @return void
+	 */
+	public static function override_migration_runner( ?MigrationRunner $runner ): void {
+		self::$runner_override = $runner;
 	}
 
 	/**
@@ -104,7 +131,7 @@ final class Plugin {
 	 * @return void
 	 */
 	public static function activate( $network_wide = false ): void {
-		( new Activator( new NullMigrationRunner() ) )->activate( (bool) $network_wide );
+		( new Activator( self::migration_runner() ) )->activate( (bool) $network_wide );
 	}
 
 	/**
@@ -150,6 +177,8 @@ final class Plugin {
 		add_action( 'admin_init', array( $this, 'on_admin_init' ) );
 		add_action( 'upgrader_process_complete', array( $this, 'on_upgrader_process_complete' ), 10, 2 );
 		add_action( CronHooks::HOURLY, array( CronHooks::class, 'run_hourly' ) );
+		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
+		add_action( 'init', array( $this, 'on_init' ), 5 );
 
 		require_once dirname( __DIR__ ) . '/functions.php';
 		$this->running = true;
@@ -211,6 +240,21 @@ final class Plugin {
 		}
 		flush_rewrite_rules( false );
 		update_option( self::REWRITE_VERSION_OPTION, self::REWRITE_VERSION, true );
+	}
+
+	/**
+	 * Trigger T-4 of R0-37 for frontend, REST, Ajax and admin-post requests.
+	 *
+	 * @return void
+	 */
+	public function on_init(): void {
+		if ( is_admin() && ! wp_doing_ajax() && 'admin-post.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+			return;
+		}
+		if ( wp_doing_cron() ) {
+			return;
+		}
+		$this->migrations->on_request();
 	}
 
 	/**

@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Kernel;
 
+use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\Schema;
+use CourseCaptain\Storage\SchemaInspector;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -100,11 +104,34 @@ final class Uninstaller {
 			remove_role( $role );
 		}
 
+		self::drop_own_tables();
+
 		foreach ( UninstallManifest::all_option_names() as $option ) {
 			delete_option( $option );
 		}
 
 		return true;
+	}
+
+	/**
+	 * Drop the core tables of the current site that carry the ownership
+	 * marker (KOMP-131), children first.
+	 *
+	 * @return list<string> Dropped tables without prefix.
+	 */
+	public static function drop_own_tables(): array {
+		$db       = Database::current();
+		$existing = ( new SchemaInspector( $db ) )->tables();
+		$dropped  = array();
+		foreach ( UninstallManifest::tables() as $table ) {
+			// KOMP-131: only tables carrying our ownership marker.
+			if ( ! isset( $existing[ $table ] ) || Schema::OWNER_COMMENT !== $existing[ $table ]['comment'] ) {
+				continue;
+			}
+			$db->execute( 'DROP TABLE IF EXISTS `' . $db->table( $table ) . '`' );
+			$dropped[] = $table;
+		}
+		return $dropped;
 	}
 
 	/**

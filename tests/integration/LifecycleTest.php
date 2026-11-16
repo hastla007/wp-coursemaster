@@ -83,6 +83,29 @@ final class LifecycleTest extends TestCase {
 			public function maybe_run_in_admin(): void {
 				$this->calls[] = 'admin';
 			}
+
+			/**
+			 * T-5.
+			 */
+			public function run_cron(): void {
+				$this->calls[] = 'cron';
+			}
+
+			/**
+			 * T-4.
+			 */
+			public function on_request(): void {
+				$this->calls[] = 'request';
+			}
+
+			/**
+			 * KOMP-131.
+			 *
+			 * @return list<string>
+			 */
+			public function conflicting_tables(): array {
+				return array();
+			}
 		};
 	}
 

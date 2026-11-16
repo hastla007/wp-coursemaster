@@ -39,4 +39,29 @@ final class NullMigrationRunner implements MigrationRunner {
 	 */
 	public function maybe_run_in_admin(): void {
 	}
+
+	/**
+	 * No-op.
+	 *
+	 * @return void
+	 */
+	public function run_cron(): void {
+	}
+
+	/**
+	 * No-op.
+	 *
+	 * @return void
+	 */
+	public function on_request(): void {
+	}
+
+	/**
+	 * No conflicts.
+	 *
+	 * @return list<string>
+	 */
+	public function conflicting_tables(): array {
+		return array();
+	}
 }

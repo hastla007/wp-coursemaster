@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Infrastructure\Migration\NullMigrationRunner;
 use CourseCaptain\Kernel\Capabilities;
+use CourseCaptain\Kernel\Plugin;
 use CourseCaptain\Kernel\CronHooks;
 use WP_UnitTestCase;
 
@@ -23,6 +25,9 @@ abstract class TestCase extends WP_UnitTestCase {
 	 */
 	public function set_up(): void {
 		parent::set_up();
+		// Lifecycle tests run without schema DDL (DDL would commit the test transaction);
+		// the schema itself is covered by SchemaTestCase subclasses.
+		Plugin::override_migration_runner( new NullMigrationRunner() );
 		wp_roles()->for_site( get_current_blog_id() );
 		$GLOBALS['ccap_test_http_requests'] = array();
 	}
@@ -33,6 +38,7 @@ abstract class TestCase extends WP_UnitTestCase {
 	public function tear_down(): void {
 		$requests                           = $GLOBALS['ccap_test_http_requests'];
 		$GLOBALS['ccap_test_http_requests'] = array();
+		Plugin::override_migration_runner( null );
 		parent::tear_down();
 		wp_roles()->for_site( get_current_blog_id() );
 		$this->assertSame( array(), $requests, 'Outbound HTTP requests are not allowed (LG-1).' );
