@@ -200,6 +200,7 @@ final class Plugin {
 		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
 		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
 		\CourseCaptain\Ops\MigrateCommand::register();
+		\CourseCaptain\Ops\OpsCommand::register();
 		MetaCaps::register();
 		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
 		ObjectIdentity::register();
@@ -220,6 +221,7 @@ final class Plugin {
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();
 		\CourseCaptain\Ops\AuditScreen::register();
+		\CourseCaptain\Ops\OpsScreen::register();
 		\CourseCaptain\Publish\PublishGuard::register();
 		\CourseCaptain\Notification\NotificationService::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
