@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Kernel;
 
+use CourseCaptain\Policy\Relations;
 use CourseCaptain\Policy\Roles;
 use CourseCaptain\Storage\Schema;
 
@@ -74,6 +75,8 @@ final class UninstallManifest {
 		'course_captain_rewrite_version',
 		'course_captain_installation_uuid',
 		'course_captain_site_identity',
+		// State epoch for restore detection (R1-23, R0-17 §5.5).
+		'course_captain_state_epoch',
 		'course_captain_setup_state',
 		'course_captain_slug_history',
 		'course_captain_integrations',
@@ -180,11 +183,27 @@ final class UninstallManifest {
 	);
 
 	/**
+	 * Own post types (R1-04); posts are deleted with revisions and meta (R0-16 §2.5 step 5).
+	 *
+	 * @var list<string>
+	 */
+	public const POST_TYPES = Relations::POST_TYPES;
+
+	/**
 	 * Own roles (R1-03).
 	 *
 	 * @var list<string>
 	 */
 	public const ROLES = Roles::ALL;
+
+	/**
+	 * Own post types.
+	 *
+	 * @return list<string>
+	 */
+	public static function post_types(): array {
+		return self::POST_TYPES;
+	}
 
 	/**
 	 * Exact transient names.
@@ -294,6 +313,7 @@ final class UninstallManifest {
 			'user_meta'    => self::user_meta(),
 			'user_options' => self::user_options(),
 			'post_meta'    => self::post_meta(),
+			'post_types'   => self::post_types(),
 			'tables'       => self::tables(),
 			'roles'        => self::roles(),
 			'capabilities' => Capabilities::PRIMITIVE,

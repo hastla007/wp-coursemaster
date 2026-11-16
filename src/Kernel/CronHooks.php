@@ -88,6 +88,8 @@ final class CronHooks {
 		// Every step is isolated (GM-156).
 		\CourseCaptain\Ops\HealthChecks::run_isolated(
 			array(
+				// Restore/copy detection first, so the send run below already sees the hold (R1-23, E-85).
+				'site_identity'     => static fn() => SiteIdentity::check(),
 				'grant_expiry'      => static fn() => \CourseCaptain\Access\GrantService::current()->expire_due(),
 				'pending_timeout'   => static fn() => \CourseCaptain\Access\GrantService::current()->fail_stale_pending(),
 				'invitation_expiry' => static fn() => \CourseCaptain\Access\GroupService::current()->expire_invitations(),

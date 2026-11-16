@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Notification;
 
+use CourseCaptain\Kernel\SiteIdentity;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -16,8 +18,9 @@ defined( 'ABSPATH' ) || exit;
  * `production`, else `catch`. In `catch` mode mails only go to
  * `COURSE_CAPTAIN_MAIL_CATCH_ADDRESS` or `admin_email`; an invalid catch
  * address turns the mode `off` (with a Site Health warning). The hold mode
- * (site identity changed, E-85) has precedence and is reported through the
- * filter `course_captain_notification_hold` (detection: R1-23).
+ * (site identity changed or DB restored, E-85) has precedence; it is
+ * detected by `Kernel\SiteIdentity` (R1-23) and passes through the filter
+ * `course_captain_notification_hold`.
  */
 final class OutboundMode {
 
@@ -90,8 +93,8 @@ final class OutboundMode {
 		 * Whether mails are held because the site identity changed (E-85; detection R1-23).
 		 *
 		 * @since 1.0.0
-		 * @param bool $held Default false.
+		 * @param bool $held Detected hold state of the site (`SiteIdentity::is_held()`).
 		 */
-		return true === apply_filters( 'course_captain_notification_hold', false );
+		return true === apply_filters( 'course_captain_notification_hold', SiteIdentity::is_held() );
 	}
 }

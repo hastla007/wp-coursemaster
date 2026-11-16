@@ -12,6 +12,7 @@ namespace CourseCaptain\Ops;
 use CourseCaptain\Access\ProtectedStorage;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Kernel\CronHooks;
+use CourseCaptain\Kernel\SiteIdentity;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\Migrator;
@@ -108,7 +109,29 @@ final class HealthChecks {
 			'label' => __( 'Course Captain database', 'course-captain' ),
 			'test'  => array( self::class, 'test_migration' ),
 		);
+		$tests['direct']['course_captain_identity']  = array(
+			'label' => __( 'Course Captain site identity', 'course-captain' ),
+			'test'  => array( self::class, 'test_identity' ),
+		);
 		return $tests;
+	}
+
+	/**
+	 * Site Health test `course_captain_identity` (R0-16 §1.4/§2.3, E-85).
+	 *
+	 * @return array<string, mixed>
+	 */
+	public static function test_identity(): array {
+		$state = SiteIdentity::check();
+		if ( SiteIdentity::STATUS_COPY === $state['state'] ) {
+			return self::result( 'course_captain_identity', 'recommended', __( 'This site is marked as a copy: Course Captain never sends messages here.', 'course-captain' ), __( 'If this copy became a site of its own, confirm "moved" with "wp course-captain identity confirm moved".', 'course-captain' ) );
+		}
+		if ( $state['held'] ) {
+			$changed = implode( ', ', array_map( array( SiteIdentity::class, 'label' ), $state['changed'] ) );
+			/* translators: %s: changed parts, e.g. "site address, database" */
+			return self::result( 'course_captain_identity', 'critical', sprintf( __( 'Course Captain holds all outgoing messages because the site changed (%s).', 'course-captain' ), $changed ), __( 'After a restore or move, confirm it in the notice on the dashboard or with "wp course-captain identity confirm same_place|moved|copy". Held messages are then listed for release; by default they are discarded.', 'course-captain' ) );
+		}
+		return self::result( 'course_captain_identity', 'good', __( 'The site identity is unchanged.', 'course-captain' ), '' );
 	}
 
 	/**

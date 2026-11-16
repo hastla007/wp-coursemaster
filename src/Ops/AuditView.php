@@ -53,6 +53,7 @@ final class AuditView {
 			'invitation_resent'           => array( 'groups', __( 'Group invitation sent again', 'course-captain' ) ),
 			'notifications_released'      => array( 'notifications', __( 'Held notifications released', 'course-captain' ) ),
 			'notifications_discarded'     => array( 'notifications', __( 'Held notifications discarded', 'course-captain' ) ),
+			'site_identity_confirmed'     => array( 'ops', __( 'Site identity confirmed after restore, move or copy', 'course-captain' ) ),
 			'course_published'            => array( 'content', __( 'Course revision published', 'course-captain' ) ),
 			'certificate_issued'          => array( 'certificates', __( 'Certificate issued manually', 'course-captain' ) ),
 			'certificate_corrected'       => array( 'certificates', __( 'Certificate corrected', 'course-captain' ) ),
