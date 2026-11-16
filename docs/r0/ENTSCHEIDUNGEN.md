@@ -97,3 +97,14 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | CORE-SPEC-002 (Claim-Token) und LB (Kontopflicht) | E-30 |
 | Konzept 35.2/35.3 (kein Wiederaufleben) und LB-Code | E-29 |
 | `ContentRepository::examRule` mit festem Schwellenwert 0.75 gegen Kap. 26.4 | technisch: Schwellenwert wird Kurs-/Prüfungseinstellung (R0-08/R0-27) |
+
+## 8. Datenmodell (aus R0-06)
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-47 | Speicherung hybrid (ADR-001)? | **Ja:** Kurs, Modul, Lektion, FAQ, Tipp als CPT; Lernstände, Versuche, Grants, Revisionen, Zertifikate, Outbox als eigene `cc_`-Tabellen | R0-06 D-2 | R1-02, R1-04 |
+| E-48 | Fremdschlüssel | **Nur zwischen `cc_`-Tabellen**, nie auf `wp_posts`/`wp_users`; Integrität dorthin über Lösch-Hooks und Orphan-Check | R0-06 D-1 | R1-02 |
+| E-49 | Netzwerkaktivierung auf Multisite in R1 | **Blockieren** wie LB; Schema trotzdem je Site (ergänzt E-07) | R0-06 D-3 | R0-25, R0-37 |
+| E-50 | Fixiert eine veröffentlichte Kursrevision auch die Fragenrevisionen? | **Nein:** nur Struktur und Regeln; Fragenrevisionen werden beim Start eines Versuchs fixiert. Feinschnitt in R0-23 | R0-06 D-4 | R0-08, R0-23 |
+| E-51 | Aufbewahrung von Lern- und Prüfungsdaten (E-44 deckt das nicht ab; Konzept 35.4 verbietet unbegrenzte Aufbewahrung als stillen Default) | **Änderbarer Default:** Lernstände bis Kontolöschung; Prüfungsversuche und Zertifikatsnachweise 10 Jahre; Rohantworten 2 Jahre nach Kursende. Bestätigung durch Betreiber/Recht | R0-06 D-5 | R0-17, R0-31 |
+| E-52 | Lastannahmen A-01…A-18 (10 000 Lernende, 100 Kurse, 100 000 Fragen, 500 gleichzeitige Prüfungen) | **Bestätigen** als Messbasis für R0-14 | R0-06 D-6 | R0-14, R1-22 |

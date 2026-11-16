@@ -19,7 +19,7 @@
   - **Ergebnis/Definition of Done:** LearnBoating-Commit, Course-Captain-Stand, Verzeichnis-/Modulkarte und Quellrechte dokumentiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [x] **R0-02 · Originalfunktionen vollständig inventarisieren** — erledigt 16.11.2026: 5 Teilinventuren `docs/r0/R0-02-inventar/A…E` (alle Quell-PHP-Dateien von Plugin, Connectors, Theme vollständig; Schemas, 52 Web- + 78 App-Routen, 56 Tabellen, 7 Cron-Events, 15 CLI-Kommandos). Fachliche Tests nach Prüfabschnitten erfasst; zeilengenaue Testbelege in R0-05.
+- [x] **R0-02 · Originalfunktionen vollständig inventarisieren** — erledigt 16.11.2026: 5 Teilinventuren `docs/r0/R0-02-inventar/A…E` (alle Quell-PHP-Dateien von Plugin, Connectors, Theme vollständig; Schemas, 52 Web- + 78 App-Routen, 55 Tabellen, 7 Cron-Events, 15 CLI-Kommandos). Fachliche Tests nach Prüfabschnitten erfasst; zeilengenaue Testbelege in R0-05.
   - **Voraussetzung:** R0-01.
   - **Ergebnis/Definition of Done:** Jede UI-, PHP-, Daten-, API-, Cron-, Import-, Test- und Commerce-Funktion mit Quellpfad erfasst.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
@@ -39,7 +39,7 @@
   - **Ergebnis/Definition of Done:** Quelltest, Fixture, erwartete Resultate und Regression pro neutralem Bereich referenziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-06 · Datenmodell-ADR finalisieren**
+- [ ] **R0-06 · Datenmodell-ADR finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-06-datenmodell-adr.md` (52 Entitäten, 39+1 Tabellen, 5 CPTs, Migrationsregeln); Freigabe offen → `docs/r0/ENTSCHEIDUNGEN.md` E-47…E-52
   - **Voraussetzung:** R0-02.
   - **Ergebnis/Definition of Done:** Entitäten, CPT/Tabellen, Indizes, Uniques, Revisions-/Migration-/Rollbackregeln beschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
