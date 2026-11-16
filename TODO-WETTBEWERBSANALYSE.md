@@ -79,7 +79,7 @@
   - **Ergebnis/Definition of Done:** Supportrollen, sichere Diagnose, Datenkorrektur, Audit- und Eskalationsregeln samt Testfällen dokumentiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-14 · Nichtfunktionale Qualitätsziele**
+- [ ] **R0-14 · Nichtfunktionale Qualitätsziele** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-14-nichtfunktionale-ziele.md` (12 Operationsbudgets, 5 Lastprofile, Matrix, Robustheit RB-01…08, NFR-001…018); ungemessene Zielwerte; Entscheidung offen → E-57…E-61
   - **Voraussetzung:** R0-02,R0-06.
   - **Ergebnis/Definition of Done:** Performancebudgets für große Fragenbanken/gleichzeitige Prüfungen, Lastprofile, Browser-/PHP-/WP-Matrix und Messverfahren festgelegt.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

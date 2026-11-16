@@ -122,3 +122,15 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 |---|---|---|---|---|
 | E-55 | Wer gibt bewusste Abweichungen vom LB-Verhalten frei? (z. B. Smarttrainer-Reihenfolge, Kulanz von 120 s, Reihenfolge beim Platzverlust in Gruppen) | **Schriftlich durch den Auftraggeber**, über eine Abweichungsliste in `R0-05-golden-master.md` | R0-05 EGM-01 | R1-18 |
 | E-56 | Ist ein Referenzlauf des LB-Plugins mit synthetischem Paket nötig, um die Erwartungswerte zu bestätigen? | **Nur für Fälle mit Rechenlogik** (Smarttrainer, Bewertung, Ablauf); setzt E-01 und E-02 voraus | R0-05 EGM-02 | R1-18 |
+
+## 11. Plattform und Qualitätsziele (aus R0-14)
+
+Die technischen Punkte D-14-03 (kürzere Lock-Wartezeiten), D-14-04 (FULLTEXT-Suche) und D-14-06 (k6 plus PHP-Race-Runner) sind Architekturfestlegungen. Sie gelten als Entwurf in R0-14 und brauchen keine eigene Auftraggeber-Entscheidung.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-57 | PHP-Untergrenze | **PHP 8.2** (LB: 8.1). Lebenszyklus in R0-20 belegen und vor dem R1-Release neu bewerten | R0-14 D-14-01 | R0-20 |
+| E-58 | Welche Datenbankversionen werden getestet? | **MariaDB 10.11 und MySQL 8.4 in der CI**; MySQL 8.0 und MariaDB 10.6 „best effort“ (E-08 bleibt technische Mindestanforderung) | R0-14 D-14-02 | R0-20 |
+| E-59 | Kapazitätsaussage für Shared Hosting | **Dokumentierte Klasse** „bis 50 gleichzeitige Prüfungen / 50 aktive Lernende“ (Annahme, Messung in R1-22); darüber VPS empfohlen | R0-14 D-14-05 | R1-22, R1-24 |
+| E-60 | Sind Zeitbudgets ein Release-Gate? | **Ja für R1-GATE**; danach Query- und Scan-Gates in jeder CI-Runde und eine Zeitmessung je Minor-Release | R0-14 D-14-07 | R1-18, R1-GATE |
+| E-61 | Browser-Support | **Die letzten zwei Hauptversionen** von Chrome, Edge, Firefox und Safari, dazu Firefox ESR, iOS Safari und Android Chrome (LB: nur Chromium) | R0-14 D-14-08 | R0-20, R1-19 |
