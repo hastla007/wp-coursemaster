@@ -145,31 +145,31 @@ Zusammengetragen aus R0-05 §5.1 (A-01…A-06, mit GM-Bezug) und allen übrigen 
 
 | Nr. | Bereich | LB-Verhalten (Beleg) | Course Captain | Grundlage | Fundstelle | Freigabe |
 |---|---|---|---|---|---|---|
-| A-01 | Externe Medien (GM-013) | Laden erst nach Einwilligung über ein Theme-Global | Default `always_load`, umschaltbar auf `click_to_load`/`link_only` | E-45, E-45a, E-312 (Auftraggeber) | R0-05 §5.1, R0-10 §5 | ☐ |
-| A-02 | Übungsprüfung aus Entwurf (GM-033) | `examRule()` fällt auf die neueste nicht archivierte Regel zurück, auch einen Entwurf (CR:186-216) | Entwürfe nie startbar; Übung nur als veröffentlichte Regel mit `purpose=practice` | E-129, E-23 | R0-05 §5.1 | ☐ |
-| A-03 | Härtung ab Aktivierung (GM-208) | Härtung wirkt ab Aktivierung, je Merkmal per Filter abschaltbar (INV-C-142) | alles aus, bis der Admin im Assistenten oder Tab speichert; danach `auto` | E-260, E-240 | R0-05 §5.1, R0-31 §3.4 | ☐ |
-| A-04 | `Permissions-Policy` (GM-207) | website-weit mit `microphone=(self)` (INV-C-141) | nur auf Course-Captain-Antworten: `camera=(), microphone=(), geolocation=(), payment=()` | E-309 | R0-05 §5.1, R0-31 §3.4 | ☐ |
-| A-05 | Härtungsumfang (§1.21) | auch `/wp/v2/users` für Gäste, Autorenarchive, Benutzer-Sitemap, oEmbed-/Feed-Autor, Anwendungspasswörter nur Redaktion (INV-C-138) | nicht im R1-Modul (R4-Pool) | E-261, E-308 | R0-05 §5.1, R0-04 | ☐ |
-| A-06 | Abschluss zurücknehmen (GM-209) | Lernender kann `completed` generell zurücksetzen (VS:246-247) | nur `manual_confirm`; nachweisbasierte Abschlüsse nie; Reset durch die Kursverwaltung mit Audit | E-70 | R0-05 §5.1, R0-08 §5.1 | ☐ |
-| B-01 | Standardzugang | `default_access = logged_in`: alle Angemeldeten lernen alles (L-W1, INV-D-036) | kein Vollzugang ohne Grant; Einschreibung „manuell“, Selbstanmeldung aus | Konzept 43.3, R0-07 P-01 (ohne eigene E-Nummer) | R0-07 §6 L-W1, R0-11 C-13 | ☐ |
-| B-02 | Zugriffsfilter | `bootspruefung_can_access` kann Zugang erweitern (L-W2) | Filter darf nur einschränken | E-84 | R0-07 §6 L-W2, CT-10 | ☐ |
-| B-03 | Rechte | drei grobe Caps nur für Administrator, `manage_options` für Protokoll/Einstellungen (L-W3, L-W4) | 24 Caps, vier `ccap_`-Rollen, Objektrechte; nur `administrator` erhält Caps | E-78…E-83 | R0-07 §3, §6 | ☐ |
-| B-04 | Daten an Gruppenbesitzer | Besitzer sieht E-Mail-Adressen aktiver Mitglieder (L-W10) | Name/Anzeigename, E-Mail nur maskiert oder per eigener Cap | E-81 | R0-07 §6 L-W10 | ☐ |
-| B-05 | Monitor-Schlüssel | auch als `?key=` (L-W8) | nur Header `X-CC-Monitor-Key` | R0-07 RG-20 (ohne eigene E-Nummer) | R0-07 §6 L-W8, RBAC-094 | ☐ |
-| B-06 | Wiederaufleben nach Refund | automatische Widerrufe leben wieder auf (EPL:155-164, GS:83-91) | kein Wiederaufleben; neuer Kauf = neue Grant-Revision | E-29 | R0-09 §2.3 | ☐ |
-| B-07 | Verlängerung nach Ablauf | `extend()` setzt `expired` → `active` (ESV:376-378) | nie automatisch; Verlängerung nach Ablauf = neue Revision (G-15) | E-29, E-117 | R0-09 §2.3, RBAC-046 | ☐ |
-| B-08 | Manuellen Widerruf aufheben | `releaseManual` springt auf den Stand vor der Sperre zurück, auch nach `revoked` (ESV:387-423) | `revoked` nicht aufhebbar; Aufheben nur für `suspended`/`approved` | E-29 | R0-09 §2.3 | ☐ |
-| B-09 | Kundenwechsel einer Bestellung | Grant wird still umgehängt | alter Grant `revoked`, neue Revision für das neue Konto | E-117 | R0-09, R0-40 §4.2 | ☐ |
-| B-10 | Unbezahlte Woo-Bestellung | Pending-Eintrag bei offener Zahlung (EPL:47-49, :65-67) | kein Grant bis zur Zahlung (Folgefrage NF-01) | E-276, E-293 | R0-09 G-01, R0-40 §4.2 | ☐ |
-| B-11 | Bestellung im Papierkorb/gelöscht | Widerruf (INV-B-107) | keine Änderung, Reconcile-Hinweis | R0-40 RF-15 (technisch, Konzept 35.2) | R0-40 §4.2, R0-09 RF-15 | ☐ |
-| B-12 | Einladungstokens | Klartext `varchar(64)`, 128 Bit Hex | nur `sha256(token)` gespeichert, 256 Bit | E-112 | R0-09 §1.2 | ☐ |
-| B-13 | Paketmedien | öffentlich in `uploads/bootspruefung/media/`, nur die Frage gesperrt (L-W7) | zugangsgebundene Medien standardmäßig geschützt über PHP | E-65 | R0-10 §4, R0-07 L-W7 | ☐ |
-| B-14 | Kulanz und Einstellungen im laufenden Versuch | Kulanz wird bei jeder Prüfung live gelesen | Grace/Kulanz und Settings beim Start im Snapshot eingefroren | E-225, R0-08 §4.3 | R0-08 §4.3, R0-28 §2 | ☐ |
-| B-15 | Lösungserklärungen | per Feature `learning_explanations` freischaltbar (LS:628) | nur mit Pro; Free zeigt richtig/falsch und ggf. die richtige Antwort | E-20, E-147 | R0-08 §4.5, GM-018/GM-197 | ☐ |
-| B-16 | Prüfungsregelstatus | `verified`/`live` (amtliche Prüfung) | `status` + `purpose`, `evidence_eligible`; Modus „offiziell“ entfällt | E-23, E-75 | R0-05 Beschlussstand, R0-08 §4.1 | ☐ |
-| B-17 | Öffentliche Website-FAQ | öffentliche Website-FAQ (`bp_faq`, Shortcode `[bootspruefung_faq]`, INV-D-056) | Website-FAQ entfällt (Theme/Drittplugin); Kurs-FAQ und Tipps bleiben (`ccap_faq`, `ccap_tip`) | E-16 | R0-19 §4.5, R0-04 BS-24 | ☐ |
-| B-18 | Update-Prüfung | eigener Update-Check (RO:73-181) | Free nur über WordPress.org, kein eigener Updater | E-09 | R0-05 §1.21, R0-39 §1 | ☐ |
-| B-19 | Fehlercodes | `UPPER_SNAKE` bzw. `bp_*` | Kleinschreibung mit Präfix `ccap_` (LB-Code als Herkunft in R0-19 §3.2) | E-06, E-285 | R0-19 §3 | ☐ |
+| A-01 | Externe Medien (GM-013) | Laden erst nach Einwilligung über ein Theme-Global | Default `always_load`, umschaltbar auf `click_to_load`/`link_only` | E-45, E-45a, E-312 (Auftraggeber) | R0-05 §5.1, R0-10 §5 | ☑ freigegeben 16.11.2026 |
+| A-02 | Übungsprüfung aus Entwurf (GM-033) | `examRule()` fällt auf die neueste nicht archivierte Regel zurück, auch einen Entwurf (CR:186-216) | Entwürfe nie startbar; Übung nur als veröffentlichte Regel mit `purpose=practice` | E-129, E-23 | R0-05 §5.1 | ☑ freigegeben 16.11.2026 |
+| A-03 | Härtung ab Aktivierung (GM-208) | Härtung wirkt ab Aktivierung, je Merkmal per Filter abschaltbar (INV-C-142) | alles aus, bis der Admin im Assistenten oder Tab speichert; danach `auto` | E-260, E-240 | R0-05 §5.1, R0-31 §3.4 | ☑ freigegeben 16.11.2026 |
+| A-04 | `Permissions-Policy` (GM-207) | website-weit mit `microphone=(self)` (INV-C-141) | nur auf Course-Captain-Antworten: `camera=(), microphone=(), geolocation=(), payment=()` | E-309 | R0-05 §5.1, R0-31 §3.4 | ☑ freigegeben 16.11.2026 |
+| A-05 | Härtungsumfang (§1.21) | auch `/wp/v2/users` für Gäste, Autorenarchive, Benutzer-Sitemap, oEmbed-/Feed-Autor, Anwendungspasswörter nur Redaktion (INV-C-138) | nicht im R1-Modul (R4-Pool) | E-261, E-308 | R0-05 §5.1, R0-04 | ☑ freigegeben 16.11.2026 |
+| A-06 | Abschluss zurücknehmen (GM-209) | Lernender kann `completed` generell zurücksetzen (VS:246-247) | nur `manual_confirm`; nachweisbasierte Abschlüsse nie; Reset durch die Kursverwaltung mit Audit | E-70 | R0-05 §5.1, R0-08 §5.1 | ☑ freigegeben 16.11.2026 |
+| B-01 | Standardzugang | `default_access = logged_in`: alle Angemeldeten lernen alles (L-W1, INV-D-036) | kein Vollzugang ohne Grant; Einschreibung „manuell“, Selbstanmeldung aus | Konzept 43.3, R0-07 P-01 (ohne eigene E-Nummer) | R0-07 §6 L-W1, R0-11 C-13 | ☑ freigegeben 16.11.2026 |
+| B-02 | Zugriffsfilter | `bootspruefung_can_access` kann Zugang erweitern (L-W2) | Filter darf nur einschränken | E-84 | R0-07 §6 L-W2, CT-10 | ☑ freigegeben 16.11.2026 |
+| B-03 | Rechte | drei grobe Caps nur für Administrator, `manage_options` für Protokoll/Einstellungen (L-W3, L-W4) | 24 Caps, vier `ccap_`-Rollen, Objektrechte; nur `administrator` erhält Caps | E-78…E-83 | R0-07 §3, §6 | ☑ freigegeben 16.11.2026 |
+| B-04 | Daten an Gruppenbesitzer | Besitzer sieht E-Mail-Adressen aktiver Mitglieder (L-W10) | Name/Anzeigename, E-Mail nur maskiert oder per eigener Cap | E-81 | R0-07 §6 L-W10 | ☑ freigegeben 16.11.2026 |
+| B-05 | Monitor-Schlüssel | auch als `?key=` (L-W8) | nur Header `X-CC-Monitor-Key` | R0-07 RG-20 (ohne eigene E-Nummer) | R0-07 §6 L-W8, RBAC-094 | ☑ freigegeben 16.11.2026 |
+| B-06 | Wiederaufleben nach Refund | automatische Widerrufe leben wieder auf (EPL:155-164, GS:83-91) | kein Wiederaufleben; neuer Kauf = neue Grant-Revision | E-29 | R0-09 §2.3 | ☑ freigegeben 16.11.2026 |
+| B-07 | Verlängerung nach Ablauf | `extend()` setzt `expired` → `active` (ESV:376-378) | nie automatisch; Verlängerung nach Ablauf = neue Revision (G-15) | E-29, E-117 | R0-09 §2.3, RBAC-046 | ☑ freigegeben 16.11.2026 |
+| B-08 | Manuellen Widerruf aufheben | `releaseManual` springt auf den Stand vor der Sperre zurück, auch nach `revoked` (ESV:387-423) | `revoked` nicht aufhebbar; Aufheben nur für `suspended`/`approved` | E-29 | R0-09 §2.3 | ☑ freigegeben 16.11.2026 |
+| B-09 | Kundenwechsel einer Bestellung | Grant wird still umgehängt | alter Grant `revoked`, neue Revision für das neue Konto | E-117 | R0-09, R0-40 §4.2 | ☑ freigegeben 16.11.2026 |
+| B-10 | Unbezahlte Woo-Bestellung | Pending-Eintrag bei offener Zahlung (EPL:47-49, :65-67) | kein Grant bis zur Zahlung (Folgefrage NF-01) | E-276, E-293 | R0-09 G-01, R0-40 §4.2 | ☑ freigegeben 16.11.2026 |
+| B-11 | Bestellung im Papierkorb/gelöscht | Widerruf (INV-B-107) | keine Änderung, Reconcile-Hinweis | R0-40 RF-15 (technisch, Konzept 35.2) | R0-40 §4.2, R0-09 RF-15 | ☑ freigegeben 16.11.2026 |
+| B-12 | Einladungstokens | Klartext `varchar(64)`, 128 Bit Hex | nur `sha256(token)` gespeichert, 256 Bit | E-112 | R0-09 §1.2 | ☑ freigegeben 16.11.2026 |
+| B-13 | Paketmedien | öffentlich in `uploads/bootspruefung/media/`, nur die Frage gesperrt (L-W7) | zugangsgebundene Medien standardmäßig geschützt über PHP | E-65 | R0-10 §4, R0-07 L-W7 | ☑ freigegeben 16.11.2026 |
+| B-14 | Kulanz und Einstellungen im laufenden Versuch | Kulanz wird bei jeder Prüfung live gelesen | Grace/Kulanz und Settings beim Start im Snapshot eingefroren | E-225, R0-08 §4.3 | R0-08 §4.3, R0-28 §2 | ☑ freigegeben 16.11.2026 |
+| B-15 | Lösungserklärungen | per Feature `learning_explanations` freischaltbar (LS:628) | nur mit Pro; Free zeigt richtig/falsch und ggf. die richtige Antwort | E-20, E-147 | R0-08 §4.5, GM-018/GM-197 | ☑ freigegeben 16.11.2026 |
+| B-16 | Prüfungsregelstatus | `verified`/`live` (amtliche Prüfung) | `status` + `purpose`, `evidence_eligible`; Modus „offiziell“ entfällt | E-23, E-75 | R0-05 Beschlussstand, R0-08 §4.1 | ☑ freigegeben 16.11.2026 |
+| B-17 | Öffentliche Website-FAQ | öffentliche Website-FAQ (`bp_faq`, Shortcode `[bootspruefung_faq]`, INV-D-056) | Website-FAQ entfällt (Theme/Drittplugin); Kurs-FAQ und Tipps bleiben (`ccap_faq`, `ccap_tip`) | E-16 | R0-19 §4.5, R0-04 BS-24 | ☑ freigegeben 16.11.2026 |
+| B-18 | Update-Prüfung | eigener Update-Check (RO:73-181) | Free nur über WordPress.org, kein eigener Updater | E-09 | R0-05 §1.21, R0-39 §1 | ☑ freigegeben 16.11.2026 |
+| B-19 | Fehlercodes | `UPPER_SNAKE` bzw. `bp_*` | Kleinschreibung mit Präfix `ccap_` (LB-Code als Herkunft in R0-19 §3.2) | E-06, E-285 | R0-19 §3 | ☑ freigegeben 16.11.2026 |
 
 Nicht in dieser Liste: bewusste Abweichungen von **Suite-Mustern** (nicht LB), z. B. E-38 (Registry nur Pro, Form-Muster), E-39/E-39b (Workflow), E-306 (Pro-Jobs nach Lizenzende eingefroren statt pausiert, R0-32 W1); sie sind in R0-32, R0-36 und R0-39 dokumentiert.
 
@@ -187,3 +187,12 @@ Mit der Unterschrift bestätigt der Auftraggeber die Bewertung der Kriterien A-1
 | Auflagen / Fristen | |
 | Technischer Reviewer (Name, Datum) | |
 | Auftraggeber (Name, Datum, Unterschrift) | |
+
+## Nachtrag 16.11.2026 – Beschlüsse des Auftraggebers zum Gate-Protokoll
+
+| Punkt | Beschluss |
+|---|---|
+| AG-08 / E-55 | **Alle 25 Abweichungen A-01…A-06, B-01…B-19 schriftlich freigegeben** (Auftraggeber). |
+| NF-03 / E-326 | Kursabschluss und Kurszertifikat nur mit allen Pflichtmodulen; zusätzlich optionaler **Modul-Abschlussnachweis** je Modul für Lernende mit Modul-Zugang (E-27). |
+| AG-11 / E-327 | **Clean Room als Spec-Barriere:** Die R1-Implementierung erfolgt in neuen Sessions bzw. Agenten, die nur `docs/r0`, `konzept.md` und `TODO-WETTBEWERBSANALYSE.md` erhalten, ohne Zugriff auf einen learnboating-Klon. R0-Dokumente enthalten Verhaltensbeschreibungen, Pfad:Zeile-Belege und Methodennamen, aber keinen Quellcode. Der lokale LB-Klon der Spezifikations-Session wird gelöscht. Der Referenzlauf (E-56) wird von einer getrennten Prüfrolle ausgeführt, deren Ergebnisse nur als Erwartungswerte zurückfließen. |
+| A-7 / E-328 | Bau von `cc-fixture-neutral-v1` und Referenzlauf werden **Eingangskriterium von R1-18**, nicht von Gate A. A-7 gilt für Gate A als erfüllt, soweit Abweichungsliste und Spezifikation vorliegen. |

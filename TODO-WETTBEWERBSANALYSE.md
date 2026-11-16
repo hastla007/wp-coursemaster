@@ -303,7 +303,7 @@
   - **Ergebnis/Definition of Done:** Export/Eraser, Retention, Cron-Recovery, Audit, Health-Checks, Security.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-18 · R1-Golden-Master- und E2E-Abnahme**
+- [ ] **R1-18 · R1-Golden-Master- und E2E-Abnahme** — *Eingangskriterium (E-328): `cc-fixture-neutral-v1` gebaut und Referenzlauf des LB-Plugins für Rechenlogik-Fälle (E-56) durch getrennte Prüfrolle protokolliert.*
   - **Voraussetzung:** R1-01, R1-02, R1-03, R1-04, R1-05, R1-06, R1-07, R1-08, R1-09, R1-10, R1-11, R1-12, R1-13, R1-14, R1-15, R1-16, R1-17.
   - **Ergebnis/Definition of Done:** Alle neutralen Originalfunktionen nachgewiesen; Free ohne Woo/Suite/Pro, Gates B/C bestanden.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

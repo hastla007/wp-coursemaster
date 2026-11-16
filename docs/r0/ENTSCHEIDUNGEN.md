@@ -78,6 +78,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-61 | Letzte zwei Versionen von Chrome, Edge, Firefox, Safari + Firefox ESR, iOS Safari, Android Chrome | nein |
 | E-62 | „eigen“ aus Fremdpaket wird als „lizenziert“ gespeichert | nein |
 | E-63 | Reimport: lokal gewinnt, Wahl je Objekt im Dry-run | nein |
+| E-55a | Alle 25 Abweichungen vom LB-Verhalten (R0-GATE-protokoll §6) schriftlich freigegeben | nein |
+| E-326 | Kursabschluss/-zertifikat nur mit allen Pflichtmodulen; zusätzlich optionaler Modul-Abschlussnachweis | nein |
+| E-327 | Clean Room als Spec-Barriere: R1-Implementierung nur mit docs/r0, ohne LB-Klon; LB-Klon der Spezifikations-Session wird gelöscht; Referenzlauf durch getrennte Prüfrolle | nein |
+| E-328 | Fixture-Bau und Referenzlauf als Eingangskriterium von R1-18 statt Gate A | nein |
 
 ### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
 
