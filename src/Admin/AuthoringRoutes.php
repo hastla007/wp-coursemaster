@@ -11,6 +11,7 @@ namespace CourseCaptain\Admin;
 
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Publish\CourseValidator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -63,10 +64,33 @@ final class AuthoringRoutes {
 		);
 		register_rest_route(
 			self::NAMESPACE,
+			'/courses/(?P<id>\d+)/validation',
+			array(
+				'methods'             => 'GET',
+				'callback'            => static fn( \WP_REST_Request $r ) => self::run(
+					static function ( Actor $a ) use ( $r ): array {
+						AuthoringService::current()->structure( $a, (int) $r['id'] );
+						return CourseValidator::validate( (int) $r['id'], 'manual', array_values( array_map( 'strval', (array) ( $r->get_param( 'acknowledged' ) ?? array() ) ) ) );
+					}
+				),
+				'permission_callback' => $auth,
+			)
+		);
+		register_rest_route(
+			self::NAMESPACE,
 			'/courses/(?P<id>\d+)/publish',
 			array(
 				'methods'             => 'POST',
-				'callback'            => static fn( \WP_REST_Request $r ) => self::run( static fn( Actor $a ) => array( 'revision_id' => AuthoringService::current()->publish( $a, (int) $r['id'], (string) ( $r->get_param( 'change_class' ) ?? 'minor' ), null === $r->get_param( 'notes' ) ? null : (string) $r->get_param( 'notes' ) ) ) ),
+				'callback'            => static function ( \WP_REST_Request $r ) {
+					$acknowledged = array_values( array_map( 'strval', (array) ( $r->get_param( 'acknowledged' ) ?? array() ) ) );
+					$response     = self::run( static fn( Actor $a ) => array( 'revision_id' => AuthoringService::current()->publish( $a, (int) $r['id'], (string) ( $r->get_param( 'change_class' ) ?? 'minor' ), null === $r->get_param( 'notes' ) ? null : (string) $r->get_param( 'notes' ), $acknowledged ) ) );
+					if ( $response instanceof \WP_Error && in_array( $response->get_error_code(), array( 'ccap_validation_failed', 'ccap_validation_unacknowledged' ), true ) ) {
+						$data           = (array) $response->get_error_data();
+						$data['report'] = CourseValidator::validate( (int) $r['id'], 'publish', $acknowledged );
+						$response->add_data( $data );
+					}
+					return $response;
+				},
 				'permission_callback' => $auth,
 			)
 		);

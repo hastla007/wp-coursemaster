@@ -14,6 +14,8 @@ use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Course\ObjectIdentity;
+use CourseCaptain\Event\AuditLog;
+use CourseCaptain\Publish\CourseValidator;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
@@ -191,17 +193,47 @@ final class AuthoringService {
 	}
 
 	/**
-	 * Publish a course revision.
+	 * Publish a course revision through the validator (R0-22 §2.4/§2.5):
+	 * blockers stop publishing, every warning needs an acknowledgement of
+	 * its fingerprint; the acknowledged fingerprints are audited.
 	 *
 	 * @param Actor       $actor        Author.
 	 * @param int         $course_id    Course.
 	 * @param string      $change_class patch|minor.
 	 * @param string|null $notes        Note for learners.
+	 * @param array       $acknowledged Acknowledged warning fingerprints.
+	 * @phpstan-param list<string> $acknowledged
 	 * @return int Revision ID.
+	 * @throws CourseException `ccap_validation_failed` (422) or `ccap_validation_unacknowledged` (409).
 	 */
-	public function publish( Actor $actor, int $course_id, string $change_class, ?string $notes = null ): int {
-		$notes = null === $notes ? null : sanitize_textarea_field( $notes );
-		return CoursePublisher::current()->publish( $actor, $course_id, $change_class, '' === $notes ? null : $notes );
+	public function publish( Actor $actor, int $course_id, string $change_class, ?string $notes = null, array $acknowledged = array() ): int {
+		$this->authorize_course( $actor, $course_id );
+		if ( ! in_array( $change_class, CoursePublisher::CHANGE_CLASSES, true ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Unknown change class.', 400 );
+		}
+		$report = CourseValidator::validate( $course_id, 'publish', $acknowledged );
+		if ( $report['summary']['blocker'] > 0 ) {
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', array_unique( array_column( array_filter( $report['issues'], static fn( array $i ): bool => 'blocker' === $i['severity'] ), 'code' ) ) ) ), 422 );
+		}
+		if ( ! CourseValidator::publishable( $report ) ) {
+			throw new CourseException( 'ccap_validation_unacknowledged', 'warnings', 409 );
+		}
+		$notes    = null === $notes ? null : sanitize_textarea_field( $notes );
+		$revision = CoursePublisher::current()->publish( $actor, $course_id, $change_class, '' === $notes ? null : $notes );
+		AuditLog::write(
+			$this->db,
+			$actor,
+			'course_published',
+			'course',
+			$report['course_uid'],
+			null,
+			array(
+				'revision_id'           => $revision,
+				'change_class'          => $change_class,
+				'acknowledged_warnings' => array_values( array_column( array_filter( $report['issues'], static fn( array $i ): bool => ! empty( $i['acknowledged'] ) ), 'fingerprint' ) ),
+			)
+		);
+		return $revision;
 	}
 
 	/**

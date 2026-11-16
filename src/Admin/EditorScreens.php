@@ -15,6 +15,7 @@ use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\Relations;
+use CourseCaptain\Publish\CourseValidator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -125,7 +126,43 @@ final class EditorScreens {
 		echo '<label><input type="radio" name="ccap_change_class" value="patch"> ' . esc_html__( 'Correction (no effect on progress)', 'course-captain' ) . '</label><br>';
 		echo '<label><input type="radio" name="ccap_change_class" value="minor" checked> ' . esc_html__( 'Content change', 'course-captain' ) . '</label></fieldset>';
 		echo '<p><label for="ccap-publish-notes">' . esc_html__( 'Note for learners (optional)', 'course-captain' ) . '</label><textarea id="ccap-publish-notes" name="ccap_publish_notes" rows="3" class="widefat"></textarea></p>';
+		echo self::validation_panel( (int) $post->ID ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
 		echo '<p><label><input type="checkbox" name="ccap_publish_revision" value="1"> ' . esc_html__( 'Publish a new revision when saving', 'course-captain' ) . '</label></p>';
+	}
+
+	/**
+	 * Validation summary (R0-22 §3.1/§3.3): blockers, warnings with
+	 * acknowledgement boxes, notices; announced politely to screen readers.
+	 *
+	 * @param int $course_id Course.
+	 * @return string
+	 */
+	public static function validation_panel( int $course_id ): string {
+		$report = CourseValidator::validate( $course_id, 'live' );
+		$html   = '<div class="ccap-validation" role="status" aria-live="polite"><p><strong>' . esc_html(
+			sprintf(
+				/* translators: 1: blockers, 2: warnings, 3: notices */
+				__( 'Check: %1$d blockers, %2$d warnings, %3$d notes', 'course-captain' ),
+				$report['summary']['blocker'],
+				$report['summary']['warning'],
+				$report['summary']['notice']
+			)
+		) . '</strong></p><ul>';
+		$labels = array(
+			'blocker' => __( 'Blocker', 'course-captain' ),
+			'warning' => __( 'Warning', 'course-captain' ),
+			'notice'  => __( 'Note', 'course-captain' ),
+		);
+		foreach ( $report['issues'] as $i => $issue ) {
+			$text = esc_html( $labels[ $issue['severity'] ] . ': ' . $issue['object']['title'] . ' – ' . $issue['message'] ) . ' <span class="description">(' . esc_html( $issue['code'] ) . ')</span>';
+			if ( 'warning' === $issue['severity'] ) {
+				$html .= '<li><label><input type="checkbox" name="ccap_ack[]" value="' . esc_attr( $issue['fingerprint'] ) . '"> ' . esc_html__( 'Read:', 'course-captain' ) . ' ' . $text . '</label></li>';
+			} else {
+				$html .= '<li>' . $text . '</li>';
+			}
+			unset( $i );
+		}
+		return $html . '</ul></div>';
 	}
 
 	/**
@@ -175,7 +212,8 @@ final class EditorScreens {
 				if ( ! empty( $_POST['ccap_publish_revision'] ) && 'auto-draft' !== $post->post_status ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
 					$class = isset( $_POST['ccap_change_class'] ) ? sanitize_key( wp_unslash( (string) $_POST['ccap_change_class'] ) ) : 'minor'; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
 					$notes = isset( $_POST['ccap_publish_notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['ccap_publish_notes'] ) ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
-					AuthoringService::current()->publish( $actor, $post_id, $class, $notes );
+					$ack   = array_values( array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['ccap_ack'] ?? array() ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+					AuthoringService::current()->publish( $actor, $post_id, $class, $notes, $ack );
 				}
 			}
 		);

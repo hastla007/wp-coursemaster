@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T16:23:30+00:00\n"
+"POT-Creation-Date: 2026-11-16T17:09:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -18,7 +18,7 @@ msgstr ""
 #. Author of the plugin
 #: course-captain.php:3
 #: course-captain.php:9
-#: src/Admin/EditorScreens.php:52
+#: src/Admin/EditorScreens.php:53
 #: src/Admin/Notices.php:120
 #: src/Ops/HealthChecks.php:172
 #: src/Privacy/PrivacyService.php:124
@@ -54,139 +54,163 @@ msgstr ""
 msgid "This content is available to course participants."
 msgstr ""
 
-#: src/Admin/AuthoringRoutes.php:99
+#: src/Admin/AuthoringRoutes.php:123
 #: src/Learner/LearnerRoutes.php:114
 msgid "Please log in."
 msgstr ""
 
 #. translators: %s: original title
-#: src/Admin/AuthoringService.php:171
+#: src/Admin/AuthoringService.php:173
 #, php-format
 msgid "%s (copy)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:68
+#: src/Admin/EditorScreens.php:69
 #: src/Course/PostTypes.php:70
 msgid "Modules"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:69
+#: src/Admin/EditorScreens.php:70
 msgid "Publish revision"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:70
+#: src/Admin/EditorScreens.php:71
 msgid "Activity"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:86
+#: src/Admin/EditorScreens.php:87
 msgid "Modules of this course"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:86
+#: src/Admin/EditorScreens.php:87
 #: src/Course/PostTypes.php:70
 msgid "Module"
 msgstr ""
 
 #. translators: %d: lesson count
-#: src/Admin/EditorScreens.php:86
-#: src/Admin/EditorScreens.php:90
+#: src/Admin/EditorScreens.php:87
+#: src/Admin/EditorScreens.php:91
 msgid "Position"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:86
-#: src/Admin/EditorScreens.php:91
+#: src/Admin/EditorScreens.php:87
+#: src/Admin/EditorScreens.php:92
 msgid "Required"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:86
+#: src/Admin/EditorScreens.php:87
 msgid "Remove"
 msgstr ""
 
 #. translators: %d: lesson count
-#: src/Admin/EditorScreens.php:89
+#: src/Admin/EditorScreens.php:90
 #, php-format
 msgid "%d lesson"
 msgid_plural "%d lessons"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/EditorScreens.php:92
+#: src/Admin/EditorScreens.php:93
 msgid "Remove from course"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:106
+#: src/Admin/EditorScreens.php:107
 msgid "Add module"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:106
+#: src/Admin/EditorScreens.php:107
 msgid "— none —"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:112
+#: src/Admin/EditorScreens.php:113
 msgid "Changes apply to the draft. Learners keep their published revision until you publish again."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:123
+#: src/Admin/EditorScreens.php:124
 msgid "Not published yet."
 msgstr ""
 
 #. translators: %d: revision number
-#: src/Admin/EditorScreens.php:123
+#: src/Admin/EditorScreens.php:124
 #, php-format
 msgid "Published revision: %d"
 msgstr ""
 
 #. translators: %d: revision number
-#: src/Admin/EditorScreens.php:124
+#: src/Admin/EditorScreens.php:125
 msgid "Kind of change"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:125
+#: src/Admin/EditorScreens.php:126
 msgid "Correction (no effect on progress)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:126
+#: src/Admin/EditorScreens.php:127
 msgid "Content change"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:127
+#: src/Admin/EditorScreens.php:128
 msgid "Note for learners (optional)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:128
+#: src/Admin/EditorScreens.php:130
 msgid "Publish a new revision when saving"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:140
+#. translators: 1: blockers, 2: warnings, 3: notices
+#: src/Admin/EditorScreens.php:145
+#, php-format
+msgid "Check: %1$d blockers, %2$d warnings, %3$d notes"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:152
+msgid "Blocker"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:153
+#: src/Admin/Notices.php:148
+msgid "Warning"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:154
+#: src/Admin/Notices.php:148
+msgid "Note"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:159
+msgid "Read:"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:177
 msgid "Activity type"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:145
+#: src/Admin/EditorScreens.php:182
 msgid "Settings (JSON)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:146
+#: src/Admin/EditorScreens.php:183
 msgid "Completion rule"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:146
+#: src/Admin/EditorScreens.php:183
 msgid "Leave empty for the default rule of the type."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:147
+#: src/Admin/EditorScreens.php:184
 msgid "The order of lessons in a module follows the \"Order\" field in the page attributes. Use \"Preview\" to see the lesson as a learner."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:219
+#: src/Admin/EditorScreens.php:257
 msgid "Duplicate"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:236
+#: src/Admin/EditorScreens.php:274
 msgid "The item could not be duplicated."
 msgstr ""
 
 #. translators: %s: error details
-#: src/Admin/EditorScreens.php:266
+#: src/Admin/EditorScreens.php:304
 #, php-format
 msgid "Not saved: %s"
 msgstr ""
@@ -201,14 +225,6 @@ msgstr ""
 
 #: src/Admin/Notices.php:148
 msgid "Error"
-msgstr ""
-
-#: src/Admin/Notices.php:148
-msgid "Warning"
-msgstr ""
-
-#: src/Admin/Notices.php:148
-msgid "Note"
 msgstr ""
 
 #: src/Course/PostTypes.php:54
@@ -262,7 +278,7 @@ msgid "Staged"
 msgstr ""
 
 #. translators: %s: package ID
-#: src/Import/ImportService.php:648
+#: src/Import/ImportService.php:641
 #, php-format
 msgid "Import %s"
 msgstr ""
@@ -289,7 +305,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:341
+#: src/Kernel/Plugin.php:342
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -564,11 +580,15 @@ msgstr ""
 msgid "Maintenance task failed"
 msgstr ""
 
-#: src/Ops/AuditView.php:102
+#: src/Ops/AuditView.php:50
+msgid "Course revision published"
+msgstr ""
+
+#: src/Ops/AuditView.php:103
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:102
+#: src/Ops/AuditView.php:103
 msgid "System"
 msgstr ""
 
@@ -637,6 +657,162 @@ msgstr ""
 
 #: src/Privacy/PrivacyService.php:330
 msgid "Course Captain stores learning progress, answers, exam attempts, course access and group memberships of logged-in learners. Learning answers are kept for 2 years after the end of a course, exam attempts for 10 years, ended access records for 10 years and the audit log for 4 years. Personal data can be exported and erased with the WordPress privacy tools."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:102
+msgid "The check could not run completely. Please try again or contact support."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:109
+msgid "Nothing changed since the published revision."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:164
+msgid "The course has no title. Enter a title."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:168
+msgid "The course language is missing or invalid. Choose a language."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:171
+msgid "The course has no modules. Add at least one module."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:174
+msgid "The course has no description. A short description helps learners."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:196
+msgid "A module has no title. Enter a title."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:199
+msgid "This module has no lessons and no questions. Add content or remove the module."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:210
+msgid "Two lessons in this module have the same title."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:214
+msgid "This lesson has no activity type. Choose a type in the lesson editor."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:218
+msgid "The activity type of this lesson is not available. Choose another type or activate the extension."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:223
+msgid "The activity settings of this lesson are invalid. Correct them in the lesson editor."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:227
+msgid "This lesson has no content. Write the lesson text."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:230
+msgid "This video lesson has no video. Add a video file or address."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:233
+msgid "This video lesson is a placeholder and does not count for completion."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:236
+msgid "This quiz has no questions. Add questions to the quiz."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:241
+msgid "The course has no required activity, so it can never be completed."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:267
+msgid "A question in the pool has no published revision and will not be delivered."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:276
+msgid "This question is incomplete or contradictory. Correct it in the question editor."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:284
+msgid "Two options of this question have the same key."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:291
+msgid "Two options have the same text, one right and one wrong."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:291
+msgid "Two options of this question have the same text."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:296
+msgid "All options of this multiple-choice question are correct."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:317
+msgid "The pass mark of this exam is missing or invalid. Set a pass mark between 0 and 100 %."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:321
+msgid "The time limit must be between 1 second and 24 hours."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:326
+msgid "Grace and tolerance times must be between 0 and 600 seconds."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:333
+msgid "The exam draws from a module that is not part of this course."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:337
+msgid "The exam must draw at least one question from each module."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:341
+msgid "The module has no deliverable questions for the exam."
+msgstr ""
+
+#. translators: 1: available, 2: required
+#: src/Publish/CourseValidator.php:356
+#, php-format
+msgid "Only %1$d of %2$d questions are available in this module. Reduce the number or add questions."
+msgstr ""
+
+#. translators: %d: variant number
+#: src/Publish/CourseValidator.php:364
+#, php-format
+msgid "Variant %d"
+msgstr ""
+
+#: src/Publish/CourseValidator.php:366
+msgid "The variant is empty or its positions have gaps."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:369
+msgid "The variant contains a question that cannot be delivered."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:392
+msgid "A prerequisite points to a module of another course."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:392
+msgid "A prerequisite points to a module that no longer exists."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:399
+msgid "A prerequisite points to an activity that is missing, archived or outside this course."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:417
+msgid "The prerequisites form a cycle, so some modules can never be unlocked. Remove one prerequisite."
+msgstr ""
+
+#: src/Publish/PublishGuard.php:52
+msgid "Not published: the course check found blockers. Open \"Publish revision\" for details."
 msgstr ""
 
 #: src/Storage/Database.php:302

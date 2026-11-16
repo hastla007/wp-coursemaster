@@ -59,7 +59,11 @@ final class AuthoringTest extends SchemaTestCase {
 		$this->admin  = (int) self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$this->course = $this->post( 'ccap_course', 'draft' );
 		foreach ( array( 'M-A', 'M-B', 'M-C' ) as $title ) {
-			$this->modules[] = $this->post( 'ccap_module', 'publish', $title );
+			$module          = $this->post( 'ccap_module', 'publish', $title );
+			$this->modules[] = $module;
+			// Every module carries a valid text lesson, so courses pass the publish validator (R1-26).
+			$text = $this->post( 'ccap_lesson', 'publish', 'Intro ' . $title, $module );
+			update_post_meta( $text, '_ccap_activity_type', 'lesson' );
 		}
 		PolicyService::flush();
 		Notices::reset();
@@ -187,7 +191,15 @@ final class AuthoringTest extends SchemaTestCase {
 	public function test_duplicate_and_publish(): void {
 		$admin  = Actor::user( $this->admin );
 		$lesson = $this->post( 'ccap_lesson', 'publish', 'Lesson 1', $this->modules[0] );
-		ActivityService::current()->define( $admin, $lesson, 'video', array( 'duration_seconds' => 60 ) );
+		ActivityService::current()->define(
+			$admin,
+			$lesson,
+			'video',
+			array(
+				'duration_seconds' => 60,
+				'url'              => 'https://videos.example.test/lesson-1.mp4',
+			)
+		);
 		$copy = AuthoringService::current()->duplicate( $admin, $lesson );
 		$post = get_post( $copy );
 		self::assertSame( array( 'draft', 'Lesson 1 (copy)', $this->modules[0] ), array( $post->post_status, $post->post_title, (int) $post->post_parent ) );

@@ -47,6 +47,7 @@ final class AuditView {
 			'personal_data_erased'    => array( 'privacy', __( 'Personal data erased', 'course-captain' ) ),
 			'retention_applied'       => array( 'ops', __( 'Retention applied', 'course-captain' ) ),
 			'cron_task_failed'        => array( 'ops', __( 'Maintenance task failed', 'course-captain' ) ),
+			'course_published'        => array( 'content', __( 'Course revision published', 'course-captain' ) ),
 		);
 	}
 

@@ -343,7 +343,7 @@
   - **Ergebnis/Definition of Done:** Grant-/Refund-/Kursrevisionen invalidieren Cache sicher; private Antworten nie öffentlich zwischengespeichert; Paralleltests grün.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-26 · Kurs-Publish-Validator und Fehlerführung bauen**
+- [x] **R1-26 · Kurs-Publish-Validator und Fehlerführung bauen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-26-nachweis.md`; Validator mit stabilen VAL-Codes und Report, Blocker ohne Override, Warnungsbestätigung je Fingerabdruck mit Audit, Editor-/REST-/Statuswechsel-Wege durch den Validator; Unit 85, Integration 162, Multisite 171. Weitere Regelgruppen mit R1-27/34/44/46. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04,R1-05,R1-06,R1-08.
   - **Ergebnis/Definition of Done:** Autoren sehen konkrete Blocker/Warnungen; ungültige Kurse/Prüfungen werden nicht veröffentlicht; Preview testbar.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
