@@ -10,6 +10,8 @@ declare(strict_types=1);
 namespace CourseCaptain\Exam;
 
 use CourseCaptain\Course\CourseException;
+use CourseCaptain\Event\AuditLog;
+use CourseCaptain\Event\Outbox;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
@@ -143,8 +145,59 @@ final class ExamSessions {
 			'status'            => (string) $row['status'],
 			'remaining_seconds' => null === $deadline ? null : max( 0, (int) strtotime( $deadline . ' UTC' ) - $this->now() ),
 			'questions'         => $items,
-			'result'            => 'evaluated' === $row['status'] ? json_decode( (string) $row['result'], true ) : null,
+			'result'            => 'evaluated' === $row['status'] ? $this->learner_result( $row, $snapshot ) : null,
 		);
+	}
+
+	/**
+	 * Result as the learner may see it (ExamFeedback over the snapshot).
+	 *
+	 * @param array<string, mixed> $row      Evaluated session row.
+	 * @param array<string, mixed> $snapshot Snapshot.
+	 * @return array<string, mixed>
+	 */
+	public function learner_result( array $row, array $snapshot ): array {
+		$solutions = array();
+		foreach ( $this->session_questions( (int) $row['id'] ) as $sq ) {
+			$revision = (array) $this->questions->revision( (int) $sq['revision_id'] );
+			if ( ! in_array( $revision['question_type'] ?? '', array( QuestionTypes::SINGLE, QuestionTypes::MULTI, QuestionTypes::TRUE_FALSE ), true ) ) {
+				continue;
+			}
+			$keys = array();
+			foreach ( (array) $revision['answers'] as $a ) {
+				if ( is_array( $a ) && ! empty( $a['correct'] ) ) {
+					$keys[] = (string) $a['key'];
+				}
+			}
+			$solutions[ (int) $sq['position'] ] = $keys;
+		}
+		$rule = $this->rules->get( (int) $row['rule_id'] );
+		return ExamFeedback::filter(
+			(array) json_decode( (string) $row['result'], true ),
+			(array) ( $snapshot['feedback'] ?? array() ),
+			null !== $rule && $this->has_attempts_left( (int) $row['user_id'], $rule ),
+			$solutions,
+			(int) $row['evaluation_no']
+		);
+	}
+
+	/**
+	 * Whether another attempt is possible (ignoring cooldown).
+	 *
+	 * @param int                  $user Learner.
+	 * @param array<string, mixed> $rule Rule.
+	 * @return bool
+	 */
+	private function has_attempts_left( int $user, array $rule ): bool {
+		if ( 'published' !== $rule['status'] ) {
+			return false;
+		}
+		try {
+			$this->assert_attempts_left( $user, array_replace_recursive( $rule, array( 'settings' => array( 'attempt_policy' => array( 'cooldown_seconds' => 0 ) ) ) ) );
+			return true;
+		} catch ( CourseException $e ) {
+			return false;
+		}
 	}
 
 	/**
@@ -240,8 +293,11 @@ final class ExamSessions {
 		if ( 'in_progress' === $row['status'] ) {
 			$this->finish( $session, 'submitted' );
 		}
-		$after = (array) $this->db->row( $this->db->prepare( 'SELECT status, result FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
-		return array( 'status' => $after['status'] ) + (array) json_decode( (string) $after['result'], true );
+		$after = (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		if ( 'evaluated' !== $after['status'] ) {
+			return array( 'status' => (string) $after['status'] ) + (array) json_decode( (string) $after['result'], true );
+		}
+		return array( 'status' => 'evaluated' ) + $this->learner_result( $after, (array) json_decode( (string) $after['snapshot'], true ) );
 	}
 
 	/**
@@ -565,9 +621,144 @@ final class ExamSessions {
 						'result'           => (string) wp_json_encode( $result ),
 					)
 				);
+				$this->record_result_event( $db, $row, $result['passed'] ? 'exam.passed' : 'exam.failed', 1, array() );
 			}
 		);
 		do_action( 'course_captain_policy_changed' );
+	}
+
+	/**
+	 * Manual re-evaluation of one question (E-74, R-47 data contract; route
+	 * and UI are Pro). Never automatic, never the own attempt (M-10). Each
+	 * call writes a new `evaluation_no`, an audit entry and
+	 * `exam.reevaluated`.
+	 *
+	 * @param Actor    $actor        Grader.
+	 * @param int      $session      Evaluated session.
+	 * @param int      $position     Position.
+	 * @param int|null $points_milli New points (0…weight), null with $neutralize.
+	 * @param string   $reason       Mandatory justification.
+	 * @param bool     $neutralize   Remove the question from the score (faulty question).
+	 * @return array{evaluation_no: int, result: array<string, mixed>}
+	 * @throws CourseException `ccap_forbidden`, `ccap_validation_failed`, `ccap_exam_conflict`.
+	 */
+	public function regrade( Actor $actor, int $session, int $position, ?int $points_milli, string $reason, bool $neutralize = false ): array {
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::GRADE_ATTEMPT, array( $session ) ), 'Not allowed to grade this attempt.' );
+		$reason = sanitize_textarea_field( $reason );
+		if ( '' === trim( $reason ) || ( ! $neutralize && ( null === $points_milli || $points_milli < 0 ) ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'Points and a reason are required.', 422 );
+		}
+		$out = $this->db->transaction(
+			function ( Database $db ) use ( $actor, $session, $position, $points_milli, $reason, $neutralize ): array {
+				$table = $db->table( 'ccap_exam_session' );
+				$row   = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
+				if ( 'evaluated' !== ( $row['status'] ?? '' ) ) {
+					throw new CourseException( 'ccap_exam_conflict', 'Only evaluated attempts can be re-evaluated.', 409 );
+				}
+				$snapshot = (array) json_decode( (string) $row['snapshot'], true );
+				$scoring  = array_column( (array) ( $snapshot['scoring'] ?? array() ), null, 'position' );
+				if ( ! isset( $scoring[ $position ] ) ) {
+					throw new CourseException( 'ccap_validation_failed', 'Unknown position.', 422 );
+				}
+				$previous  = (array) json_decode( (string) $row['result'], true );
+				$overrides = array_map( 'intval', (array) ( $previous['overrides'] ?? array() ) );
+				if ( $neutralize ) {
+					$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_session_question' ) . '` SET neutralized = 1 WHERE session_id = %d AND position = %d', $session, $position ) );
+					unset( $overrides[ $position ] );
+				} else {
+					$weight = 1000 * (int) $scoring[ $position ]['points'];
+					if ( (int) $points_milli > $weight ) {
+						throw new CourseException( 'ccap_validation_failed', 'Points exceed the question weight.', 422 );
+					}
+					$overrides[ $position ] = (int) $points_milli;
+				}
+				$result              = $this->evaluate( $row, $snapshot, $overrides );
+				$result['overrides'] = $overrides;
+				$number              = (int) $row['evaluation_no'] + 1;
+				$db->compare_and_swap(
+					'ccap_exam_session',
+					$session,
+					(int) $row['row_version'],
+					array(
+						'evaluation_no'    => $number,
+						'evaluated_at'     => $this->now_sql(),
+						'points_milli'     => $result['points_milli'],
+						'max_points_milli' => $result['max_points_milli'],
+						'passed'           => $result['passed'] ? 1 : 0,
+						'result'           => (string) wp_json_encode( $result ),
+					)
+				);
+				$passed_old = ! empty( $previous['passed'] );
+				AuditLog::write(
+					$db,
+					$actor,
+					'attempt_graded',
+					'exam_session',
+					(string) $row['uid'],
+					$reason,
+					array(
+						'position'      => $position,
+						'points_milli'  => $neutralize ? null : $points_milli,
+						'neutralized'   => $neutralize,
+						'evaluation_no' => $number,
+						'passed_old'    => $passed_old,
+						'passed'        => $result['passed'],
+					),
+					(int) $row['user_id']
+				);
+				$this->record_result_event(
+					$db,
+					$row,
+					'exam.reevaluated',
+					$number,
+					array(
+						'passed_old' => $passed_old,
+						'passed'     => $result['passed'],
+					)
+				);
+				return array(
+					'evaluation_no' => $number,
+					'result'        => $result,
+				);
+			}
+		);
+		do_action( 'course_captain_policy_changed' );
+		return $out;
+	}
+
+	/**
+	 * Outbox event for an evaluation (R0-19 §5: `exam.passed`/`exam.failed`
+	 * once per `evaluation_no`, `exam.reevaluated`).
+	 *
+	 * @param Database             $db     Database in transaction.
+	 * @param array<string, mixed> $row    Session row (before update).
+	 * @param string               $type   Event type.
+	 * @param int                  $number Evaluation number.
+	 * @param array<string, mixed> $extra  Additional payload.
+	 * @return void
+	 */
+	private function record_result_event( Database $db, array $row, string $type, int $number, array $extra ): void {
+		$fresh = (array) $db->row( $db->prepare( 'SELECT points_milli, max_points_milli FROM `' . $db->table( 'ccap_exam_session' ) . '` WHERE id = %d', (int) $row['id'] ) );
+		Outbox::record(
+			$db,
+			$type,
+			'exam_session',
+			(string) $row['uid'],
+			$number,
+			array(
+				'session_uid'       => (string) $row['uid'],
+				'mode'              => (string) $row['mode'],
+				'points_milli'      => (int) ( $fresh['points_milli'] ?? 0 ),
+				'max_points_milli'  => (int) ( $fresh['max_points_milli'] ?? 0 ),
+				'evaluation_no'     => $number,
+				'evidence_eligible' => 'evidence' === (string) ( json_decode( (string) $row['snapshot'], true )['purpose'] ?? 'evidence' ),
+			) + $extra,
+			array(
+				'user_id'      => (int) $row['user_id'],
+				'actor_type'   => 'system',
+				'privacy_tags' => array( 'personal_ref', 'assessment_result' ),
+			)
+		);
 	}
 
 	/**
@@ -575,17 +766,22 @@ final class ExamSessions {
 	 * deadline + grace; unanswered = 0; pass = total and all parts.
 	 *
 	 * @param array<string, mixed> $row      Session row.
-	 * @param array<string, mixed> $snapshot Snapshot.
-	 * @return array{points_milli: int, max_points_milli: int, passed: bool, expired: bool, correct: int, total: int, sections: array<int, array{points: int, max: int}>}
+	 * @param array<string, mixed> $snapshot  Snapshot.
+	 * @param array<int, int>      $overrides Manual points per position (E-74).
+	 * @return array{points_milli: int, max_points_milli: int, passed: bool, expired: bool, correct: int, total: int, sections: array<int, array{points: int, max: int}>, questions: list<array{position: int, correct: bool, points_milli: int, max_points_milli: int, answered: bool}>}
 	 */
-	private function evaluate( array $row, array $snapshot ): array {
+	private function evaluate( array $row, array $snapshot, array $overrides = array() ): array {
 		$cutoff   = null === $row['deadline_at'] ? null : gmdate( 'Y-m-d H:i:s', (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) $snapshot['timing']['grace_seconds'] );
 		$scoring  = array_column( (array) $snapshot['scoring'], null, 'position' );
 		$points   = 0;
 		$max      = 0;
 		$correct  = 0;
 		$sections = array();
+		$per      = array();
 		foreach ( $this->session_questions( (int) $row['id'] ) as $sq ) {
+			if ( '1' === (string) $sq['neutralized'] ) {
+				continue;
+			}
 			$position = (int) $sq['position'];
 			$meta     = $scoring[ $position ] ?? array(
 				'points'  => 1,
@@ -600,13 +796,22 @@ final class ExamSessions {
 			$max    += $weight;
 			$got     = 0;
 			$counted = null !== $sq['answered_at'] && null !== $sq['given_answer'] && ( null === $cutoff || (string) $sq['answered_at'] <= $cutoff );
-			if ( $counted ) {
+			if ( isset( $overrides[ $position ] ) ) {
+				$got = min( $weight, max( 0, (int) $overrides[ $position ] ) );
+			} elseif ( $counted ) {
 				$evaluation = QuestionTypes::evaluate( $revision, json_decode( (string) $sq['given_answer'], true ), array_values( array_map( 'strval', (array) json_decode( (string) $sq['answer_order'], true ) ) ), $weight, $meta['scoring'] );
 				$got        = $evaluation->points_milli;
-				if ( $evaluation->correct() ) {
-					++$correct;
-				}
 			}
+			if ( $got === $weight ) {
+				++$correct;
+			}
+			$per[]                          = array(
+				'position'         => $position,
+				'correct'          => $got === $weight,
+				'points_milli'     => $got,
+				'max_points_milli' => $weight,
+				'answered'         => $counted,
+			);
 			$points                        += $got;
 			$section                        = (int) $meta['section'];
 			$sections[ $section ]['points'] = ( $sections[ $section ]['points'] ?? 0 ) + $got;
@@ -629,8 +834,9 @@ final class ExamSessions {
 			'passed'           => $passed,
 			'expired'          => null !== $row['deadline_at'] && $this->now_sql() >= (string) $row['deadline_at'],
 			'correct'          => $correct,
-			'total'            => count( $scoring ),
+			'total'            => count( $per ),
 			'sections'         => $sections,
+			'questions'        => $per,
 		);
 	}
 

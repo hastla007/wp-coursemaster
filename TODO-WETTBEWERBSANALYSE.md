@@ -258,7 +258,7 @@
   - **Ergebnis/Definition of Done:** Zufalls-/feste Prüfungen, Timer, immutable Snapshots, idempotente Abgabe.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-09 · Bewertung und Ergebnisanzeige**
+- [x] **R1-09 · Bewertung und Ergebnisanzeige** — erledigt 16.11.2026: Nachweis `docs/r1/R1-09-nachweis.md`; Lernantworten idempotent (GM-018), Ergebnisfilter nach eingefrorenen Feedback-Regeln (E-20/E-147), Nachbewertung als Datenvertrag mit `evaluation_no`, Audit und `exam.reevaluated` (E-74); Unit 85, Integration 102, Multisite 111. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08.
   - **Ergebnis/Definition of Done:** Richtig/Falsch/Teilpunkte nach belegter Regel, Ergebnis-/Retake-UX, Audit.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

@@ -14,6 +14,7 @@ use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Exam\ExamSessions;
 use CourseCaptain\Kernel\Plugin;
+use CourseCaptain\Learning\AnswerService;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Question\QuestionPresenter;
@@ -543,5 +544,145 @@ final class ExamTest extends SchemaTestCase {
 		$later = ExamSessions::current();
 		$later->set_now( time() + 3601 );
 		self::assertGreaterThan( 0, $later->start( $learner, $cool, null, wp_generate_uuid4() ) );
+	}
+
+	/**
+	 * GM-018: learning answers are stored once per idempotency key; no explanation in Free.
+	 *
+	 * @group R1-09
+	 * @group GM-018
+	 */
+	public function test_GM_018_learning_answer_idempotent(): void {
+		$learner  = Actor::user( $this->learner );
+		$module   = $this->modules[0];
+		$question = $this->pool[ $module ][0];
+		$token    = QuestionPresenter::current()->deliver( $learner, $this->course, $module, $question, new Randomizer( '20300115' ) )['token'];
+		$answers  = AnswerService::current();
+		$key      = wp_generate_uuid4();
+
+		$first = $answers->answer( $learner, $token, array( 'A' ), $key );
+		self::assertTrue( $first['correct'] );
+		self::assertFalse( $first['repeated'] );
+		self::assertSame( 1, $first['attempts'] );
+		self::assertSame( array( 'A' ), $first['correct_ids'] );
+		self::assertStringNotContainsString( 'explanation', (string) wp_json_encode( $first ), 'E-20' );
+
+		$again = $answers->answer( $learner, $token, array( 'B' ), $key );
+		self::assertTrue( $again['repeated'], 'double submit counts once' );
+		self::assertTrue( $again['correct'], 'stored result, not the new input' );
+		self::assertSame( 1, $again['attempts'] );
+
+		$wrong = $answers->answer( $learner, $token, array( 'B' ), wp_generate_uuid4() );
+		self::assertFalse( $wrong['correct'] );
+		self::assertSame( 2, $wrong['attempts'] );
+
+		$db       = Database::current();
+		$progress = (array) $db->row( $db->prepare( 'SELECT * FROM `' . $db->table( 'ccap_question_progress' ) . '` WHERE user_id = %d AND question_id = %d', $this->learner, $question ) );
+		self::assertSame( array( '2', '1', '1', '0' ), array( $progress['attempts'], $progress['correct_count'], $progress['wrong_count'], $progress['streak'] ) );
+		self::assertSame( '2', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_attempt' ) . '` WHERE user_id = %d', $this->learner ) ) );
+		self::assertSame( '2', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_attempt_answer' ) . '`' ) );
+
+		$this->assertRejected( fn() => $answers->answer( $learner, $token, array( 'A' ), 'not-a-uuid' ), 'ccap_invalid_param' );
+		$this->assertRejected( fn() => $answers->answer( $learner, $token, array(), wp_generate_uuid4() ), 'ccap_invalid_answer' );
+	}
+
+	/**
+	 * E-147 / E-20: result visibility follows the frozen feedback settings.
+	 *
+	 * @group R1-09
+	 */
+	public function test_E147_feedback_visibility(): void {
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$fail     = function ( int $rule ) use ( $sessions, $learner ): array {
+			$session = $this->start( $rule );
+			foreach ( array( 1, 2, 3, 4, 5 ) as $position ) {
+				$sessions->save_answer( $learner, $session, $position, array( 1 === $position ? 'A' : 'B' ) );
+			}
+			return $sessions->submit( $learner, $session );
+		};
+
+		$open = $fail( $this->rule() );
+		self::assertTrue( $open['released'] );
+		self::assertFalse( $open['passed'] );
+		self::assertSame( 1000, $open['points_milli'] );
+		self::assertCount( 5, $open['questions'] );
+		self::assertSame( array( true, false, false, false, false ), array_column( $open['questions'], 'correct' ), 'right/wrong always visible' );
+		self::assertFalse( $open['solutions_visible'], 'attempts left and not passed' );
+		self::assertStringNotContainsString( 'correct_ids', (string) wp_json_encode( $open ) );
+		self::assertStringNotContainsString( 'explanation', (string) wp_json_encode( $open ) );
+
+		$last = $fail(
+			$this->rule(
+				array(
+					'attempt_policy' => array(
+						'max_attempts'     => 1,
+						'cooldown_seconds' => 0,
+					),
+				)
+			)
+		);
+		self::assertTrue( $last['solutions_visible'], 'no attempt left' );
+		self::assertSame( array( 'A' ), $last['questions'][0]['correct_ids'] );
+
+		$hidden = $fail( $this->rule( array( 'feedback' => array( 'show_score' => false ) ) ) );
+		self::assertArrayNotHasKey( 'points_milli', $hidden );
+		self::assertArrayNotHasKey( 'points_milli', $hidden['questions'][0] );
+
+		$never = $fail( $this->rule( array( 'feedback' => array( 'feedback_visibility' => 'never' ) ) ) );
+		self::assertSame(
+			array(
+				'status'   => 'evaluated',
+				'released' => false,
+			),
+			$never
+		);
+	}
+
+	/**
+	 * E-74: manual re-evaluation writes a new evaluation_no, audit and event; never the own attempt.
+	 *
+	 * @group R1-09
+	 */
+	public function test_E74_regrade(): void {
+		add_filter(
+			'course_captain_internal_subscribers',
+			static fn( array $s ): array => $s + array( 'test' => array( 'exam.*' ) )
+		);
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$admin    = Actor::user( $this->admin );
+		$session  = $this->start( $this->rule() );
+		foreach ( array( 1, 2, 3, 4, 5 ) as $position ) {
+			$sessions->save_answer( $learner, $session, $position, array( $position <= 2 ? 'A' : 'B' ) );
+		}
+		self::assertFalse( $sessions->submit( $learner, $session )['passed'] );
+
+		$this->assertRejected( fn() => $sessions->regrade( $learner, $session, 3, 1000, 'mine' ), 'ccap_forbidden' );
+		$this->assertRejected( fn() => $sessions->regrade( $admin, $session, 3, 1000, ' ' ), 'ccap_validation_failed' );
+		$this->assertRejected( fn() => $sessions->regrade( $admin, $session, 3, 5000, 'too much' ), 'ccap_validation_failed' );
+		$this->assertRejected( fn() => $sessions->regrade( $admin, $session, 99, 0, 'unknown' ), 'ccap_validation_failed' );
+
+		$out = $sessions->regrade( $admin, $session, 3, 1000, 'Question 3 had two right options' );
+		self::assertSame( 2, $out['evaluation_no'] );
+		self::assertSame( 3000, $out['result']['points_milli'] );
+		self::assertTrue( $out['result']['passed'] );
+		$row = self::row( $session );
+		self::assertSame( '2', (string) $row['evaluation_no'] );
+		self::assertSame( '1', (string) $row['passed'] );
+
+		$out = $sessions->regrade( $admin, $session, 5, null, 'Faulty question', true );
+		self::assertSame( 3, $out['evaluation_no'] );
+		self::assertSame( 4000, $out['result']['max_points_milli'] );
+		self::assertSame( 3000, $out['result']['points_milli'], 'override kept' );
+		self::assertSame( 3, ExamSessions::current()->view( $learner, $session )['result']['evaluation_no'] );
+
+		$db = Database::current();
+		self::assertSame( '2', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'attempt_graded'" ) );
+		$types = $db->wpdb()->get_col( 'SELECT event_type FROM `' . $db->table( 'ccap_outbox_event' ) . '` ORDER BY id' );
+		self::assertSame( array( 'exam.failed', 'exam.reevaluated', 'exam.reevaluated' ), $types );
+
+		$fresh = $this->start( $this->rule() );
+		$this->assertRejected( fn() => $sessions->regrade( $admin, $fresh, 1, 0, 'running' ), 'ccap_exam_conflict' );
 	}
 }
