@@ -12,14 +12,14 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 |---|---|
 | **E-01** Clean Room | LB-Schlüssel in der Spalte „LB-Herkunft“ beschreiben nur das Verhalten bzw. die Migration von Werten, keinen übernommenen Code |
 | **E-10**, E-239…E-242, E-260…E-263 | **INV-S-07 und SET-119 (alte Fassung „keine Login-Härtung“) sind überholt.** Neuer Tab **Website-Härtung** (11. Tab, E-262, Option `course_captain_settings_hardening`) mit Feldern `hardening.*` (§1.3); vor der ersten Bestätigung durch den Admin ist alles aus (E-260), danach je Funktion `auto` (E-240). K43-48 ist jetzt ein Feld |
-| **E-20**, E-95, E-147, E-268, E-269 | Die Erklärungs-Schalter sind **Pro-Felder** (`pro.learning.show_explanations`, `pro.exams.show_explanations`); die Free-Objekte `learning.feedback`/`exams.feedback` regeln nur Sichtbarkeit, richtig/falsch und richtige Antwort |
+| **E-20**, E-95, E-147, E-268, E-269 | Die Erklärungs-Schalter sind **Pro-Felder** (`pro.learning.feedback.show_explanations`, `pro.exams.feedback.show_explanations`); die Free-Objekte `learning.feedback`/`exams.feedback` regeln nur Sichtbarkeit, richtig/falsch und richtige Antwort |
 | **E-38**, E-119, E-120, E-182 | Free hat nur die **interne Outbox**; Event-Speicherung ohne Abonnent (30 Tage) und Event-Klassen je Connector gibt es nur mit Pro |
 | **E-45/E-45a**, E-246 | `privacy.external_media_mode` = enum{`always_load`, `click_to_load`, `link_only`}, **Default `always_load`**; neues Feld `privacy.consent_category` (Default `marketing`), wirksam nur bei `click_to_load` |
 | **E-168** | Text-/Dateiaufgaben in R1; Settings für Upload-Typen und -Größe sind noch nicht festgelegt (Offene Punkte) |
 | **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta, Tabellen; Optionen `course_captain_*` (SR-1, im Text umgestellt) |
 | **E-24, E-43, E-44, E-51, E-53, E-81…E-90, E-97, E-100, E-116, E-124, E-136, E-143, E-150…E-152, E-159, E-187, E-197, E-201** | wie angenommen |
 
-**Kernzahlen** (per Skript, §8; Stand vor Einarbeitung der Beschlüsse. Nach Einarbeitung zusätzlich 11 Register-Zeilen: 8 im Tab Website-Härtung (7 × `hardening.*`, 1 Konstante), `pro.learning.show_explanations`, `pro.exams.show_explanations`, `privacy.consent_category`; Invarianten 13 statt 14; Testfälle SET-129…SET-133)
+**Kernzahlen** (per Skript, §8; Stand vor Einarbeitung der Beschlüsse. Nach Einarbeitung zusätzlich 11 Register-Zeilen: 8 im Tab Website-Härtung (7 × `hardening.*`, 1 Konstante), `pro.learning.feedback.show_explanations`, `pro.exams.feedback.show_explanations`, `privacy.consent_category`; Invarianten 13 statt 14; Testfälle SET-129…SET-133)
 
 | Größe | Wert |
 |---|---:|
@@ -33,7 +33,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | Register-Zeilen §1.3 | 72 |
 | … mit Quelle Kap. 43 (K43-xx) | 51 |
 | … nur aus R0-Dokumenten, Entscheidungen oder LB-Inventur | 21 |
-| Retention-Unterschlüssel §1.4 | 17 |
+| Retention-Unterschlüssel §1.4 | 17 (nach E-243: 21) |
 | Invarianten INV-S-01…14 (§1.5) | 14 |
 | LB-Schlüssel `bp_learning_settings` (11) mit Verbleib §1.6 | 11 / 11 |
 | weitere LB-Optionen (20) mit Verbleib §2.7 | 20 / 20 |
@@ -100,7 +100,7 @@ Schema-Eintrag (Muster, keine Implementierung):
 | K43-18 | Prüfungen | Zeitlimit | Feld+Inv | `exams.time_limit_minutes`, `exams.timer_mode`, `exams.late_tolerance_seconds`; INV-S-03 | SET-061 |
 | K43-19 | Prüfungen | Bestehensgrenze | Feld | `exams.passing_ratio_proposal` | SET-062 |
 | K43-20 | Prüfungen | Fragenreihenfolge | Feld | `exams.shuffle_questions`, `exams.shuffle_answers` | SET-063 |
-| K43-21 | Prüfungen | Feedback/Solutions | Feld+Pro | `exams.feedback`, `learning.feedback`; Erklärungen `pro.exams.show_explanations`, `pro.learning.show_explanations` (E-20) | SET-064, SET-132 |
+| K43-21 | Prüfungen | Feedback/Solutions | Feld+Pro | `exams.feedback`, `learning.feedback`; Erklärungen `pro.exams.feedback.show_explanations`, `pro.learning.feedback.show_explanations` (E-20) | SET-064, SET-132 |
 | K43-22 | Prüfungen | Abbruch/Wiederaufnahme | Feld+Inv | `exams.count_cancelled`, `exams.auto_submit_inactive_days`; INV-S-01 | SET-065 |
 | K43-23 | Prüfungen | Ergebnisaufbewahrung | Feld | `privacy.retention` (exam_attempts_years, raw_answers_years, certificates_years) | SET-112 |
 | K43-24 | Einschreibung und Gruppen | Standard-Einschreibung | Feld+Inv | `enrollment.self_enrollment` (aus = nur manuelle Grants); INV-S-11 | SET-070 |
@@ -166,8 +166,8 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `learning.mastery_algorithm` | Lernen | K43-13, R0-08 §5.2 | enum{smarttrainer.v1} | global, Kurs | `smarttrainer.v1` | #19; Kurs: M-03 | nur registrierte Algorithmusversionen; Wechsel wirkt nur auf neue Antworten; Hilfetext ohne Lernwirksamkeitsversprechen | F/R1 | – | ja | R | SET-051 |
 | `learning.favorites_enabled` | Lernen | K43-14 | bool | global, Kurs | true | #19; Kurs: M-03 | Favoriten sind privat (nie in Berichten oder Traineransicht), im Export, vom Eraser gelöscht | F/R1 | – | ja | – | SET-052 |
 | `learning.mistake_training_enabled` | Lernen | K43-14 | bool | global, Kurs | true | #19; Kurs: M-03 | wie oben | F/R1 | – | ja | – | SET-052 |
-| `learning.feedback` | Lernen | K43-21, E-20, E-147, R0-08 §4.5 | object{visibility enum{always, after_submit, never}, show_correct_answers bool} | global, Kurs, Quiz | always, true | #19; Kurs: M-03; Quiz: M-06 | `show_*` nur wirksam bei `visibility ≠ never`; gilt für Lernmodus und unbewertete Quizze; Free zeigt richtig/falsch und ggf. die richtige Antwort, nie Erklärungstexte (E-20) | F/R1 | (LB-Feld `learning_explanations` → `pro.learning.show_explanations`) | ja | – | SET-064 |
-| `pro.learning.show_explanations` | Lernen (Pro) | E-20, E-95 (`course.explanations`), E-268, E-269 | bool | global, Kurs, Quiz | true | #19 + Pro aktiv; Kurs: M-03; Quiz: M-06 | nur wirksam, wenn `learning.feedback.visibility ≠ never`; ohne Pro unsichtbar (E-100); nach Lizenzende eingefroren weiter wirksam, neue Erklärungen nicht anlegbar (E-268, E-270); Texte bleiben in Free gespeichert (E-269) | P/R3 | `bp_learning_settings.learning_explanations` | ja | – | SET-132 |
+| `learning.feedback` | Lernen | K43-21, E-20, E-147, R0-08 §4.5 | object{visibility enum{always, after_submit, never}, show_correct_answers bool} | global, Kurs, Quiz | always, true | #19; Kurs: M-03; Quiz: M-06 | `show_*` nur wirksam bei `visibility ≠ never`; gilt für Lernmodus und unbewertete Quizze; Free zeigt richtig/falsch und ggf. die richtige Antwort, nie Erklärungstexte (E-20) | F/R1 | (LB-Feld `learning_explanations` → `pro.learning.feedback.show_explanations`) | ja | – | SET-064 |
+| `pro.learning.feedback.show_explanations` | Lernen (Pro) | E-20, E-95 (`course.explanations`), E-268, E-269 | bool | global, Kurs, Quiz | true | #19 + Pro aktiv; Kurs: M-03; Quiz: M-06 | nur wirksam, wenn `learning.feedback.visibility ≠ never`; ohne Pro unsichtbar (E-100); nach Lizenzende eingefroren weiter wirksam, neue Erklärungen nicht anlegbar (E-268, E-270); Texte bleiben in Free gespeichert (E-269) | P/R3 | `bp_learning_settings.learning_explanations` | ja | – | SET-132 |
 | `exams.max_attempts` | Prüfungen | K43-17, R0-08 §4.4 | int? 1–100 | global, Prüfung | `null` = unbegrenzt | #19; Prüfung: M-06 | eingefroren beim Versuchsstart; keine Rückwirkung; Zählung alter Versuche nach E-107 | F/R1 | – | ja | – | SET-060 |
 | `exams.cooldown_seconds` | Prüfungen | R0-08 §4.4, GM-192 | int 0–2 592 000 | global, Prüfung | 0 | #19; Prüfung: M-06 | Fortsetzen ist nicht betroffen | F/R1 | – | ja | – | SET-060 |
 | `exams.count_cancelled` | Prüfungen | K43-22, E-71 | bool | global, Prüfung | true | #19; Prüfung: M-06 | wirkt nur bei gesetztem Limit; Ausnahmen `support_void` (E-137) und Kursrückzug (E-108) fest | F/R1 | – | ja | – | SET-065 |
@@ -178,7 +178,7 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `exams.shuffle_questions` | Prüfungen | K43-20, R0-08 §3 | enum{none, within_section, all} | global, Prüfung | feste Variante: `none` (fix); Poolprüfung: `within_section` | #19; Prüfung: M-06 | feste Variante nur `none`; Änderung an veröffentlichter Regel nur als neue Regelversion (T27-3) | F/R1 | – | ja | – | SET-063 |
 | `exams.shuffle_answers` | Prüfungen | R0-08 §3 | bool | global, Prüfung | true | #19; Prüfung: M-06 | Antworten mit `pinned` bleiben an ihrer Position | F/R1 | – | ja | – | SET-063 |
 | `exams.feedback` | Prüfungen | K43-21, E-20, E-147 | object{visibility enum{after_submit, never}, show_score bool, show_correct_answers bool, show_correct_answers_when enum{no_attempts_left_or_passed, after_submit}} | global, Prüfung | after_submit, true, true, `no_attempts_left_or_passed` | #19; Prüfung: M-06 | während eines bewerteten Versuchs nie Lösungen; im Snapshot eingefroren | F/R1 | – | ja | – | SET-064 |
-| `pro.exams.show_explanations` | Prüfungen (Pro) | E-20, E-95, E-147, E-268 | bool | global, Prüfung | true | #19 + Pro aktiv; Prüfung: M-06 | folgt `exams.feedback.show_correct_answers_when`; im Snapshot eingefroren; ohne Pro unsichtbar; nach Lizenzende eingefroren (E-268) | P/R3 | – | ja | – | SET-132 |
+| `pro.exams.feedback.show_explanations` | Prüfungen (Pro) | E-20, E-95, E-147, E-268 | bool | global, Prüfung | true | #19 + Pro aktiv; Prüfung: M-06 | folgt `exams.feedback.show_correct_answers_when`; im Snapshot eingefroren; ohne Pro unsichtbar; nach Lizenzende eingefroren (E-268) | P/R3 | – | ja | – | SET-132 |
 | `exams.auto_submit_inactive_days` | Prüfungen | K43-22, E-72 | int? 1–365 | global, Prüfung | `null` = aus | #19; Prüfung: M-06 | nur für Versuche ohne Zeitlimit | F/R1 | – | ja | – | SET-065 |
 | `enrollment.self_enrollment` | Einschreibung | K43-24, K43-25, E-84 | bool | global, Kurs | false | #19; Kurs: M-03 + #10 | erzeugt einen Grant (Quelle `self_enrollment`), nie Zugang ohne Grant; Kurs `inherit`/`on`/`off`; globales Einschalten zeigt die Anzahl betroffener veröffentlichter Kurse | F/R1 | `bp_learning_settings.default_access` (`logged_in` → nur nach Bestätigung `true`; `entitled_only` → `false`; T27-5) | ja | R | SET-070 |
 | `enrollment.default_access_days` | Einschreibung | K43-26, INV-B-033 | int? 1–3650 | global, Kurs | `null` = unbefristet | #19; Kurs: #10 | gilt für neue manuelle und Selbstanmelde-Grants; bestehende Grants unverändert | F/R1 | (LB-Vorbelegung 182 Tage manuell, Abweichung nach E-55, T27-5) | ja | – | SET-071 |
@@ -203,7 +203,7 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `privacy.auto_export_on_confirm` | Datenschutz & Sicherheit | K43-43, INV-C-077, E-223 | bool | system | true | #19 | – | F/R1 | `bp_learning_settings.privacy_requests_auto` (Exportteil) | ja | – | SET-110 |
 | `privacy.auto_erase_on_confirm` | Datenschutz & Sicherheit | K43-43, E-43 | bool | system | false | #19 | Konto wird erst nach WP-Bestätigung gelöscht; Filter `course_captain_account_deletion_protected` | F/R1 | `privacy_requests_auto` (Löschteil, nie als `true` übernehmen) | ja | R | SET-110 |
 | `privacy.keep_evidence_on_erasure` | Datenschutz & Sicherheit | K43-43, E-150 | object{enabled bool, reason text ≤ 500} | system | aus | #19 | Begründung Pflicht, wenn an; erscheint im Eraser-Ergebnis | F/R1 | – | ja | R | SET-111 |
-| `privacy.retention` | Datenschutz & Sicherheit | K43-44, K43-23, K43-45, E-44, E-51, E-116, E-119, E-143, E-151, E-154 | object (17 Unterschlüssel, §1.4) | global | §1.4 | #19 | Bereiche §1.4; Verkleinern zeigt vor dem Speichern die Anzahl betroffener Datensätze (PRIV-008); Wirkung im nächsten Lauf | F/R1 | LB-Konstanten/Filter (`PersonalData.php:100-130`, Import 14/180) | ja | R (beim Verkleinern) | SET-112 |
+| `privacy.retention` | Datenschutz & Sicherheit | K43-44, K43-23, K43-45, E-44, E-51, E-116, E-119, E-143, E-151, E-154, E-243…E-245 | object (21 Unterschlüssel, §1.4) | global | §1.4 | #19 | Bereiche §1.4; Verkleinern zeigt vor dem Speichern die Anzahl betroffener Datensätze (PRIV-008); Wirkung im nächsten Lauf | F/R1 | LB-Konstanten/Filter (`PersonalData.php:100-130`, Import 14/180) | ja | R (beim Verkleinern) | SET-112 |
 | `privacy.backup_max_age_days` | Datenschutz & Sicherheit | K43-44, R0-17 §5.6, E-151 | int 1–3650 | system | 90 | #19 | nur Information; Tombstone-Frist = Wert + 30 Tage | F/R1 | – | ja | – | SET-113 |
 | `privacy.external_media_mode` | Datenschutz & Sicherheit | K43-10, K43-47, E-45, E-45a | enum{always_load, click_to_load, link_only} | global, Medium | **`always_load`** (E-45a) | #19; Medium: nur strenger | `always_load` bettet direkt ein (bewusst akzeptiertes Betreiberrisiko, R0-17 §6.5); Hilfetext nennt die Übertragung an den Dienst; Hinweis im Setup (R0-30); Offenlegung der Dienste in der readme; Hosts per Filter `course_captain_external_media_hosts` | F/R1 | (`kurswasser_consent_external_hosts`, K-13) | ja | – | SET-114 |
 | `privacy.consent_category` | Datenschutz & Sicherheit | E-246, R0-10 §5.3, R0-31 | enum{marketing, statistics, preferences, functional} | global | `marketing` | #19 | nur WP-Consent-API-Kategorien; wirkt nur bei `external_media_mode = click_to_load` (E-246) | F/R1 | – | ja | R bei `functional` | SET-131 |
@@ -211,7 +211,7 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `privacy.trusted_proxies` | Datenschutz & Sicherheit | INV-D-037, INV-D-145, K-25 | list<IP oder CIDR> ≤ 50 | system | leer (nur `REMOTE_ADDR`) | #19, nur `administrator` | IPv4/IPv6 bzw. CIDR gültig und normalisiert; `0.0.0.0/0` und `::/0` abgelehnt | F/R1 | `bp_learning_mobile.trusted_proxies` | ja | R | SET-115 |
 | `privacy.show_avatars` | Datenschutz & Sicherheit | R0-17 CS-05 | bool | global | false | #19 | an = Hinweis auf die Gravatar-Übertragung | F/R1 | – | ja | – | SET-116 |
 | `privacy.csp_mode` | Datenschutz & Sicherheit | R0-17 §3.5, E-224 | enum{enforce, report_only} | global | `enforce` | #19 | gilt für die CSP der eigenen Antworten; website-weite Header liegen im Tab Website-Härtung (`hardening.site_headers`) | F/R1 | – | ja | R (`report_only`) | SET-117 |
-| `hardening.login_limit` | Website-Härtung | K43-48, E-10, E-240, E-260, E-261 | enum{auto, force, off} | system | vor erster Bestätigung wirksam `off`; Setup schlägt `auto` vor, außer bei erkanntem Security-Plugin (E-260) | #19 **und** `manage_options` | `auto` zieht sich bei erkanntem Security-Plugin zurück (E-240); `force`/`off` nur mit Bestätigung; Grenzwerte nur per Filter `course_captain_hardening_limits` (R0-31 §3.4); fail-closed (E-46) | F/R1 (R1-45) | LB LoginGuard (nur Verhalten, E-01) | ja | R bei `force` und `off` | SET-119, SET-129 |
+| `hardening.login_limit` | Website-Härtung | K43-48, E-10, E-240, E-260, E-261 | enum{auto, force, off} (UI: Kontrollkästchen an = `auto`, aus = `off`; `force` nur per CLI/erweiterter Ansicht, R0-30) | system | vor erster Bestätigung wirksam `off`; Setup schlägt `auto` vor, außer bei erkanntem Security-Plugin (E-260) | #19 **und** `manage_options` | `auto` zieht sich bei erkanntem Security-Plugin zurück (E-240); `force`/`off` nur mit Bestätigung; Grenzwerte nur per Filter `course_captain_hardening_limits` (R0-31 §3.4); fail-closed (E-46) | F/R1 (R1-45) | LB LoginGuard (nur Verhalten, E-01) | ja | R bei `force` und `off` | SET-119, SET-129 |
 | `hardening.reset_limit` | Website-Härtung | E-10, E-261 | enum{auto, force, off} | system | wie `login_limit` | wie oben | gleiche Antwort für unbekannte Konten; fail-closed | F/R1 | – | ja | R wie oben | SET-129 |
 | `hardening.registration_limit` | Website-Härtung | E-241 | enum{auto, force, off} | system | wie `login_limit`; wirksam nur bei `users_can_register` | wie oben | fail-closed | F/R1 | – | ja | – | SET-129 |
 | `hardening.known_device` | Website-Härtung | E-241, E-263 | bool | system | true (wirksam nur mit `login_limit`) | wie oben | bekannte Geräte dürfen bei Adress-Sperre und Zählerausfall weiter einloggen (E-46, E-263) | F/R1 | – | ja | – | SET-130 |
@@ -253,8 +253,14 @@ Werte sind änderbare Defaults; rechtliche Bestätigung durch den Betreiber (E-4
 | `invite_email_days_after_expiry` | 30 | 1–365 | R0-09 §7 | stündlich |
 | `held_mail_days` | 30 | 1–90 | E-151 | täglich |
 | `learning_progress` | `until_account_deletion` (fest) | – | E-51 | – |
+| `ended_grants_years` | 10 | 1–30 | E-243 (R0-31 §2.2) | täglich, ≤ 1 000 |
+| `removed_seats_days` | 365 | 30–3650 | E-243 | täglich |
+| `closed_groups_years` | 3 | 1–30 | E-243 | täglich |
+| `lifted_locks_days` | 30 | 1–365 | E-243 | täglich |
 
-Fest und nicht im Register: Reset-Journal 30 Tage (E-138), Idempotenzschlüssel 7 Tage (R0-19 §2.1), Tombstone-Frist abgeleitet aus `backup_max_age_days` + 30 (E-151).
+Damit hat `privacy.retention` **21** Unterschlüssel. Fristbeginn „Kursende“ = späterer von Ende des letzten aktiven Grants und letzter Aktivität im Kurs (E-244). Verlängern über den Default nur mit Pflichtbegründung im Audit (E-245).
+
+Fest und nicht im Register: personenbezogene Exportdateien 24 h (E-243), Reset-Journal 30 Tage (E-138), Idempotenzschlüssel 7 Tage (R0-19 §2.1), Tombstone-Frist abgeleitet aus `backup_max_age_days` + 30 (E-151).
 
 ### 1.5 Invarianten statt Schalter (Konzept 43.1 „systemkritische Invarianten“)
 
@@ -706,9 +712,8 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §33, „Von Claude entschiede
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
 | OP-27-1 | Settings für Aufgaben-Abgaben (erlaubte Dateitypen, Höchstgröße, ggf. Kurs-Override) und Mail bei `returned` | E-168 legt Funktion und Workflow fest, aber keine Feldwerte und keinen Mailtyp | Architektur (R1 Aufgaben), dann Register |
-| OP-27-2 | Darstellung der Härtungsfelder im UI: R0-30 zeigt Kontrollkästchen (an = `auto`), das Register führt enum{auto, force, off}; `force` nur in einer erweiterten Ansicht | technische Abstimmung zwischen R0-30 und R0-31, kein Beschluss nötig | Architektur (R1-32, R1-45) |
-| OP-27-3 | Schutz gegen User-Enumeration: E-241 (Opt-in) gegen E-261 (R4-Pool) | widersprüchliche Beschlüsse; im Register nicht geführt (E-261) | Auftraggeber (Klarstellung) |
-| OP-27-4 | Zählungen §8 nach Einarbeitung neu per Skript erzeugen | Skript-Lauf ist keine Planungsentscheidung | R1-31 |
+| OP-27-2 | Schutz gegen User-Enumeration: E-241 (Opt-in) gegen E-261 (R4-Pool) | widersprüchliche Beschlüsse; im Register nicht geführt (E-261) | Auftraggeber (Klarstellung) |
+| OP-27-3 | Zählungen §8 nach Einarbeitung neu per Skript erzeugen | Skript-Lauf ist keine Planungsentscheidung | R1-31 |
 
 ---
 

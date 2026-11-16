@@ -49,7 +49,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 <package_id>.zip
   manifest.json                     Pflicht, oberste Ebene
   data/
-    courses/000001.json             JSON-Array von Datensätzen, je Datei ≤ 5 000 Datensätze und ≤ 16 MB
+    courses/000001.json             JSON-Array von Datensätzen, je Datei ≤ 5 000 Datensätze und ≤ 16 MB (SOLL ≤ 4 MB, R0-38)
     modules/000001.json
     lessons/000001.json
     questions/000001.json …         (100 000 Fragen → ≥ 20 Dateien)
@@ -247,7 +247,7 @@ Rechte sind Teil der **Revision** bzw. des Mediums. Damit erzeugt eine Rechteän
 
 | Quelle | Regel | LB-Beleg |
 |---|---|---|
-| Upload (Admin) | Limit = kleinster Wert aus PHP (`upload_max_filesize`, `post_max_size`), WP (`wp_max_upload_size`) und Paketlimit; verständliche Fehler mit Ausweichweg | `ImportSources.php:327-376` (INV-C-120) |
+| Upload (Admin) | Limit = kleinster Wert aus PHP (`upload_max_filesize`, `post_max_size`), WP (`wp_max_upload_size`) und Paketlimit; verständliche Fehler mit Ausweichweg. Pakete über 200 MB nur über Ablageordner oder WP-CLI mit höheren Grenzen (E-178, Grenzwerte je Quelle R0-38 §6.1) | `ImportSources.php:327-376` (INV-C-120) |
 | Ablageordner (SFTP) | `<privat>/packages-<geheim>/import/`; nur Basisname, `realpath` muss direkt im Ordner liegen, keine Links; nach Übernahme löschen | `ImportSources.php:47`, `:216` `resolveDrop` (INV-C-117/118) |
 | HTTPS-Link | `wp_safe_remote_get`, nur Port 443, IP-Pinning gegen DNS-Rebinding, keine privaten/link-lokalen Ziele (R0-17 §3), höchstens 3 Weiterleitungen, jede selbst geprüft und nur https, Größenlimit, optional erwartete SHA-256; Datei im privaten Ordner, nach 24 h gelöscht | `ImportSources.php:258` `download` (INV-C-119) |
 | WP-CLI | `wp course-captain import <zip|dir> [--dry-run] [--approve] [--resume=<id>]`; gleiche Prüfungen | `ImportService::createFromDirectory` (`:119`), `runAll` (`:555`) |
@@ -313,7 +313,7 @@ published → superseded                         (NEU: wenn ein späterer Import
 
 ### 3.5 Batch-Import (Kurzvertrag; Details R0-38/R1-41)
 
-Phasenreihenfolge über eine Registry: `media → courses → modules → lessons → questions → flashcards → blueprints → module_links → course_links → archive → activate`. Bei LB liegt `media` nach `modules` (`PHASES`, `:27-46`); das hat keine Abhängigkeit, Medien zuerst vereinfacht Referenzen. Je Schritt ≤ 200 Datensätze (Admin) bzw. 500 (CLI) und ≤ 64 MB Medien, mindestens ein Datensatz (LB `limitBytes`, `:538`). Medien werden außerhalb der Transaktion atomar geschrieben (Temp-Datei, SHA-256 prüfen, `rename`). Bei Wiederholung wird die Datei erneut gegen die Prüfsumme geprüft (T203, `MediaStorage::store` `:164-191`, `EntityImporter.php:201-208`). Medien-Dedupe über `ccap_media.sha256` (R0-06 E-13). Ausführung über Action Scheduler, sonst WP-Cron, bzw. Admin-Polling, nie auf Frontend-Anfragen (Konzept 9.4).
+Phasenreihenfolge über eine Registry: `media → courses → modules → lessons → questions → flashcards → blueprints → module_links → course_links → archive → activate`. Bei LB liegt `media` nach `modules` (`PHASES`, `:27-46`); das hat keine Abhängigkeit, Medien zuerst vereinfacht Referenzen. Je Schritt ≤ 200 Datensätze (Admin) bzw. 500 (CLI) und ≤ 64 MB Medien, mindestens ein Datensatz (LB `limitBytes`, `:538`). Medien werden außerhalb der Transaktion atomar geschrieben (Temp-Datei, SHA-256 prüfen, `rename`). Bei Wiederholung wird die Datei erneut gegen die Prüfsumme geprüft (T203, `MediaStorage::store` `:164-191`, `EntityImporter.php:201-208`). Medien-Dedupe über `ccap_media.sha256` (R0-06 E-13). Ausführung standardmäßig im Hintergrund über Action Scheduler, sonst WP-Cron; Browser-Polling und WP-CLI als Alternativen, mitten im Lauf wechselbar (E-177); automatische Wiederaufnahme nach Vorprüfungen (E-181); nie auf Frontend-Anfragen (Konzept 9.4).
 
 ### 3.6 Revisionen und Rollback
 
@@ -338,7 +338,7 @@ Konzept 9.3 verlangt eine ausdrückliche Politik. LB schützt lokal geänderte D
 
 ### 3.8 Audit
 
-Ereignisse: `import_uploaded`, `import_validated`/`_validation_failed`, `import_previewed`, `import_approved` (inkl. Rechtebestätigung), `import_started`, `import_aborted`, `import_resumed`, `import_activated`, `import_discarded`, `import_rollback_requested`, `import_rolled_back`, `rights_override_set`, `rights_bulk_release`. LB-Referenz: `AuditLog::record` an den Stellen `:160`, `:261`, `:354`, `:376`, `:458`, `:526`, `:633`.
+Ereignisse: `import_uploaded`, `import_validated`/`_validation_failed`, `import_previewed`, `import_approved` (inkl. Rechtebestätigung), `import_started`, `import_aborted`, `import_resumed`, `import_activated`, `import_discarded`, `import_rollback_requested`, `import_rolled_back`, `rights_override_set`, `rights_bulk_release`. Weitere Ereignisse für Großimporte (Resume, Teilwiederholung, Zurückstellen) in R0-38 §5.5. LB-Referenz: `AuditLog::record` an den Stellen `:160`, `:261`, `:354`, `:376`, `:458`, `:526`, `:633`.
 
 ---
 

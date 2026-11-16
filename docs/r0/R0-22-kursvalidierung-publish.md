@@ -2,7 +2,7 @@
 
 **Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung; Schnittstellen und Datenformate sind Spezifikation für R1-26.
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-22 (Voraussetzung R0-08, R0-11), Ziel-Task **R1-26** (Publish-Validator und Fehlerführung), daneben R1-04, R1-06, R1-08, R1-14, R1-15, R1-27; Konzept Kap. 3.2 (Nr. 1, 3, 4, 5), 16.3 (Kurs-, Frage-, Prüfungseditor, Design-Gate), 28.4 (Abschlussregeln, Bewertungstransparenz, Kompetenznachweise, Autoren-UX-Test); `R0-08` (Struktur §1, Provider `validate()/freeze()` §2.2–2.3, Fragetypen §3, Bestehensregel/Zeitlimit §4, Nachweis §5.3, Zertifikat §7.2), `R0-10` (Rechtestatus §2.2, Medientypen §3.2 V4, externe Medien §5), `R0-11` (A-04, A-06, A-07, A-08, A-11, Flow 1 mit F1.1–F1.6), `R0-07` (`cc_edit_courses`, `cc_publish_courses`, `cc_release_rights`, M-01, M-03, M-04, M-06, M-07, M-21), `R0-23` (Kursrevision, Staging-Kopie R23-D2, Rückzug EV-08/RV-04/RV-20, Pool-Schrumpfung RV-18).
+**Bezug:** TODO R0-22 (Voraussetzung R0-08, R0-11), Ziel-Task **R1-26** (Publish-Validator und Fehlerführung), daneben R1-04, R1-06, R1-08, R1-14, R1-15, R1-27; Konzept Kap. 3.2 (Nr. 1, 3, 4, 5), 16.3 (Kurs-, Frage-, Prüfungseditor, Design-Gate), 28.4 (Abschlussregeln, Bewertungstransparenz, Kompetenznachweise, Autoren-UX-Test); `R0-08` (Struktur §1, Provider `validate()/freeze()` §2.2–2.3, Fragetypen §3, Bestehensregel/Zeitlimit §4, Nachweis §5.3, Zertifikat §7.2), `R0-10` (Rechtestatus §2.2, Medientypen §3.2 V4, externe Medien §5), `R0-11` (A-04, A-06, A-07, A-08, A-11, Flow 1 mit F1.1–F1.6), `R0-07` (`cc_edit_courses`, `cc_publish_courses`, `cc_release_rights`, M-01, M-03, M-04, M-06, M-07, M-21), `R0-23` (Kursrevision, Staging-Kopie E-104, Rückzug EV-08/RV-04/RV-20, Pool-Schrumpfung RV-18).
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen, nicht verändert). Pfade relativ zu `bootspruefung-learning/`, Schemas relativ zur Repo-Wurzel. **CR** = `src/Content/Repositories/ContentRepository.php`, **ES** = `src/Exams/Services/ExamService.php`, **PK** = `src/Content/Package/Package.php`, **SV** = `src/Content/Package/SchemaValidator.php`, **IS** = `src/Content/Import/ImportService.php`. LB-Belege sind **Verhaltensreferenz**, keine Code-Vorlage (E-01); LB hat ohnehin keinen Publish-Validator.
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional.
@@ -53,7 +53,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **Blocker** | Der Kurs (bzw. die Prüfungsregel) ist so nicht auslieferbar oder würde Lernende in einen falschen bzw. unerreichbaren Zustand bringen. **MUSS** Einreichen und Veröffentlichen verhindern. Kein Override, auch nicht für `administrator` (E-128). |
 | **Warnung** | Auslieferbar, aber mit erkennbarem Qualitäts-, Rechts- oder Barrierefreiheitsrisiko. Veröffentlichen erst nach Bestätigung je Warnung oder als Sammelbestätigung („alle 4 Warnungen gelesen“); Audit mit Fingerabdrücken (§1.3). |
 | **Hinweis** | Verbesserungsvorschlag ohne Risiko für Lernende. Keine Bestätigung, ausblendbar je Objekt („nicht mehr anzeigen“, gespeichert am Objekt, nicht global). |
-| **Kandidat** | Die Kursstruktur, die beim Veröffentlichen entstünde: Entwurf bzw. Staging-Kopie (R23-D2) + referenzierte Prüfungsregel-Entwürfe + aktuelle auslieferbare Fragenrevisionen. Der Validator prüft immer den Kandidaten, nie die veröffentlichte Revision allein. |
+| **Kandidat** | Die Kursstruktur, die beim Veröffentlichen entstünde: Entwurf bzw. Staging-Kopie (E-104) + referenzierte Prüfungsregel-Entwürfe + aktuelle auslieferbare Fragenrevisionen. Der Validator prüft immer den Kandidaten, nie die veröffentlichte Revision allein. |
 | **Pflichtpfad** | Alles, was ein Lernender für den Kursabschluss oder einen Nachweis braucht: Pflicht-Activities (`required = true`), Prüfungen, auf die `passed(...)` oder eine Zertifikatsregel verweist, sowie deren Fragenpools und Pflichtmedien (`image_required`). |
 | **Auslieferbar** | Frage mit veröffentlichter Revision, nicht archiviert, nicht gültigkeitsabgelaufen, Rechte nicht sperrend (R0-10 §2.2) und mit freigegebenem Pflichtmedium (LB `deliverableQuestionSql`, CR:88-104). Poolgrößen zählen nur auslieferbare Fragen. |
 
@@ -274,7 +274,7 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
 |---|---|---|---|---|---|
 | VAL-140 | Medium Bild | Alt-Text leer und nicht als dekorativ markiert (Lektion, Frage, Option) | **B** (E-131) | „{n} Bilder haben keinen Alternativtext, z. B. in {lesson}. Screenreader-Nutzende erfahren nicht, was zu sehen ist.“ (A-06 bzw. Block) | dialog „Alt-Text eingeben“ je Bild; quick_fix „Als dekorativ markieren“ (setzt `alt=""` ausdrücklich) |
 | VAL-141 | Frage | Pflichtmedium (`image_required`) ohne Alt-Text bzw. als dekorativ markiert | **B** (E-131) | „Die Frage ist ohne das Bild nicht lösbar, das Bild hat aber keinen Alternativtext.“ | dialog; **kein** quick_fix „dekorativ“ |
-| VAL-142 | Video/Audio | Video ohne Untertitelspur, Audio ohne Transkript | W; B, wenn die Site-Einstellung „Untertitel erzwingen“ aktiv ist (E-131) | „Das Video in {lesson} hat keine Untertitel.“ | jump (A-06 › Untertitel zuordnen) |
+| VAL-142 | Video/Audio | Video ohne Untertitelspur, Audio ohne Transkript | W; B, wenn die Site-Einstellung dafür aktiv ist (E-131; Schlüssel in R0-27) | „Das Video in {lesson} hat keine Untertitel.“ | jump (A-06 › Untertitel zuordnen) |
 | VAL-143 | Untertitel | VTT ungültig (Parser) oder Sprache fehlt | W | „Die Untertiteldatei {file} ist fehlerhaft.“ | jump |
 | VAL-144 | Lektion | Überschriftenebenen übersprungen (h2 → h4), Tabellen ohne Kopfzeile, Linktexte ohne Aussage („hier“, „mehr“) | H | „In {lesson} fehlt eine Überschriftenebene.“ | jump (Block) |
 | VAL-145 | Option/Frage | Bedeutung nur über Farbe/Bild ohne Text (Option ohne Text, nur Bild ohne Alt) | W | „Antwort {key} besteht nur aus einem Bild ohne Beschreibung.“ | dialog |
@@ -311,7 +311,7 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
        │ veröffentlichen (M-04, 0 Blocker, Warnungen bestätigt)
        ▼                                                  │ veröffentlichen (M-04)
   ┌──────────────────────────┐ ◀───────────────────────────┘
-  │ Veröffentlicht           │   Änderungen → Staging-Kopie (Entwurf der nächsten Revision, R23-D2)
+  │ Veröffentlicht           │   Änderungen → Staging-Kopie (Entwurf der nächsten Revision, E-104) 
   │ (published, Revision n)  │   erneut veröffentlichen → Revision n+1, n wird superseded
   └────┬─────────────────────┘
        │ zurückziehen (M-04, Begründung, Wirkungsvorschau)
@@ -321,9 +321,9 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
   └──────────────────────────┘
 ```
 
-- WP-Poststatus: `draft`/`auto-draft` = Entwurf, `pending` = Zur Freigabe, `publish` = veröffentlicht, Course-Captain-Status `archived` als registrierter Poststatus (nicht `trash`). `future` (geplant) und `private` sind für `cc_course`, `cc_module`, `cc_lesson` **gesperrt** (→ D22-6).
+- WP-Poststatus: `draft`/`auto-draft` = Entwurf, `pending` = Zur Freigabe, `publish` = veröffentlicht, Course-Captain-Status `archived` als registrierter Poststatus (nicht `trash`). `future` (geplant) und `private` sind für `cc_course`, `cc_module`, `cc_lesson` **gesperrt** (E-133).
 - Ein veröffentlichter Kurs hat **immer** genau eine Revision mit `status = published`; der Editor arbeitet dann auf der Staging-Kopie. „Änderungen verwerfen“ setzt die Staging-Kopie auf die veröffentlichte Revision zurück (mit Bestätigung, Audit).
-- „Zur Freigabe“ ist ein einfacher Ein-Schritt-Workflow für Autoren ohne `cc_publish_courses` (Konzept 17: Instructor „nach Freigabe“; R0-11 F1.2). Mehrstufige Freigaben, Fristen und Gutachter-Zuweisung sind Pro (`course.content_workflows`, R0-11 N-03) → D22-5.
+- „Zur Freigabe“ ist ein einfacher Ein-Schritt-Workflow für Autoren ohne `cc_publish_courses` (Konzept 17: Instructor „nach Freigabe“; R0-11 F1.2). Mehrstufige Freigaben, Fristen und Gutachter-Zuweisung sind Pro (`course.content_workflows`, R0-11 N-03; E-132).
 
 ### 2.2 Schritte und Rechte
 
@@ -336,8 +336,8 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
 | 3 Vorschau | „Vorschau als Lernender“ | M-03 (auch der prüfende Manager über M-04 ⊃ M-03) | – | §2.3; kein Audit pro Aufruf, aber Zugriffslog im Debug-Modus |
 | 4 Veröffentlichen | „Veröffentlichen“ | M-04 `cc_publish_course` (= M-03 + `cc_publish_courses`) | 0 Blocker; alle Warnungen bestätigt; `expected_hash` = aktueller `candidate_hash`; Revisionsklasse `patch`/`minor` (R0-23) gewählt | §2.4; Audit `course_published` |
 | 5 Zurückziehen | „Kurs zurückziehen“ | M-04 | Begründung Pflicht; Bestätigung mit Zahlen (aktive Lernende, laufende Versuche, gültige Zertifikate) | Status `archived`; Auslauf laufender Versuche nach R0-23 RV-04; Audit `course_withdrawn` |
-| 5a Für neue Einschreibungen schließen | Schalter | M-04 | – | Kurs bleibt veröffentlicht, Katalog/Einschreibung gesperrt (R23-D6); Audit |
-| – Fragenrevision veröffentlichen | aus Frageneditor oder Quick-Fix VAL-058 | M-07 + `cc_publish_courses` | Frage-Regeln VAL-040 … VAL-062 ohne Blocker | neue Revision; betroffene Kurse `health`-validiert |
+| 5a Für neue Einschreibungen schließen | Schalter | M-04 | – | Kurs bleibt veröffentlicht, Katalog/Einschreibung gesperrt (E-108); Audit |
+| – Fragenrevision veröffentlichen | aus Frageneditor oder Quick-Fix VAL-058 | M-07 + `cc_publish_courses` | Frage-Regeln VAL-040 … VAL-069 ohne Blocker | neue Revision; betroffene Kurse `health`-validiert |
 | – Rechte freigeben | aus VAL-100/101 | `cc_release_rights` | Pflichtbegründung | Override (R0-10 §2.2), Audit |
 | – Import aktivieren | A-13 | M-21 (`cc_import_content` + `cc_publish_courses`) | Import legt Kurse als Entwurf an; Aktivieren eines bereits veröffentlichten Kurses = Schritt 4 mit `context = publish` | wie Schritt 4 |
 
@@ -356,13 +356,14 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
 | Teilumfang (ohne Grant) | nur `free_limited`-Elemente frei, Rest Z-G „trial“ |
 | Ohne Zugang | Katalog-/Kursseite wie Gast bzw. angemeldeter Nutzer ohne Grant |
 | Voraussetzungen erfüllt bis … | Auswahl einer Activity; alle davor gelten als abgeschlossen |
+| Teilzugang (Module) | Grant nur auf gewählte Module (E-27); übrige Module Z-G „no_access“, Prüfungen über gesperrte Module nicht startbar |
 
 Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte-Platzhalter auf; standardmäßig zeigt die Vorschau **die Lernendensicht mit Platzhaltern** für fremde `unknown/restricted`-Medien, damit der Autor sieht, was Lernende sehen. (R0-10 §2.2 nimmt die Admin-Vorschau von der Sperre aus; hier wird das zur Option präzisiert → Delta Δ22-4.)
 
 **Schreibschutz (MUSS):**
 
-- Die Vorschau läuft in einem **Vorschaukontext** (`PreviewContext`, gesetzt nur serverseitig aus einem signierten, an Nutzer und Kurs gebundenen Vorschau-Token mit 2 h Gültigkeit). Alle Repositories für Lerndaten (`cc_activity_progress`, `cc_course_progress`, `cc_attempt`, `cc_question_progress`, `cc_exam_session`, `cc_exam_session_question`, `cc_certificate`, `cc_grant`), Outbox, Mailversand, `do_action`-Ereignisse für Lernfortschritt, Webhooks und Lernenden-Audit prüfen den Kontext und **schreiben nicht**. Die Prüfung erfolgt zentral im Schreibpfad (Repository-Basisklasse/`WriteGuard`), nicht verteilt in Controllern; ein Schreibversuch im Vorschaukontext ist ein Programmierfehler und wirft `cc_preview_readonly` (im Test: harter Fehler).
-- Zustand während der Vorschau (beantwortete Fragen, Video-Position, Prüfungsablauf, Timer) liegt **flüchtig** in einem nutzergebundenen Transient (`cc_preview_<user>_<course>`, TTL 2 h) bzw. im Browser-Speicher der Seite. Prüfungen sind durchspielbar mit simuliertem Snapshot (gleicher Code wie §6 R0-08, In-Memory-Repository) und zeigen die Auswertung mit Kennzeichnung „Vorschau – nicht gespeichert“ (→ D22-7).
+- Die Vorschau läuft in einem **Vorschaukontext** (`PreviewContext`, gesetzt nur serverseitig aus einem signierten, an Nutzer und Kurs gebundenen Vorschau-Token mit 2 h Gültigkeit). Alle Repositories für Lerndaten (`cc_activity_progress`, `cc_course_progress`, `cc_attempt`, `cc_question_progress`, `cc_exam_session`, `cc_exam_session_question`, `cc_certificate`, `cc_grant`, Aufgaben-Abgaben `cc_submission`/`cc_submission_file`/`cc_submission_evaluation` nach R0-08 Δ-8 und der Dateispeicher für Abgaben), Outbox, Mailversand, `do_action`-Ereignisse für Lernfortschritt, Webhooks und Lernenden-Audit prüfen den Kontext und **schreiben nicht**. Die Prüfung erfolgt zentral im Schreibpfad (Repository-Basisklasse/`WriteGuard`), nicht verteilt in Controllern; ein Schreibversuch im Vorschaukontext ist ein Programmierfehler und wirft `cc_preview_readonly` (im Test: harter Fehler).
+- Zustand während der Vorschau (beantwortete Fragen, Video-Position, Prüfungsablauf, Timer) liegt **flüchtig** in einem nutzergebundenen Transient (`cc_preview_<user>_<course>`, TTL 2 h) bzw. im Browser-Speicher der Seite. Prüfungen sind durchspielbar mit simuliertem Snapshot (gleicher Code wie §6 R0-08, In-Memory-Repository) und zeigen die Auswertung mit Kennzeichnung „Vorschau – nicht gespeichert“ (E-134). Aufgaben lassen sich in der Vorschau entwerfen und „einreichen“; Text und Datei bleiben flüchtig, eine Bewertung gibt es nicht (PUB-062).
 - Smarttrainer-Auswahl in der Vorschau nutzt einen leeren Lernstand; sie liest **nicht** den echten Lernstand des Autors.
 - Rate-Limits und Versuchslimits zählen in der Vorschau nicht; das Start-Rate-Limit (40/h) gilt als Missbrauchsschutz trotzdem je Vorschau-Token.
 - **Kein Leck:** Vorschau-URLs sind `noindex`, `Cache-Control: no-store, private`, nicht über Seiten-Caches auslieferbar (Header + `DONOTCACHEPAGE`), und ohne gültiges Token bzw. ohne M-03 404 (R0-07 M-01, Z-R). Das Token gibt keinem anderen Nutzer Zugriff (Teilen eines Links funktioniert nicht).
@@ -370,11 +371,11 @@ Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte
 
 ### 2.4 Veröffentlichen (verbindlicher Ablauf)
 
-1. Client sendet `POST /course-captain/v1/courses/{uid}/publish` mit `expected_hash`, `acknowledged[]` (Fingerabdrücke), `change_class`, `note`, `request_key`, optional `recompletion_required[]` (R23-D3).
+1. Client sendet `POST /course-captain/v1/courses/{uid}/publish` mit `expected_hash`, `acknowledged[]` (Fingerabdrücke), `change_class`, `note`, `request_key`, optional `recompletion_required[]` (E-105).
 2. Server prüft M-04 und Nonce, nimmt `NamedLock course_publish:<course_id>` (10 s; nicht erhältlich → `cc_publish_busy`, 409).
 3. Baut den Kandidaten **neu** aus der DB (nie aus Client-Daten), berechnet `candidate_hash`. Abweichung von `expected_hash` → `cc_validation_stale` (409) mit neuem Report.
 4. Vollständige Validierung (`context = publish`). Blocker → `cc_publish_blocked` (422) mit Report. Unbestätigte Warnung (Fingerabdruck fehlt in `acknowledged`) → `cc_publish_unacknowledged` (422).
-5. Eine Transaktion: Staging-Kopien der Lektionen übernehmen (R23-D2); referenzierte **Prüfungsregel-Entwürfe** werden als neue Version `published` gesetzt, die bisher referenzierte Version wird `retired` (R0-06 `cc_exam_rule`); je Activity `validate()` + `freeze()`; neue `cc_course_revision` (`revision_no + 1`, `structure`, `structure_hash = candidate_hash`, `change_class`, `published_by`, `published_at`), vorherige `superseded`; WP-Status `publish`.
+5. Eine Transaktion: Staging-Kopien der Lektionen übernehmen (E-104); referenzierte **Prüfungsregel-Entwürfe** werden als neue Version `published` gesetzt, die bisher referenzierte Version wird `retired` (R0-06 `cc_exam_rule`); je Activity `validate()` + `freeze()`; neue `cc_course_revision` (`revision_no + 1`, `structure`, `structure_hash = candidate_hash`, `change_class`, `published_by`, `published_at`), vorherige `superseded`; WP-Status `publish`.
 6. Nach Commit: Cache-Invalidierung (`course_captain_content_changed`), Ereignis `course_captain_course_published` über Outbox, Audit `course_published` (Akteur, Revision, Hash, bestätigte Warnungen, `change_class`, Notiz, Anzahl betroffener Lernender).
 7. Idempotenz: gleicher `request_key` → dieselbe Revision zurück. `candidate_hash` = Hash der veröffentlichten Revision → keine neue Revision (VAL-008), Antwort 200 mit `unchanged = true`.
 
@@ -383,7 +384,7 @@ Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte
 - **LB:** `examRule()` liefert, wenn keine Regel `published ∧ verified ∧ gültig` ist, die neueste nicht archivierte Regel als Übungsmodus – **auch einen Entwurf** (CR:186-216, Kommentar CR:187-188). Defektes `passing_rule`-JSON wird still zu `min_correct_ratio = 0.75` (CR:207). Damit sehen Lernende unfertige Regeln eines Autors, sobald die gültige Regel abläuft oder fehlt.
 - **Course Captain:** Lernende lösen die Regel **ausschließlich** über `cc_course_revision.structure.activities[].rule_ref = {rule_uid, version}` der veröffentlichten Revision auf. Die referenzierte Version muss `published` sein und am Starttag gültig. Ist sie das nicht (abgelaufen, später `retired`, defekt), ist die Prüfung **nicht startbar** (`cc_exam_not_startable`, Grund `rule_unavailable`), Health meldet es; es gibt **keine** Suche nach einer anderen Regel und **keinen** Standardwert.
 - Es gibt keine Abfrage „neueste Regel des Kurses“ im Lernpfad. Eine solche Methode darf im Code nur im Autorenkontext existieren (Repository-Trennung `AuthorExamRuleRepository` / `DeliveryExamRuleRepository`), Testanker PUB-030 … PUB-032.
-- Übungsprüfungen sind ausdrücklich veröffentlichte Regeln mit `purpose = practice` (nie nachweisfähig, Kennzeichnung „Übung“), nicht ein Rückfall auf Entwürfe (→ D22-2, Delta Δ22-1 zu R0-08 §4.1).
+- Übungsprüfungen sind ausdrücklich veröffentlichte Regeln mit `purpose = practice` (nie nachweisfähig, Kennzeichnung „Übung“), nicht ein Rückfall auf Entwürfe (E-129; Δ22-1 in R0-08 §4.1 eingearbeitet).
 
 ### 2.5 Alle Wege zum Veröffentlichen laufen durch den Validator
 
@@ -484,7 +485,7 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 | PUB-026 | dasselbe Bild in optionaler Lektion | Prüfen | VAL-101 Warnung | VAL-101 | R1-26 |
 | PUB-027 | eigenes Bild `restricted` / `unknown` | Prüfen | VAL-102 Warnung / VAL-103 Hinweis, kein Blocker (E-18) | VAL-102, VAL-103 | R1-26 |
 | PUB-028 | externes Video von nicht registriertem Host | Prüfen | VAL-110 Blocker | VAL-110 | R1-26 (R1-07) |
-| PUB-029 | YouTube-Video, keine WP Consent API aktiv | Prüfen | nur VAL-112 Hinweis; Lernendenansicht ohne Fremdverbindung (R0-10 §5.2) | VAL-112 | R1-26 |
+| PUB-029 | YouTube-Video; (a) Modus `always_load` (Default) · (b) Modus `click_to_load`, keine WP Consent API aktiv | Prüfen | (a) nur VAL-112 (a) Hinweis, kein VAL-097; (b) nur VAL-112 (b) Hinweis, Lernendenansicht ohne Fremdverbindung vor dem Klick (R0-10 §5.2) | VAL-112, E-45a | R1-26 |
 | PUB-030 | veröffentlichte Regel v1 abgelaufen, Entwurf v2 vorhanden, Kursrevision verweist auf v1 | Lernender öffnet Prüfung / startet | nicht startbar (`cc_exam_not_startable`, `rule_unavailable`); v2 **nie** sichtbar; Health-Warnung an Autor | §2.4 (LB CR:186-216) | R1-26 (R1-08) |
 | PUB-031 | Kurs veröffentlicht, Autor legt Regel-Entwurf v2 an | Lernender startet | Versuch mit v1 (Snapshot `rule.version = 1`); nach Veröffentlichen der Kursrevision Starts mit v2 | §2.4, RV-17 | R1-26 (R1-27) |
 | PUB-032 | statische Analyse | CI | Lernpfad-Klassen (`Delivery*`, REST-Lernrouten) rufen keine Methode auf, die Regeln ohne `rule_ref` auflöst (Architekturtest, z. B. deptrac/PHPStan-Regel) | §2.4 | R1-26 (R1-18) |
@@ -495,12 +496,12 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 | PUB-037 | Drip 400 Tage, Grant-Laufzeit 365 | Prüfen | VAL-124 Warnung; Prüfung mit diesem Modul im Blueprint → VAL-098 Blocker | VAL-124, VAL-098 | R1-26 (R1-14) |
 | PUB-038 | Zertifikat `exam_session` ohne Prüfung | Prüfen | VAL-130 | VAL-130 | R1-26 (R1-35) |
 | PUB-039 | Zertifikat `course_completion`, keine Pflicht-Activity | Prüfen | VAL-132 + VAL-004 | VAL-132 | R1-26 |
-| PUB-040 | 3 Bilder ohne Alt, 1 als dekorativ markiert | Prüfen | VAL-140 mit `n = 3`; markiertes Bild ohne Issue; Pflichtbild der Frage → VAL-141 ohne Quick-Fix „dekorativ“ | VAL-140, VAL-141 | R1-26 (R1-19) |
+| PUB-040 | 3 Bilder ohne Alt, 1 als dekorativ markiert; Video ohne Untertitel | Prüfen, Veröffentlichen | VAL-140 **Blocker** mit `n = 3` (E-131), Veröffentlichen 422; markiertes Bild ohne Issue; Pflichtbild der Frage → VAL-141 Blocker ohne Quick-Fix „dekorativ“; VAL-142 Warnung, mit aktiver Site-Einstellung Blocker | VAL-140 … VAL-142 | R1-26 (R1-19) |
 | PUB-041 | `Au` (ohne `cc_publish_courses`) | `POST …/publish` | 403 `cc_forbidden`; UI zeigt nur „Zur Freigabe einreichen“ | §2.2, M-04 | R1-26 (R1-03) |
 | PUB-042 | `Au` reicht mit 1 Blocker ein | Einreichen | 422 `cc_publish_blocked`, Status bleibt `draft` | §2.2 | R1-26 |
 | PUB-043 | `Au` reicht ein, `M` gibt zurück ohne Kommentar / mit Kommentar | Zurückgeben | ohne: 422; mit: `draft`, Kommentar sichtbar, Audit `course_returned` | §2.2 | R1-26 |
 | PUB-044 | Kurs mit Blocker | `wp/v2/cc_course` `status=publish`; Quick Edit; `wp post update --post_status=publish`; XML-RPC `wp.editPost` | jeweils Status unverändert, Audit `publish_bypass_blocked`, keine Revision | §2.5 | R1-26 (R1-03) |
-| PUB-045 | Kurs ohne Blocker | `wp/v2/cc_course` `status=future` | 422 (D22-6) | §2.1 | R1-26 |
+| PUB-045 | Kurs ohne Blocker | `wp/v2/cc_course` `status=future` | 422 (E-133) | §2.1 | R1-26 |
 | PUB-046 | Report mit `candidate_hash = h1`; danach Autor B ändert eine Lektion | `M` veröffentlicht mit `expected_hash = h1` | 409 `cc_validation_stale`, neuer Report; keine Revision | §2.4 Schritt 3 | R1-26 (R1-42) |
 | PUB-047 | zwei parallele Publish-Requests (verschiedene `request_key`) | gleichzeitig | genau eine neue Revision; zweiter → 409 `cc_publish_busy` oder `unchanged = true` | §2.4 | R1-26 (R1-42) |
 | PUB-048 | gleicher `request_key` zweimal | Publish | dieselbe Revision, keine Doppelung im Audit/Outbox | §2.4 Schritt 7 | R1-26 |
@@ -508,6 +509,16 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 | PUB-050 | Vorschau-URL von `Au` | anderer Nutzer `Au2` (kein Staff des Kurses) / Gast / Seiten-Cache | 404; Header `no-store`, `noindex`; Cache liefert nie die Vorschau | §2.3, R0-07 M-01 | R1-26 (R1-03) |
 | PUB-051 | Vorschau Drip-Tag 6 bei Modul 2 mit Drip 7 | Vorschau | Modul 2 Z-G „drip“ mit Datum; Tag 7 → frei | §2.3, R0-08 §1.4 | R1-26 |
 | PUB-052 | Validierungspanel mit 2 Blockern, 3 Warnungen | axe-core + Playwright-Tastaturpfad, 320 px | keine axe-Verstöße (AA); Live-Region kündigt „2 Blocker, 3 Warnungen“ einmal an; Sprungziel setzt Fokus auf das Feld; Esc gibt Fokus zurück; Schwere als Text vorhanden | §3.4 | R1-26 (R1-19) |
+| PUB-053 | `numeric_tolerance`: Soll „abc“ / Toleranz −1 / relativ 150 % / ohne Toleranzart; Soll 0 mit relativer Toleranz; ohne Einheit — **neu, ohne LB-Quelle** | Prüfen | je Fall VAL-063 (B); VAL-064 (W); VAL-065 (H) | VAL-063 … VAL-065, E-22 | R1-26 (R1-06) |
+| PUB-054 | `matching` mit 1 Paar; zwei gleiche linke Einträge („ A “/„a“); Distraktor = richtiger rechter Eintrag — **neu, ohne LB-Quelle** | Prüfen | VAL-066 je Fall | VAL-066, E-69 | R1-26 (R1-06) |
+| PUB-055 | `ordering` mit zwei gleichen Elementen; `ordering` mit `scoring = proportional_penalty` — **neu, ohne LB-Quelle** | Prüfen | VAL-067 (B); VAL-056 (B) | VAL-067, VAL-056 | R1-26 (R1-06) |
+| PUB-056 | `cloze` mit Lücke ohne akzeptierte Antwort; doppelte Lücken-ID; Lücke mit „Begriff“ und „ begriff “ — **neu, ohne LB-Quelle** | Prüfen | VAL-068 (B) je Fall; VAL-069 (H) | VAL-068, VAL-069 | R1-26 (R1-06) |
+| PUB-057 | Aufgabe ohne Aufgabenstellung — **neu, ohne LB-Quelle** | `M` veröffentlicht | 422 `cc_publish_blocked`, VAL-037, keine Revision | VAL-037, E-168 | R1-26 (R1-46) |
+| PUB-058 | Aufgabe mit `passing_points = 12`, `max_points = 10`; Abschlussregel `passed` ohne Grenze; Dateiaufgabe mit Allowlist `svg` — **neu, ohne LB-Quelle** | Prüfen | VAL-038 je Fall; Quick-Fix setzt `graded` | VAL-038 | R1-26 (R1-46) |
+| PUB-059 | Kurs mit Aufgabe, kein Trainer zugewiesen — **neu, ohne LB-Quelle** | Prüfen | VAL-039 Hinweis, Veröffentlichen ohne Bestätigung möglich | VAL-039 | R1-26 (R1-46) |
+| PUB-060 | Frage ohne Erklärungstext, `show_explanations = true`; (a) Free ohne Pro · (b) Pro aktiv | Prüfen | (a) kein VAL-060, kein Hinweis auf Pro (E-100); (b) VAL-060 Hinweis | VAL-060, E-20 | R1-26 |
+| PUB-061 | Lektion mit Abschnitt `lang="en"` in einem Kurs mit `language = de` | Prüfen, Veröffentlichen | VAL-012 Warnung; Veröffentlichen erst nach Bestätigung (§1.3) | VAL-012, E-157 | R1-26 (R1-19) |
+| PUB-062 | Vorschau „Neu eingeschrieben“ mit Text- und Dateiaufgabe: Entwurf speichern, Datei hochladen, einreichen — **neu, ohne LB-Quelle** | `Au` in Vorschau | Abgabetabellen und Dateispeicher unverändert; Anzeige „Vorschau – nicht gespeichert“; `WriteGuard` meldet 0 Verstöße | §2.3, E-134 | R1-26 (R1-46) |
 
 **Zusätzlich (Querschnitt, R1-26):** Health-Lauf nach Rechteänderung eines Mediums in einem veröffentlichten Kurs erzeugt VAL-100 als Health-Warnung, zieht den Kurs nicht zurück, Lernende sehen Platzhalter; Validator-Exception in einer Regel → VAL-000 Blocker; Lasttest Kurs 200 Lektionen/2 000 Fragen ≤ 2 s (Ziel, R0-14).
 
@@ -515,20 +526,31 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 
 ---
 
-## 5. Entscheidungsbedarf (nur neue Punkte)
+## 5. Entscheidungsbedarf (beschlossen)
 
-Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-18, E-23, E-69, E-77 (außerdem E-14, E-45, E-50, E-65, E-101).
+Die acht Punkte dieses Dokuments sind entschieden („Von Claude entschieden“, `ENTSCHEIDUNGEN.md` Abschnitt 21) und eingearbeitet:
 
-| ID | Frage | Optionen | Empfehlung | Entscheider | blockiert |
-|---|---|---|---|---|---|
-| **D22-1** | Dürfen Blocker übergangen werden (z. B. Admin „trotzdem veröffentlichen“)? | a) nie · b) nur `administrator` mit Begründung und Audit · c) je Regel konfigurierbar | **a)**. Blocker beschreiben nicht auslieferbare oder unerreichbare Zustände; ein Override erzeugt genau die stillen Fehlzustände, die R0-08/R0-23 ausschließen. Wo fachlich Spielraum besteht, ist die Regel bereits eine Warnung | Auftraggeber | R1-26 |
-| **D22-2** | Dürfen Lernende einen **Entwurf** einer Prüfungsregel als Übung starten (R0-08 §4.1 erlaubt es heute, LB-Parität CR:186-216)? | a) ja, Parität · b) nein; Übungsprüfungen sind veröffentlichte Regeln mit `purpose = practice` | **b)**. Entwürfe sind unfertige Autorenarbeit; ein Rückfall macht sie sichtbar, sobald eine Regel abläuft. → Delta Δ22-1 zu R0-08 | Auftraggeber + Didaktik | R1-08, R1-26 |
-| **D22-3** | Zu kleiner Pool: Blocker oder Warnung? | a) immer Blocker · b) Blocker im Pflichtpfad (Nachweis, Zertifikat, `passed`-Voraussetzung, Abschlussregel), sonst Warnung mit `reduced` (Parität) · c) immer Warnung | **b)** (VAL-086/087) | Didaktik | R1-08, R1-26 |
-| **D22-4** | Barrierefreiheits-Mängel (fehlender Alt-Text, fehlende Untertitel) als Blocker? | a) Warnung · b) Blocker · c) Warnung, per Site-Einstellung „Barrierefreiheit erzwingen“ als Blocker (Standard aus) | **c)**. Erzwingen als Standard würde Importe mit Altbestand blockieren; Betreiber mit gesetzlicher Pflicht (BFSG/EAA) schalten es ein. VAL-141 (Pflichtbild ohne Alt-Text) SOLL auch ohne Einstellung nicht per Quick-Fix „dekorativ“ lösbar sein | Auftraggeber | R1-19, R1-26 |
-| **D22-5** | Einreichen/Zurückgeben (WP-Status `pending`) in R1 Free? | a) ja, einstufig · b) nein, Autoren ohne Publish-Recht warten auf manuelle Absprache · c) mehrstufig schon in Free | **a)**; Mehrstufigkeit, Fristen, Gutachterzuweisung in Pro (`course.content_workflows`) | Auftraggeber | R1-26, R0-11 |
-| **D22-6** | Geplante Veröffentlichung (WP `future`) für Kurse in R1? | a) nein, Status gesperrt · b) ja, Validierung bei Planung und erneut beim Auslösen, bei Blockern bleibt Entwurf + Benachrichtigung | **a)** in R1 (Fehlerfall „Cron veröffentlicht nicht, Autor merkt es nicht“ vermeiden); b) als R2-Kandidat | Auftraggeber | R1-26 |
-| **D22-7** | Prüfungen in der Vorschau durchspielbar? | a) nur Ansicht der Fragen und Regeln · b) durchspielbar mit flüchtigem Zustand (Transient/In-Memory), keine Tabellen, keine Ereignisse | **b)**; der Autor muss Zeitlimit, Teilregeln und Auswertung erleben können (Konzept 16.3 „Vorschau der Auswertung“) | Auftraggeber | R1-08, R1-26 |
-| **D22-8** | Health-Prüfung veröffentlichter Kurse: Was passiert bei neuem Blocker (z. B. Rechte entzogen, Provider deaktiviert)? | a) nur melden · b) automatisch zurückziehen · c) betroffene Prüfung automatisch nicht startbar, Kurs bleibt | **a)** + die ohnehin geltende Laufzeitsperre (Rechte-Platzhalter, `cc_exam_not_startable`); kein automatischer Statuswechsel | Auftraggeber | R1-17, R1-26 |
+| Früher | Beschluss | Inhalt | Eingearbeitet in |
+|---|---|---|---|
+| D22-1 | **E-128** | kein Override von Blockern, auch nicht für `administrator`; Warnungen werden mit Fingerabdruck und Audit bestätigt | §1.1, §1.3 |
+| D22-2 | **E-129** | Entwürfe von Prüfungsregeln nie als Übung; Übungsprüfungen = veröffentlichte Regeln mit `purpose = practice`; R0-08 §4.1 angepasst | §2.4, Δ22-1 |
+| D22-3 | **E-130** | zu kleiner Pool: Blocker nur bei Nachweis- und Pflichtprüfungen, sonst Warnung mit `reduced` | VAL-086, VAL-087 |
+| D22-4 | **E-131** (**abweichend** von der früheren Empfehlung c) | fehlender Alt-Text (ohne `decorative`) = Blocker; fehlende Untertitel = Warnung, per Site-Einstellung Blocker; Widerspruch zu R0-15 aufgelöst | VAL-140 … VAL-142, PUB-040 |
+| D22-5 | **E-132** | einstufige Freigabe in Free (Autor reicht ein, Kursmanager veröffentlicht); mehrstufig in Pro | §2.1, §2.2 |
+| D22-6 | **E-133** | keine geplante Veröffentlichung (`future`) in R1 | §2.1, PUB-045 |
+| D22-7 | **E-134** | Prüfungen und Aufgaben in der Vorschau durchspielbar ohne Speicherung | §2.3, PUB-049, PUB-062 |
+| D22-8 | **E-135** | Health-Prüfung meldet nur, nie automatisches Zurückziehen | §1.5 |
+
+Weitere hier angewandte Beschlüsse: E-18, E-20, E-22, E-23, E-27, E-45/E-45a, E-69, E-77, E-157, E-168 (Beschlussstand §0.1).
+
+### 5.1 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-22-1 | Grenzwerte der Aufgaben-Regeln VAL-038 (Textlängen, Dateizahl, Dateigröße, Allowlist) | Werte fehlen in R0-27 (R0-08 OP-08-3, R0-10 OP-10-2) | Architektur, dann R0-27 |
+| OP-22-2 | Schlüssel und Default der Site-Einstellung, die fehlende Untertitel zum Blocker macht (VAL-142) | E-131 legt nur die Möglichkeit fest | R0-27 |
+| OP-22-3 | Wer darf Aufgaben bewerten (Voraussetzung für VAL-039)? | Widerspruch E-99/E-168 (R0-08 OP-08-1) | Auftraggeber / R0-07 |
+| OP-22-4 | VAL-012 erkennt gemischte Sprachen nur über vorhandene `lang`-Kennzeichnungen; nicht gekennzeichnete fremdsprachige Abschnitte erkennt der Validator nicht | E-157 nennt „Validator-Warnung“ ohne Erkennungsverfahren; eine Spracherkennung wäre nicht deterministisch (§1.1) | Architektur (R0-25) |
 
 ---
 
@@ -536,12 +558,13 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-18, E-23, E-69,
 
 | Δ | Dokument | Änderung |
 |---|---|---|
-| Δ22-1 | R0-08 §4.1 | Satz „Lernende können eine Entwurfsregel nur als Übung starten“ ersetzen durch „Lernende erreichen nur die in der Kursrevision referenzierte veröffentlichte Regelversion; Übungsprüfungen = `purpose = practice`“ (D22-2) |
+| Δ22-1 | R0-08 §4.1 | Satz „Lernende können eine Entwurfsregel nur als Übung starten“ ersetzen durch „Lernende erreichen nur die in der Kursrevision referenzierte veröffentlichte Regelversion; Übungsprüfungen = `purpose = practice`“ (E-129) – **in R0-08 §4.1 eingearbeitet** |
 | Δ22-2 | R0-06 | `cc_exam_rule.purpose varchar(16) NOT NULL DEFAULT 'exam'` (`exam/practice`); `cc_course_revision.change_class` (bereits R0-23 Δ-23-2) und `validator_version varchar(16)`; Poststatus `archived` und `pending` für `cc_course` |
 | Δ22-3 | R0-19 | Fehlercodes `cc_publish_blocked` (422), `cc_publish_unacknowledged` (422), `cc_validation_stale` (409), `cc_publish_busy` (409), `cc_publish_via_validator` (422), `cc_preview_readonly` (500, nur Programmierfehler), Grund `rule_unavailable` an `cc_exam_not_startable` |
 | Δ22-4 | R0-10 §2.2 | Admin-Vorschau: „ausgenommen“ präzisieren – Lernendenvorschau zeigt standardmäßig Platzhalter, Aufblenden per Schalter |
 | Δ22-5 | R0-07 | Meta-Cap `cc_submit_course` (= M-03 ohne M-04) und `cc_return_course` (= M-04) für §2.2; `publish_bypass_blocked` in die Audit-Pflichten §3.6; Vorschau-Token-Regel zu M-01 |
-| Δ22-6 | R0-11 A-04/A-08 | Panel, Zusammenfassungsdialog, Poolrechnung und Vorschau-Personas nach §2.3/§3 übernehmen; F1.2 auf D22-5 verweisen |
+| Δ22-6 | R0-11 A-04/A-08 | Panel, Zusammenfassungsdialog, Poolrechnung und Vorschau-Personas nach §2.3/§3 übernehmen; F1.2 auf E-132 verweisen |
+| Δ22-7 | R0-19 | Fehlercodes der Aufgaben aus R0-08 §6.6 (`cc_submission_*`, `cc_grade_invalid`) und `cc_invalid_answer` in den Katalog |
 
 ---
 
@@ -556,5 +579,6 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-18, E-23, E-69,
 
 | Datum | Quelle | Änderung |
 |---|---|---|
-| 16.11.2026 | R0-25 | VAL-002 verlangt ein gültiges BCP-47-Sprachtag für die Inhaltssprache, keine WP-Locale; gemischte Sprachen erzeugen eine Warnung (E-157) |
-| 16.11.2026 | E-131 | Fehlender Alt-Text = Blocker (abweichend vom ursprünglichen D22-4), fehlende Untertitel = Warnung |
+| 16.11.2026 | R0-25 | VAL-002 verlangt ein gültiges BCP-47-Sprachtag für die Inhaltssprache, keine WP-Locale; gemischte Sprachen erzeugen eine Warnung (E-157) – **eingearbeitet** (VAL-002, VAL-012, PUB-061) |
+| 16.11.2026 | E-131 | Fehlender Alt-Text = Blocker (abweichend vom ursprünglichen D22-4), fehlende Untertitel = Warnung – **eingearbeitet** (VAL-140 … VAL-142, PUB-040) |
+| 16.11.2026 | Beschlüsse E-20, E-22, E-27, E-45a, E-69, E-128 … E-135, E-168 | Beschlussstand §0.1; neue Regeln VAL-012, VAL-037 … VAL-039, VAL-063 … VAL-069; Tests PUB-053 … PUB-062; §5 auf E-Nummern umgeschrieben – **eingearbeitet** |

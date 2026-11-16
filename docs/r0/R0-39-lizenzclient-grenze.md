@@ -1,14 +1,32 @@
-# R0-39 · Free-/Pro-Lizenzclient-Grenze (Entwurf)
+# R0-39 · Free-/Pro-Lizenzclient-Grenze
 
-**Stand:** 16.11.2026 · **Status:** Entwurf, nicht abgenommen; Task R0-39 ist **nicht** abgehakt · **Bezug:** TODO R0-39 (DoD: „Core ohne Lizenzbibliothek, Updater, Lizenzserverzugriff; Add-on eigener Build/Namespace, Feature-Flags, Upgrade/Downgrade, Lizenzende und Ausfallverhalten spezifiziert“), Voraussetzungen R0-11, R0-19, R0-29; Folgetasks **R3-08**, **R3-15**, **R3-18** (Free-Teil der Grenze zusätzlich im Gate **R1-39**, R0-35 RC-020…022); Konzept Kap. 6, 7, 45; `R0-36` §5 (L1…L12), `R0-11` §1.2/§1.5/Flow 5, `R0-29` §3, `R0-18` §2.5/§3.5, `R0-19` §1.6/§4.2, `R0-35` §4/§5.11, `R0-16` U-9, `R0-27` (`pro.*`-Settings, SET-076/104/128).
+**Stand:** 16.11.2026 · **Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet · **Bezug:** TODO R0-39 (DoD: „Core ohne Lizenzbibliothek, Updater, Lizenzserverzugriff; Add-on eigener Build/Namespace, Feature-Flags, Upgrade/Downgrade, Lizenzende und Ausfallverhalten spezifiziert“), Voraussetzungen R0-11, R0-19, R0-29; Folgetasks **R3-08**, **R3-15**, **R3-18** (Free-Teil der Grenze zusätzlich im Gate **R1-39**, R0-35 RC-020…022); Konzept Kap. 6, 7, 45; `R0-36` §5 (L1…L12), `R0-11` §1.2/§1.5/Flow 5, `R0-29` §3, `R0-18` §2.5/§3.5, `R0-19` §1.6/§4.2, `R0-35` §4/§5.11, `R0-16` U-9, `R0-27` (`pro.*`-Settings, SET-076/104/128).
 
-**Quellvertrag (nur gelesen, nicht verändert):** `wp-license@c269e07` – `docs/CLIENT-INTEGRATION.md` (zitiert als **CI:Zeile**), `docs/ENTITLEMENTS.md` (**EN:**), `docs/UPDATES.md` (**UP:**), `docs/RELEASE-READINESS.md` (**RR:**), `bin/export-client.php`, `src/Catalog/EntitlementCatalog.php:129-133` (`PRODUCT_KEYS`), `examples/premium-addon-starter/README.md`; Free-Guard-Vorbild `wpaffiliatemaster/tests/run.php:332-363` (**A2**). `captain-pro` ist **nicht zugänglich**; alle Kernel-/Buildregistry-Aussagen aus Kap. 6 bleiben offene Annahmen (R0-36 §6).
+**Quellvertrag (nur gelesen, nicht verändert):** `wp-license@c269e07` – `docs/CLIENT-INTEGRATION.md` (zitiert als **CI:Zeile**), `docs/ENTITLEMENTS.md` (**EN:**), `docs/UPDATES.md` (**UP:**), `docs/RELEASE-READINESS.md` (**RR:**), `bin/export-client.php`, `src/Catalog/EntitlementCatalog.php:129-133` (`PRODUCT_KEYS`), `examples/premium-addon-starter/README.md`; Free-Guard-Vorbild `wpaffiliatemaster/tests/run.php:332-363` (**A2**). `captain-pro` ist **nicht zugänglich**; der Build-Ort `captain-pro/addons/course-captain-pro` ist beschlossen (E-273), die Kernel-/Buildregistry-Aussagen aus Kap. 6 bleiben bis zum Zugriff offene Annahmen (R0-36 §6).
 
 **Verbindlich (Beschlussprotokoll 16.11.2026):** **E-01** Clean Room (kein LB-Code; LB-`learning_explanations`/`explanation_locked` dient nur als Verhaltensbefund). **E-09** Free über WordPress.org, Pro über License Captain. **E-20** Lösungserklärungen sind ein eigenes Pro-Feature; Free speichert die Texte trotzdem (Import/Export, kein Datenverlust bei Pro-Ende); Entitlement-Zuschnitt E-95 anpassen. **E-33/E-34** deutsche Shop-Rechtspflichten, PayPal/Klarna-Webhooks und automatisch gepflegte Woo-Produkte liegen im Woo-Adapter (Pro, R3.1).
 
-**Arbeitsannahmen (Empfehlungen, noch nicht beschlossen):** **E-42** (Produkt `course-captain-pro`/Präfix `course.` vor R3-18 beauftragen), **E-53** (Woo-/Voucher-Connectoren Pro), **E-93** (nach Lizenzende laufen Grants und Widerrufe aus bestehenden Zuordnungen weiter), **E-94** (Lizenzende: Pro-Konfiguration wirkt eingefroren; Add-on deaktiviert: Free-Verhalten, Daten bleiben), **E-95** (Entitlements neu zuschneiden), **E-190** (Pro-ZIP-Signatur durch License Captain), **E-207** (Präfix `ccap_`), **E-213** (Pro unter GPL-2.0-or-later); außerdem E-07/E-49 (Single-Site), E-85 (Haltemodus), E-89 (Uninstall-Bestätigung), E-90 (Minor-Downgrade), E-100 (keine Pro-Schalter in Free).
+**Weitere Beschlüsse (16.11.2026):** **E-42** (Produkt `course-captain-pro`/Präfix `course.` vor R3-18 beauftragen), **E-53** (Woo-/Voucher-Connectoren Pro), **E-93** (nach Lizenzende laufen Grants und Widerrufe aus bestehenden Zuordnungen weiter), **E-94** (Lizenzende: Pro-Konfiguration wirkt eingefroren; Add-on deaktiviert: Free-Verhalten, Daten bleiben), **E-95** (Entitlements neu zuschneiden), **E-190** (Pro-ZIP-Signatur durch License Captain), **E-207** (Präfix `ccap_`), **E-213** (Pro unter GPL-2.0-or-later); außerdem E-07/E-49 (Single-Site), E-85 (Haltemodus), E-89 (Uninstall-Bestätigung), E-90 (Minor-Downgrade), E-100 (keine Pro-Schalter in Free).
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil, **SOLL** = Standard, **KANN** = optional. Kein Code, keine Tests ausgeführt, kein Commit.
+
+## Beschlussstand
+
+Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“ (16.11.2026). Alle Punkte aus §7 sind entschieden.
+
+| Beschluss | Wirkung in diesem Dokument |
+|---|---|
+| E-268 (D39-1) | Lösungserklärungen werden nach Lizenzende **eingefroren weiter ausgeliefert** (wie E-94); neue Erklärungen lassen sich nicht mehr anlegen (K-01, §3.3) |
+| E-269 (D39-2) | Erklärungsfeld im Free-Frageneditor **ausgeblendet**; vorhandene Texte bleiben gespeichert (§2.5) |
+| E-270 (D39-3) | `suspended`/`revoked` **wie `expired`** (eingefroren, E) (§3.1) |
+| E-271 (D39-4) | Automatisch angelegte Woo-Produkte werden bei Deaktivierung von Pro **standardmäßig auf „privat“** gesetzt (§2.6, §3.3 K-10) |
+| E-272 (D39-5) | Signierte Update-Antwort + SHA-256 erfüllt E-190, ergänzt um eine Build-Attestierung (XB-3) |
+| **E-273** (D39-6) | **Pro wird in `captain-pro/addons/course-captain-pro` gebaut** (Konzept-Plan); Voraussetzung: Zugriff auf das private Repository `captain-pro` für Kernel, FeatureRegistry, TARIFE, ARCHITECTURE (§2.1, XB-5) |
+| E-274 (D39-7) | Pro unterstützt die **aktuelle und die vorige Free-Minor** (§2.6) |
+| **E-38**, E-95 | Öffentliche Course-Events, Read-API und Connector-Registry sind **Pro**; Free behält nur die interne Outbox. Neue Entitlement-Schlüssel `course.events`/`course.connectors` (K-18, K-19) |
+| **E-39b** | Schreibende Workflow-Aktionen (Zugang anlegen/entziehen) über Grant-Quelle `workflow` im Course-Pro-Connector (K-11); Änderungsauftrag an Workflow Captain (R0-32) |
+| E-07 | Pro-Lizenz zählt je Site (`network => false`) |
+| E-207 | Präfix `ccap_`; Pro-Tabellen/Cron `ccap_pro_*` |
 
 ---
 
@@ -18,13 +36,13 @@
 |---|---|
 | Free-Grenze | 12 prüfbare Regeln **FG-01…FG-12**; statischer CI-Guard (Quelltext J-10 und entpacktes ZIP J-17) mit 14 Musterklassen, dazu ein Laufzeit-Guard „Free sendet keine Requests“ (§1). |
 | Pro-Add-on | Eigener Ordner/Slug/Textdomain/Produktschlüssel `course-captain-pro`, Namespace `CourseCaptainPro\`, Client per `export-client.php` unter `CourseCaptainPro\Licensing`, `Update URI` Pflicht, `Requires Plugins: course-captain`, `core_version` als Closure (§2). |
-| Feature-Registry | **17 Entitlement-Schlüssel** nach E-95 und E-20 (neu: `course.explanations`); `drip_content`, `certificates`, `groups` entfallen, weil sie Free-Funktionen abdecken (§2.4). |
+| Feature-Registry | **19 Entitlement-Schlüssel** nach E-95, E-20 und E-38 (neu: `course.explanations`, `course.events`, `course.connectors`); `drip_content`, `certificates`, `groups` entfallen, weil sie Free-Funktionen abdecken (§2.4). |
 | Zustandsmodell | Elf Client-Zustände von License Captain auf **drei Verhaltensklassen** abgebildet: **V** (voll), **E** (eingefroren nach E-93/E-94), **A** (Add-on aus, Free-Fallback). „Server down“ ist **kein** Zustand: Der signierte Snapshot gilt bis `cache_expires_at` (≤ 14 Tage), danach `stale` → E (§3). |
 | Wichtigste Korrektur | R0-11 §1.5/Flow 5 und R0-29 §3.1 (L2) setzen `grace` mit „Server nicht erreichbar“ gleich. Im Quellvertrag bedeutet `grace` **Zahlung überfällig, Zugang bis `access_until`** (CI:188). Offline bleibt der zuletzt signierte Zustand bestehen (CI:208, :214). Deltas in §8. |
 | Datenintegrität | Fünf Invarianten **DI-1…DI-5**, Übergangstabelle für 16 Übergänge (Upgrade, Update, Downgrade, Deaktivierung, Deinstallation, Reaktivierung, Umzug, Staging, Restore) (§4). |
 | Externe Blocker | 9 Blocker **XB-1…XB-9**; E-42 ist über die Shop-Filter `wplc_known_product_keys`/`wplc_entitlement_catalog` ohne Codeänderung am License-Server lösbar, braucht aber trotzdem Katalogpflege und einen Auftrag. E-190 trifft den realen Mechanismus nicht wörtlich (§5). |
 | Tests | **LIC-001…LIC-086** (65 Fälle) mit Ziel R3-08 (20), R3-15 (5) und R3-18 (32); den Free-Teil prüft zusätzlich R1-39 (8 nur dort, 2 doppelt) (§6). |
-| Entscheidungen | 7 neue Punkte **D39-1…D39-7** (§7). |
+| Entscheidungen | 7 Punkte **D39-1…D39-7**, beschlossen als E-268…E-274 (§7). |
 
 ---
 
@@ -90,12 +108,12 @@ Erweitert R0-18 §2.5 (dort 7 Musterzeilen) um G-7 (breit wie A2), G-8, G-9, G-1
 | Client-Import | `php bin/export-client.php --target=course-captain-pro/includes/licensing --namespace='CourseCaptainPro\Licensing' --text-domain=course-captain-pro` im Build aus einem **gepinnten** `wp-license`-Commit (aktuell Client `2.0.2`). Ergebnis wird committet, nie von Hand editiert. Bibliotheks-Update = Export erneut ausführen und Pro releasen | CI:29-36, `export-client.php:3-15`, R0-36 L2 |
 | Unveränderte Kopie | verboten (nur für Experimente gedacht; die zuerst geladene Kopie gewinnt) | CI:38-44 |
 | Optionspräfix | `course_captain_pro` (Default aus dem Produktschlüssel); Pro-Settings im Register als `pro.*` (R0-27) gespeichert unter `course_captain_pro_settings_*` | CI:124, R0-27 |
-| Tabellen, Caps, Cron | eigene Präfixe `ccap_pro_*` (Tabellen), Cron-Hooks `ccap_pro_*` (E-207-Annahme); der License-Client legt zusätzlich `course_captain_pro_license_check` an | E-207, CI:323 |
+| Tabellen, Caps, Cron | eigene Präfixe `ccap_pro_*` (Tabellen), Cron-Hooks `ccap_pro_*` (E-207); der License-Client legt zusätzlich `course_captain_pro_license_check` an | E-207, CI:323 |
 | REST | eigener Namespace `course-captain-pro/v1`; Fehlercode `cc_pro_license_required` (403) gehört in den **Pro**-Fehlerkatalog, nicht in den Free-Katalog R0-19 §3 (Δ-5) | R0-11 F5.5 |
 | Plugin-Kopf | `Plugin Name: Course Captain Pro`, `Version` = `version` in `license-config.php` (sonst lehnt der Release-Server ab), `Requires at least`/`Requires PHP` = Free-Minimum (R0-20), `Text Domain: course-captain-pro`, **`Update URI: https://<license-host>/course-captain-pro`**, **`Requires Plugins: course-captain`** (Slug nach E-205), `License: GPL-2.0-or-later` (E-213) | CI:119-125, Starter-README |
 | ZIP | genau ein Ordner `course-captain-pro/`; Release über `wp wplc release create --product=course-captain-pro …` oder Manifest (`tools/create-release-manifest.php`), `requires_core` = niedrigste unterstützte Free-Version (§2.6) | CI:361-365, UP:127-166 |
-| Build-Ort | offen: Kap. 6 nennt `captain-pro/addons/course-captain-pro/`, License `CLIENT-REPOS.md:23` ein eigenes Repository → **D39-6** | R0-36 §6/§7.2 |
-| Multisite | `network => false` (je Site, R0-36 D4); offiziell Single-Site (E-07) | CI:287-304 |
+| Build-Ort | **`captain-pro/addons/course-captain-pro/`** (E-273, Konzept-Plan; abweichend von License `CLIENT-REPOS.md:23`). Voraussetzung: Zugriff auf `captain-pro` (XB-5) | E-273, R0-36 §6/§7.2 |
+| Multisite | `network => false` (je Site, E-07); offiziell Single-Site (E-07) | CI:287-304 |
 
 ### 2.2 Laden und Abhängigkeit von Free
 
@@ -137,13 +155,15 @@ Erweitert R0-18 §2.5 (dort 7 Musterzeilen) um G-7 (breit wie A2), G-8, G-9, G-1
 | K-08 | `course.reminders` | Ablauf- und Lernerinnerungen (E-24) | **neu** | Status- und Ablaufanzeige, Mail „Zugang abgelaufen“ (E-217) | R3-08 |
 | K-09 | `course.analytics` | Kohorten, Zeitreihen, gespeicherte Auswertungen, Berichts-CSV | Kap. 6 | Berichte Basic (E-98) | R3-08 |
 | K-10 | `course.commerce` | Woo-Adapter R3.1 einschließlich **E-33** (Widerrufsbutton, Bestellknopf, Preisangaben, Rechtstexte in Mails, OSS, PayPal-/Klarna-Webhooks), **E-34** (Auto-Produkte und Sync), E-25a (Mitgliederrabatt); Voucher-Adapter R3.2 (E-31, zwei Zieltypen) | Kap. 6 | neutrale Grant-API, GrantSourceAdapter | R3-02…R3-06 |
-| K-11 | `course.suite_integrations` | Connectoren Workflow/Form/Review/Pass/Affiliate/License (R3.4) | Kap. 6 | Events, Read-API, Connector-Registry (E-38) | R3-07 |
-| K-12 | `course.webhooks` | ausgehende Webhooks | Kap. 6 | Outbox, Events (E-38) | R3-08 |
+| K-11 | `course.suite_integrations` | Connectoren Workflow/Form/Review/Pass/Affiliate/License (R3.4), einschließlich schreibender Workflow-Aktionen über die Grant-Quelle `workflow` (E-39b) | Kap. 6 | Partnererkennung nur lesend (E-185); interne Outbox (E-38) | R3-07, R3-17 |
+| K-12 | `course.webhooks` | ausgehende Webhooks | Kap. 6 | interne Outbox (E-38) | R3-08 |
 | K-13 | `course.custom_activities` | zusätzliche Activity-Typen | Kap. 6 | Basis-Activities | R3-08 |
 | K-14 | `course.frontend_builder` | Frontend-Kurs-Builder | **neu** (N-03) | Admin-Editor | R3-08 |
 | K-15 | `course.multi_instructor` | mehrere Trainer je Kurs | **neu** (N-03) | Einzel-Eigentümer, `cc_trainer` (E-99) | R3-08 |
 | K-16 | `course.advanced_roles` | erweiterte Adminrollen, delegierte Rechte | **neu** (N-03) | Rollen R1 (R0-07) | R3-08 |
 | K-17 | `course.content_workflows` | geplante Veröffentlichung, mehrstufige Freigabe | **neu** (N-03) | Publish-Workflow R1 (R0-22) | R3-08 |
+| K-18 | `course.events` | öffentliche Course-Events und Read-API; Event-Speicherung ohne Abonnent 30 Tage (E-119), Freigabe personenbezogener Event-Klassen je Connector (E-120) | **neu** (E-38, E-95) | interne Outbox für Mails und Audit (E-182) | R3 |
+| K-19 | `course.connectors` | Connector-Registry | **neu** (E-38, E-95) | – (Partnererkennung nur lesend, E-185) | R3 |
 
 Format nach `EntitlementCatalog::KEY_PATTERN` (`^[a-zA-Z0-9_.-]{1,120}$`) und EN:61 (Kleinbuchstaben, snake_case nach dem Präfix). Werte: `true` (Feature) oder nichts. Zahlenlimits sind nicht vorgesehen; Site-Limits sind Lizenzlimits und keine Features (EN:22-25, :65).
 
@@ -152,7 +172,7 @@ Format nach `EntitlementCatalog::KEY_PATTERN` (`^[a-zA-Z0-9_.-]{1,120}$`) und EN
 - **Speicher (Free):** Erklärungstexte (`feedback_correct`/`feedback_incorrect`, R0-08 §4.5) bleiben Teil der Free-Fragenrevision, des Snapshots, des Imports und des Exports. Ein Bearbeiten in Free darf sie nie verwerfen (E-20, DI-1).
 - **Auslieferung (nur Pro):** Free-Antworten (REST R-xx des Lernmodus und des Ergebnisses, R0-19) enthalten **kein** Erklärungsfeld, auch kein leeres und kein `explanation_locked` (E-100; LB-Befund wird nicht übernommen). Pro ergänzt `explanation` über den Slot `responseFields`, wenn K-01 nach §3.3 aktiv ist und die eingefrorenen Werte `feedback_visibility`/`show_explanations` des Versuchs-Snapshots es erlauben (E-147).
 - **Einstellung:** `show_explanations` wandert aus dem Free-Register in das Pro-Register (`pro.explanations.show`, Kurs/Prüfungsregel überschreibbar; Δ-3). Free behält `feedback_visibility`, `show_score` und `show_correct_answers`.
-- **Editor:** Sichtbarkeit des Erklärungsfelds im Free-Frageneditor → **D39-2**. Verhalten bei Lizenzende → **D39-1**.
+- **Editor:** Das Erklärungsfeld ist im Free-Frageneditor **ausgeblendet**, vorhandene Texte bleiben gespeichert; Pro blendet es per Registry ein (E-269). Bei Lizenzende werden Erklärungen eingefroren weiter ausgeliefert, neue lassen sich nicht anlegen (E-268).
 
 ### 2.6 Aktivierung, Deaktivierung, Kompatibilitätsfenster
 
@@ -161,9 +181,9 @@ Format nach `EntitlementCatalog::KEY_PATTERN` (`^[a-zA-Z0-9_.-]{1,120}$`) und EN
 | Plugin aktivieren | Pro legt eigene Tabellen an (`ccap_pro_*`, eigene Schema-Version `course_captain_pro_db_version`, Migration nach R0-37-Muster). **Keine** Migration von Free-Daten. Ohne Lizenz ist nur die Lizenzseite sichtbar. | R0-11 Flow 5 |
 | Lizenz aktivieren | `activate($key, $environment)` mit Wiederverwendung, Pending-Installation und Staging-Eltern (CI:255-277). Ohne gültige signierte Antwort keine Freischaltung (R0-11 F5.3). Danach werden Module nach R-4 geladen. Ein Seiten-Reload genügt. | CI:257-263 |
 | Lizenz freigeben („von dieser Site entfernen“) | `deactivate()`, lokal gelöscht erst nach signierter Bestätigung (CI:285). Danach Zustand `deactivated` → E | CI:283-285 |
-| Plugin deaktivieren | **Wirkungsbericht** vor der Bestätigung (R0-11 Flow 5): betroffene Pfade, Drip-Kampagnen, Pro-Activities, offene Tutorbewertungen, Connector-Zuordnungen, **Auto-Produkte (E-34) → D39-4**. Danach: Pro-Cron ausgetragen (`course_captain_pro_license_check` entfernt die Library selbst, CI:323), laufende Pro-Jobs pausiert (Cursor bleibt), Free-Fallback A. Die Aktivierung auf dem Server bleibt bestehen. | R0-29 Z-10/Z-20 |
+| Plugin deaktivieren | **Wirkungsbericht** vor der Bestätigung (R0-11 Flow 5): betroffene Pfade, Drip-Kampagnen, Pro-Activities, offene Tutorbewertungen, Connector-Zuordnungen, **Auto-Produkte (E-34): Standardaktion „auf ‚privat‘ setzen“ (E-271)**. Danach: Pro-Cron ausgetragen (`course_captain_pro_license_check` entfernt die Library selbst, CI:323), laufende Pro-Jobs pausiert (Cursor bleibt), Free-Fallback A. Die Aktivierung auf dem Server bleibt bestehen. | R0-29 Z-10/Z-20 |
 | Plugin deinstallieren | Uninstall-Seite mit Option „Pro-Daten löschen“ (Standard **aus**, E-89-Muster mit Site-Namen). Immer: `LicenseManager::uninstall()` (gibt die Aktivierung frei und löscht Lizenzdaten, CI:336-338). Pro-Daten nur auf ausdrücklichen Wunsch (L5D). Änderungen an Free-Tabellen (R0-29 Z-03/Z-04) **nur über Free-Domänendienste**. Ist Free dabei nicht aktiv, löscht Pro nur eigene Tabellen und hinterlegt in `course_captain_extensions_seen` einen Bereinigungsauftrag, den Free beim nächsten Laden über seine Dienste ausführt (FG-11, FG-12). | R0-29 §3.1, CI:336 |
-| Kompatibilitätsfenster | Pro-Release N gibt `requires_core` und `contractRange` an. Pro nutzt experimentelle Slots (R0-19 §1.3), deshalb werden Free-Minor und Pro gemeinsam getestet. Welche Free-Versionen unterstützt werden → **D39-7**. | R0-16 U-9, UP:149 |
+| Kompatibilitätsfenster | Pro-Release N gibt `requires_core` und `contractRange` an. Pro nutzt experimentelle Slots (R0-19 §1.3), deshalb werden Free-Minor und Pro gemeinsam getestet. Pro unterstützt die **aktuelle und die vorige Free-Minor** (E-274). | R0-16 U-9, UP:149 |
 
 ### 2.7 Pro-CI-Guard (Gegenprobe im Pro-Repository, R3-18)
 
@@ -193,8 +213,8 @@ Format nach `EntitlementCatalog::KEY_PATTERN` (`^[a-zA-Z0-9_.-]{1,120}$`) und EN
 | *(offline ≤ 14 d)* | wie zuletzt signiert | Server nicht erreichbar, Snapshot gültig | wie zuletzt (V) | ab Tag 3 Library-Hinweis mit Abschaltdatum (CI:322) |
 | `stale` | nein | Offline-Fenster aufgebraucht oder Snapshot ungültig bzw. manipuliert (CI:195, :207) | **E** | „Lizenz konnte nicht geprüft werden“; Neuprüfung per Cron alle ≤ 15 min (CI:209) |
 | `expired` | nein | Zahlungs- und Gnadenfrist vorbei (CI:189) | **E** | Z-P-Banner, Verlängerungslink |
-| `suspended` | nein | vom Shop gesperrt (CI:190) | **E** (→ D39-3) | Banner ohne Kauflink |
-| `revoked` | nein | endgültig beendet (CI:191) | **E** (→ D39-3) | Banner |
+| `suspended` | nein | vom Shop gesperrt (CI:190) | **E** (wie `expired`, E-270) | Banner ohne Kauflink |
+| `revoked` | nein | endgültig beendet (CI:191) | **E** (wie `expired`, E-270) | Banner |
 | `inactive` | nein | `pending` u. a. (CI:192) | **E** | Banner |
 | `deactivated` | nein | Aktivierung signiert freigegeben (CI:193) | **E** | Schlüssel neu eingeben |
 | `site_changed` | nein | andere Adresse (Kopie/Umzug), **kein Request** (CI:194, :273) | **E** + Free-Haltemodus (E-85) | „Diese Adresse aktivieren / Umzug übertragen“ |
@@ -219,7 +239,7 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 
 | Schlüssel | V | E (eingefroren) | A (Add-on aus) |
 |---|---|---|---|
-| K-01 `explanations` | ausgeliefert nach Snapshot-Einstellung | → **D39-1** (Empfehlung: weiter ausliefern, Einstellungen gesperrt) | nicht ausgeliefert; Texte bleiben gespeichert, Free zeigt richtig/falsch und Lösung nach E-147 |
+| K-01 `explanations` | ausgeliefert nach Snapshot-Einstellung | **weiter ausgeliefert, eingefroren** (E-268); Einstellungen gesperrt, neue Erklärungen nicht anlegbar | nicht ausgeliefert; Texte bleiben gespeichert, Free zeigt richtig/falsch und Lösung nach E-147 |
 | K-02 `advanced_paths` | voll | Pfade lesbar, Regeln wirken, Ändern 403 | Pfadsperren entfallen, Zugang folgt den Grants (R0-11) |
 | K-03 `drip_campaigns` | voll | Regeln wirken eingefroren | nur Free-Drip; bereits freie Module bleiben frei (R0-29 Z-06) |
 | K-04 `advanced_assessment` | voll | Pro-Fragen bleiben spielbar, laufende Versuche enden regulär; neue Pro-Fragen und Veröffentlichen mit neuen Pro-Typen 403 | Pro-Fragen übersprungen bzw. Prüfung `cc_exam_not_startable` (R0-11) |
@@ -228,14 +248,16 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 | K-07 `groups_advanced` | voll | Delegierte lesen, schreiben 403 (R0-29 Z-03) | Delegationen wirkungslos, Untergruppen eigenständig (R0-29 Z-03/Z-04) |
 | K-08 `reminders` | Versand | **kein neuer Versand** (Erinnerung ist kein käuferschützender Vorgang); Abmeldelinks bleiben gültig | kein Versand; Abmeldeseite bleibt Free-Route |
 | K-09 `analytics` | voll | letzter Stand lesbar und exportierbar | unsichtbar; Berichte Basic bleiben |
-| K-10 `commerce` | voll | **E-93:** bestehende Zuordnungen erzeugen Grants und Widerrufe, Reconcile läuft. **E-33-Rechtspflichten laufen vollständig weiter**, solange Auto-Produkte kaufbar sind (sonst verkauft der Shop ohne Pflichtangaben). **E-34-Sync:** keine neuen Produkte, keine Preis- oder Zuordnungsänderung; Produkte bleiben wie sie sind | keine Hooks, keine Rechtspflicht-Ausgabe → Auto-Produkte nach **D39-4**; nach Reaktivierung Reconcile ohne Duplikate (CORE-12) |
-| K-11 `suite_integrations` | voll | bestehende Verbindungen laufen, Mapping-Änderungen 403 | Connector `inactive`, Free-Events laufen (E-38) |
+| K-10 `commerce` | voll | **E-93:** bestehende Zuordnungen erzeugen Grants und Widerrufe, Reconcile läuft. **E-33-Rechtspflichten laufen vollständig weiter**, solange Auto-Produkte kaufbar sind (sonst verkauft der Shop ohne Pflichtangaben). **E-34-Sync:** keine neuen Produkte, keine Preis- oder Zuordnungsänderung; Produkte bleiben wie sie sind | keine Hooks, keine Rechtspflicht-Ausgabe → Auto-Produkte **standardmäßig „privat“** (E-271); nach Reaktivierung Reconcile ohne Duplikate (CORE-12) |
+| K-11 `suite_integrations` | voll | bestehende Verbindungen laufen, Mapping-Änderungen 403 | Connector `inactive`; öffentliche Events entfallen, Free hat nur die interne Outbox (E-38) |
 | K-12 `webhooks` | Zustellung | **Zustellung pausiert**, Outbox puffert bis E-258 (30 Tage), Protokoll lesbar | keine Zustellung |
 | K-13 `custom_activities` | voll | vorhandene nutzbar, Fortschritt zählt | „Inhalt derzeit nicht verfügbar“, nicht abschlusspflichtig (R0-11) |
 | K-14 `frontend_builder` | voll | Frontend-Bearbeitung 403, Admin-Editor (Free) bleibt | nicht vorhanden |
 | K-15 `multi_instructor` | voll | Zuordnungen lesbar, keine neuen | Zusatztrainer verlieren Objektrechte, Audit (R0-11) |
 | K-16 `advanced_roles` | voll | vorhandene Rollen wirken, keine Änderung | Pro-Caps wirkungslos, Rollen bleiben registriert-los; Free-Rollen unverändert |
 | K-17 `content_workflows` | voll | geplante Veröffentlichungen laufen (Inhalt ist schon freigegeben); neue Planungen 403 | geplante Veröffentlichungen pausieren; Free-Publish manuell |
+| K-18 `events` | voll | noch festzulegen (siehe Offene Punkte §7) | keine öffentlichen Events, keine Read-API; Free nur interne Outbox (E-38) |
+| K-19 `connectors` | voll | bestehende Registrierungen lesbar, neue 403 (wie K-11) | keine Registry; Partnererkennung nur lesend (E-185) |
 | Updater | Updates | „Update verfügbar, nicht automatisch“ mit Grund (CI:317) | – |
 
 **Sonderfälle:**
@@ -271,7 +293,7 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 | T-07 | Pro-Rollback (Release zurückgezogen) | installierte Version bleibt; Feed bietet Vorversion nur per `target_version` an; ein Pro-Schema-Downgrade ist nicht vorgesehen. Pro-Migrationen sind additiv nach R0-37 | LIC-035 |
 | T-08 | V → E (Ablauf, Sperre, Offline > 14 d) | §3.2/§3.3; DI-1 | LIC-041…050 |
 | T-09 | E → V (Verlängerung) | ohne Neuaktivierung; Jobs setzen fort; keine Nachholmails | LIC-051 |
-| T-10 | V/E → A (Plugin deaktiviert) | Wirkungsbericht; Fallback; Jobs pausiert; D39-4 | LIC-061 |
+| T-10 | V/E → A (Plugin deaktiviert) | Wirkungsbericht; Fallback; Jobs pausiert; Auto-Produkte „privat“ (E-271) | LIC-061 |
 | T-11 | A → V/E (wieder aktiviert) | Reconcile Commerce ohne Duplikate; Jobs fortsetzen oder verwerfen | LIC-067 |
 | T-12 | Deinstallation ohne Löschen (L5) | Aktivierung freigegeben (`uninstall()`), Pro-Daten bleiben, Free-Hinweis „Daten vorhanden“ (FG-11) | LIC-062 |
 | T-13 | Deinstallation mit Löschen (L5D) | nur Pro-Daten und dokumentierte Free-Differenz über Free-Dienste; bei inaktivem Free Bereinigungsauftrag (§2.6) | LIC-064/065 |
@@ -285,11 +307,11 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 
 | Nr. | Abhängigkeit | Stand im Quellvertrag | Folge / Vorschlag | Bezug |
 |---|---|---|---|---|
-| **XB-1** | Produkt `course-captain-pro` im License Captain (E-42) | `PRODUCT_KEYS` kennt nur `voucher-`, `pass-`, `affiliate-captain-pro` (`EntitlementCatalog.php:129-133`). Weitere Produkte sind über den Filter `wplc_known_product_keys` möglich (`:146`); Präfixregel EN:61 nennt `course.` nicht | Ohne Server-Code lösbar: Shop-MU-Plugin mit `wplc_known_product_keys` (`course-captain-pro => course`) und `wplc_entitlement_catalog` (17 Schlüssel). Trotzdem Auftrag an License Captain: Doku EN:48-62 und `PRODUCT_KEYS` ergänzen, damit der Eintrag kein Sonderweg bleibt | E-42, R0-36 L10/L11 |
+| **XB-1** | Produkt `course-captain-pro` im License Captain (E-42) | `PRODUCT_KEYS` kennt nur `voucher-`, `pass-`, `affiliate-captain-pro` (`EntitlementCatalog.php:129-133`). Weitere Produkte sind über den Filter `wplc_known_product_keys` möglich (`:146`); Präfixregel EN:61 nennt `course.` nicht | Ohne Server-Code lösbar: Shop-MU-Plugin mit `wplc_known_product_keys` (`course-captain-pro => course`) und `wplc_entitlement_catalog` (19 Schlüssel, §2.4). Trotzdem Auftrag an License Captain: Doku EN:48-62 und `PRODUCT_KEYS` ergänzen, damit der Eintrag kein Sonderweg bleibt | E-42, R0-36 L10/L11 |
 | **XB-2** | Katalog der Entitlements nach E-95 | kein Course-Eintrag; License-TODO bereitet nur Form/Review/Workflow vor | Liste §2.4 ist Eingabe für den Auftrag; nur implementierte Schlüssel (R-5) | E-95, R0-36 L11 |
-| **XB-3** | Signatur der Pro-ZIPs (E-190) | Kein „Signieren beim Upload“. Der Server liefert eine **Ed25519-signierte** Update-Antwort mit `sha256`; der Client vergleicht den Download damit (UP:7-10, CI:313). Der Release-Datensatz ist nach der Veröffentlichung unveränderlich (UP:157) | Die Integrität ist kryptografisch gleichwertig gesichert, sofern Upload bzw. Manifest vertrauenswürdig sind. E-190 wörtlich ist nicht erfüllbar → **D39-5** | R0-18 §3.5, D18-3 |
+| **XB-3** | Signatur der Pro-ZIPs (E-190) | Kein „Signieren beim Upload“. Der Server liefert eine **Ed25519-signierte** Update-Antwort mit `sha256`; der Client vergleicht den Download damit (UP:7-10, CI:313). Der Release-Datensatz ist nach der Veröffentlichung unveränderlich (UP:157) | Die Integrität ist kryptografisch gleichwertig gesichert, sofern Upload bzw. Manifest vertrauenswürdig sind. E-190 wörtlich ist nicht erfüllbar; **beschlossen (E-272):** signierte Antwort + SHA-256 erfüllt E-190, ergänzt um eine Build-Attestierung | R0-18 §3.5, E-190, E-272 |
 | **XB-4** | Release-Readiness License Captain | Gates 3 „Updates and product plugins“ (T-131, T-134, T-135) und 4 „Security“ (u. a. T-134 „server signature in the client“) offen; „Do not advertise a capability … before its gate is ticked“ (RR:29-44, :64-66) | Keine Pro-Werbung (Erweiterungen-Seite, Readme) vor Abschluss; RC-099 | R0-35 RC-099 |
-| **XB-5** | Zugriff auf `captain-pro` | nicht zugänglich: Build-Registry, Kernel, FeatureRegistry, `TARIFE.md` ungeprüft | §2 stützt sich nur auf den License-Client-Vertrag. Hat `captain-pro` einen gemeinsamen Kernel, wird §2.1/§2.4 darauf abgebildet (D39-6) | R0-36 §6 |
+| **XB-5** | Zugriff auf `captain-pro` | nicht zugänglich: Build-Registry, Kernel, FeatureRegistry, `TARIFE.md` ungeprüft | Pro wird dort gebaut (E-273); **Zugriff ist Voraussetzung**. Bis dahin stützt sich §2 nur auf den License-Client-Vertrag. Hat `captain-pro` einen gemeinsamen Kernel, wird §2.1/§2.4 darauf abgebildet | E-273, R0-36 §6 |
 | **XB-6** | Stabiler Lizenz-Hostname, Ed25519-Public-Key, `account_url` | im Starter nur Platzhalter | vor dem ersten Pro-Build vom Betreiber zu liefern; der Hostname ist in jedes ZIP eingebrannt (CI:130) | CI:126-138 |
 | **XB-7** | Plan-Schlüssel | Kap. 6 `single/business/agency`, License-Beispiel `solo` (EN:58) | Abgleich vor der Katalogpflege; für die Course-Logik ohne Belang (R-6) | R0-36 X6 |
 | **XB-8** | WordPress.org-Slug des Free-Kerns | ungeprüft (E-205) | `Requires Plugins` und `core-plugin-slug` hängen daran | E-205 |
@@ -343,21 +365,21 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 
 | ID | Typ | Fall | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|
-| LIC-040 | I | unlizenziert → `active` mit FX-LIC-X | alle 17 Module V, Pro-Tabs per Registry | R3-08 | T-02 |
+| LIC-040 | I | unlizenziert → `active` mit FX-LIC-X | alle 19 Module V, Pro-Tabs per Registry | R3-08 | T-02 |
 | LIC-041 | I | `active` → `expired` | Klasse E je Zeile §3.3; DI-1 gleich | R3-08 | T-08 |
 | LIC-042 | I | `grace` (Zahlung überfällig) | V, Banner mit Datum `access_until` | R3-08 | §3.1 |
 | LIC-043 | I | Server antwortet nicht (Timeout, 5xx, WAF-HTML) an Tag 1, 3, 13 | V; ab Tag 3 Hinweis mit Abschaltdatum; Backoff 15 min … 1 d | R3-08 | CI:221-223, :322 |
 | LIC-044 | I | Offline Tag 15 (nach `cache_expires_at`) | `stale` → E, ohne Fehlermeldung an Lernende (R0-29 GRP-065) | R3-08 | §3.1 |
 | LIC-045 | I | Snapshot in der DB editiert / falsche Signatur | `stale` → E, Diagnoseeintrag (R0-11 F5.4) | R3-08 | CI:207 |
 | LIC-046 | I | unsigniertes 403/401 `site_mismatch` | keine Rechteänderung (`keep`) | R3-08 | CI:214-221 |
-| LIC-047 | I | signiert `suspended`, `revoked` | E (bzw. nach D39-3) | R3-08 | §3.1 |
+| LIC-047 | I | signiert `suspended`, `revoked` | E (wie `expired`, E-270) | R3-08 | §3.1 |
 | LIC-048 | I | E: neue Woo-Bestellung bezahlt, Erstattung, Gutscheineinlösung auf bestehender Zuordnung | Grant bzw. Widerruf wie in V; Rechtspflicht-Ausgaben (E-33) unverändert | R3-08 | E-93, K-10 |
 | LIC-049 | I | E: neue Zuordnung, Preisänderung am Kurs, neues Modul (E-34-Sync) | 403 bzw. kein Sync; Produkt unverändert | R3-08 | K-10 |
 | LIC-050 | I | E: Webhooks und Erinnerungen | Webhook-Zustellung pausiert, Outbox puffert; keine Erinnerung; Abmeldelink 200 | R3-08 | K-08, K-12 |
 | LIC-051 | I | E → V durch Verlängerung | ohne Neuaktivierung; Outbox stellt zu; keine Nachhol-Erinnerungen | R3-08 | T-09, DI-4 |
 | LIC-052 | I | DB-Kopie auf Staging-Host | `site_changed`, kein Request mit kopierten Zugangsdaten, E + Haltemodus | R3-08 | T-15, CI:273 |
 | LIC-053 | M | Staging aktivieren (`staging_parent_installation_id`), Umzug mit Bestätigung | Staging zählt nicht als Live-Site; Umzug übernimmt die Aktivierung | R3-18 | CI:274, :281 |
-| LIC-054 | I | Erklärungen in V, E, A | V: ausgeliefert; E: nach D39-1; A: nicht ausgeliefert, Texte vorhanden, Export enthält sie | R3-08 | K-01, E-20 |
+| LIC-054 | I | Erklärungen in V, E, A | V: ausgeliefert; E: weiter ausgeliefert, keine neuen Erklärungen anlegbar (E-268); A: nicht ausgeliefert, Texte vorhanden, Export enthält sie | R3-08 | K-01, E-20 |
 | LIC-055 | I | Laufender Versuch, Lizenz wechselt mitten im Versuch V → E | Ergebnis nach Snapshot-Einstellung; keine 500er | R3-08 | §3.3 Sonderfälle |
 | LIC-056 | I | Pro-Settings in V/E/A (`pro.*`) | V editierbar; E lesbar, Speichern 403 mit erhaltenen Eingaben; A unsichtbar, Werte erhalten | R3-15 | SET-076, SET-104 |
 | LIC-057 | I | Pro-Settings-Export/-Import in E | Export enthält `pro.*`; Import 403 | R3-15 | R0-27 |
@@ -369,7 +391,7 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 | ID | Typ | Fall | Erwartung | Ziel | Bezug |
 |---|---|---|---|---|---|
 | LIC-060 | I | Pro installieren auf Free mit Bestand | DI-1 gleich; nur Pro-Tabellen neu | R3-18 | T-01 |
-| LIC-061 | E | Pro deaktivieren | Wirkungsbericht inkl. Auto-Produkte; danach A; Jobs pausiert; DI-1 | R3-15 | T-10, D39-4 |
+| LIC-061 | E | Pro deaktivieren | Wirkungsbericht inkl. Auto-Produkte; danach A; Jobs pausiert; DI-1 | R3-15 | T-10, E-271 |
 | LIC-062 | I | Pro deinstallieren ohne Löschen | Server-Aktivierung freigegeben; `course_captain_pro_license*` gelöscht; Pro-Tabellen bleiben; Free-Hinweis | R3-18 | T-12 |
 | LIC-063 | I | Free deinstallieren (mit Datenlöschung) bei vorhandenem Pro | `course_captain_pro_*` unverändert | R3-18 | FG-10, DI-5 |
 | LIC-064 | I | Pro deinstallieren mit Löschen, Free aktiv | Pro-Daten weg; Free-Differenz genau wie R0-29 L5D; Bericht zählt sie | R3-18 | T-13 |
@@ -395,19 +417,27 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 
 ---
 
-## 7. Entscheidungsbedarf (nur neue, geprüft gegen E-01…E-259)
+## 7. Entscheidungsbedarf – beschlossen
 
-Als Annahme genutzt und **nicht** erneut gestellt: E-07, E-09, E-20, E-33, E-34, E-42, E-53, E-85, E-89, E-90, E-93, E-94, E-95, E-100, E-147, E-190, E-205, E-207, E-213, E-258. Technisch festgelegt ohne Auftraggeber: FG-01…FG-12, Guard-Muster, R-1…R-6, Klassenabbildung §3.1 (außer D39-3), DI-1…DI-5, Optionspräfixe, Ladereihenfolge.
+Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §40 und Beschlussprotokoll, 16.11.2026). Außerdem gelten E-07, E-09, E-20, E-33, E-34, E-38, E-39b, E-42, E-53, E-85, E-89, E-90, E-93, E-94, E-95, E-100, E-147, E-190, E-205, E-207, E-213, E-258. Technisch festgelegt ohne Auftraggeber: FG-01…FG-12, Guard-Muster, R-1…R-6, Klassenabbildung §3.1, DI-1…DI-5, Optionspräfixe, Ladereihenfolge.
 
-| ID | Frage | Optionen | Empfehlung | Entscheider | Blockiert |
-|---|---|---|---|---|---|
-| **D39-1** | **Erklärungen (E-20) bei Lizenzende.** E-94 lässt Pro-Konfiguration eingefroren weiterwirken. Gilt das auch für die Auslieferung der Erklärungen an Lernende? | a) weiter ausliefern (E), nur Einstellungen gesperrt; aus erst bei deaktiviertem Add-on · b) ab `expired` nicht mehr ausliefern · c) nur für Versuche, die vor dem Ablauf gestartet wurden | **a)**: passt zu E-94 und ER-4; Lernende verlieren nichts mitten im Kurs; die Verlängerung bleibt für Änderungen, Updates und Support nötig. Kommerziell abwägen: b) erhöht den Verlängerungsdruck, trifft aber Lernende | Auftraggeber (PO) | R3-08, K-01 |
-| **D39-2** | **Erklärungsfeld im Free-Frageneditor** (Free speichert, zeigt aber nicht an) | a) Feld in Free ausgeblendet, Texte bleiben erhalten (Import/Export); Pro blendet es per Registry ein · b) Feld sichtbar mit neutralem Hinweis „wird Lernenden nicht angezeigt“ · c) sichtbar ohne Hinweis | **a)**: kein toter Schalter (E-100, ER-5); b) wirkt wie Upselling, c) täuscht Autoren | Auftraggeber + UX | R1-06, R3-08, R0-30 |
-| **D39-3** | **`suspended`/`revoked` (Sperre/Widerruf durch den Shop, z. B. Chargeback, Missbrauch)** wie `expired` behandeln? | a) wie `expired` (E): Konfiguration eingefroren, E-93-Vorgänge laufen · b) E-93-Vorgänge laufen, übrige Pro-Konfiguration fällt wie A auf Free zurück · c) wie A, auch ohne E-93 | **a)**: Käuferschutz und Datenregel der Library („never change what the free core plugin does“, CI:202) hängen nicht vom Grund ab; c) lässt Endkunden ohne Zugang | Auftraggeber | R3-08 |
-| **D39-4** | **Automatisch angelegte Woo-Produkte (E-34) bei Deaktivierung/Deinstallation von Pro.** Ohne Pro-Code gibt es keine Grants und keine Rechtspflicht-Ausgaben (E-33); die Produkte blieben trotzdem kaufbar | a) im Wirkungsbericht Standardaktion „Produkte auf ‚privat‘ setzen“ (vorheriger Status in Produkt-Meta), bei Reaktivierung zurücksetzen und Reconcile · b) nur warnen, Produkte bleiben kaufbar · c) immer automatisch privat ohne Wahl | **a)**: verhindert Zahlung ohne Zugang und ohne Pflichtangaben; Betreiber kann bewusst abwählen. Schreiben nur über die WooCommerce-API, kein SQL | Auftraggeber + Recht | R3-02, R3-03, R3-15 |
-| **D39-5** | **E-190 und der reale Mechanismus.** License Captain signiert nicht das ZIP, sondern die Update-Antwort mit `sha256` (Ed25519); der Release-Datensatz ist unveränderlich | a) signierte Antwort + SHA-256 gilt als Erfüllung von E-190; zusätzlich Build-Attestierung (Sigstore/GitHub, wie Free E-189) für die Herkunft · b) zusätzlich eine abgesetzte Ed25519-Signatur über das ZIP aus der CI, die der Client prüft (braucht Client-Erweiterung im License Captain, D18-3 b) · c) nur SHA-256 | **a)**: kryptografisch gleichwertig, ohne Eingriff in die Library; b) nur, wenn License Captain es ohnehin für alle Add-ons baut | Auftraggeber + Security | R3-18, RC-093 |
-| **D39-6** | **Build-Ort des Pro-Add-ons** (Kap. 6: `captain-pro/addons/course-captain-pro/`; License `CLIENT-REPOS.md:23`: eigenes Repository) | a) `captain-pro`, sobald Zugriff besteht; bis dahin Entwicklung gegen den Starter-Vertrag · b) eigenes Repository `course-captain-pro` mit Starter-Struktur · c) im Free-Repository (verboten wegen FG-01) | **a)**, falls `captain-pro` einen gemeinsamen Build mit Pro-Guard bietet; sonst **b)**. Spätestens vor R3-08 festlegen | Auftraggeber + Architektur | R3-18, XB-5 |
-| **D39-7** | **Kompatibilitätsfenster Pro ↔ Free** | a) Pro N unterstützt die aktuelle und die vorige Free-Minor (passend zu E-90); `requires_core` = vorige Minor; Free-Minor-Release erst nach grünem Pro-Kompatibilitätslauf · b) nur exakt die aktuelle Free-Minor · c) gesamtes Free-Major ohne Prüfung | **a)**: Pro nutzt experimentelle Slots; b) erzwingt gleichzeitige Updates, c) ist bei experimentellen Slots nicht haltbar | Architektur + Auftraggeber | R3-11, R3-18, R1-28 |
+| ID | Frage | Beschluss | Blockiert |
+|---|---|---|---|
+| D39-1 → **E-268** | Erklärungen (E-20) bei Lizenzende | **Ja, eingefroren weiter ausliefern** wie bei E-94; neue Erklärungen lassen sich nicht mehr anlegen; aus erst bei deaktiviertem Add-on | R3-08, K-01 |
+| D39-2 → **E-269** | Erklärungsfeld im Free-Frageneditor | **Ausblenden**, vorhandene Texte bleiben gespeichert (Import/Export); Pro blendet es per Registry ein | R1-06, R3-08, R0-30 |
+| D39-3 → **E-270** | `suspended`/`revoked` | **Wie `expired`** behandeln (eingefroren, E-93-Vorgänge laufen) | R3-08 |
+| D39-4 → **E-271** | Auto-Woo-Produkte bei Deaktivierung von Pro | **Standardmäßig auf „privat“ setzen** (vorheriger Status in Produkt-Meta, bei Reaktivierung zurück und Reconcile), sonst kann gekauft werden, ohne dass ein Zugang entsteht | R3-02, R3-03, R3-15 |
+| D39-5 → **E-272** | E-190 und der reale Mechanismus | **Signierte Antwort + SHA-256 erfüllt E-190**, ergänzt um eine Build-Attestierung | R3-18, RC-093 |
+| D39-6 → **E-273** | Build-Ort des Pro-Add-ons | **`captain-pro/addons/course-captain-pro`** (Konzept-Plan); Voraussetzung: Zugriff auf `captain-pro` für Kernel, FeatureRegistry, TARIFE, ARCHITECTURE. Abweichung von der Empfehlung (eigenes Repository, solange `captain-pro` nicht prüfbar) | R3-18, XB-5 |
+| D39-7 → **E-274** | Kompatibilitätsfenster Pro ↔ Free | **Aktuelle und vorige Free-Minor**; `requires_core` = vorige Minor | R3-11, R3-18, R1-28 |
+
+### Offene Punkte nach Einarbeitung
+
+- **Zugriff auf `captain-pro`** (E-273, XB-5) fehlt; §2.1/§2.4 bleiben bis dahin an den License-Client-Vertrag gebunden. Bis dahin ist offen, ob `captain-pro` einen eigenen Kernel/FeatureRegistry vorgibt.
+- E-271 nennt nur „standardmäßig privat“; ob der Betreiber im Wirkungsbericht abwählen darf und was bei Deinstallation gilt, ist nicht ausdrücklich beschlossen (Empfehlung D39-4 a).
+- **K-18/K-19 (E-95):** Der genaue Zuschnitt von `course.events` und `course.connectors` (welcher Schlüssel die Read-API trägt, Abgrenzung von `course.connectors` zu K-11 `course.suite_integrations`) ist im Beschluss nicht festgelegt; ebenso das Verhalten von K-18 im eingefrorenen Zustand E.
+- **E-39b:** Ob die Grant-Quelle `workflow` im Zustand E weiter Grants anlegt/entzieht (analog E-93 für Woo/Voucher), ist nicht entschieden.
+- Geplante Pro-Jobs bei Lizenzende: R0-32 W1 (pausieren, nicht nachholen) und E-94 (eingefroren weiter) sind für Kampagnen-Drip und Erinnerungen in §3.3 unterschiedlich umgesetzt (K-03 wirkt weiter, K-08 sendet nicht); das bleibt bis zur Bestätigung durch den Auftraggeber so.
 
 ---
 
@@ -421,7 +451,7 @@ Als Annahme genutzt und **nicht** erneut gestellt: E-07, E-09, E-20, E-33, E-34,
 | Δ-4 | R0-19 §5.8 (`DesiredGrant.grantSourceKey`), Konzept Kap. 7/31.2 („Enrollment/Entitlement-Service“) | `entitlement_revision` → `grant_revision`; im Free-Code kein Wort „entitlement“ (FG-07) |
 | Δ-5 | R0-19 §3 / R0-11 F5.5 | `cc_pro_license_required` im Pro-Fehlerkatalog, nicht im Free-Katalog |
 | Δ-6 | R0-18 §2.5 | Musterliste durch G-1…G-14 ersetzen (u. a. G-7 breit wie A2, ohne Ausnahme), Guard-Selbsttest LIC-010 |
-| Δ-7 | R0-11 §1.3/N-03, Konzept Kap. 6 „Vorgesehene Pro-Entitlements“ | Liste K-01…K-17; `drip_content`, `certificates`, `groups` streichen; `course.explanations` ergänzen |
+| Δ-7 | R0-11 §1.3/N-03, Konzept Kap. 6 „Vorgesehene Pro-Entitlements“ | Liste K-01…K-19; `drip_content`, `certificates`, `groups` streichen; `course.explanations`, `course.events`, `course.connectors` ergänzen (E-95) |
 | Δ-8 | R0-35 §4 Zeile „Spezifikation der Grenze“ | Verweis auf dieses Dokument; RC-090…099 um LIC-Bezüge ergänzen |
 | Δ-9 | R0-16 (Uninstall-Manifest) | FG-10: Free löscht nur exakte Namen bzw. `course_captain_settings_*` |
 | Δ-10 | R0-29 §3.1 L5D | Pro-Uninstall bei inaktivem Free: Bereinigungsauftrag statt direkter Änderung an Free-Tabellen (§2.6) |

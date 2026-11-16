@@ -1,10 +1,24 @@
-# R0-38 · Großimporte mit Dry-run, Batches und Resume (Entwurf)
+# R0-38 · Großimporte mit Dry-run, Batches und Resume
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Architektur offen.** Task R0-38 ist **nicht** abgehakt. Es gibt keine Implementierung und keinen Code. Dieses Dokument ist die Spezifikation für **R1-41** (und ergänzt R1-15).
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung und keinen Code. Dieses Dokument ist die Spezifikation für **R1-41** (und ergänzt R1-15).
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-38 (Voraussetzung R0-10, R0-16, R0-21; DoD: Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback, Fehlerklassen), Ziel-Task **R1-41** (Voraussetzung R1-15); `R0-10-import-medien-sicherheit.md` (§1 Paketformat, §2 Rechte, §3.2 V1–V6, §3.3 Dry-run, §3.4 Automat, §3.5 Batch-Kurzvertrag, §3.6 Rollback, §3.7 Konflikte, IMP-001…032), `R0-16-backup-recovery-deployment.md` (I-1…I-5), `R0-21-cache-nebenlaeufigkeit.md` (§2.4 Lease/Fencing, M0, CON-012), `R0-14-nichtfunktionale-ziele.md` (OP-11, L3, R-M, R-S, RB-01…RB-07, NFR-006/-007), `R0-23-revisionen-laufender-kurse.md` (§4 Staging-Kopie), `R0-22-kursvalidierung-publish.md` (§1.2 Report, Kontext `import_dry_run`), `R0-36-suite-vertragsdeltas.md` (Zeile A9), `R0-06-datenmodell-adr.md` (§4.7 `ccap_import_batch`, `ccap_import_item_log`, `ccap_source_map`, A-01/A-05/A-17).
-**Entscheidungen als Annahme (noch nicht beschlossen, `ENTSCHEIDUNGEN.md`):** **E-62** (`own` aus fremdem Paket → `licensed`), **E-63** (Reimport: lokal gewinnt, Übernahme je Objekt im Dry-run), **E-64** (keine Signaturen in R1), **E-65** (zugangsgebundene Medien geschützt), **E-66** (fremde Inhalte im Export nur per Opt-in), **E-104** (Staging-Kopie für Lektionen, Übernahme in einer TX je Kurs). Weicht ein Beschluss ab, ändern sich §3 (E-62/E-63) bzw. §5.1 (E-104).
-**Quellen (nur gelesen, nicht verändert):** LearnBoating `hastla007/learnboating` @ `9f37c77`, Pfad `bootspruefung-learning/src/Content/Import/ImportService.php` (**IS**); Suite `wpaffiliatemaster/docs/IMPORT-EXPORT.md` (**AFF**).
+**Quellen (nur gelesen, nicht verändert):** LearnBoating `hastla007/learnboating` @ `9f37c77`, Pfad `bootspruefung-learning/src/Content/Import/ImportService.php` (**IS**); Suite `wpaffiliatemaster/docs/IMPORT-EXPORT.md` (**AFF**). Die Quellen sind Verhaltensreferenz; kein Code wird übernommen (E-01). „übernommen“ in §1 heißt: Verhalten wird nach dieser Spezifikation neu implementiert.
+
+### Beschlussstand
+
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). Die früheren Fragen R38-D1…D6 sind als **E-176…E-181** entschieden (§9). Eingearbeitet:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | IS- und AFF-Befunde sind Verhaltensreferenz; Runner, Lease, Spool usw. werden neu gebaut |
+| **E-62, E-63, E-64, E-65, E-66** | wie angenommen: `own` aus Fremdpaket → `licensed`; lokal gewinnt mit Wahl je Objekt; keine Signaturen; geschützte Medien; Fremdinhalte im Export nur per Opt-in (§3) |
+| **E-104** | nicht öffentliche Staging-Kopie, Übernahme in einer Transaktion je Kurs (§5.1) |
+| **E-176…E-181** | Objekt-Isolation; Hintergrund als Standardweg; große Pakete über Ablageordner/WP-CLI mit höheren Grenzen; Kurse mit Blockern zurückstellen; Fehlerschwelle `max(100, 2 %)`; automatische Wiederaufnahme nach Vorprüfungen |
+| **E-152**, E-46 | Rate-Limits für Import-URL/Export fail-closed (R0-17 §3.4) |
+| **E-02, E-44, E-50** | synthetische Fixtures; Fristen Import-Protokoll 14/180 Tage; Fragenrevision erst beim Versuchsstart fixiert |
+| **E-207** | Präfix `ccap_` für Tabellen, Cron-Hooks, Meta; Optionen `course_captain_*` (im Text umgestellt) |
+
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional.
 
@@ -18,7 +32,7 @@
 4. **Schritte und Chunks:** Ein *Schritt* ist ein Request bzw. Job mit Zeitbudget, ein *Chunk* ist eine kurze DB-Transaktion (Ziel ≤ 1 s) und schreibt Daten, Cursor und Lease-Heartbeat zusammen. Die Chunkgröße passt sich an Zeit und Speicher an (AIMD). Daten werden aus einem während der Validierung angelegten NDJSON-Spool mit Offset-Index gelesen; der Speicherbedarf hängt also von der Chunkgröße ab, nicht von der Paketgröße (Delta zu IS `:479-481`).
 5. **Lease mit Fencing** (R0-21), Stale nach 600 s, Resume ab dem letzten committeten Chunk. Drei Ausführungswege mit demselben Runner: Hintergrund (Action Scheduler, sonst WP-Cron-Kette), Browser-Polling und WP-CLI. Wechsel zwischen ihnen ist mitten im Lauf erlaubt.
 6. **Rollback:** Vor der Aktivierung heißt Rollback „Verwerfen“: alle nicht aktivierten Artefakte des Batches werden entfernt. Nach der Aktivierung legt ein Rollback einen neuen Import aus der Paketkopie an (R0-10 §3.6). **Wiederholen nur fehlgeschlagener Objekte** ist ein Teilimport aus derselben Paketkopie mit Objektfilter, ohne neuen Automatenzustand.
-7. **Grenzwerte je Quelle** (Admin-Upload wie R0-10, Ablageordner/CLI höher) und **Paketserien** für große Medienbestände; Messgrößen M-01…M-16 als Startwerte für R1-41; Testfälle **BIG-001…BIG-040**; sechs neue Entscheidungen **E-176…E-181**.
+7. **Grenzwerte je Quelle** (Admin-Upload wie R0-10, Ablageordner/CLI höher) und **Paketserien** für große Medienbestände; Messgrößen M-01…M-16 als Startwerte für R1-41; Testfälle **BIG-001…BIG-040**; sechs beschlossene Entscheidungen **E-176…E-181**.
 
 ---
 
@@ -375,7 +389,7 @@ Neu: `import_cancel_requested`, `import_conflict_decided` (Einzeln/Sammel mit An
 
 Die Admin-Seite zeigt bei Überschreitung den Ausweichweg („Ablageordner oder WP-CLI verwenden“, wie R0-10 §3.1).
 
-**Paketserien:** Große Medienbestände dürfen auf mehrere Pakete derselben `source.system` verteilt werden: zuerst Medienpakete (`partial`), dann das Inhaltspaket, das über `ccap_source_map` auf bereits importierte Medien verweist (R0-10 §1.4 „Teilpakete“). So bleiben 2 GB Medien auch im Admin-Upload möglich (10 × 200 MB). Wahl zwischen höheren Grenzen und Serien: E-178.
+**Paketserien (zusätzlicher technischer Weg, nicht Teil von E-178):** Große Medienbestände dürfen auf mehrere Pakete derselben `source.system` verteilt werden: zuerst Medienpakete (`partial`), dann das Inhaltspaket, das über `ccap_source_map` auf bereits importierte Medien verweist (R0-10 §1.4 „Teilpakete“). So bleiben 2 GB Medien auch im Admin-Upload möglich (10 × 200 MB). Wahl zwischen höheren Grenzen und Serien: E-178.
 
 ### 6.2 Messgrößen für R1-41
 
@@ -454,24 +468,32 @@ Fixtures synthetisch und neutral (E-02). Paket BIG-P1 aus §6.2; BIG-P0 = 10 000
 | Δ-38-1 | R0-06 §4.7 | neue Tabelle `ccap_import_issue` (§2.4); `ccap_import_item_log` + `attempt`, `outcome`, `object_id` |
 | Δ-38-2 | R0-06 `ccap_source_map` | + `last_batch_id bigint NULL`, `last_hash char(71) NULL` |
 | Δ-38-3 | R0-06 `ccap_import_batch` | + `cursor longtext NULL`, `mode varchar(16)`, `retry_of bigint NULL`, `partial tinyint(1)`, `cancel_requested tinyint(1)`, `spool_sha256 char(64) NULL` |
-| Δ-38-4 | R0-10 §1.1/§3.2 | Teildateien SOLL ≤ 4 MB; V6-Fehler sind Objektfehler statt `failed` (außer V6.02/V6.04); „50 Fehler“ nur noch Bildschirm-Kurzliste; Grenzwerte je Quelle §6.1 |
+| Δ-38-4 | R0-10 §1.1/§3.2 | Teildateien SOLL ≤ 4 MB; V6-Fehler sind Objektfehler statt `failed` (außer V6.02/V6.04); „50 Fehler“ nur noch Bildschirm-Kurzliste; Grenzwerte je Quelle §6.1 – **eingearbeitet** (R0-10 §1.1, §1.4, §3.1, §3.2, IMP-015) |
 | Δ-38-5 | R0-21 §3 (M0) | Lease-Name `import` global je Site, Batch im `owner`; zusätzlich `import-preview:<batch>` für parallele Dry-runs |
-| Δ-38-6 | R0-10 §3.8 | Audit-Ereignisse aus §5.5 |
+| Δ-38-6 | R0-10 §3.8 | Audit-Ereignisse aus §5.5 – **eingearbeitet** (Verweis in R0-10 §3.8) |
 
 ---
 
-## 9. Entscheidungsbedarf (nur neue Punkte)
+## 9. Entscheidungen (beschlossen)
 
-Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-62, E-63, E-64, E-65, E-66, E-104 (außerdem abhängig von E-44, E-50).
+Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §27, „Von Claude entschieden“, 16.11.2026); Empfehlung übernommen. Genutzt außerdem: E-02, E-44, E-50, E-62…E-66, E-104, E-152.
 
-| ID | Frage | Optionen | Empfehlung | Entscheider | blockiert |
-|---|---|---|---|---|---|
-| **E-176** | Wie wirken Fehler an einzelnen Datensätzen? (R0-10 V6: ganzer Batch `failed`; LB: Abbruch beim ersten Fehler) | a) alles oder nichts · b) Objekt-Isolation: fehlerhafte Objekte und ihre Abhängigen fallen aus, Rest wird importiert, Freigabe mit Bestätigung „n Objekte werden ausgelassen“ · c) b) nur per CLI-Schalter | **b)** wie AFF `:13`; bei 100 000 Fragen ist „ein Tippfehler stoppt alles“ nicht bedienbar. Identitäts- und Integritätsfehler bleiben fatal | Auftraggeber (Redaktion) | R1-41, R1-15 |
-| **E-177** | Standard-Ausführungsweg im Admin | a) Browser-Polling wie LB/AFF · b) Hintergrund (Action Scheduler, sonst WP-Cron) mit Polling-Anzeige, Browser als Rückfall · c) nur CLI für Großimporte | **b)**; Rückfall a) automatisch angeboten, c) für sehr große Pakete empfohlen | Architektur | R1-41 |
-| **E-178** | Wie kommen Pakete über 200 MB (z. B. 2 GB Medien) auf die Site? | a) höhere Grenzen für Ablageordner/HTTPS/CLI (§6.1) · b) nur Paketserien mit je ≤ 200 MB · c) beides | **c)** | Auftraggeber + Architektur | R1-41, R0-10 |
-| **E-179** | Aktivierung, wenn einzelne Kurse des Pakets Publish-Blocker haben | a) ganzer Batch wird nicht aktiviert · b) betroffene Kurse zurückstellen, Rest aktivieren · c) Auswahl bei der Freigabe | **b)**, mit Anzeige bereits in der Zusammenfassung des Dry-runs | Auftraggeber | R1-41, R1-26 |
-| **E-180** | Fehlerschwelle für im Commit neu auftretende Objektfehler | a) keine · b) `max(100, 2 %)` je Phase, dann Anhalten · c) Einstellung je Site | **b)** als Default mit Filter | Architektur | R1-41 |
-| **E-181** | Automatische Wiederaufnahme im Hintergrund nach technischen Fehlern | a) nie, immer manuell · b) bis zu 3 Versuche (1/5/15 min), dann `aborted` + Site Health · c) unbegrenzt | **b)** | Architektur | R1-41 |
+| Frühere ID | Beschluss | Inhalt | Wirkt in | Tasks |
+|---|---|---|---|---|
+| R38-D1 | **E-176** | Fehler am einzelnen Objekt isolieren; der Rest läuft weiter, Abhängige werden mitmarkiert; Identitäts- und Integritätsfehler bleiben fatal | §5.3, BIG-0xx | R1-41, R1-15 |
+| R38-D2 | **E-177** | Standard Hintergrund (Action Scheduler bzw. WP-Cron) mit Fortschrittsanzeige; Browser-Polling und WP-CLI als Alternativen, mitten im Lauf wechselbar | §4.6, §4.7 | R1-41 |
+| R38-D3 | **E-178** | Pakete über 200 MB über Ablageordner auf dem Server oder WP-CLI mit höheren Grenzwerten | §6.1 | R1-41, R0-10 |
+| R38-D4 | **E-179** | Kurse mit Publish-Blocker zurückstellen, übrige aktivieren; Anzeige schon im Dry-run | §5.3 | R1-41, R1-26 |
+| R38-D5 | **E-180** | Fehlerschwelle `max(100 Fehler, 2 % der Objekte)` je Phase, dann Anhalten (Default, R0-27 `advanced.import_error_threshold`) | §5.3 | R1-41 |
+| R38-D6 | **E-181** | automatische Wiederaufnahme nach Vorprüfungen (Lease abgelaufen, Paketkopie unverändert), bis zu 3 Versuche (1/5/15 min), dann `aborted` + Site Health | §4.5 | R1-41 |
+
+### 9.1 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-38-1 | Paketserien (§6.1) als zusätzlicher Weg: E-178 nennt nur Ablageordner/WP-CLI; die frühere Empfehlung c) umfasste beides | Bestätigung, ob Paketserien in R1 Pflicht sind | Architektur (R1-41) |
+| OP-38-2 | Fehlerschwelle: R0-38 sah einen Filter vor, R0-27 führt ein Setting `advanced.import_error_threshold` | beides vereinbar (Setting mit Filter-Grenze); Festlegung in R1-41 | Architektur |
+| OP-38-3 | Messwerte M-01…M-16 sind Startwerte | Messung in R1-41 auf R-M (Cloud-VM nach E-192) | R1-41 |
 
 ---
 
