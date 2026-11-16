@@ -11,6 +11,9 @@ namespace CourseCaptain\Kernel;
 
 use CourseCaptain\Contract\Api;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
+use CourseCaptain\Policy\EscalationGuard;
+use CourseCaptain\Policy\Invalidation;
+use CourseCaptain\Policy\MetaCaps;
 use CourseCaptain\Storage\Migrator;
 
 defined( 'ABSPATH' ) || exit;
@@ -178,6 +181,9 @@ final class Plugin {
 		add_action( 'upgrader_process_complete', array( $this, 'on_upgrader_process_complete' ), 10, 2 );
 		add_action( CronHooks::HOURLY, array( CronHooks::class, 'run_hourly' ) );
 		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
+		MetaCaps::register();
+		Invalidation::register();
+		EscalationGuard::register();
 		add_action( 'init', array( $this, 'on_init' ), 5 );
 
 		require_once dirname( __DIR__ ) . '/functions.php';

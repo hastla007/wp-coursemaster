@@ -1158,12 +1158,14 @@ final class Schema {
 					'course_id'   => self::REF,
 					'user_id'     => self::REF,
 					'role'        => 'varchar(16) NOT NULL',
+					'group_id'    => self::REF0,
 					'assigned_by' => self::REFN,
 				) + self::ts(),
 				'keys'    => array(
 					'PRIMARY KEY  (id)',
-					'UNIQUE KEY course_user_role (course_id,user_id,role)',
+					'UNIQUE KEY course_user_role (course_id,user_id,role,group_id)',
 					'KEY user_id (user_id)',
+					'KEY group_id (group_id)',
 				),
 			),
 			'ccap_learner_lock'          => array(

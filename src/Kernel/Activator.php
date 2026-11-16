@@ -11,6 +11,7 @@ namespace CourseCaptain\Kernel;
 
 use Closure;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
+use CourseCaptain\Policy\Roles;
 use Throwable;
 
 defined( 'ABSPATH' ) || exit;
@@ -87,6 +88,7 @@ final class Activator {
 		}
 
 		Capabilities::grant_activation_defaults();
+		Roles::install();
 		CronHooks::schedule_recurring( time() );
 		// Rewrite rules are flushed once on the next request, after all rules are registered.
 		delete_option( Plugin::REWRITE_VERSION_OPTION );

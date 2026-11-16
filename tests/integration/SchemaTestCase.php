@@ -11,6 +11,8 @@ namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Kernel\Capabilities;
 use CourseCaptain\Kernel\Plugin;
+use CourseCaptain\Policy\PolicyService;
+use CourseCaptain\Policy\Roles;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\Schema;
 use CourseCaptain\Storage\SchemaInspector;
@@ -31,6 +33,7 @@ abstract class SchemaTestCase extends TestCase {
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 		Plugin::override_migration_runner( null );
+		PolicyService::flush();
 		self::reset_schema();
 	}
 
@@ -39,6 +42,9 @@ abstract class SchemaTestCase extends TestCase {
 	 */
 	public function tear_down(): void {
 		$GLOBALS['wpdb']->suppress_errors( false );
+		// Undo the test's own rows first; the DROP TABLE below would otherwise commit them.
+		$GLOBALS['wpdb']->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		PolicyService::flush();
 		self::reset_schema();
 		parent::tear_down();
 	}
@@ -63,6 +69,7 @@ abstract class SchemaTestCase extends TestCase {
 		self::clear_own_cron();
 		// DDL committed earlier writes, so capabilities may survive the rollback.
 		Capabilities::remove_all();
+		Roles::remove();
 		// autocommit is off in the test suite: make the cleanup survive the final ROLLBACK.
 		$wpdb->query( 'COMMIT' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}

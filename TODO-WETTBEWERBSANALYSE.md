@@ -228,7 +228,7 @@
   - **Ergebnis/Definition of Done:** Schema versioniert; sichere Install/Upgrade/Backfill-Tests; keine verlorenen Lernstände.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-03 · Capabilities und zentralen Policy-Service**
+- [x] **R1-03 · Capabilities und zentralen Policy-Service** — erledigt 16.11.2026: Nachweis `docs/r1/R1-03-nachweis.md`; 4 Rollen, PolicyService M-01…M-24 + M-10a, `map_meta_cap`-Fassade, P-11-Invalidierung, Eskalationsschutz; 62 RBAC-Fälle auf Dienstebene grün, HTTP-Varianten an die Einstiegs-Tasks übergeben; Unit 73, Integration 47, Multisite 56. Offener Punkt A-1 (Kursmanager vergibt Support trotz #21) zur Klärung. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02.
   - **Ergebnis/Definition of Done:** Alle Server-Einstiege nutzen Objekt-/Site-Rechte; negative IDOR-Tests grün.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

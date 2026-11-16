@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Kernel;
 
+use CourseCaptain\Policy\Roles;
 use CourseCaptain\Storage\Schema;
 
 defined( 'ABSPATH' ) || exit;
@@ -21,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
  * the paid add-on, survives (INV-C-026, R0-39 FG-10). A CI scan (REC-020)
  * fails when code uses an own key that is missing here.
  *
- * Later tasks extend the lists (roles: R1-03, ...); tables come from `Storage\Schema` (R1-02).
+ * Roles come from `Policy\Roles` (R1-03); tables come from `Storage\Schema` (R1-02).
  */
 final class UninstallManifest {
 
@@ -150,11 +151,11 @@ final class UninstallManifest {
 	public const POST_META = array();
 
 	/**
-	 * Own roles. Filled by R1-03.
+	 * Own roles (R1-03).
 	 *
 	 * @var list<string>
 	 */
-	public const ROLES = array();
+	public const ROLES = Roles::ALL;
 
 	/**
 	 * Exact transient names.
