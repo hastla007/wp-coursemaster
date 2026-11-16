@@ -86,6 +86,7 @@ final class UninstallManifest {
 		'course_captain_mail_state',
 		// Base certificate template versions (R1-44, R0-29 CF-04).
 		'course_captain_certificate_templates',
+		'course_captain_setting_locks',
 	);
 
 	/**
@@ -181,6 +182,8 @@ final class UninstallManifest {
 		'_ccap_protected_course',
 		'_ccap_protected_origin',
 		'_ccap_seo_index',
+		'_ccap_settings',
+		'_ccap_settings_undo',
 	);
 
 	/**

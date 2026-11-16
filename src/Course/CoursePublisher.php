@@ -284,6 +284,8 @@ final class CoursePublisher {
 			'modules'        => $modules,
 			'exam_rules'     => $exam_rules,
 			'access_rules'   => $access_rules,
+			// Course overrides and resolved class-K values, frozen with the revision (R0-28 §2.1, T28-3).
+			'settings'       => \CourseCaptain\Settings\EffectiveSettings::freeze_course( $course_id ),
 		);
 	}
 

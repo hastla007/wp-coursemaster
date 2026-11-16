@@ -214,12 +214,16 @@ final class Plugin {
 		\CourseCaptain\Admin\Notices::register();
 		\CourseCaptain\Admin\IdentityNotice::register();
 		\CourseCaptain\Admin\EditorScreens::register();
+		\CourseCaptain\Admin\CourseSettingsPanel::register();
+		\CourseCaptain\Admin\GroupsScreen::register();
+		\CourseCaptain\Admin\CertificatesScreen::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();
 		\CourseCaptain\Certificate\CertificateService::register();
 		\CourseCaptain\Certificate\CertificateRoutes::register();
 		\CourseCaptain\Certificate\CertificatePages::register();
+		\CourseCaptain\Certificate\CertificateAdmin::register();
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();
 		\CourseCaptain\Ops\AuditScreen::register();

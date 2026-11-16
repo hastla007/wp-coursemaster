@@ -396,6 +396,236 @@ final class GroupService {
 	}
 
 	/**
+	 * Change the validity (GF-05): seat grants take the new end unless
+	 * their end was set individually (`valid_until_locked`, R0-09 §3.3).
+	 *
+	 * @param Actor       $actor       Manager (#11).
+	 * @param int         $group_id    Group.
+	 * @param string|null $valid_until New end (UTC `Y-m-d H:i:s`) or null (unlimited).
+	 * @return int Number of seat grants that took the new end.
+	 * @throws CourseException `ccap_forbidden`, `ccap_not_found`, `ccap_invalid_param`, `ccap_conflict`.
+	 */
+	public function set_validity( Actor $actor, int $group_id, ?string $valid_until ): int {
+		$group = $this->managed( $actor, $group_id );
+		if ( null !== $valid_until && 1 !== preg_match( '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/', $valid_until ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Invalid end date.', 422 );
+		}
+		return $this->locked(
+			$group_id,
+			function () use ( $actor, $group, $group_id, $valid_until ): int {
+				if ( ! $this->db->compare_and_swap( 'ccap_group', $group_id, (int) $group['row_version'], array( 'valid_until' => $valid_until ) ) ) {
+					throw new CourseException( 'ccap_conflict', 'Concurrent change, please retry.', 409 );
+				}
+				$grants = $this->db->table( 'ccap_grant' );
+				$seats  = $this->db->table( 'ccap_seat' );
+				$count  = $this->db->execute(
+					$this->db->prepare(
+						"UPDATE `{$grants}` g JOIN `{$seats}` s ON s.id = g.seat_id SET g.valid_until = " . ( null === $valid_until ? 'NULL' : $this->db->prepare( '%s', $valid_until ) ) . ", g.row_version = g.row_version + 1, g.updated_at = %s WHERE s.group_id = %d AND g.source_type = 'group_seat' AND g.valid_until_locked = 0 AND g.status IN ('pending', 'active', 'suspended')", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Value prepared above.
+						$this->db->now(),
+						$group_id
+					)
+				);
+				AuditLog::write( $this->db, $actor, 'group.validity_changed', 'group', (string) $group_id, null, array( 'valid_until' => $valid_until, 'grants' => $count ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
+				\CourseCaptain\Cache\CacheStore::bump_content();
+				return $count;
+			}
+		);
+	}
+
+	/**
+	 * Change the owner (GF-07): reason mandatory, the old owner loses access
+	 * at once, the group link stops working (the new owner creates a new one).
+	 *
+	 * @param Actor  $actor    Manager (#11).
+	 * @param int    $group_id Group.
+	 * @param int    $owner    New owner.
+	 * @param string $reason   Reason.
+	 * @return void
+	 * @throws CourseException `ccap_reason_required`, `ccap_invalid_param`, `ccap_conflict`.
+	 */
+	public function change_owner( Actor $actor, int $group_id, int $owner, string $reason ): void {
+		$group  = $this->managed( $actor, $group_id );
+		$reason = sanitize_textarea_field( $reason );
+		if ( '' === trim( $reason ) ) {
+			throw new CourseException( 'ccap_reason_required', 'A reason is required.', 422 );
+		}
+		if ( false === get_userdata( $owner ) || (int) $group['owner_user_id'] === $owner ) {
+			throw new CourseException( 'ccap_invalid_param', 'Invalid owner.', 422 );
+		}
+		$this->db->transaction(
+			function ( Database $db ) use ( $group, $group_id, $owner, $actor ): void {
+				if ( ! $db->compare_and_swap(
+					'ccap_group',
+					$group_id,
+					(int) $group['row_version'],
+					array(
+						'owner_user_id'   => $owner,
+						'join_token_hash' => null,
+					)
+				) ) {
+					throw new CourseException( 'ccap_conflict', 'Concurrent change, please retry.', 409 );
+				}
+				$this->group_event( $group_id, 'group.owner_changed', $actor );
+			}
+		);
+		AuditLog::write( $this->db, $actor, 'group.owner_changed', 'group', (string) $group_id, $reason, array( 'previous_owner' => (int) $group['owner_user_id'], 'owner' => $owner ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
+		PolicyService::flush();
+		do_action( 'course_captain_policy_changed' );
+	}
+
+	/**
+	 * `claim_policy` of a group (GF-08); `invited_address_only` disables the
+	 * group link (its hash is removed, a later switch back needs a new link).
+	 *
+	 * @param Actor  $actor    Owner (M-15) or manager.
+	 * @param int    $group_id Group.
+	 * @param string $policy   transferable|invited_address_only.
+	 * @return void
+	 * @throws CourseException On invalid input or missing rights.
+	 */
+	public function set_claim_policy( Actor $actor, int $group_id, string $policy ): void {
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::MANAGE_GROUP, array( $group_id ), array( 'write' => true ) ), 'Not allowed to manage this group.' );
+		if ( ! in_array( $policy, array( 'transferable', 'invited_address_only' ), true ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Invalid claim policy.', 422 );
+		}
+		$group = (array) $this->relations->row( 'ccap_group', $group_id );
+		if ( $policy === $group['claim_policy'] ) {
+			return;
+		}
+		$change = array( 'claim_policy' => $policy );
+		if ( 'invited_address_only' === $policy ) {
+			$change['join_token_hash'] = null;
+		}
+		if ( ! $this->db->compare_and_swap( 'ccap_group', $group_id, (int) $group['row_version'], $change ) ) {
+			throw new CourseException( 'ccap_conflict', 'Concurrent change, please retry.', 409 );
+		}
+		AuditLog::write( $this->db, $actor, 'group.policy_changed', 'group', (string) $group_id, null, array( 'claim_policy' => $policy ) );
+		do_action( 'course_captain_policy_changed' );
+	}
+
+	/**
+	 * Rename a group (GF-14, name sanitized like SEAT-021).
+	 *
+	 * @param Actor  $actor    Owner (M-15) or manager.
+	 * @param int    $group_id Group.
+	 * @param string $name     New name.
+	 * @return string Stored name.
+	 * @throws CourseException On invalid input or missing rights.
+	 */
+	public function rename( Actor $actor, int $group_id, string $name ): string {
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::MANAGE_GROUP, array( $group_id ), array( 'write' => true ) ), 'Not allowed to manage this group.' );
+		$name = self::sanitize_name( $name );
+		if ( '' === $name ) {
+			throw new CourseException( 'ccap_invalid_param', 'Invalid group name.', 422 );
+		}
+		$group = (array) $this->relations->row( 'ccap_group', $group_id );
+		if ( ! $this->db->compare_and_swap( 'ccap_group', $group_id, (int) $group['row_version'], array( 'name' => $name ) ) ) {
+			throw new CourseException( 'ccap_conflict', 'Concurrent change, please retry.', 409 );
+		}
+		AuditLog::write( $this->db, $actor, 'group.renamed', 'group', (string) $group_id );
+		return $name;
+	}
+
+	/**
+	 * Groups overview for managers (A-10, §1.4 figures).
+	 *
+	 * @param Actor  $actor  Manager (#11).
+	 * @param string $status Filter (empty = all).
+	 * @return list<array{id: int, name: string, owner: string, status: string, seats_total: int, seats_used: int, invites_open: int, seats_ended: int, valid_until: string|null, claim_policy: string, courses: list<int>}>
+	 * @throws CourseException `ccap_forbidden`.
+	 */
+	public function overview( Actor $actor, string $status = '' ): array {
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'ccap_manage_groups' ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to manage groups.', 403 );
+		}
+		$table = $this->db->table( 'ccap_group' );
+		$where = in_array( $status, array( 'active', 'suspended', 'revoked' ), true ) ? $this->db->prepare( 'WHERE status = %s', $status ) : '';
+		$out   = array();
+		foreach ( $this->db->rows( "SELECT * FROM `{$table}` {$where} ORDER BY id DESC LIMIT 500" ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared above.
+			$id    = (int) $row['id'];
+			$owner = get_userdata( (int) $row['owner_user_id'] );
+			$out[] = array(
+				'id'           => $id,
+				'name'         => (string) $row['name'],
+				'owner'        => $owner instanceof \WP_User ? (string) $owner->display_name : '',
+				'status'       => (string) $row['status'],
+				'seats_total'  => (int) $row['seats'],
+				'seats_used'   => $this->occupied( $id ),
+				'invites_open' => (int) $this->db->scalar( $this->db->prepare( 'SELECT COUNT(*) FROM `' . $this->db->table( 'ccap_seat' ) . "` WHERE group_id = %d AND status = 'invited' AND claim_expires_at > %s", $id, $this->db->now() ) ),
+				'seats_ended'  => (int) $this->db->scalar( $this->db->prepare( 'SELECT COUNT(*) FROM `' . $this->db->table( 'ccap_seat' ) . "` WHERE group_id = %d AND status = 'removed' AND user_id IS NOT NULL", $id ) ),
+				'valid_until'  => null === $row['valid_until'] ? null : (string) $row['valid_until'],
+				'claim_policy' => (string) $row['claim_policy'],
+				'courses'      => array_map( 'intval', $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT course_id FROM `' . $this->db->table( 'ccap_group_course' ) . '` WHERE group_id = %d ORDER BY id', $id ) ) ),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Members and seats (GF-15): status, display name, masked address; never
+	 * learning results (GR-7). The full address only for the owner (SEAT-017).
+	 *
+	 * @param Actor $actor    Owner (M-15) or manager.
+	 * @param int   $group_id Group.
+	 * @return list<array{seat_id: int, status: string, name: string, address: string, since: string|null}>
+	 * @throws CourseException 404 without rights.
+	 */
+	public function members( Actor $actor, int $group_id ): array {
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::MANAGE_GROUP, array( $group_id ) ), 'Not allowed to view this group.' );
+		$group = (array) $this->relations->row( 'ccap_group', $group_id );
+		$owner = (int) $group['owner_user_id'] === $actor->user_id;
+		$out   = array();
+		foreach ( $this->db->rows( $this->db->prepare( 'SELECT id, user_id, invite_email, status, invited_at, claimed_at, claim_expires_at FROM `' . $this->db->table( 'ccap_seat' ) . "` WHERE group_id = %d AND status IN ('invited', 'active') ORDER BY id", $group_id ) ) as $seat ) {
+			$user  = null === $seat['user_id'] ? null : get_userdata( (int) $seat['user_id'] );
+			$email = (string) ( $seat['invite_email'] ?? '' );
+			$out[] = array(
+				'seat_id' => (int) $seat['id'],
+				'status'  => 'invited' === $seat['status'] && (string) $seat['claim_expires_at'] <= $this->db->now() ? 'expired' : (string) $seat['status'],
+				'name'    => $user instanceof \WP_User ? (string) $user->display_name : '',
+				'address' => '' === $email ? '' : ( $owner ? $email : self::mask_email( $email ) ),
+				'since'   => null === ( $seat['claimed_at'] ?? $seat['invited_at'] ) ? null : (string) ( $seat['claimed_at'] ?? $seat['invited_at'] ),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Masked address (E-81): first character and domain.
+	 *
+	 * @param string $email Address.
+	 * @return string
+	 */
+	public static function mask_email( string $email ): string {
+		$at = strpos( $email, '@' );
+		if ( false === $at || 0 === $at ) {
+			return '***';
+		}
+		return mb_substr( $email, 0, 1 ) . '***' . substr( $email, $at );
+	}
+
+	/**
+	 * Group row a manager (#11) may change.
+	 *
+	 * @param Actor $actor    Actor.
+	 * @param int   $group_id Group.
+	 * @return array<string, mixed>
+	 * @throws CourseException `ccap_forbidden`, `ccap_not_found`, `ccap_conflict` (revoked).
+	 */
+	private function managed( Actor $actor, int $group_id ): array {
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'ccap_manage_groups' ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to manage groups.', 403 );
+		}
+		$group = $this->relations->row( 'ccap_group', $group_id );
+		if ( null === $group ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown group.', 404 );
+		}
+		if ( 'revoked' === $group['status'] ) {
+			throw new CourseException( 'ccap_conflict', 'An ended group is read-only.', 409 );
+		}
+		return $group;
+	}
+
+	/**
 	 * Expire open invitations after their deadline (cron, SEAT-007).
 	 *
 	 * @return int Number of expired invitations.
