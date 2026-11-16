@@ -365,3 +365,17 @@ Technisch festgelegt: Migrationszustand in Tabelle `cc_migration_step` (D37-1); 
 | E-185 | Partnererkennung (welche Suite-Plugins sind installiert) schon in R1? | **Lesend in R1** (nur Anzeige im Systemstatus), alle Aktionen erst in R3 | R0-12 D12-4 | R1-38, R3-16 |
 | E-186 | COMMERCE- und SUITEFLOW-Testkataloge | **Eingangsbedingung von R3-01**, nicht von Gate A | R0-12 D12-5 | R3-01 |
 | E-187 | Benachrichtigungsvertrag (Versand-Einmaligkeit, Zustellfehler, Opt-out, Rate-Limit, Mail-Sink) | **In R0-27 spezifizieren** | R0-12 D12-6 | R0-27, R1-21 |
+
+## 29. Release- und QA-Automatisierung (aus R0-18)
+
+Hinweis: E-58 nennt für die CI MariaDB 10.11, R0-14 nimmt MariaDB 12.3 als Zielzeile. Beide sind in der Matrix; R0-20 legt die endgültigen Versionen fest.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-188** | Sichtbarkeit des Repositorys und GitHub-Ausstattung (CodeQL, Secret Scanning, Dependabot-Alerts sind für private Repos kostenpflichtig) | **Privat mit freien Werkzeugen als Pflichtbasis** (Semgrep, Psalm, gitleaks, OSV, composer/npm audit); **öffentlich spätestens zur ersten WordPress.org-Veröffentlichung**, dann GitHub-Funktionen zusätzlich | R0-18 D18-1 | R1-01, R1-39 |
+| E-189 | Signatur der Free-Artefakte | **GitHub Artifact Attestation + Sigstore keyless**, keine eigene Schlüsselverwaltung | R0-18 D18-2 | R1-01, R1-39 |
+| E-190 | Signatur der Pro-ZIPs | **License Captain signiert beim Upload**, der Pro-Client prüft vor der Installation (abhängig vom License-Captain-Vertrag, E-42) | R0-18 D18-3 | R1-01, R1-39 |
+| E-191 | Browser-Abdeckung über Playwright hinaus | **Playwright je PR/nightly**; echtes iOS/Android/Safari **manuell vor jedem Minor-Release** | R0-18 D18-4 | R1-01, R1-39 |
+| E-192 | Messumgebung R-M für Performance-Releases | **Cloud-VM mit festem Instanztyp**, je Lauf erzeugt und danach gelöscht (Kosten beim Auftraggeber) | R0-18 D18-5 | R1-01, R1-39 |
+| **E-193** | Wer gibt Deploys zu WordPress.org bzw. License Captain frei? | **Der Auftraggeber** (Vertretung benennen); Selbstfreigabe durch den Tag-Ersteller ausgeschlossen | R0-18 D18-6 | R1-01, R1-39 |
+| E-194 | Koexistenztest mit dem LB-Plugin in der CI | **Nightly gegen den festen LB-Commit `9f37c77`**, nur installiert, nie verändert oder weitergegeben; braucht einen lesenden Deploy-Key für learnboating | R0-18 D18-7 | R1-01, R1-39 |

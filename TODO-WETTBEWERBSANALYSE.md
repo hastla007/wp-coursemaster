@@ -99,7 +99,7 @@
   - **Ergebnis/Definition of Done:** Datenflüsse, Schutzbedarf, Abuse Cases, Prüfungsintegrität, Consent, Lösch-/Exportfristen und DPIA-Bedarf bewertet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-18 · Release- und Qualitätsautomatisierung festlegen**
+- [ ] **R0-18 · Release- und Qualitätsautomatisierung festlegen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-18-release-qa-automatisierung.md` (CI-Grundregeln, Matrix PR/nightly, 23 Jobs, SAST/Dependency-/Secret-/Lizenz-Scan, Free-Guard gegen Lizenzclient, reproduzierbarer ZIP-Build mit SBOM und Signatur, Release-Workflow, Gate-Zuordnung, Flake-Policy, Laufzeitbudgets); Entscheidung offen → E-188…E-194
   - **Voraussetzung:** R0-05,R0-12.
   - **Ergebnis/Definition of Done:** CI-Matrix, PHP-/JS-Checks, Unit/Integration/E2E, SAST, Dependency-Scan, Paket-Signierung und Releaseartefakte definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
