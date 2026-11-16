@@ -6,6 +6,24 @@
 
 Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.md`, `R0-36-suite-vertragsdeltas.md`. Die Kürzel in der Spalte „Herkunft“ verweisen auf die Abschnitte „Entscheidungsbedarf“ dort.
 
+
+## Beschlussprotokoll (Auftraggeber, 16.11.2026)
+
+| ID | Beschluss | Abweichung von Empfehlung |
+|---|---|---|
+| E-01 | **Nein – Clean Room.** Kein Code aus learnboating wird übernommen; nur Verhalten wird nach Spezifikation neu implementiert. „reuse/abstract“ in der Inventur bedeutet ab jetzt „Verhalten nachbauen“, nicht „Code kopieren“ | **ja** |
+| E-02 | Nur synthetische, neutrale Testpakete | nein |
+| E-03 | LB-Import höchstens als separates Migrationswerkzeug | nein |
+| E-04 | Keine Rechtstext-Vorlagen, nur Datenschutz-Bausteine | nein |
+| E-05 | Keine App-API in R1, nur Web-API mit Cookie+Nonce | nein |
+| E-06 | Einheitlicher Fehlercode-Katalog ab R1 | nein |
+| E-07 | Offiziell nur Single-Site | nein |
+| E-08 | InnoDB und JSON-Funktionen Pflicht | nein |
+| E-09 | Free über WordPress.org, Pro über License Captain | nein |
+| E-10 | **Website-Härtung im Kern** (Login-Limit, XML-RPC, Security-Header). Folge: E-46 fail-closed gilt auch für Login/Reset im Free-Kern; Konfliktmatrix mit Security-Plugins (R0-20) wird Pflicht; Härtung braucht Schalter und Erkennung vorhandener Security-Plugins | **ja** |
+| E-11 | PHPUnit + WP-Testsuite und Playwright | nein |
+| E-12 | **Plattformmatrix neu festlegen**, LB-Werte nicht als Startwert (R0-20/E-195 bilden die eigenständige Festlegung) | **ja** |
+
 ## 1. Rechte und Lizenz (blockiert jede Code-Übernahme)
 
 | ID | Frage | Empfehlung | Herkunft | Blockiert |
@@ -403,3 +421,20 @@ Technisch festgelegt: Die Verweise an den 40 Duplikaten im TODO-Register werden 
 | E-202 | Suite-Navigationsmuster | **Eigenes Course-Captain-Hauptmenü**, Suite-Status als Unterseite „Integrationen“; gemeinsames Suite-Menü frühestens mit R3-16 | R0-24 D24-4 | R1-32, R3-16 |
 | E-203 | Mitgliedschaften (Membership) als Zugangsweg | **Kein eigener Vertrag**: Mitgliedschaft ist eine Grant-Quelle über den GrantSourceAdapter, Adapter erst in R3 | R0-24 D24-5 | R1-43, R3 |
 | **E-204** | Wer besetzt die Reviewer-Rollen (Technik-Lead, Architektur, Security, Barrierefreiheit, Betrieb, Produkt)? | **Der Auftraggeber benennt je Rolle eine Person und eine Vertretung**; Vier-Augen-Prinzip, Autor ≠ Reviewer | R0-24 D24-7 | alle R1-Tasks (DoR) |
+
+## 32. WordPress.org-Distribution (aus R0-35)
+
+WordPress.org-Details beruhen auf Modellwissen und werden über RC-001 vor R1-39 geprüft.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| E-205 | Ersatz-Slug und Zeitpunkt der Einreichung bei WordPress.org (`course-captain` noch ungeprüft) | **Slug vor R1-Start prüfen und früh einreichen**; Ersatz `course-captain-lms` | R0-35 D35-1 | R1-39 |
+| **E-206** | WordPress.org-Konten, Committer und Herstellerangaben | **Organisationskonto**, mindestens zwei Committer mit 2FA | R0-35 D35-2 | R1-39 |
+| E-207 | Präfix: `cc_` hat nur 3 Zeichen, das Review verlangt laut Modellwissen mindestens 4 | **`ccap_`** für CPTs, Caps, Rollen, Cron, Meta und Tabellen (revidiert D-20-03/R0-19 §1.2; vor R1-01 prüfen) | R0-35 D35-3 | R1-39 |
+| E-208 | Deutsche Übersetzung | **Sprachpaket über translate.wordpress.org**, bis zur Freigabe zusätzlich im ZIP | R0-35 D35-4 | R1-39 |
+| E-209 | Erste öffentliche Versionsnummer | **1.0.0** | R0-35 D35-5 | R1-39 |
+| E-210 | Telemetrie / Nutzungsstatistik | **Keine** | R0-35 D35-6 | R1-39 |
+| **E-211** | Sicherheitsmeldungen: Kanal, Fristen, unterstützte Versionen | **Eigene Sicherheitsadresse**, Erstreaktion ≤ 72 h, Fix für die aktuelle Minor-Version | R0-35 D35-7 | R1-39 |
+| **E-212** | Wer betreut das wp.org-Forum, wo läuft Pro-Support? | **Auftraggeber benennt eine Person**; Pro-Support über eigenen Kanal | R0-35 D35-8 | R1-39 |
+| E-213 | Lizenz des Pro-Add-ons | **GPL-2.0-or-later** | R0-35 D35-9 | R1-39 |
+| E-214 | Live Preview auf WordPress.org | **Erst ab R2-03** | R0-35 D35-10 | R1-39 |

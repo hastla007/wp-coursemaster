@@ -184,7 +184,7 @@
   - **Ergebnis/Definition of Done:** Provider-ID/Version/Contract, letzter Erfolg, Queue, Correlation-ID, Fehlercode, Retry-Rechte und Datenschutzklasse spezifiziert.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-35 · WordPress.org-/Distribution-Readiness festlegen**
+- [ ] **R0-35 · WordPress.org-/Distribution-Readiness festlegen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-35-distribution-readiness.md` (Richtlinien → Regeln, readme/Assets/Lizenz, Übersetzung, ZIP, SECURITY.md, RC-001…099); Entscheidung offen → E-205…E-214
   - **Voraussetzung:** R0-18,R0-24.
   - **Ergebnis/Definition of Done:** Plugin-Slug, Readme, Lizenz/Assets, Übersetzungen, Support, Paketbuild, Free/Pro-ZIPs und Update/Restore als Releasecheckliste.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
