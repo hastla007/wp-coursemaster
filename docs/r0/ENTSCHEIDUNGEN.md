@@ -187,3 +187,20 @@ Wichtigster Sicherheitsbefund in LB: Der Default `default_access = logged_in` gi
 | E-90 | Downgrade um eine Minor-Version ohne Restore offiziell unterstützen? | **Ja**, aber nur, wenn das Release keinen Contract-Migrationsschritt enthält | R0-16 D6 | R1-23, R1-40 |
 | E-91 | RPO/RTO-Richtwerte für die Betreiberdoku | **RPO 24 h, RTO 4 h** als Empfehlung, nicht als Zusage | R0-16 D7 | R1-23, R1-40 |
 | E-92 | Datenschutz-Löschanträge, die nach einem Restore aus einem älteren Stand wieder auftauchen würden | **Abweichend vom Agentenvorschlag („nur dokumentieren“): Lösch-Tombstones außerhalb des normalen Datenbestands führen und nach jedem Restore automatisch erneut anwenden.** „Nur dokumentieren“ reicht für Art. 17 DSGVO voraussichtlich nicht; rechtliche Bestätigung durch den Betreiber | R0-16 D8 | R1-23, R1-40 |
+
+## 16. Free/Pro-Matrix und UX (aus R0-11)
+
+Konzept-Widersprüche C-01…C-18 stehen in `R0-11-free-pro-matrix-ux.md` §4. Der wichtigste: Kap. 4.5/5 machen Zertifikate und Gruppen zu Pro, Kap. 43/46 zu Free-Basis. Nach der Rangfolge in Kap. 46.1 gilt Kap. 43/46.
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-93** | Pro-Lizenz ist abgelaufen, das Add-on bleibt aktiv: Erzeugen bestehende Woo-/Voucher-Zuordnungen weiter Grants und Widerrufe? | **Ja, Grants und Widerrufe laufen weiter** (sonst zahlen Kunden ohne Zugang oder behalten ihn trotz Erstattung). Nur neue Zuordnungen und Konfigurationsänderungen sind gesperrt | R0-11 N-02 | R0-29, R0-39 |
+| E-94 | Pro-Konfiguration bei Lizenzende bzw. bei deaktiviertem Add-on | **Lizenzende:** Konfiguration wirkt eingefroren weiter. **Add-on deaktiviert:** Rückfall auf Free-Verhalten, Daten bleiben erhalten | R0-11 N-01 | R0-29, R0-39 |
+| **E-95** | Entitlement-Schlüssel (`course.*`) neu zuschneiden: Kap. 6 umfasst auch Free-Funktionen, es fehlen Erinnerungen, Gradebook, Frontend-Builder und Mehrtrainer | **Ja, neu zuschneiden vor dem Produktanlage-Auftrag E-42**; Liste in R0-11 §1 | R0-11 N-03 | R0-29, R0-39 |
+| E-96 | Basisnachweis (Zertifikat Free) | **HTML- und Druckansicht in Free**; serverseitiges PDF und Designer erst in Pro | R0-11 N-04 | R0-29, R0-39 |
+| E-97 | Name der Person auf der öffentlichen Verifikationsseite | **Standardmäßig aus**, je Nachweis vom Lernenden freizugeben | R0-11 N-05 | R0-29, R0-39 |
+| E-98 | Umfang von „Berichte Basic“ in Free | **Kursfortschritt je Lernendem, Bestehensquote je Prüfung, CSV-Export**; Kohorten- und Zeitreihenberichte in Pro | R0-11 N-06 | R0-29, R0-39 |
+| E-99 | Tutor-Rolle in R1 (R0-07 sieht `cc_trainer` vor, R0-11 empfiehlt nur reservieren) | **`cc_trainer` in R1 anlegen** (für Ergebnis-Einsicht und Support gebraucht, R0-07); Tutor-Bewertungsfunktionen erst mit dem Gradebook (Pro). Damit ist der Widerspruch zwischen R0-07 und R0-11 aufgelöst | R0-11 N-07 | R0-29, R0-39 |
+| E-100 | Gesperrte Pro-Schalter in Free-Screens (Upselling) | **Nein**; höchstens ein Hinweis auf der Seite „Erweiterungen“ (WordPress.org-Richtlinie) | R0-11 N-08 | R0-29, R0-39 |
+| E-101 | Voraussetzungen zwischen Lektionen innerhalb eines Kurses | **Free R1** | R0-11 N-09 | R0-29, R0-39 |
+| E-102 | Demo-Schritt im Setup-Assistenten | **Leeres Kursgerüst** in R1; Demo-Kurse mit Inhalt in R2-03 | R0-11 N-10 | R0-29, R0-39 |

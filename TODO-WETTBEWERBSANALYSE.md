@@ -64,7 +64,7 @@
   - **Ergebnis/Definition of Done:** Paketformat, Rechte, Dry-run, Revisionen, Rollback, Protected Files, Consent spezifiziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-11 · Free-/Pro-Matrix und UX-Flows finalisieren**
+- [ ] **R0-11 · Free-/Pro-Matrix und UX-Flows finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-11-free-pro-matrix-ux.md` (Matrix BS-01…36 mit Lizenzende-Verhalten, Admin-Screens A-01…18, Lernerscreens L-01…21, 5 UX-Flows, Konflikte C-01…18); Entscheidung offen → E-93…E-102
   - **Voraussetzung:** R0-03, R0-08.
   - **Ergebnis/Definition of Done:** Jede Funktion und jeder Admin-/Learner-Screen eindeutig einer Edition/Phase zugeordnet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
