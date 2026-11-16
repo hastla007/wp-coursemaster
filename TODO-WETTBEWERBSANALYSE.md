@@ -440,7 +440,7 @@
   - **Voraussetzung:** R1-03, R1-31, R1-42.
   - **Ergebnis/Definition of Done:** Login-/Reset-/Registrierungslimit, bekanntes Gerät, XML-RPC, 4 Security-Header; Erkennung von Security-Plugins (`auto`), Notausschalter; Spezifikation R0-31 §3.4, R0-30 Tab „Website-Härtung“; Tests PSD-xxx/ADM-xxx.
 
-- [ ] **R1-46 · Text-/Dateiaufgaben mit Bewertung (aus R2-02 vorgezogen)** — *Aufgenommen (Beschluss E-168).*
+- [x] **R1-46 · Text-/Dateiaufgaben mit Bewertung (aus R2-02 vorgezogen)** — erledigt 16.11.2026: Nachweis `docs/r1/R1-46-nachweis.md`; `AssignmentService` (Abgabekette je Lernendem/Lektion, Bewertung, Rückgabe, Warteschlange, Export/Eraser, Retention RT-45), `AssignmentFiles` (Allowlist, finfo/MIME, Limits, geschützte Ablage, Auslieferung nur als Download), REST R-46/R-54…R-58, Benachrichtigungen N-14…N-16, Schema Δ-8-Spalten; Integration 328, Multisite 340. Offen: Lernenden-/Trainer-UI, Publish-Regeln VAL-037…039, Importformat `assignment`. Review durch zweite Person vor Merge ausstehend (AG-05) — *Aufgenommen (Beschluss E-168).*
   - **Voraussetzung:** R1-07, R1-09, R1-14.
   - **Ergebnis/Definition of Done:** Abgabe-Workflow draft/submitted/returned/graded, sichere Uploads (R0-10), Bewertung durch Trainer, Benachrichtigung; Tests und Nutzertest-Referenzkurs mit Aufgabe (R0-26).
 
