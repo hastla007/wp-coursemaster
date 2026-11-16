@@ -546,14 +546,7 @@ final class ImportService {
 				'question_type' => (string) $record['revision']['question_type'],
 				'question_text' => self::html( (string) ( $record['revision']['text_html'] ?? '' ) ),
 				'settings'      => (array) ( $record['revision']['settings'] ?? array() ),
-				'answers'       => array_map(
-					static fn( $a ): array => array(
-						'key'     => (string) ( $a['key'] ?? '' ),
-						'text'    => self::html( (string) ( $a['text_html'] ?? '' ) ),
-						'correct' => ! empty( $a['correct'] ),
-					),
-					array_values( (array) ( $record['answers'] ?? array() ) )
-				),
+				'answers'       => self::answers( (string) $record['revision']['question_type'], array_values( (array) ( $record['answers'] ?? array() ) ) ),
 				'tags'          => array_values( (array) ( $record['tags'] ?? array() ) ),
 			);
 			if ( null === $object ) {
@@ -791,6 +784,33 @@ final class ImportService {
 				$now
 			)
 		);
+	}
+
+	/**
+	 * Answers with internal keys (R0-08 §3.1 `^([A-Z]|MODEL)$`): package keys
+	 * in another form (e.g. `A1-001-a`) map by position to A, B, …; open text
+	 * uses `MODEL`.
+	 *
+	 * @param string $type    Question type.
+	 * @param array  $answers Package answers.
+	 * @phpstan-param list<mixed> $answers
+	 * @return list<array{key: string, text: string, correct: bool}>
+	 */
+	private static function answers( string $type, array $answers ): array {
+		$out = array();
+		foreach ( $answers as $i => $answer ) {
+			$answer = is_array( $answer ) ? $answer : array();
+			$key    = (string) ( $answer['key'] ?? '' );
+			if ( 1 !== preg_match( '/^([A-Z]|MODEL)$/', $key ) ) {
+				$key = QuestionTypes::OPEN_TEXT === $type ? 'MODEL' : chr( 65 + min( 25, (int) $i ) );
+			}
+			$out[] = array(
+				'key'     => $key,
+				'text'    => self::html( (string) ( $answer['text_html'] ?? '' ) ),
+				'correct' => ! empty( $answer['correct'] ),
+			);
+		}
+		return $out;
 	}
 
 	/**
