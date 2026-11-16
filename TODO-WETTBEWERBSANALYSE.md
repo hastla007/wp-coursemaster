@@ -124,7 +124,7 @@
   - **Ergebnis/Definition of Done:** Fehlende Lektionen, ungültige Fragen, nicht lizenzierte Medien, unvollständige Prüfungsregeln und Preview/Publish-Blocker mit Autoren-UX dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-23 · Revisionen laufender Kurse und Lernender entscheiden**
+- [ ] **R0-23 · Revisionen laufender Kurse und Lernender entscheiden** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-23-revisionen-laufender-kurse.md` (Matrix 10 Ereignisse × 8 Zustände, Regeln RV-01…21, Grandfathering, Staging-Kopie, Zertifikatsfolgen, REV-001…046); Entscheidung offen → E-103…E-111
   - **Voraussetzung:** R0-06,R0-08.
   - **Ergebnis/Definition of Done:** Kursupdate bei laufendem Versuch, gelöschter Lektion, umsortierten Inhalten, Mastery, Zertifikaten und Migrations-/Grandfathering-Policy spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

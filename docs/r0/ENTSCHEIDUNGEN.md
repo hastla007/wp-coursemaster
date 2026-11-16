@@ -204,3 +204,19 @@ Konzept-Widersprüche C-01…C-18 stehen in `R0-11-free-pro-matrix-ux.md` §4. D
 | E-100 | Gesperrte Pro-Schalter in Free-Screens (Upselling) | **Nein**; höchstens ein Hinweis auf der Seite „Erweiterungen“ (WordPress.org-Richtlinie) | R0-11 N-08 | R0-29, R0-39 |
 | E-101 | Voraussetzungen zwischen Lektionen innerhalb eines Kurses | **Free R1** | R0-11 N-09 | R0-29, R0-39 |
 | E-102 | Demo-Schritt im Setup-Assistenten | **Leeres Kursgerüst** in R1; Demo-Kurse mit Inhalt in R2-03 | R0-11 N-10 | R0-29, R0-39 |
+
+## 17. Revisionen laufender Kurse (aus R0-23)
+
+Außerdem zur Bestätigung: Die Teilumfangsprüfung im laufenden Versuch läuft gegen den Snapshot, nicht wie in LB gegen die Live-Liste (RV-02, technisch begründet).
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-103** | Grandfathering-Modell bei Kursänderungen für laufende Lernende | **Vorwärtsrollen mit Besitzstand:** Alle sehen die neue Revision, Erreichtes bleibt. Harter Bestandsschutz nur über eine neue Kursausgabe (eigener Kurs); Fortschrittsanrechnung zwischen Ausgaben erst R2/Pro | R0-23 R23-D1 | R1-27 |
+| E-104 | Wie bleiben CPT-Lektionen bis zur Veröffentlichung auf dem alten Stand? | **Nicht öffentliche Staging-Kopie** für Import und Editor, Übernahme in einer Transaktion je Kurs. Folge: Änderungen an veröffentlichten Kursen werden erst mit „Kurs veröffentlichen“ sichtbar | R0-23 R23-D2 | R1-27 |
+| E-105 | „Erneut bearbeiten erforderlich“ je Activity nach einer inhaltlichen Änderung | **Ja**, beim Veröffentlichen, nur für Lernende ohne Kursabschluss, mit Audit und Hinweis | R0-23 R23-D3 | R1-27 |
+| E-106 | Smarttrainer-Lernstand bei inhaltlicher Korrektur einer Frage | **Unverändert** (Parität), plus ausdrückliche Aktion „Lernstand dieser Frage zurücksetzen“ mit Audit; nie automatisch | R0-23 R23-D4 | R1-27 |
+| E-107 | Zählen Versuche unter alter Prüfungsregel gegen `max_attempts` der neuen? | **Ja als Standard**; der Autor kann beim Veröffentlichen „Versuchszähler zurücksetzen“ wählen (Audit) | R0-23 R23-D5 | R1-27 |
+| E-108 | Kursrückzug | **Zweistufig:** erst „Einschreibung geschlossen“ (bestehende Lernende lernen bis zum Grant-Ende weiter), dann „archiviert“. Sofortarchivierung nur mit Bestätigung und Anzahl der Betroffenen. Ein Abbruch wegen Rückzug zählt **nicht** gegen `max_attempts` (Ausnahme zu E-71) | R0-23 R23-D6, RV-04 | R1-27 |
+| E-109 | Pflichtmedium einer Frage wird während eines laufenden Versuchs rechtlich gesperrt | **Frage bei der Auswertung neutralisieren** (aus Punkten und Maximum, Grund im Ergebnis) | R0-23 R23-D7 | R1-27 |
+| E-110 | Bestehende Zertifikate im neuen Layout neu ausstellen | **Nicht in R1** (alte Template-Version wird weiter gerendert); Sammel-Neuausstellung als Pro-Kandidat | R0-23 R23-D8 | R1-27 |
+| E-111 | Kursabschluss, wenn eine Revision die letzte offene Pflicht-Activity entfernt | **Automatisch** beim Umstellen; Zertifikat nach Kurseinstellung | R0-23 R23-D9 | R1-27 |
