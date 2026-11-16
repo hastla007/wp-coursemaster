@@ -21,6 +21,7 @@ use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\NamedLock;
+use CourseCaptain\Storage\RateLimiter;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,6 +37,7 @@ final class ExamSessions {
 	public const EVALUATOR_VERSION = '1.0.0';
 	public const UNLIMITED_LOCK    = 86400;
 	private const START_LOCK_WAIT  = 10;
+	public const START_LIMIT_HOUR  = 40;
 
 	/**
 	 * Clock override (tests).
@@ -105,6 +107,7 @@ final class ExamSessions {
 				return (int) $known;
 			}
 			$this->assert_attempts_left( $actor->user_id, $rule );
+			RateLimiter::hit( $this->db, 'exam_start', $actor->user_id, 3600, self::START_LIMIT_HOUR, $this->now() );
 
 			$randomizer = $randomizer ?? Randomizer::fresh();
 			$plan       = null === $variant_id ? $this->draw( $actor, $rule, $randomizer ) : $this->variant( $actor, $rule, $variant_id );
@@ -133,18 +136,25 @@ final class ExamSessions {
 			$revision  = (array) $this->questions->revision( (int) $sq['revision_id'] );
 			$order     = (array) json_decode( (string) $sq['answer_order'], true );
 			$delivered = QuestionTypes::deliver( $revision, new Randomizer( (string) $snapshot['randomizer']['seed'] ), (string) $sq['question_id'] );
-			$items[]   = array(
+			$item      = array(
 				'position' => (int) $sq['position'],
 				'question' => self::reorder( $delivered['payload'], $order ),
 				'answered' => null !== $sq['answered_at'],
+				'answer'   => null === $sq['given_answer'] ? null : json_decode( (string) $sq['given_answer'], true ),
 				'flagged'  => '1' === (string) $sq['flagged'],
 				'revealed' => null !== $sq['revealed_at'],
 			);
+			if ( null !== $sq['revealed_at'] && QuestionTypes::OPEN_TEXT === $revision['question_type'] ) {
+				$item['model_answer'] = (string) ( $revision['answers'][0]['text'] ?? '' );
+			}
+			$items[] = $item;
 		}
 		$deadline = null === $row['deadline_at'] ? null : (string) $row['deadline_at'];
 		return array(
 			'session_id'        => $session,
 			'status'            => (string) $row['status'],
+			'server_now'        => gmdate( 'c', $this->now() ),
+			'deadline_at'       => null === $deadline ? null : gmdate( 'c', (int) strtotime( $deadline . ' UTC' ) ),
 			'remaining_seconds' => null === $deadline ? null : max( 0, (int) strtotime( $deadline . ' UTC' ) - $this->now() ),
 			'questions'         => $items,
 			'result'            => 'evaluated' === $row['status'] ? $this->learner_result( $row, $snapshot ) : null,
@@ -209,15 +219,21 @@ final class ExamSessions {
 	 * @param int   $session  Session.
 	 * @param int   $position Position.
 	 * @param mixed $answer   Answer.
+	 * @param int   $age_ms   Age of a client-buffered answer (offline queue), bounded by the late tolerance.
 	 * @return array{applied: bool}
 	 * @throws CourseException With `ccap_exam_*` codes.
 	 */
-	public function save_answer( Actor $actor, int $session, int $position, $answer ): array {
-		return $this->mutate(
+	public function save_answer( Actor $actor, int $session, int $position, $answer, int $age_ms = 0 ): array {
+		$saved_at = null;
+		$result   = $this->mutate(
 			$actor,
 			$session,
 			$position,
-			function ( array $row, array $sq ) use ( $answer ): array {
+			function ( array $row, array $sq, int $at ) use ( $answer, &$saved_at ): array {
+				if ( null !== $sq['answered_at'] && (int) strtotime( $sq['answered_at'] . ' UTC' ) > $at ) {
+					return array(); // Older buffered state from another tab/offline queue (§6.4).
+				}
+				$saved_at = gmdate( 'c', $at );
 				$revision = (array) $this->questions->revision( (int) $sq['revision_id'] );
 				if ( QuestionTypes::OPEN_TEXT === $revision['question_type'] && null === $sq['revealed_at'] ) {
 					throw new CourseException( 'ccap_exam_answer_locked', 'Reveal the model answer first.', 422 );
@@ -236,11 +252,13 @@ final class ExamSessions {
 				}
 				return array(
 					'given_answer' => (string) wp_json_encode( $answer ),
-					'answered_at'  => $this->now_sql(),
+					'answered_at'  => gmdate( 'Y-m-d H:i:s', $at ),
 					'is_correct'   => $evaluation->correct() ? 1 : 0,
 				);
-			}
+			},
+			$age_ms
 		);
+		return $result + array( 'saved_at' => $result['applied'] ? $saved_at : null );
 	}
 
 	/**
@@ -289,6 +307,7 @@ final class ExamSessions {
 	 * @param Actor $actor   Learner.
 	 * @param int   $session Session.
 	 * @return array<string, mixed> Result.
+	 * @throws CourseException `ccap_exam_aborted` for a cancelled attempt.
 	 */
 	public function submit( Actor $actor, int $session ): array {
 		$row = $this->owned( $actor, $session, false );
@@ -296,6 +315,9 @@ final class ExamSessions {
 			$this->finish( $session, 'submitted' );
 		}
 		$after = (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		if ( 'cancelled' === $after['status'] ) {
+			throw new CourseException( 'ccap_exam_aborted', 'The attempt was cancelled.', 409 );
+		}
 		if ( 'evaluated' !== $after['status'] ) {
 			return array( 'status' => (string) $after['status'] ) + (array) json_decode( (string) $after['result'], true );
 		}
@@ -308,11 +330,15 @@ final class ExamSessions {
 	 * @param Actor $actor   Learner.
 	 * @param int   $session Session.
 	 * @return string Resulting status.
+	 * @throws CourseException `ccap_exam_already_submitted` for an evaluated attempt.
 	 */
 	public function cancel( Actor $actor, int $session ): string {
 		$row = $this->owned( $actor, $session, false );
+		if ( 'cancelled' === $row['status'] ) {
+			return 'cancelled';
+		}
 		if ( 'in_progress' !== $row['status'] ) {
-			return (string) $row['status'];
+			throw new CourseException( 'ccap_exam_already_submitted', 'The attempt is already submitted.', 409 );
 		}
 		if ( $this->is_overdue( $row ) ) {
 			$this->finish( $session, 'expired' );
@@ -860,22 +886,26 @@ final class ExamSessions {
 	 * @param Actor    $actor    Learner.
 	 * @param int      $session  Session.
 	 * @param int      $position Position.
-	 * @param callable $change   fn(session row, question row): array of columns.
+	 * @param callable $change   fn(session row, question row, bounded answer time): array of columns.
+	 * @param int      $age_ms   Age of a client-buffered change in milliseconds.
 	 * @return array{applied: bool}
 	 * @throws CourseException With `ccap_exam_*` codes.
 	 */
-	private function mutate( Actor $actor, int $session, int $position, callable $change ): array {
+	private function mutate( Actor $actor, int $session, int $position, callable $change, int $age_ms = 0 ): array {
 		$this->expire_if_due( $session );
 		$this->owned( $actor, $session, true );
 		return $this->db->transaction(
-			function ( Database $db ) use ( $session, $position, $change ): array {
+			function ( Database $db ) use ( $session, $position, $change, $age_ms ): array {
 				$table = $db->table( 'ccap_exam_session' );
 				$row   = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
-				if ( 'in_progress' !== $row['status'] ) {
-					throw new CourseException( 'ccap_exam_finished', 'The attempt is finished.', 409 );
-				}
+				self::assert_running( $row );
 				$snapshot = (array) json_decode( (string) $row['snapshot'], true );
-				if ( null !== $row['deadline_at'] && $this->now() > (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) ( $snapshot['timing']['grace_seconds'] ?? 5 ) ) {
+				// Offline buffer (§6.4): the answer time is bounded by the frozen late tolerance; device time is not trusted beyond it.
+				$tolerance = null === $row['deadline_at'] ? 0 : (int) ( $snapshot['timing']['late_tolerance_seconds'] ?? 120 );
+				$at        = $this->now() - min( max( 0, intdiv( $age_ms, 1000 ) ), $tolerance );
+				$started   = (int) strtotime( (string) $row['started_at'] . ' UTC' );
+				$at        = max( $at, $started );
+				if ( null !== $row['deadline_at'] && $at > (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) ( $snapshot['timing']['grace_seconds'] ?? 5 ) ) {
 					throw new CourseException( 'ccap_exam_expired', 'The time is over.', 410 );
 				}
 				$qtable = $db->table( 'ccap_exam_session_question' );
@@ -883,7 +913,7 @@ final class ExamSessions {
 				if ( null === $sq ) {
 					throw new CourseException( 'ccap_not_found', 'Unknown position.', 404 );
 				}
-				$columns = $change( $row, $sq );
+				$columns = $change( $row, $sq, $at );
 				if ( array() === $columns ) {
 					return array( 'applied' => false );
 				}
@@ -906,6 +936,26 @@ final class ExamSessions {
 				return array( 'applied' => true );
 			}
 		);
+	}
+
+	/**
+	 * Running or the catalog code of the end state (R0-19).
+	 *
+	 * @param array<string, mixed> $row Session row.
+	 * @return void
+	 * @throws CourseException 410/409.
+	 */
+	private static function assert_running( array $row ): void {
+		if ( 'in_progress' === $row['status'] ) {
+			return;
+		}
+		if ( 'expired' === $row['end_reason'] ) {
+			throw new CourseException( 'ccap_exam_expired', 'The time is over.', 410 );
+		}
+		if ( 'cancelled' === $row['status'] ) {
+			throw new CourseException( 'ccap_exam_aborted', 'The attempt was cancelled.', 409 );
+		}
+		throw new CourseException( 'ccap_exam_already_submitted', 'The attempt is already submitted.', 409 );
 	}
 
 	/**

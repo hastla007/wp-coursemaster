@@ -198,26 +198,12 @@ final class SmartTrainer {
 	 *
 	 * @param int $user Learner.
 	 * @return void
-	 * @throws CourseException `ccap_answer_rate_limited` (429).
+	 * @throws CourseException `ccap_rate_limited` (429, bucket `answer`).
 	 */
 	public function rate_limit( int $user ): void {
-		$now    = self::now();
-		$window = $now - $now % 60;
-		$bucket = hash( 'sha256', 'answer:' . $user );
-		$table  = $this->db->table( 'ccap_rate_limit' );
-		$this->db->execute(
-			$this->db->prepare(
-				"INSERT INTO `{$table}` (bucket_hash, window_start, hits, expires_at) VALUES (%s, %d, 1, %s) ON DUPLICATE KEY UPDATE hits = IF(window_start = VALUES(window_start), hits + 1, 1), window_start = VALUES(window_start), expires_at = VALUES(expires_at)",
-				$bucket,
-				$window,
-				self::sql( $window + 120 )
-			)
-		);
-		$hits = (int) $this->db->scalar( $this->db->prepare( "SELECT hits FROM `{$table}` WHERE bucket_hash = %s", $bucket ) );
-		if ( $hits > self::RATE_LIMIT_PER_MINUTE ) {
-			throw new CourseException( 'ccap_answer_rate_limited', 'Too many answers; try again in a minute.', 429 );
-		}
+		\CourseCaptain\Storage\RateLimiter::hit( $this->db, 'answer', $user, 60, self::RATE_LIMIT_PER_MINUTE, self::now() );
 	}
+
 
 	/**
 	 * Next question (`next`): candidates, mode filter, score, spacing rule,

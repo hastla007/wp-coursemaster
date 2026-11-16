@@ -361,8 +361,8 @@ final class ExamTest extends SchemaTestCase {
 		self::assertSame( 'submitted', self::row( $session )['end_reason'] );
 
 		self::assertSame( $result, $sessions->submit( $learner, $session ), 'second submit returns the same result' );
-		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 5, array( 'A' ) ), 'ccap_exam_finished' );
-		$this->assertRejected( fn() => $sessions->flag( $learner, $session, 1, true ), 'ccap_exam_finished' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 5, array( 'A' ) ), 'ccap_exam_already_submitted' );
+		$this->assertRejected( fn() => $sessions->flag( $learner, $session, 1, true ), 'ccap_exam_already_submitted' );
 	}
 
 	/**
@@ -684,5 +684,233 @@ final class ExamTest extends SchemaTestCase {
 
 		$fresh = $this->start( $this->rule() );
 		$this->assertRejected( fn() => $sessions->regrade( $admin, $fresh, 1, 0, 'running' ), 'ccap_exam_conflict' );
+	}
+
+	/**
+	 * R1-20: offline buffer bounded by the late tolerance; older tab state never overwrites newer.
+	 *
+	 * @group R1-20
+	 */
+	public function test_R120_offline_buffer_and_tabs(): void {
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$session  = $this->start( $this->rule( array(), 60 ) );
+		$t0       = (int) strtotime( self::row( $session )['started_at'] . ' UTC' );
+
+		$sessions->set_now( $t0 + 10 );
+		$first = $sessions->save_answer( $learner, $session, 2, array( 'A' ) );
+		self::assertTrue( $first['applied'] );
+		self::assertSame( gmdate( 'c', $t0 + 10 ), $first['saved_at'] );
+		$stale = $sessions->save_answer( $learner, $session, 2, array( 'B' ), 5000 );
+		self::assertFalse( $stale['applied'], 'older buffered state from another tab' );
+		self::assertNull( $stale['saved_at'] );
+		self::assertSame( array( 'A' ), $sessions->view( $learner, $session )['questions'][1]['answer'] );
+		self::assertTrue( $sessions->save_answer( $learner, $session, 2, array( 'B' ) )['applied'], 'same or newer state wins' );
+
+		$sessions->set_now( $t0 + 100 );
+		self::assertTrue( $sessions->save_answer( $learner, $session, 1, array( 'A' ), 40000 )['applied'], 'answered offline at +60 s, inside deadline + grace' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 3, array( 'A' ), 10000 ), 'ccap_exam_expired' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 3, array( 'A' ), -50000 ), 'ccap_exam_expired' );
+		$huge = $sessions->save_answer( $learner, $session, 4, array( 'A' ), PHP_INT_MAX );
+		self::assertSame( gmdate( 'c', $t0 ), $huge['saved_at'], 'age bounded by tolerance and start time' );
+
+		$sessions->set_now( $t0 + 60 + 121 );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 5, array( 'A' ), 120000 ), 'ccap_exam_expired' );
+		self::assertSame( 'expired', self::row( $session )['end_reason'], 'evaluated on access after the tolerance' );
+		$sessions->set_now( null );
+	}
+
+	/**
+	 * R1-20: reload / device change / connection loss resume the same attempt with saved state.
+	 *
+	 * @group R1-20
+	 */
+	public function test_R120_reload_resume(): void {
+		$open    = $this->question( $this->modules[0], QuestionTypes::OPEN_TEXT );
+		$admin   = Actor::user( $this->admin );
+		$rule    = ExamRules::current()->create(
+			$admin,
+			$this->course,
+			'resume',
+			array(
+				'min_ratio' => array(
+					'num' => 1,
+					'den' => 2,
+				),
+			),
+			600
+		);
+		$variant = ExamRules::current()->create_variant( $admin, $this->course, 3, array( $open, $this->pool[ $this->modules[0] ][0] ) );
+		ExamRules::current()->set_blueprint( $admin, $rule, $this->modules[0], 2 );
+		ExamRules::current()->publish( $admin, $rule );
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$session  = $this->start( $rule, $variant );
+		$sessions->reveal( $learner, $session, 1 );
+		$sessions->save_answer( $learner, $session, 1, array( 'known' => true ) );
+		$sessions->save_answer( $learner, $session, 2, array( 'B' ) );
+		$sessions->flag( $learner, $session, 2, true );
+
+		self::assertSame( $session, $this->start( $rule, $variant ), 'new tab / device: same attempt' );
+		$view = $sessions->view( $learner, $session );
+		self::assertSame( 'Model', $view['questions'][0]['model_answer'] );
+		self::assertSame( array( 'known' => true ), $view['questions'][0]['answer'] );
+		self::assertSame( array( 'B' ), $view['questions'][1]['answer'] );
+		self::assertTrue( $view['questions'][1]['flagged'] );
+		self::assertArrayNotHasKey( 'model_answer', $view['questions'][1] );
+		self::assertNotNull( $view['deadline_at'] );
+		self::assertLessThanOrEqual( 2, abs( strtotime( $view['server_now'] ) - time() ), 'server time is authoritative' );
+		self::assertStringNotContainsString( '"correct"', (string) wp_json_encode( $view['questions'] ) );
+	}
+
+	/**
+	 * R1-20: replay of start/submit, double submission, manipulation, foreign attempts.
+	 *
+	 * @group R1-20
+	 */
+	public function test_R120_replay_and_manipulation(): void {
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$rule     = $this->rule();
+		$key      = wp_generate_uuid4();
+		$session  = $sessions->start( $learner, $rule, null, $key, new Randomizer( '1' ) );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 0, array( 'A' ) ), 'ccap_not_found' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 99, array( 'A' ) ), 'ccap_not_found' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 1, array( 'A', 'B' ) ), 'ccap_exam_invalid_answer' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 1, array( 'A"; DROP' ) ), 'ccap_exam_invalid_answer' );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 1, array( 'is_correct' => 1 ) ), 'ccap_exam_invalid_answer' );
+		$this->assertRejected( fn() => $sessions->reveal( $learner, $session, 1 ), 'ccap_invalid_param' );
+
+		$stranger = Actor::user( (int) self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		$this->assertRejected( fn() => $sessions->view( $stranger, $session ), 'ccap_not_found' );
+		$this->assertRejected( fn() => $sessions->save_answer( $stranger, $session, 1, array( 'A' ) ), 'ccap_not_found' );
+		$this->assertRejected( fn() => $sessions->submit( $stranger, $session ), 'ccap_not_found' );
+
+		$result = $sessions->submit( $learner, $session );
+		self::assertSame( $result, $sessions->submit( $learner, $session ), 'double submission: one result' );
+		self::assertSame( $session, $sessions->start( $learner, $rule, null, $key, new Randomizer( '2' ) ), 'replayed start key: no new attempt' );
+		$db = Database::current();
+		self::assertSame( '1', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_exam_session' ) . '` WHERE user_id = %d', $this->learner ) ) );
+		$this->assertRejected( fn() => $sessions->save_answer( $learner, $session, 1, array( 'A' ) ), 'ccap_exam_already_submitted' );
+		$this->assertRejected( fn() => $sessions->cancel( $learner, $session ), 'ccap_exam_already_submitted' );
+		self::assertSame( '1', (string) self::row( $session )['evaluation_no'] );
+
+		$other = $this->start( $rule );
+		$sessions->cancel( $learner, $other );
+		$this->assertRejected( fn() => $sessions->submit( $learner, $other ), 'ccap_exam_aborted' );
+		$this->assertRejected( fn() => $sessions->flag( $learner, $other, 1, true ), 'ccap_exam_aborted' );
+		self::assertSame( 'cancelled', $sessions->cancel( $learner, $other ), 'repeated abort is idempotent' );
+	}
+
+	/**
+	 * R1-20: start limit 40/h (only new attempts count), ccap_rate_limited with retry_after.
+	 *
+	 * @group R1-20
+	 */
+	public function test_R120_start_rate_limit(): void {
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$now      = time();
+		$sessions->set_now( $now );
+		$start   = fn( int $rule ): int => $sessions->start( $learner, $rule, null, wp_generate_uuid4(), new Randomizer( '7' ) );
+		$rule    = $this->rule();
+		$running = $start( $rule );
+		$db      = Database::current();
+		$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_rate_limit' ) . '` SET hits = %d WHERE bucket_hash = %s', ExamSessions::START_LIMIT_HOUR, hash( 'sha256', 'exam_start:' . $this->learner ) ) );
+		self::assertSame( $running, $start( $rule ), 'resume never counts' );
+		try {
+			$start( $this->rule() );
+			self::fail( 'start limit' );
+		} catch ( CourseException $e ) {
+			self::assertSame( 'ccap_rate_limited', $e->error_code );
+			self::assertSame( 429, $e->status );
+			self::assertSame( 'exam_start', $e->data['bucket'] );
+			self::assertSame( 3600 - $now % 3600, $e->data['retry_after'] );
+		}
+		$sessions->set_now( $now - $now % 3600 + 3600 );
+		self::assertGreaterThan( 0, $start( $this->rule() ), 'next window' );
+		$sessions->set_now( null );
+	}
+
+	/**
+	 * R1-20 / R0-19 R-18…R-24: exam REST routes, no-store, catalog codes.
+	 *
+	 * @group R1-20
+	 */
+	public function test_R120_rest(): void {
+		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.
+		$call = static function ( string $method, string $route, array $body = array() ): \WP_REST_Response {
+			$request = new \WP_REST_Request( $method, '/course-captain/v1' . $route );
+			foreach ( $body as $key => $value ) {
+				$request->set_param( $key, $value );
+			}
+			return rest_do_request( $request );
+		};
+		$rule = $this->rule();
+		wp_set_current_user( 0 );
+		self::assertSame( 401, $call( 'POST', '/courses/' . $this->course . '/exam-sessions', array( 'rule' => $rule ) )->get_status() );
+		wp_set_current_user( $this->learner );
+		self::assertSame( 400, $call( 'POST', '/courses/' . $this->course . '/exam-sessions', array( 'rule' => $rule ) )->get_status(), 'request_key required' );
+		$other = $this->post( 'ccap_course' );
+		self::assertSame(
+			404,
+			$call(
+				'POST',
+				'/courses/' . $other . '/exam-sessions',
+				array(
+					'rule'        => $rule,
+					'request_key' => wp_generate_uuid4(),
+				)
+			)->get_status(),
+			'rule of another course'
+		);
+
+		$started = $call(
+			'POST',
+			'/courses/' . $this->course . '/exam-sessions',
+			array(
+				'rule'        => $rule,
+				'request_key' => wp_generate_uuid4(),
+			)
+		);
+		self::assertSame( 201, $started->get_status() );
+		self::assertSame( 'private, no-store', $started->get_headers()['Cache-Control'] );
+		$session = (int) $started->get_data()['session']['session_id'];
+		self::assertSame(
+			200,
+			$call(
+				'POST',
+				'/courses/' . $this->course . '/exam-sessions',
+				array(
+					'rule'        => $rule,
+					'request_key' => wp_generate_uuid4(),
+				)
+			)->get_status(),
+			'reload resumes'
+		);
+
+		$saved = $call(
+			'PUT',
+			'/exam-sessions/' . $session . '/answers/1',
+			array(
+				'answer' => array( 'A' ),
+				'age_ms' => 0,
+			)
+		);
+		self::assertSame( 200, $saved->get_status() );
+		self::assertTrue( $saved->get_data()['applied'] );
+		self::assertSame( array( 'flagged' => true ), $call( 'PUT', '/exam-sessions/' . $session . '/answers/2/flag', array( 'flagged' => true ) )->get_data() );
+		self::assertSame( 422, $call( 'PUT', '/exam-sessions/' . $session . '/answers/1', array( 'answer' => array( 'Q' ) ) )->get_status() );
+		self::assertSame( array( 'A' ), $call( 'GET', '/exam-sessions/' . $session )->get_data()['questions'][0]['answer'] );
+
+		$submit = $call( 'POST', '/exam-sessions/' . $session . '/submit' );
+		self::assertSame( 'evaluated', $submit->get_data()['status'] );
+		self::assertSame( $submit->get_data(), $call( 'POST', '/exam-sessions/' . $session . '/submit' )->get_data() );
+		$late = $call( 'POST', '/exam-sessions/' . $session . '/abort' );
+		self::assertSame( 409, $late->get_status() );
+		self::assertSame( 'ccap_exam_already_submitted', $late->as_error()->get_error_code() );
+
+		wp_set_current_user( (int) self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		self::assertSame( 404, $call( 'GET', '/exam-sessions/' . $session )->get_status() );
 	}
 }

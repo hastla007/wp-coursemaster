@@ -22,11 +22,12 @@ final class CourseException extends RuntimeException {
 	/**
 	 * Constructor.
 	 *
-	 * @param string $error_code `ccap_*` code.
-	 * @param string $message    English message for logs.
-	 * @param int    $status     HTTP status for entry points.
+	 * @param string               $error_code `ccap_*` code.
+	 * @param string               $message    English message for logs.
+	 * @param int                  $status     HTTP status for entry points.
+	 * @param array<string, mixed> $data       Machine-readable details (`retry_after`, `bucket`, …).
 	 */
-	public function __construct( public readonly string $error_code, string $message, public readonly int $status = 409 ) {
+	public function __construct( public readonly string $error_code, string $message, public readonly int $status = 409, public readonly array $data = array() ) {
 		parent::__construct( $message );
 	}
 

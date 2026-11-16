@@ -313,7 +313,7 @@
   - **Ergebnis/Definition of Done:** Lernraum/Admin per Tastatur bedienbar, übersetzbare Strings, Locale/RTL/Screenreader- und Responsive-Tests grün.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-20 · Prüfungsintegrität und Wiederaufnahme absichern**
+- [x] **R1-20 · Prüfungsintegrität und Wiederaufnahme absichern** — erledigt 16.11.2026: Nachweis `docs/r1/R1-20-nachweis.md`; Offline-Puffer mit begrenztem `age_ms`, Schutz älterer Tab-Stände, Start-Limit 40/h, Katalogcodes, Wiederaufnahme mit gespeichertem Stand, Prüfungs-REST R-18…R-24; Unit 85, Integration 167, Multisite 176. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08,R1-09.
   - **Ergebnis/Definition of Done:** Serverzeit/Timeout, Verbindungsabbruch, Doppelabgabe, Browser-Reload, Offline-Grenzen, Replay und Manipulationsschutz getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

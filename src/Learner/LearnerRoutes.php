@@ -11,6 +11,7 @@ namespace CourseCaptain\Learner;
 
 use CourseCaptain\Activity\ActivityProgress;
 use CourseCaptain\Course\CourseException;
+use CourseCaptain\Exam\ExamSessions;
 use CourseCaptain\Learning\AnswerService;
 use CourseCaptain\Learning\Favorites;
 use CourseCaptain\Learning\SmartTrainer;
@@ -90,6 +91,38 @@ final class LearnerRoutes {
 					return array( 'favorite' => false );
 				},
 			),
+			array(
+				'/courses/' . $course . '/exam-sessions',
+				'POST',
+				static function ( Actor $a, \WP_REST_Request $r ): \WP_REST_Response {
+					$course_id = self::course( $r );
+					$rule      = self::rule( $course_id, (string) ( $r->get_param( 'rule_uid' ) ?? $r->get_param( 'rule' ) ?? '' ) );
+					$variant   = $r->get_param( 'variant' );
+					$key       = (string) ( $r->get_param( 'request_key' ) ?? '' );
+					if ( 1 !== preg_match( '/^[A-Za-z0-9_-]{8,36}$/', $key ) ) {
+						throw new CourseException( 'ccap_invalid_param', 'request_key', 400 );
+					}
+					$sessions = ExamSessions::current();
+					$id       = $sessions->start( $a, $rule, null === $variant ? null : (int) $variant, $key );
+					$db       = \CourseCaptain\Storage\Database::current();
+					$fresh    = $key === (string) $db->scalar( $db->prepare( 'SELECT start_token FROM `' . $db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $id ) );
+					return new \WP_REST_Response( array( 'session' => $sessions->view( $a, $id ) ), $fresh ? 201 : 200 );
+				},
+			),
+			array( '/exam-sessions/(?P<session>\d+)', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => ExamSessions::current()->view( $a, (int) $r['session'] ) ),
+			array( '/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)', 'PUT', static fn( Actor $a, \WP_REST_Request $r ) => ExamSessions::current()->save_answer( $a, (int) $r['session'], (int) $r['position'], $r->get_param( 'answer' ), max( 0, (int) $r->get_param( 'age_ms' ) ) ) ),
+			array(
+				'/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/flag',
+				'PUT',
+				static function ( Actor $a, \WP_REST_Request $r ): array {
+					$on = (bool) $r->get_param( 'flagged' );
+					ExamSessions::current()->flag( $a, (int) $r['session'], (int) $r['position'], $on );
+					return array( 'flagged' => $on );
+				},
+			),
+			array( '/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/reveal', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => array( 'model_answer' => ExamSessions::current()->reveal( $a, (int) $r['session'], (int) $r['position'] ) ) ),
+			array( '/exam-sessions/(?P<session>\d+)/submit', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => ExamSessions::current()->submit( $a, (int) $r['session'] ) ),
+			array( '/exam-sessions/(?P<session>\d+)/abort', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => array( 'status' => ExamSessions::current()->cancel( $a, (int) $r['session'] ) ) ),
 		);
 		foreach ( $routes as $route ) {
 			list( $path, $method, $callback ) = $route;
@@ -130,6 +163,26 @@ final class LearnerRoutes {
 	}
 
 	/**
+	 * Exam rule of this course by UID or ID (foreign rules are 404).
+	 *
+	 * @param int    $course_id Course.
+	 * @param string $reference UID or numeric ID.
+	 * @return int
+	 * @throws CourseException 404.
+	 */
+	private static function rule( int $course_id, string $reference ): int {
+		$db    = \CourseCaptain\Storage\Database::current();
+		$table = $db->table( 'ccap_exam_rule' );
+		$id    = ctype_digit( $reference )
+			? (int) $db->scalar( $db->prepare( "SELECT id FROM `{$table}` WHERE id = %d AND course_id = %d", (int) $reference, $course_id ) )
+			: (int) $db->scalar( $db->prepare( "SELECT id FROM `{$table}` WHERE uid = %s AND course_id = %d", $reference, $course_id ) );
+		if ( $id <= 0 ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown exam.', 404 );
+		}
+		return $id;
+	}
+
+	/**
 	 * Run and map errors; responses are never cached.
 	 *
 	 * @param callable         $callback fn(Actor, WP_REST_Request).
@@ -138,11 +191,12 @@ final class LearnerRoutes {
 	 */
 	private static function run( callable $callback, \WP_REST_Request $request ) {
 		try {
-			$response = new \WP_REST_Response( $callback( Actor::user( get_current_user_id() ), $request ) );
+			$result   = $callback( Actor::user( get_current_user_id() ), $request );
+			$response = $result instanceof \WP_REST_Response ? $result : new \WP_REST_Response( $result );
 			$response->header( 'Cache-Control', 'private, no-store' );
 			return $response;
 		} catch ( CourseException $e ) {
-			return new \WP_Error( $e->error_code, $e->getMessage(), array( 'status' => $e->status ) );
+			return new \WP_Error( $e->error_code, $e->getMessage(), array( 'status' => $e->status ) + $e->data );
 		}
 	}
 }

@@ -426,7 +426,8 @@ final class SmartTrainerTest extends SchemaTestCase {
 			$this->answer( $q, true, 1 );
 			self::fail( '61st answer' );
 		} catch ( CourseException $e ) {
-			self::assertSame( 'ccap_answer_rate_limited', $e->error_code );
+			self::assertSame( 'ccap_rate_limited', $e->error_code );
+			self::assertSame( 'answer', $e->data['bucket'] );
 			self::assertSame( 429, $e->status );
 		}
 		self::assertFalse( get_option( 'ccap_rate_limit' ), 'no option' );
