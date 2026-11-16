@@ -196,3 +196,14 @@ Mit der Unterschrift bestätigt der Auftraggeber die Bewertung der Kriterien A-1
 | NF-03 / E-326 | Kursabschluss und Kurszertifikat nur mit allen Pflichtmodulen; zusätzlich optionaler **Modul-Abschlussnachweis** je Modul für Lernende mit Modul-Zugang (E-27). |
 | AG-11 / E-327 | **Clean Room als Spec-Barriere:** Die R1-Implementierung erfolgt in neuen Sessions bzw. Agenten, die nur `docs/r0`, `konzept.md` und `TODO-WETTBEWERBSANALYSE.md` erhalten, ohne Zugriff auf einen learnboating-Klon. R0-Dokumente enthalten Verhaltensbeschreibungen, Pfad:Zeile-Belege und Methodennamen, aber keinen Quellcode. Der lokale LB-Klon der Spezifikations-Session wird gelöscht. Der Referenzlauf (E-56) wird von einer getrennten Prüfrolle ausgeführt, deren Ergebnisse nur als Erwartungswerte zurückfließen. |
 | A-7 / E-328 | Bau von `cc-fixture-neutral-v1` und Referenzlauf werden **Eingangskriterium von R1-18**, nicht von Gate A. A-7 gilt für Gate A als erfüllt, soweit Abweichungsliste und Spezifikation vorliegen. |
+
+## Freigabe
+
+| Feld | Wert |
+|---|---|
+| Gate | **A (R0-GATE)** |
+| Entscheidung | **Freigegeben** |
+| Durch | Auftraggeber |
+| Datum | 16.11.2026 |
+| Auflagen | AG-05 zweite Review-Person vor dem ersten Merge in R1 · AG-07 juristische Bestätigung (Fristen E-44/E-51/E-92/E-143/E-145/E-150/E-289, externe Medien E-45a/AR-01) als Eingangskriterium von **R1-GATE** (E-329) · Referenzlauf als Eingangskriterium von R1-18 (E-328) · Spec-Barriere für die R1-Implementierung (E-327) |
+| Offene Auftraggeber-Aktionen ohne Gate-A-Wirkung | AG-01…AG-04, AG-06, AG-09, AG-10, AG-12, AG-13 (siehe §5) |

@@ -82,6 +82,8 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-326 | Kursabschluss/-zertifikat nur mit allen Pflichtmodulen; zusätzlich optionaler Modul-Abschlussnachweis | nein |
 | E-327 | Clean Room als Spec-Barriere: R1-Implementierung nur mit docs/r0, ohne LB-Klon; LB-Klon der Spezifikations-Session wird gelöscht; Referenzlauf durch getrennte Prüfrolle | nein |
 | E-328 | Fixture-Bau und Referenzlauf als Eingangskriterium von R1-18 statt Gate A | nein |
+| E-329 | Juristische Bestätigung der Fristen und von „externe Medien immer laden“ ist Eingangskriterium von R1-GATE, nicht von Gate A | nein |
+| E-330 | **R0-GATE (Gate A) freigegeben** am 16.11.2026 mit den Auflagen im Gate-Protokoll | – |
 
 ### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
 

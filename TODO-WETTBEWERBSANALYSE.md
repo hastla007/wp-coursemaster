@@ -29,192 +29,192 @@
   - **Ergebnis/Definition of Done:** Jede Funktion reuse/abstract/replace/exclude_domain_specific; keine unknown.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-04 · R1/R3-Grenze je Funktion entscheiden** — **Vorschlag fertig 16.11.2026:** `docs/r0/R0-04-r1-r3-grenze.md` (724 nicht-exclude-IDs in 37 Bausteinen, Prüfskript ohne Lücke; 25 Kopplungsstellen mit Entkopplungsvertrag); Entscheidung offen → E-05, E-07, E-10, E-14, E-16, E-24…E-27, E-32, E-53, E-54
+- [x] **R0-04 · R1/R3-Grenze je Funktion entscheiden** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-04-r1-r3-grenze.md` (724 nicht-exclude-IDs in 37 Bausteinen, Prüfskript ohne Lücke; 25 Kopplungsstellen mit Entkopplungsvertrag) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-03.
   - **Ergebnis/Definition of Done:** Neutrale Kernfunktionen R1, konkrete Woo/Voucher/Ticket-Adapter R3; keine Pflichtabhängigkeiten.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-05 · Golden-Master-Fixtures festlegen** — **Spezifikation fertig 16.11.2026:** `docs/r0/R0-05-golden-master.md` (190 GM-Tests mit Quelltest:Zeile, Fixture `cc-fixture-neutral-v1`, 14 Determinismusregeln, 27 Lücken). Referenzlauf und Freigabe offen → E-02, E-55, E-56
+- [x] **R0-05 · Golden-Master-Fixtures festlegen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-05-golden-master.md` (190 GM-Tests mit Quelltest:Zeile, Fixture `cc-fixture-neutral-v1`, 14 Determinismusregeln, 27 Lücken). Referenzlauf und Freigabe offen → E-02, E-55, E-56
   - **Voraussetzung:** R0-03.
   - **Ergebnis/Definition of Done:** Quelltest, Fixture, erwartete Resultate und Regression pro neutralem Bereich referenziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-06 · Datenmodell-ADR finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-06-datenmodell-adr.md` (52 Entitäten, 39+1 Tabellen, 5 CPTs, Migrationsregeln); Freigabe offen → `docs/r0/ENTSCHEIDUNGEN.md` E-47…E-52
+- [x] **R0-06 · Datenmodell-ADR finalisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-06-datenmodell-adr.md` (52 Entitäten, 39+1 Tabellen, 5 CPTs, Migrationsregeln); Freigabe offen → `docs/r0/ENTSCHEIDUNGEN.md` E-47…E-52
   - **Voraussetzung:** R0-02.
   - **Ergebnis/Definition of Done:** Entitäten, CPT/Tabellen, Indizes, Uniques, Revisions-/Migration-/Rollbackregeln beschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-07 · RBAC-/IDOR-Matrix finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-07-rbac-idor-matrix.md` (8 Fachrollen, 4 neue WP-Rollen, 24 Caps + 24 Meta-Caps, Matrix über REST/Admin/AJAX/Medien/Cron/CLI/Export, 96 Negativtests RBAC-001…096, LB-Abgleich 14 stärker/11 schwächer); Entscheidung offen → E-78…E-84
+- [x] **R0-07 · RBAC-/IDOR-Matrix finalisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-07-rbac-idor-matrix.md` (8 Fachrollen, 4 neue WP-Rollen, 24 Caps + 24 Meta-Caps, Matrix über REST/Admin/AJAX/Medien/Cron/CLI/Export, 96 Negativtests RBAC-001…096, LB-Abgleich 14 stärker/11 schwächer) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06.
   - **Ergebnis/Definition of Done:** WP-Capabilities, Rollen, Objekt-Scope, REST/Admin/Medien/CLI/Export-Matrix beschlossen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-08 · Kurs-, Activity- und Prüfungsverträge finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-08-kurs-activity-pruefungsvertraege.md` (Kursstruktur, Activity-Provider-Interfaces, Fragetypen, Bewertung ohne festen Schwellenwert, Smarttrainer-Algorithmus belegt, Versuchsautomat, Snapshots); Entscheidung offen → E-67…E-77
+- [x] **R0-08 · Kurs-, Activity- und Prüfungsverträge finalisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-08-kurs-activity-pruefungsvertraege.md` (Kursstruktur, Activity-Provider-Interfaces, Fragetypen, Bewertung ohne festen Schwellenwert, Smarttrainer-Algorithmus belegt, Versuchsautomat, Snapshots) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06.
   - **Ergebnis/Definition of Done:** Activity-Provider, Bewertung, Completion/Mastery/Competency, Snapshots, Versionen spezifiziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-09 · Identity-/Seat-/Grant-Zustandsautomaten finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-09-identity-seat-grant-automaten.md` (Claim-Vertrag mit gehashten Tokens, Grant-Automat G-01…15 ohne Wiederaufleben, effektiver Zugang, Seat-Automat, Refund-Matrix RF-01…19, Races R-01…13, GRANT/SEAT/ID-Tests); Entscheidung offen → E-112…E-117
+- [x] **R0-09 · Identity-/Seat-/Grant-Zustandsautomaten finalisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-09-identity-seat-grant-automaten.md` (Claim-Vertrag mit gehashten Tokens, Grant-Automat G-01…15 ohne Wiederaufleben, effektiver Zugang, Seat-Automat, Refund-Matrix RF-01…19, Races R-01…13, GRANT/SEAT/ID-Tests) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06, R0-07.
   - **Ergebnis/Definition of Done:** Claim, Quellen, Mehrfachgrants, Suspend/Expire/Refund, Race Conditions und Privacy festgelegt.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-10 · Content-Import und Medien-Sicherheit finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-10-import-medien-sicherheit.md` (Paketformat cc-package v1, Rechtemodell, Importautomat mit Aktivierungsphase, geschützte Auslieferung mit Range, Consent-Adapter, IMP-001…032/MED-001…026); Entscheidung offen → E-03, E-18, E-45, E-62…E-66
+- [x] **R0-10 · Content-Import und Medien-Sicherheit finalisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-10-import-medien-sicherheit.md` (Paketformat cc-package v1, Rechtemodell, Importautomat mit Aktivierungsphase, geschützte Auslieferung mit Range, Consent-Adapter, IMP-001…032/MED-001…026) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06.
   - **Ergebnis/Definition of Done:** Paketformat, Rechte, Dry-run, Revisionen, Rollback, Protected Files, Consent spezifiziert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-11 · Free-/Pro-Matrix und UX-Flows finalisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-11-free-pro-matrix-ux.md` (Matrix BS-01…36 mit Lizenzende-Verhalten, Admin-Screens A-01…18, Lernerscreens L-01…21, 5 UX-Flows, Konflikte C-01…18); Entscheidung offen → E-93…E-102
+- [x] **R0-11 · Free-/Pro-Matrix und UX-Flows finalisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-11-free-pro-matrix-ux.md` (Matrix BS-01…36 mit Lizenzende-Verhalten, Admin-Screens A-01…18, Lernerscreens L-01…21, 5 UX-Flows, Konflikte C-01…18) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-03, R0-08.
   - **Ergebnis/Definition of Done:** Jede Funktion und jeder Admin-/Learner-Screen eindeutig einer Edition/Phase zugeordnet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-12 · Tests, Gates und R1-Backlog abgleichen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-12-tests-gates-backlog.md` (67 Fälle → Task/Test/Gate, 920 Katalogtests in 15 Dokumenten, jeder R1-Task mit Test, 46 dokumentierte Lücken, Gate-Kriterien A–D, Top-15-Risiken, Prüfskript); Entscheidung offen → E-182…E-187 (u. a. neue Tasks R1-43/R1-44)
+- [x] **R0-12 · Tests, Gates und R1-Backlog abgleichen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-12-tests-gates-backlog.md` (67 Fälle → Task/Test/Gate, 920 Katalogtests in 15 Dokumenten, jeder R1-Task mit Test, 46 dokumentierte Lücken, Gate-Kriterien A–D, Top-15-Risiken, Prüfskript) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-05, R0-07, R0-08, R0-09, R0-10, R0-11.
   - **Ergebnis/Definition of Done:** 55 FLOW + 12 CORE, Traceability, Akzeptanzfälle und Risiken ohne unzugeordnete Pflichtfunktion.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-13 · Support- und Betriebskonzept** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-13-support-betrieb.md` (5 Supportstufen, 37 Diagnose-Checks, Diagnosepaket per Allowlist, 17 Korrekturaktionen mit Audit/Undo, Reconcile RC-1…7, 88 Audit-Aktionen mit Hash-Kette, 7 Runbooks, SUP-001…042); Entscheidung offen → E-136…E-145
+- [x] **R0-13 · Support- und Betriebskonzept** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-13-support-betrieb.md` (5 Supportstufen, 37 Diagnose-Checks, Diagnosepaket per Allowlist, 17 Korrekturaktionen mit Audit/Undo, Reconcile RC-1…7, 88 Audit-Aktionen mit Hash-Kette, 7 Runbooks, SUP-001…042) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-07,R0-09.
   - **Ergebnis/Definition of Done:** Supportrollen, sichere Diagnose, Datenkorrektur, Audit- und Eskalationsregeln samt Testfällen dokumentiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-14 · Nichtfunktionale Qualitätsziele** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-14-nichtfunktionale-ziele.md` (12 Operationsbudgets, 5 Lastprofile, Matrix, Robustheit RB-01…08, NFR-001…018); ungemessene Zielwerte; Entscheidung offen → E-57…E-61
+- [x] **R0-14 · Nichtfunktionale Qualitätsziele** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-14-nichtfunktionale-ziele.md` (12 Operationsbudgets, 5 Lastprofile, Matrix, Robustheit RB-01…08, NFR-001…018); ungemessene Zielwerte ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-02,R0-06.
   - **Ergebnis/Definition of Done:** Performancebudgets für große Fragenbanken/gleichzeitige Prüfungen, Lastprofile, Browser-/PHP-/WP-Matrix und Messverfahren festgelegt.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-15 · Barrierefreiheit und Internationalisierung spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-15-barrierefreiheit-i18n.md` (WCAG 2.2 AA, Komponentenregeln K-01…18, A11Y-001…112, Zeitlimit-/Nachteilsausgleich-Lösung, I18N-R-01…34, I18N-001…015, Übergabe Ü-1…7 an R0-25); Entscheidung offen → E-121…E-127
+- [x] **R0-15 · Barrierefreiheit und Internationalisierung spezifizieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-15-barrierefreiheit-i18n.md` (WCAG 2.2 AA, Komponentenregeln K-01…18, A11Y-001…112, Zeitlimit-/Nachteilsausgleich-Lösung, I18N-R-01…34, I18N-001…015, Übergabe Ü-1…7 an R0-25) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-11.
   - **Ergebnis/Definition of Done:** WCAG-Ziel, Tastatur-/Screenreader-/Kontrastfälle, Übersetzbarkeit, RTL, Zeitzonen, Datums-/Zahlenformate und Sprachwechsel definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-16 · Backup, Recovery und Deployment planen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-16-backup-recovery-deployment.md` (Backup-Umfang und Konsistenzstufen, Regeln I-1…I-5, Runbooks für Upgrade/Rollback/Restore/Teil-Restore/Uninstall, Staging-Ausgangsmodus, Secret-Inventar, REC-001…025); Entscheidung offen → E-85…E-92
+- [x] **R0-16 · Backup, Recovery und Deployment planen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-16-backup-recovery-deployment.md` (Backup-Umfang und Konsistenzstufen, Regeln I-1…I-5, Runbooks für Upgrade/Rollback/Restore/Teil-Restore/Uninstall, Staging-Ausgangsmodus, Secret-Inventar, REC-001…025) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06,R0-10.
   - **Ergebnis/Definition of Done:** Upgrade-/Rollback-/Restore-Runbook, Backup-Konsistenz, Staging, Secret-Handling und Recovery-Tests beschrieben.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-17 · Threat Model und Datenschutz-Folgenabschätzung prüfen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-17-threat-model-dsfa.md` (Datenflüsse und 9 Vertrauensgrenzen, 14 Datenkategorien, 62 Bedrohungen, 14 Abuse Cases, Prüfungsintegrität mit Grenzen, Tombstone-Design, DSFA-Kriterien nach WP 248, SEC-001…046, PRIV-001…030; keine Rechtsberatung); Entscheidung offen → E-146…E-154
+- [x] **R0-17 · Threat Model und Datenschutz-Folgenabschätzung prüfen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-17-threat-model-dsfa.md` (Datenflüsse und 9 Vertrauensgrenzen, 14 Datenkategorien, 62 Bedrohungen, 14 Abuse Cases, Prüfungsintegrität mit Grenzen, Tombstone-Design, DSFA-Kriterien nach WP 248, SEC-001…046, PRIV-001…030; keine Rechtsberatung) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-07,R0-09.
   - **Ergebnis/Definition of Done:** Datenflüsse, Schutzbedarf, Abuse Cases, Prüfungsintegrität, Consent, Lösch-/Exportfristen und DPIA-Bedarf bewertet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-18 · Release- und Qualitätsautomatisierung festlegen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-18-release-qa-automatisierung.md` (CI-Grundregeln, Matrix PR/nightly, 23 Jobs, SAST/Dependency-/Secret-/Lizenz-Scan, Free-Guard gegen Lizenzclient, reproduzierbarer ZIP-Build mit SBOM und Signatur, Release-Workflow, Gate-Zuordnung, Flake-Policy, Laufzeitbudgets); Entscheidung offen → E-188…E-194
+- [x] **R0-18 · Release- und Qualitätsautomatisierung festlegen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-18-release-qa-automatisierung.md` (CI-Grundregeln, Matrix PR/nightly, 23 Jobs, SAST/Dependency-/Secret-/Lizenz-Scan, Free-Guard gegen Lizenzclient, reproduzierbarer ZIP-Build mit SBOM und Signatur, Release-Workflow, Gate-Zuordnung, Flake-Policy, Laufzeitbudgets) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-05,R0-12.
   - **Ergebnis/Definition of Done:** CI-Matrix, PHP-/JS-Checks, Unit/Integration/E2E, SAST, Dependency-Scan, Paket-Signierung und Releaseartefakte definiert.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-19 · Öffentliche API- und Erweiterungsverträge inventarisieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-19-api-erweiterungsvertraege.md` (Versionierung/Deprecation, 50 REST-Routen, 46+7 Fehlercodes, 14 PHP-Funktionen, 13 Actions, 24 Filter, 3 Shortcodes, 5 Blocks, 15 CLI-Kommandos, Event-Envelope v1 mit 27 Typen, Connector-Registry, Integrationsstatus); Entscheidung offen → E-118…E-120
+- [x] **R0-19 · Öffentliche API- und Erweiterungsverträge inventarisieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-19-api-erweiterungsvertraege.md` (Versionierung/Deprecation, 50 REST-Routen, 46+7 Fehlercodes, 14 PHP-Funktionen, 13 Actions, 24 Filter, 3 Shortcodes, 5 Blocks, 15 CLI-Kommandos, Event-Envelope v1 mit 27 Typen, Connector-Registry, Integrationsstatus) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-02,R0-08.
   - **Ergebnis/Definition of Done:** Alle Hooks, Filter, REST-Routen, Shortcodes, Blocks, CLI-Kommandos und geplanten Events mit Versionierung, Auth, Fehlercodes und Deprecation-Policy tabellarisch spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-20 · WordPress-Kompatibilität und Konfliktmatrix festlegen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-20-kompatibilitaet-konflikte.md` (Versionsmatrix PHP/WP/DB mit Lebenszyklus-Vorbehalt, KOMP-001…134 über Webserver, Caches, CDN, Security, SEO, Builder, Themes, Übersetzung, Woo, andere LMS, Namenskonflikte, 14 Testprofile KP-01…14); Entscheidung offen → E-195…E-198
+- [x] **R0-20 · WordPress-Kompatibilität und Konfliktmatrix festlegen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-20-kompatibilitaet-konflikte.md` (Versionsmatrix PHP/WP/DB mit Lebenszyklus-Vorbehalt, KOMP-001…134 über Webserver, Caches, CDN, Security, SEO, Builder, Themes, Übersetzung, Woo, andere LMS, Namenskonflikte, 14 Testprofile KP-01…14) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-14,R0-18.
   - **Ergebnis/Definition of Done:** Unterstützte WP-/PHP-/DB-Versionen, Multisite-Grenze, Cache-/Security-/SEO-/Theme-/Woo-Kombinationen und Testinstallationen beschlossen.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-21 · Cache-, Nebenläufigkeits- und Konsistenzregeln entscheiden** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-21-cache-nebenlaeufigkeit.md` (ein LockService mit GET_LOCK und Lease, Entscheidungsregel UNIQUE/CAS/Row-Lock/Named Lock je Operation, globale Lock-Reihenfolge, Deadlock-/Lock-Wait-Behandlung, Cache-Klassen K0…K4 mit Invalidierungsmatrix, Stale-read-Regeln, CON-001…048); nur technische Festlegungen D21-1…6, keine Auftraggeber-Entscheidung nötig
+- [x] **R0-21 · Cache-, Nebenläufigkeits- und Konsistenzregeln entscheiden** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-21-cache-nebenlaeufigkeit.md` (ein LockService mit GET_LOCK und Lease, Entscheidungsregel UNIQUE/CAS/Row-Lock/Named Lock je Operation, globale Lock-Reihenfolge, Deadlock-/Lock-Wait-Behandlung, Cache-Klassen K0…K4 mit Invalidierungsmatrix, Stale-read-Regeln, CON-001…048); nur technische Festlegungen D21-1…6, keine Auftraggeber-Entscheidung nötig
   - **Voraussetzung:** R0-06,R0-09.
   - **Ergebnis/Definition of Done:** Invalidierung bei Grants/Refunds/Revisionen, Objektcache, HTTP/CDN-Cache, Locks, Race- und stale-read-Verhalten mit Negativtests spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-22 · Kursvalidierung und Veröffentlichungsfreigabe definieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-22-kursvalidierung-publish.md` (118 Regeln VAL-000…145, Publish-Workflow mit Vorschau ohne Schreibzugriff, alle Umgehungswege abgesichert, Autoren-UX, PUB-001…052); Entscheidung offen → E-128…E-135
+- [x] **R0-22 · Kursvalidierung und Veröffentlichungsfreigabe definieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-22-kursvalidierung-publish.md` (118 Regeln VAL-000…145, Publish-Workflow mit Vorschau ohne Schreibzugriff, alle Umgehungswege abgesichert, Autoren-UX, PUB-001…052) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-08,R0-11.
   - **Ergebnis/Definition of Done:** Fehlende Lektionen, ungültige Fragen, nicht lizenzierte Medien, unvollständige Prüfungsregeln und Preview/Publish-Blocker mit Autoren-UX dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-23 · Revisionen laufender Kurse und Lernender entscheiden** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-23-revisionen-laufender-kurse.md` (Matrix 10 Ereignisse × 8 Zustände, Regeln RV-01…21, Grandfathering, Staging-Kopie, Zertifikatsfolgen, REV-001…046); Entscheidung offen → E-103…E-111
+- [x] **R0-23 · Revisionen laufender Kurse und Lernender entscheiden** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-23-revisionen-laufender-kurse.md` (Matrix 10 Ereignisse × 8 Zustände, Regeln RV-01…21, Grandfathering, Staging-Kopie, Zertifikatsfolgen, REV-001…046) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06,R0-08.
   - **Ergebnis/Definition of Done:** Kursupdate bei laufendem Versuch, gelöschter Lektion, umsortierten Inhalten, Mastery, Zertifikaten und Migrations-/Grandfathering-Policy spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-24 · Anforderungs-Traceability und Task-Definition-of-Ready einführen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-24-traceability-dor.md` (alle 147 Registerzeilen → genau eine führende R-Task, 40 Duplikate zurückgeführt, PAR/LB → Baustein/INV/Task/GM, R2-Zuordnungen ohne Task, DoR-Template angewandt auf R1-01…44, Prüfskript fehlerfrei); Entscheidung offen → E-199…E-204
+- [x] **R0-24 · Anforderungs-Traceability und Task-Definition-of-Ready einführen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-24-traceability-dor.md` (alle 147 Registerzeilen → genau eine führende R-Task, 40 Duplikate zurückgeführt, PAR/LB → Baustein/INV/Task/GM, R2-Zuordnungen ohne Task, DoR-Template angewandt auf R1-01…44, Prüfskript fehlerfrei) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-12.
   - **Ergebnis/Definition of Done:** Jeder FLOW/CORE/PAR/LB-Fall einer Task, einem Test und Gate zugeordnet; Template für Inputs, Dateien, Negativfälle, Abnahme, Reviewer und offene Fragen verbindlich.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-25 · Mandanten-/Mehrsprachigkeits-/Locale-Grenzen klären** — **ADR-Entwurf fertig 16.11.2026:** `docs/r0/R0-25-mandanten-locale-adr.md` (Single-Site, Multisite-Regeln MS-R-01…15, Nichtumfang NS-01…07, Sprachmodell mit drei Ebenen, Antworten auf Ü-1…7, Fallback-Ketten, LOC-001…029, MS-001…023); Entscheidung offen → E-155…E-160
+- [x] **R0-25 · Mandanten-/Mehrsprachigkeits-/Locale-Grenzen klären** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-25-mandanten-locale-adr.md` (Single-Site, Multisite-Regeln MS-R-01…15, Nichtumfang NS-01…07, Sprachmodell mit drei Ebenen, Antworten auf Ü-1…7, Fallback-Ketten, LOC-001…029, MS-001…023) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-07,R0-15.
   - **Ergebnis/Definition of Done:** Single-Site-Scope, Multisite-Nichtumfang, Locale-Fallback, Sprachversionen und gemischte Kurs-/Fragensprachen als ADR dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-26 · Accessibility- und UX-Abnahme mit Nutzertests planen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-26-ux-abnahme-nutzertests.md` (Referenzkurspaket cc-fx-rk-v1 mit RK-1…3, 34 messbare Aufgaben, Testdesign mit Hilfstechnik-Teilnehmenden, Schwellen S-01…10, AT- und Browser-Matrix, Befund-Schweregrade, UX-001…091); Entscheidung offen → E-161…E-171
+- [x] **R0-26 · Accessibility- und UX-Abnahme mit Nutzertests planen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-26-ux-abnahme-nutzertests.md` (Referenzkurspaket cc-fx-rk-v1 mit RK-1…3, 34 messbare Aufgaben, Testdesign mit Hilfstechnik-Teilnehmenden, Schwellen S-01…10, AT- und Browser-Matrix, Befund-Schweregrade, UX-001…091) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-11,R0-15.
   - **Ergebnis/Definition of Done:** Autor-/Lernenden-Referenzflows, Testgeräte, Tastatur-/Screenreader-Prüfungen und echte Usability-Abnahmekriterien spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-27 · Settings-Register mit Feldverträgen erstellen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-27-settings-register.md` (alle 57 Zeilen aus Kap. 43.3 zugeordnet, Register mit 72 Feldern, Speicherregeln ohne Teilformular-Reset, Benachrichtigungsvertrag mit 13 Mailtypen, SET-001…085, NTF-001…034, Prüfskript fehlerfrei); Entscheidung offen → E-215…E-224
+- [x] **R0-27 · Settings-Register mit Feldverträgen erstellen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-27-settings-register.md` (alle 57 Zeilen aus Kap. 43.3 zugeordnet, Register mit 72 Feldern, Speicherregeln ohne Teilformular-Reset, Benachrichtigungsvertrag mit 13 Mailtypen, SET-001…085, NTF-001…034, Prüfskript fehlerfrei) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-07,R0-11,R0-24.
   - **Ergebnis/Definition of Done:** Alle Kapitel-43-Felder haben Key, Typ, Scope, Default, Capability, Validierung, Edition, Migration, Audit und Tests.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-28 · Global-/Kurs-/Prüfungs-Vererbung spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-28-settings-vererbung.md` (Rangfolge, Fixierungszeitpunkte, Snapshot-Regeln, Zustandsmatrix für Default-Änderungen, Reset/Export, INH-001…048); Entscheidung offen → E-225…E-230
+- [x] **R0-28 · Global-/Kurs-/Prüfungs-Vererbung spezifizieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-28-settings-vererbung.md` (Rangfolge, Fixierungszeitpunkte, Snapshot-Regeln, Zustandsmatrix für Default-Änderungen, Reset/Export, INH-001…048) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-08,R0-23,R0-27.
   - **Ergebnis/Definition of Done:** Override-Priorität, Snapshots, laufende Versuche, Reset und konfliktfreie Default-Änderung als Zustandsmatrix.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-29 · Free-/Pro-Konflikte Gruppen und Zertifikate auflösen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-29-gruppen-zertifikate-editionen.md` (GF-01…16/GP-01…08, CF-01…14/CP-01…06, Datenvertrag vollständig in Free, Lizenzablauf-Matrix, GRP/CRT-Tests); Entscheidung offen → E-231…E-238
+- [x] **R0-29 · Free-/Pro-Konflikte Gruppen und Zertifikate auflösen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-29-gruppen-zertifikate-editionen.md` (GF-01…16/GP-01…08, CF-01…14/CP-01…06, Datenvertrag vollständig in Free, Lizenzablauf-Matrix, GRP/CRT-Tests) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-04,R0-11,R0-27.
   - **Ergebnis/Definition of Done:** Free Seat/Claim und Basisnachweis vertraglich abgrenzen; Pro Gruppen-UX/Designer und Lizenzablauf getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-30 · Admin-Menü, Setup und Einstellungs-UX abnehmen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-30-admin-setup-ux.md` (Menübaum mit 12 Punkten und Bereichsnavigation, Setup-Assistent in 8 Schritten, Wireframes für alle Schritte und 11 Tabs, Fehlertexte F-01…92, 18 Bestätigungsdialoge, ADM-001…127); Entscheidung offen → E-260…E-267
+- [x] **R0-30 · Admin-Menü, Setup und Einstellungs-UX abnehmen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-30-admin-setup-ux.md` (Menübaum mit 12 Punkten und Bereichsnavigation, Setup-Assistent in 8 Schritten, Wireframes für alle Schritte und 11 Tabs, Fehlertexte F-01…92, 18 Bestätigungsdialoge, ADM-001…127) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-15,R0-22,R0-26,R0-27.
   - **Ergebnis/Definition of Done:** Menübaum, Tab-Screens, Hilfetexte, Validierungsfehler, Risk-Confirmations und Tastaturabläufe als prüfbare Wireframes.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-31 · Datenschutz- und Sicherheitsdefaults für Admin-Settings prüfen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-31-privacy-security-defaults.md` (43 Defaults geprüft, 44 Datenarten mit Fristen, Härtungsmodul nach E-10, PSD-001…064); Entscheidung offen → E-239…E-246
+- [x] **R0-31 · Datenschutz- und Sicherheitsdefaults für Admin-Settings prüfen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-31-privacy-security-defaults.md` (43 Defaults geprüft, 44 Datenarten mit Fristen, Härtungsmodul nach E-10, PSD-001…064) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-17,R0-27.
   - **Ergebnis/Definition of Done:** Retention-Entscheidungen, Medien/Consent, Secret-Handling, RBAC, Audit, Export/Reset und Testmatrix freigegeben.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-32 · Suite-Konzeptabgleich als Traceability-Matrix** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-32-suite-traceability.md` (Quellen mit Repo@Commit und Datei:Zeile; captain-pro nicht zugänglich); Abgleich mit R0-19/R0-24 erfolgt; Entscheidung offen → E-38…E-42
+- [x] **R0-32 · Suite-Konzeptabgleich als Traceability-Matrix** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-32-suite-traceability.md` (Quellen mit Repo@Commit und Datei:Zeile; captain-pro nicht zugänglich); Abgleich mit R0-19/R0-24 erfolgt ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-19,R0-24.
   - **Ergebnis/Definition of Done:** Form/Workflow/Review-Quellen mit Quellkapitel, Course-Relevanz, bestehender Abdeckung, Delta und explizitem Nichtumfang erfasst.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-33 · Kurs-SEO und öffentliche/private Grenzen spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-33-kurs-seo.md` (6 SEO-Klassen, 27 Seitentypen, Schema, Yoast/Rank Math/ohne, 26 Leak-Kanäle, SEO-001…052); Entscheidung offen → E-247…E-253
+- [x] **R0-33 · Kurs-SEO und öffentliche/private Grenzen spezifizieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-33-kurs-seo.md` (6 SEO-Klassen, 27 Seitentypen, Schema, Yoast/Rank Math/ohne, 26 Leak-Kanäle, SEO-001…052) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-20,R0-27.
   - **Ergebnis/Definition of Done:** Katalog/Kurs/Lektion indexierbar nach Rechteklasse; Canonical, Sitemap, Schema, Yoast- und No-SEO-Fallback ohne private Leaks definiert.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-34 · Integrationsstatus und Support-Vertrag spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-34-integrationsstatus-support.md` (IntegrationStatus v1, Oberfläche Integrationen, Support-Aktionen IA-01…09, Diagnose-Export, INT-001…052); Entscheidung offen → E-254…E-259
+- [x] **R0-34 · Integrationsstatus und Support-Vertrag spezifizieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-34-integrationsstatus-support.md` (IntegrationStatus v1, Oberfläche Integrationen, Support-Aktionen IA-01…09, Diagnose-Export, INT-001…052) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-19,R0-21,R0-27.
   - **Ergebnis/Definition of Done:** Provider-ID/Version/Contract, letzter Erfolg, Queue, Correlation-ID, Fehlercode, Retry-Rechte und Datenschutzklasse spezifiziert.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-35 · WordPress.org-/Distribution-Readiness festlegen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-35-distribution-readiness.md` (Richtlinien → Regeln, readme/Assets/Lizenz, Übersetzung, ZIP, SECURITY.md, RC-001…099); Entscheidung offen → E-205…E-214
+- [x] **R0-35 · WordPress.org-/Distribution-Readiness festlegen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-35-distribution-readiness.md` (Richtlinien → Regeln, readme/Assets/Lizenz, Übersetzung, ZIP, SECURITY.md, RC-001…099) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-18,R0-24.
   - **Ergebnis/Definition of Done:** Plugin-Slug, Readme, Lizenz/Assets, Übersetzungen, Support, Paketbuild, Free/Pro-ZIPs und Update/Restore als Releasecheckliste.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R0-36 · Weitere Suite-Quellen und Vertragsdeltas nachweisen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-36-suite-vertragsdeltas.md` (Quellen mit Repo@Commit und Datei:Zeile; captain-pro nicht zugänglich); Abgleich mit R0-19/R0-24 erfolgt; Entscheidung offen → E-38…E-42
+- [x] **R0-36 · Weitere Suite-Quellen und Vertragsdeltas nachweisen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-36-suite-vertragsdeltas.md` (Quellen mit Repo@Commit und Datei:Zeile; captain-pro nicht zugänglich); Abgleich mit R0-19/R0-24 erfolgt ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-32,R0-19.
   - **Ergebnis/Definition of Done:** Pass/Voucher/Affiliate/License/Captain-Pro-Dokumente mit Version/Quellpfad, LMS-Relevanz, vorhandenem Task, offenem Delta und Nichtumfang abgeglichen.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-37 · Schema-Upgrade unter Konkurrenz und Ausfall spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-37-schema-upgrade.md` (Trigger-Entscheidung, GET_LOCK + Lease mit Fencing, Wartungsfenster 503 nur für Schreibzugriffe, nummerierte idempotente Schritte mit Backfill/Resume, Multisite je Site, Downgrade-Grenze, MIG-001…026); Entscheidung offen → E-172…E-175
+- [x] **R0-37 · Schema-Upgrade unter Konkurrenz und Ausfall spezifizieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-37-schema-upgrade.md` (Trigger-Entscheidung, GET_LOCK + Lease mit Fencing, Wartungsfenster 503 nur für Schreibzugriffe, nummerierte idempotente Schritte mit Backfill/Resume, Multisite je Site, Downgrade-Grenze, MIG-001…026) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-06,R0-16,R0-21.
   - **Ergebnis/Definition of Done:** Lock-Strategie, Upgrade-Trigger, idempotente dbDelta-/Backfill-Schritte, unterbrochene Migration, Multisite-Scope und Rollback-Grenzen beschlossen.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-38 · Großimporte mit Dry-run, Batches und Resume spezifizieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-38-grossimporte.md` (Validierungsreport je Objekt mit Export, Provenienz/Dedupe, NDJSON-Spool und adaptive Chunks, Lease mit Resume, drei Ausführungswege, Fehlerklassen und Schwelle, Grenzwerte und Messgrößen M-01…16, BIG-001…040); Entscheidung offen → E-176…E-181
+- [x] **R0-38 · Großimporte mit Dry-run, Batches und Resume spezifizieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-38-grossimporte.md` (Validierungsreport je Objekt mit Export, Provenienz/Dedupe, NDJSON-Spool und adaptive Chunks, Lease mit Resume, drei Ausführungswege, Fehlerklassen und Schwelle, Grenzwerte und Messgrößen M-01…16, BIG-001…040) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-10,R0-16,R0-21.
   - **Ergebnis/Definition of Done:** Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback und Fehlerklassen definiert.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-39 · Free-/Pro-Lizenzclient-Grenze technisch fixieren** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-39-lizenzclient-grenze.md` (Free-Regeln FG-01…12 mit CI- und Laufzeit-Guard, Pro-Build/Namespace/Feature-Registry mit 17 Schlüsseln, Lizenzzustände × Verhalten, Datenintegrität DI-1…5, externe Blocker XB-1…9, LIC-001…086); Entscheidung offen → E-268…E-274
+- [x] **R0-39 · Free-/Pro-Lizenzclient-Grenze technisch fixieren** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-39-lizenzclient-grenze.md` (Free-Regeln FG-01…12 mit CI- und Laufzeit-Guard, Pro-Build/Namespace/Feature-Registry mit 17 Schlüsseln, Lizenzzustände × Verhalten, Datenintegrität DI-1…5, externe Blocker XB-1…9, LIC-001…086) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-11,R0-19,R0-29.
   - **Ergebnis/Definition of Done:** Core ohne Lizenzbibliothek, Updater, Lizenzserverzugriff; Add-on eigener Build/Namespace, Feature-Flags, Upgrade/Downgrade, Lizenzende und Ausfallverhalten spezifiziert.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-40 · Vertrag für finanzielle Suite-Ereignisse abgrenzen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-40-finanzielle-suite-ereignisse.md` (Zuständigkeitsmatrix, Grant-Quellen woo_order/voucher/membership, Voucher-Saga, Woo-Status/Teilrefund/Dispute/Auto-Produkte, FR-01…21, FIN-001…081); Entscheidung offen → E-275…E-284
+- [x] **R0-40 · Vertrag für finanzielle Suite-Ereignisse abgrenzen** — **Beschlossen und abgezeichnet 16.11.2026 (R0-GATE):** `docs/r0/R0-40-finanzielle-suite-ereignisse.md` (Zuständigkeitsmatrix, Grant-Quellen woo_order/voucher/membership, Voucher-Saga, Woo-Status/Teilrefund/Dispute/Auto-Produkte, FR-01…21, FIN-001…081) ; alle Entscheidungen beschlossen (docs/r0/ENTSCHEIDUNGEN.md)
   - **Voraussetzung:** R0-09,R0-19,R0-34.
   - **Ergebnis/Definition of Done:** Course meldet keine doppelte Provision/Kauftransaktion; Voucher/Order/Grant-Quellen und Fehlercodes/Idempotenz/Refund eindeutig zugeordnet.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R0-GATE · R0-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
+- [x] **R0-GATE · R0-Freigabe:** — **freigegeben durch den Auftraggeber am 16.11.2026**, Protokoll `docs/r0/R0-GATE-protokoll.md`. Auflagen: AG-05 (zweite Review-Person) vor dem ersten Merge in R1; AG-07 (juristische Bestätigung Fristen/externe Medien) vor R1-GATE; Referenzlauf vor R1-18 (E-328); R1-Implementierung nur mit Spec-Barriere (E-327). Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gate A.
 
 ### R1 – Standalone Free und vollständige neutrale Parität
 

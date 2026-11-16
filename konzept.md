@@ -1484,3 +1484,12 @@ Die bereits existierenden Tasks decken diese Deltas überwiegend ab. Daher werde
 - **Noch nicht vollständig inventarisiert:** sämtliche REST-Controller und Routen, Admin-/Frontend-Dateien, DB-Migrationsklassen/Tabellen, alle WP-Cron-Jobs, Datenschutzexport/-löschung, Medienauslieferungscontroller, Testdateien und Quellgeneratoren. GitHub-Code-Suche lieferte in diesem Durchgang keine Treffer; sie ist kein Nachweis für das Fehlen solcher Dateien.
 - **Für jedes Modul erforderlich:** exakter Pfad, Quellcommit, öffentliche Aufrufer, Datenobjekte, Rechte, Status-/Fehlerübergänge, fachneutraler Zielbaustein, Free/Pro/R3, vorhandene Task-ID, reproduzierbarer Test, Entscheidung `reuse/abstract/replace/exclude_domain_specific/unknown`.
 - **R0-GATE bleibt gesperrt**, solange `unknown`-Fälle und Quellabdeckung nicht geklärt sind. Das Dokument ist eine wachsende Teilinventur, kein behaupteter vollständiger Dateibaum.
+
+## 49. Abschluss R0 und verbindliche Spezifikation (16.11.2026)
+
+R0 ist mit **Gate A freigegeben** (`docs/r0/R0-GATE-protokoll.md`). Ab sofort gilt:
+
+- **Führende Spezifikation** für R1 ff. sind die Dokumente `docs/r0/R0-01…R0-40` zusammen mit dem Entscheidungsregister `docs/r0/ENTSCHEIDUNGEN.md` (E-01…E-330). Bei Widersprüchen zu älteren Kapiteln dieses Konzepts gehen sie vor (Rangfolge nach Kap. 46.1). Bekannte redaktionelle Korrekturen: Kap. 5/6 (Editionen, Entitlements nach E-95), Kap. 8/30.2 (Workflow-Aktionen nach E-39/E-39b), Kap. 18/30.3 (Event-Envelope und Integrationsstatus nach R0-19), Kap. 28.2 (ADR-009/010 nach E-299), Kap. 28.3 (`expired` nach E-75), Kap. 43.3 (externe Medien nach E-45a/E-312, Härtung nach E-10).
+- **Clean Room (E-01, E-327):** Aus learnboating wird kein Code übernommen. Die R1-Implementierung erfolgt ausschließlich auf Basis von `docs/r0`, ohne Zugriff auf den learnboating-Quelltext.
+- **R1-Umfang** ist um R1-43 (interne Outbox), R1-44 (Basisnachweis), R1-45 (Website-Härtung) und R1-46 (Text-/Dateiaufgaben, aus R2-02 vorgezogen) erweitert; R3 um R3-20 (Membership-Adapter).
+- **Auflagen:** zweite Review-Person vor dem ersten Merge, Referenzlauf vor R1-18, juristische Bestätigung vor R1-GATE.
