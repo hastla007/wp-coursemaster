@@ -2,7 +2,7 @@
 
 **Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung; Schnittstellen und Datenformate sind Spezifikation für R1-26.
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-22 (Voraussetzung R0-08, R0-11), Ziel-Task **R1-26** (Publish-Validator und Fehlerführung), daneben R1-04, R1-06, R1-08, R1-14, R1-15, R1-27; Konzept Kap. 3.2 (Nr. 1, 3, 4, 5), 16.3 (Kurs-, Frage-, Prüfungseditor, Design-Gate), 28.4 (Abschlussregeln, Bewertungstransparenz, Kompetenznachweise, Autoren-UX-Test); `R0-08` (Struktur §1, Provider `validate()/freeze()` §2.2–2.3, Fragetypen §3, Bestehensregel/Zeitlimit §4, Nachweis §5.3, Zertifikat §7.2), `R0-10` (Rechtestatus §2.2, Medientypen §3.2 V4, externe Medien §5), `R0-11` (A-04, A-06, A-07, A-08, A-11, Flow 1 mit F1.1–F1.6), `R0-07` (`cc_edit_courses`, `cc_publish_courses`, `cc_release_rights`, M-01, M-03, M-04, M-06, M-07, M-21), `R0-23` (Kursrevision, Staging-Kopie E-104, Rückzug EV-08/RV-04/RV-20, Pool-Schrumpfung RV-18).
+**Bezug:** TODO R0-22 (Voraussetzung R0-08, R0-11), Ziel-Task **R1-26** (Publish-Validator und Fehlerführung), daneben R1-04, R1-06, R1-08, R1-14, R1-15, R1-27; Konzept Kap. 3.2 (Nr. 1, 3, 4, 5), 16.3 (Kurs-, Frage-, Prüfungseditor, Design-Gate), 28.4 (Abschlussregeln, Bewertungstransparenz, Kompetenznachweise, Autoren-UX-Test); `R0-08` (Struktur §1, Provider `validate()/freeze()` §2.2–2.3, Fragetypen §3, Bestehensregel/Zeitlimit §4, Nachweis §5.3, Zertifikat §7.2), `R0-10` (Rechtestatus §2.2, Medientypen §3.2 V4, externe Medien §5), `R0-11` (A-04, A-06, A-07, A-08, A-11, Flow 1 mit F1.1–F1.6), `R0-07` (`ccap_edit_courses`, `ccap_publish_courses`, `ccap_release_rights`, M-01, M-03, M-04, M-06, M-07, M-21), `R0-23` (Kursrevision, Staging-Kopie E-104, Rückzug EV-08/RV-04/RV-20, Pool-Schrumpfung RV-18).
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen, nicht verändert). Pfade relativ zu `bootspruefung-learning/`, Schemas relativ zur Repo-Wurzel. **CR** = `src/Content/Repositories/ContentRepository.php`, **ES** = `src/Exams/Services/ExamService.php`, **PK** = `src/Content/Package/Package.php`, **SV** = `src/Content/Package/SchemaValidator.php`, **IS** = `src/Content/Import/ImportService.php`. LB-Belege sind **Verhaltensreferenz**, keine Code-Vorlage (E-01); LB hat ohnehin keinen Publish-Validator.
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional.
@@ -115,7 +115,7 @@ Spalten: **Obj.** = Objekt; **S** = Schwere (**B** Blocker, **W** Warnung, **H**
 | VAL-007 | Kurs | Teilumfang (`free_limited`) ≥ Gesamtzahl der Elemente des Abschnitts | H | „Der kostenlose Teilumfang umfasst bereits den ganzen Abschnitt {section}.“ (A-04 › Zugang) | quick_fix „Teilumfang auf {n−1} setzen“ |
 | VAL-008 | Kurs | Kandidat ist identisch mit der veröffentlichten Revision (`candidate_hash` = `structure_hash`) | H | „Es gibt keine Änderungen gegenüber Revision {no}. Veröffentlichen erzeugt keine neue Revision.“ | – |
 | VAL-009 | Kurs | gleichzeitige Bearbeitung: Kandidat basiert nicht auf der neuesten Entwurfsversion (CAS) | B | „Jemand anderes hat den Kurs inzwischen geändert. Lade die neue Fassung und prüfe erneut.“ | dialog „Änderungen vergleichen“ (F1.5) |
-| VAL-010 | Kurs | Kurs ist `archived` (zurückgezogen) und soll veröffentlicht werden, aber `cc_publish_courses` + Reaktivierungsbegründung fehlt | B | „Ein zurückgezogener Kurs braucht zum Reaktivieren eine Begründung.“ | dialog |
+| VAL-010 | Kurs | Kurs ist `archived` (zurückgezogen) und soll veröffentlicht werden, aber `ccap_publish_courses` + Reaktivierungsbegründung fehlt | B | „Ein zurückgezogener Kurs braucht zum Reaktivieren eine Begründung.“ | dialog |
 | VAL-011 | Kurs | Lernziel (`objective_uid`) ohne Titel oder ohne Zuordnung zu einer Activity/Frage | W | „Das Lernziel {title} ist keiner Lektion, Frage oder Prüfung zugeordnet und kann nie nachgewiesen werden.“ (A-04 › Lernziele) | jump |
 | VAL-012 | Kurs | Kandidat enthält Inhalte mit `lang`-Kennzeichnung ungleich der Kurssprache (gemischte Sprachen, E-157) | W | „Der Kurs enthält Abschnitte in {languages}. Gemischte Sprachen sind erlaubt; prüfe, ob das gewollt ist.“ | jump (Liste der Abschnitte) |
 
@@ -168,7 +168,7 @@ Gilt für jede Frage, die im Kandidaten erreichbar ist (Inline-Quiz, Modulpool e
 | VAL-055 | `flashcard` | Vorder- oder Rückseite leer | B | „Die Karteikarte braucht Vorder- und Rückseite.“ | jump |
 | VAL-056 | Frage/Regel | `scoring` nicht in R1 erlaubt (`per_option`, E-77; später nur mit ≥ 3 Optionen) bzw. `proportional_penalty` bei einem Typ ohne Teilpunkte (`single_choice`, `true_false`, `open_text`, `ordering`, `numeric_tolerance`; R0-08 §3.2) | B | „Die Teilpunktregel {scoring} ist hier nicht verfügbar.“ | quick_fix „Alles-oder-nichts verwenden“ |
 | VAL-057 | Frage | `image_required = true`, aber kein Pflichtmedium | B | „Die Frage verlangt ein Bild, es ist aber keins hinterlegt.“ | jump |
-| VAL-058 | Frage | keine veröffentlichte Revision (nur Entwurf) | W | „Die Frage ist noch Entwurf und wird Lernenden nicht gezeigt. Sie fehlt in {n} Pools.“ | quick_fix „Revision veröffentlichen“ (nur mit M-07 + `cc_publish_courses`) |
+| VAL-058 | Frage | keine veröffentlichte Revision (nur Entwurf) | W | „Die Frage ist noch Entwurf und wird Lernenden nicht gezeigt. Sie fehlt in {n} Pools.“ | quick_fix „Revision veröffentlichen“ (nur mit M-07 + `ccap_publish_courses`) |
 | VAL-059 | Frage | Gültigkeit (`valid_to`) abgelaufen bzw. läuft in ≤ 30 Tagen ab | W / H | „Die Frage ist seit {date} nicht mehr gültig“ bzw. „läuft am {date} ab.“ | jump |
 | VAL-060 | Frage | `feedback_correct`/`feedback_incorrect` leer, Kurs zeigt Erklärungen (`show_explanations = true`) **und Pro ist aktiv** (`course.explanations`, E-20). Ohne Pro wird die Regel nicht ausgewertet und nicht angezeigt (E-100) | H | „Ohne Erklärung sehen Lernende nach der Antwort nur richtig/falsch.“ | jump |
 | VAL-061 | Frage | Fragenrevision ist `substantive` geändert seit letzter Kursrevision und in einer Prüfung mit Nachweis | H | „Die Lösung von {question} wurde geändert. Laufende Versuche behalten die alte Fassung.“ (R0-23) | – |
@@ -183,7 +183,7 @@ Gilt für jede Frage, die im Kandidaten erreichbar ist (Inline-Quiz, Modulpool e
 
 #### Prüfung und Quiz-Regel (VAL-070 … VAL-099)
 
-Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre Prüfungsregel (`cc_exam_rule`) samt Blueprints bzw. Varianten.
+Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre Prüfungsregel (`ccap_exam_rule`) samt Blueprints bzw. Varianten.
 
 | Code | Obj. | Bedingung | S | Meldung (Sprungziel A-08) | Korrekturhilfe |
 |---|---|---|---|---|---|
@@ -223,7 +223,7 @@ Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre P
 
 | Code | Obj. | Bedingung | S | Meldung (Sprungziel A-06 bzw. A-13 Rechte) | Korrekturhilfe |
 |---|---|---|---|---|---|
-| VAL-100 | Medium/Inhalt | **fremd**, Rechtestatus `unknown` oder `restricted` bzw. `valid_until` abgelaufen, im **Pflichtpfad** | B | „{n} importierte Inhalte haben ungeklärte Rechte und werden Lernenden nicht gezeigt, darunter {title} in {lesson}.“ (A-13 › Rechte & Freigabe, gefiltert) | jump „Rechte prüfen“ (nur mit `cc_release_rights`, sonst „Kursverwaltung informieren“); quick_fix „Medium aus Lektion entfernen“ |
+| VAL-100 | Medium/Inhalt | **fremd**, Rechtestatus `unknown` oder `restricted` bzw. `valid_until` abgelaufen, im **Pflichtpfad** | B | „{n} importierte Inhalte haben ungeklärte Rechte und werden Lernenden nicht gezeigt, darunter {title} in {lesson}.“ (A-13 › Rechte & Freigabe, gefiltert) | jump „Rechte prüfen“ (nur mit `ccap_release_rights`, sonst „Kursverwaltung informieren“); quick_fix „Medium aus Lektion entfernen“ |
 | VAL-101 | Medium/Inhalt | wie VAL-100, außerhalb des Pflichtpfads | W | „… An dieser Stelle sehen Lernende den Platzhalter ‚Medium nicht verfügbar‘.“ | wie VAL-100 |
 | VAL-102 | Medium | **eigen**, Status `restricted` | W | „{title} ist als ‚darf nicht gezeigt werden‘ markiert, ist aber eigenes Material und wird ausgeliefert.“ (E-18) | jump |
 | VAL-103 | Medium | eigen, `unknown` | H | „Rechte für {title} sind nicht dokumentiert.“ | quick_fix „Als eigenes Material markieren“ |
@@ -321,27 +321,27 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
   └──────────────────────────┘
 ```
 
-- WP-Poststatus: `draft`/`auto-draft` = Entwurf, `pending` = Zur Freigabe, `publish` = veröffentlicht, Course-Captain-Status `archived` als registrierter Poststatus (nicht `trash`). `future` (geplant) und `private` sind für `cc_course`, `cc_module`, `cc_lesson` **gesperrt** (E-133).
+- WP-Poststatus: `draft`/`auto-draft` = Entwurf, `pending` = Zur Freigabe, `publish` = veröffentlicht, Course-Captain-Status `archived` als registrierter Poststatus (nicht `trash`). `future` (geplant) und `private` sind für `ccap_course`, `ccap_module`, `ccap_lesson` **gesperrt** (E-133).
 - Ein veröffentlichter Kurs hat **immer** genau eine Revision mit `status = published`; der Editor arbeitet dann auf der Staging-Kopie. „Änderungen verwerfen“ setzt die Staging-Kopie auf die veröffentlichte Revision zurück (mit Bestätigung, Audit).
-- „Zur Freigabe“ ist ein einfacher Ein-Schritt-Workflow für Autoren ohne `cc_publish_courses` (Konzept 17: Instructor „nach Freigabe“; R0-11 F1.2). Mehrstufige Freigaben, Fristen und Gutachter-Zuweisung sind Pro (`course.content_workflows`, R0-11 N-03; E-132).
+- „Zur Freigabe“ ist ein einfacher Ein-Schritt-Workflow für Autoren ohne `ccap_publish_courses` (Konzept 17: Instructor „nach Freigabe“; R0-11 F1.2). Mehrstufige Freigaben, Fristen und Gutachter-Zuweisung sind Pro (`course.content_workflows`, R0-11 N-03; E-132).
 
 ### 2.2 Schritte und Rechte
 
 | Schritt | Aktion | Recht (R0-07) | Vorbedingung | Ergebnis / Audit |
 |---|---|---|---|---|
-| 1 Entwurf | anlegen, bearbeiten, Autosave | M-03 `cc_edit_course` (eigener/zugewiesener Kurs `cc_edit_courses`, fremder `cc_edit_others_courses`); Fragen M-07; Regeln M-06 | – | WP-Revision des Entwurfs; Live-Validierung |
+| 1 Entwurf | anlegen, bearbeiten, Autosave | M-03 `ccap_edit_course` (eigener/zugewiesener Kurs `ccap_edit_courses`, fremder `ccap_edit_others_courses`); Fragen M-07; Regeln M-06 | – | WP-Revision des Entwurfs; Live-Validierung |
 | 2 Prüfung | „Kurs prüfen“ | M-03 | – | ValidationReport, kein Audit |
 | 2a Einreichen | „Zur Freigabe einreichen“ | M-03 **ohne** M-04 | 0 Blocker; Notiz optional | Status `pending`; Hinweis an Kursmanager (A-01-Kachel, optional Mail); Audit `course_submitted` mit `candidate_hash` |
 | 2b Zurückgeben | „Zur Überarbeitung zurückgeben“ | M-04 | Status `pending`; Kommentar Pflicht | Status `draft`; Kommentar am Kurs sichtbar; Audit `course_returned` |
 | 3 Vorschau | „Vorschau als Lernender“ | M-03 (auch der prüfende Manager über M-04 ⊃ M-03) | – | §2.3; kein Audit pro Aufruf, aber Zugriffslog im Debug-Modus |
-| 4 Veröffentlichen | „Veröffentlichen“ | M-04 `cc_publish_course` (= M-03 + `cc_publish_courses`) | 0 Blocker; alle Warnungen bestätigt; `expected_hash` = aktueller `candidate_hash`; Revisionsklasse `patch`/`minor` (R0-23) gewählt | §2.4; Audit `course_published` |
+| 4 Veröffentlichen | „Veröffentlichen“ | M-04 `ccap_publish_course` (= M-03 + `ccap_publish_courses`) | 0 Blocker; alle Warnungen bestätigt; `expected_hash` = aktueller `candidate_hash`; Revisionsklasse `patch`/`minor` (R0-23) gewählt | §2.4; Audit `course_published` |
 | 5 Zurückziehen | „Kurs zurückziehen“ | M-04 | Begründung Pflicht; Bestätigung mit Zahlen (aktive Lernende, laufende Versuche, gültige Zertifikate) | Status `archived`; Auslauf laufender Versuche nach R0-23 RV-04; Audit `course_withdrawn` |
 | 5a Für neue Einschreibungen schließen | Schalter | M-04 | – | Kurs bleibt veröffentlicht, Katalog/Einschreibung gesperrt (E-108); Audit |
-| – Fragenrevision veröffentlichen | aus Frageneditor oder Quick-Fix VAL-058 | M-07 + `cc_publish_courses` | Frage-Regeln VAL-040 … VAL-069 ohne Blocker | neue Revision; betroffene Kurse `health`-validiert |
-| – Rechte freigeben | aus VAL-100/101 | `cc_release_rights` | Pflichtbegründung | Override (R0-10 §2.2), Audit |
-| – Import aktivieren | A-13 | M-21 (`cc_import_content` + `cc_publish_courses`) | Import legt Kurse als Entwurf an; Aktivieren eines bereits veröffentlichten Kurses = Schritt 4 mit `context = publish` | wie Schritt 4 |
+| – Fragenrevision veröffentlichen | aus Frageneditor oder Quick-Fix VAL-058 | M-07 + `ccap_publish_courses` | Frage-Regeln VAL-040 … VAL-069 ohne Blocker | neue Revision; betroffene Kurse `health`-validiert |
+| – Rechte freigeben | aus VAL-100/101 | `ccap_release_rights` | Pflichtbegründung | Override (R0-10 §2.2), Audit |
+| – Import aktivieren | A-13 | M-21 (`ccap_import_content` + `ccap_publish_courses`) | Import legt Kurse als Entwurf an; Aktivieren eines bereits veröffentlichten Kurses = Schritt 4 mit `context = publish` | wie Schritt 4 |
 
-`cc_support` und `cc_trainer` haben keinen dieser Schritte (R0-07 §3.1). Trainer sehen den veröffentlichten Kurs nur über einen eigenen Grant wie Lernende.
+`ccap_support` und `ccap_trainer` haben keinen dieser Schritte (R0-07 §3.1). Trainer sehen den veröffentlichten Kurs nur über einen eigenen Grant wie Lernende.
 
 ### 2.3 Vorschau als Lernender
 
@@ -362,8 +362,8 @@ Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte
 
 **Schreibschutz (MUSS):**
 
-- Die Vorschau läuft in einem **Vorschaukontext** (`PreviewContext`, gesetzt nur serverseitig aus einem signierten, an Nutzer und Kurs gebundenen Vorschau-Token mit 2 h Gültigkeit). Alle Repositories für Lerndaten (`cc_activity_progress`, `cc_course_progress`, `cc_attempt`, `cc_question_progress`, `cc_exam_session`, `cc_exam_session_question`, `cc_certificate`, `cc_grant`, Aufgaben-Abgaben `cc_submission`/`cc_submission_file`/`cc_submission_evaluation` nach R0-08 Δ-8 und der Dateispeicher für Abgaben), Outbox, Mailversand, `do_action`-Ereignisse für Lernfortschritt, Webhooks und Lernenden-Audit prüfen den Kontext und **schreiben nicht**. Die Prüfung erfolgt zentral im Schreibpfad (Repository-Basisklasse/`WriteGuard`), nicht verteilt in Controllern; ein Schreibversuch im Vorschaukontext ist ein Programmierfehler und wirft `cc_preview_readonly` (im Test: harter Fehler).
-- Zustand während der Vorschau (beantwortete Fragen, Video-Position, Prüfungsablauf, Timer) liegt **flüchtig** in einem nutzergebundenen Transient (`cc_preview_<user>_<course>`, TTL 2 h) bzw. im Browser-Speicher der Seite. Prüfungen sind durchspielbar mit simuliertem Snapshot (gleicher Code wie §6 R0-08, In-Memory-Repository) und zeigen die Auswertung mit Kennzeichnung „Vorschau – nicht gespeichert“ (E-134). Aufgaben lassen sich in der Vorschau entwerfen und „einreichen“; Text und Datei bleiben flüchtig, eine Bewertung gibt es nicht (PUB-062).
+- Die Vorschau läuft in einem **Vorschaukontext** (`PreviewContext`, gesetzt nur serverseitig aus einem signierten, an Nutzer und Kurs gebundenen Vorschau-Token mit 2 h Gültigkeit). Alle Repositories für Lerndaten (`ccap_activity_progress`, `ccap_course_progress`, `ccap_attempt`, `ccap_question_progress`, `ccap_exam_session`, `ccap_exam_session_question`, `ccap_certificate`, `ccap_grant`, Aufgaben-Abgaben `ccap_submission`/`ccap_submission_file`/`ccap_submission_evaluation` nach R0-08 Δ-8 und der Dateispeicher für Abgaben), Outbox, Mailversand, `do_action`-Ereignisse für Lernfortschritt, Webhooks und Lernenden-Audit prüfen den Kontext und **schreiben nicht**. Die Prüfung erfolgt zentral im Schreibpfad (Repository-Basisklasse/`WriteGuard`), nicht verteilt in Controllern; ein Schreibversuch im Vorschaukontext ist ein Programmierfehler und wirft `ccap_preview_readonly` (im Test: harter Fehler).
+- Zustand während der Vorschau (beantwortete Fragen, Video-Position, Prüfungsablauf, Timer) liegt **flüchtig** in einem nutzergebundenen Transient (`ccap_preview_<user>_<course>`, TTL 2 h) bzw. im Browser-Speicher der Seite. Prüfungen sind durchspielbar mit simuliertem Snapshot (gleicher Code wie §6 R0-08, In-Memory-Repository) und zeigen die Auswertung mit Kennzeichnung „Vorschau – nicht gespeichert“ (E-134). Aufgaben lassen sich in der Vorschau entwerfen und „einreichen“; Text und Datei bleiben flüchtig, eine Bewertung gibt es nicht (PUB-062).
 - Smarttrainer-Auswahl in der Vorschau nutzt einen leeren Lernstand; sie liest **nicht** den echten Lernstand des Autors.
 - Rate-Limits und Versuchslimits zählen in der Vorschau nicht; das Start-Rate-Limit (40/h) gilt als Missbrauchsschutz trotzdem je Vorschau-Token.
 - **Kein Leck:** Vorschau-URLs sind `noindex`, `Cache-Control: no-store, private`, nicht über Seiten-Caches auslieferbar (Header + `DONOTCACHEPAGE`), und ohne gültiges Token bzw. ohne M-03 404 (R0-07 M-01, Z-R). Das Token gibt keinem anderen Nutzer Zugriff (Teilen eines Links funktioniert nicht).
@@ -372,17 +372,17 @@ Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte
 ### 2.4 Veröffentlichen (verbindlicher Ablauf)
 
 1. Client sendet `POST /course-captain/v1/courses/{uid}/publish` mit `expected_hash`, `acknowledged[]` (Fingerabdrücke), `change_class`, `note`, `request_key`, optional `recompletion_required[]` (E-105).
-2. Server prüft M-04 und Nonce, nimmt `NamedLock course_publish:<course_id>` (10 s; nicht erhältlich → `cc_publish_busy`, 409).
-3. Baut den Kandidaten **neu** aus der DB (nie aus Client-Daten), berechnet `candidate_hash`. Abweichung von `expected_hash` → `cc_validation_stale` (409) mit neuem Report.
-4. Vollständige Validierung (`context = publish`). Blocker → `cc_publish_blocked` (422) mit Report. Unbestätigte Warnung (Fingerabdruck fehlt in `acknowledged`) → `cc_publish_unacknowledged` (422).
-5. Eine Transaktion: Staging-Kopien der Lektionen übernehmen (E-104); referenzierte **Prüfungsregel-Entwürfe** werden als neue Version `published` gesetzt, die bisher referenzierte Version wird `retired` (R0-06 `cc_exam_rule`); je Activity `validate()` + `freeze()`; neue `cc_course_revision` (`revision_no + 1`, `structure`, `structure_hash = candidate_hash`, `change_class`, `published_by`, `published_at`), vorherige `superseded`; WP-Status `publish`.
+2. Server prüft M-04 und Nonce, nimmt `NamedLock course_publish:<course_id>` (10 s; nicht erhältlich → `ccap_publish_busy`, 409).
+3. Baut den Kandidaten **neu** aus der DB (nie aus Client-Daten), berechnet `candidate_hash`. Abweichung von `expected_hash` → `ccap_validation_stale` (409) mit neuem Report.
+4. Vollständige Validierung (`context = publish`). Blocker → `ccap_publish_blocked` (422) mit Report. Unbestätigte Warnung (Fingerabdruck fehlt in `acknowledged`) → `ccap_publish_unacknowledged` (422).
+5. Eine Transaktion: Staging-Kopien der Lektionen übernehmen (E-104); referenzierte **Prüfungsregel-Entwürfe** werden als neue Version `published` gesetzt, die bisher referenzierte Version wird `retired` (R0-06 `ccap_exam_rule`); je Activity `validate()` + `freeze()`; neue `ccap_course_revision` (`revision_no + 1`, `structure`, `structure_hash = candidate_hash`, `change_class`, `published_by`, `published_at`), vorherige `superseded`; WP-Status `publish`.
 6. Nach Commit: Cache-Invalidierung (`course_captain_content_changed`), Ereignis `course_captain_course_published` über Outbox, Audit `course_published` (Akteur, Revision, Hash, bestätigte Warnungen, `change_class`, Notiz, Anzahl betroffener Lernender).
 7. Idempotenz: gleicher `request_key` → dieselbe Revision zurück. `candidate_hash` = Hash der veröffentlichten Revision → keine neue Revision (VAL-008), Antwort 200 mit `unchanged = true`.
 
 **Prüfungsregel-Auflösung für Lernende (MUSS, schließt den LB-Befund):**
 
 - **LB:** `examRule()` liefert, wenn keine Regel `published ∧ verified ∧ gültig` ist, die neueste nicht archivierte Regel als Übungsmodus – **auch einen Entwurf** (CR:186-216, Kommentar CR:187-188). Defektes `passing_rule`-JSON wird still zu `min_correct_ratio = 0.75` (CR:207). Damit sehen Lernende unfertige Regeln eines Autors, sobald die gültige Regel abläuft oder fehlt.
-- **Course Captain:** Lernende lösen die Regel **ausschließlich** über `cc_course_revision.structure.activities[].rule_ref = {rule_uid, version}` der veröffentlichten Revision auf. Die referenzierte Version muss `published` sein und am Starttag gültig. Ist sie das nicht (abgelaufen, später `retired`, defekt), ist die Prüfung **nicht startbar** (`cc_exam_not_startable`, Grund `rule_unavailable`), Health meldet es; es gibt **keine** Suche nach einer anderen Regel und **keinen** Standardwert.
+- **Course Captain:** Lernende lösen die Regel **ausschließlich** über `ccap_course_revision.structure.activities[].rule_ref = {rule_uid, version}` der veröffentlichten Revision auf. Die referenzierte Version muss `published` sein und am Starttag gültig. Ist sie das nicht (abgelaufen, später `retired`, defekt), ist die Prüfung **nicht startbar** (`ccap_exam_not_startable`, Grund `rule_unavailable`), Health meldet es; es gibt **keine** Suche nach einer anderen Regel und **keinen** Standardwert.
 - Es gibt keine Abfrage „neueste Regel des Kurses“ im Lernpfad. Eine solche Methode darf im Code nur im Autorenkontext existieren (Repository-Trennung `AuthorExamRuleRepository` / `DeliveryExamRuleRepository`), Testanker PUB-030 … PUB-032.
 - Übungsprüfungen sind ausdrücklich veröffentlichte Regeln mit `purpose = practice` (nie nachweisfähig, Kennzeichnung „Übung“), nicht ein Rückfall auf Entwürfe (E-129; Δ22-1 in R0-08 §4.1 eingearbeitet).
 
@@ -391,7 +391,7 @@ Schalter „Gesperrte Inhalte trotzdem anzeigen“ (nur Vorschau) blendet Rechte
 | Weg | Absicherung |
 |---|---|
 | Course-Captain-Editor (A-04) | REST `…/publish` (§2.4) |
-| Block-Editor/WP-REST `wp/v2/cc_course` mit `status=publish` | `rest_pre_insert_cc_course`: Statuswechsel auf `publish`/`future`/`private` wird abgewiesen (`cc_publish_via_validator`, 422) mit Verweis auf A-04; Speichern als Entwurf bleibt erlaubt |
+| Block-Editor/WP-REST `wp/v2/ccap_course` mit `status=publish` | `rest_pre_insert_cc_course`: Statuswechsel auf `publish`/`future`/`private` wird abgewiesen (`ccap_publish_via_validator`, 422) mit Verweis auf A-04; Speichern als Entwurf bleibt erlaubt |
 | Quick Edit / Bulk Edit / `wp_insert_post` aus Fremdcode | `wp_insert_post_data`-Filter setzt einen ungültigen Statuswechsel auf den alten Status zurück; `transition_post_status`-Wächter loggt den Versuch (Audit `publish_bypass_blocked`) |
 | XML-RPC | wie `wp_insert_post` (gleicher Filter) |
 | WP-CLI `wp post update --post_status=publish` | wie oben; eigener Befehl `wp course-captain course publish <uid> [--ack=<fp,…>|--ack-all-warnings] [--note=…]` ruft §2.4 mit Akteur `system:cli` + `--user` |
@@ -436,7 +436,7 @@ Dialog nach „Veröffentlichen“ (bzw. „Einreichen“), modal mit Fokusfalle
 5. **Revisionsklasse** `patch` („Korrektur: Tippfehler, Bild, Formulierung“) / `minor` („Struktur, Pflichtumfang oder Regeln geändert“) mit Erklärung; Notiz optional.
 6. Schaltflächen „Veröffentlichen“ (primär, deaktiviert mit sichtbarer Begründung, solange Warnungen offen sind) und „Abbrechen“.
 
-Antwortet der Server mit `cc_validation_stale`, zeigt der Dialog „Der Kurs wurde inzwischen geändert“ und lädt die neue Zusammenfassung; bestätigte Warnungen mit gleichem Fingerabdruck bleiben angehakt.
+Antwortet der Server mit `ccap_validation_stale`, zeigt der Dialog „Der Kurs wurde inzwischen geändert“ und lädt die neue Zusammenfassung; bestätigte Warnungen mit gleichem Fingerabdruck bleiben angehakt.
 
 ### 3.4 Barrierefreiheit der Meldungen (WCAG 2.2 AA, Konzept 16.3)
 
@@ -457,8 +457,8 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 
 | ID | Gegeben | Aktion | Erwartet | Regel | Ziel |
 |---|---|---|---|---|---|
-| PUB-001 | Kurs ohne Module | `M` veröffentlicht | 422 `cc_publish_blocked`, Issue VAL-003, Kurs bleibt `draft`, keine `cc_course_revision` | VAL-003 | R1-26 |
-| PUB-002 | Modul ohne Lektion | Prüfen | VAL-020 Blocker; Quick-Fix entfernt nur die Zuordnung `cc_course_module`, Modul-CPT bleibt | VAL-020 | R1-26 (R1-04) |
+| PUB-001 | Kurs ohne Module | `M` veröffentlicht | 422 `ccap_publish_blocked`, Issue VAL-003, Kurs bleibt `draft`, keine `ccap_course_revision` | VAL-003 | R1-26 |
+| PUB-002 | Modul ohne Lektion | Prüfen | VAL-020 Blocker; Quick-Fix entfernt nur die Zuordnung `ccap_course_module`, Modul-CPT bleibt | VAL-020 | R1-26 (R1-04) |
 | PUB-003 | Lektion `lesson` mit nur leeren Absätzen | Prüfen | VAL-026 | VAL-026 | R1-26 |
 | PUB-004 | `single_choice` ohne richtige Option | Speichern | Inline-Fehler + VAL-042; Kurs mit dieser Frage im Pool → Blocker im Kursreport | VAL-042 | R1-26 (R1-06) |
 | PUB-005 | `single_choice` mit 2 richtigen | Quick-Fix „In Mehrfachauswahl umwandeln“ | Typ `multi_choice`, `scoring = all_or_nothing`, Rückgängig stellt Ursprung her | VAL-043 | R1-26 |
@@ -471,22 +471,22 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 | PUB-012 | `scoring = per_option` | Prüfen | VAL-056 (E-77) | VAL-056 | R1-26 (R1-06) |
 | PUB-013 | Prüfung, 20 `multi_choice` mit nur richtigen Optionen, Grenze 75 % | Prüfen | VAL-052 je Frage (W) **und** VAL-078 (B) | VAL-078 | R1-26 (R1-09, GM INV-E-008) |
 | PUB-014 | Blueprint fordert 12, Pool 9 auslieferbar (2 Rechte gesperrt, 1 Entwurf), Prüfung ist Zertifikatsquelle | Prüfen | VAL-086 Blocker mit Parametern `required=12, available=9`, Aufschlüsselung 2/1; Quick-Fix setzt 9 | VAL-086 | R1-26 (R1-08) |
-| PUB-015 | wie PUB-014, Prüfung optional, kein Nachweis | Veröffentlichen ohne Bestätigung | 422 `cc_publish_unacknowledged`; mit Bestätigung → Revision, Audit enthält Fingerabdruck | VAL-087, §1.3 | R1-26 |
+| PUB-015 | wie PUB-014, Prüfung optional, kein Nachweis | Veröffentlichen ohne Bestätigung | 422 `ccap_publish_unacknowledged`; mit Bestätigung → Revision, Audit enthält Fingerabdruck | VAL-087, §1.3 | R1-26 |
 | PUB-016 | zwei Blueprints auf dasselbe Modul (Pool 10, Anforderungen 6 + 6) | Prüfen | VAL-088 Hinweis „für B bleiben 4“ **und** VAL-086/087 für B | VAL-088 | R1-26 |
 | PUB-017 | Pool 0 | Prüfen | VAL-085 | VAL-085 | R1-26 |
 | PUB-018 | feste Variante mit fremder Frage `restricted` | Prüfen | VAL-089 | VAL-089 | R1-26 (R1-14) |
-| PUB-019 | Regel ohne `passing_rule` | Prüfen; außerdem Lernender startet (direkt per REST) einen Versuch einer bereits veröffentlichten Regel mit nachträglich defektem JSON (DB-Manipulation) | VAL-073 Blocker; Start → `cc_exam_not_startable`, **nie** Auswertung mit 0.75 | VAL-073, R0-08 §4.1 | R1-26 (R1-08) |
+| PUB-019 | Regel ohne `passing_rule` | Prüfen; außerdem Lernender startet (direkt per REST) einen Versuch einer bereits veröffentlichten Regel mit nachträglich defektem JSON (DB-Manipulation) | VAL-073 Blocker; Start → `ccap_exam_not_startable`, **nie** Auswertung mit 0.75 | VAL-073, R0-08 §4.1 | R1-26 (R1-08) |
 | PUB-020 | `min_ratio = 5/4` bzw. `den = 0` | Prüfen | VAL-074 | VAL-074 | R1-26 |
 | PUB-021 | Teil „8 von 5“ | Prüfen | VAL-075 | VAL-075 | R1-26 |
 | PUB-022 | `time_limit_seconds` = 0 / −5 / 90 000 / „abc“ | Prüfen | VAL-079 je Wert; `NULL` gültig (ohne Limit) | VAL-079 | R1-26 |
 | PUB-023 | 60 Fragen, Limit 300 s | Prüfen | VAL-080 Warnung | VAL-080 | R1-26 |
 | PUB-024 | Kulanz 900 s | Prüfen | VAL-082 | VAL-082 | R1-26 |
-| PUB-025 | importiertes Bild `unknown` in Pflichtlektion | Prüfen | VAL-100 Blocker; nach Rechtefreigabe (`cc_release_rights`, Begründung) verschwindet Issue; Autor ohne `cc_release_rights` sieht „Kursverwaltung informieren“ statt Link | VAL-100, E-18 | R1-26 (R1-14, R1-15) |
+| PUB-025 | importiertes Bild `unknown` in Pflichtlektion | Prüfen | VAL-100 Blocker; nach Rechtefreigabe (`ccap_release_rights`, Begründung) verschwindet Issue; Autor ohne `ccap_release_rights` sieht „Kursverwaltung informieren“ statt Link | VAL-100, E-18 | R1-26 (R1-14, R1-15) |
 | PUB-026 | dasselbe Bild in optionaler Lektion | Prüfen | VAL-101 Warnung | VAL-101 | R1-26 |
 | PUB-027 | eigenes Bild `restricted` / `unknown` | Prüfen | VAL-102 Warnung / VAL-103 Hinweis, kein Blocker (E-18) | VAL-102, VAL-103 | R1-26 |
 | PUB-028 | externes Video von nicht registriertem Host | Prüfen | VAL-110 Blocker | VAL-110 | R1-26 (R1-07) |
 | PUB-029 | YouTube-Video; (a) Modus `always_load` (Default) · (b) Modus `click_to_load`, keine WP Consent API aktiv | Prüfen | (a) nur VAL-112 (a) Hinweis, kein VAL-097; (b) nur VAL-112 (b) Hinweis, Lernendenansicht ohne Fremdverbindung vor dem Klick (R0-10 §5.2) | VAL-112, E-45a | R1-26 |
-| PUB-030 | veröffentlichte Regel v1 abgelaufen, Entwurf v2 vorhanden, Kursrevision verweist auf v1 | Lernender öffnet Prüfung / startet | nicht startbar (`cc_exam_not_startable`, `rule_unavailable`); v2 **nie** sichtbar; Health-Warnung an Autor | §2.4 (LB CR:186-216) | R1-26 (R1-08) |
+| PUB-030 | veröffentlichte Regel v1 abgelaufen, Entwurf v2 vorhanden, Kursrevision verweist auf v1 | Lernender öffnet Prüfung / startet | nicht startbar (`ccap_exam_not_startable`, `rule_unavailable`); v2 **nie** sichtbar; Health-Warnung an Autor | §2.4 (LB CR:186-216) | R1-26 (R1-08) |
 | PUB-031 | Kurs veröffentlicht, Autor legt Regel-Entwurf v2 an | Lernender startet | Versuch mit v1 (Snapshot `rule.version = 1`); nach Veröffentlichen der Kursrevision Starts mit v2 | §2.4, RV-17 | R1-26 (R1-27) |
 | PUB-032 | statische Analyse | CI | Lernpfad-Klassen (`Delivery*`, REST-Lernrouten) rufen keine Methode auf, die Regeln ohne `rule_ref` auflöst (Architekturtest, z. B. deptrac/PHPStan-Regel) | §2.4 | R1-26 (R1-18) |
 | PUB-033 | Zyklus L1 → L2 → L3 → L1 | Prüfen | VAL-120 mit Pfadangabe; Dialog bietet drei Kanten | VAL-120 | R1-26 (R1-04) |
@@ -497,15 +497,15 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 | PUB-038 | Zertifikat `exam_session` ohne Prüfung | Prüfen | VAL-130 | VAL-130 | R1-26 (R1-35) |
 | PUB-039 | Zertifikat `course_completion`, keine Pflicht-Activity | Prüfen | VAL-132 + VAL-004 | VAL-132 | R1-26 |
 | PUB-040 | 3 Bilder ohne Alt, 1 als dekorativ markiert; Video ohne Untertitel | Prüfen, Veröffentlichen | VAL-140 **Blocker** mit `n = 3` (E-131), Veröffentlichen 422; markiertes Bild ohne Issue; Pflichtbild der Frage → VAL-141 Blocker ohne Quick-Fix „dekorativ“; VAL-142 Warnung, mit aktiver Site-Einstellung Blocker | VAL-140 … VAL-142 | R1-26 (R1-19) |
-| PUB-041 | `Au` (ohne `cc_publish_courses`) | `POST …/publish` | 403 `cc_forbidden`; UI zeigt nur „Zur Freigabe einreichen“ | §2.2, M-04 | R1-26 (R1-03) |
-| PUB-042 | `Au` reicht mit 1 Blocker ein | Einreichen | 422 `cc_publish_blocked`, Status bleibt `draft` | §2.2 | R1-26 |
+| PUB-041 | `Au` (ohne `ccap_publish_courses`) | `POST …/publish` | 403 `ccap_forbidden`; UI zeigt nur „Zur Freigabe einreichen“ | §2.2, M-04 | R1-26 (R1-03) |
+| PUB-042 | `Au` reicht mit 1 Blocker ein | Einreichen | 422 `ccap_publish_blocked`, Status bleibt `draft` | §2.2 | R1-26 |
 | PUB-043 | `Au` reicht ein, `M` gibt zurück ohne Kommentar / mit Kommentar | Zurückgeben | ohne: 422; mit: `draft`, Kommentar sichtbar, Audit `course_returned` | §2.2 | R1-26 |
-| PUB-044 | Kurs mit Blocker | `wp/v2/cc_course` `status=publish`; Quick Edit; `wp post update --post_status=publish`; XML-RPC `wp.editPost` | jeweils Status unverändert, Audit `publish_bypass_blocked`, keine Revision | §2.5 | R1-26 (R1-03) |
-| PUB-045 | Kurs ohne Blocker | `wp/v2/cc_course` `status=future` | 422 (E-133) | §2.1 | R1-26 |
-| PUB-046 | Report mit `candidate_hash = h1`; danach Autor B ändert eine Lektion | `M` veröffentlicht mit `expected_hash = h1` | 409 `cc_validation_stale`, neuer Report; keine Revision | §2.4 Schritt 3 | R1-26 (R1-42) |
-| PUB-047 | zwei parallele Publish-Requests (verschiedene `request_key`) | gleichzeitig | genau eine neue Revision; zweiter → 409 `cc_publish_busy` oder `unchanged = true` | §2.4 | R1-26 (R1-42) |
+| PUB-044 | Kurs mit Blocker | `wp/v2/ccap_course` `status=publish`; Quick Edit; `wp post update --post_status=publish`; XML-RPC `wp.editPost` | jeweils Status unverändert, Audit `publish_bypass_blocked`, keine Revision | §2.5 | R1-26 (R1-03) |
+| PUB-045 | Kurs ohne Blocker | `wp/v2/ccap_course` `status=future` | 422 (E-133) | §2.1 | R1-26 |
+| PUB-046 | Report mit `candidate_hash = h1`; danach Autor B ändert eine Lektion | `M` veröffentlicht mit `expected_hash = h1` | 409 `ccap_validation_stale`, neuer Report; keine Revision | §2.4 Schritt 3 | R1-26 (R1-42) |
+| PUB-047 | zwei parallele Publish-Requests (verschiedene `request_key`) | gleichzeitig | genau eine neue Revision; zweiter → 409 `ccap_publish_busy` oder `unchanged = true` | §2.4 | R1-26 (R1-42) |
 | PUB-048 | gleicher `request_key` zweimal | Publish | dieselbe Revision, keine Doppelung im Audit/Outbox | §2.4 Schritt 7 | R1-26 |
-| PUB-049 | Vorschau als „Neu eingeschrieben“: Lektion bestätigen, Quiz beantworten, Prüfung starten und abgeben, Video bis 100 % | `Au` in Vorschau | Zeilenzahl aller `cc_*`-Lerntabellen, `cc_outbox`, Mail-Spy, `cc_audit_log` (Lernendenereignisse) **unverändert**; Auswertung angezeigt mit „nicht gespeichert“; `WriteGuard` meldet 0 Verstöße | §2.3 | R1-26 (R1-10, R1-08) |
+| PUB-049 | Vorschau als „Neu eingeschrieben“: Lektion bestätigen, Quiz beantworten, Prüfung starten und abgeben, Video bis 100 % | `Au` in Vorschau | Zeilenzahl aller `ccap_*`-Lerntabellen, `ccap_outbox`, Mail-Spy, `ccap_audit_log` (Lernendenereignisse) **unverändert**; Auswertung angezeigt mit „nicht gespeichert“; `WriteGuard` meldet 0 Verstöße | §2.3 | R1-26 (R1-10, R1-08) |
 | PUB-050 | Vorschau-URL von `Au` | anderer Nutzer `Au2` (kein Staff des Kurses) / Gast / Seiten-Cache | 404; Header `no-store`, `noindex`; Cache liefert nie die Vorschau | §2.3, R0-07 M-01 | R1-26 (R1-03) |
 | PUB-051 | Vorschau Drip-Tag 6 bei Modul 2 mit Drip 7 | Vorschau | Modul 2 Z-G „drip“ mit Datum; Tag 7 → frei | §2.3, R0-08 §1.4 | R1-26 |
 | PUB-052 | Validierungspanel mit 2 Blockern, 3 Warnungen | axe-core + Playwright-Tastaturpfad, 320 px | keine axe-Verstöße (AA); Live-Region kündigt „2 Blocker, 3 Warnungen“ einmal an; Sprungziel setzt Fokus auf das Feld; Esc gibt Fokus zurück; Schwere als Text vorhanden | §3.4 | R1-26 (R1-19) |
@@ -513,7 +513,7 @@ Fixtures nach R0-05 §2.7 / R0-07 §5.1 (Autor `Au`, Manager `M`, Admin `A`, Ler
 | PUB-054 | `matching` mit 1 Paar; zwei gleiche linke Einträge („ A “/„a“); Distraktor = richtiger rechter Eintrag — **neu, ohne LB-Quelle** | Prüfen | VAL-066 je Fall | VAL-066, E-69 | R1-26 (R1-06) |
 | PUB-055 | `ordering` mit zwei gleichen Elementen; `ordering` mit `scoring = proportional_penalty` — **neu, ohne LB-Quelle** | Prüfen | VAL-067 (B); VAL-056 (B) | VAL-067, VAL-056 | R1-26 (R1-06) |
 | PUB-056 | `cloze` mit Lücke ohne akzeptierte Antwort; doppelte Lücken-ID; Lücke mit „Begriff“ und „ begriff “ — **neu, ohne LB-Quelle** | Prüfen | VAL-068 (B) je Fall; VAL-069 (H) | VAL-068, VAL-069 | R1-26 (R1-06) |
-| PUB-057 | Aufgabe ohne Aufgabenstellung — **neu, ohne LB-Quelle** | `M` veröffentlicht | 422 `cc_publish_blocked`, VAL-037, keine Revision | VAL-037, E-168 | R1-26 (R1-46) |
+| PUB-057 | Aufgabe ohne Aufgabenstellung — **neu, ohne LB-Quelle** | `M` veröffentlicht | 422 `ccap_publish_blocked`, VAL-037, keine Revision | VAL-037, E-168 | R1-26 (R1-46) |
 | PUB-058 | Aufgabe mit `passing_points = 12`, `max_points = 10`; Abschlussregel `passed` ohne Grenze; Dateiaufgabe mit Allowlist `svg` — **neu, ohne LB-Quelle** | Prüfen | VAL-038 je Fall; Quick-Fix setzt `graded` | VAL-038 | R1-26 (R1-46) |
 | PUB-059 | Kurs mit Aufgabe, kein Trainer zugewiesen — **neu, ohne LB-Quelle** | Prüfen | VAL-039 Hinweis, Veröffentlichen ohne Bestätigung möglich | VAL-039 | R1-26 (R1-46) |
 | PUB-060 | Frage ohne Erklärungstext, `show_explanations = true`; (a) Free ohne Pro · (b) Pro aktiv | Prüfen | (a) kein VAL-060, kein Hinweis auf Pro (E-100); (b) VAL-060 Hinweis | VAL-060, E-20 | R1-26 |
@@ -559,18 +559,18 @@ Weitere hier angewandte Beschlüsse: E-18, E-20, E-22, E-23, E-27, E-45/E-45a, E
 | Δ | Dokument | Änderung |
 |---|---|---|
 | Δ22-1 | R0-08 §4.1 | Satz „Lernende können eine Entwurfsregel nur als Übung starten“ ersetzen durch „Lernende erreichen nur die in der Kursrevision referenzierte veröffentlichte Regelversion; Übungsprüfungen = `purpose = practice`“ (E-129) – **in R0-08 §4.1 eingearbeitet** |
-| Δ22-2 | R0-06 | `cc_exam_rule.purpose varchar(16) NOT NULL DEFAULT 'exam'` (`exam/practice`); `cc_course_revision.change_class` (bereits R0-23 Δ-23-2) und `validator_version varchar(16)`; Poststatus `archived` und `pending` für `cc_course` |
-| Δ22-3 | R0-19 | Fehlercodes `cc_publish_blocked` (422), `cc_publish_unacknowledged` (422), `cc_validation_stale` (409), `cc_publish_busy` (409), `cc_publish_via_validator` (422), `cc_preview_readonly` (500, nur Programmierfehler), Grund `rule_unavailable` an `cc_exam_not_startable` |
+| Δ22-2 | R0-06 | `ccap_exam_rule.purpose varchar(16) NOT NULL DEFAULT 'exam'` (`exam/practice`); `ccap_course_revision.change_class` (bereits R0-23 Δ-23-2) und `validator_version varchar(16)`; Poststatus `archived` und `pending` für `ccap_course` |
+| Δ22-3 | R0-19 | Fehlercodes `ccap_publish_blocked` (422), `ccap_publish_unacknowledged` (422), `ccap_validation_stale` (409), `ccap_publish_busy` (409), `ccap_publish_via_validator` (422), `ccap_preview_readonly` (500, nur Programmierfehler), Grund `rule_unavailable` an `ccap_exam_not_startable` |
 | Δ22-4 | R0-10 §2.2 | Admin-Vorschau: „ausgenommen“ präzisieren – Lernendenvorschau zeigt standardmäßig Platzhalter, Aufblenden per Schalter |
-| Δ22-5 | R0-07 | Meta-Cap `cc_submit_course` (= M-03 ohne M-04) und `cc_return_course` (= M-04) für §2.2; `publish_bypass_blocked` in die Audit-Pflichten §3.6; Vorschau-Token-Regel zu M-01 |
+| Δ22-5 | R0-07 | Meta-Cap `ccap_submit_course` (= M-03 ohne M-04) und `ccap_return_course` (= M-04) für §2.2; `publish_bypass_blocked` in die Audit-Pflichten §3.6; Vorschau-Token-Regel zu M-01 |
 | Δ22-6 | R0-11 A-04/A-08 | Panel, Zusammenfassungsdialog, Poolrechnung und Vorschau-Personas nach §2.3/§3 übernehmen; F1.2 auf E-132 verweisen |
-| Δ22-7 | R0-19 | Fehlercodes der Aufgaben aus R0-08 §6.6 (`cc_submission_*`, `cc_grade_invalid`) und `cc_invalid_answer` in den Katalog |
+| Δ22-7 | R0-19 | Fehlercodes der Aufgaben aus R0-08 §6.6 (`ccap_submission_*`, `ccap_grade_invalid`) und `ccap_invalid_answer` in den Katalog |
 
 ---
 
 ## 7. Nachweis
 
-- Gelesen: `TODO-WETTBEWERBSANALYSE.md` (R0-22, R1-26), `konzept.md` Kap. 3.2, 16, 28.4; `docs/r0/R0-08` (§0–§8), `R0-10` (§2, §3.2–3.3, §5, §7), `R0-11` (§2, §3.1, §5), `R0-07` (§3.1–3.4), `R0-23` (§0–§2, RV-04, RV-17, RV-18, RV-20), `R0-06` (`cc_exam_rule`, `cc_course_revision`), `ENTSCHEIDUNGEN.md` (E-18, E-23, E-69, E-77 u. a.).
+- Gelesen: `TODO-WETTBEWERBSANALYSE.md` (R0-22, R1-26), `konzept.md` Kap. 3.2, 16, 28.4; `docs/r0/R0-08` (§0–§8), `R0-10` (§2, §3.2–3.3, §5, §7), `R0-11` (§2, §3.1, §5), `R0-07` (§3.1–3.4), `R0-23` (§0–§2, RV-04, RV-17, RV-18, RV-20), `R0-06` (`ccap_exam_rule`, `ccap_course_revision`), `ENTSCHEIDUNGEN.md` (E-18, E-23, E-69, E-77 u. a.).
 - LearnBoating @ `9f37c77` (nur lesend): CR:186-216 (`examRule()`-Rückfall auf nicht archivierte Regeln inkl. Entwurf, Standard `0.75` in :207), CR:171 (Medienfilter `BLOCKING_RIGHTS`), `src/Content/Repositories/Overrides.php:34`; ES:237-252 (Pool je Blueprint mit Doppelausschluss, `reduced` statt Fehler), ES:261-269; PK:387-430 (`referenceErrors`, Abbruch bei 50 Meldungen :395); SV:23-27 (unterstützte Schlüsselwörter, **kein** `uniqueItems` → doppelte Optionen/Schlüssel unerkannt); IS:244-264 (`validate`); `schema/v1/questions.schema.json:55-89` (Antwortregeln je Typ), `schema/v1/exam_rules.schema.json:9-22, :43-51` (`time_limit_seconds ≥ 1`, `question_count ≥ 1`, `min_correct_ratio` Pflicht), `schema/v1/media.schema.json:14` (`alt_text` nullable, keine a11y-Pflicht).
 - LB hat **keinen** Kurseditor und keinen Publish-Validator; Validierung findet nur beim Import (Schema + Referenzen) und zur Laufzeit (stilles `reduced`, Rechte-Filter, 0.75-Rückfall) statt. Alle Regeln dieses Dokuments ohne LB-Beleg sind neu.
 - Keine Änderung an LearnBoating, keine Implementierung, kein Commit.

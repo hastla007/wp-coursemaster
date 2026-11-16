@@ -44,12 +44,12 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 ### 1.1 Hierarchie
 
 ```
-Kurs (cc_course, CPT)
- └─ Modul (cc_module, CPT)          n:m über cc_course_module (sort_order, required, rules)
-     └─ Lektion (cc_lesson, CPT)    1:n über post_parent + menu_order
-         └─ Activity                in R1 genau eine je Lektion (E-67), Typ in Meta _cc_activity_type
-             └─ Fragen              cc_activity_question (Inline-Quiz) bzw. Fragenpool des Moduls (cc_module_question)
-Prüfung (cc_exam_rule + Blueprint/Variante) ist eine Activity vom Typ exam, die auf eine Prüfungsregel des Kurses verweist.
+Kurs (ccap_course, CPT)
+ └─ Modul (ccap_module, CPT)          n:m über ccap_course_module (sort_order, required, rules)
+     └─ Lektion (ccap_lesson, CPT)    1:n über post_parent + menu_order
+         └─ Activity                in R1 genau eine je Lektion (E-67), Typ in Meta _ccap_activity_type
+             └─ Fragen              ccap_activity_question (Inline-Quiz) bzw. Fragenpool des Moduls (ccap_module_question)
+Prüfung (ccap_exam_rule + Blueprint/Variante) ist eine Activity vom Typ exam, die auf eine Prüfungsregel des Kurses verweist.
 ```
 
 | Ebene | Pflichtattribute (Vertrag) | LB-Beleg | Regeln |
@@ -63,17 +63,17 @@ Prüfung (cc_exam_rule + Blueprint/Variante) ist eine Activity vom Typ exam, die
 ### 1.2 Stabile IDs
 
 - **Extern zugesagt wird nur die UUID** (`uid`, UUID v4). Interne `id`/Post-IDs, Slugs und LB-Codes sind nie Vertragsbestandteil von REST, Export oder Events (R0-06 §4.0 „UID“).
-- Für Tabellenobjekte (Frage, Prüfungsregel, Variante, Versuch, Zertifikat …) liegt `uid` als Spalte vor (R0-06). Für **CPT-Objekte** (Kurs, Modul, Lektion) fehlt in R0-06 eine DB-erzwungene UUID. Vorschlag: Spalte `uid char(36) NOT NULL` mit `UNIQUE uid` in `cc_source_map`, und jedes CPT-Objekt bekommt dort eine Zeile (auch lokal angelegte, mit `source_system = 'local'`) → **Delta Δ-1 zu R0-06** (§8.2).
-- `activity_uid` ist **von der Lektion getrennt**, auch wenn in R1 eine Lektion genau eine Activity hat. So bleibt eine spätere 1:n-Aufteilung ohne Migration des Fortschritts möglich (`cc_activity_progress.activity_id` zeigt in R1 auf die Lektion; die UUID ist die stabile Referenz in Export, Events und Snapshots).
-- **Duplizieren** eines Kurses/Moduls/einer Lektion erzeugt neue UUIDs; Herkunft wird als `copied_from_uid` in `cc_source_map` vermerkt (LB `copied_from` in `praxis_tasks.schema.json`, `exam_papers.schema.json`).
+- Für Tabellenobjekte (Frage, Prüfungsregel, Variante, Versuch, Zertifikat …) liegt `uid` als Spalte vor (R0-06). Für **CPT-Objekte** (Kurs, Modul, Lektion) fehlt in R0-06 eine DB-erzwungene UUID. Vorschlag: Spalte `uid char(36) NOT NULL` mit `UNIQUE uid` in `ccap_source_map`, und jedes CPT-Objekt bekommt dort eine Zeile (auch lokal angelegte, mit `source_system = 'local'`) → **Delta Δ-1 zu R0-06** (§8.2).
+- `activity_uid` ist **von der Lektion getrennt**, auch wenn in R1 eine Lektion genau eine Activity hat. So bleibt eine spätere 1:n-Aufteilung ohne Migration des Fortschritts möglich (`ccap_activity_progress.activity_id` zeigt in R1 auf die Lektion; die UUID ist die stabile Referenz in Export, Events und Snapshots).
+- **Duplizieren** eines Kurses/Moduls/einer Lektion erzeugt neue UUIDs; Herkunft wird als `copied_from_uid` in `ccap_source_map` vermerkt (LB `copied_from` in `praxis_tasks.schema.json`, `exam_papers.schema.json`).
 - **Import** ordnet über `(source_system, source_id)` zu (R0-06 E-06); ein Reimport ändert die UUID nie.
 - Gelöschte Objekte geben ihre UUID nie frei (Archiv statt Hard-Delete, R0-06 §4.9).
 
 ### 1.3 Reihenfolge
 
-- **MUSS:** Reihenfolge ist explizit gespeichert: Kurs→Modul über `cc_course_module.sort_order`, Modul→Lektion über `menu_order`, Fragen im Pool über `cc_module_question.sort_order` (NULL zuletzt, dann ID; Quelle CR:131 `ORDER BY FIELD(mq.module_id, …), COALESCE(mq.sort_order, 2147483647), q.id`). Gleichstand wird immer über die interne ID aufgelöst, damit Auswahl und Anzeige deterministisch sind.
+- **MUSS:** Reihenfolge ist explizit gespeichert: Kurs→Modul über `ccap_course_module.sort_order`, Modul→Lektion über `menu_order`, Fragen im Pool über `ccap_module_question.sort_order` (NULL zuletzt, dann ID; Quelle CR:131 `ORDER BY FIELD(mq.module_id, …), COALESCE(mq.sort_order, 2147483647), q.id`). Gleichstand wird immer über die interne ID aufgelöst, damit Auswahl und Anzeige deterministisch sind.
 - **SOLL:** Autoren-UI vergibt Lückenwerte (10, 20, 30 …); Umsortieren ändert nur betroffene Zeilen.
-- **MUSS:** Die für Lernende gültige Reihenfolge ist die der **veröffentlichten Kursrevision** (`cc_course_revision.structure`). Umsortieren im Entwurf wirkt erst nach erneutem Veröffentlichen. Was mit Lernenden in einer älteren Revision passiert, regelt R0-23.
+- **MUSS:** Die für Lernende gültige Reihenfolge ist die der **veröffentlichten Kursrevision** (`ccap_course_revision.structure`). Umsortieren im Entwurf wirkt erst nach erneutem Veröffentlichen. Was mit Lernenden in einer älteren Revision passiert, regelt R0-23.
 - „Nächste Lektion“ (Fortsetzen) = erste nicht abgeschlossene, nicht gesperrte Pflicht-Activity in Revisionsreihenfolge (LB VS:87 sucht die erste nicht abgeschlossene, nicht gesperrte Lektion; der dortige Ausschluss eines Fachmoduls per Titel entfällt).
 
 ### 1.4 Freischaltung
@@ -85,10 +85,10 @@ Die Freischaltung ist **eine** serverseitige Policy-Entscheidung je (Lernender, 
 | # | Prüfung | Quelle des Rechts | Sperrgrund | LB-Beleg |
 |---|---|---|---|---|
 | 1 | Zugang zum **Modul** des Objekts (E-27): aktiver Grant auf genau dieses Modul oder auf den ganzen Kurs (`module_id` leer); Bundle-Grants (E-25a) wirken wie je ein Grant je enthaltenem Kurs; abhängige Zusatz-Grants (E-26) nur, solange ihr Basis-Grant aktiv ist | aktiver Grant, Free-Regel `free` mit Gültigkeitsfenster, Einstellung „Zugang für angemeldete Nutzer“ | `no_access` | AS:50-133, :335-357 (LB: je Kurs × Feature; je Modul ist neu) |
-| 2 | Teilumfang (`free_limited`): nur die ersten *n* Elemente je Abschnitt | `cc_access_rule` (`access_type = free_limited`, `limit_type`, `limit_value`) | `trial` | AS:37-46 (Limit-Typen), LS:405-428 (erste *n* Fragen je Modul), ES:166-171 (erste *n* Bögen, keine Zufallsprüfung) |
-| 3 | Drip: Modul wird *d* Tage nach Zugangsbeginn frei (E-14) | `cc_access_rule` (`access_type = drip`, `module_id`, `limit_value` = Tage; bei mehreren Regeln gilt das Maximum) | `drip` + `unlock_at` | AS:263-283 (`MAX(limit_value)`), :315-333 (Zugangsbeginn = frühester `valid_from` eines aktiven Grants, sonst Registrierung) |
-| 4 | Voraussetzungen | `cc_course_module.rules` bzw. Activity-`settings.prerequisites` | `prerequisite` + `requires[]` | **neu** (LB kennt nur `required` je Modul, `courses.schema.json:27`) |
-| 5 | Laufende Prüfung sperrt ihre Fragen im Lernmodus | `cc_exam_session` im Zustand `in_progress` | `exam_running` | LS:97-99, :208-210, :791-810 |
+| 2 | Teilumfang (`free_limited`): nur die ersten *n* Elemente je Abschnitt | `ccap_access_rule` (`access_type = free_limited`, `limit_type`, `limit_value`) | `trial` | AS:37-46 (Limit-Typen), LS:405-428 (erste *n* Fragen je Modul), ES:166-171 (erste *n* Bögen, keine Zufallsprüfung) |
+| 3 | Drip: Modul wird *d* Tage nach Zugangsbeginn frei (E-14) | `ccap_access_rule` (`access_type = drip`, `module_id`, `limit_value` = Tage; bei mehreren Regeln gilt das Maximum) | `drip` + `unlock_at` | AS:263-283 (`MAX(limit_value)`), :315-333 (Zugangsbeginn = frühester `valid_from` eines aktiven Grants, sonst Registrierung) |
+| 4 | Voraussetzungen | `ccap_course_module.rules` bzw. Activity-`settings.prerequisites` | `prerequisite` + `requires[]` | **neu** (LB kennt nur `required` je Modul, `courses.schema.json:27`) |
+| 5 | Laufende Prüfung sperrt ihre Fragen im Lernmodus | `ccap_exam_session` im Zustand `in_progress` | `exam_running` | LS:97-99, :208-210, :791-810 |
 
 **Ergebnis-Vertrag** (für REST, Blocks, Provider):
 
@@ -149,7 +149,7 @@ interface ActivityProvider
     /** Fachliche Prüfung über das Schema hinaus (z. B. Fragenpool groß genug). Läuft im Publish-Validator. */
     public function validate(ActivityDefinition $definition, ValidationContext $context): ValidationResult;
 
-    /** Teil der Definition, der beim Veröffentlichen in cc_course_revision.structure eingefroren wird. */
+    /** Teil der Definition, der beim Veröffentlichen in ccap_course_revision.structure eingefroren wird. */
     public function freeze(ActivityDefinition $definition): FrozenActivity;
 
     /** Hebt Settings einer älteren settings_version auf die aktuelle an (rein, ohne Seiteneffekte). */
@@ -237,7 +237,7 @@ interface ActivityRegistry
 | `FrozenActivity` | `activityUid`, `type`, `contractVersion`, `settingsVersion`, `settingsHash` (`sha256:`), `contentHash` (WP-Revisions-ID + Inhalts-Hash), `completionRule`, `required` |
 | `ActivityContext` | `userId`, `courseUid`, `courseRevisionId`, `activityUid`, `gate` (`GateDecision`), `scopes`, `locale`, `clock`, `randomizer`, `correlationId` |
 | `Interaction` | `kind` (z. B. `position`, `confirm`, `unconfirm`, `download`, `card_status`), `payload`, `idempotencyKey` (UUID), `clientTime` (nur Information, nie maßgeblich) |
-| `ProgressState` | gespeicherter Stand aus `cc_activity_progress` (+ Bewertungen aus `cc_exam_session`, Kartenstände aus `cc_question_progress`) |
+| `ProgressState` | gespeicherter Stand aus `ccap_activity_progress` (+ Bewertungen aus `ccap_exam_session`, Kartenstände aus `ccap_question_progress`) |
 | `CompletionRule` | `type`, `params`, `ruleVersion`; zusammengesetzt über `all_of`/`any_of` (max. Tiefe 2) |
 | `CompletionDecision` | `state` (`not_started`/`in_progress`/`completed`), `reasonCode`, `evidence[]` (Typ, Referenz-UUID, Zeitpunkt), `ruleVersion`, `decidedAt` |
 | `GradeResult` | `pointsMilli`, `maxPointsMilli`, `perItem[]` (Position, `pointsMilli`, `correct` = volle Punktzahl), `parts[]`, `passed`, `evaluatorVersion` |
@@ -246,7 +246,7 @@ interface ActivityRegistry
 
 - **contractVersion (SemVer):** Patch/Minor dürfen Settings nur additiv erweitern. Major bedeutet: alte eingefrorene Definitionen bleiben mit der alten Bewertungs-/Abschlusslogik auswertbar. Der Provider **MUSS** dazu alle Majors behalten, die in veröffentlichten Kursrevisionen oder offenen/abgeschlossenen Versuchen referenziert sind (Regressionstest im Golden Master R0-05).
 - **settingsVersion (Ganzzahl):** Schema-Stand der Settings. `migrateSettings()` wird nur auf **Entwürfe** angewendet. Eingefrorene Definitionen werden nie umgeschrieben.
-- **Veröffentlichen** ruft je Activity `validate()` und `freeze()`; das Ergebnis geht in `cc_course_revision.structure` mit `structure_hash` (R0-06 §5).
+- **Veröffentlichen** ruft je Activity `validate()` und `freeze()`; das Ergebnis geht in `ccap_course_revision.structure` mit `structure_hash` (R0-06 §5).
 - **Provider fehlt/deaktiviert:** Activity wird als „derzeit nicht verfügbar“ angezeigt; Fortschritt bleibt erhalten; eine Pflicht-Activity wird **nicht** automatisch als abgeschlossen gewertet; Health-Check meldet es (R1-17). Kein Datenverlust beim Reaktivieren.
 - **Typ ändern** ist bei veröffentlichten Activities nicht erlaubt (neue Activity anlegen, alte archivieren).
 
@@ -257,7 +257,7 @@ interface ActivityRegistry
 | `lesson` | Text/Blöcke, Schrittgalerie, Ressourcen | **`manual_confirm`**, `view` (Activity gerendert und mindestens `min_seconds` geöffnet, serverseitig über zwei Interaktionen gemessen) | – | Inline-Fragen ja | nein | `video_lesson_step` → Blöcke (R0-06 E-05) |
 | `video` | Video/Audio mit Position, Untertiteln, Inline-Fragen | **`manual_confirm`** (LB-Parität: Client meldet `completed`, VS:236-260), `position_ratio ≥ p` (Selbstauskunft des Clients, als solche gekennzeichnet) | – | Inline-Fragen ja (Kontext `video`, LS:177) | nein | VS:45-96, :173-233, :236-260; `video_modules.schema.json` (`provider` `url/youtube/vimeo/media`, `duration_seconds`) |
 | `file` | geschützter Download | **`downloaded`** (serverseitig protokollierter, erfolgreicher Download), `manual_confirm` | – | – | nein | Gate/ProtectedFiles (Inventur A §2.5); neutrales Nutzungsereignis (E-32) |
-| `quiz` | Übung/Kurzquiz aus festen Fragen oder Modulpool | **`attempted`** (alle Fragen einmal beantwortet), `passed` (Bestehensregel §4.1), `all_correct_once` | ja: unbewertet (Lernmodus-Engine, `cc_attempt`) oder bewertet (Versuchsautomat §6, Modus `quiz`, → Δ-2) | ja (unbewertet) | nur wenn `settings.counts_as_evidence = true` und bewertet | Lernmodus LS:80-282; Videoquiz `video_lesson_question` |
+| `quiz` | Übung/Kurzquiz aus festen Fragen oder Modulpool | **`attempted`** (alle Fragen einmal beantwortet), `passed` (Bestehensregel §4.1), `all_correct_once` | ja: unbewertet (Lernmodus-Engine, `ccap_attempt`) oder bewertet (Versuchsautomat §6, Modus `quiz`, → Δ-2) | ja (unbewertet) | nur wenn `settings.counts_as_evidence = true` und bewertet | Lernmodus LS:80-282; Videoquiz `video_lesson_question` |
 | `exam` | Prüfung nach Regel, Blueprint oder fester Variante | **`passed`**, `evaluated` (abgegeben, egal ob bestanden) | ja (§4, §6) | **nein** (LB: Prüfungsantworten ändern den Lernstand nicht; ES ruft `applyProgress` nie auf) | ja, wenn nachweisfähig (§5.3) | ES gesamt |
 | `flashcard` | Karteikarten-Set (E-21) | **`all_known`** (Modus Selbsteinschätzung), `all_streak` (Modus Serie), `ratio ≥ r` | – | eigener Kartenstand (nicht Smarttrainer, E-21) | nein | TS:272-297 (`open`/`practice`/`known`); Serie bis „gelernt“ ab 3 in Folge (Inventur A §5.3, `RadioService.php:278-279`) |
 | `assignment` | Text- oder Dateiaufgabe mit manueller Bewertung (E-168, R1-46) | `submitted`, **`graded`**, `passed` (bewertet und Punkte ≥ `passing_points`) | ja, manuell durch Bewertende (§2.5) | – | nein (R1) | **neu, ohne LB-Vorbild** |
@@ -265,7 +265,7 @@ interface ActivityRegistry
 **Karteikarten-Modi (E-21):**
 - `self_assessment`: Lernender setzt je Karte `open` → `practice` → `known` frei (jede Richtung erlaubt, LB TS:275, UPSERT TS:292-297).
 - `streak`: Karte wird `known`, sobald `known_streak` (Standard 3, LB) Selbsteinschätzungen „gewusst“ in Folge vorliegen; „nicht gewusst“ setzt die Serie auf 0; einmal `known` bleibt `known` (LB „bleibt gelernt“). Doppelklick-Schutz über `idempotencyKey`.
-- Speicherung: Kartenstand je Karte und Nutzer; R0-06 sieht `cc_question_progress` dafür vor (E-21-Vermerk in R0-06 E-25). Karten sind dann Fragen vom Typ `flashcard` (§3.1) mit getrenntem `learn_status`-Wertebereich und eigener `algorithm_version`.
+- Speicherung: Kartenstand je Karte und Nutzer; R0-06 sieht `ccap_question_progress` dafür vor (E-21-Vermerk in R0-06 E-25). Karten sind dann Fragen vom Typ `flashcard` (§3.1) mit getrenntem `learn_status`-Wertebereich und eigener `algorithm_version`.
 
 ### 2.5 Aufgaben-Activity `assignment` (E-168, R1-46)
 
@@ -324,7 +324,7 @@ interface ActivityRegistry
 - `multi_choice`: ≥ 2 Antworten, **mindestens eine** richtig (:86-87).
 - `open_text`: **genau eine** Antwort (die Musterantwort) (:88-89).
 - `chart_task`: darf nie `published` sein (:90-91) → fachgebunden (Seekarte), **entfällt** (INV-E-006).
-- Revision trägt `feedback_correct`/`feedback_incorrect` (:35-36), `topic`/`subtopic`/`competency`/`smart_category`/`scope` (:29-33 → `cc_question_tag`, R0-06 E-10), `image_required` (:34), Rechte- und Gültigkeitsfelder (:50-54), `media[]` mit `role` und `sort_order` (:69-80).
+- Revision trägt `feedback_correct`/`feedback_incorrect` (:35-36), `topic`/`subtopic`/`competency`/`smart_category`/`scope` (:29-33 → `ccap_question_tag`, R0-06 E-10), `image_required` (:34), Rechte- und Gültigkeitsfelder (:50-54), `media[]` mit `role` und `sort_order` (:69-80).
 
 | Typ (neutral) | Phase | Validierung beim Veröffentlichen | Bewertungsregel (`all_or_nothing`) | Teilpunkte möglich | Beleg |
 |---|---|---|---|---|---|
@@ -394,7 +394,7 @@ Selbsteinschätzung zählt in LB als richtig/falsch in der Gesamtquote (ES:629-6
 
 **Vertrag:**
 - **MUSS:** `passing_rule` ist Pflicht. Es gibt **keinen** Standardwert im Code. Die Settings-UI darf einen Startwert vorschlagen (R0-27), gespeichert wird immer ein expliziter Wert.
-- **MUSS:** Fehlt die Regel oder ist sie ungültig, ist die Prüfung **nicht startbar** (`cc_exam_not_startable`). Ein bereits laufender Versuch mit defektem Snapshot geht in `broken` (§6.1), nie in „bestanden mit Standardwert“.
+- **MUSS:** Fehlt die Regel oder ist sie ungültig, ist die Prüfung **nicht startbar** (`ccap_exam_not_startable`). Ein bereits laufender Versuch mit defektem Snapshot geht in `broken` (§6.1), nie in „bestanden mit Standardwert“.
 - Struktur (eingefroren im Snapshot):
 
 ```
@@ -423,7 +423,7 @@ passing_rule {
 
 | Regel | Wert / Verhalten | LB-Beleg |
 |---|---|---|
-| Zeitlimit | `time_limit_seconds` ≥ 1 oder `NULL` = ohne Limit | `exam_rules.schema.json:16`; R0-06 `cc_exam_rule` |
+| Zeitlimit | `time_limit_seconds` ≥ 1 oder `NULL` = ohne Limit | `exam_rules.schema.json:16`; R0-06 `ccap_exam_rule` |
 | Frist | `deadline_at = started_at + Limit`, Serverzeit UTC | ES:289 |
 | Grace | Antworten mit Zeitpunkt ≤ Frist + 5 s zählen | ES:41, :426, :624-629 |
 | Kulanz für nachgesendete Antworten | Standard 120 s, Bereich 0–600; 0 = streng (Gerätezeit wird ignoriert) | ES:45, :56-60, :412-416 |
@@ -469,7 +469,7 @@ passing_rule {
 ### 4.6 Manuelle Korrektur und Audit
 
 - Abgeschlossene Ergebnisse werden **nie überschrieben** (28.3). Eine Korrektur (z. B. fehlerhafte Frage) erzeugt eine neue Auswertung mit Grund, Akteur und Zeit; die alte bleibt sichtbar. Umfang nach **E-74**: im Datenvertrag ab R1 (`evaluation_no`, Revision mit Audit), Oberfläche erst mit dem Gradebook (Pro); nie automatisch. Für Aufgaben gilt dasselbe über `regrade` (§2.5).
-- Jede Änderung an Bewertungsregeln einer veröffentlichten Prüfung ist eine neue Regelversion (R0-06 §5) und erzeugt einen Audit-Eintrag (`cc_audit_log`).
+- Jede Änderung an Bewertungsregeln einer veröffentlichten Prüfung ist eine neue Regelversion (R0-06 §5) und erzeugt einen Audit-Eintrag (`ccap_audit_log`).
 
 ---
 
@@ -477,24 +477,24 @@ passing_rule {
 
 | Dimension | Frage, die sie beantwortet | Speicherung | Quelle der Wahrheit | Darf **nicht** |
 |---|---|---|---|---|
-| **Completion** (bearbeitet) | „Habe ich das durchgearbeitet?“ | `cc_activity_progress`, Aggregat `cc_course_progress.completion_ratio` | Provider-Abschlussentscheidung (§2.2) | aus Mastery oder Kauf entstehen |
-| **Mastery** (beherrscht) | „Kann ich das zuverlässig?“ | `cc_question_progress` (+ Kartenstände), Aggregat `mastery_ratio` | Smarttrainer-Algorithmus (§5.2) | aus Video-/Seitenaufrufen oder Prüfungsantworten entstehen (Parität) |
+| **Completion** (bearbeitet) | „Habe ich das durchgearbeitet?“ | `ccap_activity_progress`, Aggregat `ccap_course_progress.completion_ratio` | Provider-Abschlussentscheidung (§2.2) | aus Mastery oder Kauf entstehen |
+| **Mastery** (beherrscht) | „Kann ich das zuverlässig?“ | `ccap_question_progress` (+ Kartenstände), Aggregat `mastery_ratio` | Smarttrainer-Algorithmus (§5.2) | aus Video-/Seitenaufrufen oder Prüfungsantworten entstehen (Parität) |
 | **Competency** (nachgewiesen) | „Ist es belegt?“ | abgeleitet aus nachweisfähigen Versuchen und Zertifikaten (R0-06 E-28) | §5.3 | aus Completion, Mastery, Kauf oder Check-in entstehen (28.3, 35.4) |
 
 **Erlaubte Kopplung:** Eine Abschlussregel darf einen Prüfungs- oder Quiz-Erfolg verlangen (`passed`). Damit nutzt Completion ein Bewertungsergebnis, nicht umgekehrt. Mastery und Competency speisen sich nie gegenseitig.
 
 ### 5.1 Completion
 
-- **Activity:** Status `not_started` → `in_progress` → `completed`. Jeder Übergang speichert `reason_code`, `rule_version`, `completed_at` und den `content_hash` der Activity zum Abschlusszeitpunkt (R0-06 `cc_activity_progress.content_hash`).
+- **Activity:** Status `not_started` → `in_progress` → `completed`. Jeder Übergang speichert `reason_code`, `rule_version`, `completed_at` und den `content_hash` der Activity zum Abschlusszeitpunkt (R0-06 `ccap_activity_progress.content_hash`).
 - **Monotonie:** Nachweisbasierte Abschlüsse (`downloaded`, `passed`, `evaluated`, `attempted`, `all_known`) bleiben bestehen. Zurücknehmen darf der Lernende nur `manual_confirm` (LB VS:246-247 erlaubt `completed = false` generell); ein Reset durch die Kursverwaltung ist mit Audit möglich (E-70). Abschlüsse über `submitted`/`graded`/`passed` einer Aufgabe (§2.5) sind nachweisbasiert und monoton.
 - **Modul:** abgeschlossen ⇔ alle Pflicht-Activities des Moduls in der Revision des Lernenden abgeschlossen.
-- **Kurs:** abgeschlossen ⇔ alle Pflichtmodule (`cc_course_module.required`, LB `courses.schema.json:27`) abgeschlossen **und** die optionale Kurs-Abschlussregel (z. B. `passed(exam)`) erfüllt. `completion_ratio = erledigte Pflicht-Activities / Pflicht-Activities` (`decimal(5,4)`).
-- **Revision:** maßgeblich ist `cc_course_progress.course_revision_id`; Umstellung auf neue Revisionen regelt R0-23.
+- **Kurs:** abgeschlossen ⇔ alle Pflichtmodule (`ccap_course_module.required`, LB `courses.schema.json:27`) abgeschlossen **und** die optionale Kurs-Abschlussregel (z. B. `passed(exam)`) erfüllt. `completion_ratio = erledigte Pflicht-Activities / Pflicht-Activities` (`decimal(5,4)`).
+- **Revision:** maßgeblich ist `ccap_course_progress.course_revision_id`; Umstellung auf neue Revisionen regelt R0-23.
 - **Erklärbarkeit:** API liefert je Activity `state`, `reason_code`, Regeltext (i18n) und Belegreferenz, z. B. „Abgeschlossen: Quiz bestanden mit 8/10 am 14.11.2026“ oder „Offen: Voraussetzung ‚Modul 2‘ nicht erfüllt“.
 
 ### 5.2 Mastery – Smarttrainer v1 (exakte LB-Beschreibung, ADR-005)
 
-**Algorithmusversion:** `smarttrainer.v1` = Verhalten von LS @ 9f37c77. `algorithm_version` steht in `cc_question_progress` und `cc_attempt` (R0-06 §5). Parameter sind in v1 **fest** (Golden Master R0-05); konfigurierbare Parameter (INV-A-002/009 `abstract`) kommen nur als neue Version (≥ v2) und wirken nur auf neue Antworten (Konzept 4.2, 28.1).
+**Algorithmusversion:** `smarttrainer.v1` = Verhalten von LS @ 9f37c77. `algorithm_version` steht in `ccap_question_progress` und `ccap_attempt` (R0-06 §5). Parameter sind in v1 **fest** (Golden Master R0-05); konfigurierbare Parameter (INV-A-002/009 `abstract`) kommen nur als neue Version (≥ v2) und wirken nur auf neue Antworten (Konzept 4.2, 28.1).
 
 **Parameter v1:**
 
@@ -556,7 +556,7 @@ passing_rule {
 
 ### 5.3 Competency
 
-- **Lernziel** (`objective_uid`) ist ein Kursobjekt mit Titel und optionaler Gültigkeitsdauer. Zuordnung: Fragen über `cc_question_tag` (`tag_type = competency`, LB-Feld `competency`, `questions.schema.json:31`), Activities über `ActivityDefinition.objectiveUids`.
+- **Lernziel** (`objective_uid`) ist ein Kursobjekt mit Titel und optionaler Gültigkeitsdauer. Zuordnung: Fragen über `ccap_question_tag` (`tag_type = competency`, LB-Feld `competency`, `questions.schema.json:31`), Activities über `ActivityDefinition.objectiveUids`.
 - **Nachweisquellen in R1:** (1) bewerteter Versuch mit `evidence_eligible = true`, `passed = true`, Activity `producesEvidence`; (2) daraus ausgestelltes Zertifikat. **Nicht** in R1: manuelle Trainerbestätigung und externe Nachweise (Pro/R2). Eigene Tabelle erst dann (E-73).
 - **Welche Ziele ein Versuch belegt:** die in der Prüfungsregel ausdrücklich genannten `certifies_objectives` (im Snapshot eingefroren). Die Themenanalyse eines Versuchs ist Information, kein Nachweis je Ziel.
 - **Zustand je Lernendem und Ziel:** `not_evidenced` / `evidenced` / `expired` (Gültigkeit abgelaufen) / `revoked` (Versuch annulliert oder Zertifikat widerrufen). Ein Refund ist kein Widerrufsgrund (35.3).
@@ -584,7 +584,7 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 | Von | Aktion | Nach | Vorbedingungen (serverseitig) | Sperre / Transaktion | Idempotenz | LB-Beleg |
 |---|---|---|---|---|---|---|
 | – | `start(activity, variant?, request_key)` | `in_progress` | Zugriff mit Scope `exam`; Teilumfang (nur erste *n* Varianten, keine Zufallsprüfung); Regel vorhanden und gültig; Drip frei; Variante vollständig auslieferbar; Pool nicht leer; Versuchs- und Start-Limit | `NamedLock exam_start:<user>` (10 s warten; `GET_LOCK` nicht verfügbar → ohne Sperre weiter, die Prüfung auf laufende Versuche bleibt); danach 1 TX: Session + alle Session-Fragen + Snapshot | Laufender Versuch derselben Form (Variante bzw. Zufall) wird **zurückgegeben** statt dupliziert; **neu:** Client-`request_key` → `start_token` UNIQUE, wiederholter Start mit gleichem Schlüssel liefert denselben Versuch | ES:160-317 (Lock :183-186, Fortsetzen :188-194, Rate-Limit :196-198, Variante :202-217, Zufall :218-252, Snapshot :263-276, TX :277-313) |
-| `in_progress` | `saveAnswer(position, answer, client_time?)` | `in_progress` | Versuch eigener Nutzer; Zugriff besteht weiter (sonst `cc_access_denied`); Antwortzeitpunkt ≤ Frist + Grace; `open_text` erst nach `reveal` | TX: `FOR UPDATE` auf Session (Status muss `in_progress` sein) und Session-Frage; CAS `row_version` | gleiche Antwort zweimal = einmal; ein **älterer** Stand (früherer Antwortzeitpunkt) überschreibt keinen neueren → `applied = false` | ES:405-484 (Zeit :411-428, Sperren :456-462, Reihenfolge :464-468) |
+| `in_progress` | `saveAnswer(position, answer, client_time?)` | `in_progress` | Versuch eigener Nutzer; Zugriff besteht weiter (sonst `ccap_access_denied`); Antwortzeitpunkt ≤ Frist + Grace; `open_text` erst nach `reveal` | TX: `FOR UPDATE` auf Session (Status muss `in_progress` sein) und Session-Frage; CAS `row_version` | gleiche Antwort zweimal = einmal; ein **älterer** Stand (früherer Antwortzeitpunkt) überschreibt keinen neueren → `applied = false` | ES:405-484 (Zeit :411-428, Sperren :456-462, Reihenfolge :464-468) |
 | `in_progress` | `flag(position, on)` | `in_progress` | vor Frist + Grace | TX `FOR UPDATE` Session | Setzen auf Zielwert (natürlich idempotent) | ES:486-501, :1027-1032 |
 | `in_progress` | `reveal(position)` (`open_text`) | `in_progress` | vor Frist + Grace; Typ `open_text` | **neu:** TX `FOR UPDATE` (LB setzt `revealed_at` ohne Sperre, ES:511-513) | `revealed_at` nur einmal gesetzt | ES:503-516 |
 | `in_progress` | `submit()` | `evaluated` (`end_reason = submitted`; `expired = true`, wenn `now ≥ deadline`) | – | TX `FOR UPDATE` Session; Bewertung nur gegen Snapshot | Nicht-`in_progress` → keine Änderung, vorhandenes Ergebnis zurück | ES:518-526, :612-672 |
@@ -600,7 +600,7 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 
 ### 6.3 Snapshot-Inhalt (beim Start, unveränderlich)
 
-`cc_exam_session.snapshot` (kanonisches JSON, Schlüssel sortiert) + `snapshot_hash = sha256` + alle `cc_exam_session_question`-Zeilen:
+`ccap_exam_session.snapshot` (kanonisches JSON, Schlüssel sortiert) + `snapshot_hash = sha256` + alle `ccap_exam_session_question`-Zeilen:
 
 | Feld | Inhalt | LB-Entsprechung |
 |---|---|---|
@@ -646,25 +646,25 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 
 | CC-Code | LB-Code | Wann | HTTP (Vorschlag) |
 |---|---|---|---|
-| `cc_exam_not_startable` | `exam_not_startable` | keine gültige Regel, Variante unvollständig, keine Fragen | 422 |
-| `cc_exam_start_busy` | `exam_start_busy` | Startsperre belegt | 409 |
-| `cc_exam_start_rate_limited` | `exam_start_rate_limited` | Start-Limit | 429 + `retry_after` |
-| `cc_exam_attempts_exhausted` | – (neu) | `max_attempts` erreicht oder Cooldown | 422 (+ `retry_after` bei Cooldown) |
-| `cc_exam_expired` | `exam_expired` | Antwort nach Frist + Grace; Aktion nach Ablauf | 410 (LB Web 422, App 410) |
-| `cc_exam_finished` | `exam_finished` | Versuch nicht mehr `in_progress` | 409 |
-| `cc_exam_answer_locked` | `exam_answer_locked` | offene Frage ohne Aufdecken | 422 |
-| `cc_exam_invalid_answer` | Text-`RuntimeException` | ungültige/leere Auswahl, falsche Anzahl | 422 |
-| `cc_exam_conflict` | – (neu) | CAS fehlgeschlagen nach Wiederholung | 409 |
-| `cc_exam_snapshot_invalid` | – (neu; LB `error`) | Snapshot-Hash passt nicht, Regel defekt | 500 + Health |
-| `cc_access_denied` | `AccessDenied` | Zugang/Scope/Teilumfang/Drip | 403 |
-| `cc_not_found` | `NotFound` | unbekannt **oder fremd** (kein Existenzleck, ES:1034-1041) | 404 |
-| `cc_answer_rate_limited` | `answer_rate_limited` | Lernmodus-Limit | 429 |
-| `cc_question_token_expired` | `question_token_expired` | Lern-Token älter als 2 h | 422 |
-| `cc_invalid_answer` | Text-`RuntimeException` | Lernmodus: ungültige Eingabe (z. B. keine gültige Zahl bei `numeric_tolerance`, Eintrag nicht aus der ausgelieferten Liste) | 422 |
-| `cc_submission_not_editable` | – (neu, E-168) | Aufgabe nicht in `draft`/`returned` | 409 |
-| `cc_submission_incomplete` | – (neu, E-168) | Einreichen ohne Pflichtinhalt | 422 |
-| `cc_submission_file_rejected` | – (neu, E-168) | Datei verletzt Allowlist, MIME-Regel oder Größe (R0-10 §4.5) | 422 |
-| `cc_grade_invalid` | – (neu, E-168) | Punkte außerhalb 0…`max_points`, Rückgabe ohne Kommentar, Nachbewertung ohne Begründung | 422 |
+| `ccap_exam_not_startable` | `exam_not_startable` | keine gültige Regel, Variante unvollständig, keine Fragen | 422 |
+| `ccap_exam_start_busy` | `exam_start_busy` | Startsperre belegt | 409 |
+| `ccap_exam_start_rate_limited` | `exam_start_rate_limited` | Start-Limit | 429 + `retry_after` |
+| `ccap_exam_attempts_exhausted` | – (neu) | `max_attempts` erreicht oder Cooldown | 422 (+ `retry_after` bei Cooldown) |
+| `ccap_exam_expired` | `exam_expired` | Antwort nach Frist + Grace; Aktion nach Ablauf | 410 (LB Web 422, App 410) |
+| `ccap_exam_finished` | `exam_finished` | Versuch nicht mehr `in_progress` | 409 |
+| `ccap_exam_answer_locked` | `exam_answer_locked` | offene Frage ohne Aufdecken | 422 |
+| `ccap_exam_invalid_answer` | Text-`RuntimeException` | ungültige/leere Auswahl, falsche Anzahl | 422 |
+| `ccap_exam_conflict` | – (neu) | CAS fehlgeschlagen nach Wiederholung | 409 |
+| `ccap_exam_snapshot_invalid` | – (neu; LB `error`) | Snapshot-Hash passt nicht, Regel defekt | 500 + Health |
+| `ccap_access_denied` | `AccessDenied` | Zugang/Scope/Teilumfang/Drip | 403 |
+| `ccap_not_found` | `NotFound` | unbekannt **oder fremd** (kein Existenzleck, ES:1034-1041) | 404 |
+| `ccap_answer_rate_limited` | `answer_rate_limited` | Lernmodus-Limit | 429 |
+| `ccap_question_token_expired` | `question_token_expired` | Lern-Token älter als 2 h | 422 |
+| `ccap_invalid_answer` | Text-`RuntimeException` | Lernmodus: ungültige Eingabe (z. B. keine gültige Zahl bei `numeric_tolerance`, Eintrag nicht aus der ausgelieferten Liste) | 422 |
+| `ccap_submission_not_editable` | – (neu, E-168) | Aufgabe nicht in `draft`/`returned` | 409 |
+| `ccap_submission_incomplete` | – (neu, E-168) | Einreichen ohne Pflichtinhalt | 422 |
+| `ccap_submission_file_rejected` | – (neu, E-168) | Datei verletzt Allowlist, MIME-Regel oder Größe (R0-10 §4.5) | 422 |
+| `ccap_grade_invalid` | – (neu, E-168) | Punkte außerhalb 0…`max_points`, Rückgabe ohne Kommentar, Nachbewertung ohne Begründung | 422 |
 
 ---
 
@@ -674,14 +674,14 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 
 | Zeitpunkt | Fixiert | Nicht fixiert | Ort |
 |---|---|---|---|
-| **Kurs veröffentlichen** | Modul-/Lektions-/Activity-Struktur und Reihenfolge, `required`, Activity-Typ + `contract_version` + `settings_version` + `settings_hash` + `content_hash`, Abschlussregeln, Zugangs-/Drip-/Voraussetzungsregeln, Referenzen auf Prüfungsregel-Versionen, Lernziele | **Fragenrevisionen** (E-50) | `cc_course_revision.structure` + `structure_hash` |
-| **Prüfungsregel veröffentlichen** | Bestehensregel, Teile, Blueprints, Zeitlimit, Feedback-, Versuchs-, Misch- und Bewertungseinstellungen | konkrete Fragen (bei Zufallsprüfung) | `cc_exam_rule` (`status = published`, dann nur `retired`) |
-| **Versuch starten** | alles aus §6.3 inkl. Fragenrevisionen, Reihenfolgen, Seed, Zeit- und Kulanzwerte | – | `cc_exam_session.snapshot` + Session-Fragen |
-| **Lernantwort** | `revision_id`, `algorithm_version`, Kontext | – | `cc_attempt` |
-| **Activity abschließen** | `content_hash`, `rule_version`, `reason_code` | – | `cc_activity_progress` |
+| **Kurs veröffentlichen** | Modul-/Lektions-/Activity-Struktur und Reihenfolge, `required`, Activity-Typ + `contract_version` + `settings_version` + `settings_hash` + `content_hash`, Abschlussregeln, Zugangs-/Drip-/Voraussetzungsregeln, Referenzen auf Prüfungsregel-Versionen, Lernziele | **Fragenrevisionen** (E-50) | `ccap_course_revision.structure` + `structure_hash` |
+| **Prüfungsregel veröffentlichen** | Bestehensregel, Teile, Blueprints, Zeitlimit, Feedback-, Versuchs-, Misch- und Bewertungseinstellungen | konkrete Fragen (bei Zufallsprüfung) | `ccap_exam_rule` (`status = published`, dann nur `retired`) |
+| **Versuch starten** | alles aus §6.3 inkl. Fragenrevisionen, Reihenfolgen, Seed, Zeit- und Kulanzwerte | – | `ccap_exam_session.snapshot` + Session-Fragen |
+| **Lernantwort** | `revision_id`, `algorithm_version`, Kontext | – | `ccap_attempt` |
+| **Activity abschließen** | `content_hash`, `rule_version`, `reason_code` | – | `ccap_activity_progress` |
 | **Aufgabe einreichen** (E-168) | `content_hash` (Text + Datei-Hashes), `settings_hash` der Aufgabe, `submission_no`, `submitted_at` | – | Abgabe-Tabelle (Δ-8) |
 | **Aufgabe bewerten** | `points_milli`, `max_points_milli`, `passed`, Bewerter, `evaluation_no`, `evaluator_version` | – | Auswertungs-Tabelle (Δ-8) |
-| **Zertifikat ausstellen** | siehe 7.2 | – | `cc_certificate.snapshot` |
+| **Zertifikat ausstellen** | siehe 7.2 | – | `ccap_certificate.snapshot` |
 
 ### 7.2 Zertifikats-Snapshot
 
@@ -711,7 +711,7 @@ Pflichtinhalt (Konzept 35.4; R0-06 §4.5):
 | `format_version` | Snapshot-/Struktur-JSON | Leser für alle alten Formate bleiben |
 | `template_version` | Zertifikatsvorlage | im Zertifikat gespeichert |
 
-**Testanker (für R0-05/R1-08/R1-20):** Autor ändert Frage, Regel oder Kurs nach Versuchsstart → Ergebnis unverändert. Kulanz-Einstellung ändert sich während eines Versuchs → wirkt nicht. `snapshot_hash` stimmt nach Auswertung. Doppelter `submit` und paralleler `submit`/Cron → ein Ergebnis. Doppelter `start` mit gleichem `request_key` → ein Versuch. Algorithmuswechsel → alte `cc_question_progress`-Zeilen unverändert.
+**Testanker (für R0-05/R1-08/R1-20):** Autor ändert Frage, Regel oder Kurs nach Versuchsstart → Ergebnis unverändert. Kulanz-Einstellung ändert sich während eines Versuchs → wirkt nicht. `snapshot_hash` stimmt nach Auswertung. Doppelter `submit` und paralleler `submit`/Cron → ein Ergebnis. Doppelter `start` mit gleichem `request_key` → ein Versuch. Algorithmuswechsel → alte `ccap_question_progress`-Zeilen unverändert.
 
 ---
 
@@ -741,16 +741,16 @@ Weitere hier umgesetzte Beschlüsse: E-20/E-147/E-229/E-268/E-269 (§4.5), E-22 
 
 | Δ | Änderung | Grund |
 |---|---|---|
-| Δ-1 | `cc_source_map.uid char(36) NOT NULL` + `UNIQUE uid`; Zeile für **jedes** CPT-Objekt, auch lokal angelegt; optional `copied_from_uid` | DB-erzwungene stabile IDs für Kurs/Modul/Lektion (§1.2) |
-| Δ-2 | `cc_exam_session.mode` um `quiz` erweitern; `activity_uid` als Spalte | E-68 |
-| Δ-3 | Punkte in Tausendstel: `cc_exam_session.score`/`max_score` → `points_milli`/`max_points_milli`; `cc_exam_session_question.points_milli`, `max_points_milli` | §3.2, kein Gleitkommavergleich |
-| Δ-4 | `cc_exam_session.evaluation_no smallint unsigned NOT NULL DEFAULT 1`; Ergebnis-Historie append-only | E-74 |
-| Δ-5 | `cc_exam_session.end_reason varchar(16) NULL` (`submitted/expired`); Statuswerte `in_progress/submitted/evaluated/cancelled/broken` | §6.1, E-75 |
-| Δ-6 | `cc_activity_progress`: `reason_code varchar(32)`, `rule_version smallint`; Status zusätzlich `not_started` (implizit ohne Zeile) | §5.1 Erklärbarkeit |
+| Δ-1 | `ccap_source_map.uid char(36) NOT NULL` + `UNIQUE uid`; Zeile für **jedes** CPT-Objekt, auch lokal angelegt; optional `copied_from_uid` | DB-erzwungene stabile IDs für Kurs/Modul/Lektion (§1.2) |
+| Δ-2 | `ccap_exam_session.mode` um `quiz` erweitern; `activity_uid` als Spalte | E-68 |
+| Δ-3 | Punkte in Tausendstel: `ccap_exam_session.score`/`max_score` → `points_milli`/`max_points_milli`; `ccap_exam_session_question.points_milli`, `max_points_milli` | §3.2, kein Gleitkommavergleich |
+| Δ-4 | `ccap_exam_session.evaluation_no smallint unsigned NOT NULL DEFAULT 1`; Ergebnis-Historie append-only | E-74 |
+| Δ-5 | `ccap_exam_session.end_reason varchar(16) NULL` (`submitted/expired`); Statuswerte `in_progress/submitted/evaluated/cancelled/broken` | §6.1, E-75 |
+| Δ-6 | `ccap_activity_progress`: `reason_code varchar(32)`, `rule_version smallint`; Status zusätzlich `not_started` (implizit ohne Zeile) | §5.1 Erklärbarkeit |
 | Δ-7 | Lernziel-Objekt (`objective_uid`, Titel, Gültigkeit) als Kurs-Meta in der Kursrevision; keine eigene Tabelle in R1 | §5.3, E-73 |
-| Δ-8 | Aufgaben (E-168, Vorschlag): `cc_submission` (UID, `user_id`, `course_id`, `activity_uid`, `course_revision_id`, `submission_no`, `status` `draft/submitted/returned/graded`, `text longtext NULL`, `content_hash`, `settings_hash`, `submitted_at`, `return_comment`, `row_version`; UNIQUE `(user_id, activity_uid, submission_no)`), `cc_submission_file` (Abgabe, zufälliger Speicherschlüssel, Originalname als Metadatum, MIME, Bytes, SHA-256; R0-10 §4.5), `cc_submission_evaluation` (Abgabe, `evaluation_no`, `points_milli`, `max_points_milli`, `passed`, Feedback, Bewerter, Begründung, Zeit; append-only) | §2.5, §7.1 |
+| Δ-8 | Aufgaben (E-168, Vorschlag): `ccap_submission` (UID, `user_id`, `course_id`, `activity_uid`, `course_revision_id`, `submission_no`, `status` `draft/submitted/returned/graded`, `text longtext NULL`, `content_hash`, `settings_hash`, `submitted_at`, `return_comment`, `row_version`; UNIQUE `(user_id, activity_uid, submission_no)`), `ccap_submission_file` (Abgabe, zufälliger Speicherschlüssel, Originalname als Metadatum, MIME, Bytes, SHA-256; R0-10 §4.5), `ccap_submission_evaluation` (Abgabe, `evaluation_no`, `points_milli`, `max_points_milli`, `passed`, Feedback, Bewerter, Begründung, Zeit; append-only) | §2.5, §7.1 |
 | Δ-9 | Grant-Ziel je Modul (E-27) ist bereits als R0-06-Nachtrag (R0-40 Δ40-1: `module_id … DEFAULT 0`) erfasst; abhängige Zusatz-Grants (E-26) und Bundles (E-25a) brauchen die Kettenfelder aus R0-09 | §1.4 |
-| Δ-10 | `cc_question_revision.settings` je Typ: `numeric_tolerance {value, tolerance_type, tolerance, unit?}`, `matching {pairs[], distractors[]}`, `ordering {items[]}`, `cloze {gaps[] {id, accepted[]}, case_sensitive}`; Lösungsdaten nie im Lern-Token | §3.1 |
+| Δ-10 | `ccap_question_revision.settings` je Typ: `numeric_tolerance {value, tolerance_type, tolerance, unit?}`, `matching {pairs[], distractors[]}`, `ordering {items[]}`, `cloze {gaps[] {id, accepted[]}, case_sensitive}`; Lösungsdaten nie im Lern-Token | §3.1 |
 
 ### 8.3 Offene Punkte nach Einarbeitung
 

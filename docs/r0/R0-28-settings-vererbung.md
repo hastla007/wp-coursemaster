@@ -2,7 +2,7 @@
 
 **Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Keine Implementierung, kein Testlauf, kein Commit. Die DoD verlangt Feld-/UI-Vertrag, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe. · **Stand:** 16.11.2026
 **Bezug:** TODO R0-28 (Voraussetzungen R0-08, R0-23, R0-27; DoD: „Override-Priorität, Snapshots, laufende Versuche, Reset und konfliktfreie Default-Änderung als Zustandsmatrix“), Ziel-Task **R1-33** (DoD: „Vererbung, Preview, Änderung laufender Versuche und historische Auswertung getestet“), daneben R1-08, R1-20, R1-26, R1-27, R1-31, R1-36; Konzept Kap. 43.1 (Konsens „Globaler Default → expliziter Kurs-/Prüfungs-Override → unveränderlicher Snapshot“), 43.2 (UX-Vertrag), 43.4 („Default und Vererbungsquelle“), 43.5 („Kurs-Overrides und ihre Snapshots“).
-**Quellen (nur gelesen):** `konzept.md` Kap. 43; `TODO-WETTBEWERBSANALYSE.md` R0-27, R0-28, R1-33; `docs/r0/ENTSCHEIDUNGEN.md` Beschlussprotokoll und E-01…E-224; R0-27 §1.1 (SR-1…SR-8), §1.3 (Scope-Spalte aller 72 Register-Zeilen), §1.5, §2.1…§2.5, §4, §7 („R0-28: Override-Speicherorte und Materialisierung aus SR-3 und §2.3 übernehmen“); R0-08 §4.1, §4.3…§4.5, §6.3, §7.1…§7.3 und Nachträge; R0-23 §1.2, §2.1 (Hinweis „Vererbung regelt R0-28/R1-33“), §2.3 RV-01/RV-17, §3.2; R0-15 §2.3 (`timer_mode`, `cc_accommodation`); R0-37 Wartungsfenster W1/W2, D37-3; R0-10 Paketschema `courses.settings`, `cc_override` (Rechtestatus); R0-07 M-03, M-06, M-15, `cc_manage_accommodations`.
+**Quellen (nur gelesen):** `konzept.md` Kap. 43; `TODO-WETTBEWERBSANALYSE.md` R0-27, R0-28, R1-33; `docs/r0/ENTSCHEIDUNGEN.md` Beschlussprotokoll und E-01…E-224; R0-27 §1.1 (SR-1…SR-8), §1.3 (Scope-Spalte aller 72 Register-Zeilen), §1.5, §2.1…§2.5, §4, §7 („R0-28: Override-Speicherorte und Materialisierung aus SR-3 und §2.3 übernehmen“); R0-08 §4.1, §4.3…§4.5, §6.3, §7.1…§7.3 und Nachträge; R0-23 §1.2, §2.1 (Hinweis „Vererbung regelt R0-28/R1-33“), §2.3 RV-01/RV-17, §3.2; R0-15 §2.3 (`timer_mode`, `ccap_accommodation`); R0-37 Wartungsfenster W1/W2, D37-3; R0-10 Paketschema `courses.settings`, `ccap_override` (Rechtestatus); R0-07 M-03, M-06, M-15, `ccap_manage_accommodations`.
 
 ### Beschlussstand
 
@@ -39,23 +39,23 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | Ebene | Speicherort | Wer schreibt | Wann wirksam |
 |---|---|---|---|
 | **Schema-Default** | Settings-Schema (PHP), genau einmal (SR-7) | Code | nur als Rückfall, wenn die globale Option den Schlüssel nicht enthält (S-10, Health-Warnung) |
-| **Global** | Tab-Option `course_captain_settings_<tab>.values.<feld>` (materialisiert, R0-27 §2.3) | #19 `cc_manage_settings` | nach Klasse (§1.2) |
+| **Global** | Tab-Option `course_captain_settings_<tab>.values.<feld>` (materialisiert, R0-27 §2.3) | #19 `ccap_manage_settings` | nach Klasse (§1.2) |
 | **Sperre (globale Pflicht)** | **neu** `course_captain_settings_<tab>.locks.<feld> = {reason ≤ 200, by, since}` (T28-5) | #19 | nach Klasse; Override ruht |
-| **Kurs** | Post-Meta `_cc_settings` am Kursentwurf: `{_schema, overrides: {<key>: value}}`; beim Veröffentlichen in `cc_course_revision.settings` eingefroren (E-104) | M-03 | ab Veröffentlichung der Kursrevision |
+| **Kurs** | Post-Meta `_ccap_settings` am Kursentwurf: `{_schema, overrides: {<key>: value}}`; beim Veröffentlichen in `ccap_course_revision.settings` eingefroren (E-104) | M-03 | ab Veröffentlichung der Kursrevision |
 | **Activity (Quiz)** | Activity-Settings (`settings_version`, `settings_hash`, R0-08 §7.1), Unterschlüssel `overrides` | M-06 | ab Veröffentlichung der Kursrevision |
-| **Prüfungsregel** | `cc_exam_rule.settings` des Entwurfs: `{overrides}`; beim Veröffentlichen der Regelversion **materialisiert** als `{<key>: {v, src}}` (R0-08 §7.1) | M-06 | ab Veröffentlichung der Kursrevision, die die Regelversion referenziert (EV-07) |
+| **Prüfungsregel** | `ccap_exam_rule.settings` des Entwurfs: `{overrides}`; beim Veröffentlichen der Regelversion **materialisiert** als `{<key>: {v, src}}` (R0-08 §7.1) | M-06 | ab Veröffentlichung der Kursrevision, die die Regelversion referenziert (EV-07) |
 | **Gruppe** (Nebenscope) | Gruppen-Datensatz, `overrides` | M-15 | bei Einladungserzeugung |
 | **Medium** (Nebenscope) | Medien-Meta, nur strenger | M-03 | live |
-| **Lernender** (nur Nachteilsausgleich) | `cc_accommodation` (R0-15 §2.3): Regel > Kurs > Site | `cc_manage_accommodations` | beim Versuchsstart |
+| **Lernender** (nur Nachteilsausgleich) | `ccap_accommodation` (R0-15 §2.3): Regel > Kurs > Site | `ccap_manage_accommodations` | beim Versuchsstart |
 
-**MUSS:** Ein Override-Schlüssel ist ein Register-Key aus R0-27 §1.3 mit Scope ≠ `global`. Andere Schlüssel lehnt der Validator ab (Kursentwurf, Import, CLI). **MUSS:** „Erben“ = Schlüssel fehlt in `overrides`. Es gibt keinen Sentinel-Wert `inherit` im Speicher. Die UI und das Paketschema dürfen `"inherit"` als Eingabewort verwenden; gespeichert wird das Entfernen des Schlüssels. **MUSS:** Setting-Overrides sind begrifflich und technisch getrennt von `cc_override` (Rechtestatus-Override aus R0-10 §4); keine gemeinsame Tabelle, kein gemeinsamer Name in UI und Audit.
+**MUSS:** Ein Override-Schlüssel ist ein Register-Key aus R0-27 §1.3 mit Scope ≠ `global`. Andere Schlüssel lehnt der Validator ab (Kursentwurf, Import, CLI). **MUSS:** „Erben“ = Schlüssel fehlt in `overrides`. Es gibt keinen Sentinel-Wert `inherit` im Speicher. Die UI und das Paketschema dürfen `"inherit"` als Eingabewort verwenden; gespeichert wird das Entfernen des Schlüssels. **MUSS:** Setting-Overrides sind begrifflich und technisch getrennt von `ccap_override` (Rechtestatus-Override aus R0-10 §4); keine gemeinsame Tabelle, kein gemeinsamer Name in UI und Audit.
 
 ### 1.2 Auflösungsklassen
 
 | Klasse | Auflösungszeitpunkt | Was eingefroren wird | Wirkung einer globalen Änderung auf erbende Objekte |
 |---|---|---|---|
 | **L** live | jede Anfrage (Render, Lernaktion, Anmeldeanfrage) | nichts | sofort (nach `cache_bump`, R0-21) |
-| **K** Kursrevision | Veröffentlichen der Kursrevision | wirksamer Wert + Herkunft in `cc_course_revision.settings.resolved` | erst mit der nächsten Kursrevision; vorher nur Vorschau |
+| **K** Kursrevision | Veröffentlichen der Kursrevision | wirksamer Wert + Herkunft in `ccap_course_revision.settings.resolved` | erst mit der nächsten Kursrevision; vorher nur Vorschau |
 | **R** Prüfungsregel | Veröffentlichen der Regelversion, zusätzlich Versuchsstart (Snapshot) | Regel: `{v, src}` je Feld; Versuch: wirksamer Wert nach Sperre und Ausgleich in `snapshot.settings` | Entwürfe: sofort in der Vorschau; veröffentlichte Regeln: erst mit neuer Regelversion (E-227); Sperren: ab nächstem Start (E-225) |
 | **G** Grant/Einladung | Erzeugen des Grants bzw. der Einladung | z. B. `expires_at`, `claim_policy`, Ablauf der Einladung | nur neue Grants/Einladungen |
 | **E** Ereignis | Eintritt des Ereignisses (Abschluss, Bestehen, Versandzeitpunkt) | Ergebnis des Ereignisses (Zertifikat ja/nein, Mail ja/nein) | ab dem nächsten Ereignis, nie rückwirkend |
@@ -104,7 +104,7 @@ Spalten: **Kette** = Ebenen von allgemein nach spezifisch; **Einheit** = was ein
 | 16 | `exams.shuffle_answers` | global → Prüfung | Feld | bool | **R** | ja | `pinned` bleibt fest | INH-015 |
 | 17 | `exams.feedback` | global → Prüfung | Blatt: `visibility`, `show_score`, `show_correct_answers`, `show_explanations`, `show_correct_answers_when` | wie global | **R** | ja (ganzes Objekt) | C-3, C-4, E-147; keine Kurs-Ebene (E-229) | INH-020, INH-021 |
 | 18 | `exams.auto_submit_inactive_days` | global → Prüfung | Feld | `null` oder 1–365 | **R** | ja | nur ohne Zeitlimit (C-6) | INH-015 |
-| 19 | `enrollment.self_enrollment` | global → Kurs | Feld | `on`, `off` | L (zum Zeitpunkt der Anmeldeanfrage) | ja | „Einschreibung geschlossen“ (E-108, `_cc_enrollment = closed`) schlägt jeden Wert; erzeugt immer einen Grant (INV-S-11); Risiko R | INH-023, INH-024 |
+| 19 | `enrollment.self_enrollment` | global → Kurs | Feld | `on`, `off` | L (zum Zeitpunkt der Anmeldeanfrage) | ja | „Einschreibung geschlossen“ (E-108, `_ccap_enrollment = closed`) schlägt jeden Wert; erzeugt immer einen Grant (INV-S-11); Risiko R | INH-023, INH-024 |
 | 20 | `enrollment.default_access_days` | global → Kurs | Feld | `null` oder 1–3650 | **G** | ja | bestehende Grants unverändert (SET-071) | INH-025 |
 | 21 | `enrollment.groups_enabled` | global → Kurs | Feld | bool | L | ja | Abschalten verhindert nur neue Gruppen | INH-026 |
 | 22 | `certificates.auto_issue` | global → Kurs | Feld | bool | **E** (Abschluss bzw. Bestehen) | ja | keine Rückwirkung; Zertifikat nur, wenn bei Start und Abgabe ein Grant aktiv war (E-113) | INH-027 |
@@ -114,7 +114,7 @@ Spalten: **Kette** = Ebenen von allgemein nach spezifisch; **Einheit** = was ein
 | 26 | `enrollment.invite_valid_days` | global → Gruppe | Feld | 1 … globaler Wert (nur kürzer) | **G** | nein (Monotonie ersetzt Sperre) | – | INH-030 |
 | 27 | `pro.groups.advanced_enabled` | global → Gruppe | Feld | bool | L | ja (nur mit Pro) | C-2; P/R3 | INH-029 |
 | 28 | `privacy.external_media_mode` | global → Medium | Feld | nur strenger als global: `click_to_load` oder `link_only` (global Default `always_load`, E-45a) | L | nein (Monotonie) | C-1 | INH-033 |
-| – | Nachteilsausgleich (`cc_accommodation`) | Site → Kurs → Regel (spezifischste gilt) | Datensatz | Faktor 100–400 % oder ohne Limit | Versuchsstart | – (nicht sperrbar) | nie sichtbar in Ergebnis und Nachweis (E-122) | INH-016, INH-017, INH-034 |
+| – | Nachteilsausgleich (`ccap_accommodation`) | Site → Kurs → Regel (spezifischste gilt) | Datensatz | Faktor 100–400 % oder ohne Limit | Versuchsstart | – (nicht sperrbar) | nie sichtbar in Ergebnis und Nachweis (E-122) | INH-016, INH-017, INH-034 |
 
 Nicht Teil der Vererbung: reine Global-, System- und Nutzerfelder aus R0-27 §1.3 (z. B. Slugs, Retention, `user.notification_prefs`), WordPress-Erbe (Locale, Zeitzone; R0-27 `WP:`) und Objektfelder ohne globalen Default (R0-27 §1.6, z. B. `passing_rule`).
 
@@ -132,7 +132,7 @@ Nicht Teil der Vererbung: reine Global-, System- und Nutzerfelder aus R0-27 §1.
 ### 1.6 Sperre durch globale Pflicht
 
 - **MUSS:** Nur Felder mit „Sperre: ja“ (§1.4) sind sperrbar. Setzen und Aufheben erfordern #19 und eine Bestätigung mit Auswirkungsliste (§3.3). Audit `settings_lock_set` / `settings_lock_removed` mit Key, Wert, Begründung und Anzahl ruhender Overrides.
-- **MUSS:** Eine Sperre löscht keinen Override. Bestehende Overrides **ruhen** und werden nach Aufheben wieder wirksam (zu den Zeitpunkten ihrer Klasse). Neue Overrides auf ein gesperrtes Feld werden abgewiesen (UI deaktiviert, Server `cc_setting_locked`, 422).
+- **MUSS:** Eine Sperre löscht keinen Override. Bestehende Overrides **ruhen** und werden nach Aufheben wieder wirksam (zu den Zeitpunkten ihrer Klasse). Neue Overrides auf ein gesperrtes Feld werden abgewiesen (UI deaktiviert, Server `ccap_setting_locked`, 422).
 - **MUSS:** Der gesperrte Wert ist der jeweils aktuelle globale Wert; ändert der Admin ihn bei bestehender Sperre, gilt §3 für alle Objekte als „erbend“.
 - **MUSS:** Preflight beim Setzen: Wäre ein **veröffentlichtes** Objekt mit dem Sperrwert ungültig (Publish-Validator R0-22, z. B. `timer_mode = practice` bei nachweisfähiger Regel), wird die Sperre abgelehnt, mit Liste der Objekte. Es gibt keinen Teilzustand.
 - **SOLL:** Kursmanager sehen am Feld „Von der Website festgelegt: <Wert>“ und die Begründung (≤ 200 Zeichen, Klasse `internal`, ohne personenbezogene Daten).
@@ -160,14 +160,14 @@ Nicht Teil der Vererbung: reine Global-, System- und Nutzerfelder aus R0-27 §1.
 
 | Zeitpunkt | Eingefroren | Ort | Bezug |
 |---|---|---|---|
-| **Kurs veröffentlichen** | `overrides` (Kurs und Activities, erbende Keys fehlen); für Klasse K zusätzlich `resolved {key: {v, src}}` | `cc_course_revision.settings` (T28-3) | E-104, R0-08 §7.1 |
-| **Prüfungsregel veröffentlichen** | alle R-Felder materialisiert `{v, src}`; `src ∈ {exam_rule, global, global_lock, proposal}` | `cc_exam_rule.settings` | R0-08 §7.1, SR-3 |
-| **Versuchsstart** (Prüfung, bewertetes Quiz) | wirksame Werte nach Resolver inkl. Sperre, Constraints und Ausgleich: Versuchs-, Zeit-, Kulanz-, Misch-, Feedbackwerte; `settings_provenance {key: {v, src, ref}}`; Ausgleich `{factor_pct | unlimited, scope}` | `cc_exam_session.snapshot` (T28-2) | R0-08 §6.3, R0-15 §2.3, RV-01 |
+| **Kurs veröffentlichen** | `overrides` (Kurs und Activities, erbende Keys fehlen); für Klasse K zusätzlich `resolved {key: {v, src}}` | `ccap_course_revision.settings` (T28-3) | E-104, R0-08 §7.1 |
+| **Prüfungsregel veröffentlichen** | alle R-Felder materialisiert `{v, src}`; `src ∈ {exam_rule, global, global_lock, proposal}` | `ccap_exam_rule.settings` | R0-08 §7.1, SR-3 |
+| **Versuchsstart** (Prüfung, bewertetes Quiz) | wirksame Werte nach Resolver inkl. Sperre, Constraints und Ausgleich: Versuchs-, Zeit-, Kulanz-, Misch-, Feedbackwerte; `settings_provenance {key: {v, src, ref}}`; Ausgleich `{factor_pct | unlimited, scope}` | `ccap_exam_session.snapshot` (T28-2) | R0-08 §6.3, R0-15 §2.3, RV-01 |
 | **Grant erzeugen** (manuell, Selbstanmeldung, Gruppe) | `expires_at` aus `default_access_days`, Quelle | Grant | SET-071 |
 | **Einladung erzeugen** | `claim_policy`, `expires_at` | Einladung | SET-073 |
 | **Abschluss / Bestehen** | Entscheidung `auto_issue` (ja/nein) mit Herkunft im Audit | Ereignis, ggf. Zertifikat | E-113 |
-| **Zertifikat ausstellen** | `template_version`, gedruckte Texte, Sprache (E-158) | `cc_certificate.snapshot` | R0-08 §7.2, E-110 |
-| **Lernantwort** | `algorithm_version`, `revision_id` | `cc_attempt` | R0-08 §7.1 |
+| **Zertifikat ausstellen** | `template_version`, gedruckte Texte, Sprache (E-158) | `ccap_certificate.snapshot` | R0-08 §7.2, E-110 |
+| **Lernantwort** | `algorithm_version`, `revision_id` | `ccap_attempt` | R0-08 §7.1 |
 
 ### 2.2 Was live wirkt
 
@@ -179,8 +179,8 @@ Nur Klasse L: Katalog-Indexierung, Containerbreite, Breadcrumbs, Favoriten-/Fehl
 - **SN-2 MUSS:** Laufende Versuche lesen nach dem Start keinen Setting-Wert mehr, auch keinen Filter (Abweichung von LB-Verhalten, R0-08 §4.3). Ausnahmen sind nur die Zugangsprüfung (RV-02), die einmalige Zeitzugabe durch Berechtigte (R0-15 §2.3) und die Fristverlängerung nach Wartungsfenster (E-173). Beide letzteren werden als eigene Einträge neben dem Snapshot gespeichert (`deadline_adjustments[]`), der Snapshot und sein Hash bleiben unverändert.
 - **SN-3 MUSS (historische Auswertung):** Ergebnisansichten, Berichte, Nachweise und Exporte lesen Einstellungen abgeschlossener Versuche nur aus `settings_provenance`, nie über den Resolver. Ein Berichtsfilter „Versuche mit Zeitlimit X“ arbeitet auf dem Snapshot. Der Ausgleich erscheint nur in A-09 für Berechtigte (E-122).
 - **SN-4 MUSS:** Snapshots älterer `format_version` ohne `settings_provenance` bleiben lesbar; Herkunft wird dort als `unknown` angezeigt, nie nachträglich berechnet.
-- **SN-5 MUSS:** Kursrevisionen und veröffentlichte Regelversionen werden bei einem Schema-Upgrade **nicht umgeschrieben**. Neue oder umbenannte Override-Schlüssel werden beim Lesen über versionierte Leser übersetzt (R0-08 §7.3 `format_version`); migriert werden nur Entwürfe (`_cc_settings`, Regelentwürfe) im Orchestrator unter Lock (R0-37).
-- **SN-6 MUSS:** Während Wartungsfenster W1 (R0-37) werden Settings-, Sperr- und Override-Speichern abgewiesen („Wartung läuft, bitte in Kürze erneut speichern“, Eingaben bleiben im Formular); Versuchsstarts liefern `503 cc_maintenance`, es entsteht also kein Snapshot mit halb migrierten Werten.
+- **SN-5 MUSS:** Kursrevisionen und veröffentlichte Regelversionen werden bei einem Schema-Upgrade **nicht umgeschrieben**. Neue oder umbenannte Override-Schlüssel werden beim Lesen über versionierte Leser übersetzt (R0-08 §7.3 `format_version`); migriert werden nur Entwürfe (`_ccap_settings`, Regelentwürfe) im Orchestrator unter Lock (R0-37).
+- **SN-6 MUSS:** Während Wartungsfenster W1 (R0-37) werden Settings-, Sperr- und Override-Speichern abgewiesen („Wartung läuft, bitte in Kürze erneut speichern“, Eingaben bleiben im Formular); Versuchsstarts liefern `503 ccap_maintenance`, es entsteht also kein Snapshot mit halb migrierten Werten.
 
 ---
 
@@ -199,7 +199,7 @@ Nur Klasse L: Katalog-Indexierung, Containerbreite, Breadcrumbs, Favoriten-/Fehl
 | Ä-7 | Sperre aufheben | Admin (#19) |
 | Ä-8 | neue Plugin-Version ändert einen **Schema-Default** | Update |
 | Ä-9 | Pro-Add-on deaktiviert bzw. Lizenz abgelaufen | Betrieb |
-| Ä-10 | Nachteilsausgleich angelegt, geändert, abgelaufen | `cc_manage_accommodations` |
+| Ä-10 | Nachteilsausgleich angelegt, geändert, abgelaufen | `ccap_manage_accommodations` |
 
 ### 3.2 Matrix
 
@@ -241,7 +241,7 @@ Spalten: **erbende Kurse** (Kurse bzw. Regeln ohne Override für den Key), **üb
 | ID | Konflikt | Auflösung |
 |---|---|---|
 | **K-1** | Zwei Admins ändern denselben Tab | `_rev`-Prüfung (R0-27 S-6), kein Überschreiben |
-| **K-2** | Kursmanager speichert einen Override, während ein Admin das Feld sperrt | Speichern nach der Sperre: Override wird abgewiesen (`cc_setting_locked`), übrige Felder des Kursentwurfs werden gespeichert; vor der Sperre gespeichert: Override ruht |
+| **K-2** | Kursmanager speichert einen Override, während ein Admin das Feld sperrt | Speichern nach der Sperre: Override wird abgewiesen (`ccap_setting_locked`), übrige Felder des Kursentwurfs werden gespeichert; vor der Sperre gespeichert: Override ruht |
 | **K-3** | Globale Änderung während einer Kursveröffentlichung | Veröffentlichen liest die globalen K-Werte in seiner Transaktion; es gilt der Stand zum Lesezeitpunkt; der Diff im Dialog wird vor dem Commit gegen `_rev` der Tab-Option geprüft und bei Abweichung neu angezeigt |
 | **K-4** | Neuer globaler Wert bzw. Sperrwert wäre für ein Objekt ungültig | L-Felder: Validator verhindert Werte ohne gültige Wirkung (z. B. kein globales Feld, das Kurse ungültig macht); K-Felder: nur Publish-Blocker für den Entwurf; R-Felder: veröffentlichte Regeln unberührt; Sperre: Preflight lehnt ab (§1.6) |
 | **K-5** | Kurs „Einschreibung geschlossen“ erbt `self_enrollment = on` | Schließung gewinnt (E-108); Hinweis zählt den Kurs als „nicht betroffen (geschlossen)“ |
@@ -258,8 +258,8 @@ Spalten: **erbende Kurse** (Kurse bzw. Regeln ohne Override für den Key), **üb
 | Aktion | Ebene | Recht | Wirkung | Rückgängig |
 |---|---|---|---|---|
 | **Feld zurücksetzen** | Kurs-, Activity-, Regelentwurf | M-03 bzw. M-06 | entfernt den Override-Schlüssel; die Vorschau zeigt den geerbten Wert; wirksam zu den Zeitpunkten der Klasse (Kurs und Regel erst mit Veröffentlichung) | Editor-Undo bis zum Speichern |
-| **Alle Einstellungen dieses Kurses zurücksetzen** | Kursentwurf inkl. Activities; optional Regelentwürfe | M-03 (+ M-06) | Bestätigung mit Liste der Abweichungen; `_cc_settings_undo` (eine Generation, 30 Tage, wie R0-27 §2.4) | „Rückgängig“ 30 Tage |
-| **Sammel-Reset** „N Kurse überschreiben diesen Wert“ | aus dem Hinweis-Dialog bzw. der Feldhilfe des globalen Tabs | #19 **und** M-03 je Kurs (Kurse ohne Recht werden übersprungen und gezählt) | entfernt den Override im Entwurf der gewählten Kurse; Klasse L: Angebot, die Kurse als `patch`-Revision zu veröffentlichen, **nur** wenn der Entwurf sonst unverändert ist; sonst bleibt es beim Entwurf (E-226) | je Kurs `_cc_settings_undo` |
+| **Alle Einstellungen dieses Kurses zurücksetzen** | Kursentwurf inkl. Activities; optional Regelentwürfe | M-03 (+ M-06) | Bestätigung mit Liste der Abweichungen; `_ccap_settings_undo` (eine Generation, 30 Tage, wie R0-27 §2.4) | „Rückgängig“ 30 Tage |
+| **Sammel-Reset** „N Kurse überschreiben diesen Wert“ | aus dem Hinweis-Dialog bzw. der Feldhilfe des globalen Tabs | #19 **und** M-03 je Kurs (Kurse ohne Recht werden übersprungen und gezählt) | entfernt den Override im Entwurf der gewählten Kurse; Klasse L: Angebot, die Kurse als `patch`-Revision zu veröffentlichen, **nur** wenn der Entwurf sonst unverändert ist; sonst bleibt es beim Entwurf (E-226) | je Kurs `_ccap_settings_undo` |
 | **Ruhenden Wert entfernen** | wie Feld zurücksetzen | wie dort | entfernt einen ruhenden Override | wie dort |
 
 **Nie betroffen:** veröffentlichte Revisionen (außer über eine neue Veröffentlichung), veröffentlichte Regelversionen, laufende und abgeschlossene Versuche, Grants, Zertifikate, Lernstände. Der globale Tab-Reset (R0-27 §2.4) berührt keine Overrides und keine Sperren außer denen des eigenen Tabs; Sperren werden dabei mit zurückgesetzt und im Dialog aufgeführt (E-230). Audit `course_settings_reset` (Kurs, Keys, Anzahl) bzw. `settings_overrides_bulk_reset`.
@@ -328,10 +328,10 @@ Ebenen wie R0-27: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW*
 | INH-031 | P | Sperre `course_completion_default = required_modules_and_exam`; Kurs ohne Prüfung | Preflight: veröffentlichter Kurs bleibt gültig (Klasse K wirkt erst bei Veröffentlichung), Dialog nennt ihn; nächste Veröffentlichung: Publish-Blocker | PI | R1-33 | R1-26 |
 | INH-032 | N | Sperre `timer_mode = practice` bei vorhandener Nachweisregel | Sperre abgelehnt mit Liste; kein Teilzustand | PI | R1-33 | – |
 | INH-033 | P/N | global `always_load` (Default, E-45a): Medium `click_to_load` gültig; Medium `link_only` bei global `click_to_load`; global danach `link_only`; Medium-Override `click_to_load` | erster Override gültig; Lockerung abgelehnt | PI | R1-33 | R1-17 |
-| INH-034 | N | Ausgleich durch Nutzer ohne `cc_manage_accommodations`; Ausgleich nach Start eines Versuchs angelegt | 403; laufender Versuch unverändert, nächster Start mit Ausgleich | PI | R1-33 | R1-20 |
+| INH-034 | N | Ausgleich durch Nutzer ohne `ccap_manage_accommodations`; Ausgleich nach Start eines Versuchs angelegt | 403; laufender Versuch unverändert, nächster Start mit Ausgleich | PI | R1-33 | R1-20 |
 | INH-035 | P | Sperre setzen auf `late_tolerance_seconds = 0` bei drei Regeln mit eigenem Wert 120 (E-225 a) | Dialog „3 eigene Werte ruhen“; neue Starts mit 0, `source = global_lock`; Regeln unverändert gespeichert | PI | R1-33 | R1-20 |
 | INH-036 | P | Sperre aus INH-035 aufheben | neue Starts wieder 120; Audit `settings_lock_removed` mit Anzahl reaktivierter Overrides | PI | R1-33 | – |
-| INH-037 | P | Kursmanager speichert Override, Admin sperrt danach; umgekehrte Reihenfolge (K-2) | erste Reihenfolge: Override ruht; zweite: Override abgewiesen `cc_setting_locked`, übrige Felder gespeichert | PI | R1-33 | – |
+| INH-037 | P | Kursmanager speichert Override, Admin sperrt danach; umgekehrte Reihenfolge (K-2) | erste Reihenfolge: Override ruht; zweite: Override abgewiesen `ccap_setting_locked`, übrige Felder gespeichert | PI | R1-33 | – |
 | INH-038 | P | Globales Speichern und Versuchsstart parallel (100 Wiederholungen) | jeder Snapshot entspricht vollständig dem alten oder dem neuen Stand (SN-1) | PI | R1-33 | R1-42 |
 | INH-039 | P | Hinweis-Dialog für jede Änderungsart Ä-1…Ä-7 mit bekannten Datenbeständen | Zahlen je Kategorie stimmen exakt mit der danach beobachteten Wirkung überein; `impact` im Audit | PI | R1-33 | R1-38 |
 | INH-040 | P | Index `course_captain_override_index` gelöscht bzw. verfälscht | Wirkung unverändert; Health meldet Abweichung; Neuaufbau stellt korrekte Zahlen her | PI | R1-33 | – |
@@ -342,7 +342,7 @@ Ebenen wie R0-27: **PU** PHPUnit ohne WP, **PI** PHPUnit mit WP-Testsuite, **PW*
 | INH-045 | P/N | Import mit unbekanntem Key, ungültigem Wert, lockererem Datenschutzwert, gesperrtem Feld, Pro-Feld ohne Pro, Regel mit `src = global` | Dry-run listet jeden Fall nach §4.3; Ergebnis entsprechend; Regelwert explizit übernommen (E-228) | PI | R1-33 | R1-15 |
 | INH-046 | P | Reimport, Override lokal geändert | lokal gewinnt, Diff je Key, Autor entscheidet (E-63) | PI | R1-33 | R1-15 |
 | INH-047 | P | Bericht „Bestehensquote je Prüfung“ und Ergebnisansicht nach mehreren globalen Änderungen | Werte aus `settings_provenance`, nie neu aufgelöst; alter Snapshot ohne Provenienz zeigt `unknown` (SN-3, SN-4) | PI | R1-33 | R1-12 |
-| INH-048 | N | Settings- oder Override-Speichern während W1; Versuchsstart während W1 | Speichern abgewiesen mit Hinweis, Eingaben erhalten; Start `503 cc_maintenance`, kein Snapshot (SN-6) | PI | R1-33 | R1-40 |
+| INH-048 | N | Settings- oder Override-Speichern während W1; Versuchsstart während W1 | Speichern abgewiesen mit Hinweis, Eingaben erhalten; Start `503 ccap_maintenance`, kein Snapshot (SN-6) | PI | R1-33 | R1-40 |
 
 Ersetzt bzw. verfeinert: SET-056 (R0-27) wird durch INH-014, INH-019 und INH-038 abgedeckt; SET-062 durch INH-015.
 
@@ -378,11 +378,11 @@ Weitere hier angewandte Beschlüsse: E-20 (C-3), E-45/E-45a (#28, INH-033), E-50
 |---|---|---|
 | **T28-1** | §4.5 „Einstellung je Kurs, überschreibbar je Quiz/Prüfungsregel“ präzisieren: Kurs → Quiz für `learning.feedback`; global → Prüfungsregel für `exams.feedback` (nach E-229) – **in R0-08 §4.5 eingearbeitet** | R0-08 §4.5 |
 | **T28-2** | Snapshot um `settings_provenance {key: {v, src, ref}}`, Ausgleich `{factor_pct | unlimited, scope}` und `deadline_adjustments[]` (außerhalb des Hash) ergänzen | R0-08 §6.3, R0-06 |
-| **T28-3** | `cc_course_revision.settings {overrides, resolved}` (K-Felder materialisiert); Regel `settings` als `{key: {v, src}}` | R0-06, R0-08 §7.1 |
-| **T28-4** | Paketschema `courses.settings` → `settings {schema, overrides}` je Kurs und Activity, Regeln `{v, src}`; Name „Setting-Override“ klar von `cc_override` (Rechtestatus) trennen; Option `course_captain_override_index` (abgeleitet, kein Autoload) | R0-10, R0-27 §2.1/§2.7 |
+| **T28-3** | `ccap_course_revision.settings {overrides, resolved}` (K-Felder materialisiert); Regel `settings` als `{key: {v, src}}` | R0-06, R0-08 §7.1 |
+| **T28-4** | Paketschema `courses.settings` → `settings {schema, overrides}` je Kurs und Activity, Regeln `{v, src}`; Name „Setting-Override“ klar von `ccap_override` (Rechtestatus) trennen; Option `course_captain_override_index` (abgeleitet, kein Autoload) | R0-10, R0-27 §2.1/§2.7 |
 | **T28-5** | Tab-Option um `locks {<feld>: {reason, by, since}}` erweitern; Schema-Eintrag um `lockable`, `resolve_class` (L/K/R/G/E/A), `override_unit` (Feld/Blatt) | R0-27 SR-2, SR-3, §2.1 |
 | **T28-6** | Resolver als einzige Quelle für Laufzeit, Snapshot, Vorschau, Hinweis und Bericht; öffentliche PHP-API nur lesend (`course_captain_get_setting( $key, $context )`), kein Filter, der nach dem Snapshot greift | R0-19 §4 |
-| **T28-7** | Audit-Ereignisse `settings_lock_set`, `settings_lock_removed`, `course_settings_reset`, `settings_overrides_bulk_reset`; `impact` in `settings_saved`; Fehlercode `cc_setting_locked` (422) | R0-13 §4.1, R0-19 Fehlerkatalog |
+| **T28-7** | Audit-Ereignisse `settings_lock_set`, `settings_lock_removed`, `course_settings_reset`, `settings_overrides_bulk_reset`; `impact` in `settings_saved`; Fehlercode `ccap_setting_locked` (422) | R0-13 §4.1, R0-19 Fehlerkatalog |
 
 Weitere Deltas: `ENTSCHEIDUNGEN.md` E-225…E-230 – erledigt (beschlossen); R0-23 §2.1 („Nicht hier geregelt …“) auf dieses Dokument verweisen; R0-24 R1-33 Inputs = R0-28 §1–§5, Testliste INH-001…048; R0-27 SET-056/SET-062 auf INH verweisen; R0-30 Wireframes für §1.7 und §3.3.
 
