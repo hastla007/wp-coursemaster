@@ -1,23 +1,38 @@
-# R0-13 · Support- und Betriebskonzept (Entwurf)
+# R0-13 · Support- und Betriebskonzept
 
-**Status:** **Vorgeschlagen – Freigabe Auftraggeber/Architektur offen.** Task R0-13 ist **nicht** abgehakt. Es gibt keine Implementierung, keinen Code und keine Betreiberdoku.
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung, keinen Code und keine Betreiberdoku.
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-13 (DoD: Supportrollen, sichere Diagnose, Datenkorrektur, Audit- und Eskalationsregeln samt Testfällen), Zuarbeit für **R1-38** (Betriebsdashboard mit sicheren Reparaturaktionen), **R1-24** (Dokumentation, Onboarding und Support), R1-17 (Diagnose, Audit, Health-Checks), R0-34 (Integrationsstatus und Support-Vertrag); Konzept Kap. 22.1 (Queue- und Fehlerzustände), 22.2, 36 (Rechtetabelle „Supportfall, auditpflichtig“), 43.2 (Systemstatus „anonymisierter Diagnoseexport“), 43.3 (Supportzugriff, Diagnose/Debug), Kap. 25 Tabelle „Diagnoselogs/Queue“, OPS-06; `docs/r0/R0-07-rbac-idor-matrix.md` (§2 Rolle `cc_support`, §3.1 Caps #9/#13/#14/#16/#17/#18/#21/#22/#23, §3.6, §4.2 S-13/S-21/S-22, §4.3, §4.7, D07-2, D07-5); `docs/r0/R0-09-identity-seat-grant-automaten.md` (§1.3 „Zugang übertragen“, §2.3 G-01…G-15, §2.4, §2.5, D09-3); `docs/r0/R0-16-backup-recovery-deployment.md` (§1.4 `backup-check`, §2 Runbooks, §3.1 Ausgangsmodus, §3.2 Secrets, R16-D1/D2/D4/D8); `docs/r0/R0-08-kurs-activity-pruefungsvertraege.md` (§6.1/6.2 Zustand `broken`); `docs/r0/R0-10-import-medien-sicherheit.md` (§3.6 Rollback, Import-Ereignisse); `docs/r0/R0-23-revisionen-laufender-kurse.md` (§5 Zertifikate); `docs/r0/R0-02-inventar/C-infrastruktur-content.md` (INV-C-055, -084, -147…-149, -163…-175, §5 Audit-Aktionen); `docs/r0/R0-02-inventar/E-theme-tools-content-docs.md` (§5 Betriebsdoku, `support-ablaeufe.md`)
-**Entscheidungen als Annahme (noch nicht beschlossen, `ENTSCHEIDUNGEN.md`):** **E-19** (Protokollansicht in R1 Free), **E-79** (eigene Lernsperre `cc_learner_lock`), **E-82** (Pflichtbegründung beim Lesen fremder Versuchsdaten, mit Audit), **E-114** (kein Merge-Werkzeug in R1, nur „Zugang übertragen“), **E-44** (Aufbewahrung: Audit 4 Jahre, Zugänge 10 Jahre, Import-Protokoll 14/180 Tage). Außerdem abhängig von E-51 (Lern-/Prüfungsdaten), E-71/E-74/E-107/E-108 (Versuchszählung, Nachbewertung), E-116 (Inbox/Outbox 90 Tage), R16-D1/D2 (Haltemodus, Ausgangsmodus). Weicht ein Beschluss ab, ändern sich §1.2, §3 und §4.5.
-**Quellen (nur gelesen):** LearnBoating `hastla007/learnboating` @ `9f37c77`: `docs/support-ablaeufe.md`, `docs/betrieb-entscheidungen.md`; `bootspruefung-learning/src/Admin/{SystemStatus.php, SiteHealth.php, AuditPage.php, AccessPages.php}`, `src/Infrastructure/{Monitor.php, Cron.php}`, `src/Audit/AuditLog.php`, `src/Cli/Commands.php` (`reconcile` `:353`, `access` `:571`), `src/Commerce/WooCommerce/AutoReconcile.php`, `src/Mobile/Problem.php` (Request-ID). Pfade ohne Präfix sind relativ zu `bootspruefung-learning/src/`.
+**Bezug:** TODO R0-13 (DoD: Supportrollen, sichere Diagnose, Datenkorrektur, Audit- und Eskalationsregeln samt Testfällen), Zuarbeit für **R1-38** (Betriebsdashboard mit sicheren Reparaturaktionen), **R1-24** (Dokumentation, Onboarding und Support), R1-17 (Diagnose, Audit, Health-Checks), R0-34 (Integrationsstatus und Support-Vertrag); Konzept Kap. 22.1 (Queue- und Fehlerzustände), 22.2, 36 (Rechtetabelle „Supportfall, auditpflichtig“), 43.2 (Systemstatus „anonymisierter Diagnoseexport“), 43.3 (Supportzugriff, Diagnose/Debug), Kap. 25 Tabelle „Diagnoselogs/Queue“, OPS-06; `docs/r0/R0-07-rbac-idor-matrix.md` (§2 Rolle `ccap_support`, §3.1 Caps #9/#13/#14/#16/#17/#18/#21/#22/#23, §3.6, §4.2 S-13/S-21/S-22, §4.3, §4.7, E-79, E-82); `docs/r0/R0-09-identity-seat-grant-automaten.md` (§1.3 „Zugang übertragen“, §2.3 G-01…G-15, §2.4, §2.5, E-114); `docs/r0/R0-16-backup-recovery-deployment.md` (§1.4 `backup-check`, §2 Runbooks, §3.1 Ausgangsmodus, §3.2 Secrets, E-85/E-86/E-88/E-92); `docs/r0/R0-08-kurs-activity-pruefungsvertraege.md` (§6.1/6.2 Zustand `broken`); `docs/r0/R0-10-import-medien-sicherheit.md` (§3.6 Rollback, Import-Ereignisse); `docs/r0/R0-23-revisionen-laufender-kurse.md` (§5 Zertifikate); `docs/r0/R0-02-inventar/C-infrastruktur-content.md` (INV-C-055, -084, -147…-149, -163…-175, §5 Audit-Aktionen); `docs/r0/R0-02-inventar/E-theme-tools-content-docs.md` (§5 Betriebsdoku, `support-ablaeufe.md`)
+**Quellen (nur gelesen):** LearnBoating `hastla007/learnboating` @ `9f37c77`: `docs/support-ablaeufe.md`, `docs/betrieb-entscheidungen.md`; `bootspruefung-learning/src/Admin/{SystemStatus.php, SiteHealth.php, AuditPage.php, AccessPages.php}`, `src/Infrastructure/{Monitor.php, Cron.php}`, `src/Audit/AuditLog.php`, `src/Cli/Commands.php` (`reconcile` `:353`, `access` `:571`), `src/Commerce/WooCommerce/AutoReconcile.php`, `src/Mobile/Problem.php` (Request-ID). Pfade ohne Präfix sind relativ zu `bootspruefung-learning/src/`. LB-Stellen sind Verhaltensreferenz, kein Code wird übernommen (E-01).
+
+### Beschlussstand
+
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). Alle früheren Fragen R13-D1…D10 sind als **E-136…E-145** entschieden und im Text eingearbeitet (§7). Außerdem wirken:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | Systemstatus, Monitor, Audit und Runbooks werden nach dem beschriebenen LB-Verhalten neu gebaut; `reuse`/`abstract` in §2.1 heißt „Verhalten nachbauen“ |
+| **E-10**, E-46, E-239…E-242, E-260, E-261, E-263 | Website-Härtung im Free-Kern (R1-45): neue Prüfung H-38, Runbook RB-SUP-8 „ausgesperrt“; fail-closed für Login/Reset mit Ausnahme bekannter Geräte und Notausschalter |
+| **E-19**, E-79, E-82, E-114, E-44, E-51, E-116, E-215 | wie angenommen: Protokollansicht Free, Lernsperre, Pflichtbegründung beim Lesen fremder Versuche, „Zugang übertragen“ statt Merge, Fristen |
+| **E-38**, E-182, E-185, E-254 | Free hat nur die **interne Outbox** (Mails, Audit); öffentliche Events, Read-API und Connector-Registry sind Pro. Integrationsstatus in R1 nur lesend (H-34) |
+| **E-85…E-92** | Haltemodus, Ausgangsmodus `catch`, Secrets, zurückgehaltene Mails, Tombstones (R0-16) |
+| **E-168** | Abgaben in Aufgaben sind Lerndaten: nie im Diagnosepaket, Einsicht wie Versuchsdaten nur mit Begründung |
+| **E-207** | Präfix `ccap_` für Rollen, Caps, Tabellen, Cron, Meta; Optionen `course_captain_*` (im Text umgestellt) |
+| **E-211**, **E-212**, **E-273** | Sicherheitsmeldungen über die Adresse des Auftraggebers (≤ 72 h), Forum durch den Auftraggeber, Pro-Support über eigenen Kanal; Pro-Add-on in `captain-pro/addons/course-captain-pro` |
+
 
 ---
 
 ## 0. Kurzfassung
 
-1. **Fünf Stufen, eine Regel:** Wer korrigiert, braucht die Cap **und** eine Begründung, und es entsteht ein Audit-Eintrag. Stufe 1 (`cc_support`) sieht Status und Historie, aber keine Antworten und ändert keine Grants. Stufe 2 (Kursmanager) korrigiert Fachdaten. Stufe 3 (Betreiber-Admin) repariert Technik. Der **Course-Captain-Herstellersupport** hat kein Konto auf der Site und bekommt nur ein redigiertes Diagnosepaket.
-2. **Systemstatus aus LB übernehmen, ergänzen um Queue-Sicht:** 24 Prüfungen aus LB (`SystemStatus`, `SiteHealth`, `Monitor`, `BackupCheck`) und 13 neue: Ausgangs- und Haltemodus, Jobs nach Zustand, hängende Grants, `broken`-Versuche, Importe ohne Heartbeat, Outbox-Rückstand.
+1. **Fünf Stufen, eine Regel:** Wer korrigiert, braucht die Cap **und** eine Begründung, und es entsteht ein Audit-Eintrag. Stufe 1 (`ccap_support`) sieht Status und Historie, aber keine Antworten und ändert keine Grants. Stufe 2 (Kursmanager) korrigiert Fachdaten. Stufe 3 (Betreiber-Admin) repariert Technik. Der **Course-Captain-Herstellersupport** hat kein Konto auf der Site und bekommt nur ein redigiertes Diagnosepaket.
+2. **Systemstatus nach LB-Verhalten neu bauen (E-01), ergänzen um Queue-Sicht:** 24 Prüfungen nach LB-Vorbild (`SystemStatus`, `SiteHealth`, `Monitor`, `BackupCheck`) und 14 neue: Ausgangs- und Haltemodus, Website-Härtung (E-10), Jobs nach Zustand, hängende Grants, `broken`-Versuche, Importe ohne Heartbeat, Outbox-Rückstand.
 3. **Diagnosepaket nach Allowlist, nicht nach Blocklist.** Es enthält nur Schlüssel, die ausdrücklich freigegeben sind. Freitext läuft zusätzlich durch Scrubber (E-Mail, IP, Token, Pfade). Vor dem Download sieht der Betreiber eine Vorschau. Das Paket enthält keine Namen, E-Mails, IP-Adressen, Antworten, Kursinhalte, Secrets oder Pfade mit dem Ordner-Geheimnis.
 4. **Debug-Logging ist standardmäßig aus**, läuft höchstens 24 h und schaltet sich selbst ab (Konzept 43.3). Es schreibt nur strukturierte Zeilen mit `request_id`/`correlation_id` in den privaten Ordner und wird nach 7 Tagen gelöscht.
-5. **17 Korrekturaktionen** `K-01…K-17` (§3) mit festem Muster: Cap, Pflichtbegründung, Audit-Aktion, Undo-Weg, Benachrichtigung. **Nichts wird gelöscht.** „Rückgängig“ bedeutet immer eine neue, auditierte Gegenaktion (Grant-Revision, neuer Import-Batch, Entsperren). Die einzige echte Undo-Funktion ist das Reset-Journal (R13-D3).
-6. **Audit:** `cc_audit_log` wird um `actor_type`, `subject_user_id`, `reason_code`, `correlation_id`, `request_id` und eine Hash-Kette ergänzt (R13-D4). Es ist append-only. Ausnahmen sind nur der Prune nach E-44 und die Pseudonymisierung durch den Eraser. Der Ereigniskatalog umfasst 88 Aktionen in 11 Bereichen (§4.1).
-7. **Runbooks** für 7 typische Fälle (§5.3). Die vier aus der Aufgabe sind dabei: kein Zugang trotz Kauf, Prüfung abgebrochen, Zertifikat falsch, Import hängt. Grundsatz: Retry und Reconcile gehen vor einem manuellen Grant, sonst entstehen Doppelgrants, die ein späterer Refund nicht mehr erfasst.
-8. **42 Testfälle** `SUP-001…SUP-042` (§6) für R1-38 und R1-24, dazu 10 neue Entscheidungen `R13-D1…R13-D10` (§7).
+5. **17 Korrekturaktionen** `K-01…K-17` (§3) mit festem Muster: Cap, Pflichtbegründung, Audit-Aktion, Undo-Weg, Benachrichtigung. **Nichts wird gelöscht.** „Rückgängig“ bedeutet immer eine neue, auditierte Gegenaktion (Grant-Revision, neuer Import-Batch, Entsperren). Die einzige echte Undo-Funktion ist das Reset-Journal (E-138).
+6. **Audit:** `ccap_audit_log` wird um `actor_type`, `subject_user_id`, `reason_code`, `correlation_id`, `request_id` und eine Hash-Kette ergänzt (E-139). Es ist append-only. Ausnahmen sind nur der Prune nach E-44 und die Pseudonymisierung durch den Eraser. Der Ereigniskatalog umfasst 88 Aktionen in 11 Bereichen (§4.1).
+7. **Runbooks** für 8 typische Fälle (§5.3), darunter „ausgesperrt durch Website-Härtung“ (E-10). Die vier aus der Aufgabe sind dabei: kein Zugang trotz Kauf, Prüfung abgebrochen, Zertifikat falsch, Import hängt. Grundsatz: Retry und Reconcile gehen vor einem manuellen Grant, sonst entstehen Doppelgrants, die ein späterer Refund nicht mehr erfasst.
+8. **44 Testfälle** `SUP-001…SUP-044` (§6) für R1-38, R1-24 und R1-45; die früheren Fragen R13-D1…D10 sind als `E-136…E-145` beschlossen (§7).
 
 ---
 
@@ -28,14 +43,14 @@
 | Stufe | Wer | WP-Abbildung (R0-07 §2) | Zweck | Grenze |
 |---|---|---|---|---|
 | **0 · Selbsthilfe** | Lernende, Käufer, Gruppenverwalter | `subscriber` bzw. Konto mit `read`; Objektrecht über Grant/Gruppe | Status in „Mein Lernen“ (R0-09 §3.2), Passwort-Reset, Einladung erneut senden (Besitzer), Datenschutz-Antrag (M-23), Abmeldung von Erinnerungen | nur eigene Objekte |
-| **1 · Support-Mitarbeiter** | First-Level beim Betreiber | Rolle `cc_support`: `read`, #13 `cc_view_learner_details`, #18 `cc_lock_learners`, #21 `cc_view_audit_log`, #22 `cc_view_system_status` | Fall aufnehmen, Identität prüfen, Status lesen, Ursache eingrenzen, Lernsperre setzen oder aufheben, Diagnosepaket erzeugen, eskalieren | **keine** Antworten/Snapshots (#14), **keine** Grant-Änderung (#9), keine Inhalte, keine Wartung (#23) |
-| **2 · Fachliche Korrektur** | Kursmanager, ggf. Trainer | `cc_course_manager` (#1–#18, #22, #24); Trainer `cc_trainer` nur Bewertung (#15) im zugewiesenen Kurs | Grants anlegen, verlängern, aussetzen, widerrufen, übertragen; Versuch reparieren oder verwerfen; Fortschritt zurücksetzen; Zertifikat korrigieren oder widerrufen; Import zurückrollen | keine Einstellungen, keine Integrationen, keine Wartung/Reconcile (#23), kein Audit-Screen (#21 fehlt, Objekthistorie siehe §4.5) |
+| **1 · Support-Mitarbeiter** | First-Level beim Betreiber | Rolle `ccap_support`: `read`, #13 `ccap_view_learner_details`, #18 `ccap_lock_learners`, #21 `ccap_view_audit_log`, #22 `ccap_view_system_status` | Fall aufnehmen, Identität prüfen, Status lesen, Ursache eingrenzen, Lernsperre setzen oder aufheben, Diagnosepaket erzeugen, eskalieren | **keine** Antworten/Snapshots (#14), **keine** Grant-Änderung (#9), keine Inhalte, keine Wartung (#23) |
+| **2 · Fachliche Korrektur** | Kursmanager, ggf. Trainer | `ccap_course_manager` (#1–#18, #22, #24); Trainer `ccap_trainer` nur Bewertung (#15) im zugewiesenen Kurs | Grants anlegen, verlängern, aussetzen, widerrufen, übertragen; Versuch reparieren oder verwerfen; Fortschritt zurücksetzen; Zertifikat korrigieren oder widerrufen; Import zurückrollen | keine Einstellungen, keine Integrationen, keine Wartung/Reconcile (#23), kein Audit-Screen (#21 fehlt, Objekthistorie siehe §4.5) |
 | **3 · Betreiber-Admin** | technischer Betreiber | WP `administrator` (alle 24 Caps) | Reparaturaktionen, Reconcile, Job-Retry, Haltemodus bestätigen, Debug-Logging, Migration, CLI, Integrationen | eigene Versuche nicht bewerten (M-10); fremde Antworten nur mit Begründung (E-82) |
-| **4 · Course-Captain-Herstellersupport** | Hersteller (Free-Forum, Pro-Support) | **kein Konto auf der Site** (R13-D7) | Fehleranalyse anhand von Diagnosepaket, `request_id`, Fehlercodes und Versionen; Anleitung, Patch, Bekannte-Fehler-Liste | **kein Datenzugriff**, kein Remote-Login, keine Personendaten, keine Inhalte |
+| **4 · Course-Captain-Herstellersupport** | Hersteller (Free-Forum, Pro-Support) | **kein Konto auf der Site** (E-142) | Fehleranalyse anhand von Diagnosepaket, `request_id`, Fehlercodes und Versionen; Anleitung, Patch, Bekannte-Fehler-Liste | **kein Datenzugriff**, kein Remote-Login, keine Personendaten, keine Inhalte |
 
 **Getrennte Rolle Datenschutz:** Export und Löschung personenbezogener Daten laufen über die WP-Kern-Caps `export_others_personal_data` und `erase_others_personal_data` (R0-07 §4.9). Supportstufen erhalten diese Caps nicht automatisch. Datenschutzanfragen gehen nach §5.1 an die befugte Person.
 
-**Kein „Anmelden als Lernender“:** Course Captain bietet keine Impersonation (R13-D6). Für die Frage „Was sieht der Lernende?“ zeigt die Detailansicht den **effektiven Zugang** samt Begründung des `PolicyService` (R0-07 P-02). Beispiel: „Grant #… aktiv bis …, Scope view/exam, Drip frei ab …“ oder „verweigert: `cc_account_locked`“.
+**Kein „Anmelden als Lernender“:** Course Captain bietet keine Impersonation (E-141). Für die Frage „Was sieht der Lernende?“ zeigt die Detailansicht den **effektiven Zugang** samt Begründung des `PolicyService` (R0-07 P-02). Beispiel: „Grant #… aktiv bis …, Scope view/exam, Drip frei ab …“ oder „verweigert: `ccap_account_locked`“.
 
 ### 1.2 Was jede Stufe sehen und tun darf
 
@@ -48,13 +63,13 @@
 | | Fortschritt je Kurs/Activity (Prozent, Status, Zeitpunkte) | #13 | ✓ (aggregiert) | ✓ | ✓ | – |
 | | Versuchsliste: Status, Start/Ende, `end_reason`, Ergebnis bestanden/nicht bestanden, Punkte | #13 | ✓ | ✓ | ✓ | – |
 | | **Versuchsdetail: Antworten, Snapshot** | #14, M-09 | – | B (E-82) | B (E-82) | – |
-| **Grants** | lesen inkl. `cc_grant_event`-Historie | #13 | ✓ | ✓ | ✓ | – |
+| **Grants** | lesen inkl. `ccap_grant_event`-Historie | #13 | ✓ | ✓ | ✓ | – |
 | | anlegen, verlängern, aussetzen, freigeben, widerrufen, übertragen, Retry `failed` | #9, M-13/M-14 | – | B | B | – |
 | **Lernsperre** | setzen / aufheben | #18, M-24 | B | B | B | – |
 | **Prüfung/Fortschritt** | Versuch nachauswerten oder verwerfen, Zusatzversuch, Fortschritt zurücksetzen | #16, M-12 | – | B | B | – |
 | **Zertifikate** | ansehen (eigene Ansicht, Verifikationsstatus) | #13, M-18 | ✓ | ✓ | ✓ | – |
 | | korrigieren, widerrufen | #17, M-19 | – | B | B | – |
-| **Gruppen** | Status, Plätze, Einladungsstatus (Adresse nach D07-4) | #13 | ✓ | ✓ | ✓ | – |
+| **Gruppen** | Status, Plätze, Einladungsstatus (Adresse nach E-81) | #13 | ✓ | ✓ | ✓ | – |
 | | Plätze, Besitzer, Status ändern | #11, M-15 | – | B | B | – |
 | **Import** | Batch-Status, Schritt, Heartbeat, Item-Fehler (ohne Inhalte) | #22 | ✓ | ✓ | ✓ | über Diagnosepaket |
 | | fortsetzen, verwerfen, zurückrollen | #6, M-21 | – | B (Rollback), ✓ (Resume) | B | – |
@@ -63,10 +78,10 @@
 | | Reparaturaktionen, Reconcile, Job-Retry, Haltemodus bestätigen | #23 | – | – | B | – |
 | | Debug-Logging ein/aus, Log lesen | #19 + #23 | – | – | B | erhält Auszug im Paket |
 | **Audit** | Protokollansicht S-21, Filter | #21 | ✓ | Objekthistorie (§4.5) | ✓ | – |
-| | Audit-Export | #21 (R13-D5) | – | – | B | – |
+| | Audit-Export | #21 (E-140) | – | – | B | – |
 | **Einstellungen, Integrationen** | lesen/ändern | #19, #20 | – | – | ✓ | Versionen/Status im Paket |
 
-**Folgen für R1-03/R1-38:** Support braucht für seinen Arbeitsfluss keine weitere Cap. Ein Betreiber, der dem First-Level Grant-Korrekturen erlauben will, weist im Tab „Rollen & Rechte“ #9 zu (R13-D9). Geprüft werden Caps, nicht Rollennamen.
+**Folgen für R1-03/R1-38:** Support braucht für seinen Arbeitsfluss keine weitere Cap. Ein Betreiber, der dem First-Level Grant-Korrekturen erlauben will, weist im Tab „Rollen & Rechte“ #9 zu (E-144). Geprüft werden Caps, nicht Rollennamen.
 
 ### 1.3 Grundregeln für den Support (aus LB `docs/support-ablaeufe.md` „Grundregeln“, neutralisiert)
 
@@ -88,7 +103,7 @@
 
 **Ort:** Admin-Screen S-22 „Systemstatus“ (Cap #22), WP-Werkzeuge › Website-Zustand (Abschnitt `debug_information` und `site_status_tests`, LB `Admin/SiteHealth.php:35-36`), `GET course-captain/v1/health` (LB `Monitor.php:30`), `wp course-captain status` und `backup-check` (LB `Cli/Commands.php:46`, `:78`). Alle vier lesen **eine** Prüfliste (`HealthRegistry`). Module und Pro registrieren weitere Prüfungen dort (LB INV-C-013 „registrierbare Tasks“). Jede Prüfung liefert `id`, `status` (`ok`/`warn`/`fail`/`info`), Kurztext, Handlungshinweis und optional Objekt-IDs. Sie enthält **nie** Personendaten, Pfade mit dem Ordner-Geheimnis oder Secrets.
 
-**Übernommen aus LB** (Klassifikation `reuse`/`abstract`; `exclude` = fachlich LB-gebunden):
+**Nach LB-Verhalten neu gebaut** (Klassifikation `reuse`/`abstract` = Verhalten nachbauen, kein Code, E-01; `exclude` = fachlich LB-gebunden):
 
 | Nr. | Prüfung | LB-Beleg | CC-Ziel | Status-Regel CC |
 |---|---|---|---|---|
@@ -122,19 +137,20 @@
 
 | Nr. | Prüfung | Regel | Quelle |
 |---|---|---|---|
-| H-25 | Ausgangsmodus `on`/`catch`/`off` | dauerhaft sichtbar, auch in der Admin-Leiste; `off` in `production` = warn | R0-16 §3.1, R16-D2 |
-| H-26 | Haltemodus nach Änderung der Site-Identität | aktiv = fail mit Knopf „bestätigen“ (#23) | R0-16 §2.3, R16-D1 |
+| H-25 | Ausgangsmodus `on`/`catch`/`off` | dauerhaft sichtbar, auch in der Admin-Leiste; `off` in `production` = warn | R0-16 §3.1, E-86 |
+| H-26 | Haltemodus nach Änderung der Site-Identität | aktiv = fail mit Knopf „bestätigen“ (#23) | R0-16 §2.3, E-85 |
 | H-27 | Jobs nach Zustand (`queued`, `running`, `retry_wait`, `failed`, `dead_letter`) mit Anzahl, ältestem Eintrag, Job-ID, Fehlercode | `dead_letter` > 0 = fail; `running` mit abgelaufener Lease = warn | Konzept 22.1 |
 | H-28 | Outbox-Rückstand (`dispatching` mit abgelaufenem `locked_until`, älteste offene Zeile) | > 1 h = warn | R0-16 §1.4, E-116 |
 | H-29 | Grants `pending_*` über Timeout, Grants `failed` | Anzahl, älteste ID; `failed` > 0 = warn | R0-09 G-06, Konzept 31.7 |
 | H-30 | Versuche `broken`; `in_progress` über Frist + Kulanz | `broken` > 0 = warn | R0-08 §6.2 |
 | H-31 | Importe `importing`/`activating` ohne Heartbeat (> 15 min, Vorschlag) | warn mit Batch-ID | R0-16 §1.4, INV-C-102 |
 | H-32 | REST-Erreichbarkeit `course-captain/v1` (Loopback) | fail | Konzept 43.2 |
-| H-33 | Schlüssel `COURSE_CAPTAIN_SECRET_KEY` gesetzt, sonst Salt-Ableitung | nicht gesetzt = warn; **nie** Wert, nur „gesetzt/aus Konstante“ | R0-16 §3.2, R16-D3 |
-| H-34 | Integrationen/Connectoren: Status nach Konzept-Erkennung (`not_installed` … `failed`), letzter Erfolg | `degraded`/`failed` = warn | R0-34 (Vertrag dort) |
+| H-33 | Schlüssel `COURSE_CAPTAIN_SECRET_KEY` gesetzt, sonst Salt-Ableitung | nicht gesetzt = warn; **nie** Wert, nur „gesetzt/aus Konstante“ | R0-16 §3.2, E-87 |
+| H-34 | Integrationen/Connectoren: Status nach Konzept-Erkennung (`not_installed` … `failed`), letzter Erfolg | `degraded`/`failed` = warn | R0-34 (Vertrag dort); in Free nur lesende Partnererkennung, Connector-Status mit Pro (E-38, E-185, E-254) |
 | H-35 | Debug-Logging aktiv bis … | aktiv = info mit Restzeit | §2.3 |
-| H-36 | Audit-Integrität (Hash-Kette der letzten 1 000 Einträge, täglich) | Bruch = fail | §4.3, R13-D4 |
+| H-36 | Audit-Integrität (Hash-Kette der letzten 1 000 Einträge, täglich) | Bruch = fail | §4.3, E-139 |
 | H-37 | Pro-Lizenz und `core_version`-Sperre | nur mit Pro | R0-36 L4/L5 |
+| H-38 | Website-Härtung (R1-45): Zustand je Funktion (`off`/`auto`/`force`, noch nicht bestätigt), erkanntes Security-Plugin, Notausschalter `COURSE_CAPTAIN_HARDENING` aktiv, fail-closed-Ereignisse der letzten 24 h | nicht bestätigt = info mit Link in den Tab „Website-Härtung“; Notausschalter aktiv = warn; Zählerspeicher ausgefallen = warn | E-10, E-240, E-242, E-260, E-263, R0-31 |
 
 **Monitor `GET course-captain/v1/health`:** Gesamtstatus 200/503, `Cache-Control: no-store`, Einzelprüfungen nur mit Schlüssel oder für #22 (LB `Monitor.php:88-99`, T175). Ein Ausfall (503) zählt nur bei H-02 (fällig), H-04, H-07, H-10, H-14, H-26, H-32. Alle anderen Prüfungen sind Hinweise.
 
@@ -144,7 +160,7 @@
 
 **Erzeugung:** S-22 Knopf „Diagnosepaket erstellen“ (#22) oder `wp course-captain diagnostics --output=<datei>` (Safe-Export-Writer: außerhalb des Webroots, `0600`, `fopen 'x'`, LB `Commands.php:964-1009`). Ablauf:
 
-1. Optionen wählen: Zeitraum der Fehlereinträge (Standard 72 h, höchstens 14 Tage), optional konkrete `request_id`/Job-ID/Batch-ID, optional „Debug-Log-Auszug anhängen“, optional „Domain im Klartext“ (Standard: gehasht, R13-D7).
+1. Optionen wählen: Zeitraum der Fehlereinträge (Standard 72 h, höchstens 14 Tage), optional konkrete `request_id`/Job-ID/Batch-ID, optional „Debug-Log-Auszug anhängen“, optional „Domain im Klartext“ (Standard: gehasht, E-142).
 2. **Vorschau** des vollständigen Inhalts im Browser. Die redigierten Stellen sind markiert, damit der Betreiber sieht, was das Haus verlässt.
 3. Download als `course-captain-diagnose-<UTC>.json` (optional als ZIP mit `manifest.json`). Einmal-Link, gültig 1 h. Die Serverkopie im privaten Ordner wird nach 24 h gelöscht.
 4. Audit `diagnostics_exported` mit Umfang (Optionen, Bytes, SHA-256), ohne Inhalt.
@@ -153,7 +169,7 @@
 
 | Abschnitt | Felder | Redaktion |
 |---|---|---|
-| `manifest` | Paketformat-Version, Erzeugungszeit (UTC), Redaktionsregeln-Version, SHA-256 je Abschnitt, Installations-ID **als HMAC** (`cc_installation_uuid`), gewählte Optionen | – |
+| `manifest` | Paketformat-Version, Erzeugungszeit (UTC), Redaktionsregeln-Version, SHA-256 je Abschnitt, Installations-ID **als HMAC** (`course_captain_installation_uuid`), gewählte Optionen | – |
 | `versions` | Course Captain Core/Pro, Schema, Vertrag, REST-API, Paketformat, PHP, WP, DB-Server (Typ + Version), Webserver-Software (Produkt, ohne Hostname) | – |
 | `environment` | `WP_ENVIRONMENT_TYPE`, Multisite ja/nein, Locale, Zeitzone, `memory_limit`, `max_execution_time`, `upload_max_filesize`, `post_max_size`, Objekt-Cache-Typ, `DISABLE_WP_CRON`, System-Cron erkannt, HTTPS ja/nein, `home_url` **als HMAC** (Klartext nur per Option) | Pfade nie; nur „außerhalb Webroot ja/nein“ |
 | `plugins` | aktive Plugins und Theme: Slug, Version, Netzwerk-aktiv; Must-Use-Plugins: Dateiname | keine Lizenzschlüssel |
@@ -164,10 +180,10 @@
 | `imports` | Batches der letzten 30 Tage: UID, Status, Schritt, Cursor, Heartbeat-Alter, Anzahl Items je Ergebnis, Fehlercodes der Items | keine Inhalte, keine Fragen-/Lektionstexte, keine Dateinamen aus dem Paket außer Hash |
 | `outbox` / `inbox` | Zähler je Zustand und Eventtyp, älteste offene Zeile, letzte Fehlercodes je Connector | keine Payloads |
 | `counts` | Kurse, Lektionen, Fragen, aktive Grants, aktive Versuche, Gruppen; jeweils Größenklasse (`<100`, `<1 000`, `<10 000`, `≥10 000`) statt exakter Zahl für Lernende | – |
-| `schema` | Tabellen, Engine, Zeilenzahl-Klasse, Indizes, `cc_fk_issues`, Migrationshistorie | – |
+| `schema` | Tabellen, Engine, Zeilenzahl-Klasse, Indizes, `course_captain_fk_issues`, Migrationshistorie | – |
 | `debug_log` (optional) | Auszug des Debug-Logs im Zeitraum | Scrubber; höchstens 2 MB |
 
-**Nie im Paket:** Namen, E-Mail-Adressen, Logins, WP-User-IDs im Klartext, IP-Adressen, User-Agents, Antworten, Snapshots, Kurs- und Frageninhalte, Zertifikatsdaten, Bestell-/Zahlungsdaten, Begründungstexte aus dem Audit, Audit-Einträge selbst, Secrets, Token, Nonces, Cookies, Hashes von Token, Lizenzschlüssel, absolute Pfade, Ordnernamen mit Geheimnis, Domain im Klartext (Standard).
+**Nie im Paket:** Namen, E-Mail-Adressen, Logins, WP-User-IDs im Klartext, IP-Adressen, User-Agents, Antworten, Snapshots, Abgaben zu Aufgaben (Text und Dateien, E-168), Kurs- und Frageninhalte, Zertifikatsdaten, Bestell-/Zahlungsdaten, Begründungstexte aus dem Audit, Audit-Einträge selbst, Secrets, Token, Nonces, Cookies, Hashes von Token, Lizenzschlüssel, absolute Pfade, Ordnernamen mit Geheimnis, Domain im Klartext (Standard).
 
 **Scrubber (zweite Linie für Freitext in Meldungen):** E-Mail → `<email>`, IPv4/IPv6 → `<ip>`, `Bearer …`/JWT/Hex- und Base64-Folgen ≥ 32 Zeichen → `<token>`, absolute Pfade → `<abspath>/…`/`<private>/…`, `protected-<geheim>`/`packages-<geheim>` → `protected-<…>`, URL-Query-Parameter → `?<redacted>`, IBAN-Muster → `<iban>`, Zahlen ≥ 6 Stellen nach `user`/`order` → `<id>`. Der CI-Test SUP-017 füttert bekannte Geheimnisse und Personendaten ein und verlangt null Treffer im Ergebnis (analog REC-022).
 
@@ -179,9 +195,9 @@
 |---|---|---|
 | DL-1 | **Standard aus.** Einschalten im Einstellungs-Tab „Erweitert“ (#19) oder über `wp course-captain debug on --for=2h` (#23). Dauer 15 min bis höchstens 24 h, Standard 2 h. Danach schaltet sich das Logging selbst ab (Prüfung bei jeder Anfrage und im Stundenlauf). | Konzept 43.3 „Debug aus; zeitlich begrenzt einschaltbar; Ablauf erzwingen“ |
 | DL-2 | Ein- und Ausschalten erzeugt Audit `debug_enabled`/`debug_disabled` (Akteur, Dauer, Stufe, Begründung). H-35 zeigt die Restzeit. | Nachvollziehbarkeit |
-| DL-3 | Stufen `error` (immer aktiv, auch ohne Debug), `warning`, `info`, `debug`. Nur `error` und `warning` laufen dauerhaft, und zwar in die Fehlertabelle bzw. Job-Liste mit Retention 30 Tage (R13-D8). `info`/`debug` nur im Debug-Zeitfenster. | Datensparsamkeit |
+| DL-3 | Stufen `error` (immer aktiv, auch ohne Debug), `warning`, `info`, `debug`. Nur `error` und `warning` laufen dauerhaft, und zwar in die Fehlertabelle bzw. Job-Liste mit Retention 30 Tage (E-143). `info`/`debug` nur im Debug-Zeitfenster. | Datensparsamkeit |
 | DL-4 | Format: eine JSON-Zeile je Ereignis mit `ts`, `level`, `request_id`, `correlation_id`, `component`, `code`, `message`, `context` (Allowlist-Schlüssel je Komponente). Kein `var_export`/`print_r` ganzer Objekte. | maschinenlesbar, redigierbar |
-| DL-5 | Ablage im **privaten Ordner** (`<private>/logs/cc-debug-YYYYMMDD.log`, nie im Webroot), Rotation bei 5 MB, höchstens 5 Dateien, Löschung nach 7 Tagen (R13-D8). Kein Download über eine öffentliche URL. Die Einsicht im Systemstatus erfordert #23. | LB schreibt in `error_log` des Servers (`Cron.php:49`), Rotation dort unkontrolliert |
+| DL-5 | Ablage im **privaten Ordner** (`<private>/logs/cc-debug-YYYYMMDD.log`, nie im Webroot), Rotation bei 5 MB, höchstens 5 Dateien, Löschung nach 7 Tagen (E-143). Kein Download über eine öffentliche URL. Die Einsicht im Systemstatus erfordert #23. | LB schreibt in `error_log` des Servers (`Cron.php:49`), Rotation dort unkontrolliert |
 | DL-6 | **Nie loggen:** Antworten und Antwortoptionen, Snapshots, Passwörter, Token und ihre Hashes, Nonces, Cookies, Secrets, vollständige Request-Bodies, Zahlungsdaten. E-Mail-Adressen nur maskiert (`m***@d***.tld`), IP-Adressen gekürzt (/24 bzw. /48), User-IDs nur als HMAC mit Site-Schlüssel. | Konzept 22.1 „keine persönlichen Antworten in Logs“, Kap. 25 „PII/Secrets maskiert“ |
 | DL-7 | Die Scrubber aus §2.2 laufen **beim Schreiben**, nicht erst beim Export. | Defense in depth |
 | DL-8 | Fehlermeldungen an Nutzer: stabiler Fehlercode und `request_id`, keine Stacktraces, keine SQL-Texte, keine Pfade (R0-19 Fehlerkatalog). Der Stacktrace steht nur im Log (`error`). | LB `LearnerController.php:463` schreibt Datei und Zeile ins Server-Log; CC zusätzlich mit `request_id` |
@@ -194,40 +210,40 @@
 
 **Gemeinsamer Ablauf jeder Aktion** (R0-07 §4.3 und Konzept 43.2 UX-Vertrag):
 
-1. Cap- und Meta-Cap-Prüfung, dann Nonce je Aktion und Objekt (`cc_<aktion>_<id>`).
+1. Cap- und Meta-Cap-Prüfung, dann Nonce je Aktion und Objekt (`ccap_<aktion>_<id>`).
 2. **Bestätigungsseite** mit Wirkung in Klartext („Zugang zu Kurs X für dieses Konto endet sofort“), Anzahl der Betroffenen und Undo-Hinweis.
 3. **Pflichtbegründung:** Auswahl `reason_code` (je Aktion fester Katalog plus `other`) **und** Freitext von mindestens 10 Zeichen (Ticketnummer empfohlen, GR-4). Die CLI verlangt `--reason`.
-4. Ausführung in **einer** Transaktion mit CAS (R0-09 §2.4), Fachereignis (z. B. `cc_grant_event`), **Audit-Eintrag** und Outbox-Ereignis, wenn es Außenwirkung hat.
+4. Ausführung in **einer** Transaktion mit CAS (R0-09 §2.4), Fachereignis (z. B. `ccap_grant_event`), **Audit-Eintrag** und Eintrag in die **interne Outbox**, wenn es Außenwirkung hat (Mail; E-38/E-182). Öffentliche Course-Events entstehen daraus nur mit Pro.
 5. Cache und Policy-Memo invalidieren (R0-07 P-11).
-6. Benachrichtigung nach Spalte „Lernender“ (Defaults nach R13-D1). Im Ausgangsmodus `catch`/`off` oder im Haltemodus wird sie zurückgehalten (R0-16 §3.1).
+6. Benachrichtigung nach Spalte „Lernender“ (Defaults nach E-136). Im Ausgangsmodus `catch`/`off` oder im Haltemodus wird sie zurückgehalten (R0-16 §3.1).
 7. Idempotenz: `request_key` aus dem Formular. Doppelt abgeschickt ergibt keine zweite Wirkung.
 
 **Undo-Grundsatz:** Course Captain löscht bei einer Korrektur keine fachlichen Datensätze. Jede Rücknahme ist eine **neue** Aktion mit eigenem Audit. Endzustände (`revoked`, `expired`, Zertifikat `revoked`) leben nie wieder auf (E-29, R0-09 §2.3). Es entsteht dann eine neue Revision.
 
 ### 3.1 Aktionskatalog
 
-| Nr. | Aktion | Cap / Meta-Cap | Pflichtbegründung | Audit-Aktion (+ Fachhistorie) | Undo | Lernender wird informiert (Default, R13-D1) |
+| Nr. | Aktion | Cap / Meta-Cap | Pflichtbegründung | Audit-Aktion (+ Fachhistorie) | Undo | Lernender wird informiert (Default, E-136) |
 |---|---|---|---|---|---|---|
-| K-01 | **Grant gewähren** (manuell) | #9, M-14; Nutzer muss auf der Site existieren | ja (`support_case`, `goodwill`, `migration`, `source_outage`, `other`) | `grant_manual_created` (+ `cc_grant_event` G-03 `manual_grant`, Outbox `grant.created`/`grant.activated`) | K-03 Widerruf (`manual_revoke`); kein Löschen | **Mail** „Zugang freigeschaltet“ (abwählbar im Dialog) + „Mein Lernen“ |
+| K-01 | **Grant gewähren** (manuell) | #9, M-14; Nutzer muss auf der Site existieren | ja (`support_case`, `goodwill`, `migration`, `source_outage`, `other`) | `grant_manual_created` (+ `ccap_grant_event` G-03 `manual_grant`, Outbox `grant.created`/`grant.activated`) | K-03 Widerruf (`manual_revoke`); kein Löschen | **Mail** „Zugang freigeschaltet“ (abwählbar im Dialog) + „Mein Lernen“ |
 | K-02 | **Grant verlängern / Enddatum ändern** | #9, M-13 | ja | `grant_extended` (+ G-14 `extended`) | erneute Änderung des Enddatums; nach Ablauf nur neue Revision (G-15) | Mail aus, Anzeige „aktiv bis …“ |
 | K-03 | **Grant entziehen** (widerrufen) | #9, M-13; externe Quelle: widerrufen ja, löschen nein | ja (`fraud`, `duplicate`, `wrong_course`, `support_case`, `other`) | `grant_manual_revoked` (+ G-12 `manual_revoke`, Outbox `grant.revoked`, `access.changed`) | **kein** Aufheben (Endzustand); erneuter Zugang = K-01 bzw. G-15 `reactivated` als neue Revision | **keine Mail**; „Mein Lernen“ zeigt „beendet“ mit Supportweg |
 | K-04 | **Grant aussetzen / freigeben** | #9, M-13 | ja | `grant_manual_suspended` / `grant_manual_released` (+ G-08/G-09) | Gegenaktion; manuelle Sperre nur manuell lösbar | keine Mail; Anzeige „vorübergehend nicht verfügbar“ |
-| K-05 | **Zugang übertragen** (E-114, D09-3) | #9, M-13 auf den Quell-Grant **und** M-14 auf den Kurs für das Ziel; Ziel ≠ Quelle, Ziel ohne Lernsperre | ja (`wrong_account`, `account_change`, `other`) | `grant_transferred` mit `subject_user_id` = Quelle und `context.target_subject` = Ziel; zwei Einträge, einer je Konto (+ G-12 `transferred`, neuer Grant `source_revision + 1` G-03) | Rückübertragung (erneut K-05); Historie, Fortschritt, Versuche, Zertifikate bleiben beim Quellkonto (R0-09 §1.3) | **Ziel: Mail** „Zugang freigeschaltet“; **Quelle: keine Mail**, Anzeige „auf ein anderes Konto übertragen“ ohne Angabe des Ziels (GR-5) |
+| K-05 | **Zugang übertragen** (E-114, E-114) | #9, M-13 auf den Quell-Grant **und** M-14 auf den Kurs für das Ziel; Ziel ≠ Quelle, Ziel ohne Lernsperre | ja (`wrong_account`, `account_change`, `other`) | `grant_transferred` mit `subject_user_id` = Quelle und `context.target_subject` = Ziel; zwei Einträge, einer je Konto (+ G-12 `transferred`, neuer Grant `source_revision + 1` G-03) | Rückübertragung (erneut K-05); Historie, Fortschritt, Versuche, Zertifikate bleiben beim Quellkonto (R0-09 §1.3) | **Ziel: Mail** „Zugang freigeschaltet“; **Quelle: keine Mail**, Anzeige „auf ein anderes Konto übertragen“ ohne Angabe des Ziels (GR-5) |
 | K-06 | **Fehlgeschlagenen Grant erneut verarbeiten** (Retry `failed`) | #9, M-13 | ja (kurz, `retry_after_fix`) | `grant_retry_requested` (+ G-13 `retry`, gleicher Idempotenzschlüssel) | – (Ergebnis folgt der Quelle) | wie die Folgeaktivierung (Mail „freigeschaltet“ nur bei erster Aktivierung) |
 | K-07 | **Versuch nachauswerten** (`broken` → `evaluated`) | #16 + M-12; Ursache behoben (H-30 grün für diesen Versuch) | ja | `attempt_reevaluated` (+ Session-Zustandswechsel, `evaluation_no`) | – (Ergebnis ist neue Auswertung; spätere Nachbewertung nach E-74) | Anzeige des Ergebnisses; Zertifikat-Mail nach normalem Ablauf |
 | K-08 | **Versuch als defekt verwerfen** (`broken` oder `in_progress` → `cancelled`, `end_reason = support_void`) | #16 + M-12 | ja (`technical_failure`, `outage`, `other`) | `attempt_voided` | – (Endzustand); Ersatz über K-09 | **Mail** „Prüfungsversuch wurde wegen eines technischen Fehlers nicht gewertet“ + Hinweis auf Zusatzversuch |
 | K-09 | **Zusatzversuch gewähren** (ein Versuch zählt nicht gegen `max_attempts`) | #16 + M-12 | ja | `attempt_allowance_granted` (Anzahl, Bezug auf Versuch) | Entzug, solange nicht verbraucht (`attempt_allowance_revoked`) | Anzeige „1 zusätzlicher Versuch“; Mail aus |
 | K-10 | **Versuch annullieren** (`evaluated` → Nachweis `revoked`, z. B. Betrug) | #16 + #17 bei Zertifikat | ja | `attempt_annulled` (+ ggf. `certificate_revoked`) | keine Rücknahme; Nachbewertung E-74 nur fachlich | Mail **an**, sachlich (Konzept 35.4: Widerruf mit Grund) |
-| K-11 | **Fortschritt zurücksetzen** (Kurs, Activity oder Frage, E-106) | #16, M-12 (eigener Fortschritt: `read`, falls Kurs erlaubt) | ja (bei Selbstreset nicht) | `progress_reset` mit Umfang und Anzahl der Zeilen; Versuche und Zertifikate bleiben (R0-23 §5) | **Undo innerhalb von 30 Tagen** aus dem Reset-Journal, solange danach kein neuer Fortschritt entstand (R13-D3) | Mail aus; Hinweis in „Mein Lernen“ („Fortschritt am … zurückgesetzt“) |
-| K-12 | **Lernsperre setzen / aufheben** (E-79) | #18, M-24; nicht gegen höhere Caps, nicht sich selbst | ja (`abuse`, `account_compromised`, `legal_hold`, `other`) | `learner_locked` / `learner_unlocked`; optional `sessions_terminated` (D07-2) | Aufheben | **keine Mail** (oft Missbrauch oder kompromittiertes Konto); Meldung `cc_account_locked` mit Supportweg |
+| K-11 | **Fortschritt zurücksetzen** (Kurs, Activity oder Frage, E-106) | #16, M-12 (eigener Fortschritt: `read`, falls Kurs erlaubt) | ja (bei Selbstreset nicht) | `progress_reset` mit Umfang und Anzahl der Zeilen; Versuche und Zertifikate bleiben (R0-23 §5) | **Undo innerhalb von 30 Tagen** aus dem Reset-Journal, solange danach kein neuer Fortschritt entstand (E-138) | Mail aus; Hinweis in „Mein Lernen“ („Fortschritt am … zurückgesetzt“) |
+| K-12 | **Lernsperre setzen / aufheben** (E-79) | #18, M-24; nicht gegen höhere Caps, nicht sich selbst | ja (`abuse`, `account_compromised`, `legal_hold`, `other`) | `learner_locked` / `learner_unlocked`; optional `sessions_terminated` (E-79) | Aufheben | **keine Mail** (oft Missbrauch oder kompromittiertes Konto); Meldung `ccap_account_locked` mit Supportweg |
 | K-13 | **Import zurückrollen** | #6 + M-21, für die Aktivierung zusätzlich #3 | ja (`content_error`, `rights_issue`, `other`) | `import_rollback_requested`, `import_rolled_back` (neuer Batch aus Paketkopie, R0-10 §3.6) | Rollback auf den vorherigen Stand (neuer Batch); nichts wird gelöscht | keine; laufende Versuche bleiben auf ihrem Snapshot (R0-08 §6.3); „Erneut bearbeiten“ nur nach E-105 |
 | K-13a | **Import fortsetzen / verwerfen** | #6 + M-21 | Fortsetzen nein, Verwerfen ja | `import_resumed` / `import_discarded` | Verwerfen ist endgültig für den Batch; neues Hochladen möglich | keine |
 | K-14 | **Reconcile** (Abgleich, §3.2) | #23; CLI als Systemakteur | ja bei `--apply` | `reconcile_previewed` (nur CLI/UI-Vorschau, ohne Begründung), `reconcile_applied` mit Zählern je Abweichungsart; jede Einzeländerung schreibt ihr eigenes Fachereignis (`actor_type = system:reconcile`, `correlation_id` des Laufs) | keine Sammelrücknahme; jede Einzeländerung ist per K-01…K-04 umkehrbar | **keine Mails** aus dem Reconcile (Konzept 22.2: keine Doppelwirkung); Anzeige in „Mein Lernen“ |
 | K-15 | **Zertifikat korrigieren / widerrufen** | #17, M-19 | ja | `certificate_corrected` (neue `revision_no`) / `certificate_revoked` | Korrektur: erneute Korrektur; Widerruf: Endzustand, Neuausstellung = neues Zertifikat | Korrektur: Mail mit neuem PDF-Link; Widerruf: Mail mit Grund |
 | K-16 | **Job erneut ausführen / Dead-Letter verwerfen** | #23 | Retry nein, Verwerfen ja | `job_retried` / `job_discarded` (Job-ID, Typ, Fehlercode) | – | keine |
-| K-17 | **Haltemodus bestätigen** (gleicher Ort / Umzug / Kopie) | #23 | ja | `site_identity_confirmed` (Wahl, alte und neue Identitäts-Hashes) | erneute Wahl | keine; zurückgehaltene Mails nach R16-D4 |
+| K-17 | **Haltemodus bestätigen** (gleicher Ort / Umzug / Kopie) | #23 | ja | `site_identity_confirmed` (Wahl, alte und neue Identitäts-Hashes) | erneute Wahl | keine; zurückgehaltene Mails nach E-88 |
 
-**Lesen fremder Versuchsdaten** ist keine Korrektur, aber begründungspflichtig (E-82, D07-5): Beim Öffnen von S-11 fragt das Formular einen `reason_code` (`support_case`, `grading`, `appeal`, `fraud_check`) und einen Freitext ab. Audit `attempt_details_viewed`. Zugewiesene Trainer bewerten ohne Begründung, aber mit Audit.
+**Lesen fremder Versuchsdaten** ist keine Korrektur, aber begründungspflichtig (E-82, E-82): Beim Öffnen von S-11 fragt das Formular einen `reason_code` (`support_case`, `grading`, `appeal`, `fraud_check`) und einen Freitext ab. Audit `attempt_details_viewed`. Zugewiesene Trainer bewerten ohne Begründung, aber mit Audit.
 
 **Nicht vorgesehen:** Grants oder Versuche löschen, Grant-Status direkt setzen, Fortschritt auf einen beliebigen Wert setzen, Konten zusammenführen (E-114), Antworten eines Lernenden ändern.
 
@@ -243,7 +259,7 @@ LB kennt nur den Woo-Bestellabgleich: stündlich, Cursor über das Änderungsdat
 | RC-4 Prüfungssitzungen | `in_progress` über Frist + Kulanz | Auswertung `expired` (wie Cron) | R1 |
 | RC-5 Outbox | `dispatching` mit abgelaufener Lease | zurück in `queued`; Empfänger dedupliziert per `event_uuid` | R1 |
 | RC-6 Importe | `importing` ohne Heartbeat und ohne lebende Sperre | als `aborted` markieren (danach K-13a) | R1 |
-| RC-7 Fortschritt ↔ Kursrevision | Kursabschluss fehlt, obwohl alle Pflicht-Activities erfüllt sind (E-111) | Abschluss nachtragen, **ohne** Mail (Zertifikat nach Kurseinstellung, Versand nach R16-D4-Regel) | R1 |
+| RC-7 Fortschritt ↔ Kursrevision | Kursabschluss fehlt, obwohl alle Pflicht-Activities erfüllt sind (E-111) | Abschluss nachtragen, **ohne** Mail (Zertifikat nach Kurseinstellung, Versand nach E-88-Regel) | R1 |
 | RC-8 Woo-Bestellungen ↔ Grants | wie LB `OrderSync` | Adapter | R3 |
 
 **Regeln:** Vorschau ist Standard. `--apply` verlangt eine Begründung. Lock je Abgleich, Batchgröße und Cursor wie LB. Kein Abgleich versendet Mails oder stellt Zertifikate aus (Konzept 22.2). Nach einem Restore läuft der Abgleich erst, wenn der Haltemodus bestätigt ist (R0-16 §2.3).
@@ -267,14 +283,14 @@ Namensschema `<bereich>_<ereignis>`, Vergangenheitsform, nur `[a-z0-9_]`, höchs
 | **import** (13) | `import_uploaded`, `import_validated`, `import_validation_failed`, `import_previewed`, `import_approved`, `import_started`, `import_aborted`, `import_resumed`, `import_activated`, `import_discarded`, `import_rollback_requested`, `import_rolled_back`, `import_retention` (R0-10 §3.6, LB `AuditPage.php:457-466`) | Freigabe, Rollback, Verwerfen |
 | **staff/roles** (4) | `staff_assigned`, `staff_removed`, `role_caps_changed`, `export_created` (Inhalt/Bericht/Grants) | nein (Export: Zweck) |
 | **privacy** (9) | `personal_data_exported`, `personal_data_erased`, `privacy_export_sent`, `privacy_export_failed`, `account_deleted`, `account_deletion_skipped`, `account_deletion_failed`, `account_removed_from_site`, `audit_pseudonymized` (LB `AuditPage.php:468-475`) | nein (WP-Antrag ist der Beleg) |
-| **ops** (11) | `diagnostics_exported`, `audit_exported`, `audit_pruned`, `debug_enabled`, `debug_disabled`, `job_retried`, `job_discarded`, `reconcile_applied`, `maintenance_action`, `site_identity_confirmed`, `held_outbound_released` (R16-D4) | `audit_exported`, `debug_enabled`, `job_discarded`, `reconcile_applied`, `maintenance_action`, `site_identity_confirmed`, `held_outbound_released` |
+| **ops** (11) | `diagnostics_exported`, `audit_exported`, `audit_pruned`, `debug_enabled`, `debug_disabled`, `job_retried`, `job_discarded`, `reconcile_applied`, `maintenance_action`, `site_identity_confirmed`, `held_outbound_released` (E-88) | `audit_exported`, `debug_enabled`, `job_discarded`, `reconcile_applied`, `maintenance_action`, `site_identity_confirmed`, `held_outbound_released` |
 | **settings/integrations** (4) | `settings_saved` (Tab, geänderte Schlüssel, Secret-Felder nur „geändert“), `integration_saved`, `integration_secret_rotated`, `webhook_rejected` (gedrosselt, R0-07 §3.6) | nein |
 
-Summe: 88 Aktionen. **Nicht im Audit**, weil die Fachhistorie sie trägt: automatische Grant-Übergänge aus Quellen (nur `cc_grant_event`), Lernereignisse, normale Prüfungsabgaben. LB-Aktionen für Shop, Preise, Rabatte, Zahlungskonflikte, Seekarten und Prüfungsausschüsse entfallen (exclude).
+Summe: 88 Aktionen. **Nicht im Audit**, weil die Fachhistorie sie trägt: automatische Grant-Übergänge aus Quellen (nur `ccap_grant_event`), Lernereignisse, normale Prüfungsabgaben. LB-Aktionen für Shop, Preise, Rabatte, Zahlungskonflikte, Seekarten und Prüfungsausschüsse entfallen (exclude).
 
 ### 4.2 Felder
 
-Basis ist `cc_audit_log` (R0-06 E-47, LB `Audit/AuditLog.php:13`, Schema INV-C-042). **Delta an R0-06:**
+Basis ist `ccap_audit_log` (R0-06 E-47, LB `Audit/AuditLog.php:13`, Schema INV-C-042). **Delta an R0-06:**
 
 | Feld | Typ (Vorschlag) | Inhalt | neu |
 |---|---|---|---|
@@ -290,7 +306,7 @@ Basis ist `cc_audit_log` (R0-06 E-47, LB `Audit/AuditLog.php:13`, Schema INV-C-0
 | `context` | `longtext NULL` (JSON) | nur Allowlist-Schlüssel je Aktion: Vorher/Nachher-Werte fachlicher Felder, Zähler, Bezug-UIDs; **keine** E-Mail, IP, Antworten, Secrets | – |
 | `correlation_id` | `char(36) NULL`, Index | verbindet Audit, Grant-Event, Outbox, Job und Log | **ja** |
 | `request_id` | `char(26) NULL` | Anfrage, die die Aktion ausgelöst hat (GR-7) | **ja** |
-| `row_hash` | `binary(32)` | SHA-256 über `prev_hash`‖kanonisierte Zeile (R13-D4) | **ja** |
+| `row_hash` | `binary(32)` | SHA-256 über `prev_hash`‖kanonisierte Zeile (E-139) | **ja** |
 
 Anzeige wie in LB: Akteur nur mit Anzeigenamen, ohne E-Mail; gelöschte Konten als „Nutzer <ID> (gelöscht)“ bzw. nach Pseudonymisierung „Nutzer (gelöscht)“ (`AuditPage.php:329-343`). „System (automatisch)“ steht für `actor_type ≠ user`.
 
@@ -300,22 +316,22 @@ Anzeige wie in LB: Akteur nur mit Anzeigenamen, ohne E-Mail; gelöschte Konten a
 |---|---|
 | **Append-only** | Der Audit-Service kennt nur `record()`. Es gibt keine Update- oder Delete-Methode und keine REST-, AJAX- oder CLI-Route zum Ändern. |
 | **Erlaubte Ausnahmen (abschließend)** | (1) Prune nach Retention (§4.4), je Lauf begrenzt (LB 5 000), mit Sammel-Eintrag `audit_pruned` (Anzahl, ältestes/jüngstes Datum). (2) Eraser: `actor_user_id`/`subject_user_id` → `NULL`, personenbezogene Kontextschlüssel → HMAC (LB `PersonalData.php:366` `JSON_SET` mit sha256), Eintrag `audit_pseudonymized`. Begründungstexte des Betroffenen-Falls werden auf `"<pseudonymisiert>"` gesetzt. |
-| **Hash-Kette** (R13-D4) | `row_hash = SHA-256(prev_row_hash ‖ kanonisches JSON der Zeile ohne row_hash)`. Prune und Pseudonymisierung schreiben einen **Ankereintrag** mit dem neuen Startwert. Prüfung H-36 täglich, im Export und in `wp course-captain audit verify`. Die Kette **erkennt** Änderungen außerhalb des Plugins (SQL, Tabellen-Editor, Teil-Restore). Gegen Angreifer mit DB-Schreibrecht schützt sie nicht vollständig, sie macht Manipulationen aber sichtbar. |
-| **Restore** | Ein DB-Restore rollt das Audit mit zurück (R0-16 §1.3, R16-D8). Nach einem bestätigten Haltemodus schreibt Course Captain `site_identity_confirmed` mit dem Hash der letzten Zeile vor der Erkennung. |
+| **Hash-Kette** (E-139) | `row_hash = SHA-256(prev_row_hash ‖ kanonisches JSON der Zeile ohne row_hash)`. Prune und Pseudonymisierung schreiben einen **Ankereintrag** mit dem neuen Startwert. Prüfung H-36 täglich, im Export und in `wp course-captain audit verify`. Die Kette **erkennt** Änderungen außerhalb des Plugins (SQL, Tabellen-Editor, Teil-Restore). Gegen Angreifer mit DB-Schreibrecht schützt sie nicht vollständig, sie macht Manipulationen aber sichtbar. |
+| **Restore** | Ein DB-Restore rollt das Audit mit zurück (R0-16 §1.3, E-92). Nach einem bestätigten Haltemodus schreibt Course Captain `site_identity_confirmed` mit dem Hash der letzten Zeile vor der Erkennung. |
 | **Kein Audit im Cache** | Schreiben erfolgt synchron in derselben Transaktion wie die Fachaktion. Scheitert das Audit, scheitert die Aktion (fail-closed für Korrekturaktionen). |
 
-### 4.4 Aufbewahrung (Annahme E-44)
+### 4.4 Aufbewahrung (E-44)
 
 | Daten | Default | Änderbar | Löschlauf | Quelle |
 |---|---|---|---|---|
-| `cc_audit_log` | **4 Jahre** | Setting (Datenschutz & Sicherheit), Minimum 1 Jahr | stündlich `cc_audit_prune`, Index auf `created_at`, höchstens 5 000 je Lauf | E-44, LB `PersonalData.php:100-108`, `betrieb-entscheidungen.md` |
-| Grant-Historie `cc_grant_event` gelöschter Konten (Kaufquellen) | 10 Jahre, pseudonymisiert | Setting | täglich, höchstens 1 000 | E-44, R0-09 §7 |
+| `ccap_audit_log` | **4 Jahre** | Setting (Datenschutz & Sicherheit), Minimum 1 Jahr | stündlich `ccap_audit_prune`, Index auf `created_at`, höchstens 5 000 je Lauf | E-44, LB `PersonalData.php:100-108`, `betrieb-entscheidungen.md` |
+| Grant-Historie `ccap_grant_event` gelöschter Konten (Kaufquellen) | 10 Jahre, pseudonymisiert | Setting | täglich, höchstens 1 000 | E-44, R0-09 §7 |
 | Import-Protokoll | „unverändert“ 14 Tage, übrige Zeilen 180 Tage | Setting | stündlich | E-44, LB T40 |
-| Inbox/Outbox | 90 Tage | Setting | stündlich | Annahme E-116 |
-| Fehlertabelle / Job-Fehler (`error`, `warning`) | 30 Tage | Setting | stündlich | **neu**, R13-D8 |
-| Debug-Log-Dateien | 7 Tage | nein (Maximum) | Stundenlauf | **neu**, R13-D8 |
+| Inbox/Outbox | 90 Tage | Setting | stündlich | E-116, E-215 |
+| Fehlertabelle / Job-Fehler (`error`, `warning`) | 30 Tage | Setting | stündlich | **neu**, E-143 |
+| Debug-Log-Dateien | 7 Tage | nein (Maximum) | Stundenlauf | **neu**, E-143 |
 | Diagnosepaket (Serverkopie) | 24 h | nein | Stundenlauf | §2.2 |
-| Reset-Journal (K-11) | 30 Tage | nein | täglich | R13-D3 |
+| Reset-Journal (K-11) | 30 Tage | nein | täglich | E-138 |
 
 Die juristische Bestätigung der Fristen liegt beim Betreiber (E-44). Die Protokollansicht nennt die eingestellte Frist im Kopf (LB `AuditPage.php:50`).
 
@@ -325,7 +341,7 @@ Die juristische Bestätigung der Fristen liegt beim Betreiber (E-44). Die Protok
 |---|---|---|
 | **Protokollansicht S-21** (E-19, Free) | #21: Admin, Support | Filter wie LB (`AuditPage.php:102-136`): Zeitraum, Bereich oder Aktion, Akteur oder betroffene Person (ID, E-Mail, Login; gelöschte Konten per Nummer), Objekt (Grant, Gruppe, Versuch, Zertifikat, Import) + ID, zusätzlich `correlation_id`/`request_id`. 50 je Seite. Keine E-Mail- oder IP-Spalte. |
 | **Objekthistorie** (Kasten in Grant-, Gruppen-, Lernenden-, Zertifikats- und Import-Detail) | wer das Objekt sehen darf (#13 bzw. Objekt-Cap), also auch Manager ohne #21 | nur Einträge zu diesem Objekt, höchstens 50, wie LB `historyBox` (`AccessPages.php:219`, `:566`) |
-| **Audit-Export** | #21 **und** #19 (Admin), Begründung Pflicht, R13-D5 | CSV oder JSON, gefilterte Menge, Begründungstexte nur per Option, Prüfsumme und Hash-Kettenanker im Kopf; Safe-Export-Writer; Audit `audit_exported` |
+| **Audit-Export** | #21 **und** #19 (Admin), Begründung Pflicht, E-140 | CSV oder JSON, gefilterte Menge, Begründungstexte nur per Option, Prüfsumme und Hash-Kettenanker im Kopf; Safe-Export-Writer; Audit `audit_exported` |
 | **Betroffenenauskunft** | WP-Exporter (M-23 bzw. `export_others_personal_data`) | Einträge mit `subject_user_id` = Person: Aktion, Zeit, Objekt, `reason_code`. Freitext-Begründung nur, wenn sie die Person selbst betrifft. Akteur nur als Rolle („Support“), nicht als Name (Schutz der Mitarbeitenden, R0-31 zu bestätigen) |
 | **CLI** | Systemakteur, mit `--user` die Caps dieses Nutzers | `wp course-captain audit list|verify|export` mit denselben Filtern |
 
@@ -376,7 +392,7 @@ Kurzform je Fall: **Symptom → Prüfen (Stufe 1, nur lesend) → Ursache und Ak
 |---|---|
 | **Symptom** | Browserabsturz, Verbindungsabbruch, „Zeit abgelaufen“, Fehlermeldung bei Abgabe, Ergebnis fehlt |
 | **Prüfen** (St. 1, **ohne** Antworten) | Versuchsliste: Status, Start, Frist, `end_reason`, Punkte. `request_id` aus der Fehlermeldung. H-30, H-07 (Cron), Störungszeitraum im Systemstatus (Fehler und Jobs zur Uhrzeit). |
-| **Ursache → Aktion** | `in_progress`, Frist läuft → Lernender setzt fort (Wiederaufnahme R1-20), keine Aktion · `evaluated`/`expired` ohne technische Störung → Ergebnis erklären, keine Korrektur · `evaluated`/`expired` mit **belegter** Störung (Fehler mit `request_id` im Zeitraum, H-32 rot, Ausfall) → St. 2: **K-09 Zusatzversuch** (R13-D2); Versuch bleibt als gewertet stehen · `broken` → St. 3 behebt die Ursache (Regel, Snapshot, `cc_exam_snapshot_invalid`), dann St. 2 **K-07 Nachauswertung**; ist das nicht möglich → **K-08 Verwerfen** + K-09 · `cancelled` durch den Lernenden → zählt nach E-71 bei gesetztem Limit; Kulanz nur über K-09 mit Begründung |
+| **Ursache → Aktion** | `in_progress`, Frist läuft → Lernender setzt fort (Wiederaufnahme R1-20), keine Aktion · `evaluated`/`expired` ohne technische Störung → Ergebnis erklären, keine Korrektur · `evaluated`/`expired` mit **belegter** Störung (Fehler mit `request_id` im Zeitraum, H-32 rot, Ausfall) → St. 2: **K-09 Zusatzversuch** (E-137); Versuch bleibt als gewertet stehen · `broken` → St. 3 behebt die Ursache (Regel, Snapshot, `ccap_exam_snapshot_invalid`), dann St. 2 **K-07 Nachauswertung**; ist das nicht möglich → **K-08 Verwerfen** + K-09 · `cancelled` durch den Lernenden → zählt nach E-71 bei gesetztem Limit; Kulanz nur über K-09 mit Begründung |
 | **Eskalation** | Mehrere `broken` derselben Prüfung → St. 3 (Regel/Variante prüfen, ggf. Prüfung bis zur Klärung „nicht startbar“); Produktfehler → St. 4 mit Diagnosepaket |
 | **Abschluss** | Textbaustein „Versuch nicht gewertet, zusätzlicher Versuch freigeschaltet“; Antworten wurden nur bei Bedarf mit Begründung (E-82) eingesehen |
 
@@ -402,11 +418,15 @@ Kurzform je Fall: **Symptom → Prüfen (Stufe 1, nur lesend) → Ursache und Ak
 
 #### RB-SUP-5 · Mails kommen nicht an
 
-**Prüfen:** H-25 Ausgangsmodus (`catch`/`off`?), H-26 Haltemodus, H-22 Absender, Liste der zurückgehaltenen Mails, Opt-out des Lernenden. **Aktion:** Haltemodus bestätigen (K-17, St. 3) und zurückgehaltene Mails nach R16-D4 behandeln (Standard verwerfen); Testmail an die eigene Adresse (`cc_mail_test`); Zustellbarkeit (SPF/DKIM/DMARC) ist Betreibersache (R1-24). **Nie** Mails ohne Prüfung „nachsenden“, sonst entstehen Doppelwirkungen (Konzept 22.2).
+**Prüfen:** H-25 Ausgangsmodus (`catch`/`off`?), H-26 Haltemodus, H-22 Absender, Liste der zurückgehaltenen Mails, Opt-out des Lernenden. **Aktion:** Haltemodus bestätigen (K-17, St. 3) und zurückgehaltene Mails nach E-88 behandeln (Standard verwerfen); Testmail an die eigene Adresse (`ccap_mail_test`); Zustellbarkeit (SPF/DKIM/DMARC) ist Betreibersache (R1-24). **Nie** Mails ohne Prüfung „nachsenden“, sonst entstehen Doppelwirkungen (Konzept 22.2).
 
 #### RB-SUP-6 · Verdacht auf Kontomissbrauch oder geteiltes Konto
 
-**Prüfen:** Grant- und Seat-Historie, Login-Sperre (LB `support-ablaeufe.md` §6), auffällige Versuchsmuster (nur Status und Zeiten). **Aktion:** K-12 Lernsperre mit `abuse`/`account_compromised`, optional Sitzungen beenden; Passwort-Reset durch den Lernenden; Grants **nicht** widerrufen, solange der Fall nicht geklärt ist (Sperre ändert keine Grants, R0-09 §1.3). Eskalation an St. 3 bei mehreren Konten.
+**Prüfen:** Grant- und Seat-Historie, Login-Sperre des Härtungsmoduls (H-38, E-10; Verhalten nach LB `support-ablaeufe.md` §6), auffällige Versuchsmuster (nur Status und Zeiten). **Aktion:** K-12 Lernsperre mit `abuse`/`account_compromised`, optional Sitzungen beenden; Passwort-Reset durch den Lernenden; Grants **nicht** widerrufen, solange der Fall nicht geklärt ist (Sperre ändert keine Grants, R0-09 §1.3). Eskalation an St. 3 bei mehreren Konten.
+
+#### RB-SUP-8 · Admin oder Lernende ausgesperrt (Website-Härtung, fail-closed)
+
+**Prüfen:** H-38 (Zustand je Funktion, erkanntes Security-Plugin, Zählerspeicher), Login- und Reset-Limit-Ereignisse im Protokoll. **Aktion:** Auf **bekannten Geräten** (Geräte-Cookie) bleibt der Login möglich (E-46, E-263). Sonst Notausschalter: Konstante `COURSE_CAPTAIN_HARDENING` in `wp-config.php` oder WP-CLI (E-242, E-263), danach Ursache beheben (Zählerspeicher, Konflikt mit Security-Plugin nach R0-20) und Härtung im Tab „Website-Härtung“ wieder bestätigen. **Nie** die Sperrtabellen per SQL leeren (GR-3).
 
 #### RB-SUP-7 · Systemstatus rot / Wartungslauf steht
 
@@ -420,12 +440,12 @@ Erwartung je Negativtest wie R0-07 §5.2: 403/404 ohne Datenleck, kein Fachereig
 
 | ID | Bereich | Vorbedingung / Aktion | Erwartung | Ziel-Task | Bezug |
 |---|---|---|---|---|---|
-| SUP-001 | Rollen | `cc_support` öffnet S-10, S-13, S-21, S-22 | lesbar; Knöpfe für K-01…K-11, K-13…K-17 fehlen | R1-38 | §1.2 |
-| SUP-002 | Rollen | `cc_support` sendet `cc_grant_change` (revoke) mit gültiger Nonce | 403, kein `cc_grant_event`, kein Audit-Fachereignis | R1-38 | R0-07 #9 |
-| SUP-003 | Rollen | `cc_support` öffnet S-11 Versuchsdetail | 403/404; keine Antworten in Liste, REST oder CSV | R1-38 | R0-07 #14, Konzept 43.3 |
-| SUP-004 | Rollen | `cc_support` setzt Lernsperre bei einem Lernenden, dann bei einem Admin, dann bei sich selbst | erst ok mit Audit `learner_locked`; Admin und selbst → 403 (M-24) | R1-38 | K-12 |
+| SUP-001 | Rollen | `ccap_support` öffnet S-10, S-13, S-21, S-22 | lesbar; Knöpfe für K-01…K-11, K-13…K-17 fehlen | R1-38 | §1.2 |
+| SUP-002 | Rollen | `ccap_support` sendet `ccap_grant_change` (revoke) mit gültiger Nonce | 403, kein `ccap_grant_event`, kein Audit-Fachereignis | R1-38 | R0-07 #9 |
+| SUP-003 | Rollen | `ccap_support` öffnet S-11 Versuchsdetail | 403/404; keine Antworten in Liste, REST oder CSV | R1-38 | R0-07 #14, Konzept 43.3 |
+| SUP-004 | Rollen | `ccap_support` setzt Lernsperre bei einem Lernenden, dann bei einem Admin, dann bei sich selbst | erst ok mit Audit `learner_locked`; Admin und selbst → 403 (M-24) | R1-38 | K-12 |
 | SUP-005 | Rollen | Kursmanager öffnet S-21 | 403; Objekthistorie im Grant-Detail sichtbar | R1-38 | §4.5 |
-| SUP-006 | Rollen | Shop-Manager bzw. Editor ohne `cc_*`-Caps ruft S-22 und `/health` mit Details auf | 403 bzw. nur Gesamtstatus | R1-38 | D07-6 |
+| SUP-006 | Rollen | Shop-Manager bzw. Editor ohne `ccap_*`-Caps ruft S-22 und `/health` mit Details auf | 403 bzw. nur Gesamtstatus | R1-38 | E-83 |
 | SUP-007 | Begründung | K-01, K-03, K-05, K-08, K-11, K-12 ohne `reason_code` oder mit Freitext < 10 Zeichen | abgelehnt (Feldfehler), keine Wirkung | R1-38 | §3 Schritt 3 |
 | SUP-008 | Begründung | Manager öffnet S-11 ohne Begründung, dann mit Begründung | ohne: Formular, keine Daten; mit: Daten + Audit `attempt_details_viewed` mit `subject_user_id` | R1-38 | E-82 |
 | SUP-009 | Grant | K-01 doppelt abgeschickt (gleicher `request_key`) | ein Grant, ein Audit, eine Mail | R1-38 | R0-09 §2.2 |
@@ -435,7 +455,7 @@ Erwartung je Negativtest wie R0-07 §5.2: 403/404 ohne Datenleck, kein Fachereig
 | SUP-013 | Übertragung | K-05 mit Ziel = Quelle, Ziel gesperrt, Ziel ohne Site-Rolle | jeweils abgelehnt | R1-38 | K-05 |
 | SUP-014 | Übertragung | Quellkonto A ruft „Mein Lernen“ und REST nach K-05 auf | Status „übertragen“ ohne Name/E-Mail/ID von B | R1-38 | GR-5, P-08 |
 | SUP-015 | Versuch | `broken`-Versuch: K-07 nach Behebung; zweiter Aufruf | einmal `evaluated` mit `evaluation_no`, Audit; zweiter Aufruf ohne Wirkung | R1-38 | R0-08 §6.2 |
-| SUP-016 | Versuch | K-08 auf `broken`, dann K-09; Lernender startet erneut bei ausgeschöpftem `max_attempts` | Start möglich genau einmal; Audit `attempt_voided`, `attempt_allowance_granted`; Zähler nach R13-D2 | R1-38 | R13-D2 |
+| SUP-016 | Versuch | K-08 auf `broken`, dann K-09; Lernender startet erneut bei ausgeschöpftem `max_attempts` | Start möglich genau einmal; Audit `attempt_voided`, `attempt_allowance_granted`; Zähler nach E-137 | R1-38 | E-137 |
 | SUP-017 | Diagnose | Fixture mit E-Mails, IPs, Token, Secrets, Pfaden mit Ordner-Geheimnis, Antworten in Fehlermeldungen und Job-Argumenten; Diagnosepaket erzeugen | 0 Treffer der Fixture-Werte im Paket; Platzhalter vorhanden; `manifest` mit Prüfsummen | R1-38 | §2.2, Konzept OPS-06 |
 | SUP-018 | Diagnose | Settings mit `secret: true` aus DB und aus Konstante | Paket zeigt `<gesetzt>`/`<konstante>`, nie den Wert, nie die letzten 4 Zeichen | R1-38 | R0-16 §3.2 |
 | SUP-019 | Diagnose | Download-Link nach 1 h; Serverkopie nach 24 h; Link eines anderen Nutzers | 404/abgelaufen; Datei gelöscht; fremder Link 404 | R1-38 | §2.2 |
@@ -444,43 +464,55 @@ Erwartung je Negativtest wie R0-07 §5.2: 403/404 ohne Datenleck, kein Fachereig
 | SUP-022 | Health | Cron-Lauf > 3 h her; frisch installiert und geplant | `fail` und 503; frisch → `ok` | R1-38 | H-07, LB `operations-test.php:686` |
 | SUP-023 | Health | `/health` ohne Schlüssel, mit Schlüssel im Header, mit `?key=` | nur Gesamtstatus; Details; `?key=` wird ignoriert (nur Gesamtstatus) | R1-38 | H-18 |
 | SUP-024 | Health | `dead_letter`-Job, `failed`-Grant, `broken`-Versuch, Import ohne Heartbeat | H-27/H-29/H-30/H-31 mit IDs; Job-Liste zeigt Job-ID und Fehlercode | R1-38 | DoD R1-38 |
-| SUP-025 | Health | Haltemodus aktiv | H-26 `fail`, Knopf nur für #23; Bestätigung schreibt `site_identity_confirmed` | R1-38 | R16-D1 |
+| SUP-025 | Health | Haltemodus aktiv | H-26 `fail`, Knopf nur für #23; Bestätigung schreibt `site_identity_confirmed` | R1-38 | E-85 |
 | SUP-026 | Debug | Debug für 2 h einschalten, Uhr +2 h 1 min | Logging aus, Audit `debug_enabled` und automatisches `debug_disabled` (`actor_type = system:cron`) | R1-38 | DL-1/DL-2 |
 | SUP-027 | Debug | Prüfungsabgabe, Login, Grant-Anlage mit Debug `debug` | Log enthält `request_id`, keine Antworten, keine Token, E-Mail maskiert, IP gekürzt | R1-38 | DL-6 |
 | SUP-028 | Debug | Log-Datei per URL abrufen | nicht erreichbar (privater Ordner bzw. H-12 bestanden) | R1-38 | DL-5 |
 | SUP-029 | Reconcile | Seat belegt ohne Grant, Outbox mit abgelaufener Lease; Vorschau, dann `--apply` ohne und mit Begründung | Vorschau ändert nichts; ohne Begründung abgelehnt; mit: Korrekturen, `reconcile_applied` mit Zählern, Einzelereignisse mit gleicher `correlation_id`, **keine** Mail | R1-38 | §3.2, Konzept 22.2 |
 | SUP-030 | Reconcile | zwei Reconcile-Läufe parallel | zweiter Lauf gesperrt (Lock), keine Doppelkorrektur | R1-38 | LB `AutoReconcile` Lock |
-| SUP-031 | Fortschritt | K-11 Kurs-Reset, danach Undo innerhalb 30 Tagen; zweites Szenario mit neuem Fortschritt nach dem Reset | Undo stellt den Vorzustand her (`progress_reset_undone`); mit neuem Fortschritt abgelehnt; Versuche und Zertifikate unberührt | R1-38 | R13-D3, R0-23 |
+| SUP-031 | Fortschritt | K-11 Kurs-Reset, danach Undo innerhalb 30 Tagen; zweites Szenario mit neuem Fortschritt nach dem Reset | Undo stellt den Vorzustand her (`progress_reset_undone`); mit neuem Fortschritt abgelehnt; Versuche und Zertifikate unberührt | R1-38 | E-138, R0-23 |
 | SUP-032 | Import | Batch ohne Heartbeat: Fortsetzen; aktive Sperre: Verwerfen; Rollback ohne Begründung | fortgesetzt; Verwerfen abgelehnt, solange die Sperre lebt (T208); Rollback abgelehnt | R1-38 | K-13/K-13a, IMP-027 |
-| SUP-033 | Audit | Update/Delete auf `cc_audit_log` über jede CC-Route (REST, admin-post, CLI) | keine Route vorhanden bzw. 404 | R1-38 | §4.3 |
-| SUP-034 | Audit | Zeile per SQL ändern, dann `audit verify` und H-36 | Bruch mit ID erkannt, H-36 `fail` | R1-38 | R13-D4 |
+| SUP-033 | Audit | Update/Delete auf `ccap_audit_log` über jede CC-Route (REST, admin-post, CLI) | keine Route vorhanden bzw. 404 | R1-38 | §4.3 |
+| SUP-034 | Audit | Zeile per SQL ändern, dann `audit verify` und H-36 | Bruch mit ID erkannt, H-36 `fail` | R1-38 | E-139 |
 | SUP-035 | Audit | Prune nach Frist und Eraser für eine Person | `audit_pruned`/`audit_pseudonymized`-Anker, Kette danach gültig; IDs der Person entfernt | R1-38 | §4.3, E-44 |
 | SUP-036 | Audit | Protokollfilter nach gelöschtem Konto (ID), nach `correlation_id`, nach Bereich | Treffer korrekt; keine E-Mail-/IP-Spalte | R1-38 | LB `AuditPage.php:102-136` |
 | SUP-037 | Audit | Korrekturaktion, deren Audit-Insert scheitert (Fehlerinjektion) | Aktion vollständig zurückgerollt | R1-38 | §4.3 fail-closed |
-| SUP-038 | Benachrichtigung | K-01, K-03, K-05, K-08, K-12 im Ausgangsmodus `on` und `catch` | Mails genau nach Tabelle §3.1; in `catch` zurückgehalten bzw. an Catcher | R1-38 | R13-D1, R16-D2 |
+| SUP-038 | Benachrichtigung | K-01, K-03, K-05, K-08, K-12 im Ausgangsmodus `on` und `catch` | Mails genau nach Tabelle §3.1; in `catch` zurückgehalten bzw. an Catcher | R1-38 | E-136, E-86 |
 | SUP-039 | Doku | Runbooks RB-SUP-1…7 in der Betreiberdoku mit Schritten, Caps und Textbausteinen | vorhanden, jede K-Nr. verlinkt, Review durch Support-Testperson | R1-24 | §5 |
-| SUP-040 | Doku | Stufenmodell und Rollenzuweisung (Tab „Rollen & Rechte“) in der Admin-Hilfe | beschrieben inkl. „kein Herstellerkonto“, „keine Impersonation“ | R1-24 | §1, R13-D6/D7 |
+| SUP-040 | Doku | Stufenmodell und Rollenzuweisung (Tab „Rollen & Rechte“) in der Admin-Hilfe | beschrieben inkl. „kein Herstellerkonto“, „keine Impersonation“ | R1-24 | §1, E-141/E-142 |
 | SUP-041 | Doku | Anleitung „Diagnosepaket erstellen und weitergeben“ mit Liste „was nie enthalten ist“ | vorhanden; Abgleich mit §2.2 in CI (Abschnittsnamen) | R1-24 | §2.2 |
 | SUP-042 | Doku | Troubleshooting nach Fehlercode (R0-19) mit `request_id`-Hinweis für Lernende | jeder öffentliche Fehlercode hat Ursache und Supportweg | R1-24 | GR-7, DL-8 |
+| SUP-043 | Härtung | H-38 vor Bestätigung, nach Bestätigung mit/ohne erkanntes Security-Plugin, mit gesetztem `COURSE_CAPTAIN_HARDENING` | info „nicht bestätigt“; `auto` zieht sich bei erkanntem Plugin zurück; Notausschalter = warn | R1-45, R1-38 | E-240, E-242, E-260 |
+| SUP-044 | Härtung | Zählerspeicher fällt aus: Login von neuem Gerät, von bekanntem Gerät, danach Notausschalter per WP-CLI | neues Gerät gesperrt (fail-closed), bekanntes Gerät angemeldet, nach Notausschalter Login möglich; Audit-Einträge | R1-45 | E-46, E-263, RB-SUP-8 |
 
 ---
 
-## 7. Entscheidungsbedarf (nur neue Punkte)
+## 7. Entscheidungen (beschlossen)
 
-| Nr. | Frage | Optionen | Empfehlung | Wer | Blockiert |
-|---|---|---|---|---|---|
-| **R13-D1** | Standard-Benachrichtigung des Lernenden bei Supportaktionen | a) Tabelle §3.1: Mail bei Freischaltung, Übertragung (nur Ziel), technisch verworfenem Versuch, Annullierung, Zertifikatskorrektur/-widerruf; **keine** Mail bei Widerruf, Sperre, Aussetzung, Reset, Reconcile; Abwahl im Dialog möglich · b) immer Mail · c) nie Mail, nur Anzeige | **a)**. Widerruf und Sperre sind oft Missbrauchsfälle, eine Mail warnt dann den Falschen. Die Anzeige in „Mein Lernen“ mit Supportweg gibt es immer | Auftraggeber | R1-21, R1-38 |
-| **R13-D2** | Zählt ein vom Support als technisch defekt verworfener Versuch gegen `max_attempts`? Gibt es die Aktion „Zusatzversuch“? | a) verworfene Versuche (`end_reason = support_void`) zählen **nicht** (zweite Ausnahme zu E-71 neben E-108); zusätzlich Aktion K-09 „Zusatzversuch“ für belegte Störungen bei gewerteten Versuchen · b) nur K-09, Verwerfen zählt · c) keine Ausnahme | **a)**. Ein Ausfall der Plattform darf Lernende nicht einen Versuch kosten; K-09 deckt Fälle ab, in denen der Versuch formal gewertet wurde | Auftraggeber | R1-08, R1-20, R1-38 |
-| **R13-D3** | Undo für „Fortschritt zurücksetzen“ | a) Reset-Journal: Vorzustand der zurückgesetzten Fortschrittszeilen 30 Tage aufbewahren; Undo nur, solange kein neuer Fortschritt entstand · b) kein Undo (LB) · c) Soft-Delete der Zeilen | **a)**. Ein Reset ist der häufigste Bedienfehler im Support; das Journal ist klein und läuft automatisch ab. Delta an R0-06 (Tabelle `cc_progress_reset_journal`) | Auftraggeber + Architektur | R0-06, R1-38 |
-| **R13-D4** | Manipulationserkennung im Audit | a) append-only im Code **und** Hash-Kette mit täglicher Prüfung (H-36) · b) nur append-only (LB) · c) zusätzlich externer Sink (syslog/Webhook) | **a)** in R1; c) als Pro-Kandidat. Die Kette verhindert keine Manipulation durch DB-Admins, macht sie aber sichtbar, ebenso Teil-Restores und Tabellen-Editoren | Architektur | R0-06, R1-17, R1-38 |
-| **R13-D5** | Audit-Export in Free? (R0-07 §4.9 sieht ihn in Pro) | a) Free: gefilterter CSV/JSON-Export für Admin (#21 + #19), Begründung Pflicht, Audit · b) Pro (wie R0-07) · c) nur CLI in Free | **a)**. Prüfer, Betroffenenanfragen und Rechtsstreit brauchen den Export auch ohne Pro. Ein Zurückhalten wirkt wie ein Upsell auf eine Compliance-Funktion (vgl. E-100). Delta an R0-07 §4.9 | Auftraggeber | R0-07, R0-11, R1-38 |
-| **R13-D6** | Funktion „Anmelden als Lernender“ (Impersonation) für den Support | a) nein; stattdessen effektiver Zugang mit Begründung in der Detailansicht · b) ja, mit Audit und Zeitlimit · c) nur Lesevorschau „Kurs als Lernender ansehen“ ohne fremde Daten | **a)**, c) als spätere Option. Impersonation umgeht E-82 (Antworten ohne Begründung) und vermischt Akteure im Audit | Auftraggeber | R1-03, R1-38 |
-| **R13-D7** | Zugang des Course-Captain-Herstellersupports | a) kein Konto, nur Diagnosepaket; Domain im Paket standardmäßig gehasht · b) befristetes Konto mit `cc_view_system_status` auf Wunsch des Betreibers · c) Remote-Zugang per Token | **a)**. Der Hersteller wird sonst Auftragsverarbeiter mit Zugriff auf Personendaten (AVV nötig). Was der Betreiber außerhalb des Produkts vereinbart, bleibt seine Sache. Ein Paket mit Domain im Klartext gibt es nur per Option | Auftraggeber (mit Datenschutz) | R1-24, R1-38, R0-17 |
-| **R13-D8** | Höchstdauer und Aufbewahrung von Debug- und Fehlerprotokollen (von E-44 nicht erfasst) | a) Debug-Fenster höchstens 24 h (Standard 2 h), Dateien 7 Tage; Fehlertabelle/Job-Fehler 30 Tage · b) Debug unbegrenzt, Retention 30 Tage · c) nur Server-`error_log` (LB) | **a)**. Entspricht Konzept 43.3 („Ablauf erzwingen“) und Kap. 25 („kurze konfigurierbare Fristen“) | Auftraggeber (mit Datenschutz) | R0-31, R1-17 |
-| **R13-D9** | Eine Supportrolle oder zwei Stufen als Rollen? | a) eine Rolle `cc_support` (lesend + Sperre); Grant-Korrekturen durch Kursmanager oder durch gezielte Zuweisung von #9 an `cc_support` im Tab „Rollen & Rechte“ · b) zusätzliche Rolle `cc_support_lead` mit #9 und #16 · c) `cc_support` erhält #9 standardmäßig | **a)**. Hält R0-07 stabil, erlaubt kleinen Betreibern die Zusammenlegung, ohne dass Standard-Support Zugänge ändern kann | Auftraggeber | R1-03, R1-34 |
-| **R13-D10** | Sichtbarkeit der Akteure in der Betroffenenauskunft (Audit-Einträge zur eigenen Person) | a) Aktion, Zeit, Objekt, `reason_code`; Akteur nur als Rolle („Support“, „Administrator“, „System“) · b) mit Namen der Mitarbeitenden · c) Audit nicht in der Auskunft | **a)**. Auskunft über die Verarbeitung ja, Schutz der Mitarbeitenden ebenso; juristisch durch den Betreiber zu bestätigen | Auftraggeber (mit Datenschutz) | R0-31, R1-17 |
+Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §22, „Von Claude entschieden“, 16.11.2026); Empfehlung jeweils übernommen.
 
-**Keine neue Entscheidung, nur Abhängigkeit:** Pflichtbegründung beim Lesen fremder Versuchsdaten → Annahme E-82; Lernsperre → Annahme E-79 und D07-2 (Sitzungsbeendigung optional); „Zugang übertragen“ statt Merge → Annahme E-114; Fristen → Annahme E-44/E-51/E-116; Haltemodus und Ausgangsmodus → R16-D1/D2/D4; E-Mail-Sichtbarkeit für Besitzer und Trainer → D07-4; Integrationsstatus-Vertrag → R0-34; Fehlercode-Katalog → R0-19.
+| Frühere ID | Beschluss | Inhalt | Wirkt in | Tasks |
+|---|---|---|---|---|
+| R13-D1 | **E-136** | Mail bei Freischaltung, Übertragung (nur Ziel), technisch verworfenem Versuch, Annullierung, Zertifikatskorrektur/-widerruf; keine Mail bei Widerruf, Sperre, Aussetzung, Reset, Reconcile; im Dialog abwählbar | §3.1 | R1-21, R1-38 |
+| R13-D2 | **E-137** | `support_void` zählt nicht gegen `max_attempts` (zweite Ausnahme zu E-71 neben E-108); Aktion K-09 „Zusatzversuch“ | §3.1, SUP-016 | R1-08, R1-20, R1-38 |
+| R13-D3 | **E-138** | Undo für Fortschritts-Reset über Reset-Journal (30 Tage), nur ohne neuen Fortschritt | §3.1, §4.4 | R0-06, R1-38 |
+| R13-D4 | **E-139** | append-only plus Hash-Kette mit täglicher Prüfung in R1; externer Sink Pro-Kandidat | §4.3, H-36 | R0-06, R1-17, R1-38 |
+| R13-D5 | **E-140** | Audit-Export in Free für Admins mit Pflichtbegründung; R0-07 §4.9 wird angepasst | §4.5 | R0-07, R0-11, R1-38 |
+| R13-D6 | **E-141** | keine Impersonation; Ansicht des effektiven Zugangs mit Begründung | §1.1 | R1-03, R1-38 |
+| R13-D7 | **E-142** | Herstellersupport ohne Konto, nur Diagnosepaket (Domain gehasht) | §1.1, §2.2 | R1-24, R1-38, R0-17 |
+| R13-D8 | **E-143** | Debug-Fenster höchstens 24 h (Standard 2 h), Dateien 7 Tage; Fehlertabelle/Job-Fehler 30 Tage | §2.3, §4.4 | R0-31, R1-17 |
+| R13-D9 | **E-144** | eine Rolle `ccap_support` (lesen + Lernsperre); Grant-Korrekturen durch Kursmanager oder gezielte Cap-Zuweisung | §1.2 | R1-03, R1-34 |
+| R13-D10 | **E-145** | Akteure in der Betroffenenauskunft nur als Rolle | §4.5 | R0-31, R1-17 |
+
+Genutzt, nicht neu gefragt: E-19, E-44, E-51, E-79, E-81, E-82, E-85…E-92, E-114, E-116, E-215 sowie E-10/E-46/E-240/E-242/E-260/E-263 (Härtung), E-38/E-182 (interne Outbox), E-168 (Abgaben).
+
+### 7.1 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-13-1 | Schwellen für H-31 (Heartbeat > 15 min) und H-38 (Zeitraum fail-closed-Ereignisse) | technische Vorschläge, in keinem Beschluss festgelegt | Architektur (R1-38) |
+| OP-13-2 | Juristische Bestätigung der Fristen (E-44, E-143) und der Akteursdarstellung (E-145) | Beschlüsse verlangen Bestätigung durch den Betreiber | Betreiber |
+| OP-13-3 | Supportaktionen für Aufgaben-Abgaben (z. B. Abgabe zurückgeben, Bewertung korrigieren) | E-168 legt den Workflow fest, aber keine Supportaktionen; nicht in K-01…K-17 | Auftraggeber/Architektur (R1 Aufgaben) |
 
 ---
 
@@ -488,13 +520,13 @@ Erwartung je Negativtest wie R0-07 §5.2: 403/404 ohne Datenleck, kein Fachereig
 
 | Dokument | Delta |
 |---|---|
-| R0-06 | `cc_audit_log` um `actor_type`, `subject_user_id` (Index), `reason_code`, `correlation_id` (Index), `request_id`, `row_hash` ergänzen (§4.2); Tabelle `cc_progress_reset_journal` (R13-D3); `cc_exam_session.end_reason` um `support_void`; Zähler bzw. Tabelle für Zusatzversuche (K-09, R13-D2); Fehlertabelle `cc_error_log` oder Teil der Job-Tabelle (DL-3) |
-| R0-07 | Aktionen K-01…K-17 in §4.3 aufnehmen (`cc_attempt_reevaluate`, `cc_attempt_void`, `cc_attempt_allowance`, `cc_grant_transfer`, `cc_grant_retry`, `cc_progress_reset_undo`, `cc_diagnostics_export`, `cc_job_action`, `cc_reconcile_apply`, `cc_debug_toggle`, `cc_audit_export`); Objekthistorie für Inhaber der Objekt-Cap (§4.5); Audit-Export nach R13-D5; Reason-Code-Kataloge je Aktion |
-| R0-08 | `support_void` zählt nicht gegen `max_attempts` (R13-D2); K-07/K-08 als Admin-Übergänge aus `broken` bestätigt, K-08 zusätzlich aus `in_progress` |
+| R0-06 | `ccap_audit_log` um `actor_type`, `subject_user_id` (Index), `reason_code`, `correlation_id` (Index), `request_id`, `row_hash` ergänzen (§4.2); Tabelle `ccap_progress_reset_journal` (E-138); `ccap_exam_session.end_reason` um `support_void`; Zähler bzw. Tabelle für Zusatzversuche (K-09, E-137); Fehlertabelle `ccap_error_log` oder Teil der Job-Tabelle (DL-3) |
+| R0-07 | Aktionen K-01…K-17 in §4.3 aufnehmen (`ccap_attempt_reevaluate`, `ccap_attempt_void`, `ccap_attempt_allowance`, `ccap_grant_transfer`, `ccap_grant_retry`, `ccap_progress_reset_undo`, `ccap_diagnostics_export`, `ccap_job_action`, `ccap_reconcile_apply`, `ccap_debug_toggle`, `ccap_audit_export`); Objekthistorie für Inhaber der Objekt-Cap (§4.5); Audit-Export nach E-140; Reason-Code-Kataloge je Aktion |
+| R0-08 | `support_void` zählt nicht gegen `max_attempts` (E-137); K-07/K-08 als Admin-Übergänge aus `broken` bestätigt, K-08 zusätzlich aus `in_progress` |
 | R0-09 | K-05/K-06 entsprechen G-12 `transferred` bzw. G-13; Audit-Aktionsnamen aus §4.1 übernehmen |
-| R0-16 | H-25/H-26 und K-17 als Systemstatus- und Aktionsbestandteil; RB-SUP-5 verweist auf §2.3 und R16-D4 |
-| R0-19 | `request_id` in jeder Fehlerantwort und als Header `X-Request-Id`; Fehlercodes `cc_reason_required`, `cc_transfer_invalid_target`, `cc_undo_not_possible`, `cc_diagnostics_expired` |
-| R0-31 | Fristen R13-D8 und Reset-Journal in das Löschkonzept; Betroffenenauskunft des Audits nach R13-D10 |
+| R0-16 | H-25/H-26 und K-17 als Systemstatus- und Aktionsbestandteil; RB-SUP-5 verweist auf §2.3 und E-88 |
+| R0-19 | `request_id` in jeder Fehlerantwort und als Header `X-Request-Id`; Fehlercodes `ccap_reason_required`, `ccap_transfer_invalid_target`, `ccap_undo_not_possible`, `ccap_diagnostics_expired` |
+| R0-31 | Fristen E-143 und Reset-Journal in das Löschkonzept; Betroffenenauskunft des Audits nach E-145 |
 | R0-34 | H-34 übernimmt den Integrationsstatus; Diagnosepaket-Abschnitte `inbox`/`outbox` und Connector-Fehlercodes |
 | R1-24 | Betreiberfassung von §1 (Stufen), §2.2 (Diagnosepaket), §5 (Runbooks, Textbausteine), Fristenempfehlung §5.1 |
 

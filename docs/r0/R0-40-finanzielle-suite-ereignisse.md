@@ -1,12 +1,34 @@
-# R0-40 · Vertrag für finanzielle Suite-Ereignisse (Entwurf)
+# R0-40 · Vertrag für finanzielle Suite-Ereignisse
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Architektur offen.** Task R0-40 ist **nicht** abgehakt. Keine Implementierung, kein Code, kein Commit. Tabellen- und Spaltennamen folgen R0-06/R0-09 (`cc_…`; Umbenennung in `ccap_…` nach E-207 gilt unverändert).
+**Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet. Keine Implementierung, kein Code, kein Commit. Tabellen- und Spaltennamen folgen R0-06/R0-09 (Präfix `ccap_` nach E-207).
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-40 (DoD: Course meldet keine doppelte Provision/Kauftransaktion; Voucher-/Order-/Grant-Quellen, Fehlercodes, Idempotenz und Refund eindeutig zugeordnet), CORE-SPEC-004/-005, R3-02…R3-05, R3-19; Konzept Kap. 32, 34.3 (ACCESS-02…09), 34.4 (COMMERCE-01…10), 35.1–35.5; `R0-09` (§2 Grant-Automat G-01…G-15, §5 RF-01…RF-19, §6 R-01…R-13), `R0-19` (§3 Fehlerkatalog, §3.4 Einlösecodes, §5 Events/Outbox, §5.8 GrantSourceAdapter), `R0-34` (Integrationsstatus), `R0-36` (§3 Voucher C1–C12, §4 Affiliate A1–A10, §2.6 Pass), `R0-02-inventar/B-commerce.md` (INV-B-002/003, 100–105, 106–131, 146–167), INV-C-184.
 **Quellen (nur gelesen, nicht verändert):** `wp-couponmaster@2d84943` (`CONNECTORS.md`, `API.md`, `src/API/V1/RedemptionService.php`), `wpaffiliatemaster@3b7130e` (`docs/CONTRACT.md`, `src/Integrations/WooCommerce.php`, `src/Integrations/WooCommerce/OrderSync.php`), `wp-passmaster@b2b88ea` (über R0-36 §2.6). Clean Room nach E-01: LB-Stellen werden nur als **Verhalten** zitiert.
 
-**Verbindliche Beschlüsse (Beschlussprotokoll 16.11.2026):** E-01 Clean Room · E-25a Bundle in R1 Free, **Mitgliederrabatt im Woo-Adapter R3.1** · E-27 **Zugang je Modul** (`module_id` im Grant-Schlüssel) · E-29 kein Wiederaufleben · E-30 Kontopflicht in R3.1 · E-31 **Gutscheinziel = neutrales Angebot oder Woo-Produkt** · E-32 keine Garantie, nur neutrales Nutzungsereignis · E-33 **deutsche Shop-Rechtspflichten und PayPal/Klarna-Dispute im Woo-Adapter R3.1** · E-34 **Woo-Produkte automatisch anlegen und pflegen** · E-35 Voucher-Storno entzieht nur den Voucher-Grant.
-**Arbeitsannahmen (Empfehlungen, nicht beschlossen):** E-36 ein Code je Platz · E-37 keine Affiliate-Meldung aus Course · E-53 Woo-/Voucher-Connector = Pro · E-93 Grants/Widerrufe laufen bei abgelaufener Pro-Lizenz weiter · E-113 Prüfungsabgabe nach Zugangsverlust gewertet, Auto-Zertifikat nur bei Grant zu Start **und** Abgabe · E-116 Inbox/Outbox 90 Tage · E-117 Kundenwechsel = neue Revision · E-201 Pending-Timeout 24 h · E-203 Mitgliedschaft = Grant-Quelle über GrantSourceAdapter.
+**Verbindliche Beschlüsse (Beschlussprotokoll 16.11.2026):** E-01 Clean Room · E-25/E-25a Bundle in R1 Free, **Mitgliederrabatt im Woo-Adapter R3.1** · E-26 abhängige Zusatz-Grants in R1 · E-27 **Zugang je Modul** (`module_id` im Grant-Schlüssel) · E-29 kein Wiederaufleben · E-30 Kontopflicht in R3.1 · E-31 **Gutscheinziel = neutrales Angebot oder Woo-Produkt** · E-32 keine Garantie, nur neutrales Nutzungsereignis · E-33 **deutsche Shop-Rechtspflichten und PayPal/Klarna-Dispute im Woo-Adapter R3.1** · E-34 **Woo-Produkte automatisch anlegen und pflegen** · E-35 Voucher-Storno entzieht nur den Voucher-Grant · E-38 öffentliche Events/Registry Pro · E-39/E-39b Quelle `workflow` im Pro-Connector.
+**Von Claude im Auftrag entschieden:** E-36 ein Code je Platz · E-37 keine Affiliate-Meldung aus Course · E-53 Woo-/Voucher-Connector = Pro · E-93 Grants/Widerrufe laufen bei abgelaufener Pro-Lizenz weiter · E-113 Prüfungsabgabe nach Zugangsverlust gewertet, Auto-Zertifikat nur bei Grant zu Start **und** Abgabe · E-116 Inbox/Outbox 90 Tage · E-117 Kundenwechsel = neue Revision · E-201 Pending-Timeout 24 h · E-203 Mitgliedschaft = Grant-Quelle über GrantSourceAdapter · **E-275…E-284** (früher D40-1…D40-10, §7).
+
+## Beschlussstand
+
+| Beschluss | Änderung in diesem Dokument |
+|---|---|
+| E-27 | Grant-Schlüssel mit `module_id NOT NULL DEFAULT 0` ist in R0-06/R0-09 übernommen (Δ40-1 eingearbeitet) |
+| E-26 | Ziele können eine Basiskurs-Abhängigkeit tragen (§2.2) |
+| E-31 | Voucher-Zieltypen A (neutrales Angebot) und B (Woo-Produkt) bleiben spezifiziert (§2.3) |
+| E-33, E-34, E-25a | Dispute-Webhooks, Zustimmungs-Gate, Auto-Produkte und Mitgliederrabatt im Woo-Adapter (§4) |
+| E-38 | Course-Events an Partner nur über Pro; im Free-Kern nur interne Outbox (§0, §1.1) |
+| E-275 (= D40-1) | verlorener Dispute setzt den Woo-Status auf `refunded`/`cancelled` (§4.4) |
+| E-276 (= D40-2) | kein Pending-Timeout für unbezahlte Woo-Bestellungen (§4.2) |
+| E-277 (= D40-3) | hängende Einlösung > 24 h: Reservierung freigeben, Grant `failed`, Hinweis zum erneuten Einlösen (§3.4) |
+| E-278 (= D40-4) | keine Guthaben über die Einlöse-API (§2.3, §3.5) |
+| E-279 (= D40-5) | Kursgutscheine nur über die Course-Einlösung, nicht im Warenkorb (§2.3, FIN-018/055) |
+| E-280 (= D40-6) | Preis pflegt der Shop in Woo; Auto-Produkte entstehen als Entwurf (§4.5) |
+| E-281 (= D40-7) | Mitgliederrabatt nicht mit Rabattcodes kombinierbar; der bessere Rabatt gilt (§4.6) |
+| E-282 (= D40-8) | Kursprodukte einzeln verkauft; mehrere Plätze nur über Gruppenprodukte (§2.2) |
+| E-283 (= D40-9) | Betreiberaktion „Gutscheinwert zurückgeben“ mit Begründung und Audit (§1.2, §3.6) |
+| E-284 (= D40-10) | Zeitpunkt des ersten Lernzugriffs wird an der Bestellposition vermerkt (§1.1, §6.8) |
+
+Die Deltas §8 sind eingearbeitet bzw. mit Status versehen.
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil · **SOLL** = Standard, begründete Abweichung erlaubt · **KANN** = optional.
 
@@ -17,13 +39,13 @@
 | Thema | Festlegung |
 |---|---|
 | Grundsatz | Course Captain ist **nur** Autorität für Kurszugang (Grants). Geld, Einlösewert und Provision liegen ausschließlich bei WooCommerce, Voucher Captain bzw. Affiliate Captain. Course **bucht nie** einen Kauf, Refund, Einlösewert oder eine Provision und **meldet** keine an Dritte (FIN-INV-01…08). |
-| Ereignisse aus Course | Nur `grant.*`, `enrollment.*`, `seat.*`, `course.usage_recorded` (R0-19 §5.3). **Keine** Finanz-Events, keine Beträge/Währungen/Bestellsummen im Payload. |
+| Ereignisse aus Course | Nur `grant.*`, `enrollment.*`, `seat.*`, `course.usage_recorded` (R0-19 §5.3); an Partner nur über Pro (E-38), im Free-Kern nur interne Outbox. **Keine** Finanz-Events, keine Beträge/Währungen/Bestellsummen im Payload. |
 | Grant-Quellen | `woo_order` (je Bestellposition × Ziel `(course, module)`), `voucher` (beide Zieltypen nach E-31, ein Schlüssel `redemption_key`), `membership` (E-203). Idempotenz über `UNIQUE grant_source (source_type, source_id, source_line, source_revision, course_id, module_id)` mit `module_id NOT NULL DEFAULT 0` (Δ40-1). |
 | Voucher | Saga über `vcap()->redemptions` (≥ 1.1.0): Schlüssel persistieren → `reserve` → Grants `pending_confirmation` → `commit` → Grants `active`. Kompensation `release`/`revoked`; Retry-Job mit `get($key)`. **Nicht** `vcap()->api_v1` (bestellgebunden). Gutscheinwert-Rückgabe (`refund`) nie automatisch. |
 | Woo | Zustandsbasiert (Snapshot der Bestellung statt Ereignis-Payload) → Doppel- und Out-of-order-Hooks sind wirkungslos. Dispute-Webhooks (E-33) sind ereignisbasiert mit eigenem Fall-Automaten. Auto-Produkte (E-34) ändern nie verkaufte Positionen. Mitgliederrabatt (E-25a) wirkt nur auf den Preis, nie auf Grants. |
 | Refund | Nur der betroffene Grant; kein Wiederaufleben (E-29); Lernhistorie und Zertifikat bleiben (35.3); Matrix §5 je Quelle erweitert R0-09 §5. |
 | Tests | FIN-001…FIN-081 mit Ziel R3-02…R3-05, R3-19 (§6). |
-| Neu zu entscheiden | D40-1…D40-10 (§7). |
+| Entscheidungen | D40-1…D40-10 beschlossen als E-275…E-284 (§7). |
 
 ---
 
@@ -31,7 +53,7 @@
 
 ### 1.1 Wer bucht was (Ledger) und wer reagiert
 
-Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagiert mit eigener Fachfolge (nur eigene Daten) · **E** = erkennt/leitet ab, ohne zu buchen · – = nicht beteiligt. „Course-Kern“ = Free (Grant-Automat, Outbox). „Woo-Adapter“ und „Voucher-Connector“ = Course Captain Pro (E-53).
+Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagiert mit eigener Fachfolge (nur eigene Daten) · **E** = erkennt/leitet ab, ohne zu buchen · – = nicht beteiligt. „Course-Kern“ = Free (Grant-Automat, interne Outbox). „Woo-Adapter“ und „Voucher-Connector“ = Course Captain Pro (E-53).
 
 | Nr. | Finanzielle Tatsache | WooCommerce | Voucher Captain | Affiliate Captain | Course-Kern | Course Woo-Adapter | Course Voucher-Connector |
 |---|---|---|---|---|---|---|---|
@@ -41,14 +63,14 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 | Z-04 | Externe Gutschein-Einlösung für einen Kurs (Kanal `course-captain`) | – | **B** (Einlöseledger reserve/commit) | – (**keine** Provision bei Einlösung, A3/A5) | R (Grant) | – | E (Saga, §3) |
 | Z-05 | Provision | – | – | **B** | – | – | – |
 | Z-06 | Voll-/Teilrefund, Storno einer Woo-Bestellung | **B** | R (Gutschein `void` bei Gutscheinkauf, `vcap_void_on_refund`; Guthabenrückgabe bei Gutschein als Zahlung) | R (Provisionskorrektur aus Woo-Refund, A4) | R (Grant nach §5) | E | R (nur bei `voided`, §3.6) |
-| Z-07 | Chargeback/Dispute (PayPal/Klarna/generisch, E-33) | **B** (Bestellstatus, Notiz; Gateway-Plugin führt Zahlungsfall) | – | R (Halten/Rückbuchung über Woo-Status, `wpac_wc_hold_statuses`/`wpac_wc_chargeback_statuses`) | R (Grant suspend/resume/revoke) | **E** (Webhook-Annahme, Fall-Automat §4.4; Statuswirkung nach D40-1) | – |
+| Z-07 | Chargeback/Dispute (PayPal/Klarna/generisch, E-33) | **B** (Bestellstatus, Notiz; Gateway-Plugin führt Zahlungsfall) | – | R (Halten/Rückbuchung über Woo-Status, `wpac_wc_hold_statuses`/`wpac_wc_chargeback_statuses`) | R (Grant suspend/resume/revoke) | **E** (Webhook-Annahme, Fall-Automat §4.4; Statuswirkung nach E-275) | – |
 | Z-08 | Gewonnener Dispute / Storno zurückgenommen | **B** | – | R (`reinstate` bei Rückkehr in bezahlten Status, `OrderSync::maybe_chargeback`) | R (resume bzw. neue Revision, E-29) | E | – |
 | Z-09 | Gutschein nach Einlösung storniert (`voided`) | – | **B** | – | R (nur Voucher-Grant, E-35) | – | E |
-| Z-10 | Gutscheinwert nach Einlösung zurückgeben (`redemptions->refund`) | – | **B** | – | – | – | nur **Betreiberaktion** (D40-9), nie automatisch |
+| Z-10 | Gutscheinwert nach Einlösung zurückgeben (`redemptions->refund`) | – | **B** | – | – | – | nur **Betreiberaktion** (E-283), nie automatisch |
 | Z-11 | Mitgliedsbeitrag/Abo (E-203) | **B** (bzw. Mitgliedschafts-/Abo-Plugin) | – | R (Abo-Verlängerungen über Woo-Adapter von Affiliate) | R (Grant) | – (Abo-Positionen ausgeschlossen, §2.4) | – |
 | Z-12 | Ticketkauf (Pass, später R3.4) | – | – | R (Pass meldet selbst, R0-36 §2.6) | R (Grant aus Ticket, nicht aus Bestellung) | – | – |
 | Z-13 | Mitgliederrabatt (E-25a) | **B** (Preis der Position) | – | R (Basis netto nach Rabatt) | – (liefert nur „aktiver Grant ja/nein“) | E (Preisregel im Warenkorb, §4.6) | – |
-| Z-14 | Nutzungsereignis (Lernbeginn, E-32) | – | – | – | **B** (Lerndaten) → Event `course.usage_recorded` | R (optional Positionsnotiz, D40-10) | – |
+| Z-14 | Nutzungsereignis (Lernbeginn, E-32) | – | – | – | **B** (Lerndaten) → Event `course.usage_recorded` | R (optional Positionsnotiz, E-284) | – |
 
 ### 1.2 Invarianten (MUSS, je Release als Test/Guard geprüft)
 
@@ -56,12 +78,12 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 |---|---|---|
 | FIN-INV-01 | Course (Kern und Pro) ruft **nie** `wpac_record_sale()`, `wpac_record_refund()`, `wpac_record_reinstatement()`, `do_action('wpac_v1_record_*')` oder `POST …/reinstatements` auf (E-37, R0-36 §4.3). | statischer CI-Guard (FIN-050) |
 | FIN-INV-02 | Course erzeugt **nie** eine Woo-Bestellung, einen Woo-Refund (`wc_create_refund`) oder eine 0-€-Bestellung für Einlösungen (LB-Muster INV-C-184 wird **nicht** nachgebaut). | Guard + FIN-050 |
-| FIN-INV-03 | Course ruft `vcap()->redemptions->refund()` nur aus der Betreiberaktion D40-9 (Capability, Begründung, Audit), nie aus Hooks/Cron. `vcap()->api_v1` wird nicht verwendet. | Guard + FIN-050 |
+| FIN-INV-03 | Course ruft `vcap()->redemptions->refund()` nur aus der Betreiberaktion E-283 (Capability, Begründung, Audit), nie aus Hooks/Cron. `vcap()->api_v1` wird nicht verwendet. | Guard + FIN-050 |
 | FIN-INV-04 | Kein Course-Event enthält Beträge, Währungen, Steuer, Zahlungsart, Gutscheincode oder Gutscheinwert (R0-19 §5.1 „nie Zahlungsdaten“). | Payload-Schema-Test FIN-053 |
 | FIN-INV-05 | Ein Woo-Produkt ist **entweder** Kursprodukt (Mapping) **oder** Gutscheinprodukt (`vcap`-Typ), nie beides; Speichern einer Kombination wird abgewiesen (Verhalten LB INV-B-156). Damit entsteht aus Gutscheinkauf + Einlösung genau **ein** Zugang. | FIN-018, FIN-052 |
 | FIN-INV-06 | Je Bestellposition und Ziel gibt es genau **eine** autoritative Quelle: Positionen mit Abo-/Mitgliedschaftsprodukt (E-203) erzeugen keine `woo_order`-Grants (§2.4). | FIN-081 |
 | FIN-INV-07 | Course speichert keine Gutschein-Klarcodes, kein Guthaben und kein zweites Einlöseledger (Kap. 32.1); nur `redemption_key`, HMAC des Codes und optional die letzten 4 Zeichen (`code_hint`). | Schema-Review, FIN-014 |
-| FIN-INV-08 | Ein Grant-Übergang, sein `cc_grant_event` und sein Outbox-Event entstehen in **einer** Transaktion (R0-09 §2.4, R0-19 §5.4). Fremde Tabellen (`wc_*`, `vcap_*`, `wpac_*`) werden nie direkt gelesen oder geschrieben. | R1-02-Tests, Guard |
+| FIN-INV-08 | Ein Grant-Übergang, sein `ccap_grant_event` und sein Outbox-Event entstehen in **einer** Transaktion (R0-09 §2.4, R0-19 §5.4). Fremde Tabellen (`wc_*`, `vcap_*`, `wpac_*`) werden nie direkt gelesen oder geschrieben. | R1-02-Tests, Guard |
 
 ### 1.3 Folgerung für Affiliate (E-37) je Pfad
 
@@ -71,14 +93,14 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 | Woo-Kauf mit Gutschein/Geschenkkarte als Zahlung | einmal, Gutscheinanteil abgezogen (A3) | keiner |
 | Gutscheinkauf → externe Einlösung | einmal beim Gutscheinkauf (A5); Einlösung: keine | keiner |
 | Woo-Refund/Storno/Chargeback | Korrektur durch Affiliate aus Woo (A4) | keiner (nur Grant) |
-| Dispute über Course-Webhook | Halten/Rückbuchung nur, wenn der Woo-**Status** sich ändert (Affiliate liest Status, nicht Course) → D40-1 | Statuswirkung nach D40-1, nie Affiliate-API |
+| Dispute über Course-Webhook | Halten/Rückbuchung nur, wenn der Woo-**Status** sich ändert (Affiliate liest Status, nicht Course) → E-275 | Statuswirkung nach E-275, nie Affiliate-API |
 | Mitgliedschaft/Abo | durch Woo-Subscriptions-Integration von Affiliate | keiner |
 
 ---
 
 ## 2. Grant-Quellen und Idempotenzschlüssel
 
-### 2.1 Gemeinsamer Schlüssel (Delta zu R0-06/R0-09 wegen E-27)
+### 2.1 Gemeinsamer Schlüssel (E-27, in R0-06/R0-09 eingearbeitet)
 
 `UNIQUE grant_source (source_type, source_id, source_line, source_revision, course_id, module_id)`.
 
@@ -94,8 +116,8 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 | `source_type` | `woo_order` | – |
 | `source_id` | Woo-Bestell-ID (HPOS/CRUD, `WC_Order::get_id()`) | nie Bestellnummer (änderbar durch Plugins) |
 | `source_line` | Positions-ID `order_item_id` | bei Gruppenprodukten verweist der Grant über `group_seat` (R0-09) – die Position erzeugt die **Gruppe** (`group_source = woo_order:{order}:{item}:{rev}`), nicht direkt Grants |
-| Ziele je Position | eingefrorene Liste `(course_uid, module_uid|0, scopes)` aus dem Mapping **zum Zahlungszeitpunkt** (Positions-Meta `_ccap_targets`, schreibgeschützt nach `paid`) | COMMERCE-09: spätere Mapping-/Produktänderung wirkt nicht auf verkaufte Positionen |
-| Menge | Nicht-Gruppenprodukte „einzeln verkauft“ (Menge = 1, D40-8); Gruppenprodukte: Plätze = `seats_per_item × (qty − refunded_qty)` (R0-09 RF-04) | – |
+| Ziele je Position | eingefrorene Liste `(course_uid, module_uid|0, scopes, depends_on_course_uid?)` (Abhängigkeit für Zusatzmodule, E-26) aus dem Mapping **zum Zahlungszeitpunkt** (Positions-Meta `_ccap_targets`, schreibgeschützt nach `paid`) | COMMERCE-09: spätere Mapping-/Produktänderung wirkt nicht auf verkaufte Positionen |
+| Menge | Nicht-Gruppenprodukte „einzeln verkauft“ (Menge = 1, Beschluss E-282); Gruppenprodukte: Plätze = `seats_per_item × (qty − refunded_qty)` (R0-09 RF-04) | – |
 | `source_revision` | 1; +1 bei RF-06 (Refund zurückgenommen) und E-117 (Kundenwechsel) | – |
 | `source_seq` | Woo `date_modified` (µs) + Zähler je Bestellung | nur Diagnose; Woo-Pfad ist zustandsbasiert (§4.1) |
 | Inbox-Dedupe | `(connector_id='woocommerce', event_id = sha256(order_id, status, date_modified, refund_ids, item_hash, consent_state, dispute_state))` | gleiche Bestellung im gleichen Zustand → `duplicate` |
@@ -110,9 +132,9 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 | `source_line` | `{index}` des Ziels in der beim Reservieren eingefrorenen Zielliste | – |
 | Zieltyp A „neutrales Angebot“ | Voucher-`target` = `course-captain:offer:{offer_uid}`; Zielliste = Ziele des Course-Zugangsangebots (`AccessOffer`: `(course, module|0, scopes, duration)`) | Angebot gehört dem Course-Kern (E-31), kein Preis |
 | Zieltyp B „Woo-Produkt“ | Voucher-`target` = `course-captain:product:{product_id}[:{variation_id}]`; Zielliste = Kursmapping dieses Produkts **zum Reservierungszeitpunkt** | Einlösung erzeugt **keine** Woo-Bestellung (FIN-INV-02); Grant-Quelle bleibt `voucher`; Produkt muss Kursprodukt (E-34 oder manuell) und **kein** Gruppenprodukt sein (E-36: ein Code je Platz) |
-| Kanal | eigener Kanal `course-captain` (`vcap_redemption_channels`, `vcap_redemption_channel_for_target`); Kursgutscheintyp `course` (`vcap_voucher_types`) | Kanal `shop` für Kursgutscheine nach D40-5 |
+| Kanal | eigener Kanal `course-captain` (`vcap_redemption_channels`, `vcap_redemption_channel_for_target`); Kursgutscheintyp `course` (`vcap_voucher_types`) | Kanal `shop` für Kursgutscheine ausgeschlossen (Beschluss E-279); Produkt mit `shop`-Kanal und Kursgutscheintyp erzeugt eine Diagnosewarnung |
 | Startzustand | `pending_confirmation` (`reserved`) nach erfolgreichem `reserve`; `active` erst nach erfolgreichem `commit` | Auflösung des Widerspruchs R0-09 §2.2 (pending bis commit) ↔ R0-36 §3.3 Nr. 2 (aktiv vor commit): **R0-09 gilt** – kein Zugang ohne endgültige Einlösung (Δ40-3) |
-| Einheit | ein Einmalgutschein = ein Lernender × Zielliste; Guthaben/Mehrfachgutscheine nach D40-4 | COMMERCE-06 |
+| Einheit | ein Einmalgutschein = ein Lernender × Zielliste; keine Guthaben/Mehrfachgutscheine über die Einlöse-API (Beschluss E-278: Kursgutscheine sind Zugangsgutscheine) | COMMERCE-06 |
 
 ### 2.4 `membership` (E-203, Adapter erst in R3)
 
@@ -127,7 +149,7 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 
 ### 2.5 Abgrenzung zu übrigen Quellen
 
-`manual`, `group_seat` (R1) und `workflow` (später, E-39) bleiben wie R0-09 §2.2. Ein Gruppenplatz aus einer Woo-Position wird über `group_seat` gegrantet; sein Widerruf folgt der Gruppe (R0-09 §4.5).
+`manual`, `group_seat` (R1) und `workflow` (Course-Pro-Connector, E-39/E-39b) bleiben wie R0-09 §2.2. Ein Gruppenplatz aus einer Woo-Position wird über `group_seat` gegrantet; sein Widerruf folgt der Gruppe (R0-09 §4.5).
 
 ---
 
@@ -141,7 +163,7 @@ Legende: **B** = bucht/führt das Ledger (einzige Autorität) · **R** = reagier
 
 ### 3.2 Persistenter Saga-Zustand
 
-Neue Tabelle im Pro-Schema `cc_source_saga` (Δ40-2): `saga_key` = `redemption_key` (UNIQUE), `source_type`, `user_id`, `target`, `targets_json` (eingefroren), `code_hmac char(64)`, `code_hint char(4) NULL`, `state` (`new`, `reserving`, `reserved`, `committing`, `committed`, `releasing`, `released`, `lost`, `failed`), `attempts`, `next_attempt_at`, `deadline_at` (= erstellt + 24 h, E-201), `last_partner_code`, `correlation_id`, `row_version`. Die Tabelle ist kein Ledger (keine Beträge), nur Prozesszustand.
+Neue Tabelle im Pro-Schema `ccap_source_saga` (Δ40-2): `saga_key` = `redemption_key` (UNIQUE), `source_type`, `user_id`, `target`, `targets_json` (eingefroren), `code_hmac char(64)`, `code_hint char(4) NULL`, `state` (`new`, `reserving`, `reserved`, `committing`, `committed`, `releasing`, `released`, `lost`, `failed`), `attempts`, `next_attempt_at`, `deadline_at` (= erstellt + 24 h, E-201), `last_partner_code`, `correlation_id`, `row_version`. Die Tabelle ist kein Ledger (keine Beträge), nur Prozesszustand.
 
 ### 3.3 Schritte
 
@@ -155,15 +177,15 @@ Lock-Reihenfolge (ergänzt R0-09 §6.1): L1 `learner:<user>` → **LV `voucher-c
 | S3 Grants vorbereiten | eine TX: Saga `reserved` + je Ziel Grant `pending_confirmation` (G-01, `reserved`), Outbox `grant.created` | Anzeige „Zugang wird aktiviert“ | Unique-Kollision mit fremdem Nutzer → `cc_idempotency_conflict` + `release` |
 | S4 Bestätigen | Saga `committing`; `commit($key)` | weiter S5 | `vcap_reservation_missing` → Grants `revoked` (`voucher_reservation_lost`), Saga `lost`, `release` (idempotent), Hinweis „erneut einlösen“. `vcap_cancelled` → Grants `revoked` (`voucher_cancelled`), `release`, Saga `released`. `vcap_temporary_failure`/Timeout → Saga bleibt `committing`, Retry |
 | S5 Aktivieren | eine TX: Grants `active` (G-04, `committed`), Saga `committed`, Outbox `grant.activated` (+ `access.changed`/`enrollment.created` nach R0-09 §3.4) | Ergebnis `created` bzw. `duplicate` | DB-Fehler → Retry-Job (Saga `committed`, Grants noch pending) |
-| S6 Retry-Job `cc_voucher_retry` (alle 5 min, Backoff 5/15/60 min, Lease) | `get($key)` und fortsetzen: `reserved` → S3/S4; `committed` → S5 sicherstellen; `released` → Grants `revoked` (`released`), Saga `released`, Schlüssel verwerfen | – | siehe §3.4 |
+| S6 Retry-Job `ccap_voucher_retry` (alle 5 min, Backoff 5/15/60 min, Lease) | `get($key)` und fortsetzen: `reserved` → S3/S4; `committed` → S5 sicherstellen; `released` → Grants `revoked` (`released`), Saga `released`, Schlüssel verwerfen | – | siehe §3.4 |
 
 `vcap_voucher_redeemed` und `vcap_redemption_released` sind **nur** Audit-/Diagnose-Signale; sie lösen keinen Grant aus (R0-36 §3.3 Nr. 5). Einzige Ausnahme: `vcap_redemption_released( $data, $expired = true )` zu einer Saga im Zustand `reserved`/`committing` setzt `next_attempt_at = now` (schnellere Kompensation).
 
-### 3.4 Timeout und Partnerausfall (Interpretation E-201 → D40-3)
+### 3.4 Timeout und Partnerausfall (E-201, Beschluss E-277)
 
 | Lage bei `deadline_at` (24 h) | Verhalten |
 |---|---|
-| Partner erreichbar, Saga `reserving`/`reserved` | `release($key)` → Grants `revoked` (`pending_timeout`), Saga `released`; Event `grant.revoked`; Support-Hinweis |
+| Partner erreichbar, Saga `reserving`/`reserved` | `release($key)` → Grants `failed` (`pending_timeout`, G-06), Saga `released`; Event `grant.failed`; Lernender erhält Hinweis zum erneuten Einlösen (neuer Schlüssel `n+1`), Support-Hinweis (Beschluss E-277) |
 | Partner erreichbar, Saga `committing` | erst `get($key)`: `committed` → S5 (Zugang, weil Gutschein verbraucht ist); sonst `release` wie oben |
 | Partner nicht erreichbar/inaktiv/inkompatibel | Grants `failed` (`partner_unavailable`, G-06), Saga `failed`; **kein** Release möglich. Nach Rückkehr des Partners: auditierter Retry (G-13) mit `get($key)` – `committed` → aktiv, `released`/`reservation_missing` → `revoked` |
 | TTL | `ttl_minutes = 26 h` > Retry-Fenster 24 h (CONNECTORS §2 letzter Absatz); TTL läuft beim Partner trotzdem ab → Gutschein wird dort frei, Course entzieht beim nächsten `get` |
@@ -177,7 +199,7 @@ Kein Massenwiderruf bei Deaktivierung (ACCESS-09, R0-09 RF-15); E-93: bei abgela
 | `vcap_invalid_request` | S0–S4 | `cc_code_invalid` (422) | `invalid_request` | – | Saga `released`; **zusätzlich** Health-Fehlerklasse `validation` + Audit (Course-Fehler, nicht Nutzerfehler) |
 | `vcap_not_found` | S0/S2 | `cc_code_invalid` (422) | `unknown` | – | nichts |
 | `vcap_not_redeemable` | S0/S2 | `cc_code_invalid` (422) | `not_redeemable` (Ticket, Shop-only, `credit`, falscher Kanal) | – | nichts |
-| `vcap_insufficient_balance` | S0/S2 | `cc_code_invalid` (422) | `insufficient_balance` (nur relevant, falls D40-4 Guthaben zulässt) | – | nichts |
+| `vcap_insufficient_balance` | S0/S2 | `cc_code_invalid` (422) | `insufficient_balance` (nur Abwehr: Guthaben sind nach E-278 ausgeschlossen) | – | nichts |
 | `vcap_expired` / `vcap_cancelled` | S0/S2 | `cc_code_expired` (410) | `expired` / `voided` | – | nichts |
 | `vcap_cancelled` | S4 | `cc_code_expired` (410) | `voided` | – | Grants `revoked` `voucher_cancelled`, `release` |
 | `vcap_not_active` | S0/S2 | `cc_code_not_yet_valid` (422) | – | – | nichts |
@@ -189,8 +211,8 @@ Kein Massenwiderruf bei Deaktivierung (ACCESS-09, R0-09 RF-15); E-93: bei abgela
 | `vcap_reservation_missing` | S4/S6 | – (Nutzer: `cc_not_found`, `reason: reservation_lost`) | – | – | Grants `revoked` `voucher_reservation_lost` |
 | `vcap_rate_limited` | S0/S2 | `cc_rate_limited` (429) | `details.bucket = code_redeem` | R | nichts |
 | `vcap_temporary_failure` | alle | `cc_temporarily_unavailable` (503) | `partner_unavailable` | R | Saga bleibt, Retry mit **gleichem** Schlüssel |
-| `vcap_not_committed` | Refund (D40-9) | `cc_partner_error` (502) | `partner_code` | – | keine |
-| `vcap_refund_exceeded` | Refund (D40-9) | Ergebnis `unchanged` (200) | – | – | keine (bereits vollständig zurückgegeben) |
+| `vcap_not_committed` | Refund (Betreiberaktion E-283) | `cc_partner_error` (502) | `partner_code` | – | keine |
+| `vcap_refund_exceeded` | Refund (Betreiberaktion E-283) | Ergebnis `unchanged` (200) | – | – | keine (bereits vollständig zurückgegeben) |
 | alles Übrige | – | `cc_partner_error` (502) | `partner_code` | nach `retryable` | Saga unverändert, Health `partner_error` |
 
 Delta zu R0-19 §3.2/§3.4: `cc_code_invalid` bekommt das `reason`-Enum `unknown|not_redeemable|insufficient_balance|invalid_request`, `cc_code_expired` `expired|voided` (Δ40-4). Nutzertexte bleiben neutral (kein Existenzorakel, K-14).
@@ -203,7 +225,7 @@ Delta zu R0-19 §3.2/§3.4: `cc_code_invalid` bekommt das `reason`-Enum `unknown
 | `voided` während `reserved` | wird beim `commit` als `vcap_cancelled` sichtbar (S4) |
 | `restored`, `reactivated` (Händler reaktiviert Gutschein) | **keine** Wirkung auf widerrufene Grants (E-29); erneute Einlösung = neuer Schlüssel `n+1` = neue Grants |
 | Teilrefund des Gutscheinkaufs | nichts (Gutschein bleibt gültig, CONNECTORS §3) |
-| `vcap_redemption_refunded` (nach D40-9) | nur Audit; der zugehörige Grant ist bereits durch die Betreiberaktion widerrufen |
+| `vcap_redemption_refunded` (nach E-283) | nur Audit; der zugehörige Grant ist bereits durch die Betreiberaktion widerrufen |
 
 ---
 
@@ -211,14 +233,14 @@ Delta zu R0-19 §3.2/§3.4: `cc_code_invalid` bekommt das `reason`-Enum `unknown
 
 ### 4.1 Prinzip: zustandsbasiert
 
-Jeder Woo-Hook (`woocommerce_order_status_changed`, `woocommerce_payment_complete`, `woocommerce_order_refunded`, `woocommerce_refund_deleted`, `woocommerce_saved_order_items`, `woocommerce_process_shop_order_meta`, Trash/Untrash, Kundenwechsel) und der Reconcile-Job (`cc_woo_reconcile`, stündlich, Cursor `(date_modified, id)`, Karenz 5 min, Start ab Deaktivierungszeitpunkt – Verhalten LB INV-B-120) lösen nur **„Snapshot lesen → Soll-Grants → Reconcile“** aus (R0-19 §5.8). Der Snapshot liest die Bestellung frisch über CRUD (HPOS/Classic). Folge: doppelte, parallele oder vertauschte Hooks liefern denselben Endzustand; spätes `paid` nach `refunded` sieht beim Lesen bereits `refunded` (RF-07). Verarbeitung je Bestellung unter L2 `grant-source:woo_order:<id>`.
+Jeder Woo-Hook (`woocommerce_order_status_changed`, `woocommerce_payment_complete`, `woocommerce_order_refunded`, `woocommerce_refund_deleted`, `woocommerce_saved_order_items`, `woocommerce_process_shop_order_meta`, Trash/Untrash, Kundenwechsel) und der Reconcile-Job (`ccap_woo_reconcile`, stündlich, Cursor `(date_modified, id)`, Karenz 5 min, Start ab Deaktivierungszeitpunkt – Verhalten LB INV-B-120) lösen nur **„Snapshot lesen → Soll-Grants → Reconcile“** aus (R0-19 §5.8). Der Snapshot liest die Bestellung frisch über CRUD (HPOS/Classic). Folge: doppelte, parallele oder vertauschte Hooks liefern denselben Endzustand; spätes `paid` nach `refunded` sieht beim Lesen bereits `refunded` (RF-07). Verarbeitung je Bestellung unter L2 `grant-source:woo_order:<id>`.
 
 ### 4.2 Bestellstatus → Soll-Grant (je Position × Ziel)
 
 | Woo-Status / Lage | Soll | `reason_code` | Bemerkung |
 |---|---|---|---|
 | `checkout-draft` | nichts | – | – |
-| `pending` (Zahlung offen) | `pending_confirmation` | `awaiting_payment` | kein Pending-Timeout nach D40-2 |
+| `pending` (Zahlung offen) | `pending_confirmation` | `awaiting_payment` | kein Pending-Timeout (Beschluss E-276); Zugang erst bei Zahlung; Dashboard-Hinweis bei > 7 Tagen |
 | `on-hold` ohne `date_paid` (z. B. Überweisung) | `pending_confirmation` | `awaiting_payment` | dto. |
 | bezahlter Status (`wc_get_is_paid_statuses()`), Zustimmung erfüllt | `active` | `order_paid` | Laufzeit ab `date_paid` (R0-09 §3.3) |
 | bezahlter Status, Zustimmung § 356 Abs. 5 BGB fehlt (E-33-Gate) | `pending_confirmation` | `consent_missing` | Freischaltung nach Zustimmung (`consent_given`) |
@@ -254,21 +276,21 @@ Manuelle Bestellaktionen (abgleichen, vor Zahlung freischalten, aussetzen, aufhe
 |---|---|
 | Eingänge | PayPal-Webhook (Signaturprüfung über PayPal `verify-webhook-signature`, Vorfilter: Methode, JSON, ≤ 256 KB, Kopfzeilen, `cert_url` nur `*.paypal.com`, 10/min je IP, 60/min gesamt); Klarna als **manuelle Bestellaktion** „Zahlungskonflikt melden“ mit Fall-ID; generischer Webhook mit `X-CC-Signature` (HMAC, ±300 s, R0-19 §5.7) für weitere Gateways |
 | Zuordnung | Bestellung **nur** über exakte Transaktions-ID; kein Treffer → `202`, Audit `dispute_unmatched` (gedrosselt), keine Wirkung |
-| Dedupe | `cc_inbox_event (connector_id='woo-dispute', event_id)`; Event-ID = Gateway-Event-ID bzw. Hash über normalisiertes JSON; Aufbewahrung 90 Tage (E-116); Replay → `202 duplicate` |
+| Dedupe | `ccap_inbox_event (connector_id='woo-dispute', event_id)`; Event-ID = Gateway-Event-ID bzw. Hash über normalisiertes JSON; Aufbewahrung 90 Tage (E-116); Replay → `202 duplicate` |
 | Fall-Automat je `(gateway, case_id)` | `opened`/`updated` → offen; `won` / `lost` → abgeschlossen und **endgültig**; zwischen Ergebnissen gilt das jüngere `event_time`; älteres Ereignis nach Abschluss → `stale_event`; Fenster −60 Tage/+1 Tag |
 | Speicherort | Fallstand als Bestell-Meta `_ccap_disputes` (über CRUD, gehört zur Bestellung) → fließt in den Snapshot (`disputeState`, Δ40-5) |
 | Grant-Wirkung | offen → `suspended` (`payment_disputed`); `won` und kein weiterer offener Fall → `active` (`dispute_won`); `lost` → `revoked` (`chargeback_lost`) |
-| Woo-Status | nach **D40-1** (Empfehlung: `opened` → `on-hold`, `won` → vorheriger bezahlter Status, `lost` → `failed`; nur wenn die Bestellung in einem passenden Ausgangsstatus ist) |
+| Woo-Status | **Beschluss E-275:** der Adapter setzt den Woo-Status, damit auch Affiliate die Provision storniert: `lost` → `refunded` bzw. `cancelled`; `opened` → `on-hold`, `won` → vorheriger bezahlter Status (Empfehlung aus D40-1); nur aus passendem Ausgangsstatus, idempotent, mit Bestellnotiz |
 | Lock | L2 `grant-source:woo_order:<id>` (statt LB-eigener Dispute-Sperre); belegt → `409 cc_resource_busy`, Gateway wiederholt |
 | Fehler | Signatur ungültig → `401 cc_signature_invalid` (Audit max. 1 × je 10 min); Secrets nach E-87 (Konstanten haben Vorrang, nie angezeigt) |
-| Finanzen | Course bucht nichts; Rückbuchung/Halten der Provision nur über den Woo-Status (D40-1) bzw. durch das Gateway-Plugin |
+| Finanzen | Course bucht nichts; Rückbuchung/Halten der Provision nur über den Woo-Status (E-275) bzw. durch das Gateway-Plugin; der Adapter ruft nie `wc_create_refund` (FIN-INV-02) |
 
 ### 4.5 Auto-Produkte (E-34)
 
 | Regel | Festlegung |
 |---|---|
 | Anlage | je veröffentlichtem Kurs und je verkaufbarem Modul (E-27) ein **virtuelles**, einzeln verkauftes Woo-Produkt (Gruppenvariante optional mit `seats_per_item`); Sync-Schlüssel Produkt-Meta `_ccap_sync_key = course:{uid}[:module:{uid}][:seats:{n}]` (idempotent: zweiter Lauf legt nichts doppelt an) |
-| Preis | nach **D40-6** (Empfehlung: Course führt keinen Preis; Produkt entsteht als **Entwurf ohne Preis**, Betreiber setzt Preis/Steuerklasse und veröffentlicht in Woo) |
+| Preis | **Beschluss E-280:** Course führt keinen Preis; Produkt entsteht als **Entwurf ohne Preis**, der Shop pflegt Preis/Steuerklasse und veröffentlicht in Woo |
 | Gepflegte Felder | Titel, Kurzbeschreibung, Bild, `virtual`, `sold_individually`, Mapping, Katalogsichtbarkeit; **nie** Preis, Steuer, Lager, Gutscheintyp |
 | Handänderungen | Fingerprint je Feld; manuell geänderte Felder werden nicht überschrieben (Verhalten LB INV-B-093/T98); Dry-run zeigt Drift |
 | Kurs unveröffentlicht/„Einschreibung geschlossen“/archiviert (E-108) | Produkt → nicht kaufbar (Entwurf bzw. `catalog_visibility = hidden`); bestehende Grants unverändert |
@@ -287,11 +309,11 @@ Manuelle Bestellaktionen (abgleichen, vor Zahlung freischalten, aussetzen, aufhe
 | Nachweis | Positions-Meta `_ccap_member_discount = {rule_id, basis_grant_uid, percent}` (keine Personendaten) |
 | Einfluss auf Grants | **keiner**: der Rabatt erzeugt, verlängert oder widerruft keinen Grant; späterer Verlust des Basis-Grants ändert die rabattierte Bestellung nicht (Woo ist wirtschaftliche Autorität) |
 | Finanzen | Affiliate bucht netto nach Rabatt aus Woo; Course meldet nichts |
-| Kombination | mit Gutscheincodes/Promotions nach **D40-7**; Geschenkkarten/Guthaben zahlen immer den Rest nach allen Rabatten (CONNECTORS §5) |
+| Kombination | **Beschluss E-281:** nicht mit Rabattcodes/Promotions kombinierbar, es gilt der bessere Rabatt; Geschenkkarten/Guthaben zahlen immer den Rest nach allen Rabatten (CONNECTORS §5) |
 
 ### 4.7 Deutsche Shop-Rechtspflichten (E-33) – nur Grant-relevante Teile
 
-Widerrufsbutton, Bestellknopf, Preisangaben, Rechtstexte in Mails und OSS-Schwelle sind Woo-Adapter-Funktionen **ohne** Grant- oder Finanzwirkung in Course (Spezifikation R3-02). Grant-relevant ist nur das **Zustimmungs-Gate** (§ 356 Abs. 5 BGB, `consent_missing`, §4.2). Ein Widerruf nach § 356a BGB wirkt erst über den bestätigten Woo-Refund/Storno (RF-19). Juristische Prüfung durch den Betreiber.
+Widerrufsbutton, Bestellknopf, Preisangaben, Rechtstexte in Mails und OSS-Schwelle sind Woo-Adapter-Funktionen **ohne** Grant- oder Finanzwirkung in Course (Spezifikation R3-02; Clean-Room-Neuimplementierung nach E-01/E-33). Der Zeitpunkt des ersten Lernzugriffs wird als Positions-Meta vermerkt (Beschluss E-284, nur Zeitstempel, nur bei aktivem Zustimmungs-Gate, im Woo-Privacy-Export). Grant-relevant ist nur das **Zustimmungs-Gate** (§ 356 Abs. 5 BGB, `consent_missing`, §4.2). Ein Widerruf nach § 356a BGB wirkt erst über den bestätigten Woo-Refund/Storno (RF-19). Juristische Prüfung durch den Betreiber.
 
 ---
 
@@ -308,14 +330,14 @@ Gilt zusätzlich zu R0-09 §5 (RF-01…RF-19). **Für alle Zeilen (MUSS):** nur 
 | FR-05 | woo_order | Betrag ohne Positionsbezug | unverändert + Warnung | – | – | – | dto. |
 | FR-06 | woo_order | Refund gelöscht/zurückgenommen | neue Revision `active` | – | – | – | Affiliate `reinstate` aus Woo |
 | FR-07 | woo_order | Storno (vor/nach Zahlung) | `revoked` `order_cancelled` | dto. | dto. | dto. | dto. |
-| FR-08 | woo_order | Dispute offen | `suspended` | Zugang pausiert | Lernstände bleiben lesbar (R0-09 §5 Anzeige) | Zertifikat bleibt | Affiliate hält (D40-1) |
+| FR-08 | woo_order | Dispute offen | `suspended` | Zugang pausiert | Lernstände bleiben lesbar (R0-09 §5 Anzeige) | Zertifikat bleibt | Affiliate hält (E-275) |
 | FR-09 | woo_order | Dispute gewonnen | `active` (G-09, kein Wiederaufleben, da nie `revoked`) | – | – | – | Affiliate gibt frei |
-| FR-10 | woo_order | Dispute verloren | `revoked` `chargeback_lost` | dto. | dto. | bleibt; Betrugsverdacht → separater Prozess (CORE-SPEC-006) | Affiliate bucht zurück (D40-1) |
+| FR-10 | woo_order | Dispute verloren | `revoked` `chargeback_lost` | dto. | dto. | bleibt; Betrugsverdacht → separater Prozess (CORE-SPEC-006) | Affiliate bucht zurück (E-275) |
 | FR-11 | woo_order | spätes `paid` nach Refund | ignoriert (`stale_event`) | – | – | – | – |
 | FR-12 | voucher | Fehler vor `commit` | `revoked` `released`/`voucher_reservation_lost`/`voucher_cancelled` bzw. `failed` (§3.4) | kein Zugang entstanden | – | – | Wert bleibt/kommt zurück (Voucher) |
 | FR-13 | voucher | `voided` nach `commit` | nur Voucher-Grants `revoked` `voucher_voided` (E-35) | Zugang weg | Historie bleibt | Zertifikat bleibt | Voucher/Woo erstatten den Gutscheinkauf; Affiliate korrigiert Gutscheinkauf |
 | FR-14 | voucher | Teilrefund des Gutscheinkaufs | unverändert | – | – | – | – |
-| FR-15 | voucher | Betreiber widerruft Voucher-Grant manuell | `revoked` `manual_revoke`; Gutscheinwert nur per D40-9 | dto. | dto. | dto. | optional `refund` durch Betreiber |
+| FR-15 | voucher | Betreiber widerruft Voucher-Grant manuell | `revoked` `manual_revoke`; Gutscheinwert nur per E-283 | dto. | dto. | dto. | optional `refund` durch Betreiber |
 | FR-16 | voucher | Gutschein reaktiviert | keine Wirkung; Neueinlösung = neue Grants | – | – | – | – |
 | FR-17 | membership | Pause | `suspended` | – | – | – | – |
 | FR-18 | membership | Ablauf zum Laufzeitende | `expired` | – | – | – | – |
@@ -327,7 +349,7 @@ Gilt zusätzlich zu R0-09 §5 (RF-01…RF-19). **Für alle Zeilen (MUSS):** nur 
 
 ## 6. Testfälle FIN-xxx
 
-Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain ≥ 1.1.0), P = Paralleltest (Mehrprozess-Runner, R0-14 L5), E = E2E, S = statischer Guard. Jeder Fall prüft zusätzlich: Anzahl `cc_grant`, `cc_grant_event`, `cc_outbox_event`, Affiliate-Provisionen (über `wpac_get_commissions()`), Voucher-Einlösezustand (über `get($key)`).
+Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain ≥ 1.1.0), P = Paralleltest (Mehrprozess-Runner, R0-14 L5), E = E2E, S = statischer Guard. Jeder Fall prüft zusätzlich: Anzahl `ccap_grant`, `ccap_grant_event`, `ccap_outbox_event`, Affiliate-Provisionen (über `wpac_get_commissions()`), Voucher-Einlösezustand (über `get($key)`).
 
 ### 6.1 Doppel-Event und Idempotenz
 
@@ -353,7 +375,7 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 | FIN-015 | I | Prozessabbruch nach `commit`, vor S5 | Retry: `get` = `committed` → Grants `active`; Nutzer sieht bis dahin „wird aktiviert“ | R3-04 |
 | FIN-016 | I | `vcap_temporary_failure` bei `reserve` und bei `commit` (erzwungener Ausfall) | Saga bleibt, Retry mit gleichem Schlüssel; Integrationsstatus `degraded` | R3-04, R3-19 |
 | FIN-017 | I | gleicher Schlüssel, anderer Nutzer (manipuliert) | `cc_idempotency_conflict`; kein Grant | R3-05 |
-| FIN-018 | I | Kursgutschein mit Kanal `shop` **und** `course-captain` (falls D40-5 b): parallel Warenkorb und externe Einlösung | höchstens ein Weg gewinnt (Voucher-Zustand gemeinsam); genau 1 Zugang; Gutscheinprodukt mit Kursmapping wird beim Speichern abgewiesen (FIN-INV-05) | R3-05 |
+| FIN-018 | I | Kursgutschein mit Kanal `shop` konfiguriert; Einlöseversuch im Warenkorb und extern | Warenkorb weist den Kursgutschein ab, Diagnosewarnung (E-279); externe Einlösung erzeugt genau 1 Zugang; Gutscheinprodukt mit Kursmapping wird beim Speichern abgewiesen (FIN-INV-05) | R3-05 |
 | FIN-019 | I | Zieltyp B: Produktmapping wird zwischen `reserve` und `commit` geändert | Grants nach eingefrorener Zielliste | R3-04 |
 
 ### 6.3 Teilrefund
@@ -373,9 +395,9 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 
 | ID | Art | Gegeben / Aktion | Erwartung | Ziel |
 |---|---|---|---|---|
-| FIN-030 | I | PayPal `opened` (gültige Signatur) | Grants `suspended` `payment_disputed`; Status nach D40-1; Bestellnotiz | R3-03 |
+| FIN-030 | I | PayPal `opened` (gültige Signatur) | Grants `suspended` `payment_disputed`; Woo-Status `on-hold`; Bestellnotiz | R3-03 |
 | FIN-031 | I | danach `won` | Grants `active` `dispute_won`; Affiliate gibt Provision frei | R3-03, R3-19 |
-| FIN-032 | I | danach `lost`, Lernender hat Zertifikat | Grants `revoked` `chargeback_lost`; Zertifikat `issued`; Affiliate 1 Rückbuchung; 0 Course-Affiliate-Aufrufe | R3-03, R3-19 |
+| FIN-032 | I | danach `lost`, Lernender hat Zertifikat | Grants `revoked` `chargeback_lost`; Woo-Status `refunded`/`cancelled` (E-275); Zertifikat `issued`; Affiliate 1 Rückbuchung; 0 Course-Affiliate-Aufrufe | R3-03, R3-19 |
 | FIN-033 | I | zwei Fälle, einer `won`, einer offen | bleibt `suspended` | R3-03 |
 | FIN-034 | I | `won` (jünger) trifft vor `opened` (älter) ein | Fall endgültig `won`, `opened` → `stale_event` | R3-03 |
 | FIN-035 | I | ungültige Signatur / falsche `cert_url` / zu alt | `401 cc_signature_invalid` bzw. abgewiesen; keine Wirkung; Audit gedrosselt | R3-03 |
@@ -399,23 +421,23 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 
 | ID | Art | Gegeben / Aktion | Erwartung | Ziel |
 |---|---|---|---|---|
-| FIN-050 | S | Guard über Course-Kern und Pro-Add-on | keine Treffer für `wpac_record_`, `wpac_v1_record`, `/reinstatements`, `wc_create_refund`, `wc_create_order`, `->api_v1->`; `redemptions->refund(` nur in der D40-9-Aktion | R3-19 |
+| FIN-050 | S | Guard über Course-Kern und Pro-Add-on | keine Treffer für `wpac_record_`, `wpac_v1_record`, `/reinstatements`, `wc_create_refund`, `wc_create_order`, `->api_v1->`; `redemptions->refund(` nur in der E-283-Aktion | R3-19 |
 | FIN-051 | E | Kurskauf mit Rabattcode, Affiliate-Partnerlink | 1 Provision netto nach Rabatt; 1 Grant | R3-19 |
 | FIN-052 | E | Gutscheinkauf (Partnerlink) → externe Einlösung | 1 Provision beim Kauf, 0 bei Einlösung; 1 Grant (Quelle `voucher`) | R3-05, R3-19 |
 | FIN-053 | U | Schema aller Course-Events | kein Feld für Betrag, Währung, Steuer, Zahlungsart, Code, Gutscheinwert | R3-19 |
 | FIN-054 | E | Kurskauf mit Mitgliederrabatt | Preis rabattiert, Positions-Meta gesetzt; 1 Provision netto nach Rabatt; Basis-Grant unverändert | R3-02, R3-19 |
-| FIN-055 | E | Woo-Kauf eines Kurses mit Kursgutschein als Zahlung (Kanal `shop`, falls zugelassen) und zusätzliche externe Einlösung eines **anderen** Codes für denselben Kurs | 2 unabhängige Grants (Woo, Voucher), Widerruf eines lässt den anderen (CORE-04) | R3-05 |
+| FIN-055 | E | Woo-Kauf eines Kurses mit Geschenkkarte als Zahlung und zusätzliche externe Einlösung eines Kursgutscheins für denselben Kurs | 2 unabhängige Grants (Woo, Voucher), Widerruf eines lässt den anderen (CORE-04) | R3-05 |
 
 ### 6.7 Auto-Produkte und Mitgliederrabatt
 
 | ID | Art | Gegeben / Aktion | Erwartung | Ziel |
 |---|---|---|---|---|
-| FIN-060 | I | Sync zweimal für Kurs mit 2 Modulen | 3 Produkte (Kurs + 2 Module), Entwurf ohne Preis (D40-6); zweiter Lauf: 0 neue | R3-02 |
+| FIN-060 | I | Sync zweimal für Kurs mit 2 Modulen | 3 Produkte (Kurs + 2 Module), Entwurf ohne Preis (E-280); zweiter Lauf: 0 neue | R3-02 |
 | FIN-061 | I | Titel im Woo-Produkt manuell geändert, Kurs umbenannt | manueller Titel bleibt, Drift im Dry-run | R3-02 |
 | FIN-062 | I | Kurs archiviert (E-108) | Produkt nicht kaufbar; bestehende Grants aktiv | R3-02 |
 | FIN-063 | I | Mapping nach Verkauf geändert, dann Positionsrefund | Widerruf trifft die eingefrorenen Ziele | R3-03 |
 | FIN-064 | I | Mitgliederrabatt: Basis-Grant wird zwischen Warenkorb und Bestellanlage widerrufen | Preis bei Bestellanlage neu berechnet, kein Rabatt | R3-02 |
-| FIN-065 | I | zwei Rabattregeln passen; Upgrade-Produkt als Basis; Rabattcode zusätzlich | nur bester Rabatt; Upgrade zählt nicht; Kombination nach D40-7 | R3-02 |
+| FIN-065 | I | zwei Rabattregeln passen; Upgrade-Produkt als Basis; Rabattcode zusätzlich | nur bester Rabatt; Upgrade zählt nicht; Rabattcode und Mitgliederrabatt nicht kombiniert, der bessere gilt (E-281) | R3-02 |
 | FIN-066 | I | Auto-Produkt in Woo gelöscht | Mapping verwaist (Diagnose), Grants bleiben, kein Neuanlegen | R3-02 |
 
 ### 6.8 Lernbeginn, Zertifikat, kein Wiederaufleben
@@ -427,7 +449,9 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 | FIN-072 | I | Refund zurückgenommen in `extend`-Kette | neue Revision, Kettenposition über `chain_anchor_at` (R0-09 Δ-3) | R3-03 |
 | FIN-073 | I | Gutschein nach Einlösung `voided`, Lernender hat zusätzlich Woo-Grant | nur Voucher-Grant `revoked` (E-35); Zugang bleibt | R3-05 |
 | FIN-074 | I | Gutschein `reactivated` nach Void | widerrufener Grant bleibt `revoked`; Neueinlösung → Schlüssel `n+1`, neue Grants | R3-05 |
-| FIN-075 | E | Nutzungsereignis `first_access` bei Woo-Kauf mit Zustimmungs-Gate | Event ohne Zahlungsdaten; Positionsnotiz nach D40-10 | R3-02 |
+| FIN-075 | E | Nutzungsereignis `first_access` bei Woo-Kauf mit Zustimmungs-Gate | Event ohne Zahlungsdaten; Positions-Meta mit Zeitstempel des ersten Lernzugriffs (E-284) | R3-02 |
+| FIN-076 | I | Saga `reserved`, Partner erreichbar, 24 h vergehen | `release`, Grants `failed` (`pending_timeout`), Hinweis „erneut einlösen“; Neueinlösung mit Schlüssel `n+1` | R3-04 |
+| FIN-077 | I | Woo-Zusatzmodul-Produkt mit Basiskurs-Abhängigkeit; Basis-Grant erstattet | Zusatz-Grant bleibt `active`, zählt aber nicht mehr (R0-09 §3.5); kein Finanzaufruf | R3-02, R3-03 |
 
 ### 6.9 Mitgliedschaft (E-203)
 
@@ -438,39 +462,39 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 
 ---
 
-## 7. Entscheidungsbedarf (nur neu, nicht in E-01…E-259)
+## 7. Entscheidungen (beschlossen)
 
-| Nr. | Frage | Optionen | Empfehlung | Wer | Blockiert |
-|---|---|---|---|---|---|
-| **D40-1** | **Setzt der Dispute-Webhook (E-33) den Woo-Bestellstatus?** Affiliate hält/bucht Provisionen nur nach Woo-Status (`on-hold` hält, `failed` nach Zahlung = Chargeback, Rückkehr in bezahlten Status = Wiederherstellung). Ohne Statuswechsel bleibt die Provision eines verlorenen Disputes bestehen, außer das Gateway-Plugin setzt den Status selbst. | a) ja: `opened` → `on-hold`, `won` → vorheriger bezahlter Status, `lost` → `failed` (nur aus passendem Ausgangsstatus, idempotent, Bestellnotiz), Schalter im Adapter; b) nein: nur Grants + Notiz, Status bleibt Gateway/Betreiber; c) ja, aber eigener Status `wc-disputed` + Affiliate-Filterregistrierung | **a)**, Standard **an** – eine einzige Wahrheit im Woo-Status, die Course, Affiliate und Steuer-/Buchhaltungs-Plugins gleich lesen; keine Affiliate-API aus Course (E-37) | Auftraggeber + Architektur | R3-03, R3-19 |
-| **D40-2** | **Gilt der Pending-Timeout 24 h (E-201) für unbezahlte Woo-Bestellungen?** Überweisung (`on-hold`) und `consent_missing` dauern oft länger als 24 h; ein `failed` würde bezahlte Kunden ohne Zugang lassen. | a) nur technische Pendings (Voucher-Saga, Claim, Retry), nicht `awaiting_payment`/`consent_missing` – die enden mit dem Woo-Status (Woo storniert unbezahlte Bestellungen selbst); b) für alle Quellen 24 h; c) je Quelle einstellbar | **a)**; Hinweis im Dashboard bei `awaiting_payment` > 7 Tage | Auftraggeber | R3-02, R3-04 |
-| **D40-3** | **Voucher-Saga bei Ablauf von E-201:** `failed` (E-201) setzt einen wiederholbaren Zustand voraus, ein freigegebener Gutscheinschlüssel ist aber nicht wiederholbar. | a) Partner erreichbar → `release` + `revoked` (`pending_timeout`); nicht erreichbar → `failed` (`partner_unavailable`) mit Retry nach Rückkehr (§3.4); b) immer `failed`; c) immer `revoked` ohne Release | **a)** – kein Doppelverbrauch, kein Zugang ohne Einlösung, Recovery nach Ausfall | Auftraggeber + Architektur | R3-04, R3-10 |
-| **D40-4** | **Guthaben/Mehrfachgutscheine für Kurse über `vcap()->redemptions`?** Ein neutrales Angebot (E-31 Typ A) hat keinen Preis; für eine Teilbetrags-Abbuchung müsste Course einen Betrag kennen. | a) nein: nur Einmalgutscheine (Typ `course`/`voucher`); Geschenkkarten zahlen im Warenkorb (Woo-Pfad); b) ja, nur Zieltyp B mit Woo-Produktpreis als `amount`; c) ja, Betrag am Angebot | **a)** – Course bleibt preisfrei (Kap. 32.1), keine Doppelbuchung von Geldwert | Auftraggeber | R3-04 |
-| **D40-5** | **Kursgutscheine zusätzlich im Warenkorb (Kanal `shop`) einlösbar?** Zwei Wege ergeben zwei Grant-Quellen mit unterschiedlicher Refund-Semantik (woo_order vs. voucher). | a) nein: Kursgutscheine nur Kanal `course-captain`; Produkt mit `shop`-Kanal und Kurs-Gutscheintyp erzeugt eine Diagnosewarnung; b) ja, Betreiber wählt je Gutscheinprodukt | **a)** – ein eindeutiger Einlöseweg (R3-04), Verhalten LB INV-B-155 | Auftraggeber | R3-04, R3-05 |
-| **D40-6** | **Preis der automatisch angelegten Woo-Produkte (E-34):** Woher kommt er, und wann wird das Produkt veröffentlicht? | a) Course führt keinen Preis; Produkt entsteht als Entwurf ohne Preis, Betreiber setzt Preis und veröffentlicht in Woo; b) Preisfeld im Kurs (Pro), Sync schreibt ihn bis zur ersten Handänderung; c) Standardpreis aus Einstellungen | **a)** – Woo bleibt Preis-, Steuer- und PAngV-Autorität (E-33 Preisangaben), kein zweiter Preis im LMS | Auftraggeber | R3-02 |
-| **D40-7** | **Mitgliederrabatt (E-25a) mit Rabattcodes/Promotions kombinierbar?** | a) standardmäßig nicht mit Rabattcodes/Promotions, Schalter „kombinierbar“; Geschenkkarten/Guthaben immer; b) immer kombinierbar; c) nie | **a)** – verhindert ungewollte Doppelrabatte; technisch über `woocommerce_coupon_is_valid`/Promotion-Kundengruppen (CONNECTORS §5) | Auftraggeber | R3-02 |
-| **D40-8** | **Mengen > 1 bei Nicht-Gruppen-Kursprodukten:** CORE-SPEC-005 verlangt eine Regel je Menge; R0-09 RF-04 lässt den Fall „unklar“. | a) Kursprodukte „einzeln verkauft“, Menge > 1 nur bei Gruppenprodukten (Seats) – wie LB `soldIndividually`; b) Menge > 1 = Verlängerung um n Laufzeiten; c) Menge > 1 = n Seats automatisch | **a)** – eindeutige Refund-Zuordnung, keine Mengenarithmetik | Auftraggeber | R3-02, R3-03 |
-| **D40-9** | **Betreiberaktion „Gutscheinwert zurückgeben“** (`redemptions->refund`) in Course Pro, wenn ein Voucher-Grant manuell widerrufen wird? | a) ja, nur manuell, Capability `cc_manage_grants` + Bestätigung + Begründung + Audit, `refund_key = ccap:rf:{grant_uid}`; b) nein, nur im Voucher-Admin („Reaktivieren“); c) automatisch bei jedem Widerruf | **a)** – CONNECTORS §3 „never undone automatically“ bleibt gewahrt; Support ohne Systemwechsel | Auftraggeber | R3-04, R3-10 |
-| **D40-10** | **Lernbeginn als Nachweis an der Bestellposition (E-32/E-33):** Darf der Woo-Adapter `course.usage_recorded(first_access)` als Positions-Meta „Beginn der Ausführung“ speichern (Nachweis zum Erlöschen des Widerrufsrechts nach § 356 Abs. 5 BGB)? | a) ja, nur Zeitstempel, nur bei aktivem Zustimmungs-Gate, im Woo-Privacy-Export enthalten; b) nein, nur Course-intern abrufbar; c) zusätzlich Fortschritt in % | **a)** – minimal, erfüllt das LB-Verhalten (INV-B-133) ohne Lerndaten im Shop; juristische Prüfung durch Betreiber | Auftraggeber (Datenschutz/Recht) | R3-02 |
+| Nr. (alt) | Frage | Beschluss |
+|---|---|---|
+| D40-1 | Setzt ein verlorener Dispute den Woo-Bestellstatus? | **E-275:** ja (auf `refunded`/`cancelled`), damit auch Affiliate die Provision storniert |
+| D40-2 | 24-h-Pending-Timeout bei unbezahlten Woo-Bestellungen? | **E-276:** gilt nicht; Grant entsteht erst bei Zahlung, solange die Bestellung offen ist |
+| D40-3 | Gutschein-Einlösung hängt länger als 24 h | **E-277:** Reservierung freigeben, Grant `failed`, Lernender bekommt Hinweis zum erneuten Einlösen |
+| D40-4 | Guthaben über die Einlöse-API? | **E-278:** nein, Kursgutscheine sind Zugangsgutscheine |
+| D40-5 | Kursgutscheine zusätzlich im Woo-Warenkorb? | **E-279:** nein, nur über die Course-Einlösung |
+| D40-6 | Preis automatisch angelegter Woo-Produkte | **E-280:** pflegt der Shop in Woo; Produkte entstehen als Entwurf |
+| D40-7 | Mitgliederrabatt mit Rabattcodes kombinierbar? | **E-281:** nein, der bessere Rabatt gilt |
+| D40-8 | Kursprodukte einzeln oder als Menge? | **E-282:** einzeln; mehrere Plätze nur über Gruppenprodukte |
+| D40-9 | Betreiberaktion „Gutscheinwert zurückgeben“ | **E-283:** ja, nur manuell, mit Begründung und Audit (`refund_key = ccap:rf:{grant_uid}`) |
+| D40-10 | Lernbeginn als Vermerk an der Woo-Bestellposition | **E-284:** ja, Zeitpunkt des ersten Lernzugriffs wird vermerkt |
 
-**Keine neue Entscheidung, nur Abhängigkeit:** Affiliate-Meldung → E-37; Gutscheinziel → E-31; Voucher-Storno → E-35; ein Code je Platz → E-36; Kontopflicht → E-30; Kundenwechsel → E-117; Prüfungsabgabe → E-113; Pro-Lizenzablauf → E-93; Pending-Timeout-Wert → E-201 (Geltungsbereich D40-2/3); Inbox-Frist → E-116; Mitgliedschaftsvertrag → E-203.
+**Weitere Beschlüsse:** Affiliate-Meldung → E-37; Gutscheinziel → E-31; Voucher-Storno → E-35; ein Code je Platz → E-36; Kontopflicht → E-30; Kundenwechsel → E-117; Prüfungsabgabe → E-113; Pro-Lizenzablauf → E-93; Pending-Timeout → E-201 (Geltungsbereich E-276/E-277); Inbox-Frist → E-116; Mitgliedschaftsvertrag → E-203.
 
 ---
 
 ## 8. Deltas zu anderen Dokumenten (mit deren Freigabe einzuarbeiten)
 
-| Nr. | Dokument | Delta |
-|---|---|---|
-| Δ40-1 | R0-06 `cc_grant`, R0-09 §2.2, ENTSCHEIDUNGEN E-27 (Folgetext) | `module_id bigint unsigned NOT NULL DEFAULT 0` (0 = ganzer Kurs) statt NULL; Unique `grant_source` um `module_id` erweitern; gleiches für `cc_group` (`group_source`) bei Modul-Gruppenprodukten |
-| Δ40-2 | R0-06 (Pro-Schema), R0-39 | Tabelle `cc_source_saga` (§3.2) im Pro-Add-on; Retention wie Inbox (E-116, `failed` bis Klärung + 90 Tage) |
-| Δ40-3 | R0-36 §3.3 Nr. 2 | „Grant aktiv geschrieben → commit“ ersetzen durch „Grants `pending_confirmation` → commit → `active`“ (R0-09 §2.2 gilt) |
-| Δ40-4 | R0-19 §3.2/§3.4 | `reason`-Enums für `cc_code_invalid` und `cc_code_expired`; Mapping `vcap_insufficient_balance`, `vcap_not_committed`, `vcap_refund_exceeded`; `vcap_invalid_request` zusätzlich als Health-Klasse `validation` |
-| Δ40-5 | R0-19 §5.8 `SourceSnapshot` | Felder `disputeState: none|open|won|lost` und `lines[].frozenTargets[]` (`courseUid`, `moduleUid|0`, `scopes`) |
-| Δ40-6 | TODO/R0-24 | eigene R3-Task „Membership-Adapter (E-203)“ fehlt; FIN-080/081 bis dahin unter R3-19 |
-| Δ40-7 | R0-09 §5 | RF-Zeilen um FR-08…FR-10 (Dispute über Webhook) und FR-12…FR-16 (Voucher-Saga) ergänzen; RF-15 „gelöscht“ als bewusste LB-Abweichung (E-55-Liste) |
-| Δ40-8 | R0-09 §6.1 | Lock LV `voucher-code:<code_hmac>` zwischen L1 und L2 |
-| Δ40-9 | Konzept Kap. 30.2 (Affiliate-Zeile), Kap. 45 (Voucher-API) | redaktionell: „Course meldet keine Verkäufe“ (E-37); Kurs-Einlösung nur `vcap()->redemptions` |
-| Δ40-10 | R0-12/R0-24 Traceability | FIN-001…FIN-081 als Eingangskatalog COMMERCE (E-186) für R3-01 aufnehmen |
+| Nr. | Dokument | Delta | Status |
+|---|---|---|---|
+| Δ40-1 | R0-06 `ccap_grant`, R0-09 §2.2, ENTSCHEIDUNGEN E-27 (Folgetext) | `module_id bigint unsigned NOT NULL DEFAULT 0` (0 = ganzer Kurs) statt NULL; Unique `grant_source` um `module_id` erweitern; gleiches für `ccap_group` (`group_source`) bei Modul-Gruppenprodukten | eingearbeitet (R0-06 §4.4, R0-09 §2.2; Modul in `ccap_group_course` statt `group_source`) |
+| Δ40-2 | R0-06 (Pro-Schema), R0-39 | Tabelle `ccap_source_saga` (§3.2) im Pro-Add-on; Retention wie Inbox (E-116, `failed` bis Klärung + 90 Tage) | eingearbeitet (R0-06 §4.10) |
+| Δ40-3 | R0-36 §3.3 Nr. 2 | „Grant aktiv geschrieben → commit“ ersetzen durch „Grants `pending_confirmation` → commit → `active`“ (R0-09 §2.2 gilt) | an R0-36 übergeben |
+| Δ40-4 | R0-19 §3.2/§3.4 | `reason`-Enums für `cc_code_invalid` und `cc_code_expired`; Mapping `vcap_insufficient_balance`, `vcap_not_committed`, `vcap_refund_exceeded`; `vcap_invalid_request` zusätzlich als Health-Klasse `validation` | eingearbeitet (R0-19 §3.4) |
+| Δ40-5 | R0-19 §5.8 `SourceSnapshot` | Felder `disputeState: none|open|won|lost` und `lines[].frozenTargets[]` (`courseUid`, `moduleUid|0`, `scopes`) | eingearbeitet (R0-19 §5.8) |
+| Δ40-6 | TODO/R0-24 | eigene R3-Task „Membership-Adapter (E-203)“ fehlt; FIN-080/081 bis dahin unter R3-19 | offen (Task fehlt im TODO) |
+| Δ40-7 | R0-09 §5 | RF-Zeilen um FR-08…FR-10 (Dispute über Webhook) und FR-12…FR-16 (Voucher-Saga) ergänzen; RF-15 „gelöscht“ als bewusste LB-Abweichung (E-55-Liste) | an R0-09 §5 übergeben (Verweis auf §5 dieses Dokuments) |
+| Δ40-8 | R0-09 §6.1 | Lock LV `voucher-code:<code_hmac>` zwischen L1 und L2 | eingearbeitet (R0-09 §6.1) |
+| Δ40-9 | Konzept Kap. 30.2 (Affiliate-Zeile), Kap. 45 (Voucher-API) | redaktionell: „Course meldet keine Verkäufe“ (E-37); Kurs-Einlösung nur `vcap()->redemptions` | redaktionell offen (Konzept) |
+| Δ40-10 | R0-12/R0-24 Traceability | FIN-001…FIN-081 als Eingangskatalog COMMERCE (E-186) für R3-01 aufnehmen | an R0-12/R0-24 übergeben |
 
 ---
 
@@ -478,4 +502,12 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 
 - Gelesen (nur lesend): `wp-couponmaster@2d84943` `CONNECTORS.md` (§1–§7), `API.md` (vollständig), `src/API/V1/RedemptionService.php:35, 72-147, 239-293, 326, 388, 555-667`, `voucher-captain.php:21`; `wpaffiliatemaster@3b7130e` `docs/CONTRACT.md:1-100`, `src/Integrations/WooCommerce.php:35-96`, `src/Integrations/WooCommerce/OrderSync.php:845-925`; Pass über R0-36 §2.6.
 - Projektdokumente: TODO R0-40, R3-02…R3-06, R3-19, CORE-SPEC-004/005; Konzept Kap. 32, 34.3, 34.4, 35.1–35.5; R0-09 §0, §2, §3, §5, §6, §8, §9; R0-19 §3, §5; R0-34 §1, §2, INT-002…004; R0-36 §2.6, §3, §4, §7, §8; R0-02 B §2.10, §2.11, §2.13, INV-B-002/003/087/093/130; C INV-C-184; ENTSCHEIDUNGEN Beschlussprotokoll und E-36, E-37, E-53, E-93, E-113, E-116, E-117, E-201, E-203.
-- Keine Änderung an Suite-Repositories oder LearnBoating, keine Implementierung, kein Commit. Abhaken von R0-40 erst nach Freigabe, Beschluss D40-1…D40-10 und Übernahme der Deltas.
+- Keine Änderung an Suite-Repositories oder LearnBoating, keine Implementierung, kein Commit. Beschlüsse E-275…E-284 sind eingearbeitet (16.11.2026); Deltas §8 mit Status.
+
+## Offene Punkte nach Einarbeitung
+
+1. **E-275 Zielstatus:** Der Beschluss nennt „`refunded`/`cancelled`“ ohne Regel, wann welcher gilt; für `opened`/`won` ist nur die Empfehlung aus D40-1 übernommen. Feinschnitt in R3-03.
+2. **E-276 vs. §4.2:** Der Beschluss sagt „Grant entsteht erst bei Zahlung“; §4.2 legt für offene Bestellungen einen Grant `pending_confirmation` ohne Zugang an (Anzeige „wird aktiviert“). Klären, ob der Pending-Grant entfallen soll.
+3. **E-277 `failed` nach Release:** Ein freigegebener Gutscheinschlüssel ist nicht wiederholbar; `failed` ist hier für diesen Schlüssel endgültig, das erneute Einlösen erzeugt neue Grants (`n+1`). R0-09 G-13 (Retry) gilt dafür nicht.
+4. **Δ40-6:** eigene R3-Task „Membership-Adapter (E-203)“ fehlt weiterhin im TODO.
+5. **E-26 im Shop:** Ob Woo-Zusatzmodul-Produkte die Abhängigkeit automatisch aus dem Mapping setzen (E-34 Auto-Produkte), ist nicht beschlossen.

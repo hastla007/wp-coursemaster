@@ -1,7 +1,20 @@
 # R0-01 · Repository- und Versionsbasis
 
-**Status:** erledigt (reine Bestandsaufnahme, keine Entscheidung) · **Stand:** 16.11.2026
-**Bezug:** TODO R0-01, Konzept Kap. 2, 39, 46.2, 47.1 (Schritt 1), 48
+**Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet · **Stand:** 16.11.2026
+**Bezug:** TODO R0-01, Konzept Kap. 2, 39, 46.2, 47.1 (Schritt 1), 48; `ENTSCHEIDUNGEN.md` (Beschlussprotokoll)
+
+## Beschlussstand
+
+| Beschluss | Wirkung in diesem Dokument |
+|---|---|
+| **E-01 – Nein, Clean Room** | **Kein Code aus learnboating wird übernommen** (Plugin, Connectors, Theme, Tools, Schemas, Tests). Course Captain implementiert nur das **Verhalten** nach Spezifikation neu. Die Freigabezeile für eine GPL-Übernahme entfällt (§3) |
+| E-02 | Golden-Master-Tests nur mit synthetischen, neutralen Testpaketen, keine LB-Inhalte |
+| E-03 | Ein Import alter LB-Pakete höchstens als separates Migrationswerkzeug, nie im Core |
+| E-56 | Referenzlauf des LB-Plugins für Fälle mit Rechenlogik: nur Ausführen, kein Code |
+| **E-12** | Die Werte des LB-Plugin-Kopfs (§1) sind **kein** Startwert; die Plattformmatrix wird eigenständig in R0-20 festgelegt |
+| E-195 | PHP-Untergrenze für Course Captain 8.3 (LB: 8.1) |
+| E-194 | Der fixierte Commit `9f37c77` bleibt Basis der Verhaltensinventur **und** des nightly Koexistenztests in der CI (lesender Deploy-Key; LB wird nur installiert, nie verändert oder weitergegeben) |
+| E-188 | Das Course-Captain-Repository bleibt privat bis zur ersten WordPress.org-Veröffentlichung |
 
 ## 1. Fixierte Versionsbasis
 
@@ -12,9 +25,9 @@
 
 **Course-Captain-Stand:** Nur Dokumente (`README.md`, `konzept.md`, `TODO-WETTBEWERBSANALYSE.md`), **kein Code**. 48 Commits, alle `docs:`.
 
-**Erfassung:** Shallow-Clone (`--depth=1`) des learnboating-Standardbranches, nur lesend. learnboating wurde nicht verändert. Alle R0-Inventurdokumente (`docs/r0/R0-02-inventar/`) beziehen sich auf genau diesen Commit. Wenn sich learnboating ändert, muss das Delta ab diesem Commit neu geprüft werden.
+**Erfassung:** Shallow-Clone (`--depth=1`) des learnboating-Standardbranches, nur lesend. learnboating wurde nicht verändert. Alle R0-Inventurdokumente (`docs/r0/R0-02-inventar/`) beziehen sich auf genau diesen Commit; sie beschreiben Verhalten, nicht zu übernehmenden Code (E-01). Derselbe Commit ist Ziel des nightly Koexistenztests (E-194). Wenn sich learnboating ändert, muss das Delta ab diesem Commit neu geprüft werden.
 
-**Plugin-Kopf der Referenz** (`bootspruefung-learning/bootspruefung-learning.php`): Version 0.14.0, `Requires at least: 7.0`, `Requires PHP: 8.1`, `WC requires at least: 11.2`, Textdomain `bootspruefung-learning`, PSR-4 `Bootspruefung\Learning\` → `src/`. Diese Werte sind **keine** automatisch beschlossenen Course-Captain-Zielwerte (→ R0-20).
+**Plugin-Kopf der Referenz** (`bootspruefung-learning/bootspruefung-learning.php`): Version 0.14.0, `Requires at least: 7.0`, `Requires PHP: 8.1`, `WC requires at least: 11.2`, Textdomain `bootspruefung-learning`, PSR-4 `Bootspruefung\Learning\` → `src/`. Diese Werte sind **keine** Course-Captain-Zielwerte und auch kein Startwert: Die Plattformmatrix legt R0-20 eigenständig fest (E-12), die PHP-Untergrenze ist 8.3 (E-195).
 
 ## 2. Verzeichnis- und Modulkarte (Referenz)
 
@@ -52,16 +65,24 @@ Quellen: `CREDITS.md`, `docs/lizenz.md` (dort To-do T93, „Lizenz legt der Betr
 
 | Bestandteil | Lizenzangabe heute | Folge für Course Captain |
 |---|---|---|
-| Plugin `bootspruefung-learning` | keine `License:`-Zeile; `composer.json`: `proprietary` | Gleicher Urheber (`hastla007`). Für eine Portierung in ein GPL-Plugin auf WordPress.org braucht es eine **ausdrückliche Lizenzentscheidung des Urhebers** → ENTSCHEIDUNG E-01 |
-| Connectors Affiliate/Voucher | `proprietary` | wie oben; betrifft nur R3 |
-| Theme `kurswasser` | GPL-2.0-or-later | wiederverwendbar mit GPL-Hinweis; Theme ist kein Bestandteil des Plugins |
+| Plugin `bootspruefung-learning` | keine `License:`-Zeile; `composer.json`: `proprietary` | Gleicher Urheber (`hastla007`). **Beschluss E-01: keine Freigabe, Clean Room.** Kein Code wird portiert; Course Captain baut das Verhalten nach Spezifikation neu |
+| Connectors Affiliate/Voucher | `proprietary` | wie oben (E-01, keine Übernahme); betrifft nur R3 |
+| Theme `kurswasser` | GPL-2.0-or-later | Lizenzrechtlich wiederverwendbar, wird nach E-01 aber **nicht** übernommen; Theme ist ohnehin kein Bestandteil des Plugins |
 | Gerätesimulation (`assets/device-sim/`) | **ungeklärt** (Quelle `boatingschool@136a243` ohne LICENSE) | ohnehin `exclude_domain_specific`; keine Übernahme |
 | Inhalte (Fragen, Medien, Prüfungsregeln) | **ungeklärt** | keine Übernahme; Course Captain liefert keine Inhalte aus |
-| Kursfotos (KI-erzeugt), Produktbilder, Manrope (OFL), DE-Karten (gemeinfrei) | wie in CREDITS | nicht benötigt; ggf. nur Manrope (OFL-1.1 ist GPL-kompatibel) |
+| Kursfotos (KI-erzeugt), Produktbilder, Manrope (OFL), DE-Karten (gemeinfrei) | wie in CREDITS | nicht benötigt; Manrope (OFL-1.1, GPL-kompatibel) käme höchstens aus der Originalquelle, nicht aus dem LB-Repository (E-01) |
 | Drittbibliotheken | keine gebündelt (kein `vendor/` im ZIP) | keine Lizenzlast aus Abhängigkeiten |
+| LB-Werkzeuge (`tools/`, z. B. `build-zips.sh`, `check-domains.php`, `make-pot.sh`), Schemas, Tests | wie Plugin (`proprietary`) | **nicht kopiert** (E-01); Course Captain schreibt sie nach Verhaltensspezifikation neu (R0-15 §3.8, R0-18) |
+
+**Beschluss (E-01, Auftraggeber, 16.11.2026):** Nein – Clean Room. Kein Code aus learnboating wird übernommen; nur Verhalten wird nach Spezifikation neu implementiert. „reuse/abstract“ in der Inventur bedeutet ab jetzt „Verhalten nachbauen“, nicht „Code kopieren“ (siehe `R0-02-inventar/README.md`). Folgebeschlüsse mit Clean-Room-Bezug: E-22 (Zahl-mit-Toleranz-Fragetyp ohne Code aus NavigationCheck), E-33 (Shop-Rechtspflichten als Neuimplementierung nach Verhalten), E-56 (Referenzlauf nur Ausführen).
 
 ## 4. Nachweis
 
 - Kommando: `git clone --depth=1 https://github.com/hastla007/learnboating.git` und dann `git log -1 --format='%H %cd'`
 - Zählung: `find <pfad> -name '*.php' | xargs cat | wc -l` je Ordner
-- Anforderungsbezug: Konzept 46.2 („Vollständige LearnBoating-Codeparität“), 47.1 Schritt 1, LB-AUDIT-001
+- Anforderungsbezug: Konzept 46.2 („Vollständige LearnBoating-Codeparität“; nach E-01 als **Verhaltensparität** zu lesen), 47.1 Schritt 1, LB-AUDIT-001
+
+## 5. Offene Punkte nach Einarbeitung
+
+- Konzept 46.2 spricht von „Codeparität“; nach E-01 gilt Verhaltensparität. Die redaktionelle Anpassung des Konzepts ist nicht Teil dieses Dokuments.
+- Wie der Clean-Room-Prozess organisatorisch abgesichert wird (wer liest LB-Code, wer implementiert), ist im Beschluss nicht festgelegt.

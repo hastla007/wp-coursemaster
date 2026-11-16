@@ -1,14 +1,32 @@
-# R0-25 · ADR Site-Scope, Multisite, Mandanten und Sprach-/Locale-Modell (Entwurf)
+# R0-25 · ADR Site-Scope, Multisite, Mandanten und Sprach-/Locale-Modell
 
 **ADR-Nr.:** R0-25
-**Status:** **Vorgeschlagen – Freigabe Auftraggeber/Produkt offen.** Task R0-25 ist **nicht** abgehakt. Keine Implementierung, kein Testprotokoll. Alle Testfälle sind Vorgaben für die genannten R1-Tasks.
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Keine Implementierung, kein Testprotokoll. Alle Testfälle sind Vorgaben für die genannten R1-Tasks.
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-25 (DoD: „Single-Site-Scope, Multisite-Nichtumfang, Locale-Fallback, Sprachversionen und gemischte Kurs-/Fragensprachen als ADR dokumentiert“), Voraussetzungen R0-07, R0-15; Konzept Kap. 17 (Rollen, Mandanten- und Inhaltszugriff), Kap. 21 (mehrsprachige Inhalte, Übersetzungsplugins), Kap. 35.2 (Grants sitegebunden), Kap. 37; `docs/r0/R0-15-barrierefreiheit-i18n.md` §3.5, §3.6, §4 (Ü-1…Ü-7); `docs/r0/R0-06-datenmodell-adr.md` §6.6 (Multisite-Scope), D-3; `docs/r0/R0-07-rbac-idor-matrix.md` §3 (Site-Scope, Super-Admin, gesperrter Nutzer), RBAC-010/-078; `docs/r0/R0-16-backup-recovery-deployment.md` (Site-Identität, Uninstall, REC-019/-024); `docs/r0/R0-02-inventar/C-infrastruktur-content.md` (INV-C-004/-007/-008/-024/-058/-148/-154/-159/-173/-192, E-C-01); `docs/r0/R0-10-import-medien-sicherheit.md` (Paketfelder `languages`, `language`); `docs/r0/R0-22-kursvalidierung-publish.md` (VAL-002); `docs/r0/ENTSCHEIDUNGEN.md`.
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77`, nur gelesen. Pfade relativ zu `bootspruefung-learning/`.
 
-**Arbeitsannahmen aus `ENTSCHEIDUNGEN.md` (Empfehlungen, nicht beschlossen):**
+## Beschlussstand
 
-| ID | Annahme | Wirkung hier |
+Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“ (16.11.2026). Alle Punkte aus §7 sind entschieden.
+
+| ID | Beschluss | Wirkung hier |
+|---|---|---|
+| **E-01** | Clean Room: kein LB-Code wird übernommen | LB-Fundstellen in §0 sind Verhaltensbelege; Site-Löschhaken, Orphan-Prüfung und Netzwerkblockade werden nach Verhalten neu implementiert |
+| E-155 (D-25-01) | Eigener Kurs je Sprache, verknüpft über eine Übersetzungsgruppe; Fortschritt, Grants und Zertifikate je Kurs | §2.3 Ü-1 |
+| E-156 (D-25-02) | Kein Grant-Übertrag zwischen Sprachversionen in R1; Sammelvergabe durch den Kursmanager möglich | §2.3 Ü-1 |
+| E-157 (D-25-03) | Gemischte Sprachen erlaubt mit `lang`-Kennzeichnung und Validator-Warnung | §2.3 Ü-2 |
+| E-158 (D-25-04) | Zertifikat in der Kurssprache, im Snapshot eingefroren | §3.3 |
+| E-159 (D-25-05) | Sprachvarianten für Mailvorlagen schon in Free | §2.3 Ü-5, §3.2 |
+| E-160 (D-25-09) | Keine Mandanten in R1, kein `tenant_id` | §1.4 |
+| D-25-06, -07, -08, -10 | Technisch festgelegt (ENTSCHEIDUNGEN §24): Grenze zu Übersetzungsplugins nur dokumentieren mit Systemstatus-Hinweis; Varianten-Fallback `de_AT` → `de_DE`; Haltemodus bei erzwungener Netzwerkaktivierung; Profilsprache für Angemeldete, Site-Sprache für Gäste | §2.3 Ü-4, §3.0, §1.2, §3.1 |
+| **E-196** | Keine Lizenzen kommerzieller Plugins | WPML-Koexistenz nur best effort; regelmäßig getestet wird Polylang (§2.3 Ü-4, LOC-028) |
+| E-25a | Bundle (ein Grant schaltet mehrere Kurse frei) in R1 Free | Mehrere Sprachversionen lassen sich schon in R1 über ein Bundle gemeinsam vergeben (§2.3 Ü-1) |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen | `cc_course`, `_cc_translation_group`, `cc_`-Tabellen u. Ä. sind hier Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
+
+**Weitere zugrunde liegende Beschlüsse:**
+
+| ID | Beschluss | Wirkung hier |
 |---|---|---|
 | E-07 | Offiziell nur Single-Site; Aktivierung je Site technisch korrekt; Pro-Lizenz zählt je Site | §1 |
 | E-49 | Netzwerkaktivierung in R1 blockieren, Schema trotzdem je Site | §1.2 |
@@ -16,7 +34,7 @@
 | E-124 | Lernbereich in der Profilsprache (Einstellung, Standard an bei > 1 installierter Sprache); Fristen mit Zonenkennung, keine Nutzerzeitzone | §2.1, §3.1 |
 | E-43 | Kontolöschung nach Datenschutzantrag Standard aus | §1.3 (netzweite Kontolöschung) |
 
-Weicht ein Beschluss ab, sind die markierten Abschnitte anzupassen.
+Alle genannten Beschlüsse sind getroffen; die Abschnitte unten sind entsprechend angepasst.
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil, **SOLL** = Standard, **KANN** = optional.
 
@@ -32,7 +50,7 @@ Weicht ein Beschluss ab, sind die markierten Abschnitte anzupassen.
 
 ---
 
-## 1. Entscheidung (Vorschlag) A: Site-Scope, Multisite, Mandanten
+## 1. Entscheidung A (beschlossen): Site-Scope, Multisite, Mandanten
 
 ### 1.1 Single-Site-Scope R1
 
@@ -73,14 +91,14 @@ Weicht ein Beschluss ab, sind die markierten Abschnitte anzupassen.
 
 ### 1.4 Mandantenfähigkeit
 
-- **Entscheidung:** **Keine Mandanten innerhalb einer Site in R1.** Es gibt keine Spalte `tenant_id`, keine mandantenbezogenen Einstellungen, Kataloge, Marken oder Admin-Bereiche.
+- **Entscheidung (E-160):** **Keine Mandanten innerhalb einer Site in R1.** Es gibt keine Spalte `tenant_id`, keine mandantenbezogenen Einstellungen, Kataloge, Marken oder Admin-Bereiche.
 - **Was es stattdessen gibt (keine Mandanten):** Objekt-Scope nach R0-07 – Instructor sieht eigene/zugeordnete Kurse, Tutor zugeordnete Bewertungen, Gruppenbesitzer die eigene Gruppe. Das ist **Zugriffsbegrenzung**, keine Datenisolation: Course Manager und Admin sehen alles auf der Site; Einstellungen, Mailvorlagen, Design und Katalog gelten für die ganze Site.
 - **Weg für echte Mandanten** (getrennte Marken, Admins, Einstellungen, Kataloge): getrennte Sites (Multisite je Site, §1.2, mit NS-02/03) oder getrennte Installationen. Ein Mandantenmodell innerhalb einer Site ist R4-Kandidat und braucht ein eigenes ADR.
 - **Begründung gegen vorsorgliche `tenant_id`:** würde jede Abfrage, jeden Unique-Index (`UNIQUE uid`, `source`), Cache-Schlüssel, Rechte-Check und Test verdoppeln, ohne dass eine R1-Funktion sie nutzt; eine später ergänzte Spalte ist per Expand/Contract migrierbar (R0-06 §6.2), eine falsch vorweggenommene Semantik nicht.
 
 ---
 
-## 2. Entscheidung (Vorschlag) B: Sprach- und Locale-Modell
+## 2. Entscheidung B (beschlossen): Sprach- und Locale-Modell
 
 ### 2.1 Drei Ebenen
 
@@ -108,15 +126,15 @@ Weicht ein Beschluss ab, sind die markierten Abschnitte anzupassen.
 
 ### 2.3 Antworten auf R0-15 Ü-1…Ü-7
 
-**Ü-1 Sprachversionen eines Kurses → eigener Kurs je Sprache, verknüpft (Option A, → D-25-01).**
+**Ü-1 Sprachversionen eines Kurses → eigener Kurs je Sprache, verknüpft (Option A, beschlossen E-155).**
 - Jede Sprachversion ist ein vollständiger, eigenständiger `cc_course` mit eigenen Modulen, Lektionen, Fragen, Prüfungsregeln, Revisionen. Verknüpfung über Meta `_cc_translation_group` (UUID v4, gleich für alle Versionen) – keine eigene Tabelle.
 - **MUSS:** je Gruppe höchstens ein Kurs je Inhaltssprache (Publish-Validator blockiert Duplikat → neue Regel VAL-0xx in R0-22, „In dieser Sprachgruppe gibt es schon einen Kurs auf {Sprache}.“). Prüfung unter dem Kurs-Lock beim Verknüpfen und beim Veröffentlichen.
 - Admin A-04 (Kurs bearbeiten › Metadaten): „Sprachversionen“ mit Liste der verknüpften Kurse, Aktionen „Mit bestehendem Kurs verknüpfen“, „Als neue Sprachversion kopieren“ (Kopie aller Strukturen als Entwurf, Inhaltssprache neu gesetzt, Fragen kopiert mit neuer `uid` und Quelle `local`), „Verknüpfung lösen“.
-- **Fortschritt, Mastery, Grants, Zertifikate sind je Kurs.** Kein automatischer Übertrag zwischen Sprachversionen in R1: ein Grant gilt für genau einen Kurs (R0-09); Mastery hängt an `question_id`, und die Fragen der Versionen sind verschiedene Datensätze; ein Zertifikat nennt genau einen Kurs. Ein Wechsel der Sprachversion durch Lernende ist in R1 ein zusätzlicher Grant durch Berechtigte (→ D-25-02). Mehrere Sprachversionen in einem Zugangsprodukt kommen mit Bundles in R2 (E-25).
+- **Fortschritt, Mastery, Grants, Zertifikate sind je Kurs.** Kein automatischer Übertrag zwischen Sprachversionen in R1 (E-156): ein Grant gilt für genau einen Kurs bzw. die Kurse eines Bundles (R0-09, E-25a); Mastery hängt an `question_id`, und die Fragen der Versionen sind verschiedene Datensätze; ein Zertifikat nennt genau einen Kurs. Ein Wechsel der Sprachversion durch Lernende ist in R1 ein zusätzlicher Grant durch Berechtigte, auch als Sammelvergabe durch den Kursmanager (E-156). Mehrere Sprachversionen in einem Zugangsprodukt sind über ein Bundle schon in R1 Free möglich (E-25a; bisher „R2“).
 - Lernoberfläche: Kursübersicht L-xx zeigt „Auch verfügbar auf: …“ nur für Versionen, auf die die Person Zugriff hat oder die öffentlich im Katalog sind.
 - **Verworfen: Übersetzungsfelder** (ein Kurs, Varianten je Lektion/Frage). Gründe in §5 Alternative B2.
 
-**Ü-2 Gemischte Sprachen → zulässig, gekennzeichnet, gewarnt (→ D-25-03).**
+**Ü-2 Gemischte Sprachen → zulässig, gekennzeichnet, gewarnt (beschlossen E-157).**
 - Ein Kurs darf Lektionen und Fragen in anderen Sprachen enthalten (Sprachkurse, Fachbegriffe, internationale Prüfungen). Jede abweichende Einheit bekommt `lang`/`dir` am Container (R0-15 §4 Punkt 2, A11Y-032).
 - Publish-Validator: weicht die Sprache einer Frage/Lektion von der Kurssprache ab, **Warnung** (nicht blockierend) „{n} Fragen sind auf {Sprache}, der Kurs auf {Kurssprache}.“ – unterdrückt, wenn am Kurs „Mehrsprachiger Kurs“ (Meta `_cc_mixed_language = 1`) gesetzt ist.
 - Prüfungs-Blueprint: **kein Sprachfilter in R1**; der Blueprint zieht aus den Modulpools wie gehabt. Wer einsprachige Prüfungen will, hält einsprachige Pools (Sprachversion = eigener Kurs, Ü-1). Snapshot speichert je Frage die Sprache (aus der Revision), damit Auswertung und Nachweis reproduzierbar sind.
@@ -136,10 +154,10 @@ Weicht ein Beschluss ab, sind die markierten Abschnitte anzupassen.
 | Lernbereich (eigene Route) | nicht vom Plugin übersetzt; Sprache nach §3.1 (Profilsprache gewinnt, → D-25-10) |
 | URL-Präfixe (`/en/…`), `hreflang`, Sitemaps | Sache des Übersetzungs-/SEO-Plugins (Kap. 21). Course Captain gibt für Sprachversionen keine eigenen `hreflang`-Tags aus. |
 | TranslatePress (Ausgabe-Übersetzung per HTML-Ersetzung) | Lernbereich und REST-Antworten der Lern-App sind ausgenommen (Doku-Hinweis); Ersetzen von Prüfungstexten im Ausgabestrom verfälscht Snapshot-Treue und ist nicht unterstützt |
-| Testmatrix | R1-30 prüft Koexistenz (kein Fatal, keine doppelten Tags, Lernbereich in korrekter Sprache) mit WPML und Polylang je aktueller Version; TranslatePress nur Smoke-Test. Kein Funktionsversprechen darüber hinaus. |
+| Testmatrix | R1-30 prüft Koexistenz (kein Fatal, keine doppelten Tags, Lernbereich in korrekter Sprache) mit Polylang je aktueller Version; WPML ist kommerziell und ohne Lizenz nur best effort (E-196, R0-20 KOMP-090); TranslatePress nur Smoke-Test. Kein Funktionsversprechen darüber hinaus. |
 | Systemstatus A-16 | Hinweis, wenn ein Übersetzungsplugin aktiv ist **und** einen `cc_`-CPT als übersetzbar führt (WPML-Einstellung bzw. Polylang `pll_is_translated_post_type`), mit Link zur Doku. Nur Lesen, keine Konfigurationsänderung. |
 
-**Ü-5 Mehrsprachige Mail- und Zertifikatsvorlagen → Sprachvarianten je Vorlage (→ D-25-05).**
+**Ü-5 Mehrsprachige Mail- und Zertifikatsvorlagen → Sprachvarianten je Vorlage (beschlossen E-159; Zertifikat E-158).**
 - Jede betreiberdefinierte Mailvorlage (R1-21) hat eine **Standardvariante** (Sprache = Site-Sprache bei Anlage) und KANN Varianten für weitere installierte Sprachen haben (Auswahl nur installierter Locales). Speicherung je Variante mit Schlüssel `(template_key, locale)`; Auflösung nach §3.2. → **Delta zu R0-06/R0-27** (Speicherort der Vorlagen mit Locale-Schlüssel).
 - Basiszertifikat (Free, HTML/Druck): Beschriftungen kommen aus der Textdomain (übersetzbar), der Freitext des Betreibers hat Varianten wie Mailvorlagen. Pro-Designer (R3): Vorlage mit Sprachvarianten, gleiche Auflösung (§3.3).
 
@@ -155,7 +173,7 @@ Weicht ein Beschluss ab, sind die markierten Abschnitte anzupassen.
 
 ---
 
-## 3. Entscheidung (Vorschlag) C: Locale-Fallback-Ketten
+## 3. Entscheidung C (beschlossen): Locale-Fallback-Ketten
 
 ### 3.0 Gemeinsame Auflösung einer Locale zu einer Übersetzungsdatei (→ D-25-07)
 
@@ -189,7 +207,7 @@ Inhalte werden nie nach dieser Kette übersetzt; sie tragen ihre Inhaltssprache 
 | Platzhalter | Datum/Zahl in der **Rahmen-Locale** (= aufgelöste Empfänger-Locale); Kurstitel unverändert in Inhaltssprache, eingebettet mit `<bdi>`/`dir="auto"` (I18N-R-15). |
 | Outbox | Die Outbox speichert `locale_requested` und `locale_resolved` je Nachricht (Diagnose, keine Wiederverwendung über Empfänger). |
 
-### 3.3 Zertifikate (→ D-25-04)
+### 3.3 Zertifikate (beschlossen E-158)
 
 | Schritt | Regel |
 |---|---|
@@ -237,7 +255,7 @@ Werkzeuge: PU = PHPUnit-Integration (WP-Testsuite), PU-MS = PHPUnit mit `WP_TEST
 | LOC-025 | Import: Paket mit `de-DE`- und `en`-Kurs gleicher `translation_group` → zwei verknüpfte Kurse; Entität ohne `language` → Manifest-Sprache; ohne beides → Dry-run-Fehler; Kollision mit bestehender Gruppe → Konflikt; nicht installierte Sprache → Hinweis | PU | R1-15 |
 | LOC-026 | Export/Import-Rundlauf erhält `language` je Frage/Lektion und `translation_group` | PU (Golden Master) | R1-15, R1-18 |
 | LOC-027 | Systemstatus: WPML/Polylang aktiv und `cc_course` als übersetzbar eingestellt → Hinweis; nicht übersetzbar → kein Hinweis; Course Captain ändert die Plugin-Einstellung nicht | PU (Plugin-Stub), MAN | R1-38, R1-30 |
-| LOC-028 | Koexistenz WPML und Polylang (aktuelle Versionen): Aktivierung beider Reihenfolgen ohne Fatal/Notice, keine doppelten Meta-/JSON-LD-Tags, Lernbereich nach LOC-012/014 | PW, MAN | R1-30 |
+| LOC-028 | Koexistenz Polylang (aktuelle Version; WPML nur best effort ohne regelmäßigen Lauf, E-196): Aktivierung beider Reihenfolgen ohne Fatal/Notice, keine doppelten Meta-/JSON-LD-Tags, Lernbereich nach LOC-012/014 | PW, MAN | R1-30 |
 | LOC-029 | Fallback-Tabelle §3.0 für JS: Profil `de_AT`, nur `de_DE`-JSON vorhanden → übersetzte Strings in der Lern-App | PW | R1-19 |
 
 **Präzisierung der Kette (LOC-012/-013, LOC-021):** §3.0 löst eine **einzelne** gewünschte Locale auf (exakt → gleiche Sprache). Findet sie für die Profilsprache nichts, geht §3.1 zum nächsten Glied (Site-Sprache) und wendet §3.0 erneut an; `en_US` ist das letzte Glied der Gesamtkette. Für Zertifikate gilt dasselbe (§3.3).
@@ -279,7 +297,7 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 | Nr. | Alternative | Bewertung |
 |---|---|---|
 | A1 | **Multisite offiziell mit Netzwerkaktivierung** (Tabellen je Site, Upgrade lazy) | Technisch vorbereitet (R0-06 D-3), aber Testaufwand für Netzwerk-Aktivierungs-/Deinstallations- und Upgrade-Pfade über viele Sites, Support für Netzwerk-Lizenzen und Super-Admin-Fragen. **Verschoben**; spätere Freigabe braucht keine Migration (MS-R-04). |
-| A2 | Multisite gar nicht berücksichtigen (kein Site-Löschhaken, keine Orphan-Prüfung) | billiger, aber Datenleck: Tabellen und private Medien gelöschter Sites blieben liegen. LB-Code existiert und ist getestet. **Verworfen** (E-C-01). |
+| A2 | Multisite gar nicht berücksichtigen (kein Site-Löschhaken, keine Orphan-Prüfung) | billiger, aber Datenleck: Tabellen und private Medien gelöschter Sites blieben liegen. Das LB-Verhalten existiert und ist getestet; es wird nach E-01 ohne Codeübernahme neu implementiert. **Verworfen** (E-C-01). |
 | A3 | Netzweite Lernidentität (eine Lernhistorie über Sites) | widerspricht Site-Bindung von Grants (35.2) und Datenschutz je Site; erst mit Cross-Site-Identität R4. **Verworfen für R1**. |
 | A4 | Mandanten in einer Site (`tenant_id`) | §1.4. **Verworfen für R1.** |
 | B1 | **Eigener Kurs je Sprache, verknüpft** | gewählt: passt zu CPT-Modell, Revisionen, Snapshots, Grants (alles je Kurs); jede Version kann unabhängig veröffentlicht, korrigiert und geprüft werden; Fragenpools je Sprache halten Prüfungen sprachrein; keine Änderung an Bewertung und Mastery. Nachteil: Struktur- und Fragenänderungen müssen je Version gepflegt werden (Kopierhilfe, aber kein Sync). |
@@ -322,22 +340,27 @@ Alle MS-Tests laufen in einer eigenen Suite mit zwei bis drei Sites (RF-SITE2, R
 
 ---
 
-## 7. Entscheidungsbedarf (neu, nicht in `ENTSCHEIDUNGEN.md`)
+## 7. Entscheidungsbedarf – beschlossen
 
-Nummern für `ENTSCHEIDUNGEN.md` werden beim Zusammenführen vergeben. Bereits vorhanden und hier nur übernommen: E-07, E-49 (beantwortet R0-06 D-3 und E-C-01), E-121, E-124.
+Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §24, 16.11.2026). Zugrunde liegen außerdem E-07, E-49 (beantwortet R0-06 D-3 und E-C-01), E-121, E-124. Die D-Nummern bleiben als Verweise im Text stehen.
 
-| ID | Frage | Optionen | Empfehlung | Betrifft |
-|---|---|---|---|---|
-| D-25-01 | Modell für Sprachversionen eines Kurses | a) eigener Kurs je Sprache, verknüpft über Sprachgruppe · b) ein Kurs mit Übersetzungsfeldern · c) nur über Übersetzungsplugins | **a)** (§2.3 Ü-1, §5 B1/B2) | R1-04, R1-05, R1-15, R1-26 |
-| D-25-02 | Zugang/Fortschritt zwischen Sprachversionen in R1 | a) getrennt, Sprachwechsel = neuer Grant durch Berechtigte · b) ein Grant gilt für die ganze Sprachgruppe · c) zusätzlich Fortschrittsübertrag | **a)**; mehrere Versionen in einem Zugangsprodukt mit Bundles in R2 (E-25); Übertrag frühestens mit Übersetzungsfeldern (R4) | R1-10, R1-13, R0-09 |
-| D-25-03 | Gemischte Sprachen in einem Kurs/einer Prüfung | a) verbieten · b) erlauben mit `lang`-Kennzeichnung und Validator-Warnung, abschaltbar über „Mehrsprachiger Kurs“; kein Sprachfilter im Blueprint · c) wie b) plus Sprachfilter im Blueprint | **b)** | R1-06, R1-08, R1-26 |
-| D-25-04 | Sprache des Zertifikats | a) Kurssprache (Rückfall Site-Sprache, dann `en_US`), eingefroren · b) Profilsprache des Lernenden bei Ausstellung · c) je Kurs wählbar | **a)**; c) KANN mit dem Pro-Designer (R3) kommen | R1-35, R3 |
-| D-25-05 | Mehrsprachige Betreiber-Mailvorlagen in R1 Free | a) nur eine Vorlage je Typ (Site-Sprache) · b) Sprachvarianten je installierter Sprache mit Kette §3.2 · c) nur in Pro | **b)**: ohne Varianten bekämen Empfänger in anderer Sprache entweder den unpassenden Betreibertext oder verlören dessen Anpassung | R1-21, R0-27 |
-| D-25-06 | Grenze zu WPML/Polylang/TranslatePress | a) nur dokumentieren · b) dokumentieren + Systemstatus-Hinweis bei übersetzbar geschalteten `cc_`-CPTs, Koexistenztest in R1-30 · c) mitgelieferte `wpml-config.xml`/Polylang-Filter, die `cc_`-CPTs vom Übersetzen ausschließen | **b)**; c) wäre ein Eingriff in Fremdkonfiguration und ist schon Integration | R1-30, R1-38, R1-24 |
-| D-25-07 | Varianten-Fallback für eigene Übersetzungsdateien (`de_AT` → `de_DE`) | a) nein, WP-Standard (sonst Quelltexte) · b) ja, feste Tabelle §3.0, nur eigene Textdomains, per Filter erweiterbar | **b)** | R1-19 |
-| D-25-08 | Verhalten bei erzwungener Netzwerkaktivierung | a) ignorieren und je Site normal laufen · b) Haltemodus mit Hinweis, keine Migration/Routen/Cron | **b)**: verhindert unkontrollierte Migration auf allen Sites in einem Netz-Request | R1-01 |
-| D-25-09 | Mandanten innerhalb einer Site | a) keine in R1, getrennte Sites/Installationen als Weg · b) vorsorgliche `tenant_id`-Spalte ohne Funktion · c) Mandanten in R1 | **a)** (§1.4) | R0-06, R1-02, R4-01 |
-| D-25-10 | Vorrang im Lernbereich: Profilsprache oder Sprache eines Übersetzungsplugins | a) Profilsprache (bei Einstellung E-124 an) · b) Request-Sprache des Plugins gewinnt immer · c) Plugin-Sprache nur für Gäste, für Angemeldete a) | **c)** (= §3.1): Angemeldete haben ihre Sprache bewusst gesetzt; öffentliche Seiten folgen der URL-Sprache | R1-19, R1-30 |
+| ID | Frage | Beschluss | Betrifft |
+|---|---|---|---|
+| D-25-01 → **E-155** | Modell für Sprachversionen eines Kurses | Eigener Kurs je Sprache, verknüpft über eine Übersetzungsgruppe; Fortschritt, Grants und Zertifikate je Kurs | R1-04, R1-05, R1-15, R1-26 |
+| D-25-02 → **E-156** | Zugang/Fortschritt zwischen Sprachversionen in R1 | Kein Übertrag in R1; Sammelvergabe durch den Kursmanager möglich; gemeinsame Vergabe über Bundle (E-25a) | R1-10, R1-13, R0-09 |
+| D-25-03 → **E-157** | Gemischte Sprachen in einem Kurs/einer Prüfung | Erlaubt mit `lang`-Kennzeichnung und Validator-Warnung | R1-06, R1-08, R1-26 |
+| D-25-04 → **E-158** | Sprache des Zertifikats | Kurssprache, im Snapshot eingefroren | R1-35, R3 |
+| D-25-05 → **E-159** | Mehrsprachige Betreiber-Mailvorlagen | Sprachvarianten schon in Free | R1-21, R0-27 |
+| D-25-06 | Grenze zu WPML/Polylang/TranslatePress | Technisch festgelegt: nur dokumentieren, mit Systemstatus-Hinweis; Koexistenztest regelmäßig nur mit Polylang (WPML best effort, E-196) | R1-30, R1-38, R1-24 |
+| D-25-07 | Varianten-Fallback (`de_AT` → `de_DE`) | Technisch festgelegt: ja, feste Tabelle §3.0, nur eigene Textdomains | R1-19 |
+| D-25-08 | Erzwungene Netzwerkaktivierung | Technisch festgelegt: Haltemodus | R1-01 |
+| D-25-09 → **E-160** | Mandanten innerhalb einer Site | Nein in R1, kein `tenant_id` | R0-06, R1-02, R4-01 |
+| D-25-10 | Vorrang im Lernbereich | Technisch festgelegt: Profilsprache für Angemeldete, Site-/Plugin-Sprache für Gäste | R1-19, R1-30 |
+
+### Offene Punkte nach Einarbeitung
+
+- D-25-03 sah zusätzlich einen Schalter „Mehrsprachiger Kurs“ vor, mit dem die Warnung abgeschaltet wird; E-157 nennt ihn nicht. Bis zur Klärung gilt nur „erlaubt mit Kennzeichnung und Warnung“.
+- E-25a (Bundle in R1) erlaubt die gemeinsame Vergabe mehrerer Sprachversionen; ob dafür eine eigene Bedienhilfe („alle Sprachversionen als Bundle“) gebraucht wird, ist nicht entschieden.
 
 ---
 

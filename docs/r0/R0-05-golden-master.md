@@ -1,12 +1,40 @@
 # R0-05 · Golden-Master-Fixtures und Regressionskatalog
 
-**Status:** Spezifikation (Vorschlag), **nicht abgehakt**. Die DoD verlangt Review und Freigabe. Es gibt keine Implementierung und keinen Testlauf. · **Stand:** 16.11.2026
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung und keinen Testlauf. · **Stand:** 16.11.2026
 **Bezug:** TODO R0-05 (Voraussetzung R0-03), R0-PAR-003, LB-AUDIT-006, R1-18; Konzept Kap. 23.1/23.2, 26.3 Nr. 5, 27.4, 38 (PAR-01…PAR-12), 39 (LB-01…LB-15); Inventur `docs/r0/R0-02-inventar/A…E` (Spalte „Golden-Master-Kandidat“)
-**Quelle:** `hastla007/learnboating` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd`. Ich habe nur gelesen und nichts verändert. Testpfade sind relativ zu `bootspruefung-learning/tests/`, `PT` und `UC` relativ zur Repository-Wurzel.
+**Quelle:** `hastla007/learnboating` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd`. Ich habe nur gelesen und nichts verändert. Testpfade sind relativ zu `bootspruefung-learning/tests/`, `PT` und `UC` relativ zur Repository-Wurzel. LB-Tests sind **Verhaltensreferenz**, keine Code-Vorlage (E-01).
+
+### Beschlussstand
+
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). In dieses Dokument eingearbeitet:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | Alle GM-Tests, Fixtures und Hilfsskripte entstehen neu. Die Quelltests (CF, LR, MS …) belegen nur das erwartete Verhalten; kein LB-Testcode, keine LB-Fixture und kein LB-Skript wird kopiert. „Übernehmen“ in §3 heißt „Muster nachbauen“ (§0, §3) |
+| **E-02** | nur synthetische, neutrale Testpakete (§2.1) |
+| **E-55** (EGM-01) | Abweichungen vom LB-Verhalten gibt der Auftraggeber schriftlich über die **Abweichungsliste §5.1** frei; GM-Erwartungswerte ändern sich nur mit Eintrag dort |
+| **E-56** (EGM-02), E-194 | Referenzlauf des LB-Plugins **nur durch Ausführen** (kein Lesen oder Kopieren von Code) mit einem synthetischen Paket im LB-Format, nur für Fälle mit Rechenlogik (GM-029…GM-031, GM-065…GM-068, GM-084, GM-131); in der CI über den lesenden Deploy-Key gegen Commit `9f37c77` (§2.1, §5) |
+| **E-11** | Runner PHPUnit mit WP-Testsuite und Playwright (D-01, D-09) |
+| **E-20**, E-95, E-147, E-268, E-269 | Lösungserklärungen nur mit Pro (`course.explanations`). Grant G-1 ohne Bereich `explanations` (§2.8); GM-018 prüft Free (richtig/falsch, richtige Antwort nach Einstellung, kein Erklärungstext); neu **GM-197** (Free/Pro/Lizenzende/Add-on aus) |
+| **E-22** | Fragetyp `numeric_tolerance` in R1 Free: **GM-191** (neu, ohne LB-Quelle), Fixture PKG-X1 (§2.9) |
+| **E-69** | `matching`, `ordering`, `cloze` in R1 Free: **GM-192…GM-194** (neu, ohne LB-Quelle) |
+| **E-168** | Text-/Dateiaufgaben mit Bewertung in R1 (R1-46), Zustandsautomat `draft/submitted/returned/graded` nach R0-08 §2.5: **GM-195/GM-196** (neu, ohne LB-Quelle). Die frühere R2-Fixture-Erweiterung `v1.1` entfällt; die Aufgaben stehen in PKG-X1 (§2.2, §2.9) |
+| **E-25a** | Bundle (ein Grant schaltet mehrere Kurse frei) in R1 Free: **GM-198** (Kern ohne Woo; LB kennt Bundles nur in der Woo-Statuslogik, §1.21) |
+| **E-26** | abhängige Zusatz-Grants in R1: **GM-199** (neu) |
+| **E-27** | Zugang je Modul (`module_id`, ganzer Kurs = NULL bzw. technisch 0 nach R0-06 Nachtrag): **GM-200** (neu); Bereichsangaben der Fixture-Grants unter Vorbehalt OP-05-2 |
+| **E-23**, E-129, E-75 | Prüfungsregeln `status` + `purpose` statt `verified`; `evidence_eligible` statt `live` (GM-029, GM-032, GM-033, §2.4); Entwürfe nie als Übung startbar (GM-033); Ablauf = `evaluated` + `end_reason = expired` (GM-035) |
+| **E-45/E-45a** | `privacy.external_media_mode`: Default `always_load`, umschaltbar auf `click_to_load`; GM-013 prüft beide Modi; die Fixture setzt `click_to_load`, damit E2E keine Fremdverbindung aufbauen (§2.8, D-09) |
+| **E-10**, E-239 | Website-Härtung im Kern (R1-45): SE:279–631 ist nicht mehr ausgeschlossen (§1.21); GM-Fälle dazu sind noch nicht katalogisiert (OP-05-3) |
+| **E-16** | FAQ/Tipps-Mechanik in R1 Free: §1.20 gilt unbedingt |
+| **E-21** | Karteikarten: ein Typ mit zwei Modi (GM-062/GM-063, §2.5) |
+| **E-232** | Fortschrittseinsicht für Gruppenbesitzer nur in Pro (Opt-in): nicht im R1-Golden-Master (§1.21) |
+| **E-05, E-07/E-49, E-09, E-18, E-43, E-44** | ersetzen die Inventur-Verweise E-C-04, E-C-01, E-C-03, E-C-07, E-C-05, E-C-06 |
+| **E-184** | R1-GATE verlangt 100 % grüne R1-Pflichttests; Ausnahmen nur per E-Nummer oder freigegebener GM-Abweichung (§5.1) |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen; Optionen `course_captain_*`. Alle Plugin-Bezeichner in diesem Dokument sind umgestellt. Fixture-Logins `cc_fx_…` und Datenschlüssel `cc-fx-…` bleiben (Testdaten, keine Plugin-Bezeichner) |
 
 ## 0. Zweck, Methode und Lesehilfe
 
-Ein **Golden Master (GM)** ist hier eine fachneutral formulierte Prüfaussage. Sie stützt sich auf einen vorhandenen LearnBoating-Test (Verhaltensreferenz), beschreibt eine neutrale Fixture aus `cc-fixture-neutral-v1` und nennt ein konkretes erwartetes Ergebnis. Course Captain muss dieses Ergebnis in R1 reproduzieren (R1-18). Die Quelltests laufen gegen das fachgebundene Boots-Paket (`PACKAGE_DIR=build/boatingschool-*`, `.github/workflows/ci.yml:178`) und gegen Kurscodes wie `SBF-SEE`. Übernommen werden deshalb **nur Prüflogik und Zustandsübergänge**. Zahlenwerte gelten neu und stammen aus der neutralen Fixture (Konzept 26.3 Nr. 5; Inventur A Z. 64, C Z. 18, D Z. 111).
+Ein **Golden Master (GM)** ist hier eine fachneutral formulierte Prüfaussage. Sie stützt sich auf einen vorhandenen LearnBoating-Test (Verhaltensreferenz), beschreibt eine neutrale Fixture aus `cc-fixture-neutral-v1` und nennt ein konkretes erwartetes Ergebnis. Course Captain muss dieses Ergebnis in R1 reproduzieren (R1-18). Die Quelltests laufen gegen das fachgebundene Boots-Paket (`PACKAGE_DIR=build/boatingschool-*`, `.github/workflows/ci.yml:178`) und gegen Kurscodes wie `SBF-SEE`. Übernommen werden deshalb **nur Prüflogik und Zustandsübergänge**, und zwar als Verhaltensbeschreibung: Der Testcode entsteht neu (E-01). Zahlenwerte gelten neu und stammen aus der neutralen Fixture (Konzept 26.3 Nr. 5; Inventur A Z. 64, C Z. 18, D Z. 111).
 
 Arbeitsweise: Für jede Zeile habe ich die Testdatei geöffnet und die Zeile des jeweiligen `$check(…)` bzw. `step(…)` belegt. Die Labels habe ich pro Datei mit Zeilennummer extrahiert und die Kernabschnitte vollständig gelesen: `learning-review-test.php` komplett; aus `content-flow-test.php` Z. 1–135 und 166–500; aus `membership-test.php` Z. 100–240 und 400–480; aus `voucher-grant-test.php` Z. 148–168. Wo nur eine Fundstelle im Quellcode existiert und kein Test, steht in der Spalte „Lücke“ **ja**.
 
@@ -19,7 +47,7 @@ Arbeitsweise: Für jede Zeile habe ich die Testdatei geöffnet und die Zeile des
 | MS | `integration/membership-test.php` | | AD | `integration/admin-test.php` |
 | CO | `integration/commerce-test.php` (läuft ohne Woo über `support/FakeOrders.php`, ci.yml:216) | | AC | `integration/account-test.php` (CI mit Woo, ci.yml:271-272) |
 | VG | `integration/voucher-grant-test.php` (CI mit Woo, ci.yml:264-265) | | SM | `integration/smoke-test.php` |
-| MA | `integration/mobile-api-test.php` (App-API; laut E-C-04 nicht R1, nur Verhaltensreferenz) | | UP | `integration/uninstall-phase.php` |
+| MA | `integration/mobile-api-test.php` (App-API; laut E-05 nicht R1, nur Verhaltensreferenz) | | UP | `integration/uninstall-phase.php` |
 | NC | `integration/navigation-check-test.php` (nur Abschnitt „Prüfungsfragen markieren“ neutral) | | MU | `integration/multisite-test.php` |
 | RO | `integration/release-ops-test.php` | | FQ | `integration/faq-test.php` |
 | EX | `integration/extensions-test.php` | | ST / GD | `integration/support/standalone.php` / `support/guard.php` |
@@ -56,7 +84,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Lektionsquiz | CF:310, CF:313 | Quiz im Lektionskontext ausgewertet, Lektion abgeschlossen | L-A-05 | Versuch mit `context=lesson`; Lektion `completed` | GM-010 | R1-07, R1-10 | nein |
 | Sehfortschritt | MA:691, MA:694 | Position speichern; Update ohne Position lässt sie stehen | L-A-04 | `position_seconds=42` bleibt nach Update ohne Feld 42 | GM-011 | R1-07 | teilweise (nur App-API) |
 | Fremdhosts | MS:1305, :1306, :1309, :1316, :1320 (§ MS:1303) | Eigene Domain/Subdomain/relativ ≠ fremd; fremder Host erkannt; Filter-Allowlist; Liste für Consent | Site `fixture.test`; MED-005 `videos.example.test`; `cdn.fixture.test` | fremd = `{videos.example.test}`; nach Allowlist leer; nach Reset leer | GM-012 | R1-07, R1-34 | nein |
-| Consent | – (D-E-04) | Externe Medien laden erst nach Klick | L-A-07 mit MED-005 | vor dem Klick 0 Requests an `videos.example.test` (E2E-Fremdhost-Gate); nach dem Klick 1 | GM-013 | R1-07, R1-34 | **ja** (E2E-L:15-19/198 protokolliert Fremdhosts nur, schlägt nicht fehl) |
+| Externe Medien (E-45a) | – (D-E-04 → E-45/E-45a) | Default „immer laden“ bindet direkt ein; im Modus „Klick zum Laden“ lädt das Medium erst nach Klick | L-A-07 mit MED-005; `privacy.external_media_mode` = `always_load` bzw. `click_to_load` | `always_load`: Einbettung sofort, genau 1 Request an `videos.example.test` (für diesen Fall im E2E-Fremdhost-Gate ausdrücklich erlaubt); `click_to_load`: vor dem Klick 0 Requests, nach dem Klick 1 | GM-013 | R1-07, R1-34 | **ja** (E2E-L:15-19/198 protokolliert Fremdhosts nur, schlägt nicht fehl) |
 | Untertitel | OP:719, :726, :728 (§ OP:716) | Standard ohne Untertitel; `vtt` nur HTTPS; Einstellung nur `off`/`vtt` | MED-002 + MED-003 | off → keine Spur; vtt → `…/alpha-04.vtt`; ungültiger Wert → `off` | GM-014 | R1-07 | nein |
 | Downloads | MS:349, :352, :353, :354, :357 (§ MS:339) | Ohne Zugang gelistet, aber gesperrt; im Teilumfang ist die erste Datei frei; Vollzugang alle; Kursdaten enthalten die Liste | DL-A-1…3, AR-07 | U-L3: 3 gelistet/1 frei, Auslieferung nur DL-A-1; U-L1: 3 frei | GM-015 | R1-14 | nein |
 | Dateiauslieferung | OP:780, OP:781 | `Content-Disposition` mit `filename` und `filename*=UTF-8` | DL-A-3 `Übersicht "A".pdf` | beide Formen, korrekt kodiert; Web und API gleich | GM-016 | R1-14 | nein |
@@ -66,7 +94,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Bereich | Quelltest(s) | Prüfaussage | Fixture | Erwartetes Ergebnis | GM-ID | Ziel-Task | Lücke |
 |---|---|---|---|---|---|---|---|
 | Auslieferung | CF:182, MA:417 | Frage ohne Lösung | Q-A1-001 | JSON ohne `is_correct` | GM-017 | R1-06 | nein |
-| Auswertung | CF:188, CF:190 | Falsche Antwort ausgewertet, Lösung danach sichtbar; Doppel-Submit zählt einfach | Q-A1-001, Key `fx-017-1` zweimal | `correct=false`, `correct_ids=[A1-001-b]`; 2. Aufruf `repeated=true`, `attempts=1` | GM-018 | R1-09, R1-28 | nein |
+| Auswertung | CF:188, CF:190 | Falsche Antwort ausgewertet, Lösung danach sichtbar; Doppel-Submit zählt einfach; ohne Pro kein Erklärungstext (E-20) | Q-A1-001, Key `fx-017-1` zweimal | `correct=false`, `correct_ids=[A1-001-b]`, kein Feld `explanation`; 2. Aufruf `repeated=true`, `attempts=1` | GM-018 | R1-09, R1-28 | nein |
 | Bewertungsregeln | Code `src/Learning/Services/QuestionPresenter.php:177` (INV-A-025), indirekt CF:234 | single = genau eine richtige; multi = exakte Menge; open = Selbsteinschätzung | Q-A1-001 (single), Q-A2-001 (multi, 5 Opt., 2 richtig), Q-B1-010 (open) | multi exakt → richtig; Teilmenge → falsch; Obermenge → falsch; open `known=true` → richtig, `false` → falsch | GM-019 | R1-06, R1-09 | teilweise (Teil-/Obermenge ohne direkten Test) |
 | Offene Frage (Lernen) | CF:257 | Musterantwort nach Aufdecken, Selbsteinschätzung | Q-B1-010 | `reveal` 200, `model_answer ≠ ''`; `known=true` → `correct=true` | GM-020 | R1-06 | nein |
 | Offene Frage (Prüfung) | Code `src/Exams/Services/ExamService.php:435` (`EXAM_ANSWER_LOCKED`); MA:583 nur Vorbedingung | Ohne Aufdecken keine Selbsteinschätzung | EP-B-1, Pos. 1 = Q-B1-010 | ohne reveal 422 `cc_exam_answer_locked`; nach reveal 200 | GM-021 | R1-08 | **ja** |
@@ -82,13 +110,13 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 |---|---|---|---|---|---|---|---|
 | Start/Resume | CF:207 (§ CF:203), MA:579 | Start und Fortsetzen derselben Zufallsprüfung | ER-A, U-L1 | 201; zweiter Start liefert dieselbe `session_id` | GM-027 | R1-08 | nein |
 | Laufend | CF:209, E2E-L:111-112 | Laufende Prüfung ohne Lösungen | ER-A | 30 Fragen ohne `is_correct`/`correct_ids`/`explanation`; UI 0 Feedback-Elemente | GM-028 | R1-08 | nein |
-| Blueprint/Snapshot | CF:218, CF:434 | Zusammensetzung nach Blueprint; Teilzuordnung im Snapshot | ER-A (A1:7, A2:13, A3:10; P1/P2) | Zählung `{M-A1:7, M-A2:13, M-A3:10}`; `question_parts` `{P1:7, P2:23}`; `live=true`, `reduced=false` | GM-029 | R1-08 | nein |
+| Blueprint/Snapshot | CF:218, CF:434 | Zusammensetzung nach Blueprint; Teilzuordnung im Snapshot | ER-A (A1:7, A2:13, A3:10; P1/P2) | Zählung `{M-A1:7, M-A2:13, M-A3:10}`; `question_parts` `{P1:7, P2:23}`; `evidence_eligible=true` (LB-Feld `live`), `reduced=false` | GM-029 | R1-08 | nein |
 | Teilgrenze | CF:234, CF:235 | Gesamtquote erreicht, Teilgrenze verfehlt → nicht bestanden | ER-A; die ersten 3 P1-Fragen falsch, Rest richtig | 27/30; P1 4/7 < 5 nicht bestanden; P2 23/23 bestanden; gesamt `passed=false` | GM-030 | R1-09 | nein |
 | Snapshot-Vorrang | CF:442 | Wertung folgt dem Snapshot; ein leerer Teil fällt nicht automatisch durch | ER-A-Sitzung, Snapshot: alle → P2; alle richtig | P1 `total=0, empty=true, passed=true`; P2 30/30; `passed=true` | GM-031 | R1-09, R1-33 | nein |
-| Pool zu klein | CF:450 | Verkürzte Prüfung ist kein offizieller Modus | Blueprint M-A1 temporär 100 000 | `reduced=true`, `live=false` | GM-032 | R1-08 (E-A-04) | nein |
-| Übungsmodus | CF:252, E2E-L:179 | Nicht verifiziertes Regelwerk → Übungsmodus | ER-B `verified=false` | `live=false` | GM-033 | R1-08 (E-A-04) | nein |
+| Pool zu klein | CF:450 | Verkürzte Prüfung ist nie nachweisfähig | Blueprint M-A1 temporär 100 000 | `reduced=true`, `evidence_eligible=false` | GM-032 | R1-08 (E-23) | nein |
+| Übungsprüfung | CF:252, E2E-L:179 | Übungsprüfung ist eine veröffentlichte Regel mit `purpose=practice` und nie nachweisfähig; eine Regel im Entwurf ist für Lernende nie startbar | ER-B (`purpose=practice`); ER-A als Entwurf v2 ohne veröffentlichte Version | ER-B: `evidence_eligible=false`, Kennzeichen „Übung“; Entwurf: Start 422 `ccap_exam_not_startable` (Grund `rule_unavailable`) | GM-033 | R1-08 (E-23, E-129) | teilweise (Quelle: `verified=false` → Übung; die Entwurfssperre ist eine Abweichung, §5.1 A-02) |
 | Fester Bogen | CF:242 | Fester Bogen mit fester Fragenliste | EP-A-1 | `mode=paper`, 30 Fragen in Fixture-Reihenfolge | GM-034 | R1-08 | nein |
-| Ablauf | CF:246, LR:286 | Abgelaufene Prüfung wird nach der Kulanz automatisch ausgewertet | ER-A, `deadline = T0 − 180 s` | `status=evaluated`, `expired=true`; späte Antwort `cc_exam_expired`/`cc_exam_finished` | GM-035 | R1-08, R1-20 | nein |
+| Ablauf | CF:246, LR:286 | Abgelaufene Prüfung wird nach der Kulanz automatisch ausgewertet | ER-A, `deadline = T0 − 180 s` | `status=evaluated`, `end_reason=expired` (E-75); späte Antwort `cc_exam_expired`/`cc_exam_finished` | GM-035 | R1-08, R1-20 | nein |
 | Offline idempotent | LR:206, LR:209 (§ LR:198) | Dieselbe Antwort zweimal = gleicher Stand; ein älterer Stand überschreibt keinen neueren | Pos. 1 zweimal; Pos. 2 `age_ms` 0 vs 60 000 | beide `applied=true`, gleiche `selected_ids`; der ältere `applied=false` und liefert den gespeicherten Stand | GM-036 | R1-20 | nein |
 | Frist/Kulanz | LR:213, :214, :221, :228, :238, :242 | Nach Fristende Restzeit 0; Antwort ohne Gerätezeit abgewiesen; strenger Modus; Nachzügler innerhalb der Kulanz | `deadline = T0 − 60 s`, Kulanz 120 s | `running`, `remaining=0`, Fragen bleiben gesperrt; ohne `age_ms` → `cc_exam_expired`, nichts gespeichert; Markierung → `cc_exam_expired`; Kulanz 0 → abgewiesen; `age_ms=90000` → angenommen, `answered_at ≤ T0−85 s` | GM-037 | R1-20 | nein |
 | Offline REST | LR:255, :257, :264 | REST liefert Fachcode und gespeicherten Stand; Abgabe wertet nachgesendete Antworten | wie GM-037 | 422 `reason=cc_exam_expired`; mit `age_ms` 200 `applied=true`; Abgabe: Pos. 1, 3, 4 richtig | GM-038 | R1-20, R1-28 | nein |
@@ -120,8 +148,8 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Kaskaden | MS:183, MS:186, MA:545 | Entfavorisieren entfernt aus Sammlungen; Löschen der Sammlung entfernt Zuordnungen, Favorit bleibt | COL-1 mit Q1 | `questionIds(COL-1)=[]`; 0 Zuordnungen; Favorit Q1 bleibt | GM-059 | R1-11 | nein |
 | Sortierung | MA:511, :515, :517, :521, :523, :525, :530, :540 | `saved_at` absteigend (Standard), aufsteigend; `assigned_at` nur mit Sammlung; stabil; Nulldatum am Ende | 3 Favoriten (2 mit gleichem Zeitstempel, 1 Nulldatum) | Reihenfolge deterministisch nach (Zeit, Frage-ID); ungültige Parameter 422 | GM-060 | R1-11 | teilweise (nur App-API) |
 | Idempotenz | MA:469, :475, :478, :481, :483 | Wiederholung mit Key; „in Arbeit“; anderer Inhalt; verwaister Eintrag | Key `fx-061-1` | idempotent; 409 `cc_request_in_progress` (Alter 5 s); 409 `cc_idempotency_key_reused`; nach > 5 min übernommen | GM-061 | R1-28 | nein |
-| Karteikarten Modus A | CF:280; MS:204, MS:205 | Selbsteinschätzung `open/practice/known`; Teilumfang | FC-A-01…08; AR-06 (5 frei) | Status `known` gespeichert; 5 offen, gesperrte ohne Rückseite; Status für gesperrte Karte abgewiesen | GM-062 | R1-11 (E-A-02) | nein (Quelle: Praxiskarten, Mechanik abstrahiert) |
-| Karteikarten Modus B | CF:326, CF:508 | „Gelernt nach 3 × gewusst in Folge“; Doppelantwort ignoriert | FC-B-01…05 (Modus Serie) | nach 3 × gewusst `learned`; zweite Antwort binnen Sekunden bzw. mit veralteter Serie ignoriert | GM-063 | R1-11 (E-A-02) | nein (Quelle: Funk-Vokabeln, Mechanik abstrahiert) |
+| Karteikarten Modus A | CF:280; MS:204, MS:205 | Selbsteinschätzung `open/practice/known`; Teilumfang | FC-A-01…08; AR-06 (5 frei) | Status `known` gespeichert; 5 offen, gesperrte ohne Rückseite; Status für gesperrte Karte abgewiesen | GM-062 | R1-11 (E-21) | nein (Quelle: Praxiskarten, Mechanik abstrahiert) |
+| Karteikarten Modus B | CF:326, CF:508 | „Gelernt nach 3 × gewusst in Folge“; Doppelantwort ignoriert | FC-B-01…05 (Modus Serie) | nach 3 × gewusst `learned`; zweite Antwort binnen Sekunden bzw. mit veralteter Serie ignoriert | GM-063 | R1-11 (E-21) | nein (Quelle: Funk-Vokabeln, Mechanik abstrahiert) |
 | Karte aus Paket entfernt | CF:114, CF:133 | Entfernte Karte wird archiviert und nicht gelöscht; Rollback reaktiviert | PKG-v2 ohne FC-A-08 | `source_archived`; nach Rollback aktiv | GM-064 | R1-15 | nein |
 
 ### 1.6 PAR-06 · Fehlertraining und Smarttrainer
@@ -177,7 +205,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Parallelität | MS:456, :457, :460, :478, :479 | Platzvergabe unter Named Lock; Rückfall ohne GET_LOCK | zweite DB-Verbindung hält Lock, Timeout 0 | Beitritt abgewiesen, kein Platz belegt; Einladung übersprungen, 0 Mails; NULL-Lock → weiter ohne Sperre (protokolliert) | GM-096 | R1-42 | nein |
 | Kapazität/Rechte | MS:490, :492, :493, :494 | Laufzeit der Gruppe; letzter Platz; voll; nur Verwalter | GRP-1, U-S3, U-S4 | Grant endet mit der Gruppe; Einladung reserviert den letzten Platz, Rest übersprungen; voll → abgewiesen; U-S1 kann nicht verwalten | GM-097 | R1-13, R1-03 | nein |
 | Persönliche Einladung | MS:502, :505, :508, :510 | Vorschau ohne Adresse; Annahme; Platz freigeben | INV-1 (`einladung@fixture.test`) | Vorschau ohne Adresse; angenommen; Freigabe widerruft den Grant, Platz frei; neu belegbar | GM-098 | R1-13 | nein |
-| Ablauf/Cron | MS:527, :530, :531, :534, :537, :545, :548, :549, :551 | Offene Einladung belegt Platz; Ablauf 30 d; Adresslöschung | INV-2 (T0−31 d), INV-3 (entfernt) | offen belegt; abgelaufen nicht, Link ungültig; Cron → `expired`; Adresse T0+30 d gelöscht; entfernt → Adresse sofort weg | GM-099 | R1-13, R1-17 (E-C-06) | nein |
+| Ablauf/Cron | MS:527, :530, :531, :534, :537, :545, :548, :549, :551 | Offene Einladung belegt Platz; Ablauf 30 d; Adresslöschung | INV-2 (T0−31 d), INV-3 (entfernt) | offen belegt; abgelaufen nicht, Link ungültig; Cron → `expired`; Adresse T0+30 d gelöscht; entfernt → Adresse sofort weg | GM-099 | R1-13, R1-17 (E-44) | nein |
 | Aussetzen/Wiederaufleben | MS:555, :558, :561, :563, :566, :567, :571, :574, :577, :580 | Gruppe und Plätze folgen dem Quellstatus; manuelle Entscheidung hat Vorrang | FakeSource-Ereignisse suspend/resume/end/reinstate | alle Plätze ausgesetzt; Wiederaufleben nur aktiver, entfernte bleiben draußen; manuelle Aussetzung/Widerruf bleibt; beendete Gruppe ohne Beitritt | GM-100 | R1-13 (Auslöser Shop: R3) | nein |
 | Platzreduktion | MS:588, :596, :598 | Weniger Plätze: zuletzt Beigetretene verlieren zuerst | GRP-1 mit 6 Plätzen, 4 belegt, Reduktion auf 3 | 3 bleiben, letztes Mitglied verliert den Platz | GM-101 | R1-13 | nein |
 | Kontolöschung | MS:616, :618, :621, :622; AC:253 | Mitglied bzw. Verwalter löscht sein Konto | U-S2, U-GO | Platz frei, Grants des Platzes widerrufen, Adresse weg; Gruppe bleibt ohne Verwalter, Betreiber verwaltet | GM-102 | R1-13, R1-17 | nein |
@@ -211,7 +239,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Änderung | CF:108, :113, :114 (§ CF:84) | Geändertes Paket: Revision, Archivierung | PKG-v2 | Vorschau `update=1` (Q-A1-007), `archive=1` (FC-A-08); rev2 `published`, rev1 `deprecated`; Karte `source_archived` | GM-120 | R1-15 | nein |
 | Rollback | CF:122, :126, :131, :132, :133, :134, :135 (§ CF:115) | Rollback mit Begründung, ohne neue Revision | v2 → v1 | ohne Begründung abgewiesen; Vorschau 1 Frage/1 Karte; keine neue Revision; rev1 aktiv, rev2 `deprecated`; Karte aktiv; PKG-v1 aktiv; Audit | GM-121 | R1-15 | nein |
 | ZIP-Sicherheit | CF:150; AD:1000, :1005, :1013, :1016 | Traversal, Symlink, fremde Dateien vor dem Entpacken abgewiesen | PKG-BAD-TRAV, -LINK, -FOREIGN | abgewiesen, keine Teilentpackung | GM-122 | R1-15 | nein |
-| Rechte-Override | CF:155, :156, :163 (§ CF:152) | Override mit Begründung und Audit | Q-A3-010 (`unknown`) | gespeichert + Audit; ohne Begründung abgewiesen | GM-123 | R1-15 (E-C-07) | nein |
+| Rechte-Override | CF:155, :156, :163 (§ CF:152) | Override mit Begründung und Audit | Q-A3-010 (`unknown`) | gespeichert + Audit; ohne Begründung abgewiesen | GM-123 | R1-15 (E-18) | nein |
 | Veraltete Vorschau | AD:81, :82, :83, :84, :85, :88 (§ AD:71) | Ältere Vorschau/Freigabe überschreibt kein Neueres | 2 Importe von PKG-v2/PKG-v1 | älterer als veraltet erkannt; Freigabe abgewiesen; Start verweigert; verwerfbar | GM-124 | R1-15 | nein |
 | Teilschritte | AD:98, :99, :148 | Vorschau in Teilschritten; Medien nach Bytes | PKG-v1 | Teilschritte = Ergebnis am Stück; `previewed`; Medien-Schritt ≥ 1 Datei | GM-125 | R1-41 | nein |
 | Abbruch/Mischstand | AD:107, :108, :112, :116, :117, :120, :122, :126, :127, :135, :137, :144 (§ AD:102, AD:129) | Hängender Import, Mischstand, Wiederherstellung | Import nach Schritt 1, Clock +11 min | laufend nicht verwerfbar; zweiter wartet; > 10 min hängend; Mischstand vermerkt; Rollback auf das aktive Paket; danach kein Mischstand; Fehler außerhalb der Transaktion sofort verwerfbar | GM-126 | R1-15 | nein |
@@ -219,7 +247,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Medientypen | SE:149, :150, :151, :152, :153, :154, :155, :162, :170, :206, :207, :209 (§ SE:142) | Nur erlaubte Dateitypen | MED-BAD-1…6 | PNG erlaubt; `.php`, `x.php.png`, SVG/HTML, `.htaccess`, PHP-Inhalt, MIME-Abweichung abgelehnt; Altbestand in Quarantäne; Protokolleintrag genau einmal | GM-128 | R1-15, R1-07 | nein |
 | Upload/Ablage | AD:1020, :1021, :1023, :1024, :1027, :1032, :1075, :1077, :1080, :1141, :1143, :1154, :1156 | Upload-Grenze, Ablageordner, Systemdateien | PKG-v1 mit `.DS_Store`, `__MACOSX/` | Grenze = kleinster Wert; Systemdateien ignoriert, nicht entpackt; übernommener Ordner gelöscht, abgelehnter bleibt | GM-129 | R1-15 | nein |
 | Link-Import | AD:1185, :1188, :1189, :1190, :1193, :1195, :1197, :1201 (§ AD:1160) | Download nur https, ≤ 3 Weiterleitungen, SHA-256 | HTTP-Stub | 4. Weiterleitung/http/interne Adresse → Abbruch; passende Prüfsumme übernommen, falsche verworfen; keine Temp-Dateien | GM-130 | R1-15 | nein |
-| Aufbewahrung | OP:224, :228, :242, :243, :244, :245, :246 (§ OP:196) | Paketkopien und Protokoll aufräumen | 4 Paketkopien, Clock +200 d | aktives Paket + jüngstes Rollback-Ziel + laufender Import bleiben; ältere gelöscht; Protokoll `unchanged` 14 d / Änderungen 180 d | GM-131 | R1-15, R1-17 (E-C-06) | nein |
+| Aufbewahrung | OP:224, :228, :242, :243, :244, :245, :246 (§ OP:196) | Paketkopien und Protokoll aufräumen | 4 Paketkopien, Clock +200 d | aktives Paket + jüngstes Rollback-Ziel + laufender Import bleiben; ältere gelöscht; Protokoll `unchanged` 14 d / Änderungen 180 d | GM-131 | R1-15, R1-17 (E-44) | nein |
 | Paket-Determinismus | PT:122, PT:130, PT:198, PT:212 | Eindeutige IDs, auflösbare Referenzen, Prüfsummen, reproduzierbarer Build | PKG-v1 zweimal gebaut | identische `package_id`/`content_sha256`; 0 Dubletten; 0 offene Referenzen | GM-132 | R1-15 | nein |
 | Content-Export | – (PAR-09 „Export“) | Kursexport und Reimport auf einer leeren Site | C-A | Struktur-Hash und Zählungen identisch | GM-133 | R1-15 | **ja** |
 | CLI | – (INV-C-163…172) | Import/Rollback/Status über CLI | PKG-v1/v2 | gleiche Zustände wie GM-118/GM-121; `--dry-run` schreibt nichts | GM-134 | R1-15, R1-38 | **ja** |
@@ -265,7 +293,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Zugangsende-Mail | MS:979, :985, :986, :990, :992, :996, :1012; MS:1233, :1234, :1247, :1257, :1258, :1261, :1271, :1276, :1287, :1289; OP:567, :578, :580, :581, :585, :589 | Erinnerung gebündelt, je Zugang einmal, Stapel/Zeitbudget/Sperre | 3 Personen mit Ablauf T0+10 d, 1 unbefristet | 1 Mail je Person, gebündelt; keine Mail bei unbefristetem Zugang; Stapel 50 / 20 s; Fortsetzung; bei gehaltener Sperre keine Mail; Fehler bei einem Empfänger bricht nicht ab | GM-159 | R1-21, R1-17 | nein (Texte mit Kaufbezug R3) |
 | Abmeldelink | MS:1111, :1115, :1116, :1118, :1125, :1140, :1149, :1158, :1168; E2E-K:87-99 | Signierter Ein-Klick-Widerspruch | U-L1 | `List-Unsubscribe` + One-Click; GET zeigt Knopf; POST mit falscher Signatur ändert nichts; nach Widerspruch keine Mail | GM-160 | R1-21 | nein |
 | Zählerbereinigung | MA:1867, MA:1868, MA:1871 | Rate-Limit-Fenster aufräumen | abgelaufene Fenster | stündlicher Cron löscht sie | GM-161 | R1-17 | nein |
-| Audit-Retention | – (INV-C-149) | Audit-Einträge nach Frist löschen | 6 000 Einträge T0−5 J., 10 T0−1 J. | 1. Lauf löscht 5 000, 2. Lauf 1 000; die jungen 10 bleiben | GM-162 | R1-17 (E-C-06) | **ja** |
+| Audit-Retention | – (INV-C-149) | Audit-Einträge nach Frist löschen | 6 000 Einträge T0−5 J., 10 T0−1 J. | 1. Lauf löscht 5 000, 2. Lauf 1 000; die jungen 10 bleiben | GM-162 | R1-17 (E-44) | **ja** |
 
 ### 1.15 PAR-12 · Migration, Locks, Upgrade
 
@@ -287,8 +315,8 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 |---|---|---|---|---|---|---|---|
 | Lerndaten | SM:113, :115, :118, :119 (§ SM:97) | Export und Löschung über die WP-Privacy-Hooks | U-L1 mit Fortschritt + Favorit | Export enthält Gruppen `cc-progress`, `cc-favorite`; Löschung `items_removed=true`; 0 Restzeilen; Audit `personal_data_erased` | GM-172 | R1-17 | nein |
 | Vollständigkeit | AC:348, :350, :352, :353, :355, :357, :361, :362, :366, :367, :369 (§ AC:300) | Alle personenbezogenen Tabellen eingestuft und exportiert | alle CC-Tabellen befüllt für U-L1 und U-X | keine Daten von U-X; Prüfungsfragen mit Antwort/Markierung/Zeit; Sammlungen; keine Hashes/Tokens; jede Tabelle eingestuft; Löschung lässt fremde Daten | GM-173 | R1-17 | nein |
-| Selbstbedienung | AC:167, :173, :177, :178, :185, :187, :193, :204, :208, :231, :236, :240, :246; E2E-K:102-126 | Export-/Löschantrag mit Bestätigung; Löschung erst per POST | U-L1, U-SM | Antrag + Mail; zweiter Antrag kein neuer; GET löscht nicht; POST löscht; Verwaltungsrolle ohne Selbstlöschung | GM-174 | R1-17 (E-C-05; Woo-Teile R3) | nein |
-| Asynchroner Export | MA:1540, :1543, :1545, :1548, :1564, :1566, :1569, :1580, :1591 | Export im Hintergrund | U-L1 | `pending` → `ready`; vor Fertigstellung 409; nur Eigentümer; abgelaufen gelöscht; Fehler → `failed`/410 | GM-175 | R1-17 (E-C-04) | nein |
+| Selbstbedienung | AC:167, :173, :177, :178, :185, :187, :193, :204, :208, :231, :236, :240, :246; E2E-K:102-126 | Export-/Löschantrag mit Bestätigung; Löschung erst per POST | U-L1, U-SM | Antrag + Mail; zweiter Antrag kein neuer; GET löscht nicht; POST löscht; Verwaltungsrolle ohne Selbstlöschung | GM-174 | R1-17 (E-43; Woo-Teile R3) | nein |
+| Asynchroner Export | MA:1540, :1543, :1545, :1548, :1564, :1566, :1569, :1580, :1591 | Export im Hintergrund | U-L1 | `pending` → `ready`; vor Fertigstellung 409; nur Eigentümer; abgelaufen gelöscht; Fehler → `failed`/410 | GM-175 | R1-17 (E-05) | nein |
 | Datenschutztext | RO:224, :226, :227, :231, :233, :234 (§ RO:223) | Vorschlagstext über WP-Bordmittel | Settings Default | Abschnitt vorhanden; Fristen genannt; 0 externe Links | GM-176 | R1-17, R1-34 | nein |
 | Kontolöschung | AC:252, :253, :254, :259, :262 | Lerndaten, Platz, Grants bei Löschung | U-S2 mit Platz in GRP-1 | Lerndaten weg; Platz frei; Grants beendet, Abgleich belebt nicht; Audit ohne Klartext-Kennung | GM-177 | R1-17, R1-13 | nein |
 
@@ -309,7 +337,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Standard | SM:128 (§ SM:121) | Uninstall behält standardmäßig die Daten | `delete_data_on_uninstall=false` | Tabellen bleiben | GM-183 | R1-23 | nein |
 | Mit Löschung | SM:133, :135, :138, :139; UP:104-117, :126 | Vollständige Entfernung eigener Daten, fremde bleiben | `delete_data=true`, fremde Option `cc_learning_x_other` | alle Tabellen/Optionen/Transients/Nutzer-Meta/Cron/Caps/Schemaversion weg; gleich klingende fremde Daten bleiben | GM-184 | R1-23 | nein |
 | Manifest | – (INV-C-026: `bp_entitlement_prune_last`, `_bp_catalog_fields` bleiben in der Quelle liegen) | Alles, was geschrieben wird, wird auch gelöscht | Schreib-Registry aller Optionen/Meta | Differenz Registry − Löschliste = ∅ | GM-185 | R1-23 | **ja** (Quelle hat den Fehler, UP prüft nur Präfixe) |
-| Multisite | MU:85, :95, :107, :121, :126, :142, :146, :147, :148, :152, :153; UP:143 | je Website, `wpmu_drop_tables`, verwaiste Tabellen | 3 Websites | wie in der Quelle | GM-186 | R1-23 | nein (nur bei E-C-01 = ja) |
+| Multisite | MU:85, :95, :107, :121, :126, :142, :146, :147, :148, :152, :153; UP:143 | je Website, `wpmu_drop_tables`, verwaiste Tabellen | 3 Websites | wie in der Quelle | GM-186 | R1-23 | nein (E-07: offiziell nur Single-Site, Netzwerkaktivierung blockiert nach E-49; der Test sichert nur das saubere Entfernen je Website) |
 
 ### 1.19 Querschnitt: Performance und Parallelität (Konzept 23.1, 27.4)
 
@@ -318,28 +346,47 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Referenzfall | – (Konzept 27.4: 10 Lektionen, 50 Fragen, 1 Prüfung) | p95 der Kernanfragen | C-A, 200 Lernende synthetisch | Grenzwerte aus R0-22/R1-22, Abfragen je Anfrage konstant | GM-187 | R1-22 | **ja** |
 | Parallele Antworten | – (Konzept 23.1 „parallele Antworten/Grants“; Quelle nur sequenziell CF:498) | 2 Prozesse beantworten dieselbe Frage mit verschiedenen Keys | U-L1, Q-A1-003 | genau 1 Serienerhöhung, 2 Versuche protokolliert, keine Deadlocks | GM-188 | R1-42 | **ja** |
 
-### 1.20 Starter-Inhalte/FAQ (nur wenn E-A-05 = Free-Kern)
+### 1.20 Starter-Inhalte/FAQ (E-16: Mechanik R1 Free)
 
 | Bereich | Quelltest(s) | Prüfaussage | Fixture | Erwartetes Ergebnis | GM-ID | Ziel-Task | Lücke |
 |---|---|---|---|---|---|---|---|
 | Seeder | FQ:63, :128, :144, :204; OP:605, :606, :607, :624, :627, :628 | Starter-Inhalte idempotent, nicht in Besucheranfragen, unter Sperre | 5 neutrale FAQ FX-FAQ-1…5 | 1 Import; Update-Lauf ohne Doppel; Besucheranfrage importiert nicht; Sperre freigegeben | GM-189 | R1-24 | nein |
 | Cache/REST/Gate | FQ:259, :262, :265, :311, :336, :341 | Änderungen sofort sichtbar; Gäste ohne Entwürfe; Gate im Block | FX-FAQ-3 mit Gate-Block | sofort aktualisiert; Gast ohne Entwurf; Gast Hinweis statt Abschnitt | GM-190 | R1-24 | nein |
 
-**Summe:** 190 GM-Tests (GM-001…GM-190). 25 davon brauchen einen neuen Test (Lücke **ja**: GM-003, 013, 021, 026, 046, 052–054, 078, 079, 092, 106, 133–137, 144, 154, 162, 171, 181, 185, 187, 188), 7 sind teilweise belegt (GM-001, 011, 019, 060, 071, 074, 094).
+**Summe:** 200 GM-Tests (GM-001…GM-190 und GM-191…GM-200 in §1.22). 34 davon brauchen einen neuen Test (Lücke **ja**: GM-003, 013, 021, 026, 046, 052–054, 078, 079, 092, 106, 133–137, 144, 154, 162, 171, 181, 185, 187, 188, 191–196, 198–200), 9 sind teilweise belegt (GM-001, 011, 019, 033, 060, 071, 074, 094, 197).
 
 ### 1.21 Bewusst nicht in den R1-Golden-Master (Herkunft für die Vollständigkeit)
 
 | Quelle | Inhalt | Grund | Ziel |
 |---|---|---|---|
-| CO:69–176, :291, :295 | Woo-Statuslogik (BACS, Dispute, Erstattung, Bundle, Storno, Gateway-Filter) | Shop-Auslöser | R3.1 (Kernzustände über GM-084…GM-089 abgedeckt) |
+| CO:69–176, :291, :295 | Woo-Statuslogik (BACS, Dispute, Erstattung, Bundle, Storno, Gateway-Filter) | Shop-Auslöser | R3.1 (Kernzustände über GM-084…GM-089 abgedeckt; Bundle-Kern ohne Woo in R1: GM-198, E-25a; Mitgliederrabatt R3.1, E-25a) |
 | VG:80–125 | Vertrag `voucher_grants_v1`, Zielprüfung gegen Woo-Produkt | Voucher-Adapter | R3.2 (Kern GM-088…GM-090) |
 | `woocommerce-test.php`, `e2e/checkout-*`, EX:153–422, AC:107–161, MS:661–825, AD:179–443 | Checkout, Gutschein, Geld-zurück-Garantie, Katalog/Preise | Commerce | R3 |
 | CF:260–380 (bis auf GM-007…GM-010), NC (bis auf § NC:230), `e2e/trainers-flow.mjs`, MS:831–886, MS:887–943 | Navigation, Funk, Gerätesimulation, Seekarte, Kombi-/Ergänzungsempfehlungen | `exclude_domain_specific` (Kap. 39.2) | – |
 | `exam-guide-test.php`, `e2e/guide-*` | Prüfungsanmeldung/-leitfaden | fachgebunden | – |
-| MA (Anmeldung, Token-Rotation, Universal Links, Rate-Limit Login) | App-API | E-C-04 (nicht R1) | R2 |
-| SE:279–631 | Website-weite Härtung | E-C-02 offen | je nach Entscheidung |
-| RO:73–181 | eigener Update-Check | E-C-03: Free nur WordPress.org | entfällt |
+| MA (Anmeldung, Token-Rotation, Universal Links, Rate-Limit Login) | App-API | E-05 (keine App-API in R1) | R2 |
+| SE:279–631 | Website-weite Härtung | **nicht mehr ausgeschlossen:** E-10 legt die Härtung in den Kern (R1-45, Umfang E-261); die GM-Fälle sind noch nicht katalogisiert (OP-05-3) | R1-45 |
+| RO:73–181 | eigener Update-Check | E-09: Free nur WordPress.org | entfällt |
+| – | Fortschrittseinsicht für Gruppenbesitzer/Delegierte | E-232: nur Pro als Opt-in-Gruppeneinstellung | R3-08 (R0-29 GRP-041) |
+| – | Gradebook, Tutor-Bewertung von Prüfungen | E-74, E-99: Oberfläche erst mit dem Gradebook (Pro); Aufgabenbewertung R1-46 ist in GM-195 enthalten | R3 |
 | MS:1325–1347 | Export für das Laravel-Original | Quellsystem-spezifisch | entfällt |
+
+### 1.22 Neue Funktionen ohne LB-Quelle (E-20, E-22, E-25a, E-26, E-27, E-69, E-168)
+
+Für diese Funktionen gibt es **keinen** LearnBoating-Quelltest und meist kein LB-Verhalten. Sie sind als **neu (ohne LB-Quelle)** gekennzeichnet; ihre Erwartungswerte folgen aus R0-08 (§1.4, §2.5, §3.1, §3.2, §4.5), R0-09 und R0-10 §4.5, nicht aus einem Referenzlauf (E-56 gilt nicht). Fixture: Zusatzpaket PKG-X1 (§2.9), das die Zählungen von PKG-v1 nicht verändert.
+
+| Bereich | Quelltest(s) | Prüfaussage | Fixture | Erwartetes Ergebnis | GM-ID | Ziel-Task | Lücke |
+|---|---|---|---|---|---|---|---|
+| Zahl mit Toleranz (E-22) | – (neu, ohne LB-Quelle; kein Code aus `NavigationCheck`) | Absolute und relative Toleranz, Grenze inklusive, Dezimaltrennzeichen Komma und Punkt, ungültige Eingabe ist nicht „falsch“, Auslieferung ohne Sollwert | Q-E1-001 (Soll 12,5, Toleranz absolut 0,1, Einheit „cm“), Q-E1-002 (Soll 200, Toleranz relativ 5 %) | Q-E1-001: `12,4` und `12.6` richtig, `12,39` falsch, `12,45` = `12.45`; `12,5 cm`, `1.234,5`, leer → 422 `ccap_invalid_answer` bzw. im Versuch `ccap_exam_invalid_answer`, nichts gespeichert. Q-E1-002: `210` richtig, `210,01` und `189,99` falsch. Token/Snapshot ohne Soll und Toleranz; richtige Antwort zählt im Smarttrainer wie eine Auswahlfrage (`correct` = volle Punktzahl) | GM-191 | R1-06, R1-09 | **ja** (neu) |
+| Zuordnung (E-69) | – (neu, ohne LB-Quelle) | Paare mit Distraktor; `all_or_nothing` und `proportional_penalty` (E-77); rechte Seite gemischt und im Snapshot stabil | Q-E1-003 (3 Paare + 1 Distraktor, `all_or_nothing`), Q-E1-004 (3 Paare, `proportional_penalty`), Seed `20300115` | Q-E1-003: 3/3 → 1000 Tausendstel, 2/3 → 0. Q-E1-004: 2 richtig + 1 falsch → 333, 2 richtig + 1 leer → 666, Distraktor zugeordnet zählt als falsch. Reload zeigt dieselbe Reihenfolge; Auslieferung ohne Paarliste | GM-192 | R1-06, R1-09 | **ja** (neu) |
+| Sortieren (E-69) | – (neu, ohne LB-Quelle) | Nur exakte Reihenfolge ist richtig (R1 nur `all_or_nothing`); ausgelieferte Reihenfolge ist nie die Lösung | Q-E1-005 (4 Elemente), Q-E1-006 (2 Elemente) | genaue Reihenfolge → richtig; eine Vertauschung → falsch; `scoring=proportional_penalty` → VAL-056 (R0-22); bei Q-E1-006 ist die Auslieferung über 50 Seeds nie die Lösungsreihenfolge | GM-193 | R1-06, R1-09 | **ja** (neu) |
+| Lückentext (E-69) | – (neu, ohne LB-Quelle) | Lücken je mit Liste akzeptierter Antworten, Normalisierung (trim, NFC, Groß-/Kleinschreibung, Leerzeichen-Kollaps), Teilpunkte je Lücke | Q-E1-007 (2 Lücken: {„Beispiel“}, {„Konzept“, „Begriff“}; `all_or_nothing`), Q-E1-008 (gleich, `proportional_penalty`) | Q-E1-007: `" beispiel "` + `Begriff` → richtig; eine Lücke falsch → 0. Q-E1-008: 1 richtig + 1 falsch → 0, 1 richtig + 1 leer → 500. Keine semantische Bewertung; Auslieferung ohne akzeptierte Antworten | GM-194 | R1-06, R1-09 | **ja** (neu) |
+| Aufgabe: Zustandsautomat (E-168) | – (neu, ohne LB-Quelle) | `draft → submitted → returned → submitted → graded` nach R0-08 §2.5; Bearbeitung nur in `draft`/`returned`; Rückgabe mit Pflichtkommentar; Bewertung gegen den eingereichten Stand; Nachbewertung als neue Auswertung | L-E-01 (Textaufgabe, max. 10 Punkte, Grenze 6), U-L1, Bewerter U-TUT (Trainer C-E) | Entwurf speichern (2×) bleibt `draft`; Einreichen → `submitted`, `submission_no=1`, Inhalts-Hash fest; Änderung danach 409 `ccap_submission_not_editable`; Rückgabe ohne Kommentar 422, mit Kommentar `returned`; erneutes Einreichen `submission_no=2`, Abgabe 1 bleibt lesbar; Bewertung 7/10 → `graded`, `passed=true`, Activity `completed`; Punkte > 10 → 422; zweite Bewertung nur mit Begründung → `evaluation_no=2`, Audit; gleicher `request_key` beim Einreichen → keine Doppelung; U-X → 404 | GM-195 | R1-46, R1-10 | **ja** (neu) |
+| Aufgabe: Dateien und Rechte (E-168) | – (neu, ohne LB-Quelle) | Upload nur in den eigenen Entwurf, Allowlist/MIME/Größe nach R0-10 §4.5, geschützte Auslieferung, Abruf durch Bewertende auditiert, Privacy | L-E-02 (Dateiaufgabe, Allowlist `pdf`, `png`, Limit 2 MB), MED-004, MED-BAD-1…6 | PDF 1 MB angenommen; `x.php.png`, SVG, `.htaccess`, MIME-Abweichung, 3 MB abgewiesen; Upload nach `submitted` 409; Datei nur über die geschützte Route (`Content-Disposition: attachment`, `nosniff`); U-X 404, U-TUT 200 mit Audit; Privacy-Export enthält Abgabe und Dateimetadaten, Eraser entfernt die Datei | GM-196 | R1-46, R1-14, R1-17 | **ja** (neu) |
+| Lösungserklärungen (E-20) | Code LS:628 (`explanation_locked` ohne Feature `learning_explanations`); kein Test | Free liefert nie Erklärungstexte; Pro liefert sie; Lizenzende friert ein (E-268); Add-on deaktiviert blendet aus (E-269); Text bleibt gespeichert und exportierbar; Lösungsanzeige nach E-147 | Q-A1-001 mit `feedback_incorrect`; Entitlement-Stub `course.explanations` an/aus/abgelaufen; EP-A-1 mit `max_attempts=3` | Free: Lernmodus `correct`, `correct_ids`, kein `explanation`; Pro aktiv: `explanation` = Text der Token-Revision; Lizenz abgelaufen: weiter ausgeliefert; Add-on deaktiviert: nicht ausgeliefert, DB-Wert unverändert; Export enthält den Text in allen Fällen; Prüfung nach Abgabe mit Restversuchen nur richtig/falsch, ohne Restversuche oder bestanden zusätzlich die richtige Antwort | GM-197 | R1-09, R1-15 (Pro-Teil R3-08) | teilweise (LB sperrt per Feature, ohne Test) |
+| Bundle (E-25a) | – (Kern neu; LB nur Woo-Bundle, §1.21) | Ein Grant schaltet mehrere Kurse frei; Widerruf entzieht alle; andere Quellen bleiben | U-L6 mit BND-1 (FakeSource, Ziele C-A und C-B), zusätzlich G-16 (manuell, C-B) | C-A und C-B frei; Widerruf BND-1 → C-A gesperrt, C-B bleibt über G-16; ein Audit-Eintrag je Quellereignis mit beiden Zielen | GM-198 | R1-13 | **ja** (neu) |
+| Abhängiger Zusatz-Grant (E-26) | – (neu, ohne LB-Quelle) | Zusatzmodul läuft so lange wie der Basis-Grant | U-L5: G-14 (C-B, 30 d), G-15 (C-A, `module_id` = M-A3, abhängig von G-14) | M-A3 frei, M-A1 403 `no_access`; G-14 ausgesetzt → M-A3 gesperrt, fortgesetzt → frei; Clock +31 d (G-14 abgelaufen) → M-A3 gesperrt; Verlängerung von G-14 per `extend` vor Ablauf verlängert die Wirkung von G-15 ohne Änderung an G-15 | GM-199 | R1-13 | **ja** (neu) |
+| Zugang je Modul (E-27) | – (neu; LB vergibt je Kurs × Feature) | Freischaltprüfung je Modul; Grant ohne Modul = ganzer Kurs | U-L7 mit G-12 (C-A, `module_id` = M-A2); U-L1 mit G-1 (ganzer Kurs) | U-L7: Fragen, Lektionen und Downloads aus M-A2 frei, aus M-A1/M-A3 403 `no_access`; Smarttrainer zieht nur aus M-A2; Zufallsprüfung ER-A (Blueprint über M-A1…A3) nicht startbar (`no_access`, `requires` nennt die gesperrten Module); U-L1 unverändert frei | GM-200 | R1-13, R1-12 | **ja** (neu) |
 
 ---
 
@@ -347,11 +394,11 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 
 ### 2.1 Grundsätze
 
-- **Rechtefrei und synthetisch:** Alle Texte sind generischer Platzhaltertext („Beispielfrage A1-001: Welche Aussage trifft auf Konzept 1 zu?“). Medien erzeugt ein Skript deterministisch (`tools/fixtures/build-media`, vorgeschlagen), Lizenz CC0-1.0, Urheber „Course Captain Fixtures“. **Keine LearnBoating-Inhalte, keine Prüfungskataloge, keine Bilder aus `database/data/`** (Inventur E INV-E-119, D-E-08).
+- **Rechtefrei und synthetisch:** Alle Texte sind generischer Platzhaltertext („Beispielfrage A1-001: Welche Aussage trifft auf Konzept 1 zu?“). Medien erzeugt ein Skript deterministisch (`tools/fixtures/build-media`, vorgeschlagen), Lizenz CC0-1.0, Urheber „Course Captain Fixtures“. **Keine LearnBoating-Inhalte, keine Prüfungskataloge, keine Bilder aus `database/data/`** (Inventur E INV-E-119, E-02).
 - **Stabile Schlüssel statt DB-IDs:** Tests adressieren Objekte über `source_id`, Slug oder Login. Numerische Auto-Increment-IDs werden nie hart kodiert (die Quelle nutzt dafür Kurscodes und `source_id`, z. B. CF:104, LR:180).
 - **Namensraum:** Alle Fixture-Objekte haben das Präfix `cc-fx-` (Daten) bzw. `cc_fx_` (Logins). Domains sind `fixture.test` und `example.test` (RFC 2606/6761).
 - **Zeitbasis:** `T0 = 2030-01-15T10:00:00Z`. Alle Zeitangaben sind relativ zu T0 (Abschnitt 3).
-- **Format:** Course-Captain-Paketformat v1 (R0-10). Zusätzlich kann optional ein LB-Format-Zwilling für den Referenzlauf entstehen (EGM-02).
+- **Format:** Course-Captain-Paketformat v1 (R0-10). Zusätzlich entsteht ein LB-Format-Zwilling für den Referenzlauf (E-56: nur Fälle mit Rechenlogik; das LB-Plugin wird nur ausgeführt, E-01).
 
 ### 2.2 Kurse, Module, Lektionen
 
@@ -364,11 +411,11 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 
 Lektionen C-A: L-A-01…03, L-A-08, L-A-09 Text; L-A-04 Video intern (MED-002 + MED-003 Untertitel); L-A-05 Video + Quiz (3 Fragen aus M-A1: Q-A1-010…012); L-A-06 Video-Platzhalter (keine URL); L-A-07 Video extern (MED-005); L-A-10 archiviert. Downloads DL-A-1 `uebersicht.pdf`, DL-A-2 `arbeitsblatt.pdf`, DL-A-3 `Übersicht "A".pdf` (alle MED-004-Kopien). Seiten: PAGE-1 (ganz geschützt für C-A), PAGE-2 (Block- und Shortcode-Abschnitt), POST-01…10 (geschützte Beiträge für GM-110).
 
-Eine Aufgabenabgabe (Konzept 27.4 „eine Aufgabe“) hat **kein** LearnBoating-Vorbild und ist daher **nicht** Teil des Golden Masters. Sie kommt als R2-Fixture-Erweiterung `v1.1` (P0 Aufgabenabgabe).
+Eine Aufgabenabgabe (Konzept 27.4 „eine Aufgabe“) hat **kein** LearnBoating-Vorbild. Nach E-168 kommt sie in R1 (R1-46) und ist mit GM-195/GM-196 als **neu, ohne LB-Quelle** Teil des R1-Golden-Masters. Die Fixture steht im Zusatzpaket PKG-X1 (§2.9); die frühere R2-Erweiterung `v1.1` entfällt.
 
 ### 2.3 Fragen und Fragetypen
 
-In der Quelle belegt sind drei neutrale Typen: `single_choice`, `multi_choice`, `open_text` (INV-A-025; LB-10 `chart_task` ist ausgeschlossen). Weitere Typen (E-A-03 „Zahl mit Toleranz“) kommen erst nach der Entscheidung.
+In der Quelle belegt sind drei neutrale Typen: `single_choice`, `multi_choice`, `open_text` (INV-A-025; LB-10 `chart_task` ist ausgeschlossen). Beschlossen für R1 Free und ohne LB-Quelle sind zusätzlich `numeric_tolerance` (E-22) sowie `matching`, `ordering`, `cloze` (E-69); sie stehen im Zusatzpaket PKG-X1 (§2.9), damit die Zählungen dieses Pakets unverändert bleiben.
 
 | Kurs/Modul | single (4 Opt., 1 richtig) | multi (5 Opt., 2–3 richtig) | open_text (Musterantwort) | Sonderfälle |
 |---|---|---|---|---|
@@ -378,21 +425,21 @@ In der Quelle belegt sind drei neutrale Typen: `single_choice`, `multi_choice`, 
 | M-B1 (12) | Q-B1-001…006 | Q-B1-007…009 | Q-B1-010…012 | – |
 | M-B2 (8) | Q-B2-001…004 | Q-B2-005…007 | Q-B2-008 | – |
 
-Summe veröffentlicht: 70 (C-A 50, C-B 20) + 1 Entwurf. Antwort-IDs: `<frage>-a…e`. Die richtige Antwort steht in der Quelldatei **immer** auf `a` (z. B. `A1-001-a`), die Auslieferung mischt. Damit ist GM-026 (Gleichverteilung) prüfbar. Jede Auswahlfrage hat eine Erklärung (`explanation`). Ob sie getrennt freigeschaltet wird, hängt an E-A-01; der Golden Master nimmt den Default „mit Kurszugang“ an.
+Summe veröffentlicht: 70 (C-A 50, C-B 20) + 1 Entwurf. Antwort-IDs: `<frage>-a…e`. Die richtige Antwort steht in der Quelldatei **immer** auf `a` (z. B. `A1-001-a`), die Auslieferung mischt. Damit ist GM-026 (Gleichverteilung) prüfbar. Jede Auswahlfrage hat eine Erklärung (`explanation`). Nach E-20 wird sie nur mit Pro (`course.explanations`) ausgeliefert; der Golden Master prüft Free ohne Erklärung und Pro über einen Entitlement-Stub (GM-197).
 
 ### 2.4 Prüfungsblueprints und Bögen
 
 | ID | Kurs | Zusammensetzung | Zeit | Bestehensregel | Kennzeichen |
 |---|---|---|---|---|---|
-| ER-A | C-A | M-A1 7 (Teil P1), M-A2 13 + M-A3 10 (Teil P2) = 30 | 3 600 s, Kulanz 120 s | Gesamtquote ≥ 0,75 (≥ 23/30) **und** P1 ≥ 5/7 **und** P2 ≥ 18/23 | `verified=true` → `live` |
+| ER-A | C-A | M-A1 7 (Teil P1), M-A2 13 + M-A3 10 (Teil P2) = 30 | 3 600 s, Kulanz 120 s | Gesamtquote ≥ 0,75 (≥ 23/30) **und** P1 ≥ 5/7 **und** P2 ≥ 18/23 | `status=published`, `purpose=exam` → nachweisfähig (`evidence_eligible`, E-23) |
 | EP-A-1…3 | C-A | je 30 feste Fragen, gleiche Teile; EP-A-1 = A1-001…007, A2-001…013, A3-001…010 | wie ER-A | wie ER-A | EP-A-1 enthält Q-A1-007 und M-A2 (für GM-048/GM-052) |
-| ER-B | C-B | M-B1 6, M-B2 4 = 10 | **ohne** Zeitlimit | ≥ 0,7 | `verified=false` → Übungsmodus |
+| ER-B | C-B | M-B1 6, M-B2 4 = 10 | **ohne** Zeitlimit | ≥ 0,7 | `status=published`, `purpose=practice` → Übung, nie nachweisfähig (E-23, E-129) |
 | EP-B-1 | C-B | 10 feste Fragen, Pos. 1 = Q-B1-010 (offen) | ohne | ≥ 0,7 | – |
 | ER-C | C-C | M-C1 10 | 600 s | – | absichtlich ungültig (GM-144) |
 
 ### 2.5 Karteikarten
 
-FC-A-01…08 (C-A, Modus „Selbsteinschätzung“ `open/practice/known`; FC-A-07 `rights_status=unknown`, FC-A-08 fehlt in PKG-v2). FC-B-01…05 (C-A, Modus „Serie bis gelernt“, Schwelle 3). Beide Modi stehen unter Vorbehalt von E-A-02.
+FC-A-01…08 (C-A, Modus „Selbsteinschätzung“ `open/practice/known`; FC-A-07 `rights_status=unknown`, FC-A-08 fehlt in PKG-v2). FC-B-01…05 (C-A, Modus „Serie bis gelernt“, Schwelle 3). Beide Modi sind beschlossen (E-21).
 
 ### 2.6 Medien (synthetisch, CC0)
 
@@ -431,7 +478,7 @@ E-Mail-Adressen: `<login>@fixture.test`. Passwörter werden pro Lauf zufällig e
 
 | ID | Art | Definition |
 |---|---|---|
-| F-BASE | Setting | `default_access=logged_in`; `F-STRICT` = `entitled_only` |
+| F-BASE | Setting | `default_access=logged_in`; `F-STRICT` = `entitled_only`; `privacy.external_media_mode=click_to_load` (bewusst abweichend vom Produkt-Default `always_load`, damit E2E keine Fremdverbindung aufbauen; GM-013 setzt beide Werte selbst) |
 | AR-01 | free_limited | C-A `question_bank`, 3 Fragen je Modul |
 | AR-02 | free_limited | C-A `exam`, 2 Bögen (EP-A-1, EP-A-2) |
 | AR-03 | free_limited | C-A `lessons`, 2 Lektionen |
@@ -440,7 +487,7 @@ E-Mail-Adressen: `<login>@fixture.test`. Passwörter werden pro Lauf zufällig e
 | AR-06 | free_limited | C-A Karteikarten, 5 |
 | AR-07 | free_limited | C-A Downloads, 1 |
 | AR-08 | free | C-A `question_bank` unbegrenzt |
-| G-1 | manuell | U-L1, C-A `[question_bank, exam, explanations]`, unbefristet, Begründung „Fixture“ |
+| G-1 | manuell | U-L1, C-A ganzer Kurs (`module_id` leer), `[question_bank, exam]`, unbefristet, Begründung „Fixture“; kein Bereich `explanations` mehr (Erklärungen sind Pro, E-20/E-95) |
 | G-2 | manuell | U-L2, C-A `[question_bank, exam]`, wird in GM-042 widerrufen |
 | G-3 | manuell | U-L3, C-A `all` (für „Vollzugang hebt Teilumfang auf“) |
 | G-4 / G-5 / G-6 | FakeSource | U-L3: 30 d ab T0 / `extend` 30 d / `parallel` 30 d |
@@ -452,15 +499,38 @@ E-Mail-Adressen: `<login>@fixture.test`. Passwörter werden pro Lauf zufällig e
 | INV-1 / INV-2 / INV-3 | Einladung | `einladung@fixture.test` offen / T0−31 d abgelaufen / entfernt |
 | COL-1 | Sammlung | U-L3, C-A, „Wiederholung“ |
 
-**FakeSource** ist der neutrale Testadapter, der Quellereignisse (`activate`, `suspend`, `resume`, `end`, `reinstate`, `reduce_seats`) erzeugt. Er ersetzt `support/FakeOrders.php` (44 Zeilen), mit dem die Quelle Woo-freie Commerce-Tests ermöglicht (CO:23, CO:61, MS:410).
+**FakeSource** ist der neutrale Testadapter, der Quellereignisse (`activate`, `suspend`, `resume`, `end`, `reinstate`, `reduce_seats`) erzeugt. Er ersetzt `support/FakeOrders.php` (44 Zeilen), mit dem die Quelle Woo-freie Commerce-Tests ermöglicht (CO:23, CO:61, MS:410). FakeSource wird neu geschrieben (E-01).
+
+Die Bereichsangaben (`question_bank`, `exam`, `lessons` …) der Grants und Regeln stehen unter Vorbehalt von OP-05-2 (Scopes neben `module_id`, E-27).
+
+### 2.9 Zusatzpaket PKG-X1 (neue Funktionen ohne LB-Quelle)
+
+PKG-X1 (`package_id = cc-fx-neutral-v1-x00000000001`) wird nur von den Tests in §1.22 geladen (eigener, idempotenter Loader-Schritt nach PKG-v1). Es ändert keine Zählung aus §2.2–§2.8 (GM-001, GM-006, GM-118 bleiben gültig).
+
+| ID | Inhalt |
+|---|---|
+| C-E | `cc-fx-course-e` / `cc-e` „Kurs Epsilon“, veröffentlicht; Module M-E1 (8 Fragen), M-E2 (2 Aufgaben-Lektionen); Prüfungsregel ER-E: 8 Fragen aus M-E1, ohne Zeitlimit, Gesamtquote ≥ 0,5, `status=published`, `purpose=exam` |
+| Q-E1-001…002 | `numeric_tolerance` (Werte in GM-191) |
+| Q-E1-003…004 | `matching` (Werte in GM-192) |
+| Q-E1-005…006 | `ordering` (Werte in GM-193) |
+| Q-E1-007…008 | `cloze` (Werte in GM-194) |
+| L-E-01 | Aufgabe (`assignment`), Abgabeart `text`, max. 10 Punkte, Bestehensgrenze 6, Abschlussregel `graded` |
+| L-E-02 | Aufgabe, Abgabeart `file`, Allowlist `pdf`, `png`, Limit 2 MB, max. 10 Punkte |
+| U-TUT | zusätzlich Trainer für C-E (Bewertungsrecht für Aufgaben, R0-08 §2.5) |
+| U-L5 `cc_fx_addon` | G-14 (manuell, C-B ganzer Kurs, 30 d), G-15 (C-A, `module_id` = M-A3, abhängig von G-14, E-26) |
+| U-L6 `cc_fx_bundle` | BND-1 (FakeSource-Bundle-Grant, Ziele C-A und C-B, E-25a), G-16 (manuell, C-B) |
+| U-L7 `cc_fx_module` | G-12 (manuell, C-A, `module_id` = M-A2, E-27) |
+| U-L1 | G-11 (manuell, C-E ganzer Kurs) |
 
 ---
 
 ## 3. Determinismus-Regeln (belegt an den Quellmustern)
 
+„Übernehmen“ heißt in dieser Tabelle: Das Muster wird nach der Beschreibung neu implementiert (E-01); kein LB-Testcode wird kopiert.
+
 | Nr. | Regel für Course Captain | Muster in der Quelle | Abweichung/Verbesserung |
 |---|---|---|---|
-| D-01 | **DB-Isolation:** Tests laufen nur gegen eine DB, deren Name `test` enthält; destruktive Ausnahme nur per Umgebungsvariable | GD:10-13 (`DB_NAME` enthält „test“, sonst `exit(2)`; `BP_ALLOW_DESTRUCTIVE_TESTS=1`) | Übernehmen; zusätzlich je Testfall eine Transaktion mit Rollback (WP-Testsuite, D-E-02), Szenariotests mit frischer DB |
+| D-01 | **DB-Isolation:** Tests laufen nur gegen eine DB, deren Name `test` enthält; destruktive Ausnahme nur per Umgebungsvariable | GD:10-13 (`DB_NAME` enthält „test“, sonst `exit(2)`; `BP_ALLOW_DESTRUCTIVE_TESTS=1`) | Übernehmen; zusätzlich je Testfall eine Transaktion mit Rollback (WP-Testsuite, E-11), Szenariotests mit frischer DB |
 | D-02 | **Settings-Isolation:** vorher sichern, Defaults setzen, im Shutdown zurückschreiben | ST:36-43 (`register_shutdown_function`); LR:58-59 und :397 | Übernehmen, aber als Fixture-Loader-Schritt statt pro Testdatei |
 | D-03 | **Kein Testreihenfolge-Zwang:** jeder GM lädt seine Fixture selbst und idempotent | Gegenbeispiel LR:20 („Voraussetzung: content-flow-test.php“); CI-Reihenfolge ci.yml:172-240 | Ändern: Fixture-Loader `cc-fixture-neutral-v1` (Import PKG-v1, Nutzer, Regeln) ist idempotent; Tests sind einzeln lauffähig (wie ST:19-28 für die Aktivierung) |
 | D-04 | **Eingefrorene Zeit:** injizierbare `Clock`, Start T0; Vorspulen nur über die Clock | Die Quelle hat keine Clock (`EntitlementService::now()` = `current_time`, `src/Commerce/EntitlementService.php:525`) und verschiebt deshalb gespeicherte Zeitstempel: LR:156-157, :169-170, :200, :211; CF:186-187 (−600 s), :246; MS:231 (`valid_from −8 d`), :239 (`user_registered −40 d`); mit Toleranzen `abs(…) < 60` LR:148, :166, :174 | Ändern: exakte Gleichheit statt Toleranz. DB-Rückdatierung nur für Altbestandsfälle (GM-068) |
@@ -468,7 +538,7 @@ E-Mail-Adressen: `<login>@fixture.test`. Passwörter werden pro Lauf zufällig e
 | D-06 | **Feste Schlüssel:** Logins, Idempotency-Keys und Paket-IDs sind fest | Gegenbeispiele: `'flow'.wp_rand(1000, 9999)` CF:167; `wp_generate_uuid4()` CF:186, :195. Positiv: fester Suffix `-00000000c0de` CF:97, fester Key `learnboating:race:0001` VG:150 | Ändern: Keys `fx-<GM>-<n>` |
 | D-07 | **Bereinigung über Namensraum:** Löschen über Präfix bzw. ID-Bereich, Nutzer neu anlegen | MS:105-112 (`order_id ≥ 910000`, `product_id ≥ 991000`); LR:60-67 (Nutzer löschen und neu anlegen); LR:389-396 | Übernehmen mit Präfix `cc_fx_`/`cc-fx-` |
 | D-08 | **Parallelität reproduzierbar:** zweite DB-Verbindung hält `GET_LOCK`; Lock-Timeout per Filter; echte Prozesse mit synchronisiertem Startzeitpunkt | CF:458-467 (mysqli hält Lock, Filter `…_named_lock_timeout` auf 1 s); MS:450-460 (zweites `wpdb`, Timeout 0); VG:150-166 (`proc_open`, gemeinsamer `startAt = microtime + 2 s`) | Übernehmen; Filter `cc_named_lock_timeout` |
-| D-09 | **Keine Außenwirkung:** Mails abfangen, HTTP stubben, Fremdhosts im Browser erfassen und als Fehler werten | `pre_wp_mail` MS:402-407, :973; `pre_http_request` RO:12, :67 (auch AD, SE); E2E-L:14-19 (`pageerror`, `requestfailed`, `external`) | Verschärfen: Fremdhost-Treffer lassen die E2E fehlschlagen (Quelle protokolliert nur, E2E-L:198) |
+| D-09 | **Keine Außenwirkung:** Mails abfangen, HTTP stubben, Fremdhosts im Browser erfassen und als Fehler werten | `pre_wp_mail` MS:402-407, :973; `pre_http_request` RO:12, :67 (auch AD, SE); E2E-L:14-19 (`pageerror`, `requestfailed`, `external`) | Verschärfen: Fremdhost-Treffer lassen die E2E fehlschlagen (Quelle protokolliert nur, E2E-L:198). Einzige Ausnahme: GM-013 im Modus `always_load` erwartet genau den Host `videos.example.test` |
 | D-10 | **Rate-Limiter je Test zurücksetzen** | LR:86 (`RateLimiter::clear`), LR:349, :391 | Übernehmen (Clock-basiert) |
 | D-11 | **Prozess-Isolation für Lebenszyklus:** Aktivierung/Uninstall in eigenem Prozess | ST:19-28 (Neustart nach Aktivierung); SM:133 (`passthru` für `uninstall-phase.php`) | Übernehmen |
 | D-12 | **Notice-Gate:** jede PHP-Warning/Notice/Deprecation lässt den Lauf fehlschlagen | ci.yml:173, :179, :183 … (`grep -iE "PHP (Warning\|Deprecated\|Notice\|Fatal)"`) | Übernehmen, auch in PHPUnit (`failOnWarning`) |
@@ -487,7 +557,7 @@ E-Mail-Adressen: `<login>@fixture.test`. Passwörter werden pro Lauf zufällig e
 | L-04 | Antwortmischung (Stabilität, Verteilung) | `QuestionPresenter.php:209`, INV-A-028 | GM-026 | Unit + Integration | R1-06 |
 | L-05 | Teil-/Obermenge bei Mehrfachauswahl | `QuestionPresenter.php:177` | GM-019 | Unit | R1-09 |
 | L-06 | Kurs-Entwurf/-Archiv: Sichtbarkeit und Startbarkeit | Quelle kennt nur importierte Kurse | GM-001, GM-003 | Integration | R1-04 |
-| L-07 | Consent „Klick zum Laden“ für Fremdmedien | D-E-04; Quelle erkennt Hosts nur (MS:1305ff.) | GM-013 | E2E | R1-07 |
+| L-07 | Externe Medien in beiden Modi (Default `always_load`, Option `click_to_load`, E-45a) | E-45/E-45a; Quelle erkennt Hosts nur (MS:1305ff.) | GM-013 | E2E | R1-07 |
 | L-08 | Revisionswechsel während einer laufenden Prüfung | R1-27 | GM-052 | Integration | R1-27 |
 | L-09 | Parallele Doppelabgabe; parallele Antworten | Konzept 23.1, R1-20; Quelle nur sequenziell | GM-053, GM-188 | Integration (`proc_open`) | R1-20, R1-42 |
 | L-10 | Klemmung der Gerätezeit (`age_ms` > Laufzeit) | INV-A-045 | GM-054 | Integration | R1-20 |
@@ -508,32 +578,49 @@ E-Mail-Adressen: `<login>@fixture.test`. Passwörter werden pro Lauf zufällig e
 | L-25 | Performance-Referenzfall (10/50/1) | Konzept 27.4, R1-22 | GM-187 | Last | R1-22 |
 | L-26 | Fremdhost-Gate in E2E als harter Fehler | E2E-L:198 protokolliert nur | GM-013, alle E2E | E2E-Rahmen | R1-18 |
 | L-27 | Sehfortschritt, gezieltes Üben, Favoriten-Sortierung, asynchroner Export im Web-Pfad (Quelle nur App-API) | MA:691, :1430§, :500§, :1532§ | GM-011, GM-060, GM-074, GM-175 | Integration (Web-REST) | R1-07, R1-11, R1-12, R1-17 |
+| L-28 | Fragetyp „Zahl mit Toleranz“ (neu, ohne LB-Quelle) | E-22, R0-08 §3.1 | GM-191 | Unit + Integration | R1-06, R1-09 |
+| L-29 | Fragetypen Zuordnung, Sortieren, Lückentext (neu, ohne LB-Quelle) | E-69, R0-08 §3.1/§3.2 | GM-192…GM-194 | Unit + Integration | R1-06, R1-09 |
+| L-30 | Aufgaben-Zustandsautomat mit Bewertung (neu, ohne LB-Quelle) | E-168, R0-08 §2.5 | GM-195 | Integration + E2E | R1-46 |
+| L-31 | Datei-Abgaben: Upload-Sicherheit, Auslieferung, Privacy (neu) | E-168, R0-10 §4.5 | GM-196 | Integration | R1-46, R1-14 |
+| L-32 | Erklärungen nur mit Pro; Lizenzende/Add-on aus (neu im Kern) | E-20, E-268, E-269; LS:628 | GM-197 | Integration | R1-09 |
+| L-33 | Bundle-Grant ohne Woo (neu im Kern) | E-25a | GM-198 | Integration | R1-13 |
+| L-34 | Abhängiger Zusatz-Grant (neu) | E-26, R0-09 | GM-199 | Integration | R1-13 |
+| L-35 | Zugang je Modul (neu) | E-27, R0-08 §1.4 | GM-200 | Integration | R1-13 |
+| L-36 | Website-Härtung (Login-/Reset-Limit, bekanntes Gerät, XML-RPC, Security-Header) | E-10, E-261; SE:279–631 | noch keine GM-ID (OP-05-3) | Integration + E2E | R1-45 |
 
 Außerhalb des GM-Umfangs, aber festzuhalten: Screenreader-/Tastatur-E2E für den Lernraum fehlen in der Quelle. Belegt sind nur `aria-pressed` (E2E-L:122-127), Fokus (E2E-L:86) und die Labels/Kontraste im Admin (AD:876ff.). Diese Tests gehören zu R1-19 und sind nicht Teil der Parität.
 
 ---
 
-## 5. Entscheidungsbedarf (nur neue, echte Punkte)
+## 5. Entscheidungsbedarf (beschlossen)
 
-| ID | Frage | Optionen | Empfehlung | blockiert |
-|---|---|---|---|---|
-| EGM-01 | **Wer darf eine bewusste Abweichung vom Golden Master freigeben?** Mehrere GM schreiben Quellverhalten fest, das CC eventuell ändern will (z. B. Reihenfolge „neu vor falsch vor fällig“ GM-065, Kulanz 120 s GM-037, 24-h-Sperre GM-044, Platzreduktion „zuletzt beigetreten zuerst“ GM-101). | a) jede Abweichung braucht eine schriftliche Freigabe des Auftraggebers mit Eintrag in einer Abweichungsliste · b) technische Freigabe im Review genügt | **a)**. Paritätsprinzip Kap. 26/38: Eine Abweichung ist eine Produktentscheidung. Der GM-Erwartungswert wird mit Datum und Begründung geändert, nie stillschweigend | R1-18 (Gate B/C) |
-| EGM-02 | **Muss jeder Erwartungswert durch einen Referenzlauf des LB-Plugins mit einem synthetischen Paket im LB-Format bestätigt werden, oder genügt die hier aus dem Testcode abgeleitete Spezifikation?** (D-E-08 regelt nur, *welche* Inhalte erlaubt sind, nicht *ob* ein Referenzlauf Pflicht ist.) | a) Pflicht für Gate A: Fixture zusätzlich als LB-Paket bauen und die Werte aus dem LB-Lauf ziehen · b) Referenzlauf nur für Fälle mit Rechenlogik (GM-029…GM-031, GM-065…GM-068, GM-084, GM-131) · c) kein Referenzlauf | **b)**. Ein Referenzlauf deckt Fehlinterpretationen bei Algorithmen auf; für Zustands- und Rechteprüfungen reicht der Testcode. Voraussetzung: D-E-01 (Lizenz) und D-E-08 = a) | R0-05-Abnahme, R1-18 |
+Die beiden Punkte dieses Dokuments sind entschieden und als E-Nummern in `ENTSCHEIDUNGEN.md` geführt:
 
-Bereits offene Entscheidungen, von denen einzelne GM abhängen (hier nicht dupliziert):
+| Früher | Beschluss | Inhalt | Wirkung hier |
+|---|---|---|---|
+| EGM-01 | **E-55** (Auftraggeber) | Bewusste Abweichungen vom LB-Verhalten gibt der Auftraggeber schriftlich frei, über die Abweichungsliste §5.1 | Ein GM-Erwartungswert wird nur mit Eintrag in §5.1 (Datum, Begründung, Freigabe) geändert, nie stillschweigend; Gate R1-18, E-184 |
+| EGM-02 | **E-56** (Auftraggeber) | Referenzlauf des LB-Plugins nur ausführen, kein Code; nur für Fälle mit Rechenlogik | GM-029…GM-031, GM-065…GM-068, GM-084, GM-131 werden zusätzlich gegen einen LB-Lauf mit LB-Format-Zwilling geprüft (E-02, E-194). Für GM-191…GM-200 gilt E-56 nicht (keine LB-Quelle) |
 
-- D-E-02 (Test-Runner) betrifft alle GM.
-- D-E-04 betrifft GM-013.
-- D-E-08 betrifft EGM-02.
-- E-A-01 betrifft GM-018/GM-031 (Erklärungen).
-- E-A-02 betrifft GM-062/GM-063.
-- E-A-04 betrifft GM-032/GM-033.
-- E-A-05 betrifft GM-189/GM-190.
-- E-C-01 betrifft GM-186.
-- E-C-04 betrifft GM-011/GM-060/GM-074/GM-175, nur den Pfad.
-- E-C-05 betrifft GM-174.
-- E-C-06 betrifft GM-099/GM-131/GM-162.
-- E-C-07 betrifft GM-123/GM-127.
+Abhängigkeiten auf Beschlüsse (früher Inventur-Kürzel): D-E-02 → **E-11** (alle GM); D-E-04 → **E-45/E-45a** (GM-013); D-E-08 → **E-02**; E-A-01 → **E-20**, E-147 (GM-018, GM-031, GM-197); E-A-02 → **E-21** (GM-062/GM-063); E-A-03 → **E-22** (GM-191); E-A-04 → **E-23**, E-129 (GM-032/GM-033); E-A-05 → **E-16** (GM-189/GM-190); E-C-01 → **E-07**, E-49 (GM-186); E-C-02 → **E-10** (OP-05-3); E-C-04 → **E-05** (GM-011/GM-060/GM-074/GM-175, nur der Pfad); E-C-05 → **E-43** (GM-174); E-C-06 → **E-44** (GM-099/GM-131/GM-162); E-C-07 → **E-18** (GM-123/GM-127).
+
+### 5.1 Abweichungsliste (E-55)
+
+Jede bewusste Abweichung eines GM-Erwartungswerts vom belegten LB-Verhalten steht hier. Ein Eintrag ohne Freigabe ist nicht wirksam; der GM prüft dann das LB-Verhalten.
+
+| Nr. | GM | LB-Verhalten (Beleg) | Course Captain | Grundlage / Freigabe | Datum |
+|---|---|---|---|---|---|
+| A-01 | GM-013 | externe Medien erst nach Einwilligung über ein Theme-Global (R0-10 §5) | Default `always_load`, Option `click_to_load` | Beschluss **E-45/E-45a** (Auftraggeber) | 16.11.2026 |
+| A-02 | GM-033 | Rückfall von `examRule()` auf die neueste nicht archivierte Regel, auch einen Entwurf, als Übung (CR:186-216) | Entwürfe nie startbar; Übung nur als veröffentlichte Regel mit `purpose=practice` | Beschluss **E-129** (Claude im Auftrag), E-23 | 16.11.2026 |
+
+### 5.2 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-05-1 | Genügt eine „Von Claude entschieden“-Festlegung (z. B. E-129, A-02) als schriftliche Freigabe nach E-55, oder muss der Auftraggeber den Eintrag in §5.1 gesondert abzeichnen? | E-55 verlangt „schriftlich durch den Auftraggeber“; der Auftrag an Claude deckt das nicht ausdrücklich ab | Auftraggeber |
+| OP-05-2 | Bleiben Bereichs-Scopes (`question_bank`, `exam`, `lessons` …) neben `module_id` bestehen? | E-27 sagt „Zugang je Modul statt je Kurs mit Scopes“; ob Scopes ganz entfallen, legen R0-06/R0-09 fest. Die Fixture-Grants in §2.8 sind bis dahin unverändert | Architektur (R0-06/R0-09) |
+| OP-05-3 | GM-Katalog für das Härtungsmodul R1-45 (Login-/Reset-Limit, bekanntes Gerät, XML-RPC, Security-Header) aus SE:279–631 | Quellabschnitt in R0-05 nie zeilengenau ausgewertet (früher ausgeschlossen); Nachtrag nötig | R1-45 / R1-18 |
+| OP-05-4 | Kursfortschritt bei Zugang nur zu einzelnen Modulen (Nenner von `completion_ratio`, GM-076-Analogie) | weder E-27 noch R0-08 legen den Nenner für Modul-Grants fest; GM-200 prüft deshalb nur den Zugang | Architektur (R0-08 §5.1) |
+| OP-05-5 | Benachrichtigung bei Rückgabe/Bewertung einer Aufgabe (R1-46 „Benachrichtigung“) | Mailkatalog R0-27 und E-136 nennen die Fälle nicht; GM-195 prüft deshalb keine Mail | R0-27 / R1-21 |
 
 ---
 
@@ -555,6 +642,7 @@ Bereits offene Entscheidungen, von denen einzelne GM abhängen (hier nicht dupli
 | PAR-12 | GM-163…171, GM-178…186 | GM-153, GM-181 | – | GM-163…171 | R1-02, R1-23, R1-31, R1-40 |
 | Privacy | GM-172…177 | GM-173, GM-174 | – | – | R1-17 |
 | Querschnitt | GM-187, GM-188 | – | GM-187 | – | R1-22, R1-42 |
+| Neue Funktionen (E-20, E-22, E-25a, E-26, E-27, E-69, E-168; ohne LB-Quelle) | GM-191…GM-200 | GM-195, GM-196, GM-200 | – | – | R1-06, R1-09, R1-13, R1-46 |
 
 LB-Bezug: LB-02 → GM-081…083; LB-03 → GM-094…106; LB-04 → GM-107…116; LB-06 → GM-012/013; LB-07/LB-13 → GM-118…136; LB-08 → Gesamtkatalog; LB-09 → GM-120/123/132; LB-10 → GM-017…023; LB-11 (Kern) → GM-088…090; LB-14 → GM-027…034, GM-052. LB-01/05/12/15 → nicht R1 (Abschnitt 1.21).
 

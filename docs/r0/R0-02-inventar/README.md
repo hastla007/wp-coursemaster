@@ -1,9 +1,31 @@
 # R0-02 / R0-03 · LearnBoating-Funktionsinventur – Übersicht
 
+**Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet
 **Quellcommit:** `hastla007/learnboating@9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (siehe `../R0-01-baseline.md`)
 **Methode:** Fünf Teilinventuren mit getrenntem Dateiumfang. Jede öffentliche Methode bzw. jedes zusammengehörige Verhalten ist eine Zeile mit Quellpfad:Zeile, Art, Klassifikation, Zielbaustein, Phasenvorschlag, Task-Bezug und Golden-Master-Kandidat.
 
-| Teil | Datei | Umfang | Einträge | reuse | abstract | replace | exclude |
+## Beschlussstand
+
+| Beschluss | Wirkung auf die Inventur |
+|---|---|
+| **E-01 – Nein, Clean Room** | Kein Code aus learnboating wird übernommen. Die Inventur ist eine **Verhaltensinventur**; Quellpfad:Zeile ist nur der Beleg, wo das Verhalten beobachtet wurde |
+| E-02 | Golden-Master-Fälle nur mit synthetischen, neutralen Testpaketen |
+| E-03 | LB-Paketimport höchstens als separates Migrationswerkzeug |
+| E-55, E-56 | Abweichungen vom LB-Verhalten gibt der Auftraggeber schriftlich über die Abweichungsliste in R0-05 frei; Referenzlauf des LB-Plugins nur durch Ausführen |
+| E-54 | Jede R2-Zuordnung bekommt eine R2-Task oder wandert in den R4-Pool |
+
+### Bedeutung der Klassen nach E-01
+
+| Klasse | Bedeutung bisher | Bedeutung ab Beschluss E-01 |
+|---|---|---|
+| `reuse` | Logik fachneutral, nur umbenennen/neu namespacen (Codeübernahme vorbehaltlich E-01) | **Verhalten gleich nachbauen.** Das Verhalten wird als Spezifikation beschrieben und ohne Kopie neu implementiert; kein Code, keine Kommentare, keine Tests aus LB |
+| `abstract` | generischer Kern mit fachgebundener Hülle, die neutralisiert werden muss | **Verhalten verallgemeinert nachbauen** (neutral, shop-/fachunabhängig), ebenfalls Neuimplementierung |
+| `replace` | Funktion gebraucht, Umsetzung so nicht übertragbar | unverändert: Funktion gebraucht, anderes Verhalten/andere Bauweise |
+| `exclude` | nicht übertragen (fachspezifisch o. Ä.) | unverändert: entfällt |
+
+Die Spalten und Zählungen unten bleiben unverändert; nur die Lesart der Klassen ändert sich. Das gilt auch für Werkzeuge in Teil E (z. B. `tools/build-zips.sh`, `tools/i18n/check-domains.php`, `tools/i18n/make-pot.sh`): Sie werden nicht kopiert, sondern nach Verhaltensspezifikation neu geschrieben (R0-15 §3.8, R0-18).
+
+| Teil | Datei | Umfang | Einträge | reuse (Verhalten nachbauen) | abstract (verallgemeinert nachbauen) | replace | exclude |
 |---|---|---|---|---|---|---|---|
 | A | `A-lernen-pruefung.md` | Learning, Exams, Trainers, Gate, ExamGuide, Tips, Faq · 39 PHP-Dateien, 10 033 Zeilen | 154 | 80 | 33 | 9 | 32 |
 | B | `B-commerce.md` | Commerce, WooCommerce, Affiliate-/Voucher-Connector · 55 PHP-Dateien, 14 375 Zeilen | 177 | 65 | 89 | 16 | 7 |
@@ -42,4 +64,8 @@ Zählkommando: `grep -E '^\| INV-' <datei> | grep -c '<klasse>'`.
 | Rate-Limiter ist „fail-open“ bei Speicherausfall | D (INV-D-146) | R0-17, ENTSCHEIDUNGEN E-46 |
 | In der Quelle fehlen SAST, Dependency-Scan und Paketsignatur | E | R0-18 |
 
-Offene Produktentscheidungen aus allen Teilen: `../ENTSCHEIDUNGEN.md`.
+Entscheidungen aus allen Teilen: `../ENTSCHEIDUNGEN.md` – alle getroffen (16.11.2026). Die Abschnitte „Entscheidungsbedarf“ der Teile A–E sind dort unter E-01…E-63 zusammengeführt und beschlossen.
+
+## Offene Punkte nach Einarbeitung
+
+- Die Teildateien A–E enthalten in den Spalten noch die Klassen `reuse`/`abstract` mit der früheren Lesart in Freitexten (z. B. „übernehmen“). Maßgeblich ist die Tabelle „Bedeutung der Klassen nach E-01“ oben; eine Überarbeitung der Teildateien ist nicht Teil dieser Einarbeitung.

@@ -1,33 +1,57 @@
-# R0-15 · Barrierefreiheit und Internationalisierung (Entwurf)
+# R0-15 · Barrierefreiheit und Internationalisierung
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Produkt offen.** Task R0-15 ist **nicht** abgehakt. Keine Implementierung, kein Prüfprotokoll. Alle Testfälle sind Vorgaben für R1-19 (Umsetzung) und R1-29 (Abnahme mit Menschen); den Testplan mit Nutzertests schreibt R0-26.
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Keine Implementierung, kein Prüfprotokoll. Alle Testfälle sind Vorgaben für R1-19 (Umsetzung) und R1-29 (Abnahme mit Menschen); den Testplan mit Nutzertests schreibt R0-26.
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-15 (DoD: „WCAG-Ziel, Tastatur-/Screenreader-/Kontrastfälle, Übersetzbarkeit, RTL, Zeitzonen, Datums-/Zahlenformate und Sprachwechsel definiert“), Folgetasks R0-25, R0-26, R1-19, R1-29 (dazu R0-22, R0-27, R1-20, R1-21); Konzept Kap. 4.1, 10, 16.2, 16.3 (Design-Gate), 19, 21, 23.1/23.2, Kap. 37 (UTC); `docs/r0/R0-11-free-pro-matrix-ux.md` (Screens A-01…A-18, L-01…L-21, Zustände Z-x, Flows 1–5); `docs/r0/R0-14-nichtfunktionale-ziele.md` §3 (Browser-/Viewport-Matrix, NFR-014/-016); `docs/r0/R0-08-kurs-activity-pruefungsvertraege.md` §4.3 (Zeitlimit, Grace, Kulanz), §6 (Automat, Snapshot); `docs/r0/R0-06-datenmodell-adr.md` §7 (Zeit in UTC); `docs/r0/R0-10-import-medien-sicherheit.md` (Alt-Text-Pflicht im Paketformat); Inventur D (INV-D-004, -005, -006, -062, -068, -070, -152, -154, -156) und E (INV-E-007, -046, -047, Doku `barrierefreiheit-oesterreich.md`, `uebersetzung.md`, `videos-untertitel.md`); `docs/r0/ENTSCHEIDUNGEN.md`.
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77`, nur gelesen. Pfade relativ zu `bootspruefung-learning/`, wenn nicht anders angegeben.
 **Abgrenzung:** Rechtliche Anwendbarkeit (BFSG/BaFG, Kleinstunternehmen) beurteilt der Betreiber mit Rechtsberatung, nicht dieses Dokument. Mehrsprachige Kursvarianten, Locale-Fallback und Multisite gehören zu R0-25 (§4 übergibt). Testgeräte, Probanden und Usability-Kriterien gehören zu R0-26.
 
-**Normative Sprache:** **MUSS** = Vertragsbestandteil, **SOLL** = Standard, **KANN** = optional. Alles hier ist Vorschlag bis zur Freigabe.
+**Normative Sprache:** **MUSS** = Vertragsbestandteil, **SOLL** = Standard, **KANN** = optional. Mit den Beschlüssen unten ist der Inhalt verbindliche Vorgabe für R1-19/R1-29.
+
+## Beschlussstand
+
+Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“ (16.11.2026).
+
+| Beschluss | Wirkung in diesem Dokument |
+|---|---|
+| **E-01 Clean Room** | Kein LB-Code wird übernommen. Die LB-Belege in §0.2 sind reine Verhaltensbefunde; „reuse“/„abstract“ bedeutet „Verhalten nachbauen“. Die LB-Werkzeuge `tools/i18n/check-domains.php` und `tools/i18n/make-pot.sh` werden **nicht kopiert**, sondern nach der Verhaltensspezifikation in §3.8 neu geschrieben |
+| E-121 (D-15-01) | Quellsprache en_US, Deutsch erste Übersetzung (§3.1) |
+| E-122 (D-15-02), E-123 (D-15-03) | Nachteilsausgleich und Timer-Modi `strict`/`practice` wie §2.3 |
+| E-124 (D-15-04) | Einstellung „Profilsprache“, Fristen mit Zonenkennung, keine Nutzerzeitzone in R1 (§3.3, §3.5) |
+| E-125 (D-15-06) | Konformitätsbericht je Release, keine Vorlage für die Barrierefreiheitserklärung (E-04) |
+| E-126 (D-15-08) | NVDA und VoiceOver (macOS, iOS) zugesichert; TalkBack best effort, JAWS nicht zugesichert (§2.4) |
+| E-127 (D-15-09) | Getaggtes PDF als Pro-Abnahmekriterium |
+| E-131 (D-15-10) | Fehlender Alt-Text (ohne `decorative`) = Blocker, fehlende Untertitel = Warnung (per Site-Einstellung Blocker); Widerspruch zu R0-22 aufgelöst |
+| D-15-05, D-15-07, D-15-11 | Technisch festgelegt (ENTSCHEIDUNGEN §20): axe-Gate blockierend, Kontrast-Vorschlag, RTL als Release-Gate |
+| E-61, E-191 | Browserachse (je 2 letzte Hauptversionen Chrome/Edge/Firefox/Safari, Firefox ESR, iOS Safari, Android Chrome); echte Geräte manuell vor jedem Minor-Release |
+| **E-45, E-45a** | Externe Medien werden standardmäßig **direkt geladen** (`external_media_mode` = „immer laden“); der Consent-Platzhalter (A11Y-093) gibt es nur im Modus „Klick zum Laden“ |
+| E-20, E-147 | Lösungserklärungen sind Pro; Free zeigt nach Abgabe richtig/falsch und (nach Einstellung) die richtige Antwort (A11Y-024) |
+| E-208 | Deutsches Sprachpaket über translate.wordpress.org, bis zur Freigabe zusätzlich im ZIP |
+| E-155…E-160 | Beantworten die Übergabefragen an R0-25 (§4) |
+| E-207 | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen. Namen wie `cc_accommodation`, `cc_manage_accommodations`, `cc_question` sind hier Arbeitsnamen und heißen in der Umsetzung `ccap_…` |
 
 ---
 
 ## 0. Annahmen und Belege
 
-### 0.1 Annahmen aus `ENTSCHEIDUNGEN.md` (Empfehlungen, nicht beschlossen)
+### 0.1 Beschlüsse aus `ENTSCHEIDUNGEN.md`
 
-| ID | Annahme | Wirkung hier |
+| ID | Beschluss | Wirkung hier |
 |---|---|---|
 | E-61 | Browser: je 2 letzte Hauptversionen Chrome, Edge, Firefox, Safari, dazu Firefox ESR, iOS Safari, Android Chrome | Browser-Achse der A11Y-Tests (§2.4) |
 | E-11 | `@playwright/test` und PHPUnit | axe-core läuft in Playwright (`@axe-core/playwright`) |
 | E-07, E-49 | Nur Single-Site | Locale-Fragen nur je Site (§4) |
-| E-20 | Feedback-Sichtbarkeit „immer / nach Abgabe / nie“ | Live-Region für Feedback nur, wenn Feedback gezeigt wird (A11Y-024) |
-| E-45 | Externe Medien „Klick zum Laden“ | Platzhalter mit Tastatur bedienbar und benannt (A11Y-093) |
+| E-20, E-147 | Lösungserklärungen nur mit Pro; Free zeigt nach Abgabe richtig/falsch und (nach Einstellung) die richtige Antwort | Live-Region für Feedback nur, wenn Feedback gezeigt wird; Erklärungstext nur mit Pro (A11Y-024) |
+| E-45, E-45a | Externe Medien Default „immer laden“, umschaltbar auf „Klick zum Laden“ | Platzhalter nur im Modus „Klick zum Laden“, dann mit Tastatur bedienbar und benannt (A11Y-093) |
 | E-72 | Auto-Abgabe nach Inaktivität (Standard aus) | Warnhinweis vor Datenverlust (A11Y-076) |
 | E-75 | `evaluated` + `end_reason = expired` | Ansage „Zeit abgelaufen“ statt eigenem Zustand (A11Y-073) |
 | E-100 | Keine gesperrten Pro-Schalter in Free-Screens | keine „toten“ fokussierbaren Elemente |
 
-### 0.2 LearnBoating-Belege (übertragbar bzw. zu korrigieren)
+### 0.2 LearnBoating-Belege (Verhalten übertragbar bzw. zu korrigieren)
 
-| ID | Fundstelle | Befund | Übernahme |
+Nach **E-01 (Clean Room)** wird kein Code übernommen. In der Spalte „Übernahme“ bedeutet **reuse** „Verhalten gleich nachbauen“ und **abstract** „Verhalten verallgemeinert nachbauen“; **replace** heißt „anderes Verhalten“. Die Fundstellen dienen nur als Verhaltensbeleg.
+
+| ID | Fundstelle | Befund | Übernahme (Verhalten, E-01) |
 |---|---|---|---|
 | LB-A11Y-01 | `assets/build/app.js:14-16`, `:244-261` | Hülle ist keine Live-Region mehr; Seitenwechsel meldet die App über Fokus auf `h1` (`tabindex=-1`) und `document.title` | **reuse** (K-01, K-02) |
 | LB-A11Y-02 | `app.js:208-224`, `app.css` „aria-disabled“ | Knopf sperren mit `aria-disabled`, Fokus bleibt, Sperre im Handler | **reuse** (K-04) |
@@ -44,8 +68,8 @@
 | LB-A11Y-13 | Repo-Doku `docs/barrierefreiheit-oesterreich.md` §2 | axe-core 4.10, Regeln WCAG 2.0/2.1 A/AA, 22 Seitenaufrufe Desktop 1280/Mobil 390, 0 Verstöße nach Korrektur (Kontrast gesperrter Elemente); **axe ist nicht im Repository oder in der CI verankert** | Prüfmethode **abstract**, in CI verankern (A11Y-100) |
 | LB-A11Y-14 | wie oben §3 | Offen in LB: Untertitel, getaggte PDFs, Alt-Text-Stichprobe, manueller NVDA-/VoiceOver-Durchlauf | als Pflichtfälle übernommen (A11Y-030 ff., A11Y-090 ff.) |
 | LB-A11Y-15 | `tests/e2e/*.mjs` | Tastaturbedienung kaum getestet (1 Treffer in `learning-flow.mjs`, 3 in `trainers-flow.mjs`); Rollen-Locator (`getByRole`) durchgängig | Locator-Stil **reuse**; Tastaturpfade neu (A11Y-001 ff.) |
-| LB-I18N-01 | Repo-Werkzeug `tools/i18n/check-domains.php` | Tokenizer-Lint: jede i18n-Funktion trägt die Domain als Literal; `.pot` je Paket vorhanden | **reuse** nach E-01 (INV-E-046), Domains `course-captain`, `course-captain-pro` |
-| LB-I18N-02 | Repo-Werkzeug `tools/i18n/make-pot.sh` | `wp i18n make-pot` je Paket, leere Header, `--skip-theme-json`, Hinweis `make-json` | **abstract** (INV-E-047) |
+| LB-I18N-01 | Repo-Werkzeug `tools/i18n/check-domains.php` | Tokenizer-Lint: jede i18n-Funktion trägt die Domain als Literal; `.pot` je Paket vorhanden | **Verhalten nachbauen** (INV-E-046): Werkzeug wird neu geschrieben, nicht kopiert (§3.8); Domains `course-captain`, `course-captain-pro` |
+| LB-I18N-02 | Repo-Werkzeug `tools/i18n/make-pot.sh` | `wp i18n make-pot` je Paket, leere Header, `--skip-theme-json`, Hinweis `make-json` | **abstract** (INV-E-047): eigenes Skript nach §3.8, kein Code übernommen |
 | LB-I18N-03 | `src/Frontend/Strings.php` (INV-D-068) | 673 Texte als Bundle für die SPA; Mehrzahl über Schlüsselpaare `*_one`/`*` | **replace**: Mehrzahl nur über `_n` (Sprachen mit mehr als zwei Pluralformen, I18N-R-04) |
 | LB-I18N-04 | `src/Frontend/Router.php:190`, `app.js:17-22` | Locale an den Client (`determine_locale()`, `de_AT`→`de-AT`), Rückfall `<html lang>`, sonst `de-DE` | **reuse**; Rückfall neutral `en` statt `de-DE` |
 | LB-I18N-05 | `src/Gate/ContentGate.php:223` | `wp_set_script_translations()` nur für einen Block | **ausweiten** auf alle Skripte (I18N-R-10) |
@@ -64,7 +88,7 @@
 
 - **MUSS:** Alle in §1.2 genannten Oberflächen erfüllen **WCAG 2.2, Stufe AA** (alle Erfolgskriterien A und AA). Das bestätigt Konzept 16.3 („WCAG 2.2 AA als Ziel“).
 - **Bezug EN 301 549 / European Accessibility Act (kurz, keine Rechtsberatung):** Die Richtlinie (EU) 2019/882 (EAA) gilt seit 28.06.2025 für bestimmte Produkte und Dienstleistungen, darunter Dienstleistungen im elektronischen Geschäftsverkehr; umgesetzt z. B. in Deutschland durch das BFSG, in Österreich durch das BaFG. Als technische Vermutungsgrundlage dient die harmonisierte Norm **EN 301 549**. Ihre derzeit harmonisierte Fassung verweist für Web-Inhalte auf WCAG 2.1 AA; WCAG 2.2 AA deckt diese Kriterien ab (das in 2.2 entfallene 4.1.1 „Parsing“ ausgenommen). Welche Fassung zum Release gilt, wird bei der Freigabe von R1-19 erneut geprüft.
-- **Rollenverteilung:** Course Captain ist Software, die Betreiber einsetzen. Ob eine Pflicht greift, entscheidet sich beim Betreiber (z. B. kostenpflichtige Online-Kurse an Verbraucher; Ausnahme für Kleinstunternehmen bei Dienstleistungen). Course Captain liefert dafür (a) eine konforme Oberfläche, (b) Werkzeuge, mit denen Autoren barrierefreie Inhalte erstellen, und (c) einen Konformitätsbericht je Release (D-15-06). Rechtstexte liefert Course Captain nicht (E-04).
+- **Rollenverteilung:** Course Captain ist Software, die Betreiber einsetzen. Ob eine Pflicht greift, entscheidet sich beim Betreiber (z. B. kostenpflichtige Online-Kurse an Verbraucher; Ausnahme für Kleinstunternehmen bei Dienstleistungen). Course Captain liefert dafür (a) eine konforme Oberfläche, (b) Werkzeuge, mit denen Autoren barrierefreie Inhalte erstellen, und (c) einen Konformitätsbericht je Release (E-125). Rechtstexte liefert Course Captain nicht (E-04).
 - **Autorenwerkzeug:** Die Admin-Editoren (A-04, A-07, A-08, A-13) sind ein Autorenwerkzeug im Sinne von EN 301 549 Kap. 11.8. Daraus folgen: barrierefreie Inhalte müssen erstellbar sein (Alt-Text-Feld, Untertitelspur, Überschriftenstruktur aus dem Block-Editor), Barrierefreiheitsangaben bleiben beim Import/Export erhalten (Alt-Text, Untertitel, Sprache; R0-10) und der Publish-Validator (R0-22) bietet Reparaturhinweise (A11Y-110 ff.).
 - **SOLL über AA hinaus:** `prefers-reduced-motion` respektieren (WCAG 2.3.3, AAA), Windows-Kontrastmodus (`forced-colors`) ohne Informationsverlust, Fokusindikator mindestens 2 px mit 3:1 (Richtwert aus 2.4.13, AAA).
 
@@ -218,7 +242,7 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 | A11Y-090 | Player unterstützt WebVTT-Untertitel (Spur auswählbar, Standard nach UI-Sprache, wenn vorhanden) und Transkript-Link; Medien ohne Untertitel → Publish-Warnung (A11Y-111) | 1.2.2, 1.2.3 | ST-2 | PW, MAN | R1-19 |
 | A11Y-091 | Bilder in Fragen/Lektionen: `alt` aus Medienobjekt; dekorativ nur mit `decorative: true` (R0-10) → `alt=""` | 1.1.1 | ST-2, ST-3 | AXE (`image-alt`) | R1-19 |
 | A11Y-092 | Downloads (PDF): Dateityp und Größe im Linktext; Hinweis, wenn das PDF nicht als barrierefrei markiert ist (Autorenfeld) | 2.4.4 | ST-2 | AXE, MAN | R1-19 |
-| A11Y-093 | Consent-Platzhalter externer Medien (E-45): Knopf „Video von … laden“ mit Tastatur, Fokus nach Laden auf den Player | 2.1.1, 4.1.2 | ST-2 | PW | R1-19 |
+| A11Y-093 | Consent-Platzhalter externer Medien, nur im Modus `external_media_mode` = „Klick zum Laden“ (Default ist „immer laden“, E-45a): Knopf „Video von … laden“ mit Tastatur, Fokus nach Laden auf den Player | 2.1.1, 4.1.2 | ST-2 | PW | R1-19 |
 | A11Y-095 | E-Mails: HTML mit `lang`, semantischen Überschriften, Tabellen nur mit `role="presentation"`, Linktexte aussagekräftig, Kontrast 4,5:1; gleichwertige Klartext-Version | 1.3.1, 2.4.4, 3.1.1 | ST-9 | Mail-Sink + HTML-Lint (axe auf gerendertes HTML), MAN in einem Mailprogramm | R1-19 |
 | A11Y-096 | Druckansicht Nachweis: Lesereihenfolge, Überschrift, Text statt Bild; Verifikationslink als Text | 1.3.2, 1.4.5 | ST-9, ST-5 | AXE, MAN | R1-19 |
 
@@ -232,24 +256,24 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 | A11Y-103 | Manueller Durchlauf Flow 1 und Flow 4 (Setup) mit NVDA+Chrome und VO macOS | NVDA, VO | R1-29 |
 | A11Y-104 | Nutzertest mit mindestens einer Person, die Hilfstechnik im Alltag nutzt (Details R0-26) | MAN | R1-29 |
 | A11Y-110 | Publish-Validator (R0-22): Bild ohne Alt-Text und ohne `decorative` → Blocker; Fehler nennt Objekt und Link zum Feld (Reparaturhilfe, EN 301 549 11.8.4) | PHPUnit, PW | R1-19 |
-| A11Y-111 | Publish-Validator: Video ohne Untertitelspur, Lektion mit übersprungener Überschriftenebene, Link „hier klicken“ → Warnung, nicht Blocker (D-15-10) | PHPUnit, PW | R1-19 |
+| A11Y-111 | Publish-Validator: Video ohne Untertitelspur, Lektion mit übersprungener Überschriftenebene, Link „hier klicken“ → Warnung, nicht Blocker (E-131); fehlende Untertitel per Site-Einstellung als Blocker konfigurierbar | PHPUnit, PW | R1-19 |
 | A11Y-112 | Import/Export erhält Alt-Text, `decorative`, Untertitel, Sprachkennzeichen verlustfrei (Roundtrip) | PHPUnit (Golden Master R0-05) | R1-19 |
 
 ### 2.3 Zeitlimits in Prüfungen und Nachteilsausgleich
 
 **Problem:** WCAG 2.2.1 verlangt für jedes Zeitlimit eine der Optionen Abschalten, Anpassen (mindestens auf das Zehnfache) oder Verlängern (Warnung ≥ 20 s vorher, einfache Aktion, mindestens zehnmal). Ausnahme „essenziell“: wenn eine Verlängerung die Aktivität ungültig machen würde. Eine bewertete Prüfung mit Zeitlimit kann sich auf diese Ausnahme berufen; frei verlängerbare Zeit würde die Prüfungsintegrität (R0-08 §4.3, R1-20) aufheben. Gleichzeitig brauchen Lernende mit Behinderung in der Praxis einen **Nachteilsausgleich** (Zeitverlängerung), den die prüfende Stelle gewährt, nicht der Lernende selbst.
 
-**Lösung (Vorschlag, D-15-02/-03):**
+**Lösung (beschlossen, E-122/E-123):**
 
 1. **Ungetaktete Aktivitäten** (Lernmodus, Smarttrainer, unbewertete Quizze, Karteikarten) haben **nie** ein Zeitlimit (MUSS). Bewertete Quizze ohne `time_limit_seconds` ebenso.
 2. **Timer-Modus je Prüfungsregel** `timer_mode` (eingefroren im Snapshot):
    - `practice`: Lernender kann vor dem Start „ohne Zeitlimit üben“ wählen oder während des Laufs verlängern (A11Y-072). Ergebnis gekennzeichnet „ohne Zeitlimit“, zählt nicht für Nachweise. Erfüllt 2.2.1 direkt.
    - `strict` (Standard für nachweisfähige Prüfungen): kein Selbst-Verlängern. Die Ausnahme „essenziell“ wird in der Regel dokumentiert (Autorenhinweis im Prüfungseditor A-08). **Pflichtausgleich:** Jede `strict`-Prüfung MUSS einen Zeitausgleich je Lernendem zulassen; ein Abschalten des Ausgleichs pro Regel ist nicht vorgesehen.
 3. **Zeitausgleich (Accommodation)** als eigene Zuordnung, nicht als Prüfungsregel:
-   - Datensatz (Vorschlag, Delta zu R0-06): `cc_accommodation (user_id, scope_type 'site'|'course'|'exam_rule', scope_id, time_factor_pct smallint 100–400 | NULL, unlimited tinyint, valid_until datetime NULL, created_by, created_at)`; **keine Freitext-Begründung, keine Diagnose** (Datenminimierung: ein Nachteilsausgleich lässt auf Gesundheitsdaten schließen, Art. 9 DSGVO; Bewertung in R0-17).
-   - Setzen/Ändern nur mit eigener Capability `cc_manage_accommodations` (Vorschlag, Default nur `administrator` und Kursmanager; Delta zu R0-07), jede Änderung mit Audit-Eintrag ohne Inhaltsdetails außer Faktor.
+   - Datensatz (Delta zu R0-06; Präfix nach E-207 `ccap_`): `cc_accommodation (user_id, scope_type 'site'|'course'|'exam_rule', scope_id, time_factor_pct smallint 100–400 | NULL, unlimited tinyint, valid_until datetime NULL, created_by, created_at)`; **keine Freitext-Begründung, keine Diagnose** (Datenminimierung: ein Nachteilsausgleich lässt auf Gesundheitsdaten schließen, Art. 9 DSGVO; Bewertung in R0-17).
+   - Setzen/Ändern nur mit eigener Capability `cc_manage_accommodations` (Präfix nach E-207 `ccap_`; Default nur `administrator` und Kursmanager; Delta zu R0-07), jede Änderung mit Audit-Eintrag ohne Inhaltsdetails außer Faktor.
    - Wirkung: beim Start `deadline_at = started_at + time_limit_seconds × time_factor_pct / 100` (bzw. ohne Frist bei `unlimited`); Faktor, Quelle und Wert stehen im Snapshot (Muster R0-08 §6.3). Grace (5 s) und Kulanz bleiben unverändert. Laufende Versuche ändern sich durch spätere Zuordnungen nicht; ein Admin KANN einem **laufenden** Versuch einmalig Zeit hinzufügen (Aktion mit Audit, R1-20-Negativtest: nur durch Berechtigte, nur `in_progress`).
-   - Sichtbarkeit: Lernender sieht vor dem Start „Deine Bearbeitungszeit: 45 Minuten (inkl. Zeitausgleich)“. Ergebnis, Bericht A-12 und Nachweis zeigen den Ausgleich **nicht** (D-15-02); in A-09 nur für Berechtigte.
+   - Sichtbarkeit: Lernender sieht vor dem Start „Deine Bearbeitungszeit: 45 Minuten (inkl. Zeitausgleich)“. Ergebnis, Bericht A-12 und Nachweis zeigen den Ausgleich **nicht** (E-122); in A-09 nur für Berechtigte.
    - Mehrere Zuordnungen: die spezifischste gilt (Regel > Kurs > Site).
 4. **Ansagen und Anzeige** nach A11Y-071; Server ist maßgeblich (R0-08 §4.3, `remaining_seconds`), der Client-Timer ist nur Anzeige.
 5. **Keine Pause in R1** für `strict` (Integrität); `practice` KANN pausieren. Pausen für `strict` als Ausgleichsart sind ein späterer Kandidat (Datenvertrag offen lassen: `accommodation_type` reservieren).
@@ -257,8 +281,8 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 ### 2.4 Werkzeug- und Matrixregeln
 
 - axe-core MUSS als Projektabhängigkeit mit fester Version laufen (LB nutzte 4.10 nur ad hoc, LB-A11Y-13). Ausnahmen in einer versionierten Liste mit Begründung, Screen, Ablaufdatum und Ticket.
-- Browser-Achse nach E-61/R0-14 §3: axe in Chromium je Commit; Tastatur-Referenzläufe (A11Y-101) in Chromium, Firefox, WebKit; mobile Viewports 390×844 (WebKit) und 360×800 (Chromium-Android) plus 320×640 für Reflow.
-- Screenreader-Matrix (D-15-08): NVDA aktuell + Firefox ESR und Chrome; VoiceOver macOS + Safari; VoiceOver iOS + Safari; TalkBack + Chrome best effort; JAWS nicht zugesichert.
+- Browser-Achse nach E-61/R0-20 (eigenständige Matrix, E-12): axe in Chromium je Commit; Tastatur-Referenzläufe (A11Y-101) in Chromium, Firefox, WebKit; mobile Viewports 390×844 (WebKit) und 360×800 (Chromium-Android) plus 320×640 für Reflow.
+- Screenreader-Matrix (E-126): NVDA aktuell + Firefox ESR und Chrome; VoiceOver macOS + Safari; VoiceOver iOS + Safari; TalkBack + Chrome best effort; JAWS nicht zugesichert.
 - Automatisch findet axe nur einen Teil der Barrieren (LB-Doku: „etwa ein Drittel“). Manuelle Fälle (MAN/NVDA/VO) sind deshalb Pflicht für R1-29 und werden mit Datum, Version von Browser/Hilfstechnik, Befund und Schweregrad protokolliert (Format R0-26).
 
 ---
@@ -272,7 +296,7 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 | Course Captain (Free) | `course-captain` | `languages/course-captain.pot` | `Text Domain: course-captain`, `Domain Path: /languages` |
 | Course Captain Pro | `course-captain-pro` | `languages/course-captain-pro.pot` | dto. |
 
-- **Quellsprache** der Strings: **Englisch (en_US)** (D-15-01). Grund: Übersetzung über translate.wordpress.org (Free auf WordPress.org, E-09) setzt englische Quelltexte voraus; Deutsch wird erste vollständige Übersetzung (`de_DE`, `de_DE_formal`, KANN `de_AT`/`de_CH`). LB nutzt Deutsch als Quelle (`docs/uebersetzung.md`).
+- **Quellsprache** der Strings: **Englisch (en_US)** (E-121). Grund: Übersetzung über translate.wordpress.org (Free auf WordPress.org, E-09) setzt englische Quelltexte voraus; Deutsch wird erste vollständige Übersetzung (`de_DE`, `de_DE_formal`, KANN `de_AT`/`de_CH`); Auslieferung als Sprachpaket über translate.wordpress.org, bis zur Freigabe zusätzlich im ZIP (E-208). LB nutzt Deutsch als Quelle (`docs/uebersetzung.md`).
 - Laden: Für WordPress.org-Plugins lädt WP Übersetzungen just-in-time; `load_plugin_textdomain()` bleibt nur für mitgelieferte Dateien nötig (Pro). **MUSS:** Kein Übersetzungsaufruf vor dem Hook `init` (sonst lädt WP ab 6.7 zu früh und meldet `_load_textdomain_just_in_time`); Labels für CPT/Rollen/Settings-Register entstehen in oder nach `init`.
 - Übersetzungen unter `wp-content/languages/plugins/` haben Vorrang (WP-Standard, wie LB).
 
@@ -280,7 +304,7 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 
 | ID | Regel | Beleg/Werkzeug |
 |---|---|---|
-| I18N-R-01 | Domain immer als Literal, keine Variablen/Konstanten | LB-I18N-01 (`check-domains.php`), WPCS `WordPress.WP.I18n` |
+| I18N-R-01 | Domain immer als Literal, keine Variablen/Konstanten | LB-I18N-01 (Verhalten von `check-domains.php`, neu geschrieben nach E-01), WPCS `WordPress.WP.I18n` |
 | I18N-R-02 | Text immer als Literal; keine Variablen im ersten Argument; keine dynamisch gebauten Schlüssel | WPCS `NonSingularStringLiteralText`; ESLint `@wordpress/i18n-no-variables` |
 | I18N-R-03 | **Keine zusammengesetzten Sätze:** ganze Sätze mit Platzhaltern (`sprintf( __( 'Module %1$s unlocks on %2$s.', … ), $name, $date )`), nummerierte Platzhalter ab zwei Werten, kein Verketten übersetzter Fragmente, keine Satzteile in Variablen | Code-Review; Lint „Verkettung mit `.` direkt an `__()`“ (neues Prüfskript, §3.8) |
 | I18N-R-04 | Mengen nur mit `_n()`/`_nx()` (PHP) bzw. `_n` aus `@wordpress/i18n` (JS); **nie** `*_one`-Schlüsselpaare (LB-I18N-03) und nie `n === 1 ? … : …` | WPCS, ESLint, Review |
@@ -320,7 +344,7 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 ### 3.5 Sprache des Lernenden und Sprachwechsel
 
 - WordPress kennt eine **Website-Sprache** (`get_locale()`) und eine **Profilsprache** je Benutzer (`get_user_locale()`). Im Admin gilt automatisch die Profilsprache. Im Frontend gilt standardmäßig die Website-Sprache.
-- **Vorschlag (D-15-04):** Einstellung „Lernbereich in der Profilsprache des Lernenden anzeigen“ (Tab Allgemein, Standard **an**, wenn mehr als eine Sprache installiert ist). Umsetzung: Für angemeldete Nutzer im Lernbereich `switch_to_user_locale( $user_id )` (WP ≥ 6.2) vor dem Rendern der Course-Captain-Hülle; Boot-Konfiguration liefert diese Locale an den Client; REST-Aufrufe der Lern-App senden `_locale=user`. Der Container erhält `lang`/`dir` der UI-Sprache, auch wenn das Theme drumherum in der Website-Sprache bleibt (WCAG 3.1.2).
+- **Beschluss (E-124):** Einstellung „Lernbereich in der Profilsprache des Lernenden anzeigen“ (Tab Allgemein, Standard **an**, wenn mehr als eine Sprache installiert ist). Umsetzung: Für angemeldete Nutzer im Lernbereich `switch_to_user_locale( $user_id )` (WP ≥ 6.2) vor dem Rendern der Course-Captain-Hülle; Boot-Konfiguration liefert diese Locale an den Client; REST-Aufrufe der Lern-App senden `_locale=user`. Der Container erhält `lang`/`dir` der UI-Sprache, auch wenn das Theme drumherum in der Website-Sprache bleibt (WCAG 3.1.2).
 - **Sprachwechsel:** L-20 „Konto & Datenschutz“ zeigt ein Feld „Sprache“ (nur installierte Sprachen, schreibt die WP-Profilsprache `locale`); nach Speichern lädt der Lernbereich in der neuen Sprache. Kein eigener Sprachspeicher neben WP (Konzept 43: „keine doppelten Optionen“).
 - Gäste (Katalog, Einladung L-17, Verifikation L-16) sehen die Website-Sprache bzw. die Sprache, die ein Übersetzungsplugin für die Seite setzt (§4).
 
@@ -338,7 +362,7 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 
 | ID | Prüfung (Erwartung) | Werkzeug | Ziel |
 |---|---|---|---|
-| I18N-001 | `check-domains.php`-Port (Domains `course-captain`, `course-captain-pro`) und `.pot` vorhanden – CI blockierend | PHP-Skript (INV-E-046) | R1-19 |
+| I18N-001 | Eigener Domain-Lint mit dem Verhalten von LB `check-domains.php` (neu geschrieben, kein Code übernommen, E-01; Domains `course-captain`, `course-captain-pro`) und `.pot` vorhanden – CI blockierend | PHP-Skript (INV-E-046) | R1-19 |
 | I18N-002 | WPCS `WordPress.WP.I18n` ohne Fehler (Literal, Translator-Kommentare, Platzhalter-Reihenfolge) | PHPCS | R1-19 |
 | I18N-003 | ESLint `@wordpress/i18n-*` (text-domain, no-variables, translator-comments, no-collapsible-whitespace, no-placeholders-only) ohne Fehler | ESLint | R1-19 |
 | I18N-004 | `.pot` ist aktuell: `make-pot` in CI erzeugt keinen Diff zu den eingecheckten Strings (ohne Header-Zeitstempel) | `wp i18n make-pot` (INV-E-047) | R1-19 |
@@ -354,9 +378,12 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 | I18N-014 | Kein Übersetzungsaufruf vor `init` (keine `_load_textdomain_just_in_time`-Notice im Debug-Log beim Aktivieren und bei Frontend-/REST-Aufruf) | PHPUnit/E2E mit `WP_DEBUG` | R1-19 |
 | I18N-015 | Übersetzer-Review `de_DE`: vollständige Übersetzung, Du/Sie-Konsistenz (`de_DE` vs. `de_DE_formal`), Terminologieliste | MAN | R1-29 |
 
-### 3.8 Werkzeuge aus LearnBoating
+### 3.8 Werkzeuge: Verhalten aus LearnBoating, neu geschrieben
 
-- **Übernehmen** (nach E-01): `tools/i18n/check-domains.php` (Tokenizer, Domain-Literal, `.pot`-Existenz) – Domainliste ersetzen, Ausgabe englisch oder neutral, `skip` auf `tests`, `vendor`, `node_modules`, Build-Ordner. `tools/i18n/make-pot.sh` – Paketnamen ersetzen, `--skip-audit` **entfernen** (Audit-Warnungen von WP-CLI sind für I18N-R-03/-06 nützlich), `make-json` in den Release-Schritt (R0-35) aufnehmen.
+Nach **E-01 (Clean Room)** wird kein LB-Werkzeug kopiert. Die folgenden Punkte sind **Verhaltensspezifikationen**; die Werkzeuge werden ohne Einsicht in den LB-Quelltext während der Umsetzung neu geschrieben.
+
+- **Domain-Lint (Verhalten wie LB `tools/i18n/check-domains.php`):** Tokenizer-basierte Prüfung, dass jede i18n-Funktion die Domain als Literal trägt und je Paket eine `.pot` existiert. Erlaubte Domains `course-captain`, `course-captain-pro`; Ausgabe englisch oder neutral; ausgenommen `tests`, `vendor`, `node_modules`, Build-Ordner.
+- **POT-Erzeugung (Verhalten wie LB `tools/i18n/make-pot.sh`):** `wp i18n make-pot` je Paket mit leeren Headern und `--skip-theme-json`; **ohne** `--skip-audit` (Audit-Warnungen von WP-CLI sind für I18N-R-03/-06 nützlich); `make-json` im Release-Schritt (R0-35).
 - **Ergänzen:** Regex-Lint für feste Datumsformate (I18N-005) und Verkettung übersetzter Texte (I18N-R-03), Stylelint für logische Eigenschaften (I18N-R-12), Pseudo-Locale-Generator (`.po` aus `.pot` per Skript), axe-Fixture für Playwright.
 - **Nicht übernehmen:** String-Bundle mit `_one`-Schlüsseln (LB-I18N-03); Rückfall auf `de-DE` (LB-I18N-04); feste Formatstrings (LB-I18N-06).
 
@@ -374,17 +401,17 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 4. Untertitelspuren tragen `srclang`; die Standardspur folgt der UI-Sprache, sonst der Inhaltssprache (A11Y-090).
 5. Suche und Sortierung in der Fragenbank berücksichtigen die Sprache (Collation `utf8mb4_unicode_520_ci` bzw. `*_0900_ai_ci`; FULLTEXT-Stoppwörter, D-14-04).
 
-**Offene Fragen an R0-25 (nicht hier entscheiden):**
+**Übergabefragen an R0-25 und ihre Beschlüsse:**
 
-| Nr. | Frage |
-|---|---|
-| Ü-1 | Sprachversionen eines Kurses: eigener Kurs je Sprache mit Verknüpfung (`translation_group`) oder ein Kurs mit Sprachvarianten je Lektion/Frage? Wie verhalten sich Fortschritt, Mastery und Grants zwischen Sprachversionen? |
-| Ü-2 | Gemischte Sprachen innerhalb eines Kurses/einer Prüfung zulässig? Prüfungs-Blueprint nur aus Fragen einer Sprache? |
-| Ü-3 | Locale-Fallback: fehlt eine Übersetzung einer Frage, Original zeigen (mit `lang`) oder Frage ausschließen? |
-| Ü-4 | Kompatibilität mit Übersetzungsplugins (WPML, Polylang, TranslatePress) für CPT-Inhalte: unterstützt, getestet oder nur dokumentiert? Was gilt für eigene `cc_`-Tabellen (Fragen), die solche Plugins nicht kennen? |
-| Ü-5 | Mehrsprachige Mail-Vorlagen des Betreibers (I18N-R-33) und mehrsprachige Zertifikatsvorlagen (Pro). |
-| Ü-6 | Katalog L-01: Filter nach Inhaltssprache; SEO `hreflang` bleibt Sache des SEO-/Übersetzungsplugins (Kap. 21). |
-| Ü-7 | Import (R0-10): Paket-`languages[]` vs. Zielsprache der Site; Verhalten bei Paket mit mehreren Sprachen. |
+| Nr. | Frage | Beschluss |
+|---|---|---|
+| Ü-1 | Sprachversionen eines Kurses: eigener Kurs je Sprache mit Verknüpfung (`translation_group`) oder ein Kurs mit Sprachvarianten je Lektion/Frage? Wie verhalten sich Fortschritt, Mastery und Grants zwischen Sprachversionen? | **E-155:** eigener Kurs je Sprache, verknüpft über eine Übersetzungsgruppe; Fortschritt, Grants und Zertifikate je Kurs. **E-156:** kein Grant-Übertrag in R1, Sammelvergabe durch den Kursmanager |
+| Ü-2 | Gemischte Sprachen innerhalb eines Kurses/einer Prüfung zulässig? Prüfungs-Blueprint nur aus Fragen einer Sprache? | **E-157:** erlaubt mit `lang`-Kennzeichnung und Validator-Warnung |
+| Ü-3 | Locale-Fallback: fehlt eine Übersetzung einer Frage, Original zeigen (mit `lang`) oder Frage ausschließen? | Durch E-155 (eigener Kurs je Sprache) gibt es keine fehlenden Fragenübersetzungen innerhalb eines Kurses; UI-Locale-Fallback auf eine andere Variante derselben Sprache (`de_AT` → `de_DE`) ist technisch festgelegt (D-25-07) |
+| Ü-4 | Kompatibilität mit Übersetzungsplugins (WPML, Polylang, TranslatePress) für CPT-Inhalte: unterstützt, getestet oder nur dokumentiert? Was gilt für eigene `cc_`-Tabellen (Fragen), die solche Plugins nicht kennen? | Technisch festgelegt (D-25-06): Grenze nur dokumentieren, mit Systemstatus-Hinweis |
+| Ü-5 | Mehrsprachige Mail-Vorlagen des Betreibers (I18N-R-33) und mehrsprachige Zertifikatsvorlagen (Pro). | **E-159:** Sprachvarianten für Mailvorlagen schon in Free. **E-158:** Zertifikat in der Kurssprache, im Snapshot eingefroren |
+| Ü-6 | Katalog L-01: Filter nach Inhaltssprache; SEO `hreflang` bleibt Sache des SEO-/Übersetzungsplugins (Kap. 21). | Kein eigener Beschluss; Details in R0-25 |
+| Ü-7 | Import (R0-10): Paket-`languages[]` vs. Zielsprache der Site; Verhalten bei Paket mit mehreren Sprachen. | Kein eigener Beschluss; Details in R0-25/R0-10 |
 
 ---
 
@@ -398,29 +425,35 @@ Werkzeuge: **AXE** = axe-core über `@axe-core/playwright`, Tags `wcag2a, wcag2a
 | I18N-001…014 | R1-19 | grün in CI |
 | I18N-015, Übersetzer-Review | R1-29 | Protokoll |
 | Zeitausgleich (§2.3) Datenvertrag | R0-06/R0-07/R0-17 (Deltas), R1-08, R1-20 | Snapshot-Test, Rechte-Negativtest, Audit |
-| Konformitätsbericht je Release | R1-24, R0-35 | nach D-15-06 |
+| Konformitätsbericht je Release | R1-24, R0-35 | nach E-125 |
 | Nutzertests, Geräte, Probanden | R0-26 | übernimmt §2.4 und A11Y-102…104 |
 | Inhaltssprache | R0-25 | §4 Ü-1…Ü-7 beantwortet |
 
 ---
 
-## 6. Entscheidungsbedarf (neu, nicht in `ENTSCHEIDUNGEN.md`)
+## 6. Entscheidungsbedarf – beschlossen
 
-Nummern für `ENTSCHEIDUNGEN.md` werden beim Zusammenführen vergeben.
+Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md`, 16.11.2026). Die D-Nummern bleiben als Verweise im Text stehen.
 
-| ID | Frage | Optionen | Empfehlung | Betrifft |
-|---|---|---|---|---|
-| D-15-01 | Quellsprache der UI-Strings | a) Deutsch wie LB · b) Englisch (en_US), Deutsch als erste Übersetzung | **b)**: Voraussetzung für translate.wordpress.org und Sprachpakete (E-09); Planungsdokumente bleiben deutsch | R1-01, R1-19, R0-35 |
-| D-15-02 | Nachteilsausgleich in Prüfungen | a) keiner (Ausnahme „essenziell“) · b) Zeitfaktor/unbegrenzt je Lernendem (Site/Kurs/Regel) durch Berechtigte, ohne Begründungstext, im Snapshot, in Ergebnis/Nachweis nicht sichtbar · c) wie b), aber Kennzeichnung im Nachweis | **b)** (§2.3); Datenschutzbewertung in R0-17, Deltas R0-06 (`cc_accommodation`) und R0-07 (`cc_manage_accommodations`) | R1-08, R1-20, R0-17 |
-| D-15-03 | Timer-Modi je Prüfungsregel | a) nur `strict` · b) `strict` (Standard für Nachweise) + `practice` (selbst abschaltbar/verlängerbar, nicht nachweisfähig) | **b)** | R0-08, R1-08 |
-| D-15-04 | Lernbereich in Profilsprache und Zeitzonenanzeige | a) immer Website-Sprache wie LB · b) Einstellung „Profilsprache“, Standard an bei > 1 installierten Sprache; Fristen mit Zonenkennung, keine Nutzerzeitzone in R1 · c) zusätzlich eigene Nutzerzeitzone | **b)**; Nutzerzeitzone frühestens mit Pro-Erinnerungen (Konzept Kap. 19) | R1-19, R1-21, R0-25 |
-| D-15-05 | A11Y-Gate in der CI | a) axe nur berichten · b) axe-Verstöße aller Schweregrade für die WCAG-2.2-AA-Tags blockieren, Ausnahmen nur über Liste mit Ablaufdatum; manuelle Durchläufe (A11Y-102/103) vor jedem Minor-Release · c) wie b), manuell nur vor Major | **b)** | R0-18, R1-18, R1-19 |
-| D-15-06 | Konformitätsnachweis des Produkts | a) keiner · b) Konformitätsbericht (WCAG-2.2-AA-Tabelle je Kriterium: erfüllt/teilweise/nicht, bekannte Einschränkungen) je Release in der Doku · c) zusätzlich Vorlage für die Barrierefreiheitserklärung des Betreibers | **b)**; c) nur als neutraler Hinweis, welche Angaben der Betreiber braucht (keine Rechtstextvorlage, E-04) | R1-24, R0-35 |
-| D-15-07 | Kontrastprüfung bei Design-Tokens (A11Y-042) | a) nur Warnung · b) Speichern ablehnen · c) automatisch nächstgelegene konforme Farbe vorschlagen und Speichern mit Warnung erlauben | **c)**, Lernbereich nutzt nur konforme Werte | R0-27, R1-16 |
-| D-15-08 | Zugesicherte Screenreader-Kombinationen | a) NVDA + VO (macOS, iOS) · b) a) + TalkBack · c) a) + JAWS | **a)**, TalkBack best effort, JAWS nicht zugesichert | R0-26, R1-29 |
-| D-15-09 | Barrierefreie PDF-Nachweise (Pro-Designer, E-96) | a) keine Zusage · b) getaggtes PDF (PDF/UA-orientiert: Struktur, Sprache, Alternativtexte) als Pro-Abnahmekriterium | **b)**; Free bleibt bei HTML/Druck | R3 (Pro-Zertifikate), R0-29 |
-| D-15-10 | Barrierefreiheit im Publish-Validator (R0-22) | a) nur Hinweise · b) fehlender Alt-Text (ohne `decorative`) blockiert; fehlende Untertitel, Überschriftensprünge, unklare Linktexte warnen · c) auch fehlende Untertitel blockieren | **b)** (A11Y-110/111); c) wäre für bestehende Videobestände nicht erfüllbar (LB: 449 Platzhaltervideos ohne Untertitel) | R0-22, R1-26 |
-| D-15-11 | RTL-Stufe in R1 | a) best effort · b) RTL-fähig und mit einer RTL-Sprache getestet (I18N-007), Release-Gate | **b)**; Konzept Kap. 21 verlangt RTL-Fähigkeit | R1-19, R1-18 |
+| ID | Frage | Beschluss | Betrifft |
+|---|---|---|---|
+| D-15-01 → **E-121** | Quellsprache der UI-Strings | Englisch (en_US), Deutsch als erste Übersetzung; Sprachpaket über translate.wordpress.org (E-208) | R1-01, R1-19, R0-35 |
+| D-15-02 → **E-122** | Nachteilsausgleich in Prüfungen | Zeitfaktor 100–400 % oder ohne Limit je Lernendem, nur durch Berechtigte, ohne Begründungstext, im Snapshot eingefroren, in Ergebnis und Nachweis nicht sichtbar; Datenschutzbewertung (Art. 9) in R0-17 | R0-06, R0-07, R0-08, R0-17, R1-08 |
+| D-15-03 → **E-123** | Timer-Modi je Prüfungsregel | `strict` (Standard für Nachweise) und `practice` (abschaltbar/verlängerbar, nicht nachweisfähig) | R0-08, R1-08 |
+| D-15-04 → **E-124** | Lernbereich in Profilsprache und Zeitzonenanzeige | Einstellung „Profilsprache“, Standard an bei > 1 installierten Sprache; Fristen mit Zonenkennung; keine Nutzerzeitzone in R1 | R1-19, R0-25 |
+| D-15-05 | A11Y-Gate in der CI | Technisch festgelegt: axe-Verstöße für WCAG-2.2-AA-Tags blockieren, Ausnahmen nur über Liste mit Ablaufdatum; manuelle Durchläufe vor jedem Minor-Release | R0-18, R1-18, R1-19 |
+| D-15-06 → **E-125** | Konformitätsnachweis des Produkts | Konformitätsbericht je Release; keine Vorlage für die Barrierefreiheitserklärung (E-04), nur neutraler Hinweis auf nötige Angaben | R1-24, R0-35 |
+| D-15-07 | Kontrastprüfung bei Design-Tokens | Technisch festgelegt: nächstgelegene konforme Farbe vorschlagen | R0-27, R1-16 |
+| D-15-08 → **E-126** | Zugesicherte Screenreader | NVDA und VoiceOver (macOS, iOS); TalkBack best effort, JAWS nicht zugesichert | R0-26, R1-29 |
+| D-15-09 → **E-127** | Barrierefreie PDF-Nachweise (Pro) | Getaggtes PDF (an PDF/UA orientiert) als Pro-Abnahmekriterium; ohne geeignete Bibliothek kein PDF (E-238) | R3, R0-29 |
+| D-15-10 → **E-131** | Barrierefreiheit im Publish-Validator | Fehlender Alt-Text (ohne `decorative`) = Blocker; fehlende Untertitel = Warnung, per Site-Einstellung Blocker; Überschriftensprünge/Linktexte warnen | R0-22, R1-19 |
+| D-15-11 | RTL-Stufe in R1 | Technisch festgelegt: RTL-fähig und mit einer RTL-Sprache getestet, Release-Gate | R1-19, R1-18 |
+
+### Offene Punkte nach Einarbeitung
+
+- Welche Fassung der EN 301 549 zum Release gilt, wird bei der Freigabe von R1-19 geprüft (§1.1).
+- A11Y-093 im Default-Modus „immer laden“ (E-45a): Für den direkt geladenen Fremd-Player gibt es noch keinen eigenen Prüffall (z. B. zugänglicher Name des eingebetteten Players); in R1-19 ergänzen.
+- Ü-6/Ü-7 haben keinen eigenen Beschluss und werden in R0-25 bzw. R0-10 präzisiert.
 
 ---
 

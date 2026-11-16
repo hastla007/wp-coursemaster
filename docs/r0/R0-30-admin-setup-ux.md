@@ -1,10 +1,23 @@
-# R0-30 · Admin-Menü, Setup-Assistent und Einstellungs-UX (Entwurf)
+# R0-30 · Admin-Menü, Setup-Assistent und Einstellungs-UX
 
-**Status:** Entwurf zur Abnahme, **nicht abgehakt**. Keine Implementierung, kein Testlauf, kein Commit. Die DoD verlangt Feld-/UI-Vertrag, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe. · **Stand:** 16.11.2026
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Keine Implementierung, kein Testlauf. Die DoD verlangt Feld-/UI-Vertrag, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe. · **Stand:** 16.11.2026
 **Bezug:** TODO R0-30 (Voraussetzungen R0-15, R0-22, R0-26, R0-27; DoD: „Menübaum, Tab-Screens, Hilfetexte, Validierungsfehler, Risk-Confirmations und Tastaturabläufe als prüfbare Wireframes“), Folgetask **R1-32** (DoR in R0-24 §4.2: „nicht ready, R0-30 fehlt“), mittelbar R1-36 und R1-29.
-**Quellen (nur gelesen):** `konzept.md` Kap. 16 (16.1–16.3), Kap. 43.2/43.3; `TODO-WETTBEWERBSANALYSE.md` R0-30, R1-31…R1-36; `docs/r0/ENTSCHEIDUNGEN.md` Beschlussprotokoll E-01…E-20 und Empfehlungen E-21…E-224; R0-11 §2.1 (Z-Zustände), §2.2 (A-01…A-18), §3.4 (Flow 4, F4.1…F4.8), §4 (C-06, C-12, C-16), §5 (N-08, N-10); R0-27 §1.1 (SR-1…SR-8), §1.3 (Register), §1.4, §1.5 (INV-S-01…14), §2.1–§2.5, §2.7, §3.2, §4.1, §5; R0-15 §1.3 (K-01…K-18), §2.2 (A11Y-001…010, A11Y-080…085), §3.2 (I18N-R); R0-22 §1.1–§1.3, §3.4 (Meldungsregeln); R0-26 §1.5 (AD-T01…AD-T06), §2.5 (S-07), §5.3 (UX-060…065); R0-07 §3.1 (Caps #1…#24), §4.2 (S-01…S-24); R0-17 §3.4 „Hinweis zu E-10“; R0-20 LB-K-05/06, §2.6 (KOMP-050…056), KOMP-102; R0-02 Inventur C INV-C-138…146; R0-35 D35-3.
+**Quellen (nur gelesen):** `konzept.md` Kap. 16 (16.1–16.3), Kap. 43.2/43.3; `TODO-WETTBEWERBSANALYSE.md` R0-30, R1-31…R1-36; `docs/r0/ENTSCHEIDUNGEN.md` Beschlussprotokoll E-01…E-20 und Empfehlungen E-21…E-224; R0-11 §2.1 (Z-Zustände), §2.2 (A-01…A-18), §3.4 (Flow 4, F4.1…F4.8), §4 (C-06, C-12, C-16), §5 (N-08, N-10); R0-27 §1.1 (SR-1…SR-8), §1.3 (Register), §1.4, §1.5 (INV-S-01…14), §2.1–§2.5, §2.7, §3.2, §4.1, §5; R0-15 §1.3 (K-01…K-18), §2.2 (A11Y-001…010, A11Y-080…085), §3.2 (I18N-R); R0-22 §1.1–§1.3, §3.4 (Meldungsregeln); R0-26 §1.5 (AD-T01…AD-T06), §2.5 (S-07), §5.3 (UX-060…065); R0-07 §3.1 (Caps #1…#24), §4.2 (S-01…S-24); R0-17 §3.4 „Hinweis zu E-10“; R0-20 LB-K-05/06, §2.6 (KOMP-050…056), KOMP-102; R0-02 Inventur C INV-C-138…146; R0-35 E-207.
 
-**Arbeitsannahmen.** Beschlossen und hier umgesetzt: **E-01** (Clean Room: Verhalten aus LB wird nur nach Spezifikation neu gebaut), **E-10** (Website-Härtung im Kern, mit Schaltern und Erkennung vorhandener Security-Plugins; E-46 fail-closed gilt für Login/Reset), **E-20** (Lösungserklärungen nur mit Pro). Als angenommen gelten alle Empfehlungen in `ENTSCHEIDUNGEN.md`, besonders **E-100** (keine gesperrten Pro-Schalter in Free-Screens), **E-102** (Setup legt nur ein leeres Kursgerüst an), **E-202** (eigenes Course-Captain-Hauptmenü), E-19, E-45, E-46, E-49, E-83, E-89, E-121, E-124, E-131, E-166, E-197, E-207 (Präfix `ccap_`), E-210, E-216…E-224. Neue Fragen stehen in §6.
+### Beschlussstand
+
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). Die früheren Fragen D30-1…D30-9 sind als **E-239** und **E-260…E-267** entschieden (§6). Eingearbeitet:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | Verhalten aus LB (Härtung, Systemstatus) wird nur nach Spezifikation neu gebaut |
+| **E-10**, E-239…E-242, E-260…E-263 | Website-Härtung im Kern (Task R1-45): Setup-Schritt 6 und 11. Tab; **aus, bis der Admin speichert**, der Assistent schlägt „an“ vor (außer bei erkanntem Security-Plugin), danach je Funktion `auto`; Registrierungslimit und Gerätecookie (E-241); fail-closed für Login/Reset mit Ausnahme bekannter Geräte und Notausschalter |
+| **E-20**, E-268, E-269 | Erklärungs-Schalter sind Pro-Felder (`pro.learning.feedback.show_explanations`, `pro.exams.feedback.show_explanations`); Free-Editor blendet das Erklärungsfeld aus |
+| **E-38**, E-254, E-256 | Menüpunkt „Integrationen“ in R1 nur lesend (Partnererkennung); Aktionen mit Pro/R3 |
+| **E-45/E-45a**, E-246 | Setup-Schritt 5 und Tab Datenschutz: externe Medien **Default „Immer laden“**, Hinweis auf die Datenübertragung und Umschalter auf „Klick zum Laden“; Offenlegung in der readme (§2.4, §3.3.9) |
+| **E-100, E-102, E-202, E-19, E-46, E-49, E-83, E-89, E-121, E-124, E-131, E-166, E-197, E-210, E-216…E-224** | wie angenommen |
+| **E-168** | Text-/Dateiaufgaben in R1; eigene Admin-Seiten dafür sind hier nicht spezifiziert (Offene Punkte) |
+| **E-207** | Präfix `ccap_` für Caps, CPTs, Rollen; Optionen `course_captain_*` |
 
 **Sprache der Texte.** Alle UI-Texte unten sind deutsche Zieltexte (de_DE, Anrede „du“ wie im Lernbereich). Quellsprache im Code ist en_US (E-121); R1-32 leitet die Quelltexte daraus ab. Platzhalter in `{}`; Mengen mit `_n()` (I18N-R-03/04).
 
@@ -14,13 +27,13 @@
 |---|---:|
 | sichtbare Menüpunkte Free (Gruppen bedingt) / mit Pro | 12 / 13 + Pro-Screens |
 | versteckte Admin-Seiten mit eigenem Slug | 9 |
-| Settings-Tabs (Kap. 43.2: 10, plus „Website-Härtung“ nach D30-4) | 11 |
+| Settings-Tabs (Kap. 43.2: 10, plus „Website-Härtung“ nach E-262) | 11 |
 | Setup-Schritte | 8 |
 | Zeilen in den Tab-Wireframes §3.3 (Felder und Anzeigen) | 94 |
 | Risiko-Dialoge RC-01…RC-18 + Dialog „Ungespeicherte Änderungen“ | 18 + 1 |
 | Bereitschaftsprüfungen RDY-01…RDY-15 | 15 |
-| Testfälle ADM (§5) | 103 |
-| neue Entscheidungen D30-1…D30-9 | 9 |
+| Testfälle ADM (§5) | 104 |
+| Entscheidungen E-239, E-260…E-267 (beschlossen) | 9 |
 
 ---
 
@@ -30,14 +43,14 @@
 
 Kap. 43.2 nennt zwölf Menüpunkte, aber keinen Platz für **Protokoll** (E-19, Free), **Medien & Dateien** (A-06), **Kurs-FAQ und Lerntipps** (E-16, A-05), **Rechte & Freigabe** und den **Setup-Assistenten** (R0-11 C-06). Zusätzliche Menüpunkte würden das Menü auf 16 bis 17 Einträge verlängern. LB-Unterseiten zeigen, dass seltene Seiten im Menü untergehen.
 
-**Lösung (Vorschlag, D30-6):** Das Hauptmenü bleibt bei den Punkten aus Kap. 43.2. Fehlende Seiten werden **Bereiche** eines vorhandenen Menüpunkts und sind über eine einheitliche **Bereichsnavigation** (§1.4) oben auf der Seite erreichbar:
+**Lösung (E-264):** Das Hauptmenü bleibt bei den Punkten aus Kap. 43.2. Fehlende Seiten werden **Bereiche** eines vorhandenen Menüpunkts und sind über eine einheitliche **Bereichsnavigation** (§1.4) oben auf der Seite erreichbar:
 
 | Fehlender Platz | Neuer Ort | Begründung |
 |---|---|---|
 | Kurs-FAQ, Lerntipps (CPT `ccap_faq`, `ccap_tip`) | Kurse › Bereich „Kurs-FAQ“ bzw. „Lerntipps“ | gehören immer zu einem Kurs; dieselbe Cap #1 |
 | Medien & Dateien (A-06) | Kurse › Bereich „Medien & Dateien“ | Verwendung je Kurs; Cap #1 (R0-07 S-07) |
 | Rechte & Freigabe, Kurs-Export | Inhalte importieren › Bereiche „Rechte & Freigabe“, „Kurs-Export“ | gehören zum Importablauf (A-13) |
-| Protokoll (Audit, E-19) | Systemstatus › Bereich „Protokoll“; Direktlinks aus Übersicht und Lernenden-Detail („Verlauf“) | eigene Cap #21; `cc_support` hat #21 und #22 (R0-07) |
+| Protokoll (Audit, E-19) | Systemstatus › Bereich „Protokoll“; Direktlinks aus Übersicht und Lernenden-Detail („Verlauf“) | eigene Cap #21; `ccap_support` hat #21 und #22 (R0-07) |
 | Einstellungen sichern (Export/Import) | Systemstatus › Bereich „Einstellungen sichern“ | R0-11 A-16; Cap #19 |
 | Setup-Assistent (A-02) | **kein Menüpunkt**; erreichbar über Admin-Hinweis, Übersicht-Checkliste und Link „Einrichtungsassistent öffnen“ im Kopf von Einstellungen | wird selten gebraucht |
 | „Erweiterungen“ (E-100) | kein Menüpunkt; ausblendbare Karte in Integrationen (R0-11 N-08) | WordPress.org-Richtlinie |
@@ -54,7 +67,7 @@ Präfixe: Caps `ccap_` nach E-207. Die Nummer `#n` verweist auf R0-07 §3.1 (dor
 | 3 | Fragenbank | `admin.php?page=course-captain-questions` | #1 (kursübergreifend #5) | immer bei Cap | A-07 | – |
 | 4 | Quizzes & Prüfungen | `admin.php?page=course-captain-exams` | #1 (Objekt: M-06) | immer bei Cap | A-08 | – |
 | 5 | Lernende | `admin.php?page=course-captain-learners` | #13 `ccap_view_learner_details` | immer bei Cap | A-09 | Zugänge · Zugangsregeln (#10) |
-| 6 | Gruppen | `admin.php?page=course-captain-groups` | #11 `ccap_manage_groups` | `enrollment.groups_enabled = true` **oder** mindestens eine Gruppe existiert (D30-7) | A-10 | – |
+| 6 | Gruppen | `admin.php?page=course-captain-groups` | #11 `ccap_manage_groups` | `enrollment.groups_enabled = true` **oder** mindestens eine Gruppe existiert (E-265) | A-10 | – |
 | 7 | Zertifikate | `admin.php?page=course-captain-certificates` | `ccap_menu_certificates` ⇐ #13 ∨ #17 | immer bei Cap | A-11 | Ausgestellte Nachweise · Basisvorlage (#17) |
 | 8 | Berichte | `admin.php?page=course-captain-reports` | #12 `ccap_view_reports` | immer bei Cap | A-12 | – |
 | 9 | Inhalte importieren | `admin.php?page=course-captain-import` | `ccap_menu_import` ⇐ #6 ∨ #7 ∨ #8 | immer bei Cap | A-13 | Pakete (#6) · Rechte & Freigabe (#8) · Kurs-Export (#7) |
@@ -110,7 +123,7 @@ Modul- und Lektions-CPTs (`ccap_module`, `ccap_lesson`) haben `show_in_menu = fa
 | Freie Navigation | Jeder Schritt ist über die Schrittliste erreichbar (keine erzwungene Reihenfolge). Ausnahme: Schritt 8 prüft immer den aktuellen Stand. |
 | Wiederaufnahme | Beim erneuten Öffnen springt der Assistent auf den ersten Schritt mit Status `pending` nach dem zuletzt bearbeiteten (AD-T02: Abbruch in Schritt 4 → Wiedereinstieg in Schritt 4). Gespeicherte Werte kommen aus den Settings und sind vorbelegt (A11Y-083). Nicht gespeicherte Eingaben eines Schritts gehen beim Schließen des Tabs verloren; davor warnt `beforeunload`. |
 | Erneuter Aufruf | Nach Abschluss öffnet „Einrichtungsassistent öffnen“ den Assistenten mit allen aktuellen Werten. Verlassen ohne Speichern ändert nichts (F4.6): keine Option, kein Audit, kein Status. Seiten und Kursgerüst werden nie doppelt angelegt (Idempotenz über `created`). |
-| Abschluss | „Einrichtung abschließen“ in Schritt 8 ist **immer** möglich. Mit offenen Blockern lautet der Status `completed_with_issues`; die Übersicht listet die offenen Punkte (D30-8). Danach Weiterleitung auf die Übersicht mit fokussiertem Hinweis „Einrichtung abgeschlossen. {n} Punkte sind noch offen.“ |
+| Abschluss | „Einrichtung abschließen“ in Schritt 8 ist **immer** möglich. Mit offenen Blockern lautet der Status `completed_with_issues`; die Übersicht listet die offenen Punkte (E-266). Danach Weiterleitung auf die Übersicht mit fokussiertem Hinweis „Einrichtung abgeschlossen. {n} Punkte sind noch offen.“ |
 | Parallel | Zwei Admins: Konflikte je Tab über `_rev` (R0-27 S-6). `setup_state` hat ein eigenes `_rev`; Schrittliste zeigt „zuletzt bearbeitet von {Anzeigename}, {Zeit}“. |
 | Multisite | Netzwerkaktivierung ist blockiert (E-49, F4.8). Je Site eigene `course_captain_setup_state`. |
 
@@ -140,8 +153,8 @@ Kap. 16.1 hat sieben Schritte. Die Härtung (E-10) kommt als eigener Schritt 6 d
 | 2 | `addresses` | Adressen & Seiten | Lernbereich-Adresse, Kurs-Adresse, Katalogseite, Lernenden-Startseite | `general.*` | 1,5 min |
 | 3 | `enrollment` | Einschreibung & Gruppen | Modus manuell/Selbstanmeldung, Zugangsdauer, Gruppen an/aus, Einladungsfrist | `enrollment.*` | 1,5 min |
 | 4 | `learning_exams` | Lernen & Prüfungen | Rückmeldung im Lernmodus, Versuche, Bestehensvorschlag, Zeitlimit, Timer-Modus, Lösungsfreigabe | `learning.feedback`, `exams.*` | 1,5 min |
-| 5 | `mail_privacy` | E-Mail & Datenschutz | Absender (optional), Testmail, externe Medien, Datenexport, Fristen (Übersicht) | `emails.*`, `privacy.*` | 1,5 min |
-| 6 | `hardening` | Website-Härtung | Erkannte Sicherheits-Plugins, Login-Limit, Reset-Limit, bekannte Geräte, XML-RPC, Sicherheits-Header | `hardening.*` (D30-4) | 1 min |
+| 5 | `mail_privacy` | E-Mail & Datenschutz | Absender (optional), Testmail, externe Medien (Default „Immer laden“ mit Hinweis, E-45a), Datenexport, Fristen (Übersicht) | `emails.*`, `privacy.*` | 1,5 min |
+| 6 | `hardening` | Website-Härtung | Erkannte Sicherheits-Plugins, Login-Limit, Reset-Limit, Registrierungslimit, bekannte Geräte, XML-RPC, Sicherheits-Header | `hardening.*` (E-262) | 1 min |
 | 7 | `first_course` | Erster Kurs | Leeres Kursgerüst anlegen / später importieren / überspringen | Kurs-CPT, `setup_state.created` | 1 min |
 | 8 | `readiness` | Bereitschaftsprüfung | RDY-01…RDY-15 mit Abhilfe, „Erneut prüfen“, „Einrichtung abschließen“ | `setup_state.status` | 1 min |
 
@@ -250,7 +263,7 @@ Kurzbeschreibung: „Course Captain verschickt Mails über WordPress. Prüfe hie
 | `emails.from_name` | Textfeld, Platzhalter zeigt aktuellen WP-Wert | „Absendername (optional)“ · „Leer lassen: WordPress-Standard „{aktueller Name}“.“ (E-219) | F-60 | – |
 | `emails.from_address` | E-Mail-Feld, `autocomplete="off"` | „Absenderadresse (optional)“ · „Leer lassen: „{wordpress@…}“. Eine Adresse deiner eigenen Domain kommt seltener im Spam an.“ | F-61 · Warnung F-62 (andere Domain) | – |
 | Testmail | Knopf „Testmail an {eigene Adresse} senden“ (eigenes Formular, `form`-Attribut) | „Die Testmail geht an die Adresse deines Profils.“ | Ergebnis in der Statusregion: „Testmail gesendet. Prüfe dein Postfach (auch Spam).“ · Warnung F4.4: „Die Testmail konnte nicht gesendet werden: {Meldung des Versandwegs}. Häufige Ursache: Der Server darf keine Mails senden. Ein SMTP-Plugin hilft. Du kannst die Einrichtung trotzdem fortsetzen.“ · F-63 (Rate-Limit) | – |
-| `privacy.external_media_mode` | Radiogruppe: Erst nach Klick laden (Standard) · Nur als Link zeigen | „Externe Videos (z. B. YouTube, Vimeo)“ · „Ohne Klick baut der Lernbereich keine Verbindung zu fremden Diensten auf.“ (E-45) | – | – |
+| `privacy.external_media_mode` | Radiogruppe: Immer laden (Standard) · Erst nach Klick laden · Nur als Link zeigen | „Externe Videos (z. B. YouTube, Vimeo)“ · Hinweis (immer sichtbar, `role="note"`): „Im Standard lädt der Lernbereich externe Videos sofort. Dabei überträgt der Browser deiner Lernenden ohne vorherige Zustimmung mindestens die IP-Adresse an den Videodienst. Prüfe mit deiner Datenschutzberatung, ob du das so willst. Mit „Erst nach Klick laden“ entsteht die Verbindung erst nach einem Klick bzw. einer Einwilligung in deinem Consent-Tool.“ (E-45, E-45a) | – | – (bewusst kein Risiko-Dialog: der Standard ist die Auftraggeber-Entscheidung) |
 | `privacy.auto_export_on_confirm` | Kontrollkästchen (Standard an) | „Datenexport nach bestätigtem Antrag automatisch bereitstellen“ · „Die Person erhält den Download-Link an ihre bestätigte Adresse.“ (E-223) | – | – |
 | Fristen | Tabelle (nur Anzeige) mit 5 wichtigsten Fristen aus `privacy.retention` + Link „Alle Fristen unter Einstellungen › Datenschutz & Sicherheit“ | „Aufbewahrungsfristen“ · „Das sind änderbare Vorschläge. Lass sie rechtlich prüfen, bevor du Lerndaten erhebst.“ (E-44, E-51) | – | – |
 | Datenschutzseite | Hinweiszeile | „Datenschutzerklärung: {gesetzt: „Titel“ / nicht gesetzt}. Textbausteine für Course Captain findest du in der WordPress-Anleitung zur Datenschutzerklärung.“ [Öffnen] | Warnung RDY-08, wenn keine Seite gesetzt | – |
@@ -267,6 +280,7 @@ h2 Schutzfunktionen                              [Vorschlag: alle an, außer bei
    [x] Login-Limit                 Status: wird aktiv | ruht wegen {Plugin}
        [x] Bekannte Geräte von Adress-Sperren ausnehmen
    [x] Limit für „Passwort vergessen“
+   [x] Limit für Registrierungen      (nur sichtbar, wenn „Jeder kann sich registrieren“ an ist)
    ( ) XML-RPC: WordPress-Standard   (•) XML-RPC abschalten
    Sicherheits-Header:  [x] nosniff  [x] Referrer-Policy  [x] Einbetten nur auf eigener Website  [x] Permissions-Policy
        je Header: „bereits vom Server gesetzt“ oder leer
@@ -278,13 +292,16 @@ h2 Schutzfunktionen                              [Vorschlag: alle an, außer bei
 | Feld | Element | Label und Hilfetext | Fehler / Warnung | Risiko |
 |---|---|---|---|---|
 | Erkennung | Liste (nur Anzeige), Quelle: aktive Plugins (Wordfence, Solid Security, Limit Login Attempts Reloaded, All-In-One WP Security, Loginizer, Sucuri, Shield) und Filter `course_captain_hardening_conflicts` | „Erkannte Sicherheits-Plugins“ | – | – |
-| `hardening.login_limit.enabled` | Kontrollkästchen; Status als Text daneben | „Login-Limit“ · „Sperrt weitere Anmeldeversuche nach zu vielen Fehlversuchen. Grenzwerte siehe Einstellungen › Website-Härtung. Ruht automatisch, solange ein Sicherheits-Plugin eigene Login-Sperren hat.“ Vorschlag im Assistenten: an (ohne Konflikt) | Warnung F-90 (Proxy-Verdacht, RDY-12) | RC-14 |
-| `hardening.login_limit.known_device` | Kontrollkästchen, eingerückt | „Bekannte Geräte von Adress-Sperren ausnehmen“ · „Ein signiertes, technisch notwendiges Cookie erkennt Geräte, auf denen sich die Person schon erfolgreich angemeldet hat. Diese Geräte werden nicht wegen fremder Fehlversuche von derselben Adresse gesperrt.“ Standard an | – | – |
-| `hardening.reset_limit.enabled` | Kontrollkästchen | „Limit für „Passwort vergessen““ · „Begrenzt Anfragen je Adresse und Konto. Die Antwort ist für bekannte und unbekannte Konten gleich.“ | – | – |
+| `hardening.login_limit` | Kontrollkästchen (an = `auto`); Status als Text daneben | „Login-Limit“ · „Sperrt weitere Anmeldeversuche nach zu vielen Fehlversuchen. Grenzwerte siehe Einstellungen › Website-Härtung. Ruht automatisch, solange ein Sicherheits-Plugin eigene Login-Sperren hat.“ Vorschlag im Assistenten: an (ohne Konflikt) | Warnung F-90 (Proxy-Verdacht, RDY-12) | RC-14 |
+| `hardening.known_device` | Kontrollkästchen, eingerückt | „Bekannte Geräte von Adress-Sperren ausnehmen“ · „Ein signiertes, technisch notwendiges Cookie erkennt Geräte, auf denen sich die Person schon erfolgreich angemeldet hat. Diese Geräte werden nicht wegen fremder Fehlversuche von derselben Adresse gesperrt.“ Standard an | – | – |
+| `hardening.reset_limit` | Kontrollkästchen (an = `auto`) | „Limit für „Passwort vergessen““ · „Begrenzt Anfragen je Adresse und Konto. Die Antwort ist für bekannte und unbekannte Konten gleich.“ | – | – |
 | `hardening.xmlrpc` | Radiogruppe: WordPress-Standard · Abschalten | „XML-RPC“ · „Alte Schnittstelle für externe Editoren und Pingbacks; wird oft für Angriffe genutzt.“ | Warnung F-91, wenn eine abhängige Erweiterung erkannt ist (Jetpack u. a.) | RC-15 (Abschalten) |
-| `hardening.headers` | `fieldset` mit 4 Kontrollkästchen | „Sicherheits-Header“ · je Kästchen eine Zeile Erklärung, z. B. „Einbetten nur auf eigener Website: verhindert, dass fremde Seiten deine Website in einem Rahmen zeigen.“ | Hinweis „bereits vom Server gesetzt – Course Captain sendet ihn nicht doppelt“ | – |
+| `hardening.registration_limit` | Kontrollkästchen, nur bei `users_can_register` | „Limit für Registrierungen“ · „Begrenzt neue Konten je Adresse und Stunde.“ (E-241) | – | – |
+| `hardening.site_headers` | `fieldset` mit 4 Kontrollkästchen | „Sicherheits-Header“ · je Kästchen eine Zeile Erklärung, z. B. „Einbetten nur auf eigener Website: verhindert, dass fremde Seiten deine Website in einem Rahmen zeigen.“ | Hinweis „bereits vom Server gesetzt – Course Captain sendet ihn nicht doppelt“ | – |
 
-**Wenn übersprungen:** Härtung bleibt aus (D30-2).
+**Wenn übersprungen:** Härtung bleibt aus (E-260).
+
+**Speichermodell (gilt für Schritt 6 und §3.3.10):** Jede Funktion speichert enum{`auto`, `force`, `off`} (R0-27 §1.3, R0-31 §3.4). Kontrollkästchen an = `auto` (E-240: ruht bei erkanntem Security-Plugin), aus = `off`. `force` (trotz erkanntem Plugin aktiv) ist nur über WP-CLI bzw. eine erweiterte Ansicht mit Bestätigung erreichbar. Vor dem ersten Speichern gilt `hardening.confirmed_at = null`, alles wirkt als `off` (E-260).
 
 #### Schritt 7 · Erster Kurs (E-102)
 
@@ -366,7 +383,7 @@ Regeln: Jede Zeile hat Symbol **und** Wort („Blocker:“, „Warnung:“, „I
 
 | Nr. | Regel |
 |---|---|
-| T-1 | Jeder Tab ist eine eigene URL `…&tab=<key>` mit eigenem Formular, eigener Nonce `cc_settings_save_<tab>`, eigenem `_rev` (R0-27 S-1). Sichtbar sind nur Tabs mit Cap (SR-4). Fehlt `tab` oder ist er nicht erlaubt, öffnet der erste erlaubte Tab. |
+| T-1 | Jeder Tab ist eine eigene URL `…&tab=<key>` mit eigenem Formular, eigener Nonce `ccap_settings_save_<tab>`, eigenem `_rev` (R0-27 S-1). Sichtbar sind nur Tabs mit Cap (SR-4). Fehlt `tab` oder ist er nicht erlaubt, öffnet der erste erlaubte Tab. |
 | T-2 | Pro-Felder (`pro.*`, auch Erklärungstexte nach E-20) erscheinen nur bei aktivem Add-on; bei abgelaufener Lizenz lesend mit Hinweis Z-P. Kein gesperrter Schalter in Free (E-100). |
 | T-3 | **UX-Vertrag Kap. 43.2:** Jedes Feld hat Label, Hilfetext (Erklärung und sichtbarer Effekt), Metazeile (Standard, Geltung, Abhängigkeit) und feldnahe Validierung. Hilfetexte stehen sichtbar unter dem Feld, keine Info-Icons mit Tooltip (vermeidet A11Y-055-Probleme). |
 | T-4 | Speichern: POST → Redirect → GET. Erfolg: Meldung „Einstellungen „{Tab}“ gespeichert.“ erhält den Fokus (`tabindex=-1`); ohne Änderung: „Keine Änderungen – nichts gespeichert.“ |
@@ -577,14 +594,15 @@ Weitere Rollen aus Rollen-Editoren (KOMP-055) erscheinen als eigene `<details>`.
 | `privacy.keep_evidence_on_erasure.reason` | Textbereich (Pflicht, wenn an; „Pflichtfeld, wenn eingeschaltet“ im Label) | „Begründung“ · „Erscheint im Ergebnis jedes Löschantrags.“ | leer | F-80 | – |
 | `privacy.retention.*` | Tabelle `caption="Aufbewahrungsfristen"` mit 16 Zeilen: Datenart · Frist (Zahlenfeld, beschriftet „{Datenart}: Frist in {Einheit}“) · erlaubter Bereich; „Lernstände: bis zur Kontolöschung (fest)“ als Text | „Aufbewahrungsfristen“ · „Werte sind Vorschläge; lass sie rechtlich prüfen. Kürzere Fristen wirken beim nächsten Lauf.“ | R0-27 §1.4 | F-84 | RC-11 (Verkürzen) |
 | `privacy.backup_max_age_days` | Zahl | „Höchstes Alter deiner Datensicherungen“ · „Damit gelöschte Personen nach einer Wiederherstellung nicht wieder auftauchen, merkt sich Course Captain Löschungen so lange plus 30 Tage.“ | 90 | F-84 | – |
-| `privacy.external_media_mode` | Radiogruppe | wie Setup | Klick | – | – |
-| `privacy.external_media_remember` | Kontrollkästchen | „Lernende dürfen „Immer laden“ wählen“ | an | – | – |
+| `privacy.external_media_mode` | Radiogruppe | wie Setup (mit Hinweis) | Immer laden (E-45a) | – | – |
+| `privacy.external_media_remember` | Kontrollkästchen, nur sichtbar bei „Erst nach Klick laden“ | „Lernende dürfen „Immer laden“ wählen“ · „Das Kästchen ist bei Lernenden nie vorangehakt.“ | an | – | – |
+| `privacy.consent_category` | Auswahlliste, nur sichtbar bei „Erst nach Klick laden“ | „Kategorie im Consent-Tool“ · „Unter dieser Kategorie fragt Course Captain die Einwilligung über die WP Consent API ab.“ (E-246) | Marketing | – | R bei „Funktional“ |
 | `privacy.trusted_proxies` | Textbereich, eine Adresse je Zeile; darunter „Deine Anfrage kommt von {REMOTE_ADDR}.“ | „Vertrauenswürdige Proxys“ · „Nur eintragen, wenn deine Website hinter einem eigenen Proxy oder Load-Balancer läuft.“ | leer | F-81…F-83 | RC-12 |
 | `privacy.show_avatars` | Kontrollkästchen | „Profilbilder (Gravatar) zeigen“ · „Dabei werden gehashte E-Mail-Adressen an Gravatar übertragen.“ | aus | – | – |
 | `privacy.csp_mode` | Radiogruppe | „Content-Security-Policy für Course-Captain-Seiten“ · „Erzwingen“ / „Nur melden (zur Fehlersuche)“ | erzwingen | – | RC-13 (Nur melden) |
 | Hinweise | Links | „Verarbeitungsübersicht“ (Systemstatus, E-153) · „Textbausteine für die Datenschutzerklärung“ | – | – | – |
 
-#### 3.3.10 Website-Härtung (`course_captain_settings_hardening`, neu, D30-4; Cap #19 **und** `manage_options`)
+#### 3.3.10 Website-Härtung (`course_captain_settings_hardening`, neu, E-262; Cap #19 **und** `manage_options`)
 
 Einleitung: „Schutz der ganzen Website, nicht nur des Lernbereichs. Funktionen, die ein Sicherheits-Plugin schon übernimmt, ruhen automatisch.“
 
@@ -609,13 +627,14 @@ h3 Notfall
 
 | Feld | Element | Label · Hilfetext | Meta | Fehler | Risiko |
 |---|---|---|---|---|---|
-| `hardening.login_limit.enabled` | Kontrollkästchen + Statustext | wie Setup | aus (D30-2) · System | F-90, F-92 | RC-14 (Einschalten) |
-| `hardening.login_limit.known_device` | Kontrollkästchen (T-12) | wie Setup | an · hängt ab von Login-Limit | – | – |
-| `hardening.reset_limit.enabled` | Kontrollkästchen | wie Setup | aus (D30-2) | F-92 | – |
+| `hardening.login_limit` | Kontrollkästchen + Statustext (an = `auto`) | wie Setup | aus bis zur Bestätigung (E-260), danach `auto` (E-240) · System | F-90, F-92 | RC-14 (Einschalten) |
+| `hardening.known_device` | Kontrollkästchen (T-12) | wie Setup | an · hängt ab von Login-Limit | – | – |
+| `hardening.reset_limit` | Kontrollkästchen (an = `auto`) | wie Setup | aus bis zur Bestätigung (E-260) | F-92 | – |
+| `hardening.registration_limit` | Kontrollkästchen (an = `auto`), nur bei `users_can_register` | wie Setup | aus bis zur Bestätigung (E-260) | F-92 | – |
 | Grenzwerte | Tabelle `caption`, Zeilen mit „per Filter geändert“, wenn abweichend | „Wirksame Grenzwerte“ · „Änderbar nur per Filter (wie E-221).“ | R0-02 INV-C-143/145 | – | – |
 | Aktive Sperren | Zahl + Knopf „Alle Sperren aufheben“ (eigenes Formular; Audit) | „Gesperrte Adressen und Konten“ · „Aus Datenschutzgründen speichert Course Captain keine Adressen im Klartext.“ | – | – | – (Bestätigung einfach: „{n} Sperren aufheben?“) |
 | `hardening.xmlrpc` | Radiogruppe | wie Setup | WordPress-Standard | F-91, F-92 | RC-15 (Abschalten) |
-| `hardening.headers` | `fieldset` 4 Kästchen + Status je Header + Knopf „Header erneut prüfen“ (Loopback) | wie Setup | keine (D30-2) | F-92 | – |
+| `hardening.site_headers` | `fieldset` 4 Kästchen + Status je Header + Knopf „Header erneut prüfen“ (Loopback) | wie Setup | keine bis zur Bestätigung (E-260) | F-92 | – |
 
 Wirkung bei Deaktivierung des Plugins: alle Härtungsfunktionen enden sofort; Course Captain schreibt keine Serverdateien (`.htaccess`, nginx) für die Härtung.
 
@@ -682,7 +701,7 @@ Wirkung bei Deaktivierung des Plugins: alle Härtungsfunktionen enden sofort; Co
 | **RC-11** | eine Frist in `privacy.retention` verkürzt | „Aufbewahrungsfristen verkürzen?“ | Tabelle: „{Datenart}: {alt} → {neu} – beim nächsten Lauf werden etwa {n} Einträge gelöscht“ je geänderter Frist. „Gelöschte Daten lassen sich nur aus einer Datensicherung wiederherstellen.“ | „Fristen verkürzen“ |
 | **RC-12** | `privacy.trusted_proxies` geändert | „Vertrauenswürdige Proxys ändern?“ | „Course Captain übernimmt dann die Adresse aus dem Header X-Forwarded-For, wenn eine Anfrage von {Liste} kommt. Steht hier eine Adresse, die nicht zu deinem eigenen Proxy gehört, können Angreifer Limits und Sperren umgehen. Deine aktuelle Anfrage kommt von {REMOTE_ADDR}.“ | „Proxys speichern“ |
 | **RC-13** | `privacy.csp_mode = report_only` | „Content-Security-Policy nur melden?“ | „Course-Captain-Seiten blockieren dann eingeschleuste Skripte nicht mehr, sondern melden sie nur. Nutze das nur kurz, um Konflikte mit dem Theme zu finden.“ | „Nur melden“ |
-| **RC-14** | `hardening.login_limit.enabled` einschalten | „Login-Limit einschalten?“ | „Nach {10} Fehlversuchen von einer Adresse oder {5} für ein Konto innerhalb von 15 Minuten sind weitere Anmeldeversuche bis zum Ende des Zeitfensters gesperrt. Fällt der Zählerspeicher aus, sind Anmeldung und „Passwort vergessen“ gesperrt, außer auf bekannten Geräten. Notfall: define( 'COURSE_CAPTAIN_HARDENING', 'off' ); in wp-config.php oder wp course-captain hardening disable.“ + bei Proxy-Verdacht (F-90): „Achtung: Alle Anfragen scheinen von {ip} zu kommen. Ohne eingetragenen Proxy trifft eine Sperre alle Personen gleichzeitig.“ | „Login-Limit einschalten“ |
+| **RC-14** | `hardening.login_limit` einschalten | „Login-Limit einschalten?“ | „Nach {10} Fehlversuchen von einer Adresse oder {5} für ein Konto innerhalb von 15 Minuten sind weitere Anmeldeversuche bis zum Ende des Zeitfensters gesperrt. Fällt der Zählerspeicher aus, sind Anmeldung und „Passwort vergessen“ gesperrt, außer auf bekannten Geräten. Notfall: define( 'COURSE_CAPTAIN_HARDENING', 'off' ); in wp-config.php oder wp course-captain hardening disable.“ + bei Proxy-Verdacht (F-90): „Achtung: Alle Anfragen scheinen von {ip} zu kommen. Ohne eingetragenen Proxy trifft eine Sperre alle Personen gleichzeitig.“ | „Login-Limit einschalten“ |
 | **RC-15** | `hardening.xmlrpc = disabled` | „XML-RPC abschalten?“ | „Externe Editoren, die WordPress-App und Pingbacks können sich dann nicht mehr verbinden.“ + bei Abhängigkeit: „Diese Erweiterungen nutzen XML-RPC und funktionieren danach nur eingeschränkt: {Liste}.“ | „XML-RPC abschalten“ |
 | **RC-16** | `advanced.file_delivery` auf Server-Verfahren nach erfolgreicher Selbstprüfung | „Dateiauslieferung umstellen?“ | „Die Selbstprüfung war erfolgreich. Geschützte Dateien liefert ab jetzt der Webserver aus; die Zugriffsprüfung bleibt bei Course Captain. Nach einem Umzug oder Hosterwechsel können Downloads fehlschlagen; die tägliche Prüfung meldet das im Systemstatus.“ | „Umstellen“ |
 | **RC-17** | „Tab zurücksetzen …“ | „Tab „{Tab}“ zurücksetzen?“ | „Diese {n} Einstellungen erhalten wieder ihren Standardwert: {Liste „Label: aktuell → Standard“}. Nicht betroffen: andere Tabs, Einstellungen einzelner Kurse und Prüfungen, Lernstände, Zugänge, Gruppen, Versuche und Nachweise. Du kannst das 30 Tage lang rückgängig machen.“ + Folgetexte enthaltener Risiko-Felder (z. B. RC-01). Bei 0 Abweichungen ist der Knopf „Tab zurücksetzen …“ `aria-disabled` mit Text „Alle Werte entsprechen dem Standard.“ | „Tab zurücksetzen“ |
@@ -694,7 +713,7 @@ Gleiche Dialoge gelten beim Import von Einstellungen (Systemstatus › Einstellu
 
 ## 5. Testfälle ADM (Ziel-Task R1-32)
 
-Ebenen wie R0-27: **PI** PHPUnit mit WP-Testsuite, **PW** Playwright, **AXE** axe-core in Playwright, **MAN** manuell, **NVDA**/**VO** Screenreader-Durchlauf, **MS** Multisite. „weitere“ = mitbetroffene Tasks. R1-45 ist der vorgeschlagene Härtungs-Task (D30-1).
+Ebenen wie R0-27: **PI** PHPUnit mit WP-Testsuite, **PW** Playwright, **AXE** axe-core in Playwright, **MAN** manuell, **NVDA**/**VO** Screenreader-Durchlauf, **MS** Multisite. „weitere“ = mitbetroffene Tasks. R1-45 ist der vorgeschlagene Härtungs-Task (E-239).
 
 ### 5.1 Menü und Navigation
 
@@ -702,16 +721,16 @@ Ebenen wie R0-27: **PI** PHPUnit mit WP-Testsuite, **PW** Playwright, **AXE** ax
 |---|---|---|---|---|---|---|
 | ADM-001 | P | Admin, Free, Gruppen an | Menü in Reihenfolge §1.2 Pos 1–12, Bezeichnungen und Slugs exakt; kein Pro-Lizenz-Eintrag | PI, PW | R1-32 | R1-03 |
 | ADM-002 | P | Pro-Add-on aktiv | „Pro-Lizenz“ an Pos 13; Pro-Screens zwischen Berichte und Inhalte importieren; ohne Add-on keinerlei Pro-Spur im Menü (E-100) | PI | R1-32 | R3-15 |
-| ADM-003 | N | `cc_author` (#1) | sieht nur Übersicht, Kurse (mit Bereichen), Fragenbank, Quizzes & Prüfungen; direkter Aufruf `page=course-captain-settings`, `-status`, `-learners` → 403 ohne Existenzleck | PI | R1-32 | R1-03 |
-| ADM-004 | N | `cc_trainer` | sieht Übersicht, Lernende, Berichte; Einstellungen/Integrationen → 403 | PI | R1-32 | R1-03 |
-| ADM-005 | N | `cc_support` (#13, #18, #21, #22) | Systemstatus mit Bereichen Status, Jobs, Dateischutz, Protokoll, Diagnose; keine Aktionsknöpfe (#23 fehlt); POST einer Reparatur → 403; kein Bereich „Einstellungen sichern“ | PI, PW | R1-32 | R1-38 |
-| ADM-006 | P | `cc_course_manager` ohne #19, mit #24 und `promote_users` | Einstellungen sichtbar, nur Tab „Rollen & Rechte“; Aufruf `tab=general` öffnet Rollen-Tab | PI | R1-32 | R1-36 |
+| ADM-003 | N | `ccap_author` (#1) | sieht nur Übersicht, Kurse (mit Bereichen), Fragenbank, Quizzes & Prüfungen; direkter Aufruf `page=course-captain-settings`, `-status`, `-learners` → 403 ohne Existenzleck | PI | R1-32 | R1-03 |
+| ADM-004 | N | `ccap_trainer` | sieht Übersicht, Lernende, Berichte; Einstellungen/Integrationen → 403 | PI | R1-32 | R1-03 |
+| ADM-005 | N | `ccap_support` (#13, #18, #21, #22) | Systemstatus mit Bereichen Status, Jobs, Dateischutz, Protokoll, Diagnose; keine Aktionsknöpfe (#23 fehlt); POST einer Reparatur → 403; kein Bereich „Einstellungen sichern“ | PI, PW | R1-32 | R1-38 |
+| ADM-006 | P | `ccap_course_manager` ohne #19, mit #24 und `promote_users` | Einstellungen sichtbar, nur Tab „Rollen & Rechte“; Aufruf `tab=general` öffnet Rollen-Tab | PI | R1-32 | R1-36 |
 | ADM-007 | P | Aufruf versteckter Seiten (§1.3) | korrekter Menüpunkt hervorgehoben (`parent_file`/`submenu_file`) | PW | R1-32 | – |
 | ADM-008 | P | Kurse › Bereichsnavigation | `nav` mit Namen, 4 Links, aktiver mit `aria-current="page"`; keine Pfeiltastensteuerung; Bereiche ohne Cap fehlen | PW, AXE | R1-32 | R1-19 |
-| ADM-009 | P | Gruppen aus + 0 Gruppen / aus + 1 Gruppe / an | Menüpunkt fehlt / sichtbar mit Hinweis „Gruppen sind ausgeschaltet; bestehende Gruppen lassen sich verwalten“ / sichtbar (D30-7) | PI | R1-32 | R1-35 |
+| ADM-009 | P | Gruppen aus + 0 Gruppen / aus + 1 Gruppe / an | Menüpunkt fehlt / sichtbar mit Hinweis „Gruppen sind ausgeschaltet; bestehende Gruppen lassen sich verwalten“ / sichtbar (E-265) | PI | R1-32 | R1-35 |
 | ADM-010 | N | Konto ohne `ccap_*` | kein Hauptmenü; `page=course-captain` → 403 | PI | R1-32 | R1-03 |
 | ADM-011 | P | Eigene Rolle nur mit #21 | Hauptmenü verlinkt Systemstatus (M-1); nur Bereich Protokoll | PI | R1-32 | R1-03 |
-| ADM-012 | P | WooCommerce „Admin-Zugang verhindern“ aktiv, Login `cc_trainer` | CC-Seiten erreichbar (KOMP-102) | PW | R1-32 | R1-30 |
+| ADM-012 | P | WooCommerce „Admin-Zugang verhindern“ aktiv, Login `ccap_trainer` | CC-Seiten erreichbar (KOMP-102) | PW | R1-32 | R1-30 |
 | ADM-013 | P | Integrationen | Karte „Erweiterungen“ ausblendbar (je Nutzer); kein eigener Menüpunkt; keine gesperrten Schalter (N-08) | PW | R1-32 | R1-39 |
 | ADM-014 | P | Übersicht und Lernenden-Detail | Direktlink „Protokoll“ bzw. „Verlauf“ führt in Systemstatus › Protokoll mit Filter; nur mit #21 sichtbar | PW | R1-32 | R1-38 |
 | ADM-015 | P | de_DE und en_US | alle Menütexte übersetzt (`_x` Kontext `admin menu`), ≤ 22 Zeichen de_DE, kein Umbruch im eingeklappten Menü | PI, MAN | R1-32 | R1-19 |
@@ -749,18 +768,19 @@ Ebenen wie R0-27: **PI** PHPUnit mit WP-Testsuite, **PW** Playwright, **AXE** ax
 | ADM-046 | P | `setup_state` einer neueren Version mit unbekanntem Schritt-Key; Plugin-Update | unbekannter Key bleibt erhalten; Status und Schritte unverändert | PI | R1-32 | R1-40 |
 | ADM-047 | P | Website-Sprache de_DE ohne CC-Übersetzung; Zeitzone „UTC+1“ | Warnungen RDY-14/RDY-13 in Schritt 1 und 8; en_US ohne Übersetzungswarnung | PI | R1-32 | R1-19 |
 | ADM-048 | P | „Einrichtung verlassen“ mit Änderungen | UD-1; „Änderungen verwerfen“ → Übersicht, Status `in_progress` | PW | R1-32 | – |
+| ADM-049 | P | Schritt 5 ohne Änderung speichern; danach „Erst nach Klick laden“ wählen | Default `always_load` gespeichert, Hinweis zur Datenübertragung sichtbar und per Screenreader erreichbar; nach Umschalten erscheinen „Immer laden“-Kästchen und Consent-Kategorie (E-45a, E-246) | PW, PI | R1-32 | R1-07 |
 
 ### 5.3 Website-Härtung (E-10)
 
 | ID | P/N | Gegeben / Aktion | Erwartung | Ebene | Ziel | weitere |
 |---|---|---|---|---|---|---|
-| ADM-050 | P | Neuinstallation ohne Assistent | keine Härtung aktiv: XML-RPC wie WP, keine Header, keine Login-Zählung (D30-2) | PI | R1-32 | R1-45 |
+| ADM-050 | P | Neuinstallation ohne Assistent | keine Härtung aktiv: XML-RPC wie WP, keine Header, keine Login-Zählung (E-260) | PI | R1-32 | R1-45 |
 | ADM-051 | P | Schritt 6 ohne Sicherheits-Plugin, Vorschläge speichern; 11 Fehlanmeldungen einer Adresse in 15 min | Login-Limit aktiv; 11. Versuch gesperrt mit neutraler Meldung; Audit | PI | R1-32 | R1-45 |
 | ADM-052 | P | Wordfence aktiv | Erkennung gelistet; Login-/Reset-Limit „ruht wegen Wordfence“; CC zählt und sperrt nicht (keine doppelte Sperre, K43-48); XML-RPC und Header weiter wählbar | PI, PW | R1-32 | R1-45, R1-30 |
 | ADM-053 | N | Proxy-Verdacht (alle Anfragen von 10.0.0.5, `X-Forwarded-For` gesetzt), keine Proxys eingetragen; Login-Limit einschalten | F-90 am Feld; RC-14 enthält Proxy-Absatz; Abbrechen → nichts gespeichert; RDY-12 Warnung | PW | R1-32 | R1-45 |
 | ADM-054 | P | Jetpack aktiv; XML-RPC abschalten | F-91; RC-15 nennt Jetpack; nach Bestätigung liefert `xmlrpc.php` keine Methoden, Pingbacks aus | PI | R1-32 | R1-45 |
 | ADM-055 | P | Server sendet `X-Content-Type-Options` bereits | Status „bereits vom Server gesetzt“; CC sendet ihn nicht doppelt; übrige gewählte Header auf Front und Admin vorhanden | PI | R1-32 | R1-45 |
-| ADM-056 | N | Zählerspeicher fällt aus, Login-Limit an | Anmeldung und „Passwort vergessen“ fail-closed mit neutraler Meldung (E-46); Anmeldung von bekanntem Gerät möglich (D30-5); Lern-Limits fail-open | PI | R1-32 | R1-45, R1-42 |
+| ADM-056 | N | Zählerspeicher fällt aus, Login-Limit an | Anmeldung und „Passwort vergessen“ fail-closed mit neutraler Meldung (E-46); Anmeldung von bekanntem Gerät möglich (E-263); Lern-Limits fail-open | PI | R1-32 | R1-45, R1-42 |
 | ADM-057 | P | `COURSE_CAPTAIN_HARDENING = 'off'`; CLI `hardening disable`, `unlock --all` | alle Funktionen aus; Tab lesend mit F-92; CLI mit Audit `system:cli` | PI | R1-32 | R1-45 |
 | ADM-058 | P | „Alle Sperren aufheben“ | Bestätigung „{n} Sperren aufheben?“; Zähler leer; Audit; keine Adresse im UI oder Audit | PI, PW | R1-32 | R1-45 |
 | ADM-059 | N | Kursmanager; Admin ohne `manage_options` (Rollen-Editor) | Tab „Website-Härtung“ fehlt; POST → 403 | PI | R1-32 | R1-03 |
@@ -831,21 +851,29 @@ Ebenen wie R0-27: **PI** PHPUnit mit WP-Testsuite, **PW** Playwright, **AXE** ax
 
 ---
 
-## 6. Entscheidungsbedarf (neu, nicht in `ENTSCHEIDUNGEN.md`)
+## 6. Entscheidungen (beschlossen)
 
-Geprüft gegen E-01…E-224 und das Beschlussprotokoll. Bereits geregelt und hier nur genutzt: E-10, E-19, E-20, E-45, E-46, E-49, E-89, E-100, E-102, E-131, E-166, E-197, E-202, E-207, E-210, E-219…E-224.
+Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §39 und §36, „Von Claude entschieden“, 16.11.2026); Empfehlung jeweils übernommen, bei E-240 angepasst an E-260. Genutzt außerdem: E-10, E-19, E-20, E-45/E-45a, E-46, E-49, E-89, E-100, E-102, E-131, E-166, E-197, E-202, E-207, E-210, E-219…E-224, E-241, E-242, E-246, E-254, E-268, E-269.
 
-| ID | Frage | Optionen | Empfehlung | Blockiert |
+| Frühere ID | Beschluss | Inhalt | Wirkt in | Tasks |
 |---|---|---|---|---|
-| **D30-1** | **Umsetzungstask für die Härtung.** E-10 holt die Website-Härtung in den Kern, aber kein R1-Task baut sie (R0-24 §3 Nr. 4 führt sie als R4-Pool, R0-11 BS-27 als X). R1-32 kann nur die Oberfläche liefern. | a) neuer Task **R1-45** „Website-Härtungsmodul (Login-/Reset-Limit, XML-RPC, Header, Erkennung)“, Voraussetzungen R1-03, R1-31, R1-42; R1-32 liefert Tab und Setup-Schritt · b) in R1-42 aufnehmen · c) Härtung erst R2 (widerspricht E-10 nicht wörtlich, aber dem Sinn) | **a)** | R1-32, R0-17, R0-20, R0-24 |
-| **D30-2** | **Defaults der Härtung ohne Bestätigung.** LB schaltet sie standardmäßig ein; Kap. 43.3 K43-48 verlangt „keine pauschalen Eingriffe“, WordPress.org erwartet keine stillen Verhaltensänderungen der ganzen Website. | a) alles **aus**, bis der Admin im Assistenten oder Tab speichert; der Assistent schlägt „an“ vor (außer bei Konflikt) · b) an wie LB, mit Rückzug bei erkanntem Security-Plugin | **a)** | R1-45, R1-32 |
-| **D30-3** | **Umfang der Härtung.** E-10 nennt Login-Limit, XML-RPC, Header. LB hat zusätzlich Passwort-Reset-Limit, Gerätecookie, Benutzer-Enumeration (`/wp/v2/users` für Gäste, Autorenarchive, Benutzer-Sitemap), Registrierungslimit, Einschränkung von Anwendungspasswörtern (INV-C-138…146). | a) R1: Login-Limit, Reset-Limit (wegen E-46), bekanntes Gerät, XML-RPC, 4 Header; Rest R4-Pool · b) alles aus LB · c) nur E-10-Trias | **a)** – Reset-Limit und Gerätecookie sind nötig, damit fail-closed (E-46) nicht zu Aussperrungen führt | R1-45, R0-04 |
-| **D30-4** | **Ort der Härtungs-Einstellungen.** Kap. 43.2 kennt 10 Tabs; die Härtungswerte werden bei jeder Anfrage gelesen (autoload), der Tab „Datenschutz & Sicherheit“ nicht (R0-27 §2.1). | a) eigener **11. Tab „Website-Härtung“** mit eigener Option, Cap #19 + `manage_options` · b) Abschnitt in „Datenschutz & Sicherheit“ mit zweiter Option (Speichern nicht mehr atomar je Tab) | **a)** | R1-32, R0-27 |
-| **D30-5** | **Aussperren bei fail-closed (E-46).** Fällt der Zählerspeicher aus, wären auch Admins ausgesperrt. | a) Login auf **bekannten Geräten** (signiertes Cookie, braucht keinen Zähler) bleibt möglich; Notausschalter per Konstante `COURSE_CAPTAIN_HARDENING` und WP-CLI · b) nur Notausschalter · c) Admins ausnehmen (Rolle vor der Anmeldung nicht sicher bekannt) | **a)** | R1-45 |
-| **D30-6** | **Menübaum-Lücke C-06.** Kurs-FAQ, Lerntipps, Medien, Protokoll, Rechte & Freigabe haben in Kap. 43.2 keinen Platz. | a) Bereichsnavigation in bestehenden Menüpunkten, Protokoll als Bereich von Systemstatus (§1.1) · b) eigene Menüpunkte (16–17 Einträge) · c) Protokoll eigener Menüpunkt, Rest wie a) | **a)** | R1-32, Konzept 43.2 |
-| **D30-7** | **Menüpunkt „Gruppen“ bei ausgeschalteten Gruppen** (E-222: Standard aus). | a) ausblenden, solange aus **und** keine Gruppe existiert · b) immer zeigen mit Leerzustand „Gruppen einschalten“ | **a)**: passt zur Begründung von E-222 („weniger Oberfläche“) | R1-32, R1-35 |
-| **D30-8** | **Einrichtung abschließen trotz Blocker** (z. B. Dateischutz offen). | a) erlaubt, Status `completed_with_issues`, Blocker bleiben in der Übersicht; geschützte Medien werden trotzdem nicht ausgeliefert · b) Abschluss gesperrt bis Behebung | **a)**: Hoster-Regeln brauchen oft Tage; die Schutzwirkung hängt nicht am Assistenten | R1-32 |
-| **D30-9** | **Einschreibemodus „öffentlich“** (Kap. 16.1, R0-11 F4.3): ganze Kurse ohne Konto und ohne Grant widersprechen INV-S-11 (kein Zugang ohne Grant). | a) entfällt in R1: Assistent bietet nur „manuell“ und „Selbstanmeldung“; Gäste sehen nur den kostenlosen Teil je Kurs (E-15) · b) Modus „offener Kurs“ mit Gast-Grant (neuer Vertrag) | **a)** | R1-32, R0-09 |
+| D30-1 | **E-239** | neue Task **R1-45** „Härtungsmodul“ in Free; R1-32 liefert Tab und Setup-Schritt | §2.4 Schritt 6, §3.3.10, §5.3 | R1-32, R1-45 |
+| D30-2 | **E-260** (mit **E-240**) | alles aus, bis der Admin im Assistenten oder Tab speichert; der Assistent schlägt „an“ vor (außer bei erkanntem Security-Plugin), danach je Funktion `auto` | Schritt 6, §3.3.10, ADM-050 | R1-32, R1-45 |
+| D30-3 | **E-261** (ergänzt E-241) | Umfang R1: Login-Limit, Reset-Limit, bekanntes Gerät, XML-RPC, 4 Security-Header; Registrierungslimit nach E-241; Enumeration und Anwendungspasswörter R4-Pool | Schritt 6, §3.3.10 | R1-45, R0-04 |
+| D30-4 | **E-262** | eigener 11. Tab „Website-Härtung“ mit eigener Option, Cap #19 + `manage_options` | §3.3.10 | R1-32, R0-27 |
+| D30-5 | **E-263** (ergänzt E-242) | Login auf bekannten Geräten bleibt bei fail-closed möglich; Notausschalter per Konstante `COURSE_CAPTAIN_HARDENING` und WP-CLI | §3.3.10, ADM-056/057 | R1-45 |
+| D30-6 | **E-264** | Bereichsnavigation in bestehenden Menüpunkten; Protokoll unter Systemstatus | §1.1, §1.4 | R1-32 |
+| D30-7 | **E-265** | Menüpunkt „Gruppen“ ausblenden, solange aus und keine Gruppe existiert | §1.2 | R1-32, R1-35 |
+| D30-8 | **E-266** | Abschluss trotz Blocker erlaubt („abgeschlossen mit Hinweisen“); geschützte Medien werden weiter nicht ausgeliefert | Schritt 8 | R1-32 |
+| D30-9 | **E-267** | Einschreibemodus „öffentlich“ entfällt in R1; nur „manuell“ und „Selbstanmeldung“; Gäste sehen nur den Schnupperbereich (E-15) | Schritt 3 | R1-32, R0-09 |
+
+### 6.1 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-30-1 | Admin-Screens für Text-/Dateiaufgaben (Abgabenliste, Bewertung `submitted → returned/graded`) und ihr Menüplatz | E-168 zieht die Funktion nach R1, R0-30 spezifiziert dafür keine Wireframes | Architektur (R1 Aufgaben, R1-32) |
+| OP-30-2 | Enumeration-Schutz: E-241 nennt Opt-in, E-261 R4-Pool | widersprüchlich; hier ohne UI (E-261) | Auftraggeber (Klarstellung) |
+| OP-30-3 | Hinweistext zu externen Medien rechtlich und sprachlich prüfen | Text ist Entwurf; Bewertung liegt beim Betreiber (R0-17 §6.5) | Auftraggeber, Redaktion R1-24 |
 
 ---
 
@@ -853,29 +881,29 @@ Geprüft gegen E-01…E-224 und das Beschlussprotokoll. Bereits geregelt und hie
 
 | Nr. | Korrektur | Betroffen |
 |---|---|---|
-| **T30-1** | R0-27 **INV-S-07** („keine eigene Login-Härtung“) ist durch E-10 überholt; ersetzen durch „Härtung nur nach Admin-Bestätigung, ruht bei erkanntem Security-Plugin, keine doppelten Sperren“ (K43-48 bleibt erfüllt). SET-119 entsprechend neu fassen. | R0-27 §1.5, §4 |
-| **T30-2** | Register um `hardening.login_limit.enabled`, `.known_device`, `hardening.reset_limit.enabled`, `hardening.xmlrpc`, `hardening.headers` und Option `course_captain_settings_hardening` (autoload ja, ≤ 0,5 KB) ergänzen; Konstante `const:COURSE_CAPTAIN_HARDENING`; Filter `course_captain_hardening_limits`, `course_captain_hardening_conflicts`. | R0-27 §1.3, §2.1 |
-| **T30-3** | E-20: `learning.feedback.show_explanations` und `exams.feedback.show_explanations` werden `pro.*`-Felder; der Free-Kern speichert Erklärungstexte trotzdem (E-20). | R0-27 §1.3, R0-08 §4.5 |
+| **T30-1** | **Eingearbeitet** (R0-27 §1.5, SET-119). R0-27 **INV-S-07** („keine eigene Login-Härtung“) ist durch E-10 überholt; ersetzen durch „Härtung nur nach Admin-Bestätigung, ruht bei erkanntem Security-Plugin, keine doppelten Sperren“ (K43-48 bleibt erfüllt). SET-119 entsprechend neu fassen. | R0-27 §1.5, §4 |
+| **T30-2** | **Eingearbeitet** (R0-27 §1.3, mit Speichermodell enum{auto, force, off}): `hardening.login_limit`, `hardening.known_device`, `hardening.reset_limit`, `hardening.registration_limit`, `hardening.xmlrpc`, `hardening.site_headers`, `hardening.confirmed_at` und Option `course_captain_settings_hardening` (autoload ja, ≤ 0,5 KB) ergänzen; Konstante `const:COURSE_CAPTAIN_HARDENING`; Filter `course_captain_hardening_limits`, `course_captain_hardening_conflicts`. | R0-27 §1.3, §2.1 |
+| **T30-3** | **Eingearbeitet** (R0-27 §1.3). E-20: `learning.feedback.show_explanations` und `exams.feedback.show_explanations` werden `pro.*`-Felder; der Free-Kern speichert Erklärungstexte trotzdem (E-20). | R0-27 §1.3, R0-08 §4.5 |
 | **T30-4** | Caps und CPTs mit Präfix `ccap_` (E-207); Meta-Caps `ccap_menu_dashboard`, `ccap_menu_certificates`, `ccap_menu_import`, `ccap_menu_settings`, `ccap_menu_status` in R0-07 §3.2 aufnehmen. | R0-07 §3.2, §4.2 |
-| **T30-5** | R0-07 §4.2 S-15 nennt #11 für Gruppen, R0-11 A-10 `cc_manage_enrollments`: maßgeblich ist R0-07 (#11). | R0-11 A-10 |
+| **T30-5** | R0-07 §4.2 S-15 nennt #11 für Gruppen, R0-11 A-10 `ccap_manage_enrollments`: maßgeblich ist R0-07 (#11). | R0-11 A-10 |
 | **T30-6** | Kap. 16.1 Schritt 6 „Demo-Kurs“ → „Erster Kurs (leeres Kursgerüst)“ (E-102, C-12 erledigt); Schrittzahl 8 mit Härtung. | Konzept 16.1, R0-11 Flow 4 |
-| **T30-7** | R0-17 „Hinweis zu E-10“ (Login/Reset fail-closed nur im R2-Modul) gilt nicht mehr; fail-closed gilt im Kern, sobald die Härtung aktiv ist. | R0-17 §3.4 |
+| **T30-7** | **Eingearbeitet** (R0-17 §3.2/§3.4). R0-17 „Hinweis zu E-10“ (Login/Reset fail-closed nur im R2-Modul) gilt nicht mehr; fail-closed gilt im Kern, sobald die Härtung aktiv ist. | R0-17 §3.4 |
 | **T30-8** | R0-20 §2.6 Einleitung („CC Free begrenzt keine Logins“) und LB-K-06 an E-10 anpassen; Konfliktmatrix Security-Plugins × Härtungsfunktion wird Pflicht (E-10), Grundlage §3.3.10 dieser Datei. | R0-20 §2.6 |
 
-## 8. Deltas zu anderen Dokumenten (mit deren Freigabe einzuarbeiten)
+## 8. Deltas zu anderen Dokumenten
 
 | Dokument | Delta |
 |---|---|
-| `ENTSCHEIDUNGEN.md` | D30-1…D30-9 aufnehmen |
-| TODO | R0-30 Entwurfsvermerk; nach D30-1 Task R1-45 anlegen; R1-32 DoR „R0-30 fehlt“ entfällt nach Freigabe |
-| R0-04 / R0-11 / R0-24 | BS-27 von X/R4 nach F1 (E-10, D30-1, D30-3); C-06 gelöst nach D30-6; A-02 acht Schritte; A-15 elf Tabs |
+| `ENTSCHEIDUNGEN.md` | E-239…E-267 aufgenommen – **erledigt** |
+| TODO | R0-30 Entwurfsvermerk; nach E-239 Task R1-45 anlegen; R1-32 DoR „R0-30 fehlt“ entfällt nach Freigabe |
+| R0-04 / R0-11 / R0-24 | BS-27 von X/R4 nach F1 (E-10, E-239, E-261); C-06 gelöst nach E-264; A-02 acht Schritte; A-15 elf Tabs |
 | R0-07 | T30-4, T30-5; Hardening-Tab Cap #19 + `manage_options` |
 | R0-12 | ADM-001…ADM-127 (103 Fälle, Nummernlücken bewusst) in die Zählung; Ziel R1-32 |
 | R0-15 | A11Y-083 verweist auf §2.3 W-2; A11Y-009 auf UD-1 |
-| R0-17 | T30-7; Bedrohungen für Login/Reset im Kern (fail-closed, Gerätecookie) ergänzen |
+| R0-17 | T30-7; Bedrohungen für Login/Reset im Kern (fail-closed, Gerätecookie) – **eingearbeitet** (T-63…T-67) |
 | R0-20 | T30-8 |
 | R0-26 | AD-T01/AD-T03 Schrittnummern (Bereitschaftsprüfung = Schritt 8); UX-060 Zeitbudget mit 8 Schritten |
-| R0-27 | T30-1, T30-2, T30-3; `course_captain_setup_state`-Schema aus §2.1; RC-Texte §4.2 als `help`/Dialog-Schlüssel |
+| R0-27 | T30-1, T30-2, T30-3 – **eingearbeitet**; `course_captain_setup_state`-Schema aus §2.1; RC-Texte §4.2 als `help`/Dialog-Schlüssel |
 
 ## 9. Nachweis
 

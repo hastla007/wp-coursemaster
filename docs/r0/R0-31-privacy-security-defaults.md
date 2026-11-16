@@ -4,7 +4,7 @@
 **Keine Rechtsberatung.** Das Dokument prüft technische Defaults gegen die Grundsätze „Privacy by Default“ (Art. 25 DSGVO) und „Sicherheit der Verarbeitung“ (Art. 32 DSGVO). Alle Fristen sind änderbare Vorschläge. Rechtsgrundlagen, endgültige Fristen und die Bewertung im Einzelfall liegen beim Betreiber als Verantwortlichem und seiner Datenschutzberatung (E-44, E-51, Konzept 20 „keine pauschale Konformitätszusage“).
 **Bezug:** TODO R0-31 (Voraussetzung R0-17, R0-27; DoD: Retention-Entscheidungen, Medien/Consent, Secret-Handling, RBAC, Audit, Export/Reset und Testmatrix freigegeben), Folgetask **R1-34** (UI und serverseitige Wirkung inkl. Audit, Consent, Opt-out, Redaction, Permissions), außerdem R1-17, R1-03, R1-30, R1-36; Konzept Kap. 20, Kap. 43 (43.1–43.5).
 **Quellen (nur gelesen):** `TODO-WETTBEWERBSANALYSE.md` R0-31, R1-34; `konzept.md` Kap. 20, 43; `docs/r0/R0-27-settings-register.md` §1.3–§1.6, §2.4–§2.6, §3.7, §3.11, §4, §5; `R0-17-threat-model-dsfa.md` §2, §3.4, §3.5, §5, §7.2, §8; `R0-13-support-betrieb.md` §2.2, §2.3, §4; `R0-16-backup-recovery-deployment.md` §2.5, §3.1, §3.2; `R0-07-rbac-idor-matrix.md` §1–§3; `R0-10-import-medien-sicherheit.md` §4, §5, MED-021…026; `R0-09-identity-seat-grant-automaten.md` §7; `R0-20-kompatibilitaet-konflikte.md` §2.6; `R0-04-r1-r3-grenze.md` BS-27/W-04; `R0-02-inventar/C` INV-C-138…146, E-C-02; `ENTSCHEIDUNGEN.md` Beschlussprotokoll E-01…E-20 sowie E-43…E-46, E-51, E-81…E-92, E-116, E-119, E-138, E-143…E-154, E-207, E-215…E-224.
-**Arbeitsannahmen:** Das **Beschlussprotokoll** ist verbindlich, insbesondere **E-01** (Clean Room: Limits und Abläufe aus LB werden als Verhalten spezifiziert, kein Code übernommen) und **E-10** (Website-Härtung im Kern, Schalter und Erkennung vorhandener Security-Plugins, E-46 fail-closed auch für Login/Reset). Alle übrigen Empfehlungen in `ENTSCHEIDUNGEN.md` gelten als Annahme. Capability-Namen stehen wie in R0-07 als `cc_*`; nach E-207 heißen sie bei der Umsetzung `ccap_*`.
+**Arbeitsannahmen:** Das **Beschlussprotokoll** ist verbindlich, insbesondere **E-01** (Clean Room: Limits und Abläufe aus LB werden als Verhalten spezifiziert, kein Code übernommen) und **E-10** (Website-Härtung im Kern, Schalter und Erkennung vorhandener Security-Plugins, E-46 fail-closed auch für Login/Reset). Alle übrigen Empfehlungen in `ENTSCHEIDUNGEN.md` gelten als Annahme. Capability-Namen stehen wie in R0-07 als `ccap_*`; nach E-207 heißen sie bei der Umsetzung `ccap_*`.
 
 **Kernzahlen**
 
@@ -17,13 +17,13 @@
 | Datenarten in der Retention-Übersicht (§2.1) | 44 |
 | Härtungsmerkmale (§3.4) | 6 |
 | Testfälle PSD-001…PSD-064 (§5) | 64 |
-| neuer Entscheidungsbedarf D31-1…D31-8 (§6) | 8 |
+| neuer Entscheidungsbedarf E-239…E-246 (§6) | 8 |
 
 **Kernaussagen**
 
 1. **Die Defaults aus R0-27 halten der Prüfung weitgehend stand.** Kein Default erzeugt ohne Handlung der Person zusätzliche Daten, öffnet Daten für Dritte oder verlängert eine Frist über die Vorschläge aus E-44/E-51 hinaus. Nachzuschärfen sind neun Felder, meist bei der Bestätigungspflicht (z. B. Avatare, Lösungsfreigabe in Prüfungen) und beim Export umgebungsgebundener Werte.
-2. **E-10 ändert R0-27, R0-20 und R0-17.** Die Invariante INV-S-07 („keine eigene Login-Härtung“) und SET-119 sind überholt. An ihre Stelle tritt ein **Härtungsmodul im Kern** mit sechs Merkmalen, Modus `auto | force | off` je Merkmal und Rückhaltung bei erkanntem Konflikt (§3.4). Phase, Task und Default-Modus sind neu zu entscheiden (D31-1, D31-2).
-3. **Retention ist vollständig erfasst, hat aber vier Lücken ohne Beschluss:** Gruppen und Plätze, beendete Grants bestehender Konten, aufgehobene Lernsperren und personenbezogene Exportdateien (D31-5). Außerdem ist „Kursende“ als Fristbeginn für Rohantworten (E-51) nicht definiert (D31-6).
+2. **E-10 ändert R0-27, R0-20 und R0-17.** Die Invariante INV-S-07 („keine eigene Login-Härtung“) und SET-119 sind überholt. An ihre Stelle tritt ein **Härtungsmodul im Kern** mit sechs Merkmalen, Modus `auto | force | off` je Merkmal und Rückhaltung bei erkanntem Konflikt (§3.4). Phase, Task und Default-Modus sind neu zu entscheiden (E-239, E-240).
+3. **Retention ist vollständig erfasst, hat aber vier Lücken ohne Beschluss:** Gruppen und Plätze, beendete Grants bestehender Konten, aufgehobene Lernsperren und personenbezogene Exportdateien (E-243). Außerdem ist „Kursende“ als Fristbeginn für Rohantworten (E-51) nicht definiert (E-244).
 4. **Secrets bleiben außerhalb jeder Ausgabe.** Neu ist ein Schlüssel-Fingerabdruck, damit ein Wechsel von `COURSE_CAPTAIN_SECRET_KEY` oder der WP-Salts nicht still Pseudonyme und Tombstone-Abgleich entwertet (§3.2, T31-3).
 
 ---
@@ -67,8 +67,8 @@
 | `enrollment.groups_enabled` | false (E-222) | M, Sec: weniger Angriffsfläche (Einladungen, Tokens) | Einschalten erzeugt Einladungsadressen Dritter | – (Einschalten); R beim Abschalten | ja | ok |
 | `enrollment.invite_valid_days` | 30 | Sec, S: Token-Lebensdauer begrenzt; Adresse 30 d nach Ablauf gelöscht | lange Fristen verlängern Token-Missbrauch und Adresshaltung | – ; Hinweis ab > 90 Tagen | ja | **Δ-2** (Hinweistext) |
 | `enrollment.claim_policy` | `transferable` (E-28) | Sec: Link ist kein Identitätsbeweis (R0-09 §1.2); `invited_address_only` ist strenger | keins (strenger) | – | ja | ok, Hilfetext nach PD-5 |
-| `WP:default_role` | `subscriber` | Sec: keine Rechte über `read`; Health-Warnung bei `edit_posts`, `promote_users`, `cc_*` | Eskalation, wenn Registrierung offen ist | WP-Kern | nein (WP) | ok |
-| `roles.cap_assignments` | nur `administrator` + vier `cc_`-Rollen; `cc_support` ohne #14 (E-83, E-144) | Z, Sec: Least Privilege | Hochrisiko-Caps #14, #19…#24 an weitere Rollen öffnen fremde Antworten bzw. Administration | R mit Liste der Hochrisiko-Caps | ja (`role_caps_changed`) | ok |
+| `WP:default_role` | `subscriber` | Sec: keine Rechte über `read`; Health-Warnung bei `edit_posts`, `promote_users`, `ccap_*` | Eskalation, wenn Registrierung offen ist | WP-Kern | nein (WP) | ok |
+| `roles.cap_assignments` | nur `administrator` + vier `cc_`-Rollen; `ccap_support` ohne #14 (E-83, E-144) | Z, Sec: Least Privilege | Hochrisiko-Caps #14, #19…#24 an weitere Rollen öffnen fremde Antworten bzw. Administration | R mit Liste der Hochrisiko-Caps | ja (`role_caps_changed`) | ok |
 | `certificates.auto_issue` | false | M: Nachweis erst bei definierter Abschlussregel | Ausstellung mit Personendaten im Snapshot | – | ja | ok |
 | `certificates.holder_name_policy` | `learner_opt_in`, je Nachweis aus (E-97) | Z: Verifikation zeigt ohne Freigabe nur Status, Aussteller, Kurs, Datum, Initialen | `never` ist strenger; es gibt keinen Wert „immer öffentlich“ | – | ja | ok |
 | `emails.from_name` | leer = WP erben | M: keine zweite Kopie; Klasse `personal` | kann Personennamen enthalten → Export nur per Opt-in | – | ja („geändert“) | ok |
@@ -81,7 +81,7 @@
 | `privacy.auto_export_on_confirm` | true (E-223) | U: erleichtert Auskunft; Link nur an die von WP bestätigte Adresse, Frist WP-Kern 3 d | Abschalten: Admin führt Export manuell aus (Monatsfrist-Warnung PRIV-028) | – | ja | ok |
 | `privacy.auto_erase_on_confirm` | false (E-43) | S, Sec: Kontolöschung nur Opt-in; Staff-Konten geschützt | Einschalten löscht WP-Konten nach Bestätigung | R | ja | ok |
 | `privacy.keep_evidence_on_erasure` | aus (E-150) | S: Eraser löscht standardmäßig | Einschalten hält pseudonymisierte Nachweise trotz Löschantrag | R + Pflichtbegründung | ja | ok |
-| `privacy.retention` (17 Unterschlüssel) | §2 | S: jede Datenart mit Frist; kein stilles „unbegrenzt“ | Verkürzen löscht Bestand; Verlängern über Default verlängert Haltung | R beim Verkürzen (Anzahl); Begründung beim Verlängern über Default (D31-7) | ja | **Δ-3** |
+| `privacy.retention` (17 Unterschlüssel) | §2 | S: jede Datenart mit Frist; kein stilles „unbegrenzt“ | Verkürzen löscht Bestand; Verlängern über Default verlängert Haltung | R beim Verkürzen (Anzahl); Begründung beim Verlängern über Default (E-245) | ja | **Δ-3** |
 | `privacy.backup_max_age_days` | 90 | S: Information für Tombstone-Frist (+30 d, E-151) | zu kleiner Wert lässt Tombstones vor Backup-Rotation verfallen | – ; Hinweis, wenn Wert < 30 | ja | **Δ-4** (Hinweis) |
 | `privacy.external_media_mode` | `click_to_load` (E-45) | U, Sec: keine Verbindung zum Fremdhost vor Klick; es gibt keinen Wert „immer einbetten“ | `link_only` ist strenger | – | ja | ok |
 | `privacy.external_media_remember` | true | U: bietet nur das Kästchen an; das Kästchen ist **nie vorangehakt**; Speicher ohne Personenbezug (CS-02) | aus: Kästchen verschwindet, gespeicherte Wahl wird ignoriert | – | ja | **Δ-5** (Regel „nie vorangehakt“, Widerruf für Lernende §3.1) |
@@ -105,11 +105,11 @@
 
 | Key | Tab | Quelle | Typ | Scope | Default | Capability | Validierung | Edition | Audit | Risiko | Test |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| `privacy.hardening` | Datenschutz & Sicherheit (Abschnitt „Website-Härtung“) | E-10, §3.4 | object{`login_limit`, `reset_limit`, `registration_limit`, `xmlrpc`, `site_headers`, `user_enumeration`: je enum{auto, force, off}} | system | `user_enumeration` = `off`, alle übrigen `auto` (D31-2, D31-3) | #19, nur `administrator` | `force` und `off` nur mit Bestätigung; `force` zeigt den erkannten Konflikt | F (Phase nach D31-1) | ja | R bei `force` und bei `off` von `login_limit`/`reset_limit` | PSD-039…056 |
+| `privacy.hardening` | Datenschutz & Sicherheit (Abschnitt „Website-Härtung“) | E-10, §3.4 | object{`login_limit`, `reset_limit`, `registration_limit`, `xmlrpc`, `site_headers`, `user_enumeration`: je enum{auto, force, off}} | system | `user_enumeration` = `off`, alle übrigen `auto` (E-240, E-241) | #19, nur `administrator` | `force` und `off` nur mit Bestätigung; `force` zeigt den erkannten Konflikt | F (Phase nach E-239) | ja | R bei `force` und bei `off` von `login_limit`/`reset_limit` | PSD-039…056 |
 | `const:COURSE_CAPTAIN_HARDENING` | Erweitert (Anzeige) | §3.5 | enum{off} | system | nicht gesetzt | `wp-config.php` | nur `off` erlaubt (Notausschalter); überstimmt `privacy.hardening` vollständig | F | Audit beim ersten Erkennen (`hardening_kill_switch_detected`) | – | PSD-045 |
-| `privacy.consent_category` | Datenschutz & Sicherheit | R0-10 §5.3 („konfigurierbare Kategorie“), D31-8 | enum{marketing, statistics, preferences, functional} | global | `marketing` | #19 | nur WP-Consent-API-Kategorien | F | ja | R bei `functional` (Einbettung gilt dann als nicht einwilligungsbedürftig) | PSD-025 |
+| `privacy.consent_category` | Datenschutz & Sicherheit | R0-10 §5.3 („konfigurierbare Kategorie“), E-246 | enum{marketing, statistics, preferences, functional} | global | `marketing` | #19 | nur WP-Consent-API-Kategorien | F | ja | R bei `functional` (Einbettung gilt dann als nicht einwilligungsbedürftig) | PSD-025 |
 
-Retention-Unterschlüssel nach D31-5 kommen in §2.2 dazu.
+Retention-Unterschlüssel nach E-243 kommen in §2.2 dazu.
 
 ### 1.4 Deltas Δ-1…Δ-9 (Zusammenfassung für R0-27)
 
@@ -117,7 +117,7 @@ Retention-Unterschlüssel nach D31-5 kommen in §2.2 dazu.
 |---|---|---|
 | Δ-1 | `exams.feedback` | Risiko `R`, wenn `show_correct_answers_when` auf `after_submit` gesetzt wird; laufende Snapshots unverändert |
 | Δ-2 | `enrollment.invite_valid_days` | Hinweistext ab > 90 Tagen (Token-Lebensdauer, Adresshaltung) |
-| Δ-3 | `privacy.retention` | Verlängern über den Default mit Pflichtbegründung im Audit (D31-7); Unterschlüssel nach D31-5 ergänzen (17 → 21) |
+| Δ-3 | `privacy.retention` | Verlängern über den Default mit Pflichtbegründung im Audit (E-245); Unterschlüssel nach E-243 ergänzen (17 → 21) |
 | Δ-4 | `privacy.backup_max_age_days` | Hinweis bei Werten < 30 („Tombstones können vor der Backup-Rotation verfallen“) |
 | Δ-5 | `privacy.external_media_remember` | Regel „Kästchen nie vorangehakt“; Widerruf im Lernenden-Konto (§3.1) |
 | Δ-6 | `privacy.show_avatars` | Risiko `R` statt `–` |
@@ -135,50 +135,50 @@ Spalten: **Frist** = Default (änderbar, wo „Setting“ steht); **Auslöser** 
 
 | Nr. | Datenart | Ort | Frist (Default) | Setting | Auslöser | Löschart | Export | Quelle |
 |---|---|---|---|---|---|---|---|---|
-| RT-01 | Lernstand (Fortschritt Kurs/Activity/Frage, Smarttrainer) | `cc_course_progress`, `cc_activity_progress`, `cc_question_progress` | bis Kontolöschung bzw. Eraser | fest (`learning_progress`) | Löschantrag, Kontolöschung | löschen | ja | E-51 |
+| RT-01 | Lernstand (Fortschritt Kurs/Activity/Frage, Smarttrainer) | `ccap_course_progress`, `ccap_activity_progress`, `ccap_question_progress` | bis Kontolöschung bzw. Eraser | fest (`learning_progress`) | Löschantrag, Kontolöschung | löschen | ja | E-51 |
 | RT-02 | Lernstand inaktiver Konten | wie RT-01 | aus (`null`); wählbar 1–20 J. | `inactive_learning_data_years` | letzte Anmeldung **und** kein aktiver Grant | löschen, Vorschau Pflicht | – | E-154 |
-| RT-03 | Favoriten, Sammlungen | `cc_favorite`, `cc_collection(_item)` | wie RT-01 | – | wie RT-01 | löschen | ja | R0-17 §5.2 |
-| RT-04 | Antwortlog Lernmodus | `cc_attempt`, `cc_attempt_answer` | 2 J. | `raw_answers_years_after_course_end` | Kursende (D31-6) | aggregieren in RT-01 | ja | E-51, R0-06 D-5 |
-| RT-05 | Rohantworten Prüfung (Antworten, Markierungen, Freitext) | `cc_exam_session_question` | 2 J. | wie RT-04 | Kursende (D31-6) | löschen; Kerndaten RT-06 bleiben | ja (Fragetext aus Snapshot) | E-51 |
-| RT-06 | Prüfungsversuche (Kerndaten: Kurs, Datum, Punkte, bestanden) | `cc_exam_session` | 10 J. | `exam_attempts_years` | Abgabe bzw. Auswertung | löschen | ja | E-51 |
-| RT-07 | Prüfungsnachweise nach Löschantrag (nur mit `keep_evidence_on_erasure`) | `cc_exam_session` pseudonym | Rest von RT-06 | wie RT-06 | Löschantrag | pseudonymisieren, nach Fristende löschen | – (Person gelöscht) | E-150 |
-| RT-08 | Laufende/abgebrochene Versuche ohne Abgabe | `cc_exam_session` | Auto-Abgabe nach x Tagen (Default aus); danach wie RT-06 | `exams.auto_submit_inactive_days` | letzte Aktivität | auswerten, dann RT-06 | ja | E-72 |
-| RT-09 | Zertifikate (Snapshot, Revisionen, Status) | `cc_certificate` | 10 J. | `certificates_years` | Ausstellung (letzte Revision) | löschen; Verifikation zeigt „nicht verfügbar“ | ja | E-51 |
-| RT-10 | Zertifikate nach Löschantrag mit `keep_evidence_on_erasure` | `cc_certificate` ohne Namen | Rest von RT-09 | wie RT-09 | Löschantrag | pseudonymisieren | – | E-150 |
-| RT-11 | Aktive Grants | `cc_grant` | solange aktiv | – | – | nie durch Retention | ja | R0-09 |
-| RT-12 | Beendete Grants bestehender Konten (abgelaufen, widerrufen, failed) samt Events | `cc_grant`, `cc_grant_event` | **10 J. (D31-5)** | `ended_grants_years` (neu) | Grant-Ende | löschen | ja | E-44, D31-5 |
-| RT-13 | Grant-Historie gelöschter Konten, Kaufquellen | `cc_grant`, `cc_grant_event` | 10 J. | `grant_history_deleted_accounts_years` | Kontolöschung | pseudonymisieren (`subject_ref`), nach Frist löschen | – | E-44, R0-09 §7 |
+| RT-03 | Favoriten, Sammlungen | `ccap_favorite`, `ccap_collection(_item)` | wie RT-01 | – | wie RT-01 | löschen | ja | R0-17 §5.2 |
+| RT-04 | Antwortlog Lernmodus | `ccap_attempt`, `ccap_attempt_answer` | 2 J. | `raw_answers_years_after_course_end` | Kursende (E-244) | aggregieren in RT-01 | ja | E-51, R0-06 D-5 |
+| RT-05 | Rohantworten Prüfung (Antworten, Markierungen, Freitext) | `ccap_exam_session_question` | 2 J. | wie RT-04 | Kursende (E-244) | löschen; Kerndaten RT-06 bleiben | ja (Fragetext aus Snapshot) | E-51 |
+| RT-06 | Prüfungsversuche (Kerndaten: Kurs, Datum, Punkte, bestanden) | `ccap_exam_session` | 10 J. | `exam_attempts_years` | Abgabe bzw. Auswertung | löschen | ja | E-51 |
+| RT-07 | Prüfungsnachweise nach Löschantrag (nur mit `keep_evidence_on_erasure`) | `ccap_exam_session` pseudonym | Rest von RT-06 | wie RT-06 | Löschantrag | pseudonymisieren, nach Fristende löschen | – (Person gelöscht) | E-150 |
+| RT-08 | Laufende/abgebrochene Versuche ohne Abgabe | `ccap_exam_session` | Auto-Abgabe nach x Tagen (Default aus); danach wie RT-06 | `exams.auto_submit_inactive_days` | letzte Aktivität | auswerten, dann RT-06 | ja | E-72 |
+| RT-09 | Zertifikate (Snapshot, Revisionen, Status) | `ccap_certificate` | 10 J. | `certificates_years` | Ausstellung (letzte Revision) | löschen; Verifikation zeigt „nicht verfügbar“ | ja | E-51 |
+| RT-10 | Zertifikate nach Löschantrag mit `keep_evidence_on_erasure` | `ccap_certificate` ohne Namen | Rest von RT-09 | wie RT-09 | Löschantrag | pseudonymisieren | – | E-150 |
+| RT-11 | Aktive Grants | `ccap_grant` | solange aktiv | – | – | nie durch Retention | ja | R0-09 |
+| RT-12 | Beendete Grants bestehender Konten (abgelaufen, widerrufen, failed) samt Events | `ccap_grant`, `ccap_grant_event` | **10 J. (E-243)** | `ended_grants_years` (neu) | Grant-Ende | löschen | ja | E-44, E-243 |
+| RT-13 | Grant-Historie gelöschter Konten, Kaufquellen | `ccap_grant`, `ccap_grant_event` | 10 J. | `grant_history_deleted_accounts_years` | Kontolöschung | pseudonymisieren (`subject_ref`), nach Frist löschen | – | E-44, R0-09 §7 |
 | RT-14 | Grants gelöschter Konten, übrige Quellen (manuell, Gruppe, Workflow) | wie RT-13 | sofort | – | Kontolöschung/Eraser | löschen | – | R0-09 §7 |
-| RT-15 | Einladungsadressen | `cc_seat.invite_email` | bis Claim; 30 d nach Ablauf | `invite_email_days_after_expiry` | Claim, Entfernen, Ablauf | NULL | ja (eigene) / maskiert (als Besitzer) | R0-09 §7 |
-| RT-16 | Tokens (Claim, Gruppe, Verifikation) | Hash in `cc_seat`, `cc_group`, `cc_certificate` | bis Claim, Rotation, Ablauf | – | Ereignis | NULL | nie | E-112 |
-| RT-17 | Entfernte Plätze | `cc_seat` (`removed`) | **365 d (D31-5)** | `removed_seats_days` (neu) | Entfernung | löschen (Grant-Historie bleibt nach RT-12) | ja | D31-5 |
-| RT-18 | Geschlossene/widerrufene Gruppen ohne aktive Plätze | `cc_group`, `cc_group_course` | **3 J. (D31-5)** | `closed_groups_years` (neu) | Schließung bzw. letzter aktiver Platz | löschen | ja (als Besitzer) | D31-5 |
-| RT-19 | Gruppenbesitz bei Kontolöschung | `cc_group.owner_user_id`, `name` | sofort | – | Kontolöschung | `0`; Name neutralisieren, wenn er den Personennamen enthält | – | R0-09 §7 |
-| RT-20 | Staff-Zuweisung | `cc_course_staff` | bis Entfernung bzw. Kontolöschung | – | Ereignis | löschen | ja | R0-17 §5.2 |
-| RT-21 | Aktive Lernsperre | `cc_learner_lock` | bis Aufhebung | – | – | – | ja | E-79 |
-| RT-22 | Aufgehobene Lernsperre | `cc_learner_lock` | **30 d (D31-5)**; Historie im Audit | `lifted_locks_days` (neu) | Aufhebung | löschen | ja | D31-5 |
-| RT-23 | Audit | `cc_audit_log` | 4 J. | `audit_log_years` | Eintrag | löschen (Ankereintrag); Eraser pseudonymisiert | ja (eigene Vorgänge, Akteur nur als Rolle, E-145) | E-44, R0-13 §4.4 |
-| RT-24 | Import-Protokoll „unverändert“ | `cc_import_*` | 14 d | `import_unchanged_days` | Lauf | löschen | – | E-44 |
-| RT-25 | Import-Protokoll übrige Zeilen | `cc_import_*` | 180 d | `import_log_days` | Lauf | löschen; Akteur pseudonymisieren bei Eraser | – | E-44 |
+| RT-15 | Einladungsadressen | `ccap_seat.invite_email` | bis Claim; 30 d nach Ablauf | `invite_email_days_after_expiry` | Claim, Entfernen, Ablauf | NULL | ja (eigene) / maskiert (als Besitzer) | R0-09 §7 |
+| RT-16 | Tokens (Claim, Gruppe, Verifikation) | Hash in `ccap_seat`, `ccap_group`, `ccap_certificate` | bis Claim, Rotation, Ablauf | – | Ereignis | NULL | nie | E-112 |
+| RT-17 | Entfernte Plätze | `ccap_seat` (`removed`) | **365 d (E-243)** | `removed_seats_days` (neu) | Entfernung | löschen (Grant-Historie bleibt nach RT-12) | ja | E-243 |
+| RT-18 | Geschlossene/widerrufene Gruppen ohne aktive Plätze | `ccap_group`, `ccap_group_course` | **3 J. (E-243)** | `closed_groups_years` (neu) | Schließung bzw. letzter aktiver Platz | löschen | ja (als Besitzer) | E-243 |
+| RT-19 | Gruppenbesitz bei Kontolöschung | `ccap_group.owner_user_id`, `name` | sofort | – | Kontolöschung | `0`; Name neutralisieren, wenn er den Personennamen enthält | – | R0-09 §7 |
+| RT-20 | Staff-Zuweisung | `ccap_course_staff` | bis Entfernung bzw. Kontolöschung | – | Ereignis | löschen | ja | R0-17 §5.2 |
+| RT-21 | Aktive Lernsperre | `ccap_learner_lock` | bis Aufhebung | – | – | – | ja | E-79 |
+| RT-22 | Aufgehobene Lernsperre | `ccap_learner_lock` | **30 d (E-243)**; Historie im Audit | `lifted_locks_days` (neu) | Aufhebung | löschen | ja | E-243 |
+| RT-23 | Audit | `ccap_audit_log` | 4 J. | `audit_log_years` | Eintrag | löschen (Ankereintrag); Eraser pseudonymisiert | ja (eigene Vorgänge, Akteur nur als Rolle, E-145) | E-44, R0-13 §4.4 |
+| RT-24 | Import-Protokoll „unverändert“ | `ccap_import_*` | 14 d | `import_unchanged_days` | Lauf | löschen | – | E-44 |
+| RT-25 | Import-Protokoll übrige Zeilen | `ccap_import_*` | 180 d | `import_log_days` | Lauf | löschen; Akteur pseudonymisieren bei Eraser | – | E-44 |
 | RT-26 | Paketkopien (enthalten Lösungen) | `packages-<geheim>/` | 2 neueste je Quelle | `import_keep_packages` | neuer Import | löschen | – | R0-19 §4.3 |
-| RT-27 | Inbox | `cc_inbox_event` | 90 d | `inbox_days` | Eingang | löschen; Eraser neutralisiert Nutzer-UID | – | E-116, E-215 |
-| RT-28 | Outbox zugestellt | `cc_outbox_event`, `cc_outbox_delivery` | 90 d | `inbox_days` (gemeinsam, E-215) | Zustellung | löschen | – | E-215 |
-| RT-29 | Events ohne Abonnent | `cc_outbox_event` | 30 d | `outbox_event_days` | Erzeugung | löschen | – | E-119, E-215 |
-| RT-30 | Benachrichtigungsprotokoll (nur Metadaten) | `cc_notification` | 90 d | `notification_log_days` | Versand | löschen; Eraser löscht eigene | ja (Typ, Status, Zeit) | E-215, R0-27 §3.11 |
+| RT-27 | Inbox | `ccap_inbox_event` | 90 d | `inbox_days` | Eingang | löschen; Eraser neutralisiert Nutzer-UID | – | E-116, E-215 |
+| RT-28 | Outbox zugestellt | `ccap_outbox_event`, `ccap_outbox_delivery` | 90 d | `inbox_days` (gemeinsam, E-215) | Zustellung | löschen | – | E-215 |
+| RT-29 | Events ohne Abonnent | `ccap_outbox_event` | 30 d | `outbox_event_days` | Erzeugung | löschen | – | E-119, E-215 |
+| RT-30 | Benachrichtigungsprotokoll (nur Metadaten) | `ccap_notification` | 90 d | `notification_log_days` | Versand | löschen; Eraser löscht eigene | ja (Typ, Status, Zeit) | E-215, R0-27 §3.11 |
 | RT-31 | Zurückgehaltene Mails (Haltemodus) | Mail-Protokoll `held` | 30 d | `held_mail_days` | Zurückhaltung | löschen | ja (Betreff, Zeit) | E-151 |
 | RT-32 | Opt-out-Einstellungen | User-Option `course_captain_notification_prefs` | bis Kontolöschung | – | – | löschen mit Konto | ja | R0-27 §3.7 |
 | RT-33 | Fehlertabelle, Job-Fehler | `error`/`warning` | 30 d | `error_log_days` | Eintrag | löschen | – | E-143 |
 | RT-34 | Debug-Log-Dateien | `<privat>/logs/` | 7 d (Maximum) | `debug_file_days` | Datei | löschen | – | E-143 |
 | RT-35 | Diagnosepaket (Serverkopie / Link) | `<privat>/` | 24 h / Link 1 h | fest | Erzeugung | löschen | – | R0-13 §2.2 |
-| RT-36 | Personenbezogene Exportdateien (Bericht-CSV, Grant-Export, Audit-Export) | `packages-<geheim>/exports/` | **24 h (D31-5)** | fest | Erzeugung | löschen | – | D31-5, R0-10 §6.1 (Kurs-Export 24 h) |
+| RT-36 | Personenbezogene Exportdateien (Bericht-CSV, Grant-Export, Audit-Export) | `packages-<geheim>/exports/` | **24 h (E-243)** | fest | Erzeugung | löschen | – | E-243, R0-10 §6.1 (Kurs-Export 24 h) |
 | RT-37 | Kurs-Export (ohne Personendaten) | wie oben | 24 h | fest | Erzeugung | löschen | – | R0-10 §6.1 |
-| RT-38 | Reset-Journal „Fortschritt zurücksetzen“ | `cc_*` | 30 d | fest | Reset | löschen | ja | E-138 |
-| RT-39 | Idempotenzschlüssel | `cc_request_idempotency` | 7 d | fest | Anfrage | löschen | nein | R0-19 §2.1 |
+| RT-38 | Reset-Journal „Fortschritt zurücksetzen“ | `ccap_*` | 30 d | fest | Reset | löschen | ja | E-138 |
+| RT-39 | Idempotenzschlüssel | `ccap_request_idempotency` | 7 d | fest | Anfrage | löschen | nein | R0-19 §2.1 |
 | RT-40 | Rate-Limit- und Härtungszähler, Sperrfenster | Zählertabelle (gesalzene Hashes) | Fensterende | fest | Fenster | löschen | nein | R0-17 DK-11, §3.4 |
-| RT-41 | Lösch-Tombstones | `cc_privacy_tombstone`, Journal | `backup_max_age_days` + 30 (Default 120 d) | abgeleitet | Löschung | löschen bzw. kompaktieren | nein | E-92, E-151 |
+| RT-41 | Lösch-Tombstones | `ccap_privacy_tombstone`, Journal | `backup_max_age_days` + 30 (Default 120 d) | abgeleitet | Löschung | löschen bzw. kompaktieren | nein | E-92, E-151 |
 | RT-42 | Settings-Undo-Snapshot | Option `course_captain_settings_undo_<tab>` | 30 d, eine Generation | fest | Reset/Import | löschen | nein | R0-27 §2.4 |
 | RT-43 | Unreferenzierte Mediendateien | `protected-<geheim>/`, `media/` | 7 d Karenz | `advanced.media_delete_grace_days` | Verlust der letzten Referenz | löschen | – | R0-16 I-3 |
-| RT-44 | Abgeschlossene WP-Datenschutzanträge (`user_request`) | WP-Kern | **keine Löschung durch CC**; Betreiberdoku schlägt 3 J. vor (D31-5) | – | Abschluss | Betreiber | – | R0-17 §5.3 Nr. 5 |
+| RT-44 | Abgeschlossene WP-Datenschutzanträge (`user_request`) | WP-Kern | **keine Löschung durch CC**; Betreiberdoku schlägt 3 J. vor (E-243) | – | Abschluss | Betreiber | – | R0-17 §5.3 Nr. 5 |
 
 **Außerhalb des Datenbestands, nur Regel:**
 
@@ -186,7 +186,7 @@ Spalten: **Frist** = Default (änderbar, wo „Setting“ steht); **Auslöser** 
 |---|---|---|
 | Browser: „Externe Medien immer laden“ (CS-02) | bis Widerruf | ohne Personenbezug; Widerruf durch die Person (§3.1) oder Setting aus |
 | Browser: Prüfungspuffer (CS-03) | bis Abgabe, Bestätigung oder Logout | ohne Lösungen (PRIV-018) |
-| Browser: Gerätecookie der Login-Härtung (D31-4) | 180 d | technisch notwendig für die Sperrausnahme; Passwortwechsel macht es ungültig |
+| Browser: Gerätecookie der Login-Härtung (E-242) | 180 d | technisch notwendig für die Sperrausnahme; Passwortwechsel macht es ungültig |
 | WP-Datenschutzexport (ZIP) | WP-Kern 3 d | Course Captain legt keine eigene Exportdatei an |
 | Backups | Betreiber | `backup_max_age_days` dokumentiert den Wert; Löschungen nach Restore über Tombstones (E-92) |
 | Mail-Logs fremder SMTP-Plugins | Betreiber | Systemstatus-Hinweis (KOMP-056) |
@@ -196,10 +196,10 @@ Spalten: **Frist** = Default (änderbar, wo „Setting“ steht); **Auslöser** 
 
 | Unterschlüssel (neu) | Default | Bereich | Job | Quelle |
 |---|---|---|---|---|
-| `ended_grants_years` | 10 | 1–30 | täglich, ≤ 1 000 | D31-5 |
-| `removed_seats_days` | 365 | 30–3650 | täglich | D31-5 |
-| `closed_groups_years` | 3 | 1–30 | täglich | D31-5 |
-| `lifted_locks_days` | 30 | 1–365 | täglich | D31-5 |
+| `ended_grants_years` | 10 | 1–30 | täglich, ≤ 1 000 | E-243 |
+| `removed_seats_days` | 365 | 30–3650 | täglich | E-243 |
+| `closed_groups_years` | 3 | 1–30 | täglich | E-243 |
+| `lifted_locks_days` | 30 | 1–365 | täglich | E-243 |
 
 Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24 h, Exportdateien 24 h, Reset-Journal 30 d, Idempotenz 7 d, Undo 30 d, Debug-Dateien höchstens 7 d (Setting nur kleiner).
 
@@ -209,7 +209,7 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 |---|---|
 | RR-1 | **Kein stilles „unbegrenzt“.** Ein Unterschlüssel darf `null` nur haben, wenn der Default ausdrücklich „aus“ lautet und ein Ersatz existiert (RT-02 neben RT-01). |
 | RR-2 | **Verkürzen** zeigt vor dem Speichern die Anzahl betroffener Datensätze je Datenart (PRIV-008) und braucht R; Wirkung im nächsten Lauf. Gilt auch für Import und Tab-Reset (§4). |
-| RR-3 | **Verlängern über den Default** braucht eine Begründung (D31-7), die im Audit steht. Kein Blocker. |
+| RR-3 | **Verlängern über den Default** braucht eine Begründung (E-245), die im Audit steht. Kein Blocker. |
 | RR-4 | **Abhängigkeiten:** `raw_answers_years_after_course_end` ≤ `exam_attempts_years`; `certificates_years` ≥ `exam_attempts_years` ist nicht Pflicht, aber ein Hinweis, wenn Nachweise früher verschwinden als die zugrunde liegenden Versuche. Verletzung von Satz 1 wird abgelehnt. |
 | RR-5 | **Protokoll:** jeder Lauf mit Wirkung schreibt `retention_applied` (`actor_type = system:cron`, Datenart, Anzahl, ältestes und jüngstes betroffenes Datum, keine IDs). Delta zu R0-13 §4.1 (Bereich `ops`). |
 | RR-6 | **Systemstatus:** letzte Laufzeit, Anzahl, Rückstand je Datenart (PRIV-006). Ein Rückstand über 7 Tage erzeugt eine Site-Health-Warnung. |
@@ -257,15 +257,15 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 
 | Nr. | Gegenstand | Default | Regel | Test |
 |---|---|---|---|---|
-| RB-1 | Aktivierung | Caps nur für `administrator` (alle 24) und die vier `cc_`-Rollen nach R0-07 §3.1 (E-83) | `editor`, `author`, `contributor`, `shop_manager` erhalten keine `cc_*`-Cap | RBAC-097, PSD-034 |
-| RB-2 | Lernende | WP `subscriber`, keine `cc_*`-Cap | Zugang nur über Grant (E-84) | SET-080 |
-| RB-3 | Support | `cc_support` ohne #14 (E-144) | fremde Antworten nie im Standard; Versuchsdetails nur mit #14 und Pflichtbegründung (E-82) | SET-082 |
+| RB-1 | Aktivierung | Caps nur für `administrator` (alle 24) und die vier `cc_`-Rollen nach R0-07 §3.1 (E-83) | `editor`, `author`, `contributor`, `shop_manager` erhalten keine `ccap_*`-Cap | RBAC-097, PSD-034 |
+| RB-2 | Lernende | WP `subscriber`, keine `ccap_*`-Cap | Zugang nur über Grant (E-84) | SET-080 |
+| RB-3 | Support | `ccap_support` ohne #14 (E-144) | fremde Antworten nie im Standard; Versuchsdetails nur mit #14 und Pflichtbegründung (E-82) | SET-082 |
 | RB-4 | Hochrisiko-Caps | #14, #19…#24 | Vergabe an andere Rollen nur durch `administrator`, R-Dialog mit Liste, Audit `role_caps_changed` | PSD-035 |
 | RB-5 | Datenschutz-Tab | #19 | Felder `trusted_proxies`, `hardening`, `delete_data_on_uninstall` zusätzlich nur `administrator` | PSD-008 |
 | RB-6 | Audit-Ansicht | #21 (Admin, Support) | keine E-Mail- oder IP-Spalte; Export nur #21 + #19 mit Begründung (E-140) | PSD-038 |
-| RB-7 | `unfiltered_html` | nie für `cc_*`-Rollen | auch nicht nach Tab-Reset oder Import | PSD-037 |
+| RB-7 | `unfiltered_html` | nie für `ccap_*`-Rollen | auch nicht nach Tab-Reset oder Import | PSD-037 |
 | RB-8 | Tab-Reset Rollen | entfernt nur Caps aus dem Manifest `course_captain_role_grants` | Caps aus Rollen-Plugins bleiben; `administrator` unverändert | PSD-036 |
-| RB-9 | Staff-Konten | Schutzliste der automatischen Kontolöschung um alle Konten mit `cc_*`-Caps ergänzt | PRIV-014 | PRIV-014 |
+| RB-9 | Staff-Konten | Schutzliste der automatischen Kontolöschung um alle Konten mit `ccap_*`-Caps ergänzt | PRIV-014 | PRIV-014 |
 | RB-10 | Datenschutzanträge | Person selbst (M-23), auch bei Lernsperre | WP-Kern-Caps für fremde Anträge | RBAC-086 |
 
 ### 3.4 Härtungsmodul (E-10)
@@ -278,7 +278,7 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 | HM-2 | **Zurückhalten heißt vollständig:** Ein zurückgehaltenes Merkmal registriert keine Hooks, setzt keine Header, zählt nicht mit. Es gibt keinen „halben“ Modus. |
 | HM-3 | **Erkennung bei jedem Wechsel** (Aktivierung/Deaktivierung von Plugins, Theme-Wechsel, Update) und täglich; Ergebnis mit Grund je Merkmal im Systemstatus und in Site Health. Übergänge `active ↔ held` schreiben Audit `hardening_state_changed` (`actor_type = system:cron` bzw. `system`). |
 | HM-4 | **Nur eigene Mittel:** keine Schreibzugriffe auf `.htaccess`, `wp-config.php`, Serverkonfiguration oder Optionen fremder Plugins (LB-K-05). Deaktivieren von Course Captain beendet alle Effekte sofort. |
-| HM-5 | **Fail-closed nur für Login, Reset, Registrierung** (E-10, E-46). Ausnahme gegen Aussperren: gültiges Gerätecookie und Notausschalter (§3.5, D31-4). |
+| HM-5 | **Fail-closed nur für Login, Reset, Registrierung** (E-10, E-46). Ausnahme gegen Aussperren: gültiges Gerätecookie und Notausschalter (§3.5, E-242). |
 | HM-6 | **Datensparsam:** Zähler nur als gesalzener Hash aus IP (IPv6 je /64) bzw. Konto, Löschung bei Fensterende (RT-40); keine IP im Audit oder Log; Sperren werden nicht einzeln auditiert, nur gezählt (Site Health: Sperren je 24 h). |
 | HM-7 | **Neutrale Antworten:** gleiche Meldung und vergleichbare Antwortzeit für unbekannte und bekannte Konten (Dummy-Passwortprüfung); keine Mail an Betroffene oder Admin je Sperre. |
 | HM-8 | **Kompatibel mit 2FA und SSO:** gezählt werden nur fehlgeschlagene Erstfaktor-Prüfungen über `wp_authenticate`; SSO-Anmeldungen ohne Passwort zählen nicht. |
@@ -287,12 +287,12 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 
 | Merkmal | Default-Modus | Wirkung, wenn aktiv | Grenzen (Fenster) | Zählerausfall | konfliktauslösend (Auswahl, Liste in R1-30 gepflegt) |
 |---|---|---|---|---|---|
-| `login_limit` | `auto` | alle Wege über `wp_authenticate` (wp-login, XML-RPC, REST Basic/Anwendungspasswort, WooCommerce-Konto) mit gemeinsamen Zählern | 10 je IP, 5 je Konto+IP, 30 je Konto in 15 min; Gerätecookie umgeht nur IP- und Konto+IP-Sperre | **closed** (Ausnahme D31-4) | Wordfence (Login Security/Brute Force), Solid Security, Limit Login Attempts Reloaded, Loginizer, All-In-One WP Security, WP Cerber, Shield, Jetpack-Modul „Protect“; Filter-Meldung eines Plugins (`course_captain_hardening_conflicts`) |
+| `login_limit` | `auto` | alle Wege über `wp_authenticate` (wp-login, XML-RPC, REST Basic/Anwendungspasswort, WooCommerce-Konto) mit gemeinsamen Zählern | 10 je IP, 5 je Konto+IP, 30 je Konto in 15 min; Gerätecookie umgeht nur IP- und Konto+IP-Sperre | **closed** (Ausnahme E-242) | Wordfence (Login Security/Brute Force), Solid Security, Limit Login Attempts Reloaded, Loginizer, All-In-One WP Security, WP Cerber, Shield, Jetpack-Modul „Protect“; Filter-Meldung eines Plugins (`course_captain_hardening_conflicts`) |
 | `reset_limit` | `auto` | „Passwort vergessen“: gleiche Bestätigung für unbekannte Konten, Antwort vor dem Mailversand | 10 je IP, 3 je Konto+IP, 10 je Konto je h | **closed** | wie `login_limit` |
 | `registration_limit` | `auto`, wirksam nur bei `users_can_register` | Registrierung über wp-login und Kern-REST | 10 je IP je h | **closed** | wie `login_limit`; CAPTCHA-Plugins zählen nicht als Konflikt |
 | `xmlrpc` | `auto` | authentifizierte XML-RPC-Methoden aus, `system.multicall` und `pingback.ping` abgewiesen, Header `X-Pingback` entfernt; öffentliche Methoden bleiben | – | – | Jetpack aktiv (braucht XML-RPC); anderes Plugin deaktiviert XML-RPC bereits (dann `held:already_restricted`) |
 | `site_headers` | `auto` | website-weit `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`; **kein** HSTS, keine website-weite CSP, keine Permissions-Policy | – | – | **je Header**: Header bereits in `headers_list()` oder im Loopback-Selbsttest (Server-/CDN-Header) vorhanden → nur dieser Header `held` |
-| `user_enumeration` | `off` (D31-3) | `/wp/v2/users` und `?author=<n>` für Gäste: 404 bzw. keine Weiterleitung auf den Autor-Slug | – | – | SEO-Plugin mit eigener Steuerung von Autorenarchiven; Theme mit Autorenseiten → nur Hinweis |
+| `user_enumeration` | `off` (E-241) | `/wp/v2/users` und `?author=<n>` für Gäste: 404 bzw. keine Weiterleitung auf den Autor-Slug | – | – | SEO-Plugin mit eigener Steuerung von Autorenarchiven; Theme mit Autorenseiten → nur Hinweis |
 
 **Nicht im Modul** (Zuständigkeit anderswo): Anwendungspasswörter einschränken (WP-Kern), Benutzer-Sitemap und Feed-Autor (SEO-Plugin, LB-K-05), Content-Security-Policy außerhalb eigener Antworten, HSTS (Hosting).
 
@@ -318,7 +318,7 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 |---|---|
 | NA-1 | `define('COURSE_CAPTAIN_HARDENING', 'off');` schaltet alle Merkmale ab, unabhängig von Settings und Import. Site Health zeigt dauerhaft „Härtung per Konstante aus“; beim ersten Erkennen Audit `hardening_kill_switch_detected`. |
 | NA-2 | WP-CLI `wp course-captain hardening status|reset-counters` (Akteur `system:cli`, #23) leert Zähler und Sperren; Audit `maintenance_action`. |
-| NA-3 | Zählerausfall im Login: unbekanntes Gerät → `503` mit neutralem Hinweis; gültiges Gerätecookie → Login möglich (D31-4); Site-Health-Warnung, höchstens ein Logeintrag je 10 min (R0-17 §3.4). |
+| NA-3 | Zählerausfall im Login: unbekanntes Gerät → `503` mit neutralem Hinweis; gültiges Gerätecookie → Login möglich (E-242); Site-Health-Warnung, höchstens ein Logeintrag je 10 min (R0-17 §3.4). |
 | NA-4 | Restore/Umzug: Zähler sind flüchtig und werden nicht wiederhergestellt; Modus kommt aus den Settings des Dumps. |
 
 ---
@@ -354,7 +354,7 @@ Ergänzt R0-27 §2.4/§2.5; dort Geregeltes wird nicht wiederholt.
 |---|---|
 | RS-1 | Reset des Tabs **Datenschutz & Sicherheit** listet die Abweichungen. Würde der Reset eine Frist verkürzen, gelten RR-2 (Anzahl) und R. Würde er `keep_evidence_on_erasure` abschalten, nennt der Dialog die Folge für künftige Löschanträge. |
 | RS-2 | Reset berührt nie: Tombstones, Journal, Audit, Datenschutzanträge, Opt-outs der Lernenden, Browserwahl externer Medien, Zähler der Härtung, Secrets, Konstanten. |
-| RS-3 | Reset der Härtung setzt alle Merkmale auf den Default (D31-2); ein laufender Notausschalter bleibt wirksam. |
+| RS-3 | Reset der Härtung setzt alle Merkmale auf den Default (E-240); ein laufender Notausschalter bleibt wirksam. |
 | RS-4 | Undo-Snapshot (RT-42) ist nie Teil von Export, Diagnose oder REST; Uninstall mit Datenlöschung entfernt ihn (Manifest R0-16 §2.5). |
 | RS-5 | Diagnosepaket (R0-13 §2.2): Settings nach EX-1 ohne Opt-ins, `personal` als `"<gesetzt>"`, Secrets als `"<gesetzt>"`/`"<leer>"`/`"<konstante>"`, Härtung als Modus und Wirkzustand (Δ-9). |
 
@@ -374,15 +374,15 @@ Art: **P** positiv, **N** negativ. Ebene: **PU** PHPUnit ohne WP, **PI** PHPUnit
 | PSD-005 | P | Bestätigungsdialog per Tastatur und Screenreader | Folge und Anzahl werden vorgelesen; Fokus kehrt zurück; Abbrechen ändert nichts | PW | R1-29 | Konzept 43.2 |
 | PSD-006 | P | Änderung je Feld aus §1.2 | `settings_saved` mit Vorher/Nachher (`public`/`internal`), „geändert“ (`personal`), nie Secret; ohne Änderung kein Eintrag | PI | R1-31 | SR-6 |
 | PSD-007 | N | CLI `settings set` auf R-Feld ohne `--yes`, auf `delete_data_on_uninstall` ohne `--confirm=<site>` | abgelehnt, Exit-Code ≠ 0, kein Audit | PI | R1-31 | PD-3 |
-| PSD-008 | N | `cc_course_manager` und `cc_support` speichern Tab Datenschutz; Nicht-Admin mit #19 ändert `trusted_proxies`, `hardening` | 403 bzw. Feld abgelehnt | PI | R1-03 | RB-5 |
+| PSD-008 | N | `ccap_course_manager` und `ccap_support` speichern Tab Datenschutz; Nicht-Admin mit #19 ändert `trusted_proxies`, `hardening` | 403 bzw. Feld abgelehnt | PI | R1-03 | RB-5 |
 | PSD-009 | P | `show_avatars` einschalten | R-Dialog mit Drittanbieter-Hinweis; danach Gravatar nur mit Einstellung; aus: 0 Gravatar-Anfragen | PW | R1-16 | Δ-6, PRIV-017 |
 | PSD-010 | P | `exams.feedback.show_correct_answers_when = after_submit` | R-Dialog; neue Versuche nutzen den Wert, laufende Snapshots unverändert | PI | R1-09 | Δ-1, E-147 |
 | **Retention** |||||||
 | PSD-011 | P | Default je Unterschlüssel `privacy.retention` (21) | Werte nach §1.4 R0-27 und §2.2 | PU | R1-17 | §2.2 |
 | PSD-012 | P | Zeitreise je Datenart RT-04…RT-43 mit Fristende ± 1 Tag | vor Fristende unverändert, danach Löschart laut §2.1; Batchgrenze; zweiter Lauf ohne Wirkung | PI | R1-17 | PRIV-006 (erweitert) |
-| PSD-013 | P | Kursende (D31-6): (a) aktiver unbefristeter Grant ohne Abschluss, (b) Grant läuft ab, (c) Abschluss bei weiter aktivem Grant, (d) neuer Grant nach Ablauf | (a) keine Frist; (b) Frist ab Grant-Ende; (c) ab Abschluss; (d) Frist ruht, solange der neue Grant aktiv ist | PI | R1-17 | D31-6 |
-| PSD-014 | P | Antwortlog Lernmodus nach Frist (RT-04) | `cc_attempt_answer` gelöscht; Smarttrainer-Stand und Fortschritt unverändert | PI | R1-17 | R0-06 D-5 |
-| PSD-015 | N/P | Frist über Default verlängern ohne bzw. mit Begründung | ohne abgelehnt; mit gespeichert, Begründung im Audit | PI | R1-17 | D31-7 |
+| PSD-013 | P | Kursende (E-244): (a) aktiver unbefristeter Grant ohne Abschluss, (b) Grant läuft ab, (c) Abschluss bei weiter aktivem Grant, (d) neuer Grant nach Ablauf | (a) keine Frist; (b) Frist ab Grant-Ende; (c) ab Abschluss; (d) Frist ruht, solange der neue Grant aktiv ist | PI | R1-17 | E-244 |
+| PSD-014 | P | Antwortlog Lernmodus nach Frist (RT-04) | `ccap_attempt_answer` gelöscht; Smarttrainer-Stand und Fortschritt unverändert | PI | R1-17 | R0-06 D-5 |
+| PSD-015 | N/P | Frist über Default verlängern ohne bzw. mit Begründung | ohne abgelehnt; mit gespeichert, Begründung im Audit | PI | R1-17 | E-245 |
 | PSD-016 | P | Frist verkürzen in UI, per Import, per Tab-Reset | jeweils Anzahl betroffener Datensätze vor dem Speichern, R-Dialog | PW | R1-17 | RR-2, PRIV-008 |
 | PSD-017 | N | `learning_progress` per UI, CLI oder Import ändern | kein Feld; CLI und Import lehnen ab | PI | R1-31 | RT-01 |
 | PSD-018 | N | `raw_answers_years_after_course_end` > `exam_attempts_years` | abgelehnt mit Feldfehler | PI | R1-17 | RR-4 |
@@ -393,7 +393,7 @@ Art: **P** positiv, **N** negativ. Ebene: **PU** PHPUnit ohne WP, **PI** PHPUnit
 | PSD-022 | P | Lektion mit YouTube, Vimeo, `video_url`; Netzwerkprotokoll vor und nach Klick | vor Klick 0 Fremdanfragen; nach Klick nur `youtube-nocookie.com` bzw. Vimeo mit `dnt=1` bzw. Datei-Host | PW | R1-07 | MC-1, MC-2, MED-021 |
 | PSD-023 | P | Kästchen „immer laden“ im Ausgangszustand; Klick ohne Haken, nächste Seite | Kästchen nicht angehakt; nächste Seite wieder Platzhalter | PW | R1-07 | MC-3 |
 | PSD-024 | P | „immer laden“ gesetzt, danach Konto → „Gespeicherte Freigaben zurücksetzen“ | `localStorage` geleert; nächste Seite Platzhalter | PW | R1-16 | MC-4 |
-| PSD-025 | P/N | Consent API aktiv; Kategorie `marketing` erteilt/verweigert; Setting auf `statistics`; Setting auf `functional` ohne Bestätigung | lädt bzw. Platzhalter je Kategorie; `functional` nur mit R-Dialog | PW | R1-30 | MC-5, D31-8 |
+| PSD-025 | P/N | Consent API aktiv; Kategorie `marketing` erteilt/verweigert; Setting auf `statistics`; Setting auf `functional` ohne Bestätigung | lädt bzw. Platzhalter je Kategorie; `functional` nur mit R-Dialog | PW | R1-30 | MC-5, E-246 |
 | PSD-026 | N | Kurs setzt `click_to_load` bei global `link_only` | abgelehnt (nur strenger) | PI | R1-33 | MC-6 |
 | PSD-027 | P | JavaScript aus | Link „Auf <Dienst> ansehen“, keine Einbettung, 0 Fremdanfragen | PW | R1-16 | MC-7 |
 | PSD-028 | P | Seiten-Cache aktiv, Nutzer A hat zugestimmt, Nutzer B nicht | identisches HTML ohne Fremdhost; B sieht Platzhalter | PW | R1-30 | MC-8 |
@@ -404,28 +404,28 @@ Art: **P** positiv, **N** negativ. Ebene: **PU** PHPUnit ohne WP, **PI** PHPUnit
 | PSD-032 | N | Salt-Rotation bzw. neue Konstante nach vorhandenen Tombstones | Fingerabdruck weicht ab → Site Health kritisch; Tombstone-Abgleich meldet nicht prüfbare Einträge in der Admin-Liste; keine Falschlöschung | PI | R1-23 | SH-3, T31-3 |
 | PSD-033 | N | CLI `settings get` auf Secret-Feld | Ausgabe `<gesetzt>`; `set` wirkt, Audit „geändert“ | PI | R1-31 | SH-5 |
 | **RBAC** |||||||
-| PSD-034 | P | Tab „Rollen & Rechte“ nach Aktivierung | zeigt Defaults nach R0-07 §3.1, Hochrisiko-Caps markiert; `editor`/`shop_manager` ohne `cc_*` | PW | R1-03 | RB-1, RBAC-097 |
-| PSD-035 | P/N | #14 an `cc_trainer` durch `administrator`; #19 durch `cc_course_manager` | erstes mit R-Dialog und Audit; zweites 403 | PI | R1-03 | RB-4, SET-081 |
-| PSD-036 | P | Rollen-Plugin gibt `editor` zusätzlich `cc_view_reports`; danach Tab-Reset Rollen | nur Manifest-Caps entfernt; Fremdvergabe bleibt | PI | R1-36 | RB-8 |
-| PSD-037 | N | `unfiltered_html` bei `cc_`-Rollen nach Aktivierung, Tab-Reset, Settings-Import | nie vorhanden | PI | R1-03 | RB-7 |
-| PSD-038 | P | Audit-Ansicht als `cc_support` | keine E-Mail-/IP-Spalte; Export-Knopf fehlt (ohne #19) | PW | R1-38 | RB-6 |
+| PSD-034 | P | Tab „Rollen & Rechte“ nach Aktivierung | zeigt Defaults nach R0-07 §3.1, Hochrisiko-Caps markiert; `editor`/`shop_manager` ohne `ccap_*` | PW | R1-03 | RB-1, RBAC-097 |
+| PSD-035 | P/N | #14 an `ccap_trainer` durch `administrator`; #19 durch `ccap_course_manager` | erstes mit R-Dialog und Audit; zweites 403 | PI | R1-03 | RB-4, SET-081 |
+| PSD-036 | P | Rollen-Plugin gibt `editor` zusätzlich `ccap_view_reports`; danach Tab-Reset Rollen | nur Manifest-Caps entfernt; Fremdvergabe bleibt | PI | R1-36 | RB-8 |
+| PSD-037 | N | `unfiltered_html` bei `ccap_`-Rollen nach Aktivierung, Tab-Reset, Settings-Import | nie vorhanden | PI | R1-03 | RB-7 |
+| PSD-038 | P | Audit-Ansicht als `ccap_support` | keine E-Mail-/IP-Spalte; Export-Knopf fehlt (ohne #19) | PW | R1-38 | RB-6 |
 | **Härtungsmodul** |||||||
 | PSD-039 | P/N | ohne Security-Plugin: 10 Fehlversuche je IP in 15 min, 11. Versuch | 11. gesperrt mit neutraler Meldung; nach Fensterende frei | PI | R1-30 | §3.4 |
 | PSD-040 | P/N | 5 Fehlversuche Konto+IP; 30 je Konto über verteilte IPs | jeweils Sperre der passenden Dimension | PI | R1-30 | §3.4 |
 | PSD-041 | N | Antwort und Antwortzeit für unbekanntes und bekanntes Konto | gleicher Text; Laufzeitunterschied im Median < 50 ms (Dummy-Prüfung) | PI | R1-30 | HM-7 |
 | PSD-042 | P | Fehlversuche über wp-login, XML-RPC (wenn erlaubt), REST mit Anwendungspasswort, WooCommerce-Konto | gemeinsame Zähler | PI | R1-30 | §3.4 |
 | PSD-043 | P/N | Passwort-Reset: unbekanntes Konto; 4 Anfragen Konto+IP; 11 je IP | gleiche Bestätigung; Grenzen greifen; Antwort vor Mailversand | PI | R1-30 | `reset_limit` |
-| PSD-044 | P | Zählerspeicher fällt aus (DB-/Cache-Fehler simuliert) | Login unbekanntes Gerät 503; mit gültigem Gerätecookie Login möglich; Lernlimits fail-open; Site-Health-Warnung; Log gedrosselt | PI | R1-42 | HM-5, NA-3, D31-4 |
+| PSD-044 | P | Zählerspeicher fällt aus (DB-/Cache-Fehler simuliert) | Login unbekanntes Gerät 503; mit gültigem Gerätecookie Login möglich; Lernlimits fail-open; Site-Health-Warnung; Log gedrosselt | PI | R1-42 | HM-5, NA-3, E-242 |
 | PSD-045 | P | Konstante `COURSE_CAPTAIN_HARDENING = off` | alle Merkmale aus, keine Hooks; Site Health dauerhaft; Audit beim ersten Erkennen; Import kann es nicht ändern | PI | R1-30 | NA-1 |
-| PSD-046 | P/N | Gerätecookie nach erfolgreichem Login; Passwortwechsel; manipuliertes Cookie; anderes Konto | Cookie `HttpOnly`, `Secure` (bei HTTPS), `SameSite=Lax`, 180 d; nach Passwortwechsel ungültig; Manipulation wirkungslos; umgeht nur IP- und Konto+IP-Sperre | PI | R1-30 | D31-4 |
+| PSD-046 | P/N | Gerätecookie nach erfolgreichem Login; Passwortwechsel; manipuliertes Cookie; anderes Konto | Cookie `HttpOnly`, `Secure` (bei HTTPS), `SameSite=Lax`, 180 d; nach Passwortwechsel ungültig; Manipulation wirkungslos; umgeht nur IP- und Konto+IP-Sperre | PI | R1-30 | E-242 |
 | PSD-047 | P | Fixture-Stubs je Plugin der Konfliktmatrix aktivieren und deaktivieren | `held:<slug>` ohne CC-Hooks an `authenticate`/`lostpassword_post`; nach Deaktivierung wieder aktiv; Audit `hardening_state_changed` | PI | R1-30 | HM-1…HM-3 |
 | PSD-048 | P | `force` trotz erkanntem Konflikt | R-Dialog mit Warnung „doppelte Sperre“; aktiv; dauerhafter Hinweis; Audit | PW | R1-30 | HM-1 |
 | PSD-049 | P | `login_limit = off` ohne Security-Plugin | R-Dialog; Audit; Site Health „Anmeldung ohne Begrenzung“ | PI | R1-30 | HM-1 |
 | PSD-050 | P/N | XML-RPC `auto`: authentifizierter Aufruf, `system.multicall`, `pingback.ping`, öffentliche Methode; Jetpack-Stub aktiv | erste drei abgewiesen, öffentliche bleibt, kein `X-Pingback`; mit Jetpack `held:jetpack` | PI | R1-30 | §3.4 |
 | PSD-051 | P/N | `site_headers` `auto`; ein Header kommt schon von einem anderen Plugin bzw. vom Server (Loopback) | fehlende Header gesetzt; vorhandene nicht doppelt, `held:server` bzw. `held:<plugin>` je Header; kein HSTS | PI | R1-30 | §3.4 |
 | PSD-052 | P | `site_headers = off` | CC-eigene Antworten tragen weiter die Header nach R0-17 §3.5 und die CSP nach `csp_mode` | PI | R1-16 | §3.4, SEC-007 |
-| PSD-053 | P | `registration_limit` bei `users_can_register` aus bzw. an | aus: Merkmal inaktiv (Status „nicht nötig“); an: 11. Registrierung je IP/h abgewiesen | PI | R1-30 | D31-3 |
-| PSD-054 | P | `user_enumeration` Default und `auto` | Default: `/wp/v2/users` für Gäste unverändert; `auto`: 404 für Gäste, `?author=1` ohne Weiterleitung, angemeldete Redakteure unverändert | PI | R1-30 | D31-3 |
+| PSD-053 | P | `registration_limit` bei `users_can_register` aus bzw. an | aus: Merkmal inaktiv (Status „nicht nötig“); an: 11. Registrierung je IP/h abgewiesen | PI | R1-30 | E-241 |
+| PSD-054 | P | `user_enumeration` Default und `auto` | Default: `/wp/v2/users` für Gäste unverändert; `auto`: 404 für Gäste, `?author=1` ohne Weiterleitung, angemeldete Redakteure unverändert | PI | R1-30 | E-241 |
 | PSD-055 | P | Multisite mit Plugin auf Unterseite | Login-Merkmale `held:multisite`; Header je Site | MS | R1-36 | §3.4 |
 | PSD-056 | N | Zählertabelle nach Login-Flut, Audit, Logs | nur gesalzene Hashes, nach Fensterende gelöscht; keine IP in Audit/Log; keine Mail je Sperre | PI | R1-17 | HM-6, PRIV-027 |
 | **Export, Import, Reset** |||||||
@@ -448,16 +448,16 @@ Bereits geregelt und hier nur genutzt: E-01, E-10, E-28, E-43…E-46, E-51, E-65
 
 | ID | Frage | Optionen | Empfehlung | Wer | Blockiert |
 |---|---|---|---|---|---|
-| **D31-1** | **Phase und Task des Härtungsmoduls.** E-10 legt die Härtung in den Kern, R0-04 (BS-27, W-04) und R0-11 führen sie noch als R2/R4, und nach E-54 braucht jede Zuordnung eine Task | a) R1 Free, neue Task **R1-45** „Website-Härtungsmodul“ (Voraussetzung R1-02 Rate-Limiter, R1-30 Konfliktmatrix; Tests PSD-039…056) · b) Teil von R1-34 · c) neue R2-Task, R1 nur Konfliktmatrix | **a)**: Login-/Reset-Schutz ist sicherheitskritisch und hängt am Rate-Limiter-Kern; R1-34 ist schon breit (Rollen, Datenschutz, Medien, Mail) | Auftraggeber | R1-Backlog, R1-30, R1-34 |
-| **D31-2** | **Default-Modus der Härtungsmerkmale** (E-10 nennt Schalter und Erkennung, aber keinen Default) | a) `auto` für Login-, Reset-, Registrierungslimit, XML-RPC und Header (§3.4) · b) alles `off`, Setup-Assistent fragt · c) `auto` nur Login/Reset, Rest `off` | **a)**: Schutz ab Werk; die Rückhaltung bei erkanntem Security-Plugin verhindert Doppelsperren (Konzept 43.3 „keine doppelte Lockout-Logik erzwingen“); Setup-Schritt zeigt den Zustand | Auftraggeber | R1-45\*, R1-34 |
-| **D31-3** | **Umfang über E-10 hinaus** (LB INV-C-138/140/146 enthält mehr als Login, XML-RPC, Header) | a) Registrierungslimit und Gerätecookie ja; Benutzer-Enumeration als Merkmal mit Default `off`; Anwendungspasswörter, Benutzer-Sitemap, Feed-Autor nein · b) nur die drei E-10-Merkmale · c) alles wie LB, Default an | **a)**: Registrierungslimit und Gerätecookie gehören fachlich zum Login-Schutz; Enumeration ändert öffentliches Site-Verhalten (Autorenseiten, SEO) und bleibt Opt-in; Sitemap/Feed sind Zuständigkeit des SEO-Plugins (LB-K-05) | Auftraggeber | R1-45\* |
-| **D31-4** | **Notausgang bei fail-closed Login** (E-46/E-10): Fällt der Zählerspeicher aus, sperrt fail-closed alle aus, auch Admins | a) Login trotz Ausfall mit gültigem Gerätecookie; zusätzlich Konstante `COURSE_CAPTAIN_HARDENING = off` · b) nur Konstante · c) fail-open für Konten mit Gerätecookie und für Administratoren | **a)**: bekannte Geräte bleiben handlungsfähig, unbekannte bleiben gesperrt; c) macht Admin-Konten zum bevorzugten Ziel | Auftraggeber + Security-Review | R1-45\*, R1-42 |
-| **D31-5** | **Fristen für Datenarten ohne Beschluss** (E-44/E-51/E-116/E-143 decken sie nicht ab; R0-17 DK-08 und §5.3 verweisen auf R0-31) | a) beendete Grants bestehender Konten 10 J. nach Ende; entfernte Plätze 365 d; geschlossene Gruppen 3 J.; aufgehobene Lernsperren 30 d; personenbezogene Exportdateien 24 h; abgeschlossene WP-Anträge: nur Betreiberdoku mit Vorschlag 3 J. · b) alles bis Kontolöschung · c) wie a), aber Grants bestehender Konten bis Kontolöschung | **a)**: kein stilles „unbegrenzt“ (Konzept 35.4); Grants analog E-44 „Zugänge 10 Jahre“; Plätze und Gruppen haben ohne aktive Mitglieder keinen Zweck mehr; Sperrhistorie trägt das Audit. Juristische Bestätigung durch den Betreiber | Auftraggeber + Betreiber-Datenschutz | R1-17, R1-34 |
-| **D31-6** | **Definition „Kursende“** als Fristbeginn für Rohantworten (E-51 „2 Jahre nach Kursende“) | a) je Person: Ende des letzten Grants für den Kurs; bei Kursabschluss mit weiter aktivem Grant der Abschlusszeitpunkt; solange ein aktiver Grant ohne Abschluss besteht, läuft keine Frist · b) letzte Lernaktivität · c) Archivierung des Kurses | **a)**: knüpft an den Zweck (Lernen im Kurs) an; b) löscht bei Lernpausen zu früh, c) nie bei dauerhaft angebotenen Kursen | Auftraggeber + Betreiber-Datenschutz | R1-17 |
-| **D31-7** | **Verlängern einer Frist über den Default** | a) Pflichtbegründung im Audit, kein Blocker · b) frei · c) Obergrenze = Default | **a)**: unterstützt die Rechenschaft des Betreibers, ohne gesetzliche Pflichten (z. B. längere Nachweisfristen) zu blockieren | Auftraggeber | R1-34 |
-| **D31-8** | **Consent-Kategorie für externe Medien** (R0-10 §5.3 nennt eine „konfigurierbare Kategorie“, R0-27 hat kein Feld) | a) Setting `privacy.consent_category`, Default `marketing`, `functional` nur mit Bestätigung · b) fest `marketing`, nur Filter · c) fest `statistics` | **a)**: Consent-Tools ordnen Videodienste unterschiedlich ein; ohne passende Kategorie laden Videos nie oder zu früh | Auftraggeber | R1-07, R1-34 |
+| **E-239** | **Phase und Task des Härtungsmoduls.** E-10 legt die Härtung in den Kern, R0-04 (BS-27, W-04) und R0-11 führen sie noch als R2/R4, und nach E-54 braucht jede Zuordnung eine Task | a) R1 Free, neue Task **R1-45** „Website-Härtungsmodul“ (Voraussetzung R1-02 Rate-Limiter, R1-30 Konfliktmatrix; Tests PSD-039…056) · b) Teil von R1-34 · c) neue R2-Task, R1 nur Konfliktmatrix | **a)**: Login-/Reset-Schutz ist sicherheitskritisch und hängt am Rate-Limiter-Kern; R1-34 ist schon breit (Rollen, Datenschutz, Medien, Mail) | Auftraggeber | R1-Backlog, R1-30, R1-34 |
+| **E-240** | **Default-Modus der Härtungsmerkmale** (E-10 nennt Schalter und Erkennung, aber keinen Default) | a) `auto` für Login-, Reset-, Registrierungslimit, XML-RPC und Header (§3.4) · b) alles `off`, Setup-Assistent fragt · c) `auto` nur Login/Reset, Rest `off` | **a)**: Schutz ab Werk; die Rückhaltung bei erkanntem Security-Plugin verhindert Doppelsperren (Konzept 43.3 „keine doppelte Lockout-Logik erzwingen“); Setup-Schritt zeigt den Zustand | Auftraggeber | R1-45\*, R1-34 |
+| **E-241** | **Umfang über E-10 hinaus** (LB INV-C-138/140/146 enthält mehr als Login, XML-RPC, Header) | a) Registrierungslimit und Gerätecookie ja; Benutzer-Enumeration als Merkmal mit Default `off`; Anwendungspasswörter, Benutzer-Sitemap, Feed-Autor nein · b) nur die drei E-10-Merkmale · c) alles wie LB, Default an | **a)**: Registrierungslimit und Gerätecookie gehören fachlich zum Login-Schutz; Enumeration ändert öffentliches Site-Verhalten (Autorenseiten, SEO) und bleibt Opt-in; Sitemap/Feed sind Zuständigkeit des SEO-Plugins (LB-K-05) | Auftraggeber | R1-45\* |
+| **E-242** | **Notausgang bei fail-closed Login** (E-46/E-10): Fällt der Zählerspeicher aus, sperrt fail-closed alle aus, auch Admins | a) Login trotz Ausfall mit gültigem Gerätecookie; zusätzlich Konstante `COURSE_CAPTAIN_HARDENING = off` · b) nur Konstante · c) fail-open für Konten mit Gerätecookie und für Administratoren | **a)**: bekannte Geräte bleiben handlungsfähig, unbekannte bleiben gesperrt; c) macht Admin-Konten zum bevorzugten Ziel | Auftraggeber + Security-Review | R1-45\*, R1-42 |
+| **E-243** | **Fristen für Datenarten ohne Beschluss** (E-44/E-51/E-116/E-143 decken sie nicht ab; R0-17 DK-08 und §5.3 verweisen auf R0-31) | a) beendete Grants bestehender Konten 10 J. nach Ende; entfernte Plätze 365 d; geschlossene Gruppen 3 J.; aufgehobene Lernsperren 30 d; personenbezogene Exportdateien 24 h; abgeschlossene WP-Anträge: nur Betreiberdoku mit Vorschlag 3 J. · b) alles bis Kontolöschung · c) wie a), aber Grants bestehender Konten bis Kontolöschung | **a)**: kein stilles „unbegrenzt“ (Konzept 35.4); Grants analog E-44 „Zugänge 10 Jahre“; Plätze und Gruppen haben ohne aktive Mitglieder keinen Zweck mehr; Sperrhistorie trägt das Audit. Juristische Bestätigung durch den Betreiber | Auftraggeber + Betreiber-Datenschutz | R1-17, R1-34 |
+| **E-244** | **Definition „Kursende“** als Fristbeginn für Rohantworten (E-51 „2 Jahre nach Kursende“) | a) je Person: Ende des letzten Grants für den Kurs; bei Kursabschluss mit weiter aktivem Grant der Abschlusszeitpunkt; solange ein aktiver Grant ohne Abschluss besteht, läuft keine Frist · b) letzte Lernaktivität · c) Archivierung des Kurses | **a)**: knüpft an den Zweck (Lernen im Kurs) an; b) löscht bei Lernpausen zu früh, c) nie bei dauerhaft angebotenen Kursen | Auftraggeber + Betreiber-Datenschutz | R1-17 |
+| **E-245** | **Verlängern einer Frist über den Default** | a) Pflichtbegründung im Audit, kein Blocker · b) frei · c) Obergrenze = Default | **a)**: unterstützt die Rechenschaft des Betreibers, ohne gesetzliche Pflichten (z. B. längere Nachweisfristen) zu blockieren | Auftraggeber | R1-34 |
+| **E-246** | **Consent-Kategorie für externe Medien** (R0-10 §5.3 nennt eine „konfigurierbare Kategorie“, R0-27 hat kein Feld) | a) Setting `privacy.consent_category`, Default `marketing`, `functional` nur mit Bestätigung · b) fest `marketing`, nur Filter · c) fest `statistics` | **a)**: Consent-Tools ordnen Videodienste unterschiedlich ein; ohne passende Kategorie laden Videos nie oder zu früh | Auftraggeber | R1-07, R1-34 |
 
-\* R1-45 nur bei Annahme von D31-1 a).
+\* R1-45 nur bei Annahme von E-239 a).
 
 ---
 
@@ -478,11 +478,11 @@ Bereits geregelt und hier nur genutzt: E-01, E-10, E-28, E-43…E-46, E-51, E-65
 
 | Dokument | Delta |
 |---|---|
-| `ENTSCHEIDUNGEN.md` | D31-1…D31-8 aufnehmen; Klarstellung in §23 („Wegen E-10 hat der Free-Kern keine Login- bzw. Reset-Limits“) ist durch den Beschluss E-10 überholt und zu streichen |
-| TODO | R0-31 nach Freigabe abhaken; bei D31-1 a) neue Task R1-45; R1-34 DoR „R0-31 fehlt“ (R0-12 §2) entfällt |
-| R0-04 | BS-27: Phase nach D31-1 statt „R2/W-04“; ED-4 erledigt durch E-10 |
-| R0-11 | BS-27 aus dem R4-Pool in Free (Phase nach D31-1); Satz „keine Website-Härtung im Free-Kern“ streichen |
-| R0-12 | PSD-001…064 in die Zählung; R1-34-Zeile „R0-31 fehlt“ → vorhanden; LB-05 „Härtung nicht R1“ nach D31-1 anpassen |
+| `ENTSCHEIDUNGEN.md` | E-239…E-246 aufnehmen; Klarstellung in §23 („Wegen E-10 hat der Free-Kern keine Login- bzw. Reset-Limits“) ist durch den Beschluss E-10 überholt und zu streichen |
+| TODO | R0-31 nach Freigabe abhaken; bei E-239 a) neue Task R1-45; R1-34 DoR „R0-31 fehlt“ (R0-12 §2) entfällt |
+| R0-04 | BS-27: Phase nach E-239 statt „R2/W-04“; ED-4 erledigt durch E-10 |
+| R0-11 | BS-27 aus dem R4-Pool in Free (Phase nach E-239); Satz „keine Website-Härtung im Free-Kern“ streichen |
+| R0-12 | PSD-001…064 in die Zählung; R1-34-Zeile „R0-31 fehlt“ → vorhanden; LB-05 „Härtung nicht R1“ nach E-239 anpassen |
 | R0-13 | T31-5 |
 | R0-16 | T31-3 |
 | R0-17 | §3.5 Satz „nur eigene Antworten“ um das Härtungsmodul ergänzen; §3.4 um Login/Reset/Registrierung (fail-closed); Arbeitsannahme E-10 auf den Beschluss umstellen |

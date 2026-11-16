@@ -1,29 +1,41 @@
-# R0-08 · Kurs-, Activity- und Prüfungsverträge (Entwurf)
+# R0-08 · Kurs-, Activity- und Prüfungsverträge
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Architektur offen.** Task R0-08 ist **nicht** abgehakt. Es gibt keine Implementierung; die PHP-Signaturen in §2 sind Spezifikation, kein Code im Repository.
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung; die PHP-Signaturen in §2 sind Spezifikation, kein Code im Repository.
 **Stand:** 16.11.2026
 **ADR-Bezug:** ADR-004 (Activity-Provider), ADR-005 (Smarttrainer-Portierung), Prüfungs- und Bewertungsanteile von ADR-002/ADR-003. Baut auf `docs/r0/R0-06-datenmodell-adr.md` auf und verwendet dessen Tabellen- und Spaltennamen.
 **Bezug:** TODO R0-08, R1-04 … R1-12, R1-20; Architekturaufgaben „Unveränderliche Prüfungs-Snapshots“, „Zustandsmaschinen“, „Idempotenz- und Wiederanlauftests“, „Golden-Master-Tests für Smarttrainer“, „Drei getrennte Fortschrittsdimensionen“, „Abschluss- und Bewertungsregeln je Activity“, „Kompetenzzuordnung“; Konzept Kap. 3, 4, 26.4, 27.1/27.2, 28.2–28.4, 35.4; Inventur `docs/r0/R0-02-inventar/A-lernen-pruefung.md` (INV-A-001 … 057, §5); Inventur C (INV-C-039, INV-C-132), Inventur E (INV-E-006, INV-E-008).
-**Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (nur gelesen, nicht verändert). Code-Pfade sind relativ zu `bootspruefung-learning/`, Schema-Pfade relativ zur Repo-Wurzel. Abkürzungen: **LS** = `src/Learning/Services/LearningService.php`, **QP** = `src/Learning/Services/QuestionPresenter.php`, **AS** = `src/Learning/Services/AccessService.php`, **ES** = `src/Exams/Services/ExamService.php`, **CR** = `src/Content/Repositories/ContentRepository.php`, **VS** = `src/Trainers/VideoService.php`, **TS** = `src/Trainers/TrainerService.php`.
+**Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (nur gelesen, nicht verändert). Code-Pfade sind relativ zu `bootspruefung-learning/`, Schema-Pfade relativ zur Repo-Wurzel. LB-Belege sind **Verhaltensreferenz**, keine Code-Vorlage (E-01). Abkürzungen: **LS** = `src/Learning/Services/LearningService.php`, **QP** = `src/Learning/Services/QuestionPresenter.php`, **AS** = `src/Learning/Services/AccessService.php`, **ES** = `src/Exams/Services/ExamService.php`, **CR** = `src/Content/Repositories/ContentRepository.php`, **VS** = `src/Trainers/VideoService.php`, **TS** = `src/Trainers/TrainerService.php`.
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil, Abweichung nur per ADR-Änderung. **SOLL** = Standard, begründete Abweichung erlaubt. **KANN** = optional.
 
 ---
 
-## 0. Annahmen (Empfehlungen aus `ENTSCHEIDUNGEN.md`, noch nicht beschlossen)
+## 0. Beschlussstand
 
-Dieses Dokument behandelt die folgenden Empfehlungen als **Annahme**. Wird eine anders beschlossen, sind die genannten Abschnitte anzupassen.
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). Die früheren Annahmen sind entschieden; in dieses Dokument eingearbeitet:
 
-| ID | Annahme | Wirkt auf |
-|---|---|---|
-| E-14 | Einfacher Drip („Modul X Tage nach Zugangsbeginn“) in Free; Kampagnen und Gruppen-Drip in Pro | §1.4 |
-| E-20 | Erklärungen sind kein Verkaufsfeature, sondern Einstellung „Feedback sichtbar: immer / nach Abgabe / nie“ | §4.5 |
-| E-21 | Ein Karteikartentyp mit zwei Modi (Selbsteinschätzung; „3 × gewusst in Folge“), R1 Free | §2.4, §5.2 |
-| E-22 | Kein Fragetyp „Zahl mit Toleranz“/Fallstudie in R1 | §3.1 |
-| E-23 | Kein Modus „offiziell/verifiziert“; Prüfungsregel hat Status `draft/published/retired`, Kennzeichnung `reduced` bleibt | §4.1, §6.3 |
-| E-50 | Eine Kursrevision fixiert Struktur und Regeln, **nicht** die Fragenrevisionen; diese werden beim Versuchsstart fixiert | §1.2, §7 |
-
-Weitere Abhängigkeiten, ebenfalls als Annahme: E-15 (Teilumfang in R1 Free), E-27 (Zugang je Kurs mit Scopes `view`, `download`, `exam`), E-47 (Hybrid-Speicherung), E-06 (einheitlicher Fehlercode-Katalog, Format in R0-19).
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | LB-Klassen (LS, QP, ES …) sind nur Verhaltensbeleg; die Verträge werden neu implementiert, „Parität“ heißt gleiches Verhalten, nicht gleicher Code |
+| **E-14** | einfacher Drip je Modul in Free, Kampagnen und Gruppen-Drip Pro (§1.4) |
+| **E-20**, E-95, E-147, E-268, E-269 | Lösungserklärungen sind Pro (`course.explanations`); Free zeigt richtig/falsch und nach Einstellung die richtige Antwort; Free speichert, importiert und exportiert Erklärungstexte weiter (§4.5, §6.3) |
+| **E-21** | ein Karteikartentyp mit zwei Modi (§2.4, §5.2) |
+| **E-22** | neuer Fragetyp `numeric_tolerance` in R1 Free, ohne Code aus `NavigationCheck`; Fallstudie nicht (§3.1, §3.2) |
+| **E-23**, E-129 | Prüfungsregel `draft/published/retired` mit `purpose = exam/practice`; Entwürfe nie als Übung; `reduced` bleibt (§4.1, §6.3) |
+| **E-25a** | Bundle: ein Grant schaltet mehrere Kurse frei (§1.4) |
+| **E-26** | abhängige Zusatz-Grants in R1 (§1.4; Automat in R0-09) |
+| **E-27** | Zugang je Modul: Grant-Schlüssel mit `module_id` (NULL = ganzer Kurs; technisch `0` nach R0-06 Nachtrag Δ40-1), Freischaltprüfung je Modul (§1.4) |
+| **E-38** | Fachereignisse gehen in Free nur in die interne Outbox; öffentliche Events, Read-API und Connector-Registry sind Pro (§2.5) |
+| **E-45/E-45a** | `needsExternalConsent` wirkt nur im Modus `click_to_load`; Default `always_load` (§2.2) |
+| **E-50** | Kursrevision fixiert Struktur und Regeln, nicht die Fragenrevisionen (§1.2, §7) |
+| **E-67 … E-77** (früher D-01 … D-11) | 1:1 Lektion/Activity mit eigener `activity_uid`; bewertete Quizze im Versuchsautomaten; Fragetypen nach E-69 (geändert, s. u.); Abschluss-Rücknahme nur `manual_confirm`; Abbruch zählt bei Limit; Inaktivitäts-Abgabe als Option; Competency abgeleitet; Nachbewertung im Datenvertrag; `evaluated` + `end_reason`; Video-Standard `manual_confirm`; Teilpunkte `all_or_nothing` und `proportional_penalty` (§8) |
+| **E-69** | **abweichend von der früheren Empfehlung D-03:** `matching`, `ordering`, `cloze` schon in R1 Free (§3.1); E-199 (R2-08) entfällt |
+| **E-72**, E-108, E-137, E-107 | Inaktivitäts-Abgabe optional, Standard aus (§4.3); Abbruch wegen Kursrückzug (`withdrawn`) und Support-Annullierung (`support_void`) zählen nicht gegen `max_attempts` (§4.4); Versuche alter Regelversionen zählen standardmäßig mit (§4.4) |
+| **E-122**, E-123 | Nachteilsausgleich und `timer_mode` (`strict`/`practice`) im Snapshot (§4.3, §6.3; Nachtrag eingearbeitet) |
+| **E-168** | **neue Activity `assignment`** (Text-/Dateiaufgabe mit Bewertung) in R1, Zustandsautomat `draft/submitted/returned/graded` (§2.4, §2.5); Upload-Sicherheit nach R0-10 §4.5; Ziel-Task R1-46 |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen; Optionen `course_captain_*`. Alle Bezeichner in diesem Dokument sind umgestellt |
+| **E-229** | Prüfungseinstellungen (`exams.*`) nur global und je Prüfungsregel, keine Kursebene (§4.5; T28-1 aus R0-28 eingearbeitet) |
+| **E-05, E-06, E-15, E-47** | unverändert genutzt (Cookie+Nonce, Fehlercode-Katalog R0-19, Teilumfang Free, Hybrid-Speicherung) |
 
 ---
 
@@ -35,7 +47,7 @@ Weitere Abhängigkeiten, ebenfalls als Annahme: E-15 (Teilumfang in R1 Free), E-
 Kurs (cc_course, CPT)
  └─ Modul (cc_module, CPT)          n:m über cc_course_module (sort_order, required, rules)
      └─ Lektion (cc_lesson, CPT)    1:n über post_parent + menu_order
-         └─ Activity                in R1 genau eine je Lektion (→ D-01), Typ in Meta _cc_activity_type
+         └─ Activity                in R1 genau eine je Lektion (E-67), Typ in Meta _cc_activity_type
              └─ Fragen              cc_activity_question (Inline-Quiz) bzw. Fragenpool des Moduls (cc_module_question)
 Prüfung (cc_exam_rule + Blueprint/Variante) ist eine Activity vom Typ exam, die auf eine Prüfungsregel des Kurses verweist.
 ```
@@ -72,7 +84,7 @@ Die Freischaltung ist **eine** serverseitige Policy-Entscheidung je (Lernender, 
 
 | # | Prüfung | Quelle des Rechts | Sperrgrund | LB-Beleg |
 |---|---|---|---|---|
-| 1 | Zugang zum Kurs mit passendem Scope (`view`/`download`/`exam`, E-27) | aktiver Grant, Free-Regel `free` mit Gültigkeitsfenster, Einstellung „Zugang für angemeldete Nutzer“ | `no_access` | AS:50-133, :335-357 |
+| 1 | Zugang zum **Modul** des Objekts (E-27): aktiver Grant auf genau dieses Modul oder auf den ganzen Kurs (`module_id` leer); Bundle-Grants (E-25a) wirken wie je ein Grant je enthaltenem Kurs; abhängige Zusatz-Grants (E-26) nur, solange ihr Basis-Grant aktiv ist | aktiver Grant, Free-Regel `free` mit Gültigkeitsfenster, Einstellung „Zugang für angemeldete Nutzer“ | `no_access` | AS:50-133, :335-357 (LB: je Kurs × Feature; je Modul ist neu) |
 | 2 | Teilumfang (`free_limited`): nur die ersten *n* Elemente je Abschnitt | `cc_access_rule` (`access_type = free_limited`, `limit_type`, `limit_value`) | `trial` | AS:37-46 (Limit-Typen), LS:405-428 (erste *n* Fragen je Modul), ES:166-171 (erste *n* Bögen, keine Zufallsprüfung) |
 | 3 | Drip: Modul wird *d* Tage nach Zugangsbeginn frei (E-14) | `cc_access_rule` (`access_type = drip`, `module_id`, `limit_value` = Tage; bei mehreren Regeln gilt das Maximum) | `drip` + `unlock_at` | AS:263-283 (`MAX(limit_value)`), :315-333 (Zugangsbeginn = frühester `valid_from` eines aktiven Grants, sonst Registrierung) |
 | 4 | Voraussetzungen | `cc_course_module.rules` bzw. Activity-`settings.prerequisites` | `prerequisite` + `requires[]` | **neu** (LB kennt nur `required` je Modul, `courses.schema.json:27`) |
@@ -92,6 +104,9 @@ GateDecision {
 
 **Regeln:**
 
+- **Zugang je Modul (E-27, MUSS):** Die Prüfung #1 läuft je Modul. Objekte ohne Modulbezug (Kursseite, Kurs-FAQ, Zertifikatsregel) verlangen Zugang zu mindestens einem Modul des Kurses bzw. einen Grant auf den ganzen Kurs. Eine **Prüfung** (Zufallsprüfung oder feste Variante) ist nur startbar, wenn **alle** ihre Blueprint- bzw. Variantenmodule freigeschaltet sind; `requires` nennt die gesperrten Module (gleiche Regel wie bei Drip, unten). Der effektive Zugang je (Lernender, Kurs, Modul) ist Ergebnis von R0-09; dieses Dokument liest ihn nur.
+- **Bundle (E-25a):** Ein Grant, der mehrere Kurse freischaltet, wird je Zielkurs ausgewertet; ein Widerruf entzieht alle Ziele dieses Grants, andere Quellen bleiben (Mehrfachquelle, LB-Parität).
+- **Abhängige Zusatz-Grants (E-26):** Ein Zusatz-Grant (typisch ein Zusatzmodul) wirkt nur, solange sein Basis-Grant `active` ist; ausgesetzt, abgelaufen oder widerrufen ⇒ Zusatz wirkt nicht. Die Kette und ihre Zustände definiert R0-09.
 - **Drip in Free (E-14):** nur relativ zum Zugangsbeginn in ganzen Tagen, je Modul. Absolute Termine, Kampagnen und Gruppen-Drip sind Pro. Drip gilt auch für **Prüfungen**: Eine feste Variante ist gesperrt, solange eines ihrer Module gesperrt ist (ES:213-216, `paperUnlockTimes` ES:784), eine Zufallsprüfung, solange ein Blueprint-Modul gesperrt ist (ES:228-236).
 - **Zugangsbeginn** ist pro Kurs und Scope zu berechnen und im Request zu memoisieren (LB `RequestMemo`, AS:309-312). Er ändert sich, wenn ein früherer Grant aktiv wird; das ist gewollt (LB-Parität) und im Test zu fixieren.
 - **Voraussetzungen (neu):** Typen `completed(activity_uid)`, `completed(module_uid)`, `passed(exam activity_uid)`. Zyklen werden beim Veröffentlichen abgewiesen (Publish-Validator R1-26). Eine Voraussetzung auf eine nicht mehr existierende Activity der Revision ist ein Validierungsfehler, kein stilles „frei“.
@@ -120,7 +135,7 @@ namespace CourseCaptain\Activity\Contract;
 /** Pflicht für jeden Provider. */
 interface ActivityProvider
 {
-    /** Stabiler Typschlüssel, z. B. "lesson", "video", "file", "quiz", "exam", "flashcard". [a-z0-9_]{1,32} */
+    /** Stabiler Typschlüssel, z. B. "lesson", "video", "file", "quiz", "exam", "flashcard", "assignment". [a-z0-9_]{1,32} */
     public function type(): string;
 
     /** SemVer des Provider-Vertrags. Major = inkompatible Settings/Bewertung. */
@@ -167,7 +182,7 @@ interface DeterminesCompletion
     public function evaluateCompletion(ActivityContext $context, CompletionRule $rule, ProgressState $state): CompletionDecision;
 }
 
-/** Bewertete Activities (quiz, exam; später Aufgaben/Tutorbewertung). */
+/** Automatisch bewertete Activities (quiz, exam). Manuell bewertete Aufgaben: GradesManually (§2.5). */
 interface GradesActivity
 {
     /** Bewertet eine Abgabe ausschließlich gegen den Versuchs-Snapshot, nie gegen Live-Inhalte. */
@@ -191,6 +206,16 @@ interface ExportsActivity
     public function eraseLearnerData(int $userId, EraseContext $context): EraseResult;
 }
 
+/** Manuell bewertete Activities (assignment, E-168; §2.5). */
+interface GradesManually
+{
+    /** Bewertet eine eingereichte Abgabe gegen ihren eingefrorenen Stand; nie gegen den Live-Inhalt. */
+    public function gradeSubmission(SubmissionSnapshot $submission, ManualGrade $grade, GradingContext $context): GradeResult;
+
+    /** Version der Bewertungslogik (Punkte, Bestehen); wird an der Auswertung gespeichert. */
+    public function evaluatorVersion(): string;
+}
+
 interface ActivityRegistry
 {
     /** Doppelter Typ ist ein Fehler (kein stilles Überschreiben). */
@@ -207,7 +232,7 @@ interface ActivityRegistry
 
 | Objekt | Felder |
 |---|---|
-| `ActivityCapabilities` | `completable`, `gradable`, `feedsMastery` (Antworten fließen in den Smarttrainer), `producesEvidence` (kann Kompetenznachweis sein), `accessScope` (`view`/`download`/`exam`), `dripAware`, `previewLimitType` (`first_items`/`questions_per_section`/`first_variants`/`none`), `needsExternalConsent` (Video-Host, E-45) |
+| `ActivityCapabilities` | `completable`, `gradable`, `feedsMastery` (Antworten fließen in den Smarttrainer), `producesEvidence` (kann Kompetenznachweis sein), `accessScope` (`view`/`download`/`exam`), `dripAware`, `previewLimitType` (`first_items`/`questions_per_section`/`first_variants`/`none`), `needsExternalConsent` (Video-Host; wirkt nur im Modus `click_to_load`, Default `always_load`, E-45a) |
 | `ActivityDefinition` | `activityUid`, `type`, `contractVersion`, `settingsVersion`, `settings`, `required`, `completionRule`, `objectiveUids[]` |
 | `FrozenActivity` | `activityUid`, `type`, `contractVersion`, `settingsVersion`, `settingsHash` (`sha256:`), `contentHash` (WP-Revisions-ID + Inhalts-Hash), `completionRule`, `required` |
 | `ActivityContext` | `userId`, `courseUid`, `courseRevisionId`, `activityUid`, `gate` (`GateDecision`), `scopes`, `locale`, `clock`, `randomizer`, `correlationId` |
@@ -231,15 +256,60 @@ interface ActivityRegistry
 |---|---|---|---|---|---|---|
 | `lesson` | Text/Blöcke, Schrittgalerie, Ressourcen | **`manual_confirm`**, `view` (Activity gerendert und mindestens `min_seconds` geöffnet, serverseitig über zwei Interaktionen gemessen) | – | Inline-Fragen ja | nein | `video_lesson_step` → Blöcke (R0-06 E-05) |
 | `video` | Video/Audio mit Position, Untertiteln, Inline-Fragen | **`manual_confirm`** (LB-Parität: Client meldet `completed`, VS:236-260), `position_ratio ≥ p` (Selbstauskunft des Clients, als solche gekennzeichnet) | – | Inline-Fragen ja (Kontext `video`, LS:177) | nein | VS:45-96, :173-233, :236-260; `video_modules.schema.json` (`provider` `url/youtube/vimeo/media`, `duration_seconds`) |
-| `file` | geschützter Download | **`downloaded`** (serverseitig protokollierter, erfolgreicher Download), `manual_confirm` | – | – | nein | Gate/ProtectedFiles (Inventur A §2.5); Nutzungsereignis E-A-06 |
+| `file` | geschützter Download | **`downloaded`** (serverseitig protokollierter, erfolgreicher Download), `manual_confirm` | – | – | nein | Gate/ProtectedFiles (Inventur A §2.5); neutrales Nutzungsereignis (E-32) |
 | `quiz` | Übung/Kurzquiz aus festen Fragen oder Modulpool | **`attempted`** (alle Fragen einmal beantwortet), `passed` (Bestehensregel §4.1), `all_correct_once` | ja: unbewertet (Lernmodus-Engine, `cc_attempt`) oder bewertet (Versuchsautomat §6, Modus `quiz`, → Δ-2) | ja (unbewertet) | nur wenn `settings.counts_as_evidence = true` und bewertet | Lernmodus LS:80-282; Videoquiz `video_lesson_question` |
 | `exam` | Prüfung nach Regel, Blueprint oder fester Variante | **`passed`**, `evaluated` (abgegeben, egal ob bestanden) | ja (§4, §6) | **nein** (LB: Prüfungsantworten ändern den Lernstand nicht; ES ruft `applyProgress` nie auf) | ja, wenn nachweisfähig (§5.3) | ES gesamt |
 | `flashcard` | Karteikarten-Set (E-21) | **`all_known`** (Modus Selbsteinschätzung), `all_streak` (Modus Serie), `ratio ≥ r` | – | eigener Kartenstand (nicht Smarttrainer, E-21) | nein | TS:272-297 (`open`/`practice`/`known`); Serie bis „gelernt“ ab 3 in Folge (Inventur A §5.3, `RadioService.php:278-279`) |
+| `assignment` | Text- oder Dateiaufgabe mit manueller Bewertung (E-168, R1-46) | `submitted`, **`graded`**, `passed` (bewertet und Punkte ≥ `passing_points`) | ja, manuell durch Bewertende (§2.5) | – | nein (R1) | **neu, ohne LB-Vorbild** |
 
 **Karteikarten-Modi (E-21):**
 - `self_assessment`: Lernender setzt je Karte `open` → `practice` → `known` frei (jede Richtung erlaubt, LB TS:275, UPSERT TS:292-297).
 - `streak`: Karte wird `known`, sobald `known_streak` (Standard 3, LB) Selbsteinschätzungen „gewusst“ in Folge vorliegen; „nicht gewusst“ setzt die Serie auf 0; einmal `known` bleibt `known` (LB „bleibt gelernt“). Doppelklick-Schutz über `idempotencyKey`.
 - Speicherung: Kartenstand je Karte und Nutzer; R0-06 sieht `cc_question_progress` dafür vor (E-21-Vermerk in R0-06 E-25). Karten sind dann Fragen vom Typ `flashcard` (§3.1) mit getrenntem `learn_status`-Wertebereich und eigener `algorithm_version`.
+
+### 2.5 Aufgaben-Activity `assignment` (E-168, R1-46)
+
+**Neu, ohne LB-Vorbild.** LB kennt keine Abgaben; Tests sind GM-195/GM-196 (R0-05 §1.22, gekennzeichnet „ohne LB-Quelle“), Upload-Sicherheit nach R0-10 §4.5 (MED-027…MED-030), Revisionen nach R0-23 RV-22.
+
+**Settings** (schema-validiert, mit der Kursrevision eingefroren):
+
+| Schlüssel | Werte | Regel |
+|---|---|---|
+| `instructions` | Blöcke | Aufgabenstellung; Pflicht (VAL-037) |
+| `submission_type` | `text` / `file` / `text_and_file` | Pflicht |
+| `text_limits` | `{min_chars?, max_chars?}` | Grenzwerte und Defaults in R0-27 (OP-08-3) |
+| `file_rules` | `{allowlist[], max_files, max_bytes}` | Allowlist ⊆ globale Allowlist (R0-10 §4.5); Werte OP-10-2 |
+| `max_points` | Ganzzahl ≥ 1 | gespeichert als `max_points_milli` (§3.2) |
+| `passing_points` | Ganzzahl 0…`max_points` oder leer | leer ⇒ `passed` bleibt `null`; Abschlussregel `passed` dann ungültig (VAL-038) |
+| `rubric_text` | Text, optional | nur für Bewertende sichtbar |
+
+**Zustände** (eine Abgabekette je Lernendem und `activity_uid`, Fassungen über `submission_no`):
+
+| Zustand | Bedeutung | bearbeitbar durch Lernende |
+|---|---|---|
+| `draft` | Entwurf, Autosave | ja |
+| `submitted` | eingereicht, wartet auf Bewertung | nein |
+| `returned` | zur Überarbeitung zurückgegeben, mit Pflichtkommentar | ja |
+| `graded` | bewertet (Punkte, Feedback, `passed`) – Endzustand der Kette | nein |
+
+**Übergänge (MUSS):**
+
+| Von | Aktion | Nach | Vorbedingungen (serverseitig) | Wirkung | Idempotenz |
+|---|---|---|---|---|---|
+| – / `draft` / `returned` | `save(text?, files?)` | unverändert bzw. `draft` | eigener Nutzer; effektiver Zugang zum Modul (§1.4); Activity nicht gesperrt; Dateien nach R0-10 §4.5 | Inhalt ersetzt; erste Speicherung legt die Kette an (`submission_no = 1`) | `idempotencyKey`; CAS `row_version` |
+| `draft` / `returned` | `submit(request_key)` | `submitted` | Pflichtinhalt je `submission_type` vorhanden (sonst `ccap_submission_incomplete`); Zugang besteht | Stand eingefroren: `content_hash` (Text + SHA-256 je Datei), `settings_hash` der Aufgabe aus der Lernstand-Revision, `submitted_at`; aus `returned` entsteht `submission_no + 1`, die Vorgängerfassung bleibt lesbar; Abschlussregel `submitted` ⇒ Activity `completed` | gleicher `request_key` ⇒ gleiches Ergebnis |
+| `submitted` | `return(comment)` | `returned` | Bewertungsrecht (unten); Kommentar Pflicht | Kommentar für Lernende sichtbar; Audit | Zielzustand (natürlich idempotent) |
+| `submitted` | `grade(points, feedback?)` | `graded` | Bewertungsrecht; Ganzzahl 0…`max_points` (sonst `ccap_grade_invalid`) | Auswertung `evaluation_no = 1`, `points_milli`, `passed`, Bewerter, Zeit; Abschlussregel `graded` bzw. `passed` ⇒ Activity `completed`; Audit | `request_key` |
+| `graded` | `regrade(points, reason)` | `graded` | Bewertungsrecht; Pflichtbegründung | neue Auswertung `evaluation_no + 1`, die alte bleibt sichtbar (E-74-Analogie, §4.6); erreichte Completion bleibt (Monotonie §5.1) | `request_key` |
+
+- **Nicht in R1:** Zurückziehen einer eingereichten Abgabe durch Lernende, erneute Abgabe nach `graded` (Retakes), Fristen mit Spätabgabe, Gruppenabgaben, Peer-Review (OP-08-4).
+- **Bewertungsrecht:** Kursmanager und dem Kurs zugewiesene Trainer (`ccap_trainer` über `ccap_course_staff`, R0-07); nie die abgebende Person selbst. Die genaue Cap legt R0-07 fest (OP-08-1, OP-10-4). Eine kursübergreifende Notenübersicht (Gradebook) bleibt Pro (E-74, E-99).
+- **Zugangsentzug:** ohne effektiven Zugang kein `save`/`submit` (`ccap_access_denied`); eingereichte Abgaben bleiben bewertbar, Ergebnisse bleiben sichtbar (Analogie zur Abgabe einer laufenden Prüfung, GM-042).
+- **Sichtbarkeit:** Lernende sehen eigene Fassungen, Rückgabekommentare, Punkte und Feedback nach `graded`. Das Feedback der Bewertenden ist **kein** Lösungserklärungstext im Sinne von E-20 und ist in Free sichtbar. Fremde Abgaben ⇒ `ccap_not_found` (kein Existenzleck).
+- **Dateien:** Ablage, Typprüfung, Größe, Auslieferung, Audit fremder Abrufe, Rate-Limit nach R0-10 §4.5.
+- **Mastery/Competency:** Aufgaben speisen weder den Smarttrainer noch Kompetenznachweise (`producesEvidence = false` in R1).
+- **Ereignisse:** `assignment.submitted`, `assignment.returned`, `assignment.graded` nur in die interne Outbox (E-38); öffentliche Events mit Pro. Benachrichtigungen an Lernende/Bewertende → OP-08-2.
+- **Privacy:** `ExportsActivity::exportLearnerData()` liefert Text, Dateimetadaten, Kommentare und Auswertungen; der Eraser entfernt Dateien und Texte. Aufbewahrung OP-10-3 (E-51).
 
 ---
 
@@ -263,14 +333,20 @@ interface ActivityRegistry
 | `multi_choice` | R1 | 2–26 Optionen, ≥ 1 richtig | richtig ⇔ Auswahl nicht leer **und** Menge = Menge der richtigen (QP:186-191) | ja, `scoring` §3.2 | Schema :86-87; QP:189 |
 | `open_text` | R1 | genau 1 Musterantwort | richtig ⇔ Selbsteinschätzung „gewusst“ (`known === true`, QP:188); in der Prüfung erst nach Aufdecken der Musterantwort (ES:434-436) | nein | Schema :88-89; LS:236-238; ES:503-516 |
 | `flashcard` | R1 | Vorderseite, Rückseite, optionale Erklärung/Medien | keine Punktbewertung; Kartenstand §2.4 | – | TS:272-297; `praxis_tasks.schema.json` (`question`, `answer`, `explanation`, `media_source_id`) |
-| `matching`, `ordering`, `cloze` | **→ D-03** | Konzept 3.3 (Free), aber **ohne LB-Beleg** → kein Golden Master | Vertrag unten vorbereitet | ja | Konzept 3.3, 27.2 („Basis nach Parität“) |
-| `numeric_tolerance` | nicht R1 (E-22) | – | – | – | E-A-03 |
+| `numeric_tolerance` | **R1 Free (E-22)** | Sollwert als Dezimalzahl mit höchstens 6 Nachkommastellen; `tolerance_type` ∈ `absolute`/`relative`; Toleranz ≥ 0, relativ ≤ 100 %; optionale Einheit (nur Anzeige) | richtig ⇔ \|x − Soll\| ≤ Toleranz (absolut) bzw. ≤ \|Soll\| · Toleranz (relativ), Grenze inklusive; Rechnung in Festkomma (Ganzzahl × 10⁶), kein Gleitkomma | nein | **neu, ohne LB-Beleg** (kein Code aus `NavigationCheck`, INV-A-086); GM-191 |
+| `matching` | **R1 Free (E-69)** | 2–26 Paare (links → rechts); rechts optional Distraktoren (insgesamt ≤ 26 rechte Einträge); jeder rechte Eintrag höchstens einmal zuordenbar; keine zwei linken Einträge mit gleichem normalisiertem Text | richtig ⇔ jede linke Seite dem richtigen rechten Eintrag zugeordnet | ja (§3.2, je Paar) | **neu, ohne LB-Beleg**; Konzept 3.3; GM-192 |
+| `ordering` | **R1 Free (E-69)** | 2–26 Elemente, keine zwei mit gleichem normalisiertem Text | richtig ⇔ Reihenfolge exakt gleich der Lösung | nein in R1 (Teilpunkte erst nach Didaktik-Review, wie `per_option`, E-77) | **neu, ohne LB-Beleg**; GM-193 |
+| `cloze` | **R1 Free (E-69)** | ≥ 1 Lücke; je Lücke ≥ 1 akzeptierte Antwort, keine leere; Lücken-IDs eindeutig | je Lücke richtig ⇔ normalisierte Eingabe ∈ normalisierte akzeptierte Antworten; Frage richtig ⇔ alle Lücken richtig | ja (§3.2, je Lücke) | **neu, ohne LB-Beleg**; GM-194 |
 
-Für die nicht belegten Typen gilt bereits jetzt der Vertrag: deterministische Bewertung, Teilpunkt-Strategie aus §3.2, Normalisierung (Lückentext: `trim`, Unicode-NFC, Groß-/Kleinschreibung und Leerzeichen-Kollaps konfigurierbar; **keine** semantische Bewertung, Konzept 3.3).
+Für die Typen ohne LB-Beleg (`numeric_tolerance`, `matching`, `ordering`, `cloze`) gilt: deterministische Bewertung, Teilpunkt-Strategie aus §3.2, kein Golden Master aus LB (Tests als „neu, ohne LB-Quelle“ in R0-05 §1.22), Auslieferung **ohne** Lösungsdaten (kein Sollwert, keine Toleranz, keine Paarliste, keine Lösungsreihenfolge, keine akzeptierten Antworten). Sie fließen wie Auswahlfragen in den Smarttrainer ein (`correct` = volle Punktzahl, §3.2).
+
+- **Lückentext-Normalisierung:** `trim`, Unicode-NFC und Leerzeichen-Kollaps immer; Groß-/Kleinschreibung je Frage konfigurierbar (Standard: ignorieren); **keine** semantische Bewertung (Konzept 3.3). In R1 sind Lücken Freitextfelder (keine Auswahllisten).
+- **Zahleneingabe (`numeric_tolerance`):** erlaubt sind Ziffern, ein optionales Vorzeichen und genau ein Dezimaltrennzeichen (`,` oder `.`, unabhängig von der Kurssprache); keine Tausendertrennzeichen, keine Einheit im Feld, höchstens 6 Nachkommastellen. Alles andere ist eine **ungültige** Eingabe (Fehler, nicht „falsch“, nichts gespeichert). Es gibt keine Einheitenumrechnung.
 
 **Eingabevalidierung (LB-Parität):**
 - Lernmodus: Auswahl nicht leer und nur aus den ausgelieferten Optionen (LS:229-232); `single_choice` genau eine (LS:233-235); `open_text` braucht `known` (LS:236-238).
 - Prüfung: leere Auswahl bei `multi_choice` **nimmt die Antwort zurück** (unbeantwortet, ES:441-444); bei `single_choice` ist leer ungültig (ES:445-449).
+- Neue Typen (Lernmodus und Prüfung): `matching`/`ordering` nur mit Einträgen aus der ausgelieferten Liste; leere Eingabe bei `matching`, `ordering`, `cloze`, `numeric_tolerance` in der Prüfung nimmt die Antwort zurück (unbeantwortet), im Lernmodus ist sie ungültig; eine unvollständige Zuordnung bzw. teilweise ausgefüllte Lücken sind zulässig und werden nach §3.2 bewertet; ungültige Zahleneingaben ⇒ `ccap_invalid_answer` bzw. `ccap_exam_invalid_answer`.
 - Die erlaubten Options-IDs kommen im Lernmodus aus dem signierten Frage-Token (`o`, QP:147-152, LS:227), in der Prüfung aus `answer_order` des Snapshots (ES:439).
 
 ### 3.2 Teilpunkte
@@ -284,7 +360,8 @@ Für die nicht belegten Typen gilt bereits jetzt der Vertrag: deterministische B
 | `per_option` | `w · (Anzahl korrekt klassifizierter Optionen) / n`, **aber 0 bei leerer Auswahl** | nur zulassen, wenn `n ≥ 3`; sonst Ratequote 50 % |
 
 - **MUSS:** Punkte werden in **Tausendstelpunkten als Ganzzahl** gerechnet und gespeichert (`points_milli`); Abrundung je Frage auf ganze Tausendstel, Summe ohne Rundung. Damit entfällt der Gleitkomma-Epsilon-Vergleich (LB `- 1e-9`, ES:647, :700). → **Delta Δ-3 zu R0-06** (`score`/`max_score` in Tausendstelpunkten bzw. neue Spalten `points_milli`/`max_points_milli`; je Session-Frage `points_milli`).
-- **MUSS (Golden-Master-Anker):** „Alles ankreuzen besteht keine Prüfung“ (LB-Test `testNoExamCanBePassedByTickingEveryOption`, INV-E-008) bleibt für jede zulässige Strategie wahr.
+- **Je Typ:** `multi_choice` mit `r`/`f` je Option wie oben; `matching` mit `r` = richtig zugeordnete Paare, `f` = falsch zugeordnete (auch Distraktor), `c` = Anzahl Paare; `cloze` mit `r` = richtige Lücken, `f` = falsch ausgefüllte, `c` = Anzahl Lücken; leere Zuordnungen und Lücken zählen weder als `r` noch als `f`. `single_choice`, `true_false`, `open_text`, `ordering` und `numeric_tolerance` kennen nur `all_or_nothing`. `per_option` ist in R1 nicht zulässig (E-77).
+- **MUSS (Golden-Master-Anker):** „Alles ankreuzen besteht keine Prüfung“ (LB-Test `testNoExamCanBePassedByTickingEveryOption`, INV-E-008) bleibt für jede zulässige Strategie wahr. Der Anker gilt für Auswahltypen; für `matching` gibt es kein „alles ankreuzen“, weil jeder rechte Eintrag höchstens einmal zugeordnet werden kann.
 - `correct` einer Frage bedeutet „volle Punktzahl“. Fehlertraining („falsch beantwortet“, ES:562-574) nutzt `correct = false`.
 - `scoring` steht an der Frage (Revision, Standard) und kann in der Prüfungsregel überschrieben werden; der wirksame Wert wird je Frage in den Snapshot geschrieben (§6.3).
 
@@ -305,6 +382,7 @@ Selbsteinschätzung zählt in LB als richtig/falsch in der Gesamtquote (ES:629-6
 - **MUSS:** Die **materialisierte** Reihenfolge (Fragenliste und `answer_order` je Frage) ist maßgeblich und wird gespeichert. Der Seed dient Reproduzierbarkeit, Tests und Audit; bei Abweichung gilt die gespeicherte Liste.
 - Einstellungen in der Prüfungsregel: `shuffle_questions` ∈ `none` (feste Variante) / **`within_section`** (Parität) / `all`; `shuffle_answers` (Standard `true`); Option je Antwort `pinned` (fixe Position, z. B. „Keine der genannten“).
 - Lernmodus: weiterhin frische Mischung je Anzeige; die Reihenfolge steht im signierten Token (QP-Muster). Test-Randomizer ist injizierbar (INV-A-028).
+- **Neue Typen:** `matching` mischt nur die rechte Spalte (Strom `answers:<question_uid>`), die linke bleibt in Autorenreihenfolge; `ordering` mischt alle Elemente; ergibt die Mischung die Lösungsreihenfolge, wird deterministisch um eine Position rotiert; `cloze` und `numeric_tolerance` werden nicht gemischt. Die materialisierte Reihenfolge steht wie `answer_order` im Snapshot bzw. Token.
 
 ---
 
@@ -332,7 +410,7 @@ passing_rule {
 - **Vergleich ohne Gleitkomma:** bestanden ⇔ `points · den ≥ num · max_points` und jeder Teil `points_teil · of ≥ min · total_teil` (bzw. auf Punkte bezogen).
 - **Mehrteilige Regeln (Parität):** Kommen nur einige Teile in der gezogenen Fragenmenge vor, gelten nur diese; die Gesamtquote wird dann aus `Σ min_correct / Σ of` der geltenden Teile neu berechnet und die Zeit aus den Teilzeiten summiert, wenn **alle** geltenden Teile `seconds` haben (ES:982-1007). Ergebnis wird beim Start eingefroren.
 - **Zuordnung Frage → Teil** wird beim Start eingefroren (`question_parts`, ES:270-271); jede Frage gehört zum **ersten** passenden Teil in Teilreihenfolge (ES:713-736).
-- **Regelstatus (E-23):** `draft` / `published` / `retired`. `evidence_eligible = (status = published) ∧ gültig am Starttag ∧ ¬reduced` ersetzt LB `live` (ES:267). Lernende können eine Entwurfsregel nur als Übung starten (Kennzeichnung sichtbar, E-A-04 (b)); der Text verspricht keine amtliche Gültigkeit.
+- **Regelstatus (E-23):** `draft` / `published` / `retired`. `evidence_eligible = (status = published) ∧ gültig am Starttag ∧ ¬reduced` ersetzt LB `live` (ES:267). Lernende erreichen **nur** die in der veröffentlichten Kursrevision referenzierte, veröffentlichte Regelversion; ein Entwurf ist für Lernende nie startbar (E-129, R0-22 §2.4). Übungsprüfungen sind veröffentlichte Regeln mit `purpose = practice` (nie nachweisfähig, Kennzeichnung „Übung“); der Text verspricht keine amtliche Gültigkeit.
 - **Verkürzt (`reduced`):** Reicht der Pool für einen Blueprint nicht, läuft die Prüfung verkürzt als Übung (ES:243-246) – Parität. Verkürzte Versuche sind nie nachweisfähig und nie zertifikatsfähig.
 
 ### 4.2 Gewichtung
@@ -351,7 +429,9 @@ passing_rule {
 | Kulanz für nachgesendete Antworten | Standard 120 s, Bereich 0–600; 0 = streng (Gerätezeit wird ignoriert) | ES:45, :56-60, :412-416 |
 | Gerätezeit | `age_ms` oder `answered_at`, begrenzt auf [Start bzw. Aufdecken, jetzt] | ES:417-425 |
 | Auto-Auswertung | wenn `now > deadline + Kulanz` (Cron stündlich und vor jedem Zugriff) | ES:576-599, :1021-1024 |
-| Ohne Limit | Versuch läuft unbegrenzt; Fragen sind im Lernmodus nur 24 h nach Start gesperrt | LS:52, :791-810; → D-06 |
+| Ohne Limit | Versuch läuft unbegrenzt; Fragen sind im Lernmodus nur 24 h nach Start gesperrt; Option `auto_submit_inactive_days` („automatisch abgeben nach *x* Tagen Inaktivität“), Standard aus (E-72) | LS:52, :791-810 |
+| Timer-Modus | `timer_mode` ∈ `strict` (Standard für Nachweise) / `practice` (von Lernenden abschaltbar und verlängerbar, nie nachweisfähig) (E-123) | neu |
+| Nachteilsausgleich | Zeitfaktor 100–400 % oder ohne Limit je Lernendem, nur durch Berechtigte, beim Start in den Snapshot übernommen, in Ergebnis und Nachweis nicht sichtbar (E-122, R0-15 §2.3) | neu |
 
 **Abweichung von LB (MUSS):** Grace und Kulanz werden **beim Start in den Snapshot geschrieben**. LB liest die Kulanz bei jeder Prüfung live aus einem Filter (ES:56-60); eine spätere Änderung verändert damit laufende Versuche.
 
@@ -359,28 +439,36 @@ passing_rule {
 
 - `attempt_policy { max_attempts: ?int (NULL = unbegrenzt), cooldown_seconds: int (0), count_cancelled: bool }` an der Prüfungsregel; eingefroren beim Start. Konzept 4.3: Begrenzung **optional**, nie für den freien Übungsmodus erzwungen.
 - Start-Rate-Limit bleibt als Missbrauchsschutz unabhängig davon: 40 neue Versuche je Nutzer und Stunde, Fortsetzen zählt nicht (ES:47, :196-198).
-- Ob ein Abbruch als Versuch zählt → **D-05**.
+- **Abbruch (E-71):** Ein abgebrochener Versuch zählt gegen `max_attempts`, wenn ein Limit gesetzt ist. Ausnahmen, die nie zählen: Abbruch wegen Kursrückzug (`end_reason = withdrawn`, E-108) und Annullierung durch den Support (`end_reason = support_void`, E-137; dazu Aktion „Zusatzversuch“ für belegte Störungen).
+- **Regelversionen (E-107):** Versuche unter einer älteren Regelversion zählen standardmäßig mit; der Autor kann beim Veröffentlichen „Versuchszähler zurücksetzen“ wählen (Audit, R0-23 RV-17).
 
-### 4.5 Feedback-Sichtbarkeit (E-20)
+### 4.5 Feedback-Sichtbarkeit (E-20, E-147, E-229)
 
 **LB-Befund:** Erklärungen nur mit dem separat verkauften Feature `learning_explanations`, sonst `explanation_locked` (LS:628, :642-643; ES:834, :887). Lösungen (`correct_ids`, Musterantwort) zeigt LB im Lernmodus sofort (LS:639-641) und in der Prüfung erst im Ergebnis (ES:881-882). Während der Prüfung gibt es keine Lösungen, nur bei offenen Fragen die Musterantwort nach Aufdecken (ES:377).
 
-**Vertrag:** Einstellung je Kurs, überschreibbar je Quiz/Prüfungsregel, eingefroren im Versuchs-Snapshot:
+**Vertrag:** Zwei Einstellungsobjekte, im Versuchs-Snapshot eingefroren:
+
+- `learning.feedback` (Lernmodus, unbewertete Quizze): global → Kurs → Quiz.
+- `exams.feedback` (Prüfungen und bewertete Quizze, E-68): **nur global → Prüfungsregel**, keine Kursebene (E-229; T28-1 aus R0-28).
 
 | Schlüssel | Werte | Standard Übung/Lernmodus | Standard Prüfung |
 |---|---|---|---|
 | `feedback_visibility` | `always` / `after_submit` / `never` | `always` | `after_submit` |
 | `show_score` | bool | – | `true` |
 | `show_correct_answers` | bool (nur wenn `feedback_visibility ≠ never`) | `true` | `true` |
-| `show_explanations` | bool (nur wenn `feedback_visibility ≠ never`) | `true` | `true` |
+| `show_correct_answers_when` | `no_attempts_left_or_passed` / `after_submit` | – | `no_attempts_left_or_passed` (E-147) |
+| `show_explanations` | bool (nur wenn `feedback_visibility ≠ never`); **wirkt nur mit Pro** (`course.explanations`) | `true` | `true` |
 
+- **Free (E-20, E-147):** nach der Antwort bzw. nach Abgabe richtig/falsch je Frage und – nach Einstellung – die richtige Antwort; bei Prüfungen mit offenen Restversuchen standardmäßig nur richtig/falsch, die richtige Antwort erst ohne Restversuche oder nach Bestehen. **Erklärungstexte liefert Free nie aus.** Free speichert, importiert und exportiert sie trotzdem (kein Datenverlust bei Pro-Ende); die Free-Oberfläche zeigt keinen Pro-Schalter (E-100).
+- **Pro aktiv:** Erklärungstext = `feedback_correct` bzw. `feedback_incorrect` der **Snapshot-Revision**, abhängig vom Ergebnis der Frage (Parität LS:642, ES:887).
+- **Pro-Lizenz abgelaufen (E-268):** vorhandene Erklärungen werden eingefroren weiter ausgeliefert; neue Erklärungen lassen sich nicht anlegen. **Add-on deaktiviert (E-269):** Erklärungsfelder ausgeblendet, nicht ausgeliefert; die Texte bleiben gespeichert. Der Snapshot friert `show_explanations` ein; ausgeliefert wird nur, wenn zur Anzeigezeit der Pro-Code geladen ist.
 - `always` bedeutet Sofortfeedback nach jeder Antwort und gilt nur für Lernmodus und unbewertete Quizze. In einem laufenden bewerteten Versuch gibt es **nie** Lösungen; `always` wird dort wie `after_submit` behandelt.
-- Erklärungstext = `feedback_correct` bzw. `feedback_incorrect` der **Snapshot-Revision**, abhängig vom Ergebnis der Frage (Parität LS:642, ES:887).
 - Eine Freigabe „nach Trainerfreigabe“ (`after_release`, Konzept 4.3 „ohne Lösung bis Freigabe“) ist Pro und nicht Teil von R1.
+- Das Feedback von Bewertenden zu Aufgaben (§2.5) ist kein Erklärungstext und in Free sichtbar.
 
 ### 4.6 Manuelle Korrektur und Audit
 
-- Abgeschlossene Ergebnisse werden **nie überschrieben** (28.3). Eine Korrektur (z. B. fehlerhafte Frage) erzeugt eine neue Auswertung mit Grund, Akteur und Zeit; die alte bleibt sichtbar → **D-08** (Umfang R1).
+- Abgeschlossene Ergebnisse werden **nie überschrieben** (28.3). Eine Korrektur (z. B. fehlerhafte Frage) erzeugt eine neue Auswertung mit Grund, Akteur und Zeit; die alte bleibt sichtbar. Umfang nach **E-74**: im Datenvertrag ab R1 (`evaluation_no`, Revision mit Audit), Oberfläche erst mit dem Gradebook (Pro); nie automatisch. Für Aufgaben gilt dasselbe über `regrade` (§2.5).
 - Jede Änderung an Bewertungsregeln einer veröffentlichten Prüfung ist eine neue Regelversion (R0-06 §5) und erzeugt einen Audit-Eintrag (`cc_audit_log`).
 
 ---
@@ -398,7 +486,7 @@ passing_rule {
 ### 5.1 Completion
 
 - **Activity:** Status `not_started` → `in_progress` → `completed`. Jeder Übergang speichert `reason_code`, `rule_version`, `completed_at` und den `content_hash` der Activity zum Abschlusszeitpunkt (R0-06 `cc_activity_progress.content_hash`).
-- **Monotonie:** Nachweisbasierte Abschlüsse (`downloaded`, `passed`, `evaluated`, `attempted`, `all_known`) bleiben bestehen. `manual_confirm` kann der Lernende zurücknehmen (LB VS:246-247 erlaubt `completed = false`) → **D-04**.
+- **Monotonie:** Nachweisbasierte Abschlüsse (`downloaded`, `passed`, `evaluated`, `attempted`, `all_known`) bleiben bestehen. Zurücknehmen darf der Lernende nur `manual_confirm` (LB VS:246-247 erlaubt `completed = false` generell); ein Reset durch die Kursverwaltung ist mit Audit möglich (E-70). Abschlüsse über `submitted`/`graded`/`passed` einer Aufgabe (§2.5) sind nachweisbasiert und monoton.
 - **Modul:** abgeschlossen ⇔ alle Pflicht-Activities des Moduls in der Revision des Lernenden abgeschlossen.
 - **Kurs:** abgeschlossen ⇔ alle Pflichtmodule (`cc_course_module.required`, LB `courses.schema.json:27`) abgeschlossen **und** die optionale Kurs-Abschlussregel (z. B. `passed(exam)`) erfüllt. `completion_ratio = erledigte Pflicht-Activities / Pflicht-Activities` (`decimal(5,4)`).
 - **Revision:** maßgeblich ist `cc_course_progress.course_revision_id`; Umstellung auf neue Revisionen regelt R0-23.
@@ -469,7 +557,7 @@ passing_rule {
 ### 5.3 Competency
 
 - **Lernziel** (`objective_uid`) ist ein Kursobjekt mit Titel und optionaler Gültigkeitsdauer. Zuordnung: Fragen über `cc_question_tag` (`tag_type = competency`, LB-Feld `competency`, `questions.schema.json:31`), Activities über `ActivityDefinition.objectiveUids`.
-- **Nachweisquellen in R1:** (1) bewerteter Versuch mit `evidence_eligible = true`, `passed = true`, Activity `producesEvidence`; (2) daraus ausgestelltes Zertifikat. **Nicht** in R1: manuelle Trainerbestätigung und externe Nachweise (Pro/R2, → D-07).
+- **Nachweisquellen in R1:** (1) bewerteter Versuch mit `evidence_eligible = true`, `passed = true`, Activity `producesEvidence`; (2) daraus ausgestelltes Zertifikat. **Nicht** in R1: manuelle Trainerbestätigung und externe Nachweise (Pro/R2). Eigene Tabelle erst dann (E-73).
 - **Welche Ziele ein Versuch belegt:** die in der Prüfungsregel ausdrücklich genannten `certifies_objectives` (im Snapshot eingefroren). Die Themenanalyse eines Versuchs ist Information, kein Nachweis je Ziel.
 - **Zustand je Lernendem und Ziel:** `not_evidenced` / `evidenced` / `expired` (Gültigkeit abgelaufen) / `revoked` (Versuch annulliert oder Zertifikat widerrufen). Ein Refund ist kein Widerrufsgrund (35.3).
 - **Nachweisdatensatz (abgeleitet):** Quelle (`exam_session.uid` bzw. `certificate_uid`), Ziel, Kursrevision, Regelversion, `evaluated_at`, Punkte, `valid_until` (aus `competency_validity_days` im Snapshot).
@@ -484,9 +572,9 @@ passing_rule {
 | CC-Zustand | LB-Status | Konzept 28.3 | Bedeutung |
 |---|---|---|---|
 | `in_progress` | `running` (ES:286) | `created` + `in_progress` | Versuch läuft. `created` ist nicht beobachtbar, weil Session, Fragen und Snapshot in **einer** Transaktion entstehen (ES:277-313) |
-| `submitted` | – | `submitted` | nur für Versuche mit nicht automatisch bewertbaren Antworten (Tutorbewertung, Pro); in R1 nicht erreichbar |
-| `evaluated` | `evaluated` (ES:649) | `evaluated` / `expired` | ausgewertet; `end_reason` = `submitted` oder `expired` (LB `result.expired`, ES:654) → D-09 |
-| `cancelled` | `aborted` (ES:549) | `cancelled` | abgebrochen ohne Wertung, Antworten bleiben gespeichert |
+| `submitted` | – | `submitted` | nur für Prüfungsversuche mit nicht automatisch bewertbaren Antworten (Tutorbewertung, Pro); in R1 nicht erreichbar. Aufgaben (E-168) haben einen eigenen Automaten (§2.5) |
+| `evaluated` | `evaluated` (ES:649) | `evaluated` / `expired` | ausgewertet; `end_reason` = `submitted` oder `expired` (LB `result.expired`, ES:654); E-75 |
+| `cancelled` | `aborted` (ES:549) | `cancelled` | abgebrochen ohne Wertung, Antworten bleiben gespeichert; `end_reason` = `user`, `admin`, `withdrawn` (E-108) oder `support_void` (E-137) |
 | `broken` | `error` (ES:605) | – | Auswertung technisch gescheitert; Fehlertext im Ergebnis; Reparaturpfad §6.2 |
 
 Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Reparatur verlassbar.
@@ -519,13 +607,13 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 | `format_version` | Version des Snapshot-Formats | – |
 | `rule` | `uid`, `version`, `status` beim Start, Hash der Regel | `rule_id`, `rule_source_id`, `version` (ES:264-266) |
 | `evidence_eligible`, `reduced`, `practice` | Nachweisfähigkeit (§4.1) | `live`, `reduced` (ES:267-268) |
-| `timing` | `time_limit_seconds`, `grace_seconds`, `late_tolerance_seconds` | nur `time_limit_seconds` (ES:269); Grace/Kulanz in LB live |
+| `timing` | `time_limit_seconds`, `grace_seconds`, `late_tolerance_seconds`, `timer_mode` (E-123), Nachteilsausgleich `{factor_pct \| unlimited, scope}` (E-122) | nur `time_limit_seconds` (ES:269); Grace/Kulanz in LB live |
 | `passing_rule` | wirksame Regel nach Teilauswahl (§4.1) | `passing` (ES:270) |
 | `question_parts` | Frage → Teil | `question_parts` (ES:271) |
 | `blueprints` / `variant` | Abschnitte mit Anzahl bzw. Variante | `blueprints`, `paper_number` (ES:273-274) |
 | `randomizer` | `seed`, `randomizer_version`, `shuffle_questions`, `shuffle_answers` | – (kein Seed) |
-| `scoring` | je Frage `scoring`, `points`; `open_text_in_score` | – |
-| `feedback` | §4.5 | – (Feature live geprüft) |
+| `scoring` | je Frage `scoring`, `points` und typspezifische Lösungsdaten der Revision (Toleranz, Paare, Reihenfolge, akzeptierte Lücken über die Revisions-ID); `open_text_in_score` | – |
+| `feedback` | §4.5 (`exams.feedback` inkl. `show_correct_answers_when`, `show_explanations`) | – (Feature live geprüft) |
 | `attempt_policy` | §4.4 | – |
 | `evaluator_version` | Version der Bewertungslogik | – |
 | `course_revision_id`, `course_uid` | Kursstand | `course_code` (ES:272) |
@@ -572,6 +660,11 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 | `cc_not_found` | `NotFound` | unbekannt **oder fremd** (kein Existenzleck, ES:1034-1041) | 404 |
 | `cc_answer_rate_limited` | `answer_rate_limited` | Lernmodus-Limit | 429 |
 | `cc_question_token_expired` | `question_token_expired` | Lern-Token älter als 2 h | 422 |
+| `cc_invalid_answer` | Text-`RuntimeException` | Lernmodus: ungültige Eingabe (z. B. keine gültige Zahl bei `numeric_tolerance`, Eintrag nicht aus der ausgelieferten Liste) | 422 |
+| `cc_submission_not_editable` | – (neu, E-168) | Aufgabe nicht in `draft`/`returned` | 409 |
+| `cc_submission_incomplete` | – (neu, E-168) | Einreichen ohne Pflichtinhalt | 422 |
+| `cc_submission_file_rejected` | – (neu, E-168) | Datei verletzt Allowlist, MIME-Regel oder Größe (R0-10 §4.5) | 422 |
+| `cc_grade_invalid` | – (neu, E-168) | Punkte außerhalb 0…`max_points`, Rückgabe ohne Kommentar, Nachbewertung ohne Begründung | 422 |
 
 ---
 
@@ -586,6 +679,8 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 | **Versuch starten** | alles aus §6.3 inkl. Fragenrevisionen, Reihenfolgen, Seed, Zeit- und Kulanzwerte | – | `cc_exam_session.snapshot` + Session-Fragen |
 | **Lernantwort** | `revision_id`, `algorithm_version`, Kontext | – | `cc_attempt` |
 | **Activity abschließen** | `content_hash`, `rule_version`, `reason_code` | – | `cc_activity_progress` |
+| **Aufgabe einreichen** (E-168) | `content_hash` (Text + Datei-Hashes), `settings_hash` der Aufgabe, `submission_no`, `submitted_at` | – | Abgabe-Tabelle (Δ-8) |
+| **Aufgabe bewerten** | `points_milli`, `max_points_milli`, `passed`, Bewerter, `evaluation_no`, `evaluator_version` | – | Auswertungs-Tabelle (Δ-8) |
 | **Zertifikat ausstellen** | siehe 7.2 | – | `cc_certificate.snapshot` |
 
 ### 7.2 Zertifikats-Snapshot
@@ -620,35 +715,54 @@ Pflichtinhalt (Konzept 35.4; R0-06 §4.5):
 
 ---
 
-## 8. Entscheidungsbedarf
+## 8. Entscheidungsbedarf (beschlossen)
 
-### 8.1 Neue Entscheidungen (nicht in `ENTSCHEIDUNGEN.md`)
+### 8.1 Beschlüsse zu den früheren Punkten D-01 … D-11
 
-| ID | Frage | Optionen | Empfehlung | Blockiert |
-|---|---|---|---|---|
-| **D-01** | Hat eine Lektion in R1 genau eine Activity oder mehrere? | (a) 1:1; (b) 1:n mit Slots | **(a) 1:1 in R1**, aber mit eigener `activity_uid`, damit (b) später ohne Fortschrittsmigration möglich ist | R1-04, R1-07 |
-| **D-02** | Laufen bewertete Quizze über denselben Versuchsautomaten wie Prüfungen? | (a) ja, `cc_exam_session` mit Modus `quiz`; (b) eigener Quiz-Automat | **(a)**: ein Automat, ein Snapshot-, Idempotenz- und Testpfad; unbewertete Quizze nutzen weiter die Lernmodus-Engine | R1-07, R1-08 |
-| **D-03** | Welche Fragetypen ohne LB-Beleg kommen in R1? (Konzept 3.3 nennt Zuordnung, Sortieren, Lückentext als Free; R1-06 verlangt „belegte“ Typen) | (a) alle in R1; (b) R1 nur single/multi/true_false/open_text/flashcard, die anderen Free in R2; (c) Pro | **(b)**: Free bleibt Free, aber nach dem Paritäts-Gate (Kap. 29); Vertrag §3 gilt schon jetzt | R1-06, R0-04 |
-| **D-04** | Darf ein Abschluss zurückgenommen werden? (LB: Client kann `completed = false` senden, VS:246-247) | (a) nie; (b) nur `manual_confirm` durch den Lernenden, nachweisbasierte nie, Reset durch Kursverwaltung mit Audit; (c) immer | **(b)** | R1-10 |
-| **D-05** | Zählt ein abgebrochener Versuch gegen `max_attempts`? | (a) nie (LB-Verlauf blendet Abbrüche aus); (b) immer, wenn ein Versuchslimit gesetzt ist; (c) Einstellung | **(b)**: sonst kann man per Abbruch die Fragen sichten und neu starten; ohne Limit irrelevant | R1-08, R1-20 |
-| **D-06** | Was passiert mit Versuchen **ohne** Zeitlimit, die nie abgegeben werden? (LB: laufen unbegrenzt, sperren Fragen 24 h) | (a) Parität; (b) Einstellung „automatisch abgeben nach *x* Tagen Inaktivität“, Standard aus; (c) fester Ablauf | **(b)** mit Standard aus | R1-08, R1-17 |
-| **D-07** | Eigene Tabelle für Kompetenznachweise in R1? (R0-06 E-28: abgeleitet, bis R0-08 entscheidet) | (a) abgeleitet aus Versuchen/Zertifikaten + `competency_validity_days`; (b) Tabelle `cc_competency_evidence` schon in R1 | **(a) in R1**; Tabelle erst mit manuellen/externen Nachweisen (Pro/R2) | R1-10, R0-06 |
-| **D-08** | Nachbewertung (Korrektur fehlerhafter Fragen nach Abgabe) in R1? | (a) nicht in R1; (b) Admin-Nachbewertung als neue Auswertungsrevision (`evaluation_no`) mit Audit; (c) automatische Neubewertung bei Fragenkorrektur | **(b)** im Datenvertrag schon in R1 vorsehen (Spalte `evaluation_no`, siehe Δ-4), UI erst mit Gradebook (Pro). **Nie (c)** (28.3) | R1-09, R0-06 |
-| **D-09** | `expired` als eigener Endzustand (Konzept 28.3) oder als Kennzeichen an `evaluated` (LB)? | (a) Zustand; (b) `evaluated` + `end_reason = expired` | **(b)**: abgelaufene Versuche werden gewertet (LB-Parität); Konzept 28.3 wird redaktionell auf „`evaluated` (Ende durch Abgabe oder Ablauf)“ angepasst | R1-08, Konzept 28.3 |
-| **D-10** | Standard-Abschlussregel für Videos | (a) `manual_confirm` (Parität); (b) `position_ratio ≥ 90 %` | **(a)** als Standard, (b) als Option mit Hinweis „Selbstauskunft des Players“ | R1-07 |
-| **D-11** | Teilpunkt-Strategien in R1 | (a) nur `all_or_nothing`; (b) zusätzlich `proportional_penalty`; (c) alle drei | **(b)**: erfüllt Konzept 3.3 („definierte Teilpunktregel“), `per_option` erst nach Didaktik-Review | R1-06, R1-09 |
+Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md`, Abschnitt 13 und „Von Claude entschieden“) und in die genannten Abschnitte eingearbeitet:
 
-### 8.2 Technische Deltas zu R0-06 (mit dessen Freigabe einzuarbeiten, keine Produktentscheidung)
+| Früher | Beschluss | Inhalt | Eingearbeitet in |
+|---|---|---|---|
+| D-01 | **E-67** | 1:1 Lektion/Activity in R1 mit eigener `activity_uid` | §1.1, §1.2 |
+| D-02 | **E-68** | bewertete Quizze über `ccap_exam_session` (Modus `quiz`); unbewertete über die Lernmodus-Engine | §2.4, Δ-2 |
+| D-03 | **E-69** (Auftraggeber, **abweichend** von der Empfehlung) | `matching`, `ordering`, `cloze` schon in **R1 Free**; dazu `numeric_tolerance` nach **E-22** | §3.1, §3.2, §3.4 |
+| D-04 | **E-70** | Rücknahme nur `manual_confirm` durch Lernende; nachweisbasiert nie; Reset durch Kursverwaltung mit Audit | §5.1 |
+| D-05 | **E-71** (+ Ausnahmen E-108, E-137) | Abbruch zählt bei gesetztem Limit; Rückzug und Support-Annullierung nicht | §4.4, §6.1 |
+| D-06 | **E-72** | Option „automatisch abgeben nach *x* Tagen Inaktivität“, Standard aus | §4.3 |
+| D-07 | **E-73** | Competency abgeleitet, keine eigene Tabelle in R1 | §5.3, Δ-7 |
+| D-08 | **E-74** | Nachbewertung im Datenvertrag ab R1, Oberfläche mit Gradebook (Pro), nie automatisch | §4.6, Δ-4 |
+| D-09 | **E-75** | `evaluated` + `end_reason`; Konzept 28.3 redaktionell angepasst | §6.1, Δ-5 |
+| D-10 | **E-76** | Video-Standard `manual_confirm`; `position_ratio` als Option mit Hinweis | §2.4 |
+| D-11 | **E-77** | Teilpunkte `all_or_nothing` und `proportional_penalty`; `per_option` erst nach didaktischem Review | §3.2 |
+
+Weitere hier umgesetzte Beschlüsse: E-20/E-147/E-229/E-268/E-269 (§4.5), E-22 (§3.1), E-25a/E-26/E-27 (§1.4), E-122/E-123 (§4.3, §6.3), E-129 (§4.1), E-168 (§2.5).
+
+### 8.2 Technische Deltas zu R0-06 (Δ-1 … Δ-7 sind laut R0-06-Nachtrag dort aufgenommen; Δ-8 … Δ-10 neu)
 
 | Δ | Änderung | Grund |
 |---|---|---|
 | Δ-1 | `cc_source_map.uid char(36) NOT NULL` + `UNIQUE uid`; Zeile für **jedes** CPT-Objekt, auch lokal angelegt; optional `copied_from_uid` | DB-erzwungene stabile IDs für Kurs/Modul/Lektion (§1.2) |
-| Δ-2 | `cc_exam_session.mode` um `quiz` erweitern; `activity_uid` als Spalte | D-02 |
+| Δ-2 | `cc_exam_session.mode` um `quiz` erweitern; `activity_uid` als Spalte | E-68 |
 | Δ-3 | Punkte in Tausendstel: `cc_exam_session.score`/`max_score` → `points_milli`/`max_points_milli`; `cc_exam_session_question.points_milli`, `max_points_milli` | §3.2, kein Gleitkommavergleich |
-| Δ-4 | `cc_exam_session.evaluation_no smallint unsigned NOT NULL DEFAULT 1`; Ergebnis-Historie append-only | D-08 |
-| Δ-5 | `cc_exam_session.end_reason varchar(16) NULL` (`submitted/expired`); Statuswerte `in_progress/submitted/evaluated/cancelled/broken` | §6.1, D-09 |
+| Δ-4 | `cc_exam_session.evaluation_no smallint unsigned NOT NULL DEFAULT 1`; Ergebnis-Historie append-only | E-74 |
+| Δ-5 | `cc_exam_session.end_reason varchar(16) NULL` (`submitted/expired`); Statuswerte `in_progress/submitted/evaluated/cancelled/broken` | §6.1, E-75 |
 | Δ-6 | `cc_activity_progress`: `reason_code varchar(32)`, `rule_version smallint`; Status zusätzlich `not_started` (implizit ohne Zeile) | §5.1 Erklärbarkeit |
-| Δ-7 | Lernziel-Objekt (`objective_uid`, Titel, Gültigkeit) als Kurs-Meta in der Kursrevision; keine eigene Tabelle in R1 | §5.3, D-07 |
+| Δ-7 | Lernziel-Objekt (`objective_uid`, Titel, Gültigkeit) als Kurs-Meta in der Kursrevision; keine eigene Tabelle in R1 | §5.3, E-73 |
+| Δ-8 | Aufgaben (E-168, Vorschlag): `cc_submission` (UID, `user_id`, `course_id`, `activity_uid`, `course_revision_id`, `submission_no`, `status` `draft/submitted/returned/graded`, `text longtext NULL`, `content_hash`, `settings_hash`, `submitted_at`, `return_comment`, `row_version`; UNIQUE `(user_id, activity_uid, submission_no)`), `cc_submission_file` (Abgabe, zufälliger Speicherschlüssel, Originalname als Metadatum, MIME, Bytes, SHA-256; R0-10 §4.5), `cc_submission_evaluation` (Abgabe, `evaluation_no`, `points_milli`, `max_points_milli`, `passed`, Feedback, Bewerter, Begründung, Zeit; append-only) | §2.5, §7.1 |
+| Δ-9 | Grant-Ziel je Modul (E-27) ist bereits als R0-06-Nachtrag (R0-40 Δ40-1: `module_id … DEFAULT 0`) erfasst; abhängige Zusatz-Grants (E-26) und Bundles (E-25a) brauchen die Kettenfelder aus R0-09 | §1.4 |
+| Δ-10 | `cc_question_revision.settings` je Typ: `numeric_tolerance {value, tolerance_type, tolerance, unit?}`, `matching {pairs[], distractors[]}`, `ordering {items[]}`, `cloze {gaps[] {id, accepted[]}, case_sensitive}`; Lösungsdaten nie im Lern-Token | §3.1 |
+
+### 8.3 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-08-1 | Wer bewertet Aufgaben (Cap/Rolle)? Hier angenommen: Kursmanager und zugewiesene Trainer | E-99 legt Tutor-Bewertungsfunktionen in das Gradebook (Pro), E-168 verlangt Bewertung in R1; der Widerspruch ist nicht ausdrücklich aufgelöst (vgl. R0-10 OP-10-4) | Auftraggeber / R0-07 |
+| OP-08-2 | Benachrichtigungen bei Einreichen, Rückgabe und Bewertung (R1-46 nennt „Benachrichtigung“) | E-136 und der Mailkatalog R0-27 nennen die Fälle nicht | R0-27 / R1-21 |
+| OP-08-3 | Grenz- und Standardwerte für Aufgaben (Textlänge, Dateizahl, Dateigröße, Allowlist) und ihre Vererbung | E-168 legt nur die Funktion fest; R0-27/R0-28 führen keine Aufgaben-Einstellungen (vgl. OP-10-2) | Architektur, dann R0-27/R0-28 |
+| OP-08-4 | Standard-Abschlussregel `graded` und die Liste „nicht in R1“ (§2.5: kein Zurückziehen, keine Retakes, keine Fristen) | Spezifikationsvorschlag; R2-02 nannte Retakes, R1-46 nicht | Auftraggeber (Didaktik) |
+| OP-08-5 | Bleiben Bereichs-Scopes (`view`/`download`/`exam`) neben `module_id` bestehen? | E-27 ersetzt „je Kurs mit Scopes“ durch „je Modul“; ob Scopes ganz entfallen, regeln R0-06/R0-09 (`ActivityCapabilities.accessScope` bleibt bis dahin) | Architektur (R0-06/R0-09) |
+| OP-08-6 | Prüfung über mehrere Module bei Modul-Grants: „startbar nur, wenn alle Module frei“ (§1.4) ist aus der Drip-Regel abgeleitet; ebenso der Nenner von `completion_ratio` bei Teilzugang | E-27 regelt nur Granularität und Freischaltprüfung | Auftraggeber (Didaktik) / R0-09 |
+| OP-08-7 | Einheit bei `numeric_tolerance`: nur Anzeige, keine Eingabe, keine Umrechnung (§3.1) | E-22 nennt „Einheit“ nur als Validierungsgegenstand | Didaktik-Review R1-06 |
 
 ---
 
@@ -665,5 +779,7 @@ Pflichtinhalt (Konzept 35.4; R0-06 §4.5):
 
 | Datum | Quelle | Änderung |
 |---|---|---|
-| 16.11.2026 | R0-22 Δ22-1, E-129 | §4.1: Entwürfe von Prüfungsregeln sind **nie** als Übung erreichbar; Übungsprüfungen sind veröffentlichte Regeln mit `purpose=practice` |
-| 16.11.2026 | R0-15 §2.3, E-122/E-123 | Prüfungsregel bekommt `timer_mode` (`strict`/`practice`); Nachteilsausgleich wird beim Versuchsstart in den Snapshot übernommen |
+| 16.11.2026 | R0-22 Δ22-1, E-129 | §4.1: Entwürfe von Prüfungsregeln sind **nie** als Übung erreichbar; Übungsprüfungen sind veröffentlichte Regeln mit `purpose=practice` – **eingearbeitet** (§4.1) |
+| 16.11.2026 | R0-15 §2.3, E-122/E-123 | Prüfungsregel bekommt `timer_mode` (`strict`/`practice`); Nachteilsausgleich wird beim Versuchsstart in den Snapshot übernommen – **eingearbeitet** (§4.3, §6.3) |
+| 16.11.2026 | R0-28 T28-1, E-229 | §4.5: `learning.feedback` Kurs → Quiz, `exams.feedback` nur global → Prüfungsregel – **eingearbeitet** (§4.5) |
+| 16.11.2026 | Beschlüsse E-20, E-22, E-25a, E-26, E-27, E-69, E-168 u. a. | Beschlussstand §0; Aufgaben-Activity §2.5; neue Fragetypen §3; Modulzugang §1.4; Feedback §4.5; §8 auf E-Nummern umgeschrieben – **eingearbeitet** |

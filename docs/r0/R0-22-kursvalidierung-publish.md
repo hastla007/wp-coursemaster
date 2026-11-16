@@ -1,9 +1,9 @@
-# R0-22 · Kursvalidierung und Veröffentlichungsfreigabe (Entwurf)
+# R0-22 · Kursvalidierung und Veröffentlichungsfreigabe
 
-**Status:** **Entwurf – Freigabe Auftraggeber/Didaktik/Architektur offen.** Task R0-22 ist **nicht** abgehakt. Es gibt keine Implementierung; Schnittstellen und Datenformate sind Spezifikation für R1-26.
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung; Schnittstellen und Datenformate sind Spezifikation für R1-26.
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-22 (Voraussetzung R0-08, R0-11), Ziel-Task **R1-26** (Publish-Validator und Fehlerführung), daneben R1-04, R1-06, R1-08, R1-14, R1-15, R1-27; Konzept Kap. 3.2 (Nr. 1, 3, 4, 5), 16.3 (Kurs-, Frage-, Prüfungseditor, Design-Gate), 28.4 (Abschlussregeln, Bewertungstransparenz, Kompetenznachweise, Autoren-UX-Test); `R0-08` (Struktur §1, Provider `validate()/freeze()` §2.2–2.3, Fragetypen §3, Bestehensregel/Zeitlimit §4, Nachweis §5.3, Zertifikat §7.2), `R0-10` (Rechtestatus §2.2, Medientypen §3.2 V4, externe Medien §5), `R0-11` (A-04, A-06, A-07, A-08, A-11, Flow 1 mit F1.1–F1.6), `R0-07` (`cc_edit_courses`, `cc_publish_courses`, `cc_release_rights`, M-01, M-03, M-04, M-06, M-07, M-21), `R0-23` (Kursrevision, Staging-Kopie R23-D2, Rückzug EV-08/RV-04/RV-20, Pool-Schrumpfung RV-18).
-**Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen, nicht verändert). Pfade relativ zu `bootspruefung-learning/`, Schemas relativ zur Repo-Wurzel. **CR** = `src/Content/Repositories/ContentRepository.php`, **ES** = `src/Exams/Services/ExamService.php`, **PK** = `src/Content/Package/Package.php`, **SV** = `src/Content/Package/SchemaValidator.php`, **IS** = `src/Content/Import/ImportService.php`.
+**Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen, nicht verändert). Pfade relativ zu `bootspruefung-learning/`, Schemas relativ zur Repo-Wurzel. **CR** = `src/Content/Repositories/ContentRepository.php`, **ES** = `src/Exams/Services/ExamService.php`, **PK** = `src/Content/Package/Package.php`, **SV** = `src/Content/Package/SchemaValidator.php`, **IS** = `src/Content/Import/ImportService.php`. LB-Belege sind **Verhaltensreferenz**, keine Code-Vorlage (E-01); LB hat ohnehin keinen Publish-Validator.
 
 **Normative Sprache:** **MUSS** = Vertragsbestandteil; **SOLL** = Standard, begründete Abweichung erlaubt; **KANN** = optional.
 
@@ -11,16 +11,27 @@
 
 ## 0. Annahmen und Kurzfassung
 
-### 0.1 Annahmen (Empfehlungen aus `ENTSCHEIDUNGEN.md`, noch nicht beschlossen)
+### 0.1 Beschlussstand
 
-| ID | Annahme | Wirkt auf |
-|---|---|---|
-| E-18 | Rechte-Auslieferungssperre (`unknown`, `restricted`) gilt **nur für importierte bzw. fremde** Inhalte, nicht für selbst erstellte | VAL-100 … VAL-105 |
-| E-23 | Kein Modus „offiziell/verifiziert“. Prüfungsregel hat `draft/published/retired`; Freigabe über den Publish-Validator; Kennzeichnung `reduced` bleibt | §2.4, VAL-070 ff. |
-| E-69 | R1-Fragetypen: `single_choice`, `multi_choice`, `true_false`, `open_text`, `flashcard`; `matching`, `ordering`, `cloze` Free in R2 | VAL-040 … VAL-062 |
-| E-77 | Teilpunkt-Strategien in R1: `all_or_nothing`, `proportional_penalty`; `per_option` erst nach Didaktik-Review | VAL-056 |
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). In dieses Dokument eingearbeitet:
 
-Ebenfalls als Annahme: E-14 (relativer Drip je Modul in Free), E-45 („Klick zum Laden“), E-50 (Kursrevision fixiert Struktur und Regeln, nicht die Fragenrevisionen), E-65 (zugangsgebundene Medien geschützt), E-101 (kursinterne Voraussetzungen Free R1), R23-D2 (Staging-Kopie für Lektionen veröffentlichter Kurse).
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | Alle Regeln sind neu spezifiziert; LB-Stellen (CR, ES, PK, SV, IS) belegen nur Befunde, kein Code wird übernommen |
+| **E-18** | Rechte-Auslieferungssperre (`unknown`, `restricted`) nur für importierte bzw. fremde Inhalte (VAL-100 … VAL-105) |
+| **E-20**, E-100 | Erklärungen nur mit Pro: VAL-060 wird nur mit aktivem Pro (`course.explanations`) ausgewertet; Free zeigt dazu weder Meldung noch Pro-Hinweis (PUB-060) |
+| **E-22** | neuer Fragetyp `numeric_tolerance` in R1 Free: VAL-063 … VAL-065 (Toleranz, Einheit), PUB-053 – neu, ohne LB-Quelle |
+| **E-23**, E-129 | Prüfungsregel `draft/published/retired` mit `purpose`; Entwürfe sind für Lernende nie startbar (§2.4) |
+| **E-27** | Zugang je Modul: Vorschau-Persona „Teilzugang (Module)“ (§2.3) |
+| **E-45/E-45a** | externe Medien Default `always_load`, Option `click_to_load`: VAL-097, VAL-110, VAL-112, PUB-029 |
+| **E-69** | `matching`, `ordering`, `cloze` in **R1 Free** (statt R2): VAL-041 angepasst, neu VAL-066 … VAL-069, PUB-054 … PUB-056 – neu, ohne LB-Quelle |
+| **E-77** | Teilpunkte `all_or_nothing`, `proportional_penalty`; `per_option` nicht in R1 (VAL-056) |
+| **E-128 … E-135** (früher D22-1 … D22-8) | kein Blocker-Override; Entwürfe nie als Übung; Pool-Regel im Pflichtpfad; Alt-Text-Blocker; einstufige Freigabe; keine geplante Veröffentlichung; Vorschau-Prüfung durchspielbar; Health nur melden (§5) |
+| **E-131** | **abweichend vom früheren D22-4:** fehlender Alt-Text (ohne `decorative`) = **Blocker** (VAL-140, VAL-141); fehlende Untertitel = Warnung, per Site-Einstellung Blocker (VAL-142) |
+| **E-157** (Nachtrag R0-25) | VAL-002 verlangt ein gültiges BCP-47-Sprachtag; gemischte Sprachen erzeugen VAL-012 (Warnung) |
+| **E-168** | Aufgaben-Activity `assignment` (R0-08 §2.5): VAL-023, VAL-030, neu VAL-037 … VAL-039, PUB-057 … PUB-059, PUB-062 – neu, ohne LB-Quelle |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen; Optionen `course_captain_*`. Alle Bezeichner in diesem Dokument sind umgestellt (Meldungsschlüssel `cc.val.*` sind i18n-Schlüssel, keine Plugin-Bezeichner) |
+| **E-14, E-50, E-65, E-68, E-101, E-104** | unverändert genutzt (relativer Drip, Kursrevision ohne Fragenrevisionen, geschützte Medien, Quiz im Versuchsautomaten, kursinterne Voraussetzungen, Staging-Kopie) |
 
 ### 0.2 Kurzfassung
 
@@ -29,7 +40,7 @@ Ebenfalls als Annahme: E-14 (relativer Drip je Modul in Free), E-45 („Klick zu
 3. **LB-Rückfälle werden geschlossen.** Lernende erreichen eine Prüfungsregel ausschließlich über die Referenz in der veröffentlichten Kursrevision (`rule uid + version`, Status `published`). Der LB-Rückfall von `examRule()` auf die neueste nicht archivierte Regel, auch einen Entwurf (CR:186-216), und der Standardwert `0.75` bei fehlender Bestehensregel (CR:207) entfallen ersatzlos.
 4. **Vorschau als Lernender** simuliert Zugangszustände (neu eingeschrieben, Drip-Tag *n*, Teilumfang, Voraussetzung erfüllt) auf dem **Entwurfsstand** und schreibt **nichts** in Lerntabellen, Outbox, Mails, Events oder Lernenden-Audit.
 5. **Autoren-UX:** Validierungspanel mit Gruppierung nach Objekt und Schwere, Inline-Fehler am Feld, Zusammenfassung vor dem Veröffentlichen mit Wirkungsvorschau, Meldungen mit Sprungziel, stabilem Code und Korrekturhilfe; WCAG 2.2 AA (Konzept 16.3).
-6. **Katalog:** 118 Regeln in VAL-001 … VAL-145 (§1, Nummernblöcke je Objekt, Lücken reserviert; dazu VAL-000 für Validatorfehler), Testfälle **PUB-001 … PUB-052** für R1-26 (§4), acht neue Entscheidungen **D22-1 … D22-8** (§5).
+6. **Katalog:** 129 Regeln in VAL-001 … VAL-145 (§1, Nummernblöcke je Objekt, Lücken reserviert; dazu VAL-000 für Validatorfehler), Testfälle **PUB-001 … PUB-062** für R1-26 und R1-46 (§4; PUB-053 … PUB-062 neu, ohne LB-Quelle), acht Beschlüsse **E-128 … E-135** (§5).
 
 ---
 
@@ -39,7 +50,7 @@ Ebenfalls als Annahme: E-14 (relativer Drip je Modul in Free), E-45 („Klick zu
 
 | Begriff | Bedeutung |
 |---|---|
-| **Blocker** | Der Kurs (bzw. die Prüfungsregel) ist so nicht auslieferbar oder würde Lernende in einen falschen bzw. unerreichbaren Zustand bringen. **MUSS** Einreichen und Veröffentlichen verhindern. Kein Override, auch nicht für `administrator` (→ D22-1). |
+| **Blocker** | Der Kurs (bzw. die Prüfungsregel) ist so nicht auslieferbar oder würde Lernende in einen falschen bzw. unerreichbaren Zustand bringen. **MUSS** Einreichen und Veröffentlichen verhindern. Kein Override, auch nicht für `administrator` (E-128). |
 | **Warnung** | Auslieferbar, aber mit erkennbarem Qualitäts-, Rechts- oder Barrierefreiheitsrisiko. Veröffentlichen erst nach Bestätigung je Warnung oder als Sammelbestätigung („alle 4 Warnungen gelesen“); Audit mit Fingerabdrücken (§1.3). |
 | **Hinweis** | Verbesserungsvorschlag ohne Risiko für Lernende. Keine Bestätigung, ausblendbar je Objekt („nicht mehr anzeigen“, gespeichert am Objekt, nicht global). |
 | **Kandidat** | Die Kursstruktur, die beim Veröffentlichen entstünde: Entwurf bzw. Staging-Kopie (R23-D2) + referenzierte Prüfungsregel-Entwürfe + aktuelle auslieferbare Fragenrevisionen. Der Validator prüft immer den Kandidaten, nie die veröffentlichte Revision allein. |
@@ -96,7 +107,7 @@ Spalten: **Obj.** = Objekt; **S** = Schwere (**B** Blocker, **W** Warnung, **H**
 | Code | Obj. | Bedingung | S | Meldung (Sprungziel) | Korrekturhilfe |
 |---|---|---|---|---|---|
 | VAL-001 | Kurs | Titel leer oder nur Leerzeichen | B | „Der Kurs hat noch keinen Titel.“ (A-04, Feld Titel) | jump |
-| VAL-002 | Kurs | `language` fehlt oder ist keine gültige WP-Locale | B | „Lege die Kurssprache fest. Sie steuert Datumsformate und Vorlesefunktionen.“ (A-04 › Metadaten) | quick_fix „Site-Sprache {locale} übernehmen“ |
+| VAL-002 | Kurs | `language` fehlt oder ist kein gültiges BCP-47-Sprachtag (Inhaltssprache, keine WP-Locale; R0-25) | B | „Lege die Kurssprache fest. Sie steuert Datumsformate und Vorlesefunktionen.“ (A-04 › Metadaten) | quick_fix „Site-Sprache {locale} übernehmen“ |
 | VAL-003 | Kurs | keine Module im Kandidaten | B | „Der Kurs hat noch keine Module. Lege mindestens ein Modul mit einer Lektion an.“ (A-04 › Curriculum) | dialog „Erstes Modul anlegen“ |
 | VAL-004 | Kurs | keine einzige Pflicht-Activity (alle `required = false`) | W | „Kein Inhalt ist als Pflicht markiert. Lernende gelten damit sofort als fertig.“ (A-04 › Curriculum) | quick_fix „Alle Lektionen als Pflicht markieren“ |
 | VAL-005 | Kurs | Kurs ist öffentlich im Katalog, aber Einschreibemodus `manual` ohne Hinweistext | H | „Der Kurs erscheint im Katalog, ist aber nur manuell zugänglich. Erkläre im Kurstext, wie man Zugang bekommt.“ (A-04 › Zugang) | jump |
@@ -106,6 +117,7 @@ Spalten: **Obj.** = Objekt; **S** = Schwere (**B** Blocker, **W** Warnung, **H**
 | VAL-009 | Kurs | gleichzeitige Bearbeitung: Kandidat basiert nicht auf der neuesten Entwurfsversion (CAS) | B | „Jemand anderes hat den Kurs inzwischen geändert. Lade die neue Fassung und prüfe erneut.“ | dialog „Änderungen vergleichen“ (F1.5) |
 | VAL-010 | Kurs | Kurs ist `archived` (zurückgezogen) und soll veröffentlicht werden, aber `cc_publish_courses` + Reaktivierungsbegründung fehlt | B | „Ein zurückgezogener Kurs braucht zum Reaktivieren eine Begründung.“ | dialog |
 | VAL-011 | Kurs | Lernziel (`objective_uid`) ohne Titel oder ohne Zuordnung zu einer Activity/Frage | W | „Das Lernziel {title} ist keiner Lektion, Frage oder Prüfung zugeordnet und kann nie nachgewiesen werden.“ (A-04 › Lernziele) | jump |
+| VAL-012 | Kurs | Kandidat enthält Inhalte mit `lang`-Kennzeichnung ungleich der Kurssprache (gemischte Sprachen, E-157) | W | „Der Kurs enthält Abschnitte in {languages}. Gemischte Sprachen sind erlaubt; prüfe, ob das gewollt ist.“ | jump (Liste der Abschnitte) |
 
 #### Modul, Lektion, Activity (VAL-020 … VAL-039)
 
@@ -114,29 +126,32 @@ Spalten: **Obj.** = Objekt; **S** = Schwere (**B** Blocker, **W** Warnung, **H**
 | VAL-020 | Modul | Modul ohne Lektionen | B | „Das Modul {module} ist leer. Füge eine Lektion hinzu oder entferne das Modul aus dem Kurs.“ (A-04 › Modul) | quick_fix „Modul aus diesem Kurs entfernen“ (nur Zuordnung, Modul bleibt); dialog „Lektion anlegen“ |
 | VAL-021 | Modul | Titel leer | B | „Ein Modul an Position {pos} hat keinen Titel.“ | jump |
 | VAL-022 | Modul | alle Lektionen des Moduls optional, Modul aber `required` | W | „{module} ist Pflicht, enthält aber nur optionale Lektionen. Es zählt damit nie für den Abschluss.“ | quick_fix „Modul optional“ bzw. „Lektionen Pflicht“ |
-| VAL-023 | Lektion | Lektion ohne Activity bzw. `activity_type` fehlt | B | „Die Lektion {lesson} hat keinen Inhaltstyp. Wähle Text, Video, Datei, Quiz oder Karteikarten.“ (A-04 › Lektion) | dialog „Typ wählen“ |
+| VAL-023 | Lektion | Lektion ohne Activity bzw. `activity_type` fehlt | B | „Die Lektion {lesson} hat keinen Inhaltstyp. Wähle Text, Video, Datei, Quiz, Karteikarten oder Aufgabe.“ (A-04 › Lektion) | dialog „Typ wählen“ |
 | VAL-024 | Activity | Provider des Typs fehlt/deaktiviert oder `contract_version`-Major wird vom installierten Provider nicht unterstützt (R0-08 §2.3) | B | „Der Inhaltstyp {type} von {lesson} ist derzeit nicht verfügbar (Erweiterung fehlt oder ist zu alt).“ (A-14 Integrationen bzw. Plugins) | jump |
 | VAL-025 | Activity | Provider-`validate()` liefert Fehler (Settings gegen Schema) | B | Text vom Provider, z. B. „Mindestanzeigedauer muss zwischen 0 und 3 600 Sekunden liegen.“ | Provider-Fix |
 | VAL-026 | Activity `lesson` | Inhalt leer (keine Blöcke außer leeren Absätzen) | B | „Die Lektion {lesson} hat noch keinen Inhalt.“ | jump |
 | VAL-027 | Activity `video` | keine Quelle, Provider unbekannt oder Datei fehlt | B | „Für das Video in {lesson} fehlt die Quelle.“ (A-04 › Lektion › Video) | jump |
 | VAL-028 | Activity `file` | kein Download hinterlegt oder Datei fehlt im Speicher | B | „Die Datei für {lesson} fehlt. Lade sie erneut hoch.“ (A-06, Filter „ohne Datei“) | jump |
 | VAL-029 | Activity `quiz` | Quiz ohne Fragen bzw. leerer Modulpool | B | „Das Quiz {lesson} enthält keine auslieferbaren Fragen.“ (A-07) | dialog „Fragen zuordnen“ |
-| VAL-030 | Activity | Abschlussregel passt nicht zum Typ (z. B. `passed` bei unbewertetem Quiz, `downloaded` bei `lesson`) oder Parameter außerhalb des Bereichs (`position_ratio` ∉ (0, 1], `ratio` ∉ (0, 1], `min_seconds` < 0) | B | „Die Abschlussregel ‚{rule}‘ ist für {type} nicht möglich.“ (A-04 › Lektion › Abschluss) | quick_fix „Standardregel {default} verwenden“ (R0-08 §2.4) |
+| VAL-030 | Activity | Abschlussregel passt nicht zum Typ (z. B. `passed` bei unbewertetem Quiz, `downloaded` bei `lesson`, `submitted`/`graded` außerhalb von `assignment`) oder Parameter außerhalb des Bereichs (`position_ratio` ∉ (0, 1], `ratio` ∉ (0, 1], `min_seconds` < 0) | B | „Die Abschlussregel ‚{rule}‘ ist für {type} nicht möglich.“ (A-04 › Lektion › Abschluss) | quick_fix „Standardregel {default} verwenden“ (R0-08 §2.4) |
 | VAL-031 | Activity `video` | Abschlussregel `position_ratio` | H | „Die Abspielposition meldet der Player selbst. Sie ist kein sicherer Nachweis, dass das Video angesehen wurde.“ | – |
 | VAL-032 | Activity `quiz` | `counts_as_evidence = true`, Quiz aber unbewertet | B | „Ein unbewertetes Quiz kann kein Nachweis sein.“ | quick_fix „bewertet schalten“ / „Nachweis aus“ |
 | VAL-033 | Lektion | doppelter Lektionstitel innerhalb eines Moduls | H | „Zwei Lektionen in {module} heißen {title}. Lernende können sie im Kapitelbaum nicht unterscheiden.“ | jump |
 | VAL-034 | Activity | Typwechsel einer bereits veröffentlichten Activity (`activity_uid` gleich, Typ anders) | B | „Der Typ einer veröffentlichten Lektion kann nicht geändert werden. Lege eine neue Lektion an und archiviere die alte.“ (R0-08 §2.3) | dialog „Als neue Lektion anlegen“ |
 | VAL-035 | Activity | Pflicht-Activity in der neuen Revision entfernt, Lernende haben Fortschritt darauf | W | „{n} Lernende haben {lesson} begonnen oder abgeschlossen. Der Abschluss bleibt erhalten, offener Fortschritt entfällt.“ (R0-23 RV-07) | – (Wirkungsvorschau §3.3) |
-| VAL-036 | Activity | `recompletion_required` gesetzt | W | „{n} Lernende ohne Kursabschluss müssen {lesson} erneut abschließen.“ (R0-23 R23-D3) | – |
+| VAL-036 | Activity | `recompletion_required` gesetzt | W | „{n} Lernende ohne Kursabschluss müssen {lesson} erneut abschließen.“ (R0-23, E-105) | – |
+| VAL-037 | Activity `assignment` | Aufgabenstellung (`instructions`) leer oder `submission_type` fehlt (R0-08 §2.5) | B | „Die Aufgabe {lesson} hat noch keine Aufgabenstellung.“ (A-04 › Lektion › Aufgabe) | jump |
+| VAL-038 | Activity `assignment` | `max_points` < 1 oder keine Ganzzahl; `passing_points` > `max_points`; Abschlussregel `passed` ohne `passing_points`; Dateiabgabe ohne Allowlist, Allowlist nicht ⊆ globale Allowlist oder mit nie erlaubtem Typ (svg/html/js/php, R0-10 §4.5); `max_bytes` über dem Website-Limit | B | „Die Bewertung bzw. Abgabe von {lesson} ist nicht vollständig eingestellt: {problem}.“ | quick_fix „Abschluss bei Bewertung“ (`graded`); jump |
+| VAL-039 | Activity `assignment` | dem Kurs ist kein Trainer zugewiesen (`ccap_course_staff`), Abgaben bewerten dann nur Kursmanager | H | „Für {course} ist niemand als Trainer eingetragen. Abgaben bewerten dann nur Kursmanager.“ | jump (A-04 › Team) |
 
-#### Frage (VAL-040 … VAL-062)
+#### Frage (VAL-040 … VAL-069)
 
 Gilt für jede Frage, die im Kandidaten erreichbar ist (Inline-Quiz, Modulpool eines Quiz- oder Prüfungs-Blueprints, feste Variante). Normalisierung für Vergleiche: `trim`, Unicode-NFC, Groß-/Kleinschreibung ignorieren, Leerzeichen zusammenfassen, HTML-Tags entfernen (R0-08 §3.1).
 
 | Code | Obj. | Bedingung | S | Meldung (Sprungziel A-07, Feld) | Korrekturhilfe |
 |---|---|---|---|---|---|
 | VAL-040 | Frage | Fragetext leer und kein Pflichtmedium | B | „Die Frage hat keinen Text.“ | jump |
-| VAL-041 | Frage | Fragetyp in R1 nicht freigegeben (`matching`, `ordering`, `cloze` vor R2; Pro-Typ ohne aktives Add-on) | B | „Der Fragetyp {type} ist in dieser Version nicht verfügbar.“ | – |
+| VAL-041 | Frage | Fragetyp unbekannt oder ohne aktiven Provider (z. B. Pro-Typ ohne aktives Add-on). In R1 Free freigegeben sind `single_choice`, `multi_choice`, `true_false`, `open_text`, `flashcard`, `numeric_tolerance` (E-22), `matching`, `ordering`, `cloze` (E-69) | B | „Der Fragetyp {type} ist in dieser Version nicht verfügbar.“ | – |
 | VAL-042 | `single_choice` | keine Option als richtig markiert | B | „Markiere genau eine richtige Antwort.“ (Feld Antworten) | jump |
 | VAL-043 | `single_choice` | mehr als eine Option richtig | B | „Bei Einfachauswahl darf nur eine Antwort richtig sein. Es sind {n} markiert.“ | quick_fix „In Mehrfachauswahl umwandeln“ (Vorschau der Bewertungsregel `all_or_nothing`) |
 | VAL-044 | `multi_choice` | keine Option richtig | B | „Markiere mindestens eine richtige Antwort.“ | jump |
@@ -151,13 +166,20 @@ Gilt für jede Frage, die im Kandidaten erreichbar ist (Inline-Quiz, Modulpool e
 | VAL-053 | `true_false` | nicht genau 2 feste Optionen oder nicht genau 1 richtig | B | „Wahr/Falsch braucht genau eine richtige Aussage.“ | quick_fix „Standardoptionen wiederherstellen“ |
 | VAL-054 | `open_text` | Musterantwort fehlt, leer oder mehr als eine | B | „Hinterlege genau eine Musterantwort. Lernende vergleichen ihre Antwort damit.“ | jump |
 | VAL-055 | `flashcard` | Vorder- oder Rückseite leer | B | „Die Karteikarte braucht Vorder- und Rückseite.“ | jump |
-| VAL-056 | Frage/Regel | `scoring` nicht in R1 erlaubt (`per_option`, E-77) bzw. `per_option` mit < 3 Optionen | B | „Die Teilpunktregel {scoring} ist hier nicht verfügbar.“ | quick_fix „Alles-oder-nichts verwenden“ |
+| VAL-056 | Frage/Regel | `scoring` nicht in R1 erlaubt (`per_option`, E-77; später nur mit ≥ 3 Optionen) bzw. `proportional_penalty` bei einem Typ ohne Teilpunkte (`single_choice`, `true_false`, `open_text`, `ordering`, `numeric_tolerance`; R0-08 §3.2) | B | „Die Teilpunktregel {scoring} ist hier nicht verfügbar.“ | quick_fix „Alles-oder-nichts verwenden“ |
 | VAL-057 | Frage | `image_required = true`, aber kein Pflichtmedium | B | „Die Frage verlangt ein Bild, es ist aber keins hinterlegt.“ | jump |
 | VAL-058 | Frage | keine veröffentlichte Revision (nur Entwurf) | W | „Die Frage ist noch Entwurf und wird Lernenden nicht gezeigt. Sie fehlt in {n} Pools.“ | quick_fix „Revision veröffentlichen“ (nur mit M-07 + `cc_publish_courses`) |
 | VAL-059 | Frage | Gültigkeit (`valid_to`) abgelaufen bzw. läuft in ≤ 30 Tagen ab | W / H | „Die Frage ist seit {date} nicht mehr gültig“ bzw. „läuft am {date} ab.“ | jump |
-| VAL-060 | Frage | `feedback_correct`/`feedback_incorrect` leer, Kurs zeigt Erklärungen (`show_explanations = true`) | H | „Ohne Erklärung sehen Lernende nach der Antwort nur richtig/falsch.“ | jump |
+| VAL-060 | Frage | `feedback_correct`/`feedback_incorrect` leer, Kurs zeigt Erklärungen (`show_explanations = true`) **und Pro ist aktiv** (`course.explanations`, E-20). Ohne Pro wird die Regel nicht ausgewertet und nicht angezeigt (E-100) | H | „Ohne Erklärung sehen Lernende nach der Antwort nur richtig/falsch.“ | jump |
 | VAL-061 | Frage | Fragenrevision ist `substantive` geändert seit letzter Kursrevision und in einer Prüfung mit Nachweis | H | „Die Lösung von {question} wurde geändert. Laufende Versuche behalten die alte Fassung.“ (R0-23) | – |
 | VAL-062 | Frage | HTML-Filter hat beim Speichern Inhalte entfernt (Script, Iframe, Event-Attribute) | W | „Beim Speichern wurden nicht erlaubte Elemente entfernt. Prüfe die Darstellung.“ | jump (Vorschau) |
+| VAL-063 | `numeric_tolerance` | Sollwert fehlt oder ist keine Dezimalzahl mit höchstens 6 Nachkommastellen; `tolerance_type` fehlt; Toleranz fehlt, < 0 oder relativ > 100 % (R0-08 §3.1, E-22) | B | „Lege den richtigen Wert und die erlaubte Abweichung fest.“ (Feld Lösung) | jump |
+| VAL-064 | `numeric_tolerance` | Toleranz 0 bei Sollwert mit Nachkommastellen; relative Toleranz bei Sollwert 0 | W | „Mit Toleranz 0 zählt nur genau {value}.“ bzw. „Eine prozentuale Abweichung von 0 ist immer 0. Verwende eine feste Abweichung.“ | quick_fix „Feste Abweichung verwenden“ |
+| VAL-065 | `numeric_tolerance` | keine Einheit angegeben | H | „Ohne Einheit wissen Lernende nicht, in welcher Einheit sie antworten sollen.“ | jump |
+| VAL-066 | `matching` | weniger als 2 oder mehr als 26 Paare; Paar mit leerer Seite; zwei linke Einträge normalisiert gleich; Distraktor normalisiert gleich einem richtigen rechten Eintrag; mehr als 26 rechte Einträge (E-69) | B | „Eine Zuordnung braucht 2 bis 26 vollständige, eindeutige Paare.“ bzw. „{a} und {b} sind gleich und lassen sich nicht unterscheiden.“ | jump |
+| VAL-067 | `ordering` | weniger als 2 oder mehr als 26 Elemente; leeres Element; zwei Elemente normalisiert gleich (Lösung nicht eindeutig) | B | „Zum Sortieren braucht es 2 bis 26 unterschiedliche Elemente.“ | jump |
+| VAL-068 | `cloze` | keine Lücke; Lücke ohne akzeptierte Antwort oder mit leerer Antwort; Lücken-ID doppelt; Lückenmarke im Text ohne Definition bzw. Definition ohne Marke | B | „Lücke {gap} hat keine richtige Antwort.“ bzw. „Der Text enthält keine Lücke.“ | jump |
+| VAL-069 | `cloze` | zwei akzeptierte Antworten einer Lücke sind nach Normalisierung gleich | H | „Lücke {gap}: {a} und {b} sind gleichwertig, eine reicht.“ | quick_fix „Doppelte Antwort entfernen“ |
 
 #### Prüfung und Quiz-Regel (VAL-070 … VAL-099)
 
@@ -173,7 +195,7 @@ Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre P
 | VAL-075 | Regel | Teilregel: `min_correct > of`, `of` ≠ Fragenzahl des Abschnitts, Teil verweist auf nicht vorhandenen Abschnitt, `min_correct` und `min_points_milli` innerhalb einer Regel gemischt | B | „Teil {part}: {min} von {of} richtigen Antworten ist nicht erreichbar, der Abschnitt hat {count} Fragen.“ | quick_fix „{of} an Abschnitt anpassen“ |
 | VAL-076 | Regel | `empty_part_policy` fehlt | B | „Lege fest, ob ein Teil ohne Fragen als bestanden gilt.“ | quick_fix „Bestanden (wie bisher üblich)“ – expliziter Wert |
 | VAL-077 | Regel | Bestehensgrenze < 50 % | H | „Die Bestehensgrenze von {p} % liegt unter der Hälfte.“ | – |
-| VAL-078 | Regel | „Alles ankreuzen“ erreicht die Bestehensgrenze (Simulation: je Frage alle Optionen gewählt, wirksames `scoring`, Ergebnis ≥ Grenze für **irgendeine** mögliche Ziehung; Prüfung über Obergrenze: Summe der besten *k* Fragen je Abschnitt) | B | „Wer bei jeder Frage alles ankreuzt, besteht diese Prüfung. Prüfe Fragen mit nur richtigen Antworten.“ (Golden-Master-Anker INV-E-008) | jump (Liste der betroffenen Fragen) |
+| VAL-078 | Regel | „Alles ankreuzen“ erreicht die Bestehensgrenze (Simulation: je Frage alle Optionen gewählt, wirksames `scoring`, Ergebnis ≥ Grenze für **irgendeine** mögliche Ziehung; Prüfung über Obergrenze: Summe der besten *k* Fragen je Abschnitt; nur Auswahltypen, R0-08 §3.2) | B | „Wer bei jeder Frage alles ankreuzt, besteht diese Prüfung. Prüfe Fragen mit nur richtigen Antworten.“ (Golden-Master-Anker INV-E-008) | jump (Liste der betroffenen Fragen) |
 | VAL-079 | Regel | `time_limit_seconds` ≤ 0, keine Ganzzahl oder > 86 400 (24 h) | B | „Das Zeitlimit muss zwischen 1 Sekunde und 24 Stunden liegen oder leer sein (ohne Limit).“ | quick_fix „Ohne Limit“ / „{n} × 60 s“ |
 | VAL-080 | Regel | Zeitlimit < 10 s je gezogener Frage | W | „{n} Fragen in {t} – das sind unter 10 Sekunden pro Frage.“ | quick_fix „{n} × 60 s“ |
 | VAL-081 | Regel | Teilzeiten (`parts[].seconds`) nur bei einem Teil der Abschnitte gesetzt bzw. Summe ≠ Gesamtlimit | W | „Nur einige Teile haben eine Zeit. Das Gesamtlimit wird dann nicht aus Teilzeiten berechnet.“ (R0-08 §4.1, ES:982-1007) | jump |
@@ -192,7 +214,7 @@ Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre P
 | VAL-094 | Regel | `valid_from` liegt in der Zukunft | W | „Die Prüfung ist erst ab {date} startbar.“ | – |
 | VAL-095 | Regel | `producesEvidence` und Pool/Variante enthält `open_text` mit `open_text_in_score = true` | W | „Selbsteinschätzungsfragen zählen in einer Nachweisprüfung mit.“ (R0-08 §3.3) | quick_fix „Offene Fragen nicht werten“ |
 | VAL-096 | Regel | `feedback_visibility = always` bei bewertetem Versuch | H | „Während einer bewerteten Prüfung gibt es keine Lösungen. ‚Immer‘ wirkt hier wie ‚nach Abgabe‘.“ | quick_fix „Nach Abgabe“ |
-| VAL-097 | Regel | Prüfung enthält Fragen mit externen Medien (VAL-110) | W | „{n} Prüfungsfragen laden Medien von {provider}. Die Zustimmung kostet Lernende Prüfungszeit.“ | jump |
+| VAL-097 | Regel | Prüfung enthält Fragen mit externen Medien (VAL-110) **und** `privacy.external_media_mode = click_to_load` (im Default `always_load` entfällt die Regel, E-45a) | W | „{n} Prüfungsfragen laden Medien von {provider}. Die Zustimmung kostet Lernende Prüfungszeit.“ | jump |
 | VAL-098 | Prüfung | Prüfung ist per Drip/Teilumfang nie startbar, weil ein Blueprint-Modul dauerhaft gesperrt ist (z. B. Teilumfang ohne Grant-Weg, Drip > maximale Zugangsdauer) | B | „Die Prüfung kann nie starten: Modul {module} wird erst nach {d} Tagen frei, der Zugang dauert aber nur {g} Tage.“ | jump (A-04 › Zugang) |
 
 #### Medium und Rechte (VAL-100 … VAL-119)
@@ -211,9 +233,9 @@ Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre P
 | VAL-107 | Medium | Datei fehlt im Speicher bzw. Hash stimmt nicht | B | „Die Datei {title} fehlt oder ist beschädigt.“ (A-06 „ohne Datei“) | jump „Neu hochladen“ |
 | VAL-108 | Medium | Endung/MIME nicht in Allowlist oder Endung ≠ erkannter MIME (R0-10 V4) | B | „{title} hat einen nicht erlaubten Dateityp ({mime}).“ | quick_fix „Medium entfernen“ |
 | VAL-109 | Medium | zugangsgebundenes Medium liegt in Speicherklasse `public` (E-65) | W | „{title} ist öffentlich abrufbar, obwohl es zu einem geschützten Kurs gehört.“ | quick_fix „Geschützt speichern“ |
-| VAL-110 | Medium extern | Host keinem registrierten Provider zugeordnet (Filter `course_captain_external_media_providers`) | B | „Das Video in {lesson} kommt von {host}. Für diesen Dienst gibt es keinen Datenschutz-Platzhalter, es kann nicht eingebunden werden.“ | jump; quick_fix „Als Link statt Einbettung“ |
+| VAL-110 | Medium extern | Host keinem registrierten Provider zugeordnet (Filter `course_captain_external_media_providers`); gilt in beiden Modi, weil Platzhalter und Offenlegung in der readme (E-45a) die Registrierung brauchen | B | „Das Video in {lesson} kommt von {host}. Für diesen Dienst ist kein Anbieter mit Datenschutzangaben registriert, es kann nicht eingebunden werden.“ | jump; quick_fix „Als Link statt Einbettung“ |
 | VAL-111 | Medium extern | Provider registriert, aber ohne Datenschutzhinweis (Dienstname, Anbieter, Link) | B | „Für {provider} fehlt der Datenschutzhinweis im Platzhalter.“ (A-15 › Datenschutz) | jump |
-| VAL-112 | Medium extern | kein Consent-Provider aktiv (WP Consent API/Filter, R0-10 §5.3), Fallback „Klick zum Laden“ greift | H | „Es ist kein Einwilligungs-Tool verbunden. Lernende laden externe Medien einzeln per Klick.“ | – |
+| VAL-112 | Medium extern | (a) Modus `always_load` (Default, E-45a): externe Medien werden ohne Einwilligung geladen · (b) Modus `click_to_load` ohne aktiven Consent-Provider (WP Consent API/Filter, R0-10 §5.3): Fallback „Klick zum Laden“ je Medium | H | (a) „{provider} wird beim Öffnen der Lektion ohne Einwilligung geladen. Nenne den Dienst in deiner Datenschutzerklärung.“ · (b) „Es ist kein Einwilligungs-Tool verbunden. Lernende laden externe Medien einzeln per Klick.“ | – |
 | VAL-113 | Medium extern | Activity `video` mit Abschlussregel `position_ratio` und externem Provider ohne Player-API | W | „{provider} meldet keine Abspielposition. Lernende können die Lektion nur bestätigen.“ | quick_fix „Abschluss per Bestätigung“ |
 | VAL-114 | Medium extern | lokales Posterbild fehlt (Platzhalter würde Fremd-Vorschaubild brauchen) | H | „Ohne eigenes Vorschaubild zeigt der Platzhalter eine neutrale Grafik.“ | jump |
 
@@ -250,14 +272,14 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
 
 | Code | Obj. | Bedingung | S | Meldung | Korrekturhilfe |
 |---|---|---|---|---|---|
-| VAL-140 | Medium Bild | Alt-Text leer und nicht als dekorativ markiert (Lektion, Frage, Option) | W (→ D22-4) | „{n} Bilder haben keinen Alternativtext, z. B. in {lesson}. Screenreader-Nutzende erfahren nicht, was zu sehen ist.“ (A-06 bzw. Block) | dialog „Alt-Text eingeben“ je Bild; quick_fix „Als dekorativ markieren“ (setzt `alt=""` ausdrücklich) |
-| VAL-141 | Frage | Pflichtmedium (`image_required`) ohne Alt-Text bzw. als dekorativ markiert | W (→ D22-4) | „Die Frage ist ohne das Bild nicht lösbar, das Bild hat aber keinen Alternativtext.“ | dialog; **kein** quick_fix „dekorativ“ |
-| VAL-142 | Video/Audio | Video ohne Untertitelspur, Audio ohne Transkript | W | „Das Video in {lesson} hat keine Untertitel.“ | jump (A-06 › Untertitel zuordnen) |
+| VAL-140 | Medium Bild | Alt-Text leer und nicht als dekorativ markiert (Lektion, Frage, Option) | **B** (E-131) | „{n} Bilder haben keinen Alternativtext, z. B. in {lesson}. Screenreader-Nutzende erfahren nicht, was zu sehen ist.“ (A-06 bzw. Block) | dialog „Alt-Text eingeben“ je Bild; quick_fix „Als dekorativ markieren“ (setzt `alt=""` ausdrücklich) |
+| VAL-141 | Frage | Pflichtmedium (`image_required`) ohne Alt-Text bzw. als dekorativ markiert | **B** (E-131) | „Die Frage ist ohne das Bild nicht lösbar, das Bild hat aber keinen Alternativtext.“ | dialog; **kein** quick_fix „dekorativ“ |
+| VAL-142 | Video/Audio | Video ohne Untertitelspur, Audio ohne Transkript | W; B, wenn die Site-Einstellung „Untertitel erzwingen“ aktiv ist (E-131) | „Das Video in {lesson} hat keine Untertitel.“ | jump (A-06 › Untertitel zuordnen) |
 | VAL-143 | Untertitel | VTT ungültig (Parser) oder Sprache fehlt | W | „Die Untertiteldatei {file} ist fehlerhaft.“ | jump |
 | VAL-144 | Lektion | Überschriftenebenen übersprungen (h2 → h4), Tabellen ohne Kopfzeile, Linktexte ohne Aussage („hier“, „mehr“) | H | „In {lesson} fehlt eine Überschriftenebene.“ | jump (Block) |
 | VAL-145 | Option/Frage | Bedeutung nur über Farbe/Bild ohne Text (Option ohne Text, nur Bild ohne Alt) | W | „Antwort {key} besteht nur aus einem Bild ohne Beschreibung.“ | dialog |
 
-**Abdeckung der Mindestvorgaben:** fehlende Lektionen/leere Module (VAL-003, VAL-020, VAL-023, VAL-026); Frage ohne richtige Antwort (VAL-042, VAL-044, VAL-053, VAL-054); widersprüchliche Optionen (VAL-043, VAL-047, VAL-050); doppelte Optionen (VAL-048, VAL-049); Blueprint > Pool (VAL-085 … VAL-089); fehlende Bestehensregel (VAL-073 … VAL-076); Zeitlimit ungültig (VAL-079 … VAL-082); Rechtestatus fremd (VAL-100, VAL-101, eigen VAL-102/103); externe Medien ohne Consent-Provider (VAL-110 … VAL-113); Drip-/Voraussetzungszyklen (VAL-120, VAL-125); unerreichbare Lektionen (VAL-121 … VAL-123, VAL-098); fehlende Alt-Texte (VAL-140, VAL-141); Zertifikatsregel ohne Nachweisquelle (VAL-130 … VAL-132).
+**Abdeckung der Mindestvorgaben:** fehlende Lektionen/leere Module (VAL-003, VAL-020, VAL-023, VAL-026); Frage ohne richtige Antwort (VAL-042, VAL-044, VAL-053, VAL-054); widersprüchliche Optionen (VAL-043, VAL-047, VAL-050); doppelte Optionen (VAL-048, VAL-049); Blueprint > Pool (VAL-085 … VAL-089); fehlende Bestehensregel (VAL-073 … VAL-076); Zeitlimit ungültig (VAL-079 … VAL-082); Rechtestatus fremd (VAL-100, VAL-101, eigen VAL-102/103); externe Medien ohne Consent-Provider (VAL-110 … VAL-113); Drip-/Voraussetzungszyklen (VAL-120, VAL-125); unerreichbare Lektionen (VAL-121 … VAL-123, VAL-098); fehlende Alt-Texte (VAL-140, VAL-141); Zertifikatsregel ohne Nachweisquelle (VAL-130 … VAL-132). Neu nach Beschluss: Zahl mit Toleranz (VAL-063 … VAL-065), Zuordnung/Sortieren/Lückentext (VAL-066 … VAL-069), Aufgaben (VAL-037 … VAL-039), gemischte Sprachen (VAL-012).
 
 ### 1.5 Ausführung
 

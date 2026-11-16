@@ -1,14 +1,35 @@
-# R0-14 · Nichtfunktionale Qualitätsziele (Entwurf)
+# R0-14 · Nichtfunktionale Qualitätsziele
 
-**Status:** **Vorgeschlagen – Freigabe Auftraggeber/Architektur offen.** Task R0-14 ist **nicht** abgehakt. Alle Zahlen sind **Zielwerte**, keine Messwerte. Es gibt weder Implementierung noch Lasttest. Endgültige Grenzwerte gibt R1-22 erst nach dem ersten reproduzierbaren Lauf frei (Konzept 22.3: „endgültige Grenzwerte nach reproduzierbarem Lasttest freigeben“).
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Alle Zahlen sind **Zielwerte**, keine Messwerte. Es gibt weder Implementierung noch Lasttest. Endgültige Grenzwerte gibt R1-22 erst nach dem ersten reproduzierbaren Lauf frei (Konzept 22.3: „endgültige Grenzwerte nach reproduzierbarem Lasttest freigeben“).
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-14 (Voraussetzung R0-02, R0-06), Ziel-Tasks R1-18, R1-22, R1-42; Konzept Kap. 22.1, 22.3, 23, 41; `docs/r0/R0-06-datenmodell-adr.md` §9 (A-01…A-18, D-6) und §7 (Sperren); `docs/r0/R0-02-inventar/E-theme-tools-content-docs.md` (INV-E-081, -087, -101, -111, -112, D-E-02, D-E-03); `docs/r0/R0-36-suite-vertragsdeltas.md` §2.4/2.5 (Pass-Lastprofile, Race-Tests); `docs/r0/ENTSCHEIDUNGEN.md` E-08, E-11, E-12, E-52 (alle „Annahme“, nicht beschlossen).
+**Bezug:** TODO R0-14 (Voraussetzung R0-02, R0-06), Ziel-Tasks R1-18, R1-22, R1-42; Konzept Kap. 22.1, 22.3, 23, 41; `docs/r0/R0-06-datenmodell-adr.md` §9 (A-01…A-18, D-6) und §7 (Sperren); `docs/r0/R0-02-inventar/E-theme-tools-content-docs.md` (INV-E-081, -087, -101, -111, -112, D-E-02, D-E-03); `docs/r0/R0-36-suite-vertragsdeltas.md` §2.4/2.5 (Pass-Lastprofile, Race-Tests); `docs/r0/ENTSCHEIDUNGEN.md` E-08, E-11, E-12, E-52, E-58…E-61, E-195 (beschlossen).
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77`, nur gelesen. Pfade sind relativ zum Repository-Stamm.
-**Abgrenzung:** Die endgültige Plattform-Matrix beschließt R0-20. R0-14 liefert dafür die Startwerte und legt fest, wie gemessen wird. Barrierefreiheit gehört zu R0-15, Backup-/Restore-Dauer zu R0-16. Sicherheitsgrenzen (Rate-Limits, fail-open/closed) stehen in R0-17/R0-21 und E-46.
+**Abgrenzung:** Die Plattform-Matrix legt R0-20 eigenständig fest (E-12: LB-Werte sind **kein** Startwert). R0-14 übernimmt sie in §3 und legt fest, wie gemessen wird. Barrierefreiheit gehört zu R0-15, Backup-/Restore-Dauer zu R0-16. Sicherheitsgrenzen (Rate-Limits, fail-open/closed) stehen in R0-17/R0-21 und E-46.
+
+## Beschlussstand
+
+Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“ (16.11.2026).
+
+| Beschluss | Wirkung in diesem Dokument |
+|---|---|
+| **E-01 Clean Room** | Kein LB-Code wird übernommen. §0 enthält nur Verhaltens- und Messbelege; Seeder, Sonde, Lasttest-Runner und Compose-Dateien werden neu geschrieben |
+| **E-12** | Plattformmatrix eigenständig (R0-20), LB-Werte nicht als Startwert; §3 übernimmt die Festlegung aus R0-20 |
+| **E-195** (ersetzt E-57/D-14-01) | PHP-Untergrenze **8.3**, getestet 8.3/8.4/8.5; vor R1-GATE auf php.net verifizieren |
+| **E-58** (D-14-02) | CI: MariaDB 10.11 und 12.3 (bzw. 11.8 LTS), MySQL 8.4; MySQL 8.0/MariaDB 10.6 best effort; E-08 bleibt technische Mindestanforderung |
+| E-59 (D-14-05) | Dokumentierte Shared-Hosting-Klasse „bis 50 gleichzeitige Prüfungen“ (Messung in R1-22) |
+| E-60 (D-14-07) | Zeitbudgets sind Release-Gate für R1-GATE |
+| **E-61** (D-14-08) | Browser: letzte zwei Hauptversionen Chrome, Edge, Firefox, Safari + Firefox ESR, iOS Safari, Android Chrome |
+| E-191 | Playwright je PR/nightly; echtes iOS/Android/Safari manuell vor jedem Minor-Release |
+| E-192 | Cloud-VM für die Performance-Messung (R-M) wird gestellt |
+| E-52 | Lastannahmen bestätigt (10 000 Lernende, 100 Kurse, 100 000 Fragen, 500 gleichzeitige Prüfungen) |
+| E-08, E-11 | InnoDB/JSON Pflicht; PHPUnit + WP-Testsuite und Playwright |
+| **E-45, E-45a** | Externe Medien werden standardmäßig **ohne Klick geladen** (`external_media_mode` = „immer laden“); FE-07 gilt deshalb nur im Modus „Klick zum Laden“ |
+| D-14-03, D-14-04, D-14-06 | Architekturfestlegungen (ENTSCHEIDUNGEN §11): kürzere Lock-Wartezeiten, InnoDB-FULLTEXT, k6 + PHP-Race-Runner |
+| E-207 | Präfix `ccap_` für Tabellen, CPTs, Caps, Rollen, Cron, Meta; `cc_…`-Tabellennamen hier sind Arbeitsnamen (`ccap_…` in der Umsetzung) |
 
 ---
 
-## 0. Belege aus LearnBoating (Startwerte)
+## 0. Belege aus LearnBoating (nur Belege, kein Startwert – E-01, E-12)
 
 | Nr. | Beleg (LB @ 9f37c77) | Inhalt | Verwendung hier |
 |---|---|---|---|
@@ -27,7 +48,7 @@
 | LB-NF-13 | `src/` (42 Aufrufe `wp_cache_*`/`wp_using_ext_object_cache`) | Der Code nutzt den Objekt-Cache, die CI läuft aber **ohne** persistenten Cache | Objekt-Cache-Achse §3 |
 | LB-NF-14 | Pass `tests/load/run.php`, `http.php`; `docs/TESTING.md:9-93` (über R0-36 P3, §2.4) | N Prozesse hinter einer Startbarriere, Profile `ci`/`default`/`heavy`, Invarianten, Deadlock-Zählung | Race-Profil L5 §2.2 |
 
-In LB selbst gibt es **keinen** Lasttest und keine Performance-Messung. Die Budgets unten sind daher neu und nicht aus LB übernommen.
+In LB selbst gibt es **keinen** Lasttest und keine Performance-Messung. Die Budgets unten sind daher neu und nicht aus LB übernommen. Die LB-Werte oben dienen nur als Vergleich; maßgeblich sind §1–§3 (E-12).
 
 ---
 
@@ -70,7 +91,7 @@ Für Lastprofil **L2** gelten die Werte mit dem Zusatz „unter L2“. Für alle
 | FE-04 | JS-Bundle Lernraum (initial, je Seite) | ≤ 75 KB gzip | Build-Report in der CI, Abbruch bei Überschreitung | LB-NF-06: 66,7 KB gzip ohne Framework |
 | FE-05 | CSS Lernraum | ≤ 30 KB gzip | wie FE-04 | LB-NF-06: 24,9 KB gzip |
 | FE-06 | JS je Admin-Screen (ohne WP-Core-Pakete wie `wp-element`) | ≤ 150 KB gzip, Editor-Screens ≤ 250 KB gzip | wie FE-04 | Editor-Technik offen (R0-11/R0-22) |
-| FE-07 | Fremdhosts | 0 Anfragen an fremde Hosts ohne Einwilligung | Fremdhost-Erfassung im E2E (INV-E-111) | E-45 |
+| FE-07 | Fremdhosts | Im Modus „Klick zum Laden“: 0 Anfragen an fremde Hosts vor dem Klick. Im Default „immer laden“ (E-45a): nur die in der readme offengelegten externen Dienste der eingebetteten Medien, keine weiteren Fremdhosts | Fremdhost-Erfassung im E2E (INV-E-111), beide Modi | E-45, E-45a |
 | FE-08 | Anfragen je Interaktion | Smarttrainer: ≤ 1 REST-Aufruf je Antwort (`answer` liefert die nächste Frage mit) oder ≤ 2 parallel; Prüfung: `saveAnswer` gebündelt, höchstens 1 je 2 s und Frage | Netzwerkprotokoll E2E | Grundlage für die Raten in L1/L2 |
 
 ---
@@ -81,7 +102,7 @@ Für Lastprofil **L2** gelten die Werte mit dem Zusatz „unter L2“. Für alle
 
 | Kürzel | Zweck | Definition |
 |---|---|---|
-| **R-M** | Budgetmessung (§1.1) | Docker-Compose nach dem Muster von LB-NF-03, auf **festen** Ressourcen: App-Container 4 vCPU / 8 GB, PHP 8.5-FPM mit 16 Workern, OPcache an; DB-Container 4 vCPU / 8 GB, MariaDB 12.3.3, `innodb_buffer_pool_size = 4G`, sonst Standardwerte; nginx 1.x **oder** Apache 2.4 (gemessen wird die Ziel-Kombination aus §3); Lastgenerator auf eigenem Host bzw. eigenen Kernen, RTT ≤ 1 ms. Hardware (CPU-Modell, Speicher, Datenträger) wird im Protokoll festgehalten. |
+| **R-M** | Budgetmessung (§1.1) | Eigene Docker-Compose-Definition (Aufbau wie LB-NF-03 beobachtet, ohne Übernahme, E-01) auf einer gestellten Cloud-VM mit festem Instanztyp (E-192), auf **festen** Ressourcen: App-Container 4 vCPU / 8 GB, PHP 8.5-FPM mit 16 Workern, OPcache an; DB-Container 4 vCPU / 8 GB, MariaDB 12.3.x (bzw. 11.8 LTS, falls 12.3 keine LTS ist; E-58), `innodb_buffer_pool_size = 4G`, sonst Standardwerte; nginx 1.x **oder** Apache 2.4 (gemessen wird die Ziel-Kombination aus §3); Lastgenerator auf eigenem Host bzw. eigenen Kernen, RTT ≤ 1 ms. Hardware (CPU-Modell, Speicher, Datenträger) wird im Protokoll festgehalten. |
 | **R-S** | Shared-Hosting-Nachbildung (Funktion, Limits §4.2) | 1 vCPU / 2 GB, 4 PHP-FPM-Worker, `memory_limit 128M`, `max_execution_time 30`, `upload_max_filesize 8M`, `max_input_vars 1000`, kein persistenter Objekt-Cache, `DISABLE_WP_CRON` ohne System-Cron als eigene Variante. Hier gelten **keine** Latenzbudgets, sondern Zeitlimits, Speicher und Kapazität (D-14-05). |
 | **R-CI** | Regression in der CI | GitHub-Runner, Datenprofil `ci`. Geprüft werden nur Query-Zahlen, die Scanregel und Invarianten, **keine** Zeiten, weil Runner-Zeiten nicht reproduzierbar sind. |
 
@@ -95,7 +116,7 @@ Für Lastprofil **L2** gelten die Werte mit dem Zusatz „unter L2“. Für alle
 | **L2 Prüfungsspitze** | 500 gleichzeitige Prüfungsversuche (A-15) | Start von 500 Nutzern innerhalb von 120 s (`ramping-arrival-rate`, Spitze ≈ 8 Starts/s) und 5 % Doppelklick-Starts. Je Versuch 30 Fragen, `saveAnswer` alle 20–40 s → ≈ 17/s, 30 % ändern eine Antwort. 90 % geben in den letzten 60 s ab (Spitze ≈ 8 Abgaben/s), 10 % laufen in den Timeout und werden ohne Cron abgeschlossen (§4.1). Parallel L1 mit 50 % Last | Zeitlimit der Prüfung 30 min + 5 min | k6 | NFR-005; Invarianten: genau 1 laufende Sitzung je Nutzer und Form, keine verlorene Antwort (letzte bestätigte Sequenz = gespeicherter Stand), jede Sitzung genau einmal bewertet |
 | **L3 Import parallel** | Admin importiert 10 000 Fragen (OP-11), dazu ein Export (OP-12), während L1 mit 100 % läuft | wie L1 + 1 Import + 1 Export | bis Import fertig, mindestens 15 min | k6 für L1, Import über die Admin-Schritt-API (k6-Szenario) **und** zusätzlich per WP-CLI | NFR-006: L1-p95 höchstens 30 % schlechter, 0 Lock-Wait-Timeouts in Lernanfragen, Import vollständig und idempotent wiederholbar |
 | **L4 Dauerlauf** | Job-Backlog und Speicherdrift (R1-22 „Job-Backlog“) | L1 mit 50 %, dazu Cron-Jobs (Ablauf, Outbox, Retention) mit einem künstlichen Rückstand von 50 000 Outbox-Einträgen und 5 000 abgelaufenen Sitzungen | 2 h | k6 + System-Cron alle 60 s | Rückstand innerhalb von 60 min abgebaut, kein Lauf über seinem Zeitbudget, PHP-FPM-RSS ohne Wachstum über 10 % |
-| **L5 Race** | Datenintegrität (R1-42) | N = 50 PHP-Prozesse mit eigener DB-Verbindung hinter einer Startbarriere (Muster LB-NF-14). Szenarien: Enrollment gleicher Nutzer/Kurs, Seat-Claim auf den letzten Platz, Attempt-Start gleicher Nutzer, `saveAnswer` und `submit` gleichzeitig, doppelte Completion, Zertifikat | je Szenario 20 Wiederholungen; Profil `ci` in der CI, `heavy` vor dem Release | PHP-Runner (`tests/load/run.php`-Muster) + Variante über echte REST-API | Unique-Invarianten nie verletzt, Deadlocks gezählt und nach Retry aufgelöst, Exit-Code 1 bei Verletzung |
+| **L5 Race** | Datenintegrität (R1-42) | N = 50 PHP-Prozesse mit eigener DB-Verbindung hinter einer Startbarriere (Muster LB-NF-14). Szenarien: Enrollment gleicher Nutzer/Kurs, Seat-Claim auf den letzten Platz, Attempt-Start gleicher Nutzer, `saveAnswer` und `submit` gleichzeitig, doppelte Completion, Zertifikat | je Szenario 20 Wiederholungen; Profil `ci` in der CI, `heavy` vor dem Release | eigener PHP-Runner (Verhalten wie `tests/load/run.php`, neu geschrieben) + Variante über echte REST-API | Unique-Invarianten nie verletzt, Deadlocks gezählt und nach Retry aufgelöst, Exit-Code 1 bei Verletzung |
 
 **Werkzeugwahl:** k6 für HTTP-Last, weil es Szenarien, Ankunftsraten und Schwellen (`thresholds` → Exit-Code) bietet. `wrk` ist nur für Einzel-Endpunkt-Mikrotests zugelassen. Für L5 nimmt man einen PHP-Mehrprozess-Runner, weil HTTP-Last keine exakte Gleichzeitigkeit herstellt. k6 ist reines Entwicklerwerkzeug (AGPL-3.0, nicht im Paket; Eintrag im Werkzeuginventar wie INV-E Zeile 533).
 
@@ -109,26 +130,26 @@ Für Lastprofil **L2** gelten die Werte mit dem Zusatz „unter L2“. Für alle
 
 ---
 
-## 3. Unterstützungsmatrix (Startwerte für R0-20)
+## 3. Unterstützungsmatrix (Festlegung nach R0-20)
 
-Stufen wie LB-NF-02: **Ziel** = voller Lauf mit Integration + E2E + Lastmessung; **Untergrenze** = Integration, ohne E2E; **informativ** = läuft mit, darf fehlschlagen (`continue-on-error`). Die endgültigen Werte beschließt R0-20 (E-12).
+Stufen: **Ziel** = voller Lauf mit Integration + E2E + Lastmessung; **Untergrenze** = Integration, ohne E2E; **informativ** = läuft mit, darf fehlschlagen (`continue-on-error`). Die Werte sind nach E-12 eigenständig festgelegt (R0-20 §1.2); die LB-Spalte ist nur Vergleich.
 
-| Achse | Ziel | Untergrenze | Informativ | LB-Startwert (Beleg) | Anmerkung / Abweichung |
+| Achse | Ziel | Untergrenze | Informativ | LB-Wert (nur Vergleich, E-12) | Anmerkung / Abweichung |
 |---|---|---|---|---|---|
-| PHP | 8.5 | 8.1 (siehe D-14-01) | 8.3 | Ziel 8.5, Untergrenze 8.1, informativ 8.3 (LB-NF-01/-02) | Extensions Pflicht: `mysqli`, `json`, `mbstring`; `intl` und `zip` empfohlen. Ohne `zip` wird der Paketimport mit Hinweis abgeschaltet, ohne `intl` gibt es den Fallback für Sortierung und Normalisierung (INV-E-029) |
+| PHP | 8.5 | **8.3** (E-195); 8.4 als zweite Pflichtzeile | nächste PHP-Version (Beta/RC) | Ziel 8.5, Untergrenze 8.1, informativ 8.3 (LB-NF-01/-02) | Extensions Pflicht: `mysqli`, `json`, `mbstring`; `intl` und `zip` empfohlen. Ohne `zip` wird der Paketimport mit Hinweis abgeschaltet, ohne `intl` gibt es den Fallback für Sortierung und Normalisierung (INV-E-029) |
 | WordPress | 7.1.x (aktuell) | 7.0.0 | nächste Beta/RC | `Requires at least 7.0`, `Tested up to 7.1`, CI 7.1.4/7.0.0 (LB-NF-01/-02) | Regel: aktuelle + vorherige Hauptversion; Multisite-Netzwerkaktivierung blockiert (E-49) |
-| Datenbank | MariaDB 12.3.x | MariaDB 10.11 | – | MariaDB 12.3.3/10.11 (LB-NF-02/-03) | E-08: InnoDB + JSON-Funktionen Pflicht. In MariaDB ist `JSON` ein Alias für `LONGTEXT` mit `JSON_VALID`, deshalb keine Indizes auf JSON-Ausdrücke und kein `->>`-Operator (portabel bleiben). `utf8mb4`, InnoDB-FULLTEXT verfügbar |
-| Datenbank (2. Achse) | MySQL 8.4 LTS | MySQL 8.0 nur „best effort“ (D-14-02) | – | MySQL 8.4 nur informativ (LB-NF-02) | **Abweichung:** MySQL 8.4 wird für CC Pflichtachse (Integration + L5), weil viele Hoster MySQL betreiben; Unterschiede bei Deadlock-/Lock-Verhalten und `GET_LOCK` sind für R1-42 relevant |
+| Datenbank | MariaDB 12.3.x (bzw. 11.8 LTS, E-58) | MariaDB 10.11 | 11.4/11.8; 10.6 best effort (E-58) | MariaDB 12.3.3/10.11 (LB-NF-02/-03) | E-08: InnoDB + JSON-Funktionen Pflicht. In MariaDB ist `JSON` ein Alias für `LONGTEXT` mit `JSON_VALID`, deshalb keine Indizes auf JSON-Ausdrücke und kein `->>`-Operator (portabel bleiben). `utf8mb4`, InnoDB-FULLTEXT verfügbar |
+| Datenbank (2. Achse) | MySQL 8.4 LTS | – | MySQL 8.0 nur „best effort“ (E-58) | MySQL 8.4 nur informativ (LB-NF-02) | **Abweichung:** MySQL 8.4 wird für CC Pflichtachse (Integration + L5), weil viele Hoster MySQL betreiben; Unterschiede bei Deadlock-/Lock-Verhalten und `GET_LOCK` sind für R1-42 relevant |
 | Webserver | Apache 2.4 (mod_php oder FPM) **und** nginx + PHP-FPM | – | LiteSpeed/OpenLiteSpeed | Apache (Staging), PHP-Built-in-Server (CI), Caddy als TLS-Proxy (LB-NF-03/-04) | **Neu:** nginx-Achse. Schutz von Import-/Exportdateien darf **nicht** von `.htaccess` abhängen (Dateien außerhalb des Webroots bzw. nur über authentifizierte Downloads); Built-in-Server nur für die CI |
 | Objekt-Cache | aus (Pflicht, Budgets §1.1) **und** Redis-Drop-in an | – | Memcached | CI nur ohne persistenten Cache, obwohl der Code `wp_cache_*` nutzt (LB-NF-13) | **Neu:** Achse „Cache an“ mit Integration + L1. Korrektheit darf nie vom Cache abhängen; Cache-Schlüssel nach 22.3 (Site, User, Kurs, Revision, Access-Scope) |
 | HTTPS/Proxy | hinter Reverse-Proxy (Caddy/nginx) | direkt | – | Caddy-Profil `https` (LB-NF-03) | `is_ssl()`/`X-Forwarded-*` korrekt behandeln |
 | Theme | ein Block-Theme (Twenty Twenty-Five) und ein Classic-Theme | – | weitere | `twentytwentyfive` + `kurswasser` (LB-Theme, fachgebunden, entfällt; INV-E-057) | Classic-Theme neutral wählen (z. B. Twenty Twenty-One) |
-| Browser Desktop | Chrome/Edge, Firefox, Safari: je die 2 letzten Hauptversionen; Firefox ESR | – | – | E2E nur Chromium (LB-NF-05) | **Neu:** E2E auf Chromium, Firefox und WebKit mit `@playwright/test` (E-11); Viewport 1280×900 (LB) |
-| Browser Mobil | Safari iOS (2 letzte iOS-Hauptversionen), Chrome Android (aktuell) | – | Samsung Internet | Mobil-Viewport 390×844 nur in Chromium (LB-NF-05) | Playwright-WebKit 390×844 und Chromium-Android-Emulation 360×800; Prüfungsabläufe zusätzlich manuell auf einem echten iOS- und Android-Gerät vor dem Release (R1-18) |
+| Browser Desktop | Chrome/Edge, Firefox, Safari: je die 2 letzten Hauptversionen; Firefox ESR (E-61) | – | – | E2E nur Chromium (LB-NF-05) | **Neu:** E2E auf Chromium, Firefox und WebKit mit `@playwright/test` (E-11); Viewport 1280×900 (LB) |
+| Browser Mobil | Safari iOS (2 letzte iOS-Hauptversionen), Chrome Android (aktuell) (E-61) | – | Samsung Internet | Mobil-Viewport 390×844 nur in Chromium (LB-NF-05) | Playwright-WebKit 390×844 und Chromium-Android-Emulation 360×800; Prüfungsabläufe zusätzlich manuell auf einem echten iOS- und Android-Gerät sowie Safari vor jedem Minor-Release (E-191, R1-18) |
 | Ohne JavaScript | Inhalte lesbar, verständlicher Hinweis statt Lern-/Prüfungsfunktion | – | – | – | Konzept 23.1 „fehlendes JS“ |
 | WooCommerce | – (erst ab R3) | – | – | WC 11.2.2 / 11.3 Beta (LB-NF-02) | D-E-03 |
 
-**CI-Kosten (Vorschlag):** In jedem PR laufen Ziel (PHP 8.5/WP 7.1/MariaDB 12.3/Apache/Cache aus, Chromium + WebKit), Untergrenze (PHP 8.1/WP 7.0/MariaDB 10.11) und MySQL 8.4. Nightly kommen Firefox, nginx, Redis an, L5 `ci` und alle informativen Zeilen dazu.
+**CI-Umfang:** In jedem PR laufen Ziel (PHP 8.5/WP 7.1/MariaDB 12.3/Apache/Cache aus, Chromium + WebKit), Untergrenze (PHP 8.3/WP 7.0/MariaDB 10.11) und MySQL 8.4 mit PHP 8.4 (R0-20 §1.5). Nightly kommen Firefox, nginx, Redis an, L5 `ci` und alle informativen Zeilen dazu.
 
 ---
 
@@ -179,24 +200,30 @@ Stufen wie LB-NF-02: **Ziel** = voller Lauf mit Integration + E2E + Lastmessung;
 | NFR-012 | Sperrreihenfolge je schreibender Operation als Tabelle dokumentiert und per Code-Review gegen den Quelltext geprüft | Review-Protokoll | R1-42 |
 | NFR-013 | Cron-Ausfall (RB-01): ohne jeden Cron-Lauf werden alle abgelaufenen Prüfungen beim nächsten Zugriff korrekt bewertet und abgelaufene Zugänge sofort gesperrt; Site Health warnt nach 3 h | R-S-Variante ohne Cron, E2E | R1-18 (fachlich), R1-22 (unter Last) |
 | NFR-014 | FE-01…FE-03 (LCP ≤ 2,5 s mobil, INP ≤ 200 ms, CLS ≤ 0,1) auf Kursübersicht, Lektion, Smarttrainer, Prüfung in Chromium und WebKit | Playwright + Lighthouse, Profil `ci` | R1-18 |
-| NFR-015 | FE-04…FE-06 Bundle-Budgets und FE-07 (0 Fremdhosts) als CI-Gate grün | Build-Report, E2E | R1-18 |
+| NFR-015 | FE-04…FE-06 Bundle-Budgets und FE-07 (Fremdhosts je `external_media_mode`, E-45a) als CI-Gate grün | Build-Report, E2E | R1-18 |
 | NFR-016 | E2E-Pflichtabläufe (Lernen, Smarttrainer, Prüfung inkl. Reload/Netzabbruch, Admin-Import) grün in allen **Ziel**-Zeilen von §3 (Chromium, Firefox, WebKit; Desktop + Mobil-Viewport); Integration grün in allen **Untergrenze**-Zeilen | CI-Matrix | R1-18 |
 | NFR-017 | Plugin aktivierbar und lauffähig ohne `zip`/`intl` (mit Hinweis) und unter nginx ohne `.htaccess`; Import-/Exportdateien unter nginx nicht anonym abrufbar | Integration + HTTP-Probe | R1-18 |
 | NFR-018 | Jeder Lasttestlauf ist nach §2.3 Nr. 4 protokolliert und mit demselben Seed reproduzierbar (Streuung < 15 %) | Protokoll-Review | R1-22 |
 
 ---
 
-## 6. Entscheidungsbedarf (neu)
+## 6. Entscheidungsbedarf – beschlossen
 
-Nicht enthalten in E-01…E-52. Nummern für `ENTSCHEIDUNGEN.md` werden beim Zusammenführen vergeben.
+Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §11/§30 und Beschlussprotokoll, 16.11.2026). Die D-Nummern bleiben als Verweise im Text stehen.
 
-| ID | Frage | Optionen | Empfehlung | Betrifft |
-|---|---|---|---|---|
-| D-14-01 | PHP-Untergrenze | a) 8.1 wie LB · b) 8.2 · c) 8.3 | **b) 8.2**, sofern R0-20 das bestätigt. Begründung: PHP 8.1 hat laut Hersteller-Lebenszyklus seit Ende 2025 keine Sicherheitsupdates mehr; 8.2 läuft voraussichtlich Ende 2026 aus. Vor dem R1-Release neu bewerten | R0-20, R1-18 |
-| D-14-02 | DB-Untergrenzen gegenüber E-08 („MySQL 8 / MariaDB 10.6+“) | a) E-08 unverändert · b) MariaDB 10.11 + MySQL 8.4 getestet, MySQL 8.0 und MariaDB 10.6 „best effort“ ohne CI | **b)**: getestet wird nur, was noch Herstellerpflege hat (zu verifizieren in R0-20); E-08 bleibt als technische Mindestanforderung | R0-20, R1-42 |
-| D-14-03 | Wartezeiten bei Sperren in interaktiven Pfaden | a) LB-Werte (`GET_LOCK` 10 s, Server-Standard 50 s Lock-Wait) · b) `GET_LOCK` ≤ 2 s, `innodb_lock_wait_timeout` = 5 s auf Sitzungsebene, Retry nach §4.1 | **b)**: unter L2 würden 10 s Wartezeit PHP-Worker blockieren; mit Unique-Invariante + Client-Retry ist kürzeres Warten sicher | R1-20, R1-42 |
-| D-14-04 | Textsuche in der Fragenbank (OP-10) | a) `LIKE` mit Präfix-Index (nur Wortanfang) · b) InnoDB-`FULLTEXT` auf Fragetext der aktuellen Revision · c) eigene Suchtabelle (Token-Index) | **b)**: auf MariaDB und MySQL verfügbar und ohne Zusatzdienst. Mindestwortlänge/Stoppwörter in R1-22 messen und dokumentieren; c) nur, falls b) NFR-001 verfehlt | R0-06 (Index), R1-22 |
-| D-14-05 | Kapazitätsaussage für Shared Hosting | a) keine Aussage · b) dokumentierte Klasse „R-S: bis 50 gleichzeitige Prüfungen und 50 aktive Lernende“, darüber VPS/Managed-Hosting empfohlen; Systemstatus zeigt Worker-/Limit-Hinweise | **b)**; den Wert misst R1-22 auf R-S und ersetzt die Annahme 50 | R1-22, R1-24 (Doku) |
-| D-14-06 | Lasttest-Werkzeuge | a) k6 (HTTP) + PHP-Mehrprozess-Runner (Race) · b) nur PHP-Runner wie Pass · c) Locust/JMeter | **a)** wie §2.2 | R0-18, R1-22, R1-42 |
-| D-14-07 | Sind Zeitbudgets ein Release-Gate? | a) ja, auf R-M vor jedem Minor-Release · b) nur vor Major-Releases · c) nein, nur Beobachtung | **a)** für R1-GATE; danach Query-/Scan-Gates in jeder CI und Zeitmessung je Minor-Release | R1-18, R1-GATE |
-| D-14-08 | Browser-Supportregel | a) nur Chromium wie LB · b) „2 letzte Hauptversionen“ Chrome/Edge/Firefox/Safari + Firefox ESR + iOS/Android wie §3 | **b)** | R0-20, R1-19 |
+| ID | Frage | Beschluss | Betrifft |
+|---|---|---|---|
+| D-14-01 → E-57 → **E-195** | PHP-Untergrenze | **PHP 8.3**, getestet 8.3/8.4/8.5; vor R1-GATE auf php.net verifizieren (E-57 ersetzt) | R0-20, R1-18 |
+| D-14-02 → **E-58** | DB-Versionen | CI: **MariaDB 10.11 und 12.3 (bzw. 11.8 LTS), MySQL 8.4**; MySQL 8.0/MariaDB 10.6 best effort; E-08 bleibt technische Mindestanforderung | R0-20, R1-42 |
+| D-14-03 | Wartezeiten bei Sperren | Architekturfestlegung: `GET_LOCK` ≤ 2 s, `innodb_lock_wait_timeout` = 5 s auf Sitzungsebene, Retry nach §4.1 | R1-20, R1-42 |
+| D-14-04 | Textsuche in der Fragenbank | Architekturfestlegung: InnoDB-`FULLTEXT`; eigene Suchtabelle nur, falls NFR-001 verfehlt wird | R0-06, R1-22 |
+| D-14-05 → **E-59** | Kapazitätsaussage Shared Hosting | Dokumentierte Klasse „bis 50 gleichzeitige Prüfungen“ (Messung in R1-22); darüber VPS empfohlen | R1-22, R1-24 |
+| D-14-06 | Lasttest-Werkzeuge | Architekturfestlegung: k6 + eigener PHP-Mehrprozess-Runner | R0-18, R1-22, R1-42 |
+| D-14-07 → **E-60** | Zeitbudgets als Release-Gate | Ja für R1-GATE; danach Query-/Scan-Gates in jeder CI und Zeitmessung je Minor-Release | R1-18, R1-GATE |
+| D-14-08 → **E-61** | Browser-Supportregel | Letzte zwei Hauptversionen Chrome, Edge, Firefox, Safari + Firefox ESR, iOS Safari, Android Chrome; echte Geräte manuell vor jedem Minor-Release (E-191) | R0-20, R1-19 |
+
+### Offene Punkte nach Einarbeitung
+
+- E-59 nennt nur „bis 50 gleichzeitige Prüfungen“; die Zusatzangabe „50 aktive Lernende“ aus D-14-05 steht im Beschluss nicht und bleibt Annahme bis R1-22.
+- Ob MariaDB 12.3 eine LTS-Version ist (sonst Ziel 11.8), wird bei der Verifikation in R0-20 §1.4 geklärt; davon hängt R-M ab.
+- FE-07 im Default „immer laden“ (E-45a): Welche Fremdhosts die eingebetteten Player zusätzlich nachladen, ist erst im E2E-Lauf feststellbar; die readme-Offenlegung (R0-35) muss dazu passen.

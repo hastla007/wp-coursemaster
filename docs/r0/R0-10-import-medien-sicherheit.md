@@ -1,21 +1,43 @@
-# R0-10 · Content-Import, Paketformat und Medien-Sicherheit (Entwurf)
+# R0-10 · Content-Import, Paketformat und Medien-Sicherheit
 
-**Status:** **Vorgeschlagen – Freigabe Auftraggeber/Architektur offen.** Task R0-10 ist **nicht** abgehakt. Es gibt keine Implementierung, keine Schemadateien und keinen Code.
+**Status:** **Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet.** Es gibt keine Implementierung, keine Schemadateien und keinen Code.
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-10 (DoD: Paketformat, Rechte, Dry-run, Revisionen, Rollback, Protected Files, Consent), Zuarbeit für R0-38, R1-07, R1-14, R1-15, R1-41; Konzept Kap. 9.3, 9.4, 20, 26, 47 (Zeile `ImportService.php`), LB-04/06/09/13 (Kap. 38-Tabelle); `docs/r0/R0-06-datenmodell-adr.md` (§3.1, §4.1, §4.7, §5, §6.5); `docs/r0/R0-02-inventar/C-infrastruktur-content.md` (§2.4, §3.5, §5.2, §5.3); `docs/r0/R0-02-inventar/E-theme-tools-content-docs.md` (§2.1, §3, INV-E-059)
-**Entscheidungen als Annahme (noch nicht beschlossen, `ENTSCHEIDUNGEN.md`):** **E-03** (LB-Pakete höchstens über separates Migrationswerkzeug, nie im Core), **E-18** (Rechtestatus in R1 Free; Sperre nur für importierte/fremde Inhalte), **E-45** („Klick zum Laden“ als Standard, kein eigenes Cookie-Banner). Weicht der Beschluss ab, ändern sich §1.7, §2 und §5.
-**Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen). Pfade relativ zu `bootspruefung-learning/`, sofern nicht `schema/`, `tools/` oder `themes/` vorangestellt ist.
+**Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen). Pfade relativ zu `bootspruefung-learning/`, sofern nicht `schema/`, `tools/` oder `themes/` vorangestellt ist. LB-Belege sind **Verhaltensreferenz**, keine Code-Vorlage (E-01).
+
+### Beschlussstand
+
+Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENTSCHEIDUNGEN.md` (16.11.2026). In dieses Dokument eingearbeitet:
+
+| Beschluss | Wirkung hier |
+|---|---|
+| **E-01** Clean Room | Kein Code aus LB. Wo LB-Klassen genannt sind (`SchemaValidator`, `ImportService`, `MediaStorage`, `ProtectedFiles` …), wird nur das beschriebene Verhalten nach dieser Spezifikation neu implementiert; „wie LB“ heißt „gleiches Verhalten“ |
+| **E-03** | LB-Pakete nie im Core, höchstens separates Migrationswerkzeug (§1.7, IMP-004) |
+| **E-18** | Rechtestatus-Sperre in R1 Free, nur für importierte/fremde Inhalte (§2.2) |
+| **E-20**, E-95, E-147, E-268, E-269 | Erklärungstexte (`feedback_correct`, `feedback_incorrect`, `explanation_html`) werden auch in Free importiert, gespeichert und exportiert, aber nur mit Pro (`course.explanations`) ausgeliefert; Free zeigt richtig/falsch und nach Einstellung die richtige Antwort (§1.3, §4.3) |
+| **E-27** | Zugang je Modul statt Scopes: Medienprüfung über den effektiven Grant des Moduls bzw. Kurses (`module_id` NULL = ganzer Kurs) (§4.3, MED-002/003) |
+| **E-45/E-45a**, E-246 | Externe Medien: Einstellung `privacy.external_media_mode`, **Default „immer laden“**, umschaltbar auf „Klick zum Laden“; Consent-Adapter und Kategorie wirken nur im Modus „Klick zum Laden“; Offenlegung der Dienste in der readme und Hinweis im Setup (§5). Das Datenschutzrisiko ist als bewusst akzeptiertes Betreiberrisiko in R0-17 dokumentiert |
+| **E-46**, E-152 | Medienroute fail-open (Lernen); Import/Export fail-closed (§3.1, §4.3) |
+| **E-62** (R10-D1) | `own` aus fremdem Paket wird als `licensed` gespeichert (§2.2) |
+| **E-63** (R10-D2) | Reimport: lokal gewinnt, Wahl je Objekt im Dry-run (§3.7) |
+| **E-64** (R10-D3) | Keine Paketsignaturen in R1, `signatures[]` reserviert (§1.2) |
+| **E-65** (R10-D4) | Zugangsgebundene Medien standardmäßig geschützt über PHP (§4.1, §4.3) |
+| **E-66** (R10-D5) | Fremd lizenzierte Inhalte im Export nur per Opt-in (§6.1) |
+| **E-168** | Text-/Dateiaufgaben mit Bewertung in R1: Upload-Sicherheit für Lernenden-Abgaben (§4.5) |
+| **E-176…E-181** | Großimport-Regeln (Objektfehler, Hintergrund, Ablageordner, Fehlerschwelle, Wiederaufnahme) nach R0-38 |
+| **E-207** | Präfix `ccap_` für CPTs, Caps, Rollen, Cron, Meta und Tabellen; Optionen `course_captain_*`. Alle Bezeichner in diesem Dokument sind umgestellt |
+| **E-02, E-05, E-14, E-21, E-23, E-44** | unverändert genutzt (synthetische Fixtures, Cookie+Nonce, einfacher Drip, Karteikarten, Prüfungsstatus, Fristen) |
 
 ---
 
 ## 0. Kurzfassung
 
-1. **Neues, neutrales Paketformat `cc-package` v1** (ZIP mit `manifest.json`, `data/<entität>/NNNNNN.json`, `media/…`). Übernommen werden die bewährten LB-Prinzipien: stabile `source_id`, Datensatz-Hash `sha256:`, Prüfsumme und Größe je Datei im Manifest, Validierungsbericht, Minor-Versionen additiv. Gestrichen werden alle Fachentitäten, `boatingschool-…`-IDs, `catalogs`, `official_number` und Laravel-Pfade. Neu sind: Rechte als Objekt je Datensatz, `requires` (benötigte Fragetypen/Provider) und geteilte Entitätsdateien für Großimporte.
+1. **Neues, neutrales Paketformat `cc-package` v1** (ZIP mit `manifest.json`, `data/<entität>/NNNNNN.json`, `media/…`). Übernommen werden (als Verhalten, E-01) die bewährten LB-Prinzipien: stabile `source_id`, Datensatz-Hash `sha256:`, Prüfsumme und Größe je Datei im Manifest, Validierungsbericht, Minor-Versionen additiv. Gestrichen werden alle Fachentitäten, `boatingschool-…`-IDs, `catalogs`, `official_number` und Laravel-Pfade. Neu sind: Rechte als Objekt je Datensatz, `requires` (benötigte Fragetypen/Provider) und geteilte Entitätsdateien für Großimporte.
 2. **Rechte je Inhalt und Medium:** sechs Status (`own`, `licensed`, `public`, `review`, `unknown`, `restricted`). Die **Auslieferungssperre** (`unknown`, `restricted`) greift nur für **nicht eigene** Inhalte (E-18). Lokal erstellte Inhalte sind standardmäßig `own` und werden nie durch den Rechtestatus gesperrt.
 3. **Importablauf** wie LB `ImportService`, belegter Zustandsautomat `uploaded → validated|failed → previewed → approved → importing → published` (+ `discarded`, „abgebrochen“). Course Captain ergänzt eine **Aktivierungsphase**: Lernende sehen bis zur Aktivierung den alten Stand (LB zeigt bei Abbruch einen Mischstand).
-4. **Geschützte Dateien** liegen in einem privaten Ordner (bevorzugt außerhalb des Webroots), werden nur über eine PHP-Route mit Rechteprüfung, Range-Unterstützung und optional X-Sendfile/X-Accel-Redirect ausgeliefert. Ein Selbsttest im Health-Check erkennt Fehlkonfiguration, z. B. Nginx ohne Sperrregel. **Delta zu LB:** LB legt Paketmedien in einen **öffentlichen** Ordner. Course Captain legt zugangsgebundene Paketmedien standardmäßig geschützt ab.
-5. **Externe Medien** werden erst nach Klick oder vorhandener Einwilligung geladen. Die Einwilligung kommt über einen Adapter (WP Consent API, Filter, JS-Ereignis). Course Captain hängt an **keinem** Theme-Global, LB dagegen an `window.kwConsent`.
-6. **Export** eines Kurses als `cc-package` v1 ohne Lerndaten. Fremd lizenzierte Inhalte sind standardmäßig ausgeschlossen. Testfälle IMP-001…IMP-032, MED-001…MED-026.
+4. **Geschützte Dateien** (E-65) liegen in einem privaten Ordner (bevorzugt außerhalb des Webroots), werden nur über eine PHP-Route mit Rechteprüfung, Range-Unterstützung und optional X-Sendfile/X-Accel-Redirect ausgeliefert. Ein Selbsttest im Health-Check erkennt Fehlkonfiguration, z. B. Nginx ohne Sperrregel. **Delta zu LB:** LB legt Paketmedien in einen **öffentlichen** Ordner. Course Captain legt zugangsgebundene Paketmedien standardmäßig geschützt ab. Dasselbe gilt für Datei-Abgaben in Aufgaben (E-168, §4.5).
+5. **Externe Medien** werden nach Beschluss E-45/E-45a standardmäßig **direkt geladen** (`privacy.external_media_mode = always_load`). Der Betreiber kann auf „Klick zum Laden“ umstellen; dann lädt ein Medium erst nach Klick oder vorhandener Einwilligung über einen Adapter (WP Consent API, Filter, JS-Ereignis). Course Captain hängt an **keinem** Theme-Global, LB dagegen an `window.kwConsent`. Die genutzten externen Dienste werden in der readme offengelegt; der Setup-Assistent weist auf die Umschaltung hin.
+6. **Export** eines Kurses als `cc-package` v1 ohne Lerndaten. Fremd lizenzierte Inhalte sind standardmäßig ausgeschlossen. Testfälle IMP-001…IMP-032, MED-001…MED-032 (MED-027…030: Datei-Abgaben, E-168).
 
 ---
 
@@ -43,7 +65,7 @@
 
 ### 1.2 Manifest
 
-| Feld | Pflicht | Inhalt | LB-Vorlage (`schema/v1/manifest.schema.json`) |
+| Feld | Pflicht | Inhalt | LB-Referenz (`schema/v1/manifest.schema.json`) |
 |---|---|---|---|
 | `format` | ja | Konstante `"cc-package"` | – (neu; unterscheidet sofort vom LB-Format) |
 | `schema_version` | ja | `1.MINOR.PATCH` | gleich (`^1\.[0-9]+\.[0-9]+$`) |
@@ -51,7 +73,7 @@
 | `title`, `description` | `title` ja | Anzeige im Importdialog | – |
 | `created_at` | ja | UTC, RFC 3339 | `built_at` |
 | `generator` | ja | `{name, version}` des Werkzeugs (Course-Captain-Export, SDK, Fremdwerkzeug) | `converter_version` |
-| `source` | ja | **Provenienz:** `{system, revision, repository?, commit_sha?, exported_from_site?}`. `system` ist ein stabiler Slug (`^[a-z0-9][a-z0-9._-]{1,31}$`) und wird zu `source_system` in `cc_source_map` bzw. SRC (R0-06 §4.0). Git ist optional | `source{repository, branch, commit_sha (40 hex, Pflicht), commit_date}` |
+| `source` | ja | **Provenienz:** `{system, revision, repository?, commit_sha?, exported_from_site?}`. `system` ist ein stabiler Slug (`^[a-z0-9][a-z0-9._-]{1,31}$`) und wird zu `source_system` in `ccap_source_map` bzw. SRC (R0-06 §4.0). Git ist optional | `source{repository, branch, commit_sha (40 hex, Pflicht), commit_date}` |
 | `publisher` | nein | `{name, url}`. Organisation, **keine** personenbezogenen Kontaktdaten erforderlich | – |
 | `previous_package_id` | ja (`null` erlaubt) | Vorgänger für Diff/Warnung `source_removed` | gleich |
 | `languages` | ja | BCP-47-Codes | gleich |
@@ -62,7 +84,7 @@
 | `files[]` | ja | `{path, size, mime_type, sha256}` **jeder** Datei außer `manifest.json` | gleich |
 | `report` | ja | `{warnings[], skipped[], not_converted[]}` des erzeugenden Werkzeugs (`code`, `entity`, `source_id`, `message` bzw. `source_file`, `line`, `reason`) | flach: `warnings`, `skipped`, `not_converted` |
 | `export` | nur bei Export | `{course_ids[], included_foreign: bool, excluded[]: {entity, source_id, reason}}` | – |
-| `signatures[]` | nein | **reserviert**, in v1 nicht ausgewertet (Entscheidung R10-D3) | – |
+| `signatures[]` | nein | **reserviert**, in v1 nicht ausgewertet (E-64) | – |
 
 Nicht übernommen: `catalogs[]` (amtliche Fragenkataloge), `$id` `schema.learnboating.invalid`, Pflicht-Commit.
 
@@ -70,17 +92,19 @@ Nicht übernommen: `catalogs[]` (amtliche Fragenkataloge), `$id` `schema.learnbo
 
 **Gemeinsame Felder** aller Datensätze: `source_id` (stabil über Neubauten, 1–191 Zeichen, eindeutig je Entität im Paket), `hash` (`sha256:` + 64 hex über den kanonischen Datensatz ohne `hash`), `language`, `editorial_status` (`draft/review/approved/published/deprecated`, LB `common.schema.json`), bei inhaltstragenden Entitäten `rights` (§2.1). Verweise laufen **nur** über `source_id`, nie über Datenbank-IDs.
 
-| Datei | Zielspeicher (R0-06) | Fachneutrale Felder (Auszug) | LB-Vorlage | Gestrichen gegenüber LB |
+| Datei | Zielspeicher (R0-06) | Fachneutrale Felder (Auszug) | LB-Referenz | Gestrichen gegenüber LB |
 |---|---|---|---|---|
-| `courses` | CPT `cc_course` + `cc_source_map` | `title`, `slug`, `summary`, `description_html`, `cover_media`, `modules[] {module, sort, required}`, `settings {feedback_visibility (E-20), simple_drip (E-14)}` | `courses.schema.json` | `code`-Muster `^[A-Z0-9-]+$` als Pflicht-ID, `course_type full/combo/addon` |
-| `modules` | CPT `cc_module` + `cc_course_module` | `title`, `summary`, `lessons[] {lesson, sort, required}`, `question_pool[] {question, sort, required}`, `unlock {after_days?}` | `modules.schema.json` (+ Videokapitel aus `video_modules`) | getrennte Frage-/Videomodule (INV-C-041) |
-| `lessons` | CPT `cc_lesson` | `title`, `body_html`, `media[] {media, role (primary/inline/attachment/caption), sort}`, `external_media? {provider, url, title, duration_s, captions_media?}`, `steps[] {media, caption}`, `quiz[] {question}`, `duration_s` | `video_modules.schema.json` (Lektion, Schritte, Quiz) | `group_label`, Kurscodes, `is_placeholder` (wird `editorial_status=draft`) |
-| `questions` | `cc_question` + `cc_question_revision`, `cc_answer`, `cc_question_tag`, `cc_content_media` | `reference_no?`, `revision {question_type (Provider-Key), text_html, settings, feedback_correct, feedback_incorrect, image_required, valid_from, valid_to, rights}`, `answers[] {key, text_html, correct, sort}`, `tags[] {type, key, label}`, `media[]` | `questions.schema.json` | `official_number`, `content_role`, `source.catalog/page`, `chart_task`, `MODEL`-Antwortschlüssel, feste `topic/competency/smart_category`-Spalten (werden `tags`, R0-06 E-10) |
-| `media` | `cc_media` (+ Datei in Ablage, §4) | `path` (`^media/[^.]…`, kein `..`), `media_type` (`image/audio/video/document/captions`), `mime_type`, `size`, `sha256`, `alt_text`, `caption`, `description`, `access` (`public/protected`, §4.1), `rights` | `media.schema.json` | `vector_source` (Seekarten-Bezug; R0-06 §4.1 verweist hierher: **entfällt**), ID-Präfixe `elwis/`, `praxistrainer/` |
-| `blueprints` | `cc_exam_rule`, `cc_exam_variant` | `title`, `version`, `valid_from/to`, `time_limit_s`, `passing_rule {min_ratio?, parts[] {key, min_correct, of}}`, `draws[] {module? / tag?, count}`, `fixed_variants[] {key, questions[]}`, `status` (`draft/published`, E-23) | `exam_rules.schema.json`, `exam_papers.schema.json` | `verified`, amtliche Werte, Bogen-ID `<Kurs>#<Nr>`; **kein** Default-Schwellenwert (Kap. 26.4, INV-C-132) |
-| `flashcards` | `cc_question_revision` mit `question_type=flashcard` (R0-06 §7, E-21) | `front_html`, `back_html`, `explanation_html`, `media[]`, `mode` (`self_assessment/streak_3`), `tags[]`, `rights` | `praxis_tasks.schema.json` | Kategorie, `exam_reference` |
+| `courses` | CPT `ccap_course` + `ccap_source_map` | `title`, `slug`, `summary`, `description_html`, `cover_media`, `modules[] {module, sort, required}`, `settings {feedback_visibility (E-147), simple_drip (E-14)}` | `courses.schema.json` | `code`-Muster `^[A-Z0-9-]+$` als Pflicht-ID, `course_type full/combo/addon` |
+| `modules` | CPT `ccap_module` + `ccap_course_module` | `title`, `summary`, `lessons[] {lesson, sort, required}`, `question_pool[] {question, sort, required}`, `unlock {after_days?}` | `modules.schema.json` (+ Videokapitel aus `video_modules`) | getrennte Frage-/Videomodule (INV-C-041) |
+| `lessons` | CPT `ccap_lesson` | `title`, `body_html`, `media[] {media, role (primary/inline/attachment/caption), sort}`, `external_media? {provider, url, title, duration_s, captions_media?}`, `steps[] {media, caption}`, `quiz[] {question}`, `duration_s` | `video_modules.schema.json` (Lektion, Schritte, Quiz) | `group_label`, Kurscodes, `is_placeholder` (wird `editorial_status=draft`) |
+| `questions` | `ccap_question` + `ccap_question_revision`, `ccap_answer`, `ccap_question_tag`, `ccap_content_media` | `reference_no?`, `revision {question_type (Provider-Key), text_html, settings, feedback_correct, feedback_incorrect, image_required, valid_from, valid_to, rights}`, `answers[] {key, text_html, correct, sort}`, `tags[] {type, key, label}`, `media[]` | `questions.schema.json` | `official_number`, `content_role`, `source.catalog/page`, `chart_task`, `MODEL`-Antwortschlüssel, feste `topic/competency/smart_category`-Spalten (werden `tags`, R0-06 E-10) |
+| `media` | `ccap_media` (+ Datei in Ablage, §4) | `path` (`^media/[^.]…`, kein `..`), `media_type` (`image/audio/video/document/captions`), `mime_type`, `size`, `sha256`, `alt_text`, `caption`, `description`, `access` (`public/protected`, §4.1), `rights` | `media.schema.json` | `vector_source` (Seekarten-Bezug; R0-06 §4.1 verweist hierher: **entfällt**), ID-Präfixe `elwis/`, `praxistrainer/` |
+| `blueprints` | `ccap_exam_rule`, `ccap_exam_variant` | `title`, `version`, `valid_from/to`, `time_limit_s`, `passing_rule {min_ratio?, parts[] {key, min_correct, of}}`, `draws[] {module? / tag?, count}`, `fixed_variants[] {key, questions[]}`, `status` (`draft/published`, E-23) | `exam_rules.schema.json`, `exam_papers.schema.json` | `verified`, amtliche Werte, Bogen-ID `<Kurs>#<Nr>`; **kein** Default-Schwellenwert (Kap. 26.4, INV-C-132) |
+| `flashcards` | `ccap_question_revision` mit `question_type=flashcard` (R0-06 §7, E-21) | `front_html`, `back_html`, `explanation_html`, `media[]`, `mode` (`self_assessment/streak_3`), `tags[]`, `rights` | `praxis_tasks.schema.json` | Kategorie, `exam_reference` |
 
-**Nie im Paket:** Lernende, Grants, Gruppen, Bestellungen, Versuche, Fortschritt, Zertifikate, Audit, Einstellungen außerhalb des Kurses (Konzept 20; Exporter/Eraser bleiben getrennt).
+**Erklärungstexte (E-20):** `feedback_correct`, `feedback_incorrect` (Fragen) und `explanation_html` (Karteikarten) sind Teil des Formats und werden in Free vollständig importiert, gespeichert und exportiert (kein Datenverlust bei Pro-Ende). Ausgeliefert werden sie nur mit Pro (`course.explanations`, E-95); nach Lizenzende eingefroren weiter (E-268). Der Free-Editor blendet das Feld aus, vorhandene Texte bleiben (E-269).
+
+**Nie im Paket:** Lernende, Abgaben zu Aufgaben (§4.5), Grants, Gruppen, Bestellungen, Versuche, Fortschritt, Zertifikate, Audit, Einstellungen außerhalb des Kurses (Konzept 20; Exporter/Eraser bleiben getrennt).
 
 ### 1.4 Übergreifende Regeln
 
@@ -90,11 +114,11 @@ Nicht übernommen: `catalogs[]` (amtliche Fragenkataloge), `$id` `schema.learnbo
 | Gleicher Hash = unverändert | Import-Aktion `unchanged`, keine Revision | LB `EntityImporter::action` (`:662`, INV-C-116) |
 | HTML-Felder | Beim Import über die Allowlist von `wp_kses_post` ohne `iframe`, `script`, `style`-Attribute, `on*`-Attribute, `javascript:`/`data:`-URLs. Eingebettete Fremdinhalte nur über `external_media` (§5) | Konzept 9.4/20 (XSS bei Import) |
 | URLs im Paket | nur `https:`. Externe Medien nur von Hosts eines registrierten Providers (§5.1) oder aus einer Betreiber-Allowlist. Der Server ruft beim Import **keine** URL aus Datensätzen ab (SSRF) | Konzept 9.4; LB `video_url` nur https (`video_modules.schema.json`) |
-| Referenzprüfung | jede `source_id`-Referenz muss im Paket **oder** über `cc_source_map` mit demselben `source.system` in der Site existieren (Teilpakete). Höchstens 50 Fehler im Bericht, danach Abbruch | LB `referenceErrors` (`Package.php:387`), nur paketintern |
+| Referenzprüfung | jede `source_id`-Referenz muss im Paket **oder** über `ccap_source_map` mit demselben `source.system` in der Site existieren (Teilpakete). Fehler sind Objektfehler (E-176): das betroffene Objekt und Abhängige werden markiert, der Rest läuft weiter; die Bildschirmliste zeigt höchstens 50, der vollständige Report liegt in `ccap_import_issue`; Abbruch erst ab der Fehlerschwelle max(100, 2 %) (E-180, R0-38) | LB `referenceErrors` (`Package.php:387`), nur paketintern |
 | Fehlende Entität | eine in einer älteren Minor-Version fehlende Entität gilt als leer, **nicht** als „alles archivieren“ | LB `schema/README.md`, `Package::SINCE` (`:19`), INV-E-020 |
 | Archivierung | im Paket fehlende, früher aus derselben `source.system` importierte Datensätze werden `archived`, nie gelöscht. Abschaltbar je Import („Teilpaket“) | LB `archiveMissing` (`EntityImporter.php:98`, INV-C-108) |
 
-### 1.5 JSON-Schema-Skizze (2020-12, Teilmenge des LB-`SchemaValidator`)
+### 1.5 JSON-Schema-Skizze (2020-12, Teilmenge wie beim LB-`SchemaValidator`)
 
 ```json
 {
@@ -155,7 +179,7 @@ Nicht übernommen: `catalogs[]` (amtliche Fragenkataloge), `$id` `schema.learnbo
 
 `data/media/*.json` (Auszug): `required: [source_id, hash, path, media_type, mime_type, size, sha256, alt_text, access, rights]`; `if media_type = image then alt_text` darf `""` nur mit `decorative: true` sein (Barrierefreiheit, R0-15).
 
-Die Schemas liegen in **einer** Quelle im Repository; das Plugin enthält eine Kopie, deren Gleichheit die CI prüft (LB-Muster INV-E-019). Der Validator ist der LB-`SchemaValidator` (2020-12-Teilmenge, `$ref` über Dateien, unbekannte Schlüsselwörter brechen ab; INV-C-091), neu in eigenem Namespace mit eigenem Unit-Test.
+Die Schemas liegen in **einer** Quelle im Repository; das Plugin enthält eine Kopie, deren Gleichheit die CI prüft (LB-Muster INV-E-019). Der Validator wird nach dem Verhalten des LB-`SchemaValidator` neu implementiert (E-01; 2020-12-Teilmenge, `$ref` über Dateien, unbekannte Schlüsselwörter brechen ab; INV-C-091), in eigenem Namespace mit eigenem Unit-Test.
 
 ### 1.6 Versionierung
 
@@ -165,9 +189,9 @@ Die Schemas liegen in **einer** Quelle im Repository; das Plugin enthält eine K
 | MINOR | nur additiv: neue optionale Felder, neue Entitätsdateien. Ein Importer der Version 1.n liest jedes Paket 1.m mit m ≤ n. Ist m > n, bricht die Validierung ab und meldet „Plugin aktualisieren“. Ein unbekanntes Feld ist ein Fehler (`additionalProperties: false`, wie LB) |
 | PATCH | nur Korrekturen an Beschreibung oder Mustern, ohne Bedeutungsänderung |
 | Werkzeugversion | `generator.version`, unabhängig von `schema_version` |
-| Pluginseitig | `format_version` in `cc_course_revision` und `schema_version` in `cc_import_batch` (R0-06 §4.1/§4.7). Core-, DB-, Paket- und REST-Version werden getrennt geführt (Konzept 22.2) |
+| Pluginseitig | `format_version` in `ccap_course_revision` und `schema_version` in `ccap_import_batch` (R0-06 §4.1/§4.7). Core-, DB-, Paket- und REST-Version werden getrennt geführt (Konzept 22.2) |
 
-### 1.7 Abgrenzung zum LB-Format (Annahme E-03)
+### 1.7 Abgrenzung zum LB-Format (E-03)
 
 | Punkt | LB-Format v1 (`schema/v1`, `boatingschool-*`) | `cc-package` v1 |
 |---|---|---|
@@ -189,11 +213,11 @@ Rechte sind Teil der **Revision** bzw. des Mediums. Damit erzeugt eine Rechteän
 
 | Objekt | Speicher (R0-06) | Felder |
 |---|---|---|
-| Frage, Karteikarte | `cc_question_revision.rights_status`, `rights_owner`, `license_reference` (JSON: `license`, `license_url`, `attribution`, `source_url`, `valid_until`, `note`) | §1.5 `rights` |
-| Medium | `cc_media.rights_status`, `rights_owner`, `license_reference`, `source_url` | §1.5 `rights` |
-| Lektion, Kurs, Modul | Post-Meta `_cc_rights` (JSON) + `cc_source_map` | §1.5 `rights` (Kurs/Modul optional, Rückfall `default_rights`) |
-| Lokaler Override | `cc_override (object_type, object_id, field='rights_status')`, Pflichtbegründung, Audit | LB `Overrides.php:19-112` (INV-C-134) |
-| Herkunft | `source_system` / `cc_source_map.source_system`; `local` = lokal erstellt | R0-06 §4.0 SRC |
+| Frage, Karteikarte | `ccap_question_revision.rights_status`, `rights_owner`, `license_reference` (JSON: `license`, `license_url`, `attribution`, `source_url`, `valid_until`, `note`) | §1.5 `rights` |
+| Medium | `ccap_media.rights_status`, `rights_owner`, `license_reference`, `source_url` | §1.5 `rights` |
+| Lektion, Kurs, Modul | Post-Meta `_ccap_rights` (JSON) + `ccap_source_map` | §1.5 `rights` (Kurs/Modul optional, Rückfall `default_rights`) |
+| Lokaler Override | `ccap_override (object_type, object_id, field='rights_status')`, Pflichtbegründung, Audit | LB `Overrides.php:19-112` (INV-C-134) |
+| Herkunft | `source_system` / `ccap_source_map.source_system`; `local` = lokal erstellt | R0-06 §4.0 SRC |
 
 ### 2.2 Status und Auslieferung
 
@@ -201,7 +225,7 @@ Rechte sind Teil der **Revision** bzw. des Mediums. Damit erzeugt eine Rechteän
 
 | Status | Bedeutung | Eigen: Auslieferung | Fremd: Auslieferung | Publish-Validator (R0-22) |
 |---|---|---|---|---|
-| `own` | Rechte beim Betreiber | ja | – (im Import wird `own` nach R10-D1 abgebildet) | ok |
+| `own` | Rechte beim Betreiber | ja | – (im Import wird `own` als `licensed` mit `owner` = Herausgeber gespeichert, Hinweis im Dry-run; E-62) | ok |
 | `licensed` | Lizenz liegt vor | ja | ja | ok; Attribution anzeigen, falls gesetzt |
 | `public` | gemeinfrei/freie Lizenz | ja | ja | ok; Attribution Pflicht, wenn die Lizenz sie verlangt |
 | `review` | in Prüfung | ja | ja (wie LB: nicht sperrend) | Warnung |
@@ -225,10 +249,10 @@ Rechte sind Teil der **Revision** bzw. des Mediums. Damit erzeugt eine Rechteän
 |---|---|---|
 | Upload (Admin) | Limit = kleinster Wert aus PHP (`upload_max_filesize`, `post_max_size`), WP (`wp_max_upload_size`) und Paketlimit; verständliche Fehler mit Ausweichweg | `ImportSources.php:327-376` (INV-C-120) |
 | Ablageordner (SFTP) | `<privat>/packages-<geheim>/import/`; nur Basisname, `realpath` muss direkt im Ordner liegen, keine Links; nach Übernahme löschen | `ImportSources.php:47`, `:216` `resolveDrop` (INV-C-117/118) |
-| HTTPS-Link | `wp_safe_remote_get`, höchstens 3 Weiterleitungen, jede selbst geprüft und nur https, Größenlimit, optional erwartete SHA-256; Datei im privaten Ordner, nach 24 h gelöscht | `ImportSources.php:258` `download` (INV-C-119) |
+| HTTPS-Link | `wp_safe_remote_get`, nur Port 443, IP-Pinning gegen DNS-Rebinding, keine privaten/link-lokalen Ziele (R0-17 §3), höchstens 3 Weiterleitungen, jede selbst geprüft und nur https, Größenlimit, optional erwartete SHA-256; Datei im privaten Ordner, nach 24 h gelöscht | `ImportSources.php:258` `download` (INV-C-119) |
 | WP-CLI | `wp course-captain import <zip|dir> [--dry-run] [--approve] [--resume=<id>]`; gleiche Prüfungen | `ImportService::createFromDirectory` (`:119`), `runAll` (`:555`) |
 
-Capability `cc_import_content` (R0-07). Ein Import ist nie über eine öffentliche oder nicht authentifizierte Route möglich.
+Capability `ccap_import_content` (R0-07). Ein Import ist nie über eine öffentliche oder nicht authentifizierte Route möglich. Rate-Limits für Import/Export sind fail-closed (E-152).
 
 ### 3.2 Validierung (vor jedem Schreibzugriff auf Inhalte)
 
@@ -241,7 +265,7 @@ Capability `cc_import_content` (R0-07). Ein Import ist nie über eine öffentlic
 | V5 Integrität | Manifest-Schema; Major 1; jede Datei vorhanden, Größe und SHA-256 stimmen; keine nicht gelistete Datei; `content_sha256` stimmt (neu) | `Package::validate` (`:285-325`) |
 | V6 Inhalt | Schema je Entitätsdatei; doppelte `source_id`; Referenzen (§1.4); `requires` erfüllt; HTML-Filter-Diff (wie viel entfernt wurde → Warnung); `media.access` mit Kursbezug konsistent | `:327-339`, `referenceErrors` (`:387`) |
 
-Ergebnis: Batch `validated` oder `failed`. Abgelehnte Medien stehen einzeln im Protokoll (`action=rejected`), wie LB `validate` (`ImportService.php:244-266`).
+Ergebnis: Batch `validated` oder `failed`. V1–V5 betreffen das ganze Paket (`failed`); Fehler in V6 sind **Objektfehler** (E-176): das Objekt und seine Abhängigen werden markiert, der Batch bleibt `validated`, solange die Fehlerschwelle (E-180) nicht erreicht ist; Details in `ccap_import_issue` (R0-38). Abgelehnte Medien stehen einzeln im Protokoll (`action=rejected`), Verhalten wie LB `validate` (`ImportService.php:244-266`).
 
 ### 3.3 Dry-run-Bericht
 
@@ -269,7 +293,7 @@ discard: aus jedem Zustand außer published und lebendem importing → discarded
 
 Belegte Invarianten: Freigabe nur aus `previewed` (`:345`); `runStep` nur aus `approved/importing` (`:401`); nur ein lebender Import (`:407-412`); Options-Sperre mit Besitzer `<batch>-<zufall>`, TTL 900 s > Stale-Grenze 600 s (`:48-57`, `:699-735`); Zustand nach der Sperre neu lesen (T199, `:416-423`); eine Transaktion je Schritt (`:466`, `:494`, `:496`); Heartbeat vor der Arbeit (`:449`); veröffentlichen setzt `bp_learning_active_package` und schreibt Audit (`:517-526`); Medien bis 64 MB je Schritt (`:60`).
 
-**Course-Captain-Automat** (Statuswerte für `cc_import_batch.status`):
+**Course-Captain-Automat** (Statuswerte für `ccap_import_batch.status`):
 
 ```text
 uploaded → validating → validated | failed
@@ -284,19 +308,19 @@ published → superseded                         (NEU: wenn ein späterer Import
 ```
 
 - **`aborted` als gespeicherter Status** statt nur abgeleitet (LB `isAborted`): Health-Check und Admin-Liste filtern dann per Index. Die Stale-Erkennung bleibt (`heartbeat_at`-Spalte, R0-06 §4.7).
-- **Aktivierung (neu):** Die Phasen bis `importing` legen neue Fragenrevisionen und Medien an, **ohne** `cc_question.current_revision_id` umzustellen und ohne eine neue `cc_course_revision` zu veröffentlichen. Die Phase `activating` stellt in **einer** Transaktion je Kurs die Zeiger um, veröffentlicht die Kursrevision und setzt das aktive Paket. Lernende sehen bis dahin den alten Stand. Ein Abbruch hinterlässt keinen sichtbaren Mischstand, im Gegensatz zu LB, wo `stats.aborted_at` einen Mischstand markiert (`:370-374`).
-- **Offener Punkt (technisch, R0-23/R1-15):** CPT-Lektionen haben keinen Revisionszeiger, der dem bei Fragen entspricht. Zwei Wege sind möglich: a) Lektionsänderungen erst in `activating` schreiben, chunkweise mit Kurs-Wartungshinweis; b) Auslieferung über die in `cc_course_revision.structure` gespeicherte WP-Revisions-ID. Die Wahl hängt an R0-23 und an `wp_revisions_to_keep`.
+- **Aktivierung (neu):** Die Phasen bis `importing` legen neue Fragenrevisionen und Medien an, **ohne** `ccap_question.current_revision_id` umzustellen und ohne eine neue `ccap_course_revision` zu veröffentlichen. Die Phase `activating` stellt in **einer** Transaktion je Kurs die Zeiger um, veröffentlicht die Kursrevision und setzt das aktive Paket. Lernende sehen bis dahin den alten Stand. Ein Abbruch hinterlässt keinen sichtbaren Mischstand, im Gegensatz zu LB, wo `stats.aborted_at` einen Mischstand markiert (`:370-374`).
+- **Offener Punkt (technisch, R0-23/R1-15):** CPT-Lektionen haben keinen Revisionszeiger, der dem bei Fragen entspricht. Zwei Wege sind möglich: a) Lektionsänderungen erst in `activating` schreiben, chunkweise mit Kurs-Wartungshinweis; b) Auslieferung über die in `ccap_course_revision.structure` gespeicherte WP-Revisions-ID. Die Wahl hängt an R0-23 und an `wp_revisions_to_keep`.
 
 ### 3.5 Batch-Import (Kurzvertrag; Details R0-38/R1-41)
 
-Phasenreihenfolge über eine Registry: `media → courses → modules → lessons → questions → flashcards → blueprints → module_links → course_links → archive → activate`. Bei LB liegt `media` nach `modules` (`PHASES`, `:27-46`); das hat keine Abhängigkeit, Medien zuerst vereinfacht Referenzen. Je Schritt ≤ 200 Datensätze (Admin) bzw. 500 (CLI) und ≤ 64 MB Medien, mindestens ein Datensatz (LB `limitBytes`, `:538`). Medien werden außerhalb der Transaktion atomar geschrieben (Temp-Datei, SHA-256 prüfen, `rename`). Bei Wiederholung wird die Datei erneut gegen die Prüfsumme geprüft (T203, `MediaStorage::store` `:164-191`, `EntityImporter.php:201-208`). Medien-Dedupe über `cc_media.sha256` (R0-06 E-13). Ausführung über Action Scheduler, sonst WP-Cron, bzw. Admin-Polling, nie auf Frontend-Anfragen (Konzept 9.4).
+Phasenreihenfolge über eine Registry: `media → courses → modules → lessons → questions → flashcards → blueprints → module_links → course_links → archive → activate`. Bei LB liegt `media` nach `modules` (`PHASES`, `:27-46`); das hat keine Abhängigkeit, Medien zuerst vereinfacht Referenzen. Je Schritt ≤ 200 Datensätze (Admin) bzw. 500 (CLI) und ≤ 64 MB Medien, mindestens ein Datensatz (LB `limitBytes`, `:538`). Medien werden außerhalb der Transaktion atomar geschrieben (Temp-Datei, SHA-256 prüfen, `rename`). Bei Wiederholung wird die Datei erneut gegen die Prüfsumme geprüft (T203, `MediaStorage::store` `:164-191`, `EntityImporter.php:201-208`). Medien-Dedupe über `ccap_media.sha256` (R0-06 E-13). Ausführung über Action Scheduler, sonst WP-Cron, bzw. Admin-Polling, nie auf Frontend-Anfragen (Konzept 9.4).
 
 ### 3.6 Revisionen und Rollback
 
 | Objekt | Regel | Beleg |
 |---|---|---|
 | Frage/Karteikarte | neuer Hash → neue Revision, alte wird `deprecated` (erst in `activating`); bekannter Hash → alte Revision wird reaktiviert | `EntityImporter.php:215-286` (INV-C-111), R0-06 §5 |
-| Kurs | neue `cc_course_revision` je Aktivierung, nur wenn sich `structure_hash` ändert | R0-06 §4.1/§5 |
+| Kurs | neue `ccap_course_revision` je Aktivierung, nur wenn sich `structure_hash` ändert | R0-06 §4.1/§5 |
 | Medium | neuer `sha256` → neuer `storage_key`; die alte Datei bleibt, solange eine Revision sie referenziert (Aufräumen per Retention-Job) | neu (LB überschreibt am selben Schlüssel, `MediaStorage::store` `:164-191`) |
 | Laufende Versuche | bleiben auf `revision_id` und Snapshot, nie Live-Stand | R0-06 §5 Prüfungsversuch-Snapshot |
 | **Rollback** | nur auf einen `published`/`superseded`-Stand, Pflichtbegründung. Er legt einen **neuen** Import aus der aufbewahrten Paketkopie an, der den normalen Weg (Validierung, Dry-run, Freigabe) durchläuft. Ergebnis: alte Hashes wieder aktiv, später hinzugekommene Inhalte archiviert, nichts gelöscht | `rollback` (`:139-164`), `restoreActive` (`:383`), INV-C-097 |
@@ -306,15 +330,15 @@ Schema-Rollback gibt es nicht. Content-Rollback ist fachlich (R0-06 §6.5).
 
 ### 3.7 Konfliktpolitik bei lokalen Änderungen
 
-Konzept 9.3 verlangt eine ausdrückliche Politik. LB schützt lokal geänderte Datensätze nur für eine Fachentität (`locallyModified`, `EntityImporter.php:608`, INV-C-114) und für Overrides (überleben den Reimport, INV-C-134). Vorschlag (Entscheidung R10-D2):
+Konzept 9.3 verlangt eine ausdrückliche Politik. LB schützt lokal geänderte Datensätze nur für eine Fachentität (`locallyModified`, `EntityImporter.php:608`, INV-C-114) und für Overrides (überleben den Reimport, INV-C-134). Beschluss **E-63**:
 
-- `cc_source_map.locally_modified = 1` (R0-06 §4.1) wird gesetzt, sobald die Redaktion ein importiertes Objekt ändert. Für Tabellen-Entitäten gilt: lokale Revision mit `created_by` ≠ Import.
+- `ccap_source_map.locally_modified = 1` (R0-06 §4.1) wird gesetzt, sobald die Redaktion ein importiertes Objekt ändert. Für Tabellen-Entitäten gilt: lokale Revision mit `created_by` ≠ Import.
 - Dry-run meldet `conflict`, wenn Quelle **und** lokal geändert sind. Standard: **lokal gewinnt** (Objekt wird übersprungen, Quelländerung protokolliert). In der Freigabe kann die Redaktion je Objekt oder pauschal „Quelle übernehmen“ wählen (Audit).
 - Overrides (`rights_status` u. a.) überleben jeden Reimport.
 
 ### 3.8 Audit
 
-Ereignisse: `import_uploaded`, `import_validated`/`_validation_failed`, `import_previewed`, `import_approved` (inkl. Rechtebestätigung), `import_started`, `import_aborted`, `import_resumed`, `import_activated`, `import_discarded`, `import_rollback_requested`, `import_rolled_back`, `rights_override_set`, `rights_bulk_release`. LB-Vorlage: `AuditLog::record` an den Stellen `:160`, `:261`, `:354`, `:376`, `:458`, `:526`, `:633`.
+Ereignisse: `import_uploaded`, `import_validated`/`_validation_failed`, `import_previewed`, `import_approved` (inkl. Rechtebestätigung), `import_started`, `import_aborted`, `import_resumed`, `import_activated`, `import_discarded`, `import_rollback_requested`, `import_rolled_back`, `rights_override_set`, `rights_bulk_release`. LB-Referenz: `AuditLog::record` an den Stellen `:160`, `:261`, `:354`, `:376`, `:458`, `:526`, `:633`.
 
 ---
 
@@ -330,7 +354,7 @@ Ereignisse: `import_uploaded`, `import_validated`/`_validation_failed`, `import_
 
 - `<privat>` = Konstante `COURSE_CAPTAIN_PRIVATE_DIR` bzw. Filter `course_captain_private_dir` (absoluter Pfad, **bevorzugt außerhalb des Webroots**), sonst `uploads/course-captain`. Ist ein privater Ordner eingestellt, gilt er immer. Er fällt nie still auf `uploads/` zurück; ein Schreibfehler ist sichtbar und der Health-Check warnt (LB T204, `MediaStorage::privateBaseDir` `:84`, `privateDirProblem` `:98`).
 - Ordnernamen enthalten ein Zufallsgeheimnis aus einer Option, das nie ersetzt wird; dazu `index.php`. Fremde `.htaccess` werden nicht überschrieben (LB `:562-610`, INV-C-127). Das Geheimnis ist **Verteidigung in der Tiefe**, kein Ersatz für die Serverregel.
-- **Delta zu LB:** LB schreibt alle Paketmedien in den öffentlichen Ordner `uploads/bootspruefung/media/` (`MediaStorage.php:12-15`, `:127-134`, `store` `:164`). Dort ist eine Datei per URL abrufbar, auch wenn die zugehörige Frage durch Rechte oder fehlenden Zugang gesperrt ist; der Rechtestatus wirkt in LB nur auf die Fragenauslieferung (`ContentRepository.php:88-104`). Course Captain legt Paketmedien standardmäßig als `protected` ab (Entscheidung R10-D4). Medien mit `rights` gesperrt oder `access=protected` liegen **nie** in `public`.
+- **Delta zu LB:** LB schreibt alle Paketmedien in den öffentlichen Ordner `uploads/bootspruefung/media/` (`MediaStorage.php:12-15`, `:127-134`, `store` `:164`). Dort ist eine Datei per URL abrufbar, auch wenn die zugehörige Frage durch Rechte oder fehlenden Zugang gesperrt ist; der Rechtestatus wirkt in LB nur auf die Fragenauslieferung (`ContentRepository.php:88-104`). Course Captain legt Paketmedien standardmäßig als `protected` ab (E-65). Medien mit `rights` gesperrt oder `access=protected` liegen **nie** in `public`.
 - Mediathek-Anhänge, die geschützt werden, werden **samt aller Bildgrößen/Vorschaubilder** in den geschützten Ordner verschoben; `wp_get_attachment_url` und `get_attached_file` werden umgebogen, die REST-Antwort des Anhangs entschärft. Gelingt das Verschieben nicht, gibt es einen sichtbaren Fehler; der Schutz gilt dann als nicht aktiv (LB `ProtectedFiles::protect` `:191-238`, Filter `:34-41`, `derivedFiles` `:307`).
 
 ### 4.2 Webserver-Regeln
@@ -348,9 +372,9 @@ Ereignisse: `import_uploaded`, `import_validated`/`_validation_failed`, `import_
 Route: `GET /wp-json/course-captain/v1/media/<media_uid>` (REST, `permission_callback`) und ein schlanker Rewrite-Endpunkt `/cc-file/<media_uid>/` für `<video>`/`<img>`/PDF. Beide nutzen denselben Dienst `ProtectedMediaService::serve()`.
 
 1. **Auflösen:** nur über `media_uid` (UUID), nie über Pfad oder Dateiname. Unbekannt oder nicht `protected` → 404 (keine Existenzauskunft).
-2. **Rechte:** Wer `cc_manage_content` für das Objekt hat, darf immer. Sonst gilt: eingeloggt (sonst Login-Redirect bzw. REST 401), effektiver Grant mit Scope `view` bzw. `download` (E-27) für **mindestens einen** veröffentlichten Kurs, der das Medium referenziert (`cc_content_media` → Lektion/Frage → Modul → Kurs), Modul-/Drip-Freigabe erfüllt und Rechtestatus nicht gesperrt (§2.2). Medien in Prüfungsfragen sind während eines laufenden Versuchs nur für dessen Inhaber abrufbar. Lösungs- und Feedbackmedien erst, wenn die Feedback-Regel es erlaubt (E-20, R0-08). LB-Vorlage: `serve` (`ProtectedFiles.php:344-372`), `DownloadService::allowed` (`DownloadService.php:55`).
+2. **Rechte:** Wer `ccap_manage_content` für das Objekt hat, darf immer. Sonst gilt: eingeloggt (sonst Login-Redirect bzw. REST 401), effektiver Grant (E-27: je Modul, `module_id` NULL = ganzer Kurs; keine Scopes) für **mindestens ein** veröffentlichtes Modul, das das Medium referenziert (`ccap_content_media` → Lektion/Frage → Modul → Kurs), Drip-Freigabe erfüllt und Rechtestatus nicht gesperrt (§2.2). Medien in Prüfungsfragen sind während eines laufenden Versuchs nur für dessen Inhaber abrufbar. Lösungsmedien erst, wenn die Feedback-Regel es erlaubt (E-147, R0-08); Medien, die nur in Erklärungstexten stehen, nur mit Pro (E-20). LB-Referenz: `serve` (`ProtectedFiles.php:344-372`), `DownloadService::allowed` (`DownloadService.php:55`).
 3. **Pfadsicherheit:** `realpath` der Datei muss unter dem geschützten Basisordner liegen; keine Symlinks.
-4. **Header:** Ausgabepuffer leeren (T105); `nocache_headers`; `Cache-Control: private, no-store` (bei Bildern optional `private, max-age=300` plus `ETag`, Entscheidung R10-D4); `X-Content-Type-Options: nosniff`; `Content-Security-Policy: sandbox` außer bei PDF; `Content-Disposition` mit ASCII-Ersatz und `filename*=UTF-8''` (RFC 6266/8187); inline nur für PDF, Rasterbilder, Audio, Video und VTT, alles andere als `application/octet-stream` (LB `stream` `:374-400`, `inlineMime` `:402`, `contentDisposition` `:425`).
+4. **Header:** Ausgabepuffer leeren (T105); `nocache_headers`; `Cache-Control: private, no-store` (bei Bildern optional `private, max-age=300` plus `ETag`, E-65); `X-Content-Type-Options: nosniff`; `Content-Security-Policy: sandbox` außer bei PDF; `Content-Disposition` mit ASCII-Ersatz und `filename*=UTF-8''` (RFC 6266/8187); inline nur für PDF, Rasterbilder, Audio, Video und VTT, alles andere als `application/octet-stream` (LB `stream` `:374-400`, `inlineMime` `:402`, `contentDisposition` `:425`).
 5. **Range-Requests (Pflicht für Video/Audio-Seeking und PDF-Viewer):** `Accept-Ranges: bytes`; genau ein Bereich (`bytes=a-b`, `a-`, `-n`) → 206 mit `Content-Range`; nicht erfüllbar → 416 mit `Content-Range: bytes */<size>`; Mehrfachbereiche → ganze Datei mit 200; `If-Range` mit `ETag`/`Last-Modified` korrekt auswerten; Streaming in Blöcken (z. B. 1 MB), `set_time_limit`, Abbruch bei `connection_aborted()`. **Delta zu LB:** LB kann Range nur in der App-API (`Mobile/Controllers/FileController.php:19-22`, `:44-70`, `parseRange` `:84`, `stream` `:118`). Die Web-Route liefert immer die ganze Datei per `readfile` (`ProtectedFiles.php:382`, `:393`). Downloadzählung nur beim Abruf ab Byte 0 (LB `FileController.php:38-42`).
 6. **Rate-Limit** je Nutzer und Medium (Schutz vor Massendownload); Zählerausfall → fail-open für Lernmedien (E-46).
 7. **Keine Signatur-URLs in R1.** Cookie-Session und Same-Origin genügen für `<video>`/`<img>`. Externe Clients erst mit Token-Verfahren (E-05).
@@ -363,9 +387,25 @@ Route: `GET /wp-json/course-captain/v1/media/<media_uid>` (REST, `permission_cal
 | Direktabruf gesperrt? | Je Ordner (`packages`, `protected`, `import`) eine harmlose Testdatei mit Zufallstoken anlegen, per `wp_remote_get` (3 s, keine Weiterleitung) abrufen, Datei löschen. 2xx **und** Token im Body → `exposed` (kritisch). Ergebnis 12 h im Cache, bei `unknown` 1 h | ok/exposed/unknown | `SystemStatus::storageSelfTest` (`:216-238`), `probeDir` (`:241-268`) |
 | Skriptausführung im `public`-Ordner? | neu: Testdatei `*.txt` mit Endung, die gesperrt sein müsste (z. B. `.html`), abrufen → 403/404 erwartet | ok/exposed | – (LB prüft nur, ob `.htaccess` vorhanden ist, `security-test.php`) |
 | Privater Ordner erreichbar/beschreibbar | `privateDirProblem`, letzter Ordnerumzug ohne Fehler | storage = ok/false | `Monitor.php:81-82` |
-| Dateien vorhanden | Stichprobe bzw. CLI-Vollprüfung: jede `cc_media`-Datei vorhanden, Größe/SHA-256 stimmen | Restore-Check | `BackupCheck.php:204-237` (INV-C-063) |
+| Dateien vorhanden | Stichprobe bzw. CLI-Vollprüfung: jede `ccap_media`-Datei vorhanden, Größe/SHA-256 stimmen | Restore-Check | `BackupCheck.php:204-237` (INV-C-063) |
 
 Anzeige in Site Health (`course_captain_storage`: kritisch bei `exposed`, Empfehlung bei `unknown`/`unchecked`) mit der passenden Nginx-Regel, außerdem im Monitor-Endpunkt `GET course-captain/v1/health` als Check `storage` (Details nur mit `manage_options` oder Schlüssel im Header, **nicht** `?key=`, weil der Schlüssel sonst in Server-Logs landet; INV-C-055, Inventur C §4.6). Reparaturaktion „Erneut prüfen“ (R1-38).
+
+### 4.5 Datei-Abgaben in Aufgaben (E-168)
+
+Mit E-168 kommen Text- und Dateiaufgaben mit Bewertung (Workflow `draft → submitted → returned → graded`) in R1. Lernende laden damit erstmals Dateien hoch. Es gelten dieselben Grundsätze wie für Paketmedien, mit diesen Festlegungen:
+
+| Punkt | Regel |
+|---|---|
+| Weg | nur authentifizierte REST-Route mit Cookie + Nonce (E-05), Upload nur für den eigenen Entwurf (`draft` bzw. `returned`) einer Aufgabe, für die ein effektiver Grant des Moduls besteht (E-27); nach `submitted` keine Änderung mehr |
+| Typprüfung | wie V4 (§3.2): Endung aus Allowlist, keine gefährliche innere Endung, deklarierter und per `finfo` erkannter MIME passen zur Endung; svg/html/js/php nie, auch nicht per Filter. Die Allowlist je Aufgabe ist eine Teilmenge der globalen Allowlist |
+| Größe | kleinster Wert aus PHP-/WP-Limit und eingestelltem Aufgabenlimit; verständliche Fehlermeldung |
+| Ablage | Speicherklasse `protected` (§4.1) in eigenem Unterordner je Abgabe, Dateiname nur als Metadatum, Speicherschlüssel zufällig; nie in der WP-Mediathek, nie in `public` |
+| Auslieferung | nur über `ProtectedMediaService::serve()` (§4.3) mit `Content-Disposition: attachment` außer Rasterbild/PDF, `nosniff` und `CSP: sandbox`; berechtigt sind die abgebende Person und Personen mit Bewertungsrecht für den Kurs (Cap nach R0-07, Zuschnitt OP-10-4); jeder fremde Abruf wird mit Akteur auditiert (vgl. E-82) |
+| Rate-Limit | je Nutzer und Aufgabe; Zählerausfall → fail-open wie Lernen (E-46) |
+| Datenschutz | Abgaben sind Lerndaten: Exporter und Eraser (R1-17) erfassen sie, Löschung entfernt die Dateien; Backup-Hinweis R0-16 |
+| Aufbewahrung | Default nach E-51 „Rohantworten 2 Jahre nach Kursende“ (Kursende nach E-244), änderbar; Bestätigung durch den Betreiber (siehe Offene Punkte) |
+| Testfälle | MED-027…MED-030 |
 
 ---
 
@@ -378,28 +418,47 @@ Anzeige in Site Health (`course_captain_storage`: kritisch bei `exposed`, Empfeh
 - **Eigene Hosts** (Site-Host, Subdomains, Filter `course_captain_first_party_media_hosts`) gelten nicht als extern (LB `VideoService::externalHost`, `:105-119`, Filter `bootspruefung_video_first_party_hosts`).
 - Hostliste aller externen Medien über den neutralen Filter `course_captain_external_media_hosts` für Consent-Plugins. LB koppelt das an das Theme-Filter `kurswasser_consent_external_hosts` (`Plugin.php:269`, INV-C-011) und speichert sie unbefristet als Transient (`VideoService.php:127-150`). Course Captain berechnet die Liste beim Import/Speichern und invalidiert sie mit `course_captain_content_changed`.
 
-### 5.2 „Klick zum Laden“ (Standard, Annahme E-45)
+### 5.2 Darstellungsmodi (E-45/E-45a)
+
+Einstellung `privacy.external_media_mode` (global, Kurs nur strenger; R0-27, R0-31):
+
+| Wert | Bedeutung | Standard |
+|---|---|---|
+| `always_load` | „Immer laden“: Einbettung wird direkt ausgeliefert, ohne Klick und ohne Einwilligungsabfrage | **ja** (E-45a) |
+| `click_to_load` | „Klick zum Laden“ (§5.2.2) mit Consent-Adapter (§5.3) | nein, umschaltbar |
+| `link_only` | nur Link „Auf <Dienst> ansehen“, nie Einbettung | nein (strengste Stufe) |
+
+**Transparenz (Pflicht in jedem Modus):** Die readme (`readme.txt`) legt alle Provider der Registry mit Dienstname, Anbieter, übertragenen Daten und Link zu Nutzungsbedingungen/Datenschutzerklärung offen (WordPress.org-Richtlinie, E-45). Der Setup-Assistent zeigt im Schritt Datenschutz den Hinweis, dass im Standard beim Aufruf einer Lektion mit externem Video Daten (mindestens IP-Adresse) an den Dienst übertragen werden, und bietet die Umschaltung auf „Klick zum Laden“ an (R0-30). Die Datenschutz-Textbausteine (E-04) nennen die Dienste. Die Rechtsbewertung und die Wahl des Modus liegen beim Betreiber; das Risiko ist in R0-17 als bewusst akzeptiertes Betreiberrisiko dokumentiert.
+
+#### 5.2.1 „Immer laden“ (Standard)
+
+1. Der Server rendert die Einbettung direkt (`iframe` über die Embed-URL des Providers). Datenminimierung bleibt Pflicht: `youtube-nocookie.com`, Vimeo mit `dnt=1`, kein `preconnect`/`dns-prefetch` zu Fremdhosts außerhalb der Einbettung selbst.
+2. Consent-Adapter und `privacy.consent_category` werden in diesem Modus **nicht** ausgewertet (E-246); `privacy.external_media_remember` ist ohne Wirkung.
+3. Ohne JavaScript erscheint ebenfalls die Einbettung bzw. bei `video_url` das `<video>`-Element mit der Fremd-URL.
+4. Fortschritt (`position`, `completed`) wird auch für externe Videos gespeichert.
+
+#### 5.2.2 „Klick zum Laden“ (Betreiberwahl)
 
 1. Der Server rendert **ohne** Verbindung zum Fremdhost: kein `iframe`/`src`, kein `<track>`, kein Fremd-Vorschaubild, kein `preconnect`/`dns-prefetch`. Als Platzhalter dient ein lokales Posterbild (eigenes Medium oder neutrale Grafik), dazu Titel, Dauer, Dienstname und Hinweistext „Beim Abspielen werden Daten an <Dienst> übertragen“ mit Link.
-2. Ein Klick auf „Video laden“ lädt **nur dieses** Medium. Optionales Kästchen „Externe Medien von <Dienst> immer laden“ speichert die Wahl im Browser (funktionaler Speicher ohne Personenbezug, abschaltbar in den Einstellungen, R0-31).
-3. Untertitelspur erst zusammen mit dem Video anhängen (LB T176: eine Standardspur lädt der Browser sonst sofort, `assets/build/app.js:3088-3098`).
+2. Ein Klick auf „Video laden“ lädt **nur dieses** Medium. Optionales Kästchen „Externe Medien von <Dienst> immer laden“ (nie vorangehakt) speichert die Wahl im Browser (funktionaler Speicher ohne Personenbezug, abschaltbar über `privacy.external_media_remember`, R0-31).
+3. Untertitelspur erst zusammen mit dem Video anhängen (LB-Verhalten T176: eine Standardspur lädt der Browser sonst sofort, `assets/build/app.js:3088-3098`).
 4. Ohne JavaScript erscheint ein Link „Auf <Dienst> ansehen“, keine Einbettung.
 5. Fortschritt (`position`, `completed`) wird auch für externe Videos gespeichert; die Provider-API (Player-Ereignisse) erst nach dem Laden.
 
-### 5.3 Consent-Adapter ohne Theme-Zwang
+### 5.3 Consent-Adapter ohne Theme-Zwang (nur Modus `click_to_load`)
 
 **LB-Befund:** Die Lernoberfläche fragt `window.kwConsent.has('extern')` bzw. `grant('extern')` des Kurswasser-Themes ab und fällt sonst auf `localStorage 'bp_external_media'` zurück (`assets/build/app.js:3069-3079`). Das Banner selbst ist Theme-Code (`themes/kurswasser/inc/consent.php`, `assets/js/consent.js`, INV-E-059). Ohne dieses Theme gibt es keine Anbindung an ein vorhandenes Consent-Tool.
 
-**Course Captain:**
+**Course Captain** (wirkt nur, wenn der Betreiber `click_to_load` gewählt hat; E-246):
 
 | Reihenfolge | Quelle | Umsetzung |
 |---|---|---|
-| 1 | WP Consent API (falls aktiv) | Server/JS: `wp_has_consent('marketing')` bzw. konfigurierbare Kategorie; Registrierung als konformes Plugin |
+| 1 | WP Consent API (falls aktiv) | Server/JS: `wp_has_consent(<privacy.consent_category>)`, Default `marketing` (E-246); Registrierung als konformes Plugin |
 | 2 | Filter/Ereignis | PHP-Filter `course_captain_external_media_consent( bool|null $consent, string $provider )`; JS: `window.courseCaptain.consent.register(fn)` und Ereignis `course-captain:consent-changed`, damit Consent-Plugins oder Themes ohne Kopplung an einen Namen anbinden können |
-| 3 | Fallback | „Klick zum Laden“ je Medium (§5.2) |
+| 3 | Fallback | „Klick zum Laden“ je Medium (§5.2.2) |
 
-- Kein eigenes Cookie-Banner (E-45/E-10). Kein Theme-Global als Pflicht.
-- Seiten-Cache-fest: Die Entscheidung fällt im Browser; der Server liefert allen denselben Platzhalter (Muster aus `themes/kurswasser/inc/consent.php:1-14`).
+- Kein eigenes Cookie-Banner (E-45; die Website-Härtung nach E-10 umfasst kein Banner). Kein Theme-Global als Pflicht.
+- Seiten-Cache-fest: Im Modus `click_to_load` fällt die Entscheidung im Browser; der Server liefert allen denselben Platzhalter (Muster aus `themes/kurswasser/inc/consent.php:1-14`).
 - Widerruf: Ändert sich die Einwilligung im Consent-Tool auf „nein“, werden bereits geladene Einbettungen beim nächsten Seitenaufruf nicht mehr automatisch geladen.
 
 ---
@@ -410,8 +469,8 @@ Anzeige in Site Health (`course_captain_storage`: kritisch bei `exposed`, Empfeh
 
 - **Umfang:** ein oder mehrere Kurse mit allen referenzierten Modulen, Lektionen, Fragen (aktuelle veröffentlichte Revision, optional Entwürfe), Karteikarten, Blueprints und Medien. Erzeugt wird ein gültiges `cc-package` v1, das dieselbe Validierung besteht (Round-Trip, IMP-030).
 - **Provenienz:** `source.system` = `local` der Quellsite → Export setzt `source.system = "site-<installations-uuid-8>"` und `exported_from_site` = Installations-UUID. `source_id` = stabile `uid` des Objekts (UUID), nicht die DB-ID. Ein Reimport auf derselben Site wird damit als eigen erkannt (§2.2) und aktualisiert dieselben Objekte.
-- **Rechte:** Alle Rechtefelder werden mitgeschrieben. Fremde Inhalte (§2.2) und Medien mit `restricted` bzw. abgelaufenem `valid_until` sind standardmäßig **ausgeschlossen** und stehen in `export.excluded[]` (Entscheidung R10-D5). Die Option „fremde Inhalte einschließen“ verlangt eine Bestätigung plus Audit.
-- **Ablauf:** als Batch-Job (Cursor, Resume) im Ordner `packages`; Medien werden gestreamt kopiert, nicht in den Speicher geladen; ZIP wird erst nach Abschluss umbenannt (atomar wie LB `build-package.php`, INV-E-021). Download nur über eine authentifizierte Route mit `cc_export_content` und Range-Unterstützung; Löschung nach 24 h (Retention).
+- **Rechte:** Alle Rechtefelder werden mitgeschrieben. Fremde Inhalte (§2.2) und Medien mit `restricted` bzw. abgelaufenem `valid_until` sind standardmäßig **ausgeschlossen** und stehen in `export.excluded[]` (E-66). Die Option „fremde Inhalte einschließen“ verlangt eine Bestätigung plus Audit.
+- **Ablauf:** als Batch-Job (Cursor, Resume) im Ordner `packages`; Medien werden gestreamt kopiert, nicht in den Speicher geladen; ZIP wird erst nach Abschluss umbenannt (atomar wie LB `build-package.php`, INV-E-021). Download nur über eine authentifizierte Route mit `ccap_export_content` und Range-Unterstützung; Löschung nach 24 h (Retention).
 - **Deterministisch:** gleicher Inhalt → gleiche Dateien, gleicher `content_sha256`, gleiche `package_id` (LB `testBuildIsDeterministicAndDetectsNoRemovals`, INV-E-024).
 - **Nie exportiert:** Lerndaten, Grants, Nutzer, Bestellungen, Audit (§1.3). Lerner-Datenexport läuft über den WP-Privacy-Exporter (R1-17).
 
@@ -419,7 +478,7 @@ Anzeige in Site Health (`course_captain_storage`: kritisch bei `exposed`, Empfeh
 
 Fixtures ausschließlich synthetisch und neutral (E-02, Konzept 26.3). LB-Tests sind Vorlagen, keine Fixtures.
 
-| ID | Fall | Erwartung | LB-Vorlage | Ziel-Task |
+| ID | Fall | Erwartung | LB-Referenz | Ziel-Task |
 |---|---|---|---|---|
 | IMP-001 | gültiges Minimalpaket (1 Kurs, 1 Modul, 1 Lektion, 3 Fragen, 1 Bild) | `validated`, Dry-run `create` je Entität | `content-flow-test.php:45` | R1-15 |
 | IMP-002 | ZIP ohne `manifest.json` / leeres ZIP / kein ZIP | `failed`, klare Meldung, nichts entpackt | `admin-test.php:965` | R1-15 |
@@ -435,7 +494,7 @@ Fixtures ausschließlich synthetisch und neutral (E-02, Konzept 26.3). LB-Tests 
 | IMP-012 | `media/a.php.png`, `media/a.svg`, `media/a.html` | abgelehnt (`rejected` im Protokoll) | `security-test.php:142` | R1-15, R1-07 |
 | IMP-013 | `media/a.png` mit PHP-Inhalt (finfo ≠ image/png) bzw. deklariertem MIME `image/jpeg` | abgelehnt | `MediaStorage.php:225-256` | R1-15 |
 | IMP-014 | Prüfsumme/Größe falsch, nicht gelistete Datei, `content_sha256` falsch | `failed` | `Package.php:306-322` | R1-15 |
-| IMP-015 | doppelte `source_id`, kaputte Referenz (Modul → unbekannte Frage) | `failed`, höchstens 50 Meldungen | `Package.php:330-339`, `:387` | R1-15 |
+| IMP-015 | doppelte `source_id`, kaputte Referenz (Modul → unbekannte Frage) | Objektfehler je betroffenem Objekt samt Abhängigen (E-176), Rest importierbar; Bildschirmliste höchstens 50, vollständiger Report in `ccap_import_issue`; ab Fehlerschwelle (E-180) `failed` | `Package.php:330-339`, `:387` | R1-15 |
 | IMP-016 | HTML mit `<script>`, `onerror=`, `javascript:`-Link, `<iframe>` | importiert ohne die Teile, Warnung im Dry-run | – (neu) | R1-15 |
 | IMP-017 | Dry-run auf bestehendem Stand: geänderte, unveränderte und fehlende Datensätze | `update/unchanged/archive` korrekt, **keine** Schreibzugriffe (DB-Prüfsumme vor/nach gleich) | `admin-test.php:90` | R1-15, R1-41 |
 | IMP-018 | Dry-run in Zeitscheiben (Budget 0,1 s) | fortsetzbar, Ergebnis identisch zur Einzelausführung | `ImportService.php:304` | R1-41 |
@@ -448,13 +507,13 @@ Fixtures ausschließlich synthetisch und neutral (E-02, Konzept 26.3). LB-Tests 
 | IMP-025 | Frage geändert → neue Revision; laufender Prüfungsversuch | Versuch bewertet gegen alte Revision | `content-flow-test.php:69` | R1-15 (R0-23) |
 | IMP-026 | Rollback auf vorletzten Stand mit Begründung | neuer Batch, alte Hashes aktiv, neue Inhalte `archived`, nichts gelöscht | `content-flow-test.php:115` | R1-15 |
 | IMP-027 | Rollback ohne Begründung / auf aktives Paket ohne Abbruch / Paketkopie gelöscht | jeweils abgelehnt | `ImportService.php:142-155` | R1-15 |
-| IMP-028 | lokal geänderte Lektion + geänderte Quelle | `conflict`; Standard lokal gewinnt; „Quelle übernehmen“ wirkt und wird auditiert | – (neu, R10-D2) | R1-15 |
+| IMP-028 | lokal geänderte Lektion + geänderte Quelle | `conflict`; Standard lokal gewinnt; „Quelle übernehmen“ wirkt und wird auditiert | – (neu, E-63) | R1-15 |
 | IMP-029 | Medien-Wiederholung nach halb geschriebener Datei | Prüfsumme erkannt, Datei atomar ersetzt | `content-flow-test.php:543` | R1-15 |
 | IMP-030 | Round-Trip: Export → Import auf leerer Site → Export | Pakete identisch (`content_sha256`), Reimport auf Quellsite = `unchanged` | `PackageTest` Determinismus | R1-15 |
 | IMP-031 | Export mit fremd lizenzierter Frage und `restricted`-Bild | ausgeschlossen, in `export.excluded[]`; mit Opt-in enthalten + Audit | – (neu) | R1-15 |
 | IMP-032 | Großimport 100 000 Fragen / 2 GB Medien in Teildateien | kein PHP-Timeout, Speicher < Budget, Fortschritt/Resume (Grenzwerte aus R0-14) | `admin-test.php:146` | R1-41 |
 | MED-001 | geschützte Datei ohne Login | Login-Redirect bzw. REST 401; kein Inhalt | `security-test.php` (Gate) | R1-14 |
-| MED-002 | eingeloggt ohne Grant / Grant abgelaufen / Scope ohne `download` | 403 ohne Pfad; bei unbekannter ID 404 | `ProtectedFiles.php:361-364` | R1-14 |
+| MED-002 | eingeloggt ohne Grant / Grant abgelaufen / Grant nur für ein anderes Modul desselben Kurses (E-27) | 403 ohne Pfad; bei unbekannter ID 404 | `ProtectedFiles.php:361-364` | R1-14 |
 | MED-003 | mit Grant für Kurs B, Medium nur in Kurs A (IDOR) | 403 | – (neu) | R1-14 |
 | MED-004 | Medium einer Prüfungsfrage während fremden bzw. eigenen Versuchs | fremd 403, eigen 200 | – (neu) | R1-14 (R0-08) |
 | MED-005 | Lösungsmedium vor Freigabe der Feedback-Regel | 403 | – (neu) | R1-14 |
@@ -473,26 +532,49 @@ Fixtures ausschließlich synthetisch und neutral (E-02, Konzept 26.3). LB-Tests 
 | MED-018 | importiertes Medium `unknown`, fremd | Platzhalter statt Medium; Frage mit Pflichtbild nicht auslieferbar | `content-flow-test.php:152`, `:166` | R1-14 (R0-22) |
 | MED-019 | eigenes Medium `unknown` | ausgeliefert (E-18), Warnung im Editor | – (neu) | R1-14 |
 | MED-020 | Sammelfreigabe mit Dry-run und Begründung | Overrides gesetzt, Audit; ohne Begründung abgelehnt | `admin-test.php:151` | R1-15 |
-| MED-021 | externes Video ohne Einwilligung | HTML ohne Verbindung zum Fremdhost (kein `iframe`, `track`, Poster, `preconnect`); Netzwerkprotokoll ohne Fremdhost | E2E `learning-flow.mjs` (Fremdhost-Erfassung, INV-E-111) | R1-07, R1-34 |
-| MED-022 | Klick zum Laden | nur dieses Video lädt; Untertitel erst danach | `app.js:3088-3098` (T176) | R1-07 |
-| MED-023 | „immer laden“ gesetzt, danach Seitenaufruf | lädt direkt; Widerruf in Einstellungen wirkt | `app.js:3069-3079` | R1-07, R1-34 |
-| MED-024 | WP Consent API aktiv mit/ohne Einwilligung | lädt bzw. Platzhalter, ohne Theme-Global | – (neu) | R1-34, R1-30 |
-| MED-025 | Standard-Theme (z. B. Twenty Twenty-Five) ohne Consent-Plugin | Klick zum Laden funktioniert, keine JS-Fehler | – (neu, Kap. 26) | R1-30 |
+| MED-021 | Modus `click_to_load`: externes Video ohne Einwilligung | HTML ohne Verbindung zum Fremdhost (kein `iframe`, `track`, Poster, `preconnect`); Netzwerkprotokoll ohne Fremdhost | E2E `learning-flow.mjs` (Fremdhost-Erfassung, INV-E-111) | R1-07, R1-34 |
+| MED-022 | Modus `click_to_load`: Klick zum Laden | nur dieses Video lädt; Untertitel erst danach | `app.js:3088-3098` (T176) | R1-07 |
+| MED-023 | Modus `click_to_load`: Kästchen „immer laden“ gesetzt, danach Seitenaufruf | lädt direkt; Widerruf in Einstellungen wirkt | `app.js:3069-3079` | R1-07, R1-34 |
+| MED-024 | Modus `click_to_load`: WP Consent API aktiv mit/ohne Einwilligung | lädt bzw. Platzhalter, ohne Theme-Global | – (neu) | R1-34, R1-30 |
+| MED-025 | Standard-Theme (z. B. Twenty Twenty-Five) ohne Consent-Plugin | beide Modi funktionieren, keine JS-Fehler | – (neu, Kap. 26) | R1-30 |
 | MED-026 | Paket-URL für externes Medium auf nicht registriertem Host / `http:` | Validierungsfehler; Server ruft die URL nie ab | – (neu) | R1-15 |
+| MED-027 | Abgabe-Upload `a.php.pdf`, `a.svg`, PDF mit falschem MIME | abgelehnt, nichts gespeichert | – (neu, E-168) | R1 (Aufgaben, ehem. R2-02) |
+| MED-028 | Abgabe einer anderen Person per `media_uid` abrufen (IDOR), ohne Bewertungsrecht | 403 bzw. 404 ohne Existenzauskunft | – (neu, E-168) | R1-14 |
+| MED-029 | Upload nach `submitted` / ohne Grant des Moduls | abgelehnt | – (neu, E-168, E-27) | R1 (Aufgaben) |
+| MED-030 | Eraser für Lernenden mit Abgaben | Dateien und Metadaten entfernt, Audit ohne Inhalt | – (neu, E-168) | R1-17 |
+| MED-031 | Standard `always_load`, Lektion mit YouTube-Video | Einbettung über `youtube-nocookie.com` direkt geladen; Consent API wird nicht abgefragt (E-45a, E-246) | – (neu) | R1-07 |
+| MED-032 | readme und Setup | readme nennt alle registrierten externen Dienste; Setup-Schritt Datenschutz zeigt Hinweis und Umschalter | – (neu, E-45a) | R1-32, R1-39 |
 
 ---
 
-## 7. Entscheidungsbedarf (nur neue Punkte)
+## 7. Entscheidungen (beschlossen)
 
-Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-03, E-18, E-45 (außerdem abhängig von E-02, E-05, E-10, E-14, E-20, E-21, E-23, E-27, E-44, E-46).
+Alle Fragen dieses Dokuments sind entschieden (`ENTSCHEIDUNGEN.md`, 16.11.2026). Genutzt außerdem: E-02, E-05, E-10, E-14, E-21, E-23, E-44, E-46.
 
-| ID | Frage | Optionen | Empfehlung | Entscheider | blockiert |
-|---|---|---|---|---|---|
-| **R10-D1** | Wie wird der Rechtestatus `own` aus einem **fremden** Paket auf der Zielsite gespeichert? | a) `licensed` mit `owner` = Herausgeber und Hinweis im Dry-run · b) `unknown` (gesperrt bis zur Freigabe) · c) unverändert `own` | **a)**, weil die Freigabe des Imports eine ausdrückliche Rechtebestätigung verlangt (§2.2). c) würde die Sperre aus E-18 aushebeln | Auftraggeber | R1-15, R0-22 |
-| **R10-D2** | Konfliktpolitik bei Reimport, wenn ein importiertes Objekt lokal geändert wurde (Konzept 9.3 verlangt eine ausdrückliche Regel) | a) lokal gewinnt, Konflikt im Dry-run, Übernahme der Quelle je Objekt wählbar · b) Quelle gewinnt immer · c) Import bricht bei Konflikt ab | **a)** | Auftraggeber (Redaktion) | R1-15, R0-38 |
-| **R10-D3** | Paketsignaturen für „vertrauenswürdige Anbieter“ (Konzept 9.3: optional) in R1? | a) nicht in R1, Feld `signatures[]` nur reserviert, Integrität über SHA-256 · b) R1 mit Ed25519 (`sodium`) und Schlüsselverwaltung im Admin | **a)**; Signaturen erst, wenn es einen Anbietermarkt bzw. Pro-Bedarf gibt (R2/Pro) | Auftraggeber + Architektur | R1-15 |
-| **R10-D4** | Standard-Speicherklasse für Paket- und Kursmedien: alle zugangsgebundenen Medien über PHP (`protected`) oder Bilder öffentlich wie in LB? | a) `protected` für alles, was an Lektionen/Fragen hängt; `public` nur für Kursbild/Vorschau; Bilder mit kurzem `private`-Cache + ETag · b) Bilder `public`, nur PDF/Video/Audio `protected` · c) alles `public` (LB) | **a)**. Konzept 9.4/20 verlangt, dass direkte Medien-URLs keine Bezahlschranke umgehen und keine Lösungen leaken. Mehrlast durch PHP-Auslieferung wird in R0-14 gemessen; X-Accel/X-Sendfile als Entlastung | Auftraggeber + Architektur | R1-07, R1-14, R0-14 |
-| **R10-D5** | Darf ein Kurs-Export fremd lizenzierte Inhalte enthalten? | a) standardmäßig ausgeschlossen, Opt-in mit Bestätigung und Audit · b) immer enthalten, nur Rechtefelder mitgeben · c) nie | **a)** | Auftraggeber | R1-15 |
+| Frühere ID | Beschluss | Inhalt | Wirkt in | Tasks |
+|---|---|---|---|---|
+| R10-D1 | **E-62** | `own` aus fremdem Paket wird als `licensed` (mit `owner` = Herausgeber, Hinweis im Dry-run) gespeichert | §2.2 | R1-15, R0-22 |
+| R10-D2 | **E-63** | Reimport: lokal gewinnt; Übernahme der Quelle je Objekt im Dry-run (Audit) | §3.7, IMP-028 | R1-15, R0-38 |
+| R10-D3 | **E-64** | keine Paketsignaturen in R1, `signatures[]` nur reserviert | §1.2 | R1-15 |
+| R10-D4 | **E-65** | zugangsgebundene Medien standardmäßig `protected` über PHP; `public` nur Kursbild/Vorschau; Bilder mit kurzem `private`-Cache + ETag | §4.1, §4.3 | R1-07, R1-14, R0-14 |
+| R10-D5 | **E-66** | fremd lizenzierte Inhalte im Export nur per Opt-in mit Bestätigung und Audit | §6.1, IMP-031 | R1-15 |
+| – | **E-03**, **E-18** | wie angenommen | §1.7, §2.2 | R1-15 |
+| – | **E-45/E-45a**, E-246 | externe Medien Default `always_load`, umschaltbar auf `click_to_load`; Consent nur dort; readme-Offenlegung, Setup-Hinweis | §5 | R1-07, R1-32, R1-34, R1-39 |
+| – | **E-20**, E-268, E-269 | Erklärungstexte nur mit Pro ausgeliefert, in Free gespeichert/importiert/exportiert | §1.3, §4.3 | R1-15, R3 |
+| – | **E-27** | Medienzugriff je Modul | §4.3 | R1-14 |
+| – | **E-168** | Datei-Abgaben in Aufgaben in R1 | §4.5 | R1 (Aufgaben), R1-14, R1-17 |
+| – | **E-01**, **E-207** | Clean Room; Präfix `ccap_`/`course_captain_*` | ganzes Dokument | alle |
+
+### 7.1 Offene Punkte nach Einarbeitung
+
+| Nr. | Punkt | Warum offen | Zuständig |
+|---|---|---|---|
+| OP-10-1 | Lektionsrevisionen in der Aktivierungsphase (§3.4: Weg a oder b) | technische Wahl, hängt an R0-23 und `wp_revisions_to_keep` | Architektur (R0-23/R1-15) |
+| OP-10-2 | Allowlist und Größenlimit für Datei-Abgaben (§4.5): konkrete Dateitypen und Default-Größe | E-168 legt nur die Funktion fest; Werte fehlen in R0-27 | Architektur, dann R0-27 |
+| OP-10-3 | Aufbewahrung von Datei-Abgaben: Gilt E-51 „Rohantworten 2 Jahre“ auch für Dateien? | Zuordnung ist hier angenommen, nicht beschlossen; juristische Bestätigung durch den Betreiber (E-51) | Betreiber |
+| OP-10-4 | Wer bewertet Aufgaben in R1 (Cap/Rolle)? E-99 legt Tutor-Bewertungsfunktionen in das Gradebook (Pro), E-168 verlangt Bewertung in R1 | Widerspruch zwischen E-99 und E-168 nicht aufgelöst | Auftraggeber/R0-07 |
+| OP-10-5 | Virenscan für Abgaben (z. B. per Filter-Hook) | in keinem Beschluss geregelt | Architektur |
+| OP-10-6 | Untertitel und Poster im Modus `always_load`: Datenminimierung über die Einbettung hinaus | E-45a regelt nur den Modus | Architektur (R1-07) |
 
 ---
 
@@ -502,11 +584,11 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-03, E-18, E-45 
 - Range in LB: `grep -rn "HTTP_RANGE\|Accept-Ranges"` in `src/` trifft nur `Mobile/Controllers/FileController.php` und `PrivacyController.php` (dort `Accept-Ranges: none`), nicht die Web-Route `Gate/ProtectedFiles.php`.
 - `kwConsent` in LB: nur in `assets/build/app.js` (Plugin) und `themes/kurswasser/` (Theme).
 - Öffentliche Paketmedien in LB: `MediaStorage.php:12` („media/<key> ausgelieferte Medien (öffentlich …)“), `mediaDir()` unter `baseDir()` = `uploads/bootspruefung` (`:64-67`, `:127-134`).
-- Keine Änderung an LearnBoating, keine Implementierung, kein Commit.
+- Keine Änderung an LearnBoating, keine Implementierung. Kein Code aus LB übernommen (E-01).
 
-## Nachträge aus Folge-Tasks
+## Nachträge aus Folge-Tasks (eingearbeitet)
 
 | Datum | Quelle | Änderung |
 |---|---|---|
-| 16.11.2026 | R0-17 §3 | Import per URL: IP-Pinning gegen DNS-Rebinding, nur Port 443, keine privaten/link-lokalen Ziele |
-| 16.11.2026 | R0-38 Δ-38, E-176 | Fehler in Validierungsstufe V6 sind **Objektfehler** statt `failed` für den ganzen Batch; die Grenze von 50 Fehlern gilt nur noch für die Bildschirmliste, der vollständige Report liegt in `cc_import_issue` |
+| 16.11.2026 | R0-17 §3 | Import per URL: IP-Pinning gegen DNS-Rebinding, nur Port 443, keine privaten/link-lokalen Ziele – **eingearbeitet** in §3.1 |
+| 16.11.2026 | R0-38 Δ-38, E-176 | Fehler in Validierungsstufe V6 sind **Objektfehler** statt `failed` für den ganzen Batch; die Grenze von 50 Fehlern gilt nur noch für die Bildschirmliste, der vollständige Report liegt in `ccap_import_issue` – **eingearbeitet** in §1.4, §3.2 |

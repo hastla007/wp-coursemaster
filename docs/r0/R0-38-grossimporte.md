@@ -2,7 +2,7 @@
 
 **Status:** **Entwurf – Freigabe Auftraggeber/Architektur offen.** Task R0-38 ist **nicht** abgehakt. Es gibt keine Implementierung und keinen Code. Dieses Dokument ist die Spezifikation für **R1-41** (und ergänzt R1-15).
 **Stand:** 16.11.2026
-**Bezug:** TODO R0-38 (Voraussetzung R0-10, R0-16, R0-21; DoD: Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback, Fehlerklassen), Ziel-Task **R1-41** (Voraussetzung R1-15); `R0-10-import-medien-sicherheit.md` (§1 Paketformat, §2 Rechte, §3.2 V1–V6, §3.3 Dry-run, §3.4 Automat, §3.5 Batch-Kurzvertrag, §3.6 Rollback, §3.7 Konflikte, IMP-001…032), `R0-16-backup-recovery-deployment.md` (I-1…I-5), `R0-21-cache-nebenlaeufigkeit.md` (§2.4 Lease/Fencing, M0, CON-012), `R0-14-nichtfunktionale-ziele.md` (OP-11, L3, R-M, R-S, RB-01…RB-07, NFR-006/-007), `R0-23-revisionen-laufender-kurse.md` (§4 Staging-Kopie), `R0-22-kursvalidierung-publish.md` (§1.2 Report, Kontext `import_dry_run`), `R0-36-suite-vertragsdeltas.md` (Zeile A9), `R0-06-datenmodell-adr.md` (§4.7 `cc_import_batch`, `cc_import_item_log`, `cc_source_map`, A-01/A-05/A-17).
+**Bezug:** TODO R0-38 (Voraussetzung R0-10, R0-16, R0-21; DoD: Validierungsreport pro Zeile/Objekt, Rechte/Provenienz, deduplizierter Import, Batch-Cursor, Timeout/Resume, Rollback, Fehlerklassen), Ziel-Task **R1-41** (Voraussetzung R1-15); `R0-10-import-medien-sicherheit.md` (§1 Paketformat, §2 Rechte, §3.2 V1–V6, §3.3 Dry-run, §3.4 Automat, §3.5 Batch-Kurzvertrag, §3.6 Rollback, §3.7 Konflikte, IMP-001…032), `R0-16-backup-recovery-deployment.md` (I-1…I-5), `R0-21-cache-nebenlaeufigkeit.md` (§2.4 Lease/Fencing, M0, CON-012), `R0-14-nichtfunktionale-ziele.md` (OP-11, L3, R-M, R-S, RB-01…RB-07, NFR-006/-007), `R0-23-revisionen-laufender-kurse.md` (§4 Staging-Kopie), `R0-22-kursvalidierung-publish.md` (§1.2 Report, Kontext `import_dry_run`), `R0-36-suite-vertragsdeltas.md` (Zeile A9), `R0-06-datenmodell-adr.md` (§4.7 `ccap_import_batch`, `ccap_import_item_log`, `ccap_source_map`, A-01/A-05/A-17).
 **Entscheidungen als Annahme (noch nicht beschlossen, `ENTSCHEIDUNGEN.md`):** **E-62** (`own` aus fremdem Paket → `licensed`), **E-63** (Reimport: lokal gewinnt, Übernahme je Objekt im Dry-run), **E-64** (keine Signaturen in R1), **E-65** (zugangsgebundene Medien geschützt), **E-66** (fremde Inhalte im Export nur per Opt-in), **E-104** (Staging-Kopie für Lektionen, Übernahme in einer TX je Kurs). Weicht ein Beschluss ab, ändern sich §3 (E-62/E-63) bzw. §5.1 (E-104).
 **Quellen (nur gelesen, nicht verändert):** LearnBoating `hastla007/learnboating` @ `9f37c77`, Pfad `bootspruefung-learning/src/Content/Import/ImportService.php` (**IS**); Suite `wpaffiliatemaster/docs/IMPORT-EXPORT.md` (**AFF**).
 
@@ -14,11 +14,11 @@
 
 1. **Ein Report-Format für Dry-run, Commit und Wiederholung:** je Objekt und Befund eine Zeile mit Objekt-ID, Datei/JSON-Pfad, Regelcode (`IMP-…` für Paket/Import, `VAL-…` aus R0-22), Schwere, Meldung und Vorschlag. Export als CSV (RFC 4180, gestreamt, CSV-Injection-sicher) und JSON. Dazu eine Zusammenfassung je Entität, Aktion, Regel und Rechtestatus.
 2. **Fehler bleiben am Objekt.** LB bricht beim ersten fehlerhaften Datensatz den ganzen Import ab (IS `step` `:494-501`). Course Captain unterscheidet vier Klassen: **F** fatal (Paket/Lauf), **O** Objekt (nur dieses Objekt und seine Abhängigen fallen aus), **W** Warnung (importiert, gemeldet), **T** transient (automatisch wiederholt). Eine Fehlerschwelle hebt systematische O-Fehler auf F (§5.3).
-3. **Deduplizierung auf drei Ebenen:** Identität über `(source_system, entity, source_id)` → `cc_source_map` → stabile `uid`; Inhalt über den Datensatz-Hash (`unchanged`, bekannte Revision reaktivieren); Mediendateien über SHA-256 (eine Datei, aber getrennte Medienzeilen je Herkunft, damit Rechte nicht verschmelzen). Konflikt „lokal geändert“ nach E-63.
+3. **Deduplizierung auf drei Ebenen:** Identität über `(source_system, entity, source_id)` → `ccap_source_map` → stabile `uid`; Inhalt über den Datensatz-Hash (`unchanged`, bekannte Revision reaktivieren); Mediendateien über SHA-256 (eine Datei, aber getrennte Medienzeilen je Herkunft, damit Rechte nicht verschmelzen). Konflikt „lokal geändert“ nach E-63.
 4. **Schritte und Chunks:** Ein *Schritt* ist ein Request bzw. Job mit Zeitbudget, ein *Chunk* ist eine kurze DB-Transaktion (Ziel ≤ 1 s) und schreibt Daten, Cursor und Lease-Heartbeat zusammen. Die Chunkgröße passt sich an Zeit und Speicher an (AIMD). Daten werden aus einem während der Validierung angelegten NDJSON-Spool mit Offset-Index gelesen; der Speicherbedarf hängt also von der Chunkgröße ab, nicht von der Paketgröße (Delta zu IS `:479-481`).
 5. **Lease mit Fencing** (R0-21), Stale nach 600 s, Resume ab dem letzten committeten Chunk. Drei Ausführungswege mit demselben Runner: Hintergrund (Action Scheduler, sonst WP-Cron-Kette), Browser-Polling und WP-CLI. Wechsel zwischen ihnen ist mitten im Lauf erlaubt.
 6. **Rollback:** Vor der Aktivierung heißt Rollback „Verwerfen“: alle nicht aktivierten Artefakte des Batches werden entfernt. Nach der Aktivierung legt ein Rollback einen neuen Import aus der Paketkopie an (R0-10 §3.6). **Wiederholen nur fehlgeschlagener Objekte** ist ein Teilimport aus derselben Paketkopie mit Objektfilter, ohne neuen Automatenzustand.
-7. **Grenzwerte je Quelle** (Admin-Upload wie R0-10, Ablageordner/CLI höher) und **Paketserien** für große Medienbestände; Messgrößen M-01…M-16 als Startwerte für R1-41; Testfälle **BIG-001…BIG-040**; sechs neue Entscheidungen **R38-D1…R38-D6**.
+7. **Grenzwerte je Quelle** (Admin-Upload wie R0-10, Ablageordner/CLI höher) und **Paketserien** für große Medienbestände; Messgrößen M-01…M-16 als Startwerte für R1-41; Testfälle **BIG-001…BIG-040**; sechs neue Entscheidungen **E-176…E-181**.
 
 ---
 
@@ -34,9 +34,9 @@
 | Q-06 | IS `preview` `:275-330` | Zeitscheibe 20 s, Budgetprüfung alle 50 Datensätze, Fortschritt `{entity, offset, summary}`; neue Vorschau setzt `previewed → validated` zurück | übernommen; Dry-run schreibt zusätzlich den Objekt-Report (§2) |
 | Q-07 | IS `previewProgress` `:332-340` | Prozent = Entitätsindex / Entitätenzahl, also grob (bei 100 000 Fragen in einer Entität lange „0 %“) | Fortschritt nach gewichteten Arbeitseinheiten (§4.7) |
 | Q-08 | IS `logs` `:593-605` | Protokoll je Objekt (`entity, source_id, action, message`), Filter nach Aktion, `LIMIT/OFFSET` | Report mit Schwere/Regel/Pfad, Keyset-Paginierung statt `OFFSET` (§2.4) |
-| Q-09 | IS `acquireLock`/`releaseLock` `:699-717` | Besitzer `<batch>-<zufall>`, TTL 900 s > Stale 600 s (T208); Freigabe nur durch Besitzer | übernommen in `cc_lease` (R0-21 D21-1) |
+| Q-09 | IS `acquireLock`/`releaseLock` `:699-717` | Besitzer `<batch>-<zufall>`, TTL 900 s > Stale 600 s (T208); Freigabe nur durch Besitzer | übernommen in `ccap_lease` (R0-21 D21-1) |
 | Q-10 | IS `releaseAbandonedLock` `:719-733` | Verwerfen abgelehnt, solange ein Schritt die Sperre hält (jünger als TTL); sonst Options-Zeile löschen + Cache leeren | übernommen als Lease-Übernahme per CAS (§4.4, BIG-016) |
-| Q-11 | AFF `:8`, `:13` | CLI `--dry-run`; im Admin **immer** zuerst Prüfung; jede Zeile mit Ergebnis bzw. Gründen; fehlerhafte Zeilen übersprungen, Rest importiert; Nebenbefunde als Hinweis mit Tipp; Vorhandenes als „übersprungen“, nicht als Fehler (Reimport möglich); Admin ≤ 2 000 Zeilen/5 MB, CLI ohne Grenze | Objekt-Isolation (R38-D1), Vorschlagsspalte, Grenzwerte je Quelle (§6.1) |
+| Q-11 | AFF `:8`, `:13` | CLI `--dry-run`; im Admin **immer** zuerst Prüfung; jede Zeile mit Ergebnis bzw. Gründen; fehlerhafte Zeilen übersprungen, Rest importiert; Nebenbefunde als Hinweis mit Tipp; Vorhandenes als „übersprungen“, nicht als Fehler (Reimport möglich); Admin ≤ 2 000 Zeilen/5 MB, CLI ohne Grenze | Objekt-Isolation (E-176), Vorschlagsspalte, Grenzwerte je Quelle (§6.1) |
 | Q-12 | AFF `:15` | Batches ≈ 15 s, Seite setzt selbst fort, Fortsetzen-Knopf; **ein im unterbrochenen Batch angelegtes Objekt wird vervollständigt statt als „existiert“ gemeldet**; ein Import je Site; geprüfte Datei bis zum nächsten Import bzw. ≤ 1 Tag geschützt aufbewahrt | Resume-Regel „angefangen = vervollständigen“ (§4.5), ein Import je Site (§4.4) |
 
 ---
@@ -57,7 +57,7 @@ Alle Läufe schreiben in **dieselbe** Struktur. Ein Befund aus dem Dry-run und d
 
 ### 2.2 Zeilenformat
 
-Eine Zeile = ein Befund an einem Objekt. Ein Objekt ohne Befund erscheint im **Objektprotokoll** (`cc_import_item_log`, eine Zeile je Objekt und Versuch), aber nicht im Befundreport.
+Eine Zeile = ein Befund an einem Objekt. Ein Objekt ohne Befund erscheint im **Objektprotokoll** (`ccap_import_item_log`, eine Zeile je Objekt und Versuch), aber nicht im Befundreport.
 
 | Feld | Typ | Inhalt | Beispiel |
 |---|---|---|---|
@@ -96,7 +96,7 @@ Die Codes heißen `IMP-<Gruppe><n>.<nn>` und sind damit von den **Testfall**-IDs
 | IMP-V5.03 / .04 / .05 | Datei fehlt bzw. Größe/SHA-256 falsch · nicht gelistete Datei · `content_sha256` falsch | F | `failed` (Integrität betrifft das ganze Paket, R0-10 V5) |
 | IMP-V6.01 | Datensatz verletzt das Entitätsschema | O | Objekt `rejected` |
 | IMP-V6.02 | doppelte `source_id` innerhalb einer Entität | F | `failed` (Identität mehrdeutig) |
-| IMP-V6.03 | Referenz weder im Paket noch in `cc_source_map` derselben `source.system` | O | Objekt `rejected` bzw. Verweis entfernt (§5.3) |
+| IMP-V6.03 | Referenz weder im Paket noch in `ccap_source_map` derselben `source.system` | O | Objekt `rejected` bzw. Verweis entfernt (§5.3) |
 | IMP-V6.04 | `requires` nicht erfüllt (Fragetyp/Provider fehlt) | F | `failed` (IMP-021) |
 | IMP-V6.05 | HTML-Filter hat Inhalt entfernt (Anzahl Elemente/Attribute in `params`) | W | importiert gefiltert |
 | IMP-V6.06 | Datensatz-`hash` passt nicht zum kanonischen Datensatz | O | `rejected` (sonst falsche Deduplizierung) |
@@ -126,7 +126,7 @@ Die Codes heißen `IMP-<Gruppe><n>.<nn>` und sind damit von den **Testfall**-IDs
 
 ### 2.4 Speicherung, Ansicht, Export
 
-- **Speicher (Δ-38-1):** neue Tabelle `cc_import_issue (id PK, batch_id, attempt, phase, entity, source_id NULL, uid NULL, file_ref, path, rule, severity, class, action, message_key, params JSON, decision NULL, fingerprint, created_at)`, Indizes `(batch_id, id)`, `(batch_id, severity, id)`, `(batch_id, rule)`, `(batch_id, entity, source_id)`, FK → `cc_import_batch` CASCADE. Die Meldung wird beim Lesen übersetzt, nicht gespeichert. `cc_import_item_log` bekommt `attempt`, `outcome` (`ok/failed/skipped_dependency/conflict_kept`) und `object_id` (für Verwerfen, §5.1).
+- **Speicher (Δ-38-1):** neue Tabelle `ccap_import_issue (id PK, batch_id, attempt, phase, entity, source_id NULL, uid NULL, file_ref, path, rule, severity, class, action, message_key, params JSON, decision NULL, fingerprint, created_at)`, Indizes `(batch_id, id)`, `(batch_id, severity, id)`, `(batch_id, rule)`, `(batch_id, entity, source_id)`, FK → `ccap_import_batch` CASCADE. Die Meldung wird beim Lesen übersetzt, nicht gespeichert. `ccap_import_item_log` bekommt `attempt`, `outcome` (`ok/failed/skipped_dependency/conflict_kept`) und `object_id` (für Verwerfen, §5.1).
 - **Grenze:** höchstens 100 000 Befundzeilen je Batch (Filter). Danach entsteht IMP-B1.05 bzw. in der Validierung ein Sammelbefund „weitere n Befunde nicht gespeichert“ mit Zählwert je Regel; der Dry-run gilt dann als `failed` (ein Paket mit > 100 000 Befunden ist nicht sinnvoll prüfbar). Delta zu R0-10 §1.4 („höchstens 50 Fehler, dann Abbruch“): Die 50er-Grenze gilt nur noch für die **Bildschirm-Kurzliste** fataler Befunde.
 - **Ansicht (S-18):** Filter nach Schwere, Klasse, Entität, Regel, Aktion, Text in `source_id`/Titel; Keyset-Paginierung über `seq` (50 je Seite). Gruppenansicht „gleiche Regel“ mit Zählwert und den ersten zehn Objekten. Konfliktzeilen haben die Auswahl `keep_local/take_source` je Objekt und als Sammelaktion für die gefilterte Menge (Audit, E-63).
 - **Export:** authentifizierte Route `GET /course-captain/v1/imports/{batch}/report?format=csv|json&severity=&rule=&attempt=` (M-21, Nonce), gestreamt in Blöcken à 1 000 Zeilen, ohne Gesamtzwischenspeicher.
@@ -160,14 +160,14 @@ Jedes importierte Objekt MUSS auf seine Quelle zurückführbar sein:
 
 | Angabe | Speicherort | Herkunft |
 |---|---|---|
-| `source_system`, `source_id`, `object_type` | `cc_source_map` (UNIQUE `source`) bzw. Spalten der Tabellenentität (R0-06 SRC) | Manifest `source.system`, Datensatz |
-| `uid` | `cc_source_map.uid` (R0-08 Δ-1) bzw. Tabellenspalte | §3.3 |
-| `last_batch_id`, `last_hash` (Δ-38-2) | `cc_source_map` | letzter Batch, der das Objekt geschrieben hat; Hash des Datensatzes |
-| `package_id`, `source.revision` | `cc_import_batch` | Manifest |
-| `locally_modified` | `cc_source_map` (R0-06 §4.7) | Editor setzt beim Speichern; Tabellenentität: Revision mit `created_by` ≠ Importlauf |
-| Rechte | Revision bzw. Medium bzw. `_cc_rights` (R0-10 §2.1) | Datensatz → `default_rights` → leer (= `unknown` bei fremd) |
+| `source_system`, `source_id`, `object_type` | `ccap_source_map` (UNIQUE `source`) bzw. Spalten der Tabellenentität (R0-06 SRC) | Manifest `source.system`, Datensatz |
+| `uid` | `ccap_source_map.uid` (R0-08 Δ-1) bzw. Tabellenspalte | §3.3 |
+| `last_batch_id`, `last_hash` (Δ-38-2) | `ccap_source_map` | letzter Batch, der das Objekt geschrieben hat; Hash des Datensatzes |
+| `package_id`, `source.revision` | `ccap_import_batch` | Manifest |
+| `locally_modified` | `ccap_source_map` (R0-06 §4.7) | Editor setzt beim Speichern; Tabellenentität: Revision mit `created_by` ≠ Importlauf |
+| Rechte | Revision bzw. Medium bzw. `_ccap_rights` (R0-10 §2.1) | Datensatz → `default_rights` → leer (= `unknown` bei fremd) |
 
-Staging-Kopien bekommen **keine** Zeile in `cc_source_map` (R0-23 Δ-23-4); die Zuordnung hängt am Live-Objekt, die Kopie trägt `_cc_stage_batch`.
+Staging-Kopien bekommen **keine** Zeile in `ccap_source_map` (R0-23 Δ-23-4); die Zuordnung hängt am Live-Objekt, die Kopie trägt `_ccap_stage_batch`.
 
 ### 3.2 Rechteprüfung im Ablauf
 
@@ -179,16 +179,16 @@ Staging-Kopien bekommen **keine** Zeile in `cc_source_map` (R0-23 Δ-23-4); die 
 
 ### 3.3 Stabile UID und Identität
 
-- Neue Objekte bekommen eine **zufällige UUIDv4** als `uid`, in **derselben** TX wie die `cc_source_map`-Zeile. Eine deterministische UID (v5 aus Herkunft) ist nicht nötig: Resume und Reimport finden das Objekt über `(source_system, source_id, object_type)`.
-- **Eigener Export** (`exported_from_site` = Installations-UUID, R0-10 §2.2/§6.1): `source_id` ist die `uid`. Der Importer ordnet direkt über `uid` zu, auch ohne `cc_source_map`-Zeile (lokal erstellte Objekte haben `source_system = local`). Passt die `uid` nicht → IMP-D1.05.
-- **Angefangene Objekte** (AFF `:15`): Wurde ein Objekt in einem committeten Chunk angelegt, ist es über `cc_source_map` auffindbar und wird beim Resume als `update`/`unchanged` behandelt. Medien, deren Datei geschrieben, deren Zeile aber nicht committet wurde, werden über SHA-256 erkannt und übernommen (I-1, T203).
+- Neue Objekte bekommen eine **zufällige UUIDv4** als `uid`, in **derselben** TX wie die `ccap_source_map`-Zeile. Eine deterministische UID (v5 aus Herkunft) ist nicht nötig: Resume und Reimport finden das Objekt über `(source_system, source_id, object_type)`.
+- **Eigener Export** (`exported_from_site` = Installations-UUID, R0-10 §2.2/§6.1): `source_id` ist die `uid`. Der Importer ordnet direkt über `uid` zu, auch ohne `ccap_source_map`-Zeile (lokal erstellte Objekte haben `source_system = local`). Passt die `uid` nicht → IMP-D1.05.
+- **Angefangene Objekte** (AFF `:15`): Wurde ein Objekt in einem committeten Chunk angelegt, ist es über `ccap_source_map` auffindbar und wird beim Resume als `update`/`unchanged` behandelt. Medien, deren Datei geschrieben, deren Zeile aber nicht committet wurde, werden über SHA-256 erkannt und übernommen (I-1, T203).
 
 ### 3.4 Deduplizierung
 
 | Ebene | Schlüssel | Regel |
 |---|---|---|
 | Identität | `(source_system, object_type, source_id)` | gefunden → `update`/`unchanged`/`conflict`; nicht gefunden → `create` |
-| Inhalt | Datensatz-`hash` gegen `cc_source_map.last_hash` bzw. Revisions-Hash | gleich → `unchanged`, **kein Schreiben** außer Objektprotokoll; bei Fragen: Hash einer älteren Revision → diese reaktivieren (R0-10 §3.6) |
+| Inhalt | Datensatz-`hash` gegen `ccap_source_map.last_hash` bzw. Revisions-Hash | gleich → `unchanged`, **kein Schreiben** außer Objektprotokoll; bei Fragen: Hash einer älteren Revision → diese reaktivieren (R0-10 §3.6) |
 | Mediendatei | `sha256` des Inhalts | gleiche Datei wird **einmal** gespeichert (`storage_key` geteilt, R0-06 Zeile A-05). Eine Medien**zeile** gibt es je Herkunft, weil Rechte, Alt-Text und `access` je Quelle verschieden sein können. Ohne diese Trennung würde die Rechtesperre einer Quelle das Medium einer anderen treffen |
 | Paketintern | `source_id` doppelt | IMP-V6.02 fatal |
 | Paketintern/quellübergreifend | gleicher Inhaltshash, andere `source_id` bzw. andere Herkunft | IMP-D1.04 Hinweis; **nie** automatisch zusammenführen |
@@ -206,7 +206,7 @@ Staging-Kopien bekommen **keine** Zeile in `cc_source_map` (R0-23 Δ-23-4); die 
 | ja | Editor-Staging-Kopie offen | `conflict` (IMP-D1.02) | Kopie bleibt; `take_source` ersetzt sie (R0-23 §4.2 Nr. 6) |
 | fehlt im Paket | ja | `conflict` (IMP-D1.03) | nicht archivieren |
 
-- Entscheidungen werden je Objekt am Batch gespeichert (`cc_import_issue.decision`), auditiert (`import_conflict_decided`, mit Anzahl bei Sammelaktion) und gelten nur für **diesen** Batch.
+- Entscheidungen werden je Objekt am Batch gespeichert (`ccap_import_issue.decision`), auditiert (`import_conflict_decided`, mit Anzahl bei Sammelaktion) und gelten nur für **diesen** Batch.
 - Eine neue Vorschau übernimmt Entscheidungen, deren Fingerabdruck gleich bleibt; bei geändertem Quell- oder Lokalstand wird neu gefragt.
 - `take_source` setzt `locally_modified = 0`. Lokale Overrides (`rights_status` u. a.) bleiben auch dann bestehen.
 
@@ -246,7 +246,7 @@ Jede Phase hat eine bekannte Zahl Arbeitseinheiten (Datensätze aus `manifest.co
 
 ### 4.4 Cursor und Lease
 
-**Cursor** (Δ-38-3: Spalte `cc_import_batch.cursor` JSON statt in `stats`):
+**Cursor** (Δ-38-3: Spalte `ccap_import_batch.cursor` JSON statt in `stats`):
 
 ```json
 { "mode": "commit", "attempt": 1, "phase": "questions", "offset": 48200,
@@ -257,7 +257,7 @@ Jede Phase hat eine bekannte Zahl Arbeitseinheiten (Datensätze aus `manifest.co
 - Der Cursor wird **nur** in der Chunk-TX geschrieben. Damit ist „Datensatz geschrieben“ ⇔ „Cursor dahinter“ (exactly-once je Chunk).
 - **Lease** `import` (eine je Site, R0-21 M0; Delta zu R0-21-Text `import:<batch>`: der Name ist global, der Batch steht im `owner`, weil wie bei IS `:407-412` nur ein Import zur Zeit laufen darf). `owner = <batch>-<zufall12>`, TTL 900 s, Heartbeat in jedem Chunk, spätestens nach TTL/3. Übernahme nur bei abgelaufenem `expires_at` per CAS mit `fence + 1`. Ein „Zombie“-Worker scheitert am Fencing und schreibt nichts (CON-012).
 - Nach dem Lease-Erwerb wird der Batch **neu gelesen** (T199, Q-01). Ein Dry-run eines anderen Batches darf parallel laufen, weil er nichts schreibt; er hält Lease `import-preview:<batch>`.
-- **Stale:** `heartbeat_at` älter als 600 s und Lease abgelaufen → Status `aborted` (`reason = stale`). Gesetzt von jedem Leser: Admin-Liste, nächster Schritt, Watchdog in `cc_hourly`, Health-Check.
+- **Stale:** `heartbeat_at` älter als 600 s und Lease abgelaufen → Status `aborted` (`reason = stale`). Gesetzt von jedem Leser: Admin-Liste, nächster Schritt, Watchdog in `ccap_hourly`, Health-Check.
 
 ### 4.5 Timeout und Resume
 
@@ -271,7 +271,7 @@ Jede Phase hat eine bekannte Zahl Arbeitseinheiten (Datensätze aus `manifest.co
 | Browser-Tab geschlossen (Polling) | kein Schritt mehr | Hintergrund-Runner übernimmt (§4.6), sonst Knopf „Fortsetzen“ |
 | Abbruch durch Bedienung | `cancel_requested` am Batch | Runner stoppt an der nächsten Chunkgrenze → `aborted (cancelled)` |
 
-**Vor jedem Resume MUSS** geprüft werden: Batch nicht `superseded` (IMP-B1.06), Paketkopie und Spool vorhanden und Prüfsumme gleich (IMP-B1.07), Plugin-Schema-Version unverändert (sonst erneut validieren), `requires` weiterhin erfüllt. **Automatische Wiederaufnahme** im Hintergrund nach T-Befunden: höchstens 3 Versuche mit 1, 5 und 15 min Abstand, danach bleibt der Batch `aborted` und Site Health meldet ihn (R38-D6).
+**Vor jedem Resume MUSS** geprüft werden: Batch nicht `superseded` (IMP-B1.06), Paketkopie und Spool vorhanden und Prüfsumme gleich (IMP-B1.07), Plugin-Schema-Version unverändert (sonst erneut validieren), `requires` weiterhin erfüllt. **Automatische Wiederaufnahme** im Hintergrund nach T-Befunden: höchstens 3 Versuche mit 1, 5 und 15 min Abstand, danach bleibt der Batch `aborted` und Site Health meldet ihn (E-181).
 
 ### 4.6 Ausführungswege
 
@@ -279,12 +279,12 @@ Alle Wege rufen denselben `ImportRunner::step(batch, budget)` unter derselben Le
 
 | Weg | Ablauf | Stärken | Schwächen | Einsatz |
 |---|---|---|---|---|
-| **H – Hintergrund** | `as_enqueue_async_action('cc_import_step', [batch_id], 'course-captain')`, wenn Action Scheduler vorhanden; sonst `wp_schedule_single_event(time(), 'cc_import_step', [id])` + `spawn_cron()`. Jeder Schritt plant den nächsten selbst; Watchdog in `cc_hourly`. Argumente nur IDs (R0-19) | läuft ohne offenen Tab; ein Ablauf für Admin | WP-Cron ohne Besucher/mit `DISABLE_WP_CRON` ohne System-Cron steht (RB-01); Loopback auf manchen Hosts gesperrt | Standard (R38-D2) |
+| **H – Hintergrund** | `as_enqueue_async_action('ccap_import_step', [batch_id], 'course-captain')`, wenn Action Scheduler vorhanden; sonst `wp_schedule_single_event(time(), 'ccap_import_step', [id])` + `spawn_cron()`. Jeder Schritt plant den nächsten selbst; Watchdog in `ccap_hourly`. Argumente nur IDs (R0-19) | läuft ohne offenen Tab; ein Ablauf für Admin | WP-Cron ohne Besucher/mit `DISABLE_WP_CRON` ohne System-Cron steht (RB-01); Loopback auf manchen Hosts gesperrt | Standard (E-177) |
 | **B – Browser-Polling** | Admin-Seite ruft `POST /imports/{id}/step` (RG-02, Nonce) in Schleife, Antwort = Fortschritt | sofort, unabhängig von Cron | endet mit dem Tab; Worker belegt je Schritt | Rückfall, wenn H in 60 s keinen Heartbeat liefert („Im Browser fortsetzen“) |
-| **C – WP-CLI** | `wp course-captain import <zip|dir> [--dry-run] [--approve --confirm-rights] [--run] [--resume=<id>] [--retry-failed=<id>] [--max-chunk=<n>] [--report=<datei>]`; Ausführung als Nutzer mit `cc_import_content` (`--user`) | kein Request-Timeout, höhere Grenzen (§6.1), Fortschrittsbalken | Shell-Zugang nötig | empfohlen ab 20 000 Objekten oder > 200 MB |
+| **C – WP-CLI** | `wp course-captain import <zip|dir> [--dry-run] [--approve --confirm-rights] [--run] [--resume=<id>] [--retry-failed=<id>] [--max-chunk=<n>] [--report=<datei>]`; Ausführung als Nutzer mit `ccap_import_content` (`--user`) | kein Request-Timeout, höhere Grenzen (§6.1), Fortschrittsbalken | Shell-Zugang nötig | empfohlen ab 20 000 Objekten oder > 200 MB |
 
 - Nie auf Frontend-Anfragen von Besuchern (Konzept 9.4). WP-Cron läuft in einem eigenen Request (`wp-cron.php`), nicht im Seitenaufruf.
-- **Freigabe und Aktivierung** bleiben an die Berechtigung des Freigebenden gebunden: Der Batch speichert `approved_by`; Hintergrundjobs prüfen beim Aktivieren, ob dieser Nutzer weiterhin `cc_import_content` + `cc_publish_courses` hat (M-21), sonst `aborted` mit Befund.
+- **Freigabe und Aktivierung** bleiben an die Berechtigung des Freigebenden gebunden: Der Batch speichert `approved_by`; Hintergrundjobs prüfen beim Aktivieren, ob dieser Nutzer weiterhin `ccap_import_content` + `ccap_publish_courses` hat (M-21), sonst `aborted` mit Befund.
 
 ### 4.7 Fortschrittsanzeige
 
@@ -303,8 +303,8 @@ Alle Wege rufen denselben `ImportRunner::step(batch, budget)` unter derselben Le
 Bis `activating` ist nichts für Lernende sichtbar (I-5, E-104). „Verwerfen“ aus `aborted`, `approved` oder davor:
 
 1. Lease übernehmen; ein lebender Schritt (Lease jünger als TTL) blockiert das Verwerfen (Q-10, IMP-023).
-2. Staging-Kopien mit `_cc_stage_batch = <id>` löschen (R0-23 §4.2 Nr. 5).
-3. Objekte, die **dieser** Batch neu angelegt hat (`cc_import_item_log.object_id` mit `action = create`, nie aktiviert), samt `cc_source_map`-Zeilen und nicht aktivierten Fragenrevisionen physisch entfernen. Sie waren nie sichtbar, kein Versuch referenziert sie.
+2. Staging-Kopien mit `_ccap_stage_batch = <id>` löschen (R0-23 §4.2 Nr. 5).
+3. Objekte, die **dieser** Batch neu angelegt hat (`ccap_import_item_log.object_id` mit `action = create`, nie aktiviert), samt `ccap_source_map`-Zeilen und nicht aktivierten Fragenrevisionen physisch entfernen. Sie waren nie sichtbar, kein Versuch referenziert sie.
 4. Neue Mediendateien verlieren ihre Referenz und fallen unter die Retention mit 7 Tagen Karenz (I-3).
 5. Status `discarded`, Audit `import_discarded` mit Zählwerten. Ablauf in Chunks (resumable), weil 100 000 Objekte nicht in eine TX passen.
 
@@ -335,9 +335,9 @@ Bis `activating` ist nichts für Lernende sichtbar (I-5, E-104). „Verwerfen“
 | Lektion | Modul (`lessons[]`) | Verweis entfällt; Pflichtlektion → Kurs bekommt VAL-Befund (Aktivierung prüft) |
 | Modul | Kurs | Verweis entfällt; Kurs wird nur aktiviert, wenn der Validator keinen Blocker meldet |
 
-**Aktivierung je Kurs:** `precheck` lässt den Validator (R0-22, `context = publish`) für alle betroffenen Kurse ohne Schreibzugriff laufen. Kurse mit Blockern werden **zurückgestellt** (Staging bleibt, Report nennt die Blocker), die übrigen aktiviert (R38-D4). Fragen sind kursunabhängig (E-50): Ihre Zeiger werden für alle erfolgreich importierten Fragen umgestellt (`questions_pointer`, chunkweise je 5 000 per `UPDATE … JOIN`, M-07). Gemeinsam genutzte Module werden mit dem ersten aktivierten Kurs übernommen; der Report weist darauf hin (R0-23 §4).
+**Aktivierung je Kurs:** `precheck` lässt den Validator (R0-22, `context = publish`) für alle betroffenen Kurse ohne Schreibzugriff laufen. Kurse mit Blockern werden **zurückgestellt** (Staging bleibt, Report nennt die Blocker), die übrigen aktiviert (E-179). Fragen sind kursunabhängig (E-50): Ihre Zeiger werden für alle erfolgreich importierten Fragen umgestellt (`questions_pointer`, chunkweise je 5 000 per `UPDATE … JOIN`, M-07). Gemeinsam genutzte Module werden mit dem ersten aktivierten Kurs übernommen; der Report weist darauf hin (R0-23 §4).
 
-**Fehlerschwelle (Schutz vor systematischen Fehlern):** Übersteigen die O-Fehler im Commit `max(100, 2 % der Objekte der Phase)` und lagen sie im Dry-run nicht vor, wird der Lauf mit IMP-B1.05 angehalten (`aborted`). Bereits im Dry-run bekannte und bestätigte O-Fehler zählen nicht (R38-D5).
+**Fehlerschwelle (Schutz vor systematischen Fehlern):** Übersteigen die O-Fehler im Commit `max(100, 2 % der Objekte der Phase)` und lagen sie im Dry-run nicht vor, wird der Lauf mit IMP-B1.05 angehalten (`aborted`). Bereits im Dry-run bekannte und bestätigte O-Fehler zählen nicht (E-180).
 
 **Endzustand:** `published` mit `stats.failed_objects`, `stats.held_courses`. Die Admin-Liste zeigt „abgeschlossen mit Auslassungen“. Kein neuer Automatenzustand (R0-10 §3.4 bleibt gültig).
 
@@ -375,11 +375,11 @@ Neu: `import_cancel_requested`, `import_conflict_decided` (Einzeln/Sammel mit An
 
 Die Admin-Seite zeigt bei Überschreitung den Ausweichweg („Ablageordner oder WP-CLI verwenden“, wie R0-10 §3.1).
 
-**Paketserien:** Große Medienbestände dürfen auf mehrere Pakete derselben `source.system` verteilt werden: zuerst Medienpakete (`partial`), dann das Inhaltspaket, das über `cc_source_map` auf bereits importierte Medien verweist (R0-10 §1.4 „Teilpakete“). So bleiben 2 GB Medien auch im Admin-Upload möglich (10 × 200 MB). Wahl zwischen höheren Grenzen und Serien: R38-D3.
+**Paketserien:** Große Medienbestände dürfen auf mehrere Pakete derselben `source.system` verteilt werden: zuerst Medienpakete (`partial`), dann das Inhaltspaket, das über `ccap_source_map` auf bereits importierte Medien verweist (R0-10 §1.4 „Teilpakete“). So bleiben 2 GB Medien auch im Admin-Upload möglich (10 × 200 MB). Wahl zwischen höheren Grenzen und Serien: E-178.
 
 ### 6.2 Messgrößen für R1-41
 
-Gemessen auf **R-M** (R0-14 §2.1) mit synthetischem Paket **BIG-P1**: 100 000 Fragen (single/multi/true_false gemischt, Ø 4 Antworten, Ø 3 Tags), 50 000 Bilder (Ø 40 KB ≈ 2 GB), 2 000 Lektionen, 200 Module, 20 Kurse, 20 Blueprints; erzeugt von einem dev-only Generator `wp cc-dev make-package --profile=big --seed=<n>` (nicht im Release-ZIP, Muster R0-14 §2.2 Seeder). Datenbestand vorher: Profil `default`. Alle Werte sind **Startwerte**; R1-41 misst und ersetzt sie (wie D-14-05).
+Gemessen auf **R-M** (R0-14 §2.1) mit synthetischem Paket **BIG-P1**: 100 000 Fragen (single/multi/true_false gemischt, Ø 4 Antworten, Ø 3 Tags), 50 000 Bilder (Ø 40 KB ≈ 2 GB), 2 000 Lektionen, 200 Module, 20 Kurse, 20 Blueprints; erzeugt von einem dev-only Generator `wp cc-dev make-package --profile=big --seed=<n>` (nicht im Release-ZIP, Muster R0-14 §2.2 Seeder). Datenbestand vorher: Profil `default`. Alle Werte sind **Startwerte**; R1-41 misst und ersetzt sie (wie E-59).
 
 | ID | Messgröße | Ziel R-M | Bemerkung |
 |---|---|---|---|
@@ -412,7 +412,7 @@ Fixtures synthetisch und neutral (E-02). Paket BIG-P1 aus §6.2; BIG-P0 = 10 000
 | BIG-002 | Paket mit je einem Fehler pro IMP-Regel (O/W/N) | genau eine Befundzeile je Regel mit korrektem `rule`, `severity`, `class`, `file`, `path`; Meldung und Vorschlag übersetzt | R1-41 |
 | BIG-003 | Report-Export CSV und JSON/NDJSON, gefiltert nach Schwere | Spalten wie §2.4; Zeilenzahl = gefilterte Befunde; Unicode/Umlaute korrekt; Excel öffnet die Datei | R1-41 |
 | BIG-004 | Befundtext beginnt mit `=HYPERLINK(` bzw. `+`, `-`, `@` | Zelle mit `'` präfixiert | R1-41 |
-| BIG-005 | Report-Route ohne `cc_import_content`, Batch fremder Site (Multisite), ohne Nonce | 403 bzw. 404, kein Inhalt (M-21) | R1-41 |
+| BIG-005 | Report-Route ohne `ccap_import_content`, Batch fremder Site (Multisite), ohne Nonce | 403 bzw. 404, kein Inhalt (M-21) | R1-41 |
 | BIG-006 | 150 000 Befunde | 100 000 gespeichert + Sammelbefund; Dry-run `failed`; UI-Kurzliste ≤ 50 fatale Befunde | R1-41 |
 | BIG-007 | Paginierung Report-Ansicht Seite 1 und Seite 2 000 | gleiche Antwortzeit (Keyset), ≤ 300 ms | R1-41 |
 | BIG-008 | Befund aus Dry-run tritt im Commit erneut auf | gleicher Fingerabdruck, als „bekannt“ markiert | R1-41 |
@@ -433,7 +433,7 @@ Fixtures synthetisch und neutral (E-02). Paket BIG-P1 aus §6.2; BIG-P0 = 10 000
 | BIG-027 | Zwei parallele `step`-Requests auf denselben Batch und ein Dry-run eines anderen Batches | genau einer schreibt, Cursor nicht doppelt; Dry-run läuft parallel ohne Schreibzugriff | R1-41 (IMP-020) |
 | BIG-028 | `memory_limit 128M` (R-S-Variante) | Chunkgröße sinkt adaptiv; kein Fatal; Teildatei > 8 MB → IMP-V1.03 mit Hinweis | R1-41 |
 | BIG-029 | Speicher-Peak bei BIG-P0 und BIG-P1 vergleichen | M-06 erfüllt (Δ < 10 %) | R1-41 |
-| BIG-030 | Abbruch durch Bedienung bei 60 % Commit, danach Verwerfen | Stopp an Chunkgrenze; Verwerfen entfernt Staging-Kopien, neu angelegte Objekte, `cc_source_map`-Zeilen; Lernende sahen nie etwas Neues (DB-Prüfsumme sichtbarer Stand gleich) | R1-41 |
+| BIG-030 | Abbruch durch Bedienung bei 60 % Commit, danach Verwerfen | Stopp an Chunkgrenze; Verwerfen entfernt Staging-Kopien, neu angelegte Objekte, `ccap_source_map`-Zeilen; Lernende sahen nie etwas Neues (DB-Prüfsumme sichtbarer Stand gleich) | R1-41 |
 | BIG-031 | Aktivierung mit 20 Kursen, Kurs 7 hat VAL-Blocker (leeres Modul wegen O-Fehler) | Kurs 7 zurückgestellt und im Report; 19 Kurse aktiviert; Fragenzeiger umgestellt | R1-41 (R1-26) |
 | BIG-032 | Prozessabbruch zwischen Kurs 10 und 11 der Aktivierung | Kurse 1–10 konsistent neu, 11–20 konsistent alt; Resume aktiviert den Rest; Verwerfen abgelehnt, Rollback angeboten | R1-41 |
 | BIG-033 | Rollback nach Aktivierung von v2 auf v1 | neuer Batch; v1-Hashes aktiv, v2-Neuzugänge `archived`; laufender Prüfungsversuch bewertet gegen Snapshot | R1-41 (R1-15, R1-27) |
@@ -443,7 +443,7 @@ Fixtures synthetisch und neutral (E-02). Paket BIG-P1 aus §6.2; BIG-P0 = 10 000
 | BIG-037 | Resume nach Plugin-Update mit neuer Schema-Version bzw. nach Löschen der Paketkopie | erneute Validierung verlangt bzw. IMP-B1.07 | R1-41 |
 | BIG-038 | Anderer Import wird aktiviert, während dieser `aborted` ist | Resume abgelehnt (IMP-B1.06), nur Verwerfen | R1-41 (IMP-019) |
 | BIG-039 | L3 mit BIG-P1 statt BIG-P0 | M-10 erfüllt | R1-42 (R1-41, R1-22) |
-| BIG-040 | Paketserie: 10 Medienpakete à 200 MB per Admin-Upload, dann Inhaltspaket | Verweise über `cc_source_map` aufgelöst; keine Archivierung durch Teilpakete | R1-41 |
+| BIG-040 | Paketserie: 10 Medienpakete à 200 MB per Admin-Upload, dann Inhaltspaket | Verweise über `ccap_source_map` aufgelöst; keine Archivierung durch Teilpakete | R1-41 |
 
 ---
 
@@ -451,9 +451,9 @@ Fixtures synthetisch und neutral (E-02). Paket BIG-P1 aus §6.2; BIG-P0 = 10 000
 
 | Δ | Ziel | Änderung |
 |---|---|---|
-| Δ-38-1 | R0-06 §4.7 | neue Tabelle `cc_import_issue` (§2.4); `cc_import_item_log` + `attempt`, `outcome`, `object_id` |
-| Δ-38-2 | R0-06 `cc_source_map` | + `last_batch_id bigint NULL`, `last_hash char(71) NULL` |
-| Δ-38-3 | R0-06 `cc_import_batch` | + `cursor longtext NULL`, `mode varchar(16)`, `retry_of bigint NULL`, `partial tinyint(1)`, `cancel_requested tinyint(1)`, `spool_sha256 char(64) NULL` |
+| Δ-38-1 | R0-06 §4.7 | neue Tabelle `ccap_import_issue` (§2.4); `ccap_import_item_log` + `attempt`, `outcome`, `object_id` |
+| Δ-38-2 | R0-06 `ccap_source_map` | + `last_batch_id bigint NULL`, `last_hash char(71) NULL` |
+| Δ-38-3 | R0-06 `ccap_import_batch` | + `cursor longtext NULL`, `mode varchar(16)`, `retry_of bigint NULL`, `partial tinyint(1)`, `cancel_requested tinyint(1)`, `spool_sha256 char(64) NULL` |
 | Δ-38-4 | R0-10 §1.1/§3.2 | Teildateien SOLL ≤ 4 MB; V6-Fehler sind Objektfehler statt `failed` (außer V6.02/V6.04); „50 Fehler“ nur noch Bildschirm-Kurzliste; Grenzwerte je Quelle §6.1 |
 | Δ-38-5 | R0-21 §3 (M0) | Lease-Name `import` global je Site, Batch im `owner`; zusätzlich `import-preview:<batch>` für parallele Dry-runs |
 | Δ-38-6 | R0-10 §3.8 | Audit-Ereignisse aus §5.5 |
@@ -466,12 +466,12 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-62, E-63, E-64,
 
 | ID | Frage | Optionen | Empfehlung | Entscheider | blockiert |
 |---|---|---|---|---|---|
-| **R38-D1** | Wie wirken Fehler an einzelnen Datensätzen? (R0-10 V6: ganzer Batch `failed`; LB: Abbruch beim ersten Fehler) | a) alles oder nichts · b) Objekt-Isolation: fehlerhafte Objekte und ihre Abhängigen fallen aus, Rest wird importiert, Freigabe mit Bestätigung „n Objekte werden ausgelassen“ · c) b) nur per CLI-Schalter | **b)** wie AFF `:13`; bei 100 000 Fragen ist „ein Tippfehler stoppt alles“ nicht bedienbar. Identitäts- und Integritätsfehler bleiben fatal | Auftraggeber (Redaktion) | R1-41, R1-15 |
-| **R38-D2** | Standard-Ausführungsweg im Admin | a) Browser-Polling wie LB/AFF · b) Hintergrund (Action Scheduler, sonst WP-Cron) mit Polling-Anzeige, Browser als Rückfall · c) nur CLI für Großimporte | **b)**; Rückfall a) automatisch angeboten, c) für sehr große Pakete empfohlen | Architektur | R1-41 |
-| **R38-D3** | Wie kommen Pakete über 200 MB (z. B. 2 GB Medien) auf die Site? | a) höhere Grenzen für Ablageordner/HTTPS/CLI (§6.1) · b) nur Paketserien mit je ≤ 200 MB · c) beides | **c)** | Auftraggeber + Architektur | R1-41, R0-10 |
-| **R38-D4** | Aktivierung, wenn einzelne Kurse des Pakets Publish-Blocker haben | a) ganzer Batch wird nicht aktiviert · b) betroffene Kurse zurückstellen, Rest aktivieren · c) Auswahl bei der Freigabe | **b)**, mit Anzeige bereits in der Zusammenfassung des Dry-runs | Auftraggeber | R1-41, R1-26 |
-| **R38-D5** | Fehlerschwelle für im Commit neu auftretende Objektfehler | a) keine · b) `max(100, 2 %)` je Phase, dann Anhalten · c) Einstellung je Site | **b)** als Default mit Filter | Architektur | R1-41 |
-| **R38-D6** | Automatische Wiederaufnahme im Hintergrund nach technischen Fehlern | a) nie, immer manuell · b) bis zu 3 Versuche (1/5/15 min), dann `aborted` + Site Health · c) unbegrenzt | **b)** | Architektur | R1-41 |
+| **E-176** | Wie wirken Fehler an einzelnen Datensätzen? (R0-10 V6: ganzer Batch `failed`; LB: Abbruch beim ersten Fehler) | a) alles oder nichts · b) Objekt-Isolation: fehlerhafte Objekte und ihre Abhängigen fallen aus, Rest wird importiert, Freigabe mit Bestätigung „n Objekte werden ausgelassen“ · c) b) nur per CLI-Schalter | **b)** wie AFF `:13`; bei 100 000 Fragen ist „ein Tippfehler stoppt alles“ nicht bedienbar. Identitäts- und Integritätsfehler bleiben fatal | Auftraggeber (Redaktion) | R1-41, R1-15 |
+| **E-177** | Standard-Ausführungsweg im Admin | a) Browser-Polling wie LB/AFF · b) Hintergrund (Action Scheduler, sonst WP-Cron) mit Polling-Anzeige, Browser als Rückfall · c) nur CLI für Großimporte | **b)**; Rückfall a) automatisch angeboten, c) für sehr große Pakete empfohlen | Architektur | R1-41 |
+| **E-178** | Wie kommen Pakete über 200 MB (z. B. 2 GB Medien) auf die Site? | a) höhere Grenzen für Ablageordner/HTTPS/CLI (§6.1) · b) nur Paketserien mit je ≤ 200 MB · c) beides | **c)** | Auftraggeber + Architektur | R1-41, R0-10 |
+| **E-179** | Aktivierung, wenn einzelne Kurse des Pakets Publish-Blocker haben | a) ganzer Batch wird nicht aktiviert · b) betroffene Kurse zurückstellen, Rest aktivieren · c) Auswahl bei der Freigabe | **b)**, mit Anzeige bereits in der Zusammenfassung des Dry-runs | Auftraggeber | R1-41, R1-26 |
+| **E-180** | Fehlerschwelle für im Commit neu auftretende Objektfehler | a) keine · b) `max(100, 2 %)` je Phase, dann Anhalten · c) Einstellung je Site | **b)** als Default mit Filter | Architektur | R1-41 |
+| **E-181** | Automatische Wiederaufnahme im Hintergrund nach technischen Fehlern | a) nie, immer manuell · b) bis zu 3 Versuche (1/5/15 min), dann `aborted` + Site Health · c) unbegrenzt | **b)** | Architektur | R1-41 |
 
 ---
 
@@ -479,5 +479,5 @@ Bereits in `ENTSCHEIDUNGEN.md` und hier als Annahme verwendet: E-62, E-63, E-64,
 
 - Gelesen (LB @ `9f37c77`, nur lesend): `bootspruefung-learning/src/Content/Import/ImportService.php` (`:27-63` Konstanten, `:275-330` `preview`, `:332-340` `previewProgress`, `:398-440` `runStep`, `:442-535` `step`, `:538-553` `limitBytes`, `:555-563` `runAll`, `:593-605` `logs`, `:699-733` Sperren inkl. `releaseAbandonedLock`).
 - Gelesen (Suite): `wpaffiliatemaster/docs/IMPORT-EXPORT.md` (`:8`, `:13`, `:15`, `:98`).
-- Planungsdokumente: TODO R0-38, R1-41; R0-10 §1–§3, §6.2, §7; R0-16 I-1…I-5, REC-014; R0-21 §2.4, M0, D21-1, CON-012; R0-14 OP-11, L3, R-M/R-S, RB-01…RB-07, NFR-006/-007; R0-23 §4, R23-D2; R0-22 §1.2, §1.5, §2.4; R0-36 Zeile A9; R0-06 §4.7, A-01/A-05/A-17; `ENTSCHEIDUNGEN.md` E-62…E-66, E-104.
+- Planungsdokumente: TODO R0-38, R1-41; R0-10 §1–§3, §6.2, §7; R0-16 I-1…I-5, REC-014; R0-21 §2.4, M0, D21-1, CON-012; R0-14 OP-11, L3, R-M/R-S, RB-01…RB-07, NFR-006/-007; R0-23 §4, E-104; R0-22 §1.2, §1.5, §2.4; R0-36 Zeile A9; R0-06 §4.7, A-01/A-05/A-17; `ENTSCHEIDUNGEN.md` E-62…E-66, E-104.
 - Keine Änderung an LearnBoating oder der Suite, keine Implementierung, kein Commit.
