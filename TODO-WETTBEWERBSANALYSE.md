@@ -308,7 +308,7 @@
   - **Ergebnis/Definition of Done:** Alle neutralen Originalfunktionen nachgewiesen; Free ohne Woo/Suite/Pro, Gates B/C bestanden.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-19 · Mehrsprachigkeit und Accessibility umsetzen**
+- [x] **R1-19 · Mehrsprachigkeit und Accessibility umsetzen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-19-nachweis.md`; deutsche Übersetzung `languages/course-captain-de_DE.po/.mo` (du-Form, im Release-ZIP), `Locale` (Varianten-Fallback, `lang`/`dir`, RTL je Sprach-Tag, Profilsprache E-124, REST-Fehler in Nutzersprache LOC-015), CSS nur logische Properties, sichtbarer Fokus, reduzierte Bewegung/Forced Colors, Prüfungsraum ohne JavaScript mit Timer-Ansagen und Bestätigung, `_n()`-Zählsätze, statischer i18n-Scan im Textdomain-Lint, DOM-A11y-Prüfungen `A11yI18nTest` für Lernbereich, Admin-Screens und Blöcke, Playwright-Tastatur- und axe-Lauf (0 Verstöße); Integration 398, Multisite 411. Offen: Screenreader-Test NVDA/VoiceOver (R1-29), axe als CI-Gate, Sie-Form, Polylang LOC-014/028, Alt-Text-Regeln im Validator. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-05,R1-16.
   - **Ergebnis/Definition of Done:** Lernraum/Admin per Tastatur bedienbar, übersetzbare Strings, Locale/RTL/Screenreader- und Responsive-Tests grün.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

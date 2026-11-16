@@ -65,7 +65,7 @@ final class IdentityNotice {
 		}
 		echo '<div class="notice ' . ( $copy ? 'notice-info' : 'notice-error' ) . ' ccap-identity-notice"><p>' . esc_html( $text ) . '</p><p>';
 		foreach ( $buttons as $choice => $label ) {
-			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin-right:8px">';
+			echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline-block;margin-inline-end:8px">';
 			echo '<input type="hidden" name="action" value="' . esc_attr( self::ACTION ) . '" />';
 			echo '<input type="hidden" name="choice" value="' . esc_attr( $choice ) . '" />';
 			wp_nonce_field( self::ACTION );

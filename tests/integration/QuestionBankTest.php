@@ -253,7 +253,7 @@ final class QuestionBankTest extends SchemaTestCase {
 
 		$parts  = explode( '.', $delivery['token'] );
 		$claims = json_decode( (string) base64_decode( strtr( $parts[0], '-_', '+/' ) ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-		self::assertSame( QuestionPresenter::TOKEN_TTL, $claims['exp'] - time(), 'TTL 7200 s' );
+		self::assertEqualsWithDelta( QuestionPresenter::TOKEN_TTL, $claims['exp'] - time(), 2, 'TTL 7200 s (clock may tick under load)' );
 
 		$db = Database::current();
 		$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_grant' ) . "` SET status = 'revoked' WHERE id = %d", $this->grant ) );

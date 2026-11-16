@@ -1013,11 +1013,14 @@ final class NotificationService {
 		if ( $failed >= self::FAILED_CRITICAL || $stale > 0 ) {
 			$status = 'critical';
 			/* translators: 1: failed mails, 2: waiting mails */
-			$label = sprintf( __( 'Course Captain mail delivery has problems: %1$d failed in 24 hours, %2$d waiting longer than one hour.', 'course-captain' ), $failed, $stale );
+			$label = sprintf( __( 'Course Captain mail delivery has problems: %1$s failed in 24 hours, %2$s waiting longer than one hour.', 'course-captain' ), number_format_i18n( $failed ), number_format_i18n( $stale ) );
 		} elseif ( $failed > 0 || '' !== $mode['warning'] ) {
 			$status = 'recommended';
-			/* translators: %d: failed mails */
-			$label = '' !== $mode['warning'] ? __( 'The catch address for Course Captain mails is invalid; outbound mails are switched off.', 'course-captain' ) : sprintf( __( '%d Course Captain mails failed in the last 24 hours.', 'course-captain' ), $failed );
+			$label  = '' !== $mode['warning'] ? __( 'The catch address for Course Captain mails is invalid; outbound mails are switched off.', 'course-captain' ) : sprintf(
+				/* translators: %s: number of failed mails */
+				_n( '%s Course Captain mail failed in the last 24 hours.', '%s Course Captain mails failed in the last 24 hours.', $failed, 'course-captain' ),
+				number_format_i18n( $failed )
+			);
 		}
 		return array(
 			'label'       => $label,
@@ -1048,8 +1051,8 @@ final class NotificationService {
 			return;
 		}
 		if ( $failed > 0 ) {
-			/* translators: %d: number of failed mails */
-			Notices::add( 'ccap_mail_failed', 'error', sprintf( _n( '%d Course Captain message could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin.', '%d Course Captain messages could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin.', $failed, 'course-captain' ), $failed ) );
+			/* translators: %s: number of failed mails */
+			Notices::add( 'ccap_mail_failed', 'error', sprintf( _n( '%s Course Captain message could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin.', '%s Course Captain messages could not be sent in the last 24 hours. Check the mail settings or your SMTP plugin.', $failed, 'course-captain' ), number_format_i18n( $failed ) ) );
 		}
 	}
 

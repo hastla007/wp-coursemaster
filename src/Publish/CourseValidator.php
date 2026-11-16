@@ -352,8 +352,12 @@ final class CourseValidator {
 							'required'  => $count,
 							'available' => $available,
 						),
-						/* translators: 1: available, 2: required */
-						sprintf( __( 'Only %1$d of %2$d questions are available in this module. Reduce the number or add questions.', 'course-captain' ), $available, $count )
+						sprintf(
+							/* translators: 1: available questions, 2: required questions */
+							_n( 'Only %1$s of %2$s question is available in this module. Reduce the number or add questions.', 'Only %1$s of %2$s questions are available in this module. Reduce the number or add questions.', $count, 'course-captain' ),
+							number_format_i18n( $available ),
+							number_format_i18n( $count )
+						)
 					);
 				}
 			}

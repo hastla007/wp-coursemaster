@@ -195,6 +195,7 @@ final class Plugin {
 		// KOMP-015: is_ssl() behind a trusted TLS-terminating proxy.
 		\CourseCaptain\Security\ClientIp::apply_forwarded_https();
 		add_action( 'init', array( $this, 'load_textdomain' ), 1 );
+		Locale::register();
 		add_action( 'init', array( $this, 'maybe_flush_rewrite_rules' ), 999 );
 		add_action( 'admin_init', array( $this, 'on_admin_init' ) );
 		add_action( 'upgrader_process_complete', array( $this, 'on_upgrader_process_complete' ), 10, 2 );

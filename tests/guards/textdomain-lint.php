@@ -6,6 +6,15 @@
  * literal `course-captain`, source strings are English (heuristic: no German
  * umlauts or sharp s) and `languages/course-captain.pot` exists.
  *
+ * R1-19 additions (R0-15 §3.2/§3.8):
+ * - I18N-R-02/-03: every text argument is one string literal (no variable,
+ *   constant or concatenation inside the call);
+ * - I18N-R-06: a text with printf placeholders has a `translators:` comment
+ *   in the same statement, at most two lines above the call;
+ * - I18N-005: `wp_date()`/`date_i18n()` with a literal format only for ISO
+ *   formats (display formats come from the site settings);
+ * - I18N-R-12: no physical `left`/`right` CSS properties in shipped code.
+ *
  * Usage: php tests/guards/textdomain-lint.php [--root=<dir>]
  *
  * @package CourseCaptain
@@ -45,6 +54,41 @@ final class TextdomainLint {
 		'translate'              => 1,
 		'load_plugin_textdomain' => 0,
 	);
+
+	/**
+	 * Gettext functions => zero-based indexes of text (and context) arguments.
+	 *
+	 * @var array<string, list<int>>
+	 */
+	public const TEXT_ARGUMENTS = array(
+		'__'         => array( 0 ),
+		'_e'         => array( 0 ),
+		'esc_html__' => array( 0 ),
+		'esc_html_e' => array( 0 ),
+		'esc_attr__' => array( 0 ),
+		'esc_attr_e' => array( 0 ),
+		'_x'         => array( 0, 1 ),
+		'_ex'        => array( 0, 1 ),
+		'esc_html_x' => array( 0, 1 ),
+		'esc_attr_x' => array( 0, 1 ),
+		'_n'         => array( 0, 1 ),
+		'_nx'        => array( 0, 1, 3 ),
+		'_n_noop'    => array( 0, 1 ),
+		'_nx_noop'   => array( 0, 1, 2 ),
+		'translate'  => array( 0 ),
+	);
+
+	/**
+	 * Literal date formats allowed in `wp_date()`/`date_i18n()` (machine formats, I18N-005).
+	 *
+	 * @var list<string>
+	 */
+	public const ISO_FORMATS = array( 'c', 'U', 'Y-m-d', 'Y-m-d H:i:s', 'Y-m-d\\TH:i:sP', 'Y-m-d\\TH:i:s\\Z', 'Y-m' );
+
+	/**
+	 * Physical CSS properties (I18N-R-12; use logical properties instead).
+	 */
+	public const PHYSICAL_CSS = '/(?<![-\w])(?:margin|padding|border)-(?:left|right)\s*:|(?<![-\w])(?:left|right)\s*:\s*-?\d|text-align\s*:\s*(?:left|right)|float\s*:\s*(?:left|right)/';
 
 	/**
 	 * Constructor.
@@ -94,6 +138,10 @@ final class TextdomainLint {
 		}
 
 		foreach ( $this->files() as $file ) {
+			$problems = array_merge( $problems, $this->format_and_css_problems( $file ) );
+		}
+
+		foreach ( $this->files() as $file ) {
 			$tokens = token_get_all( (string) file_get_contents( $this->root . '/' . $file ) );
 			$count  = count( $tokens );
 			for ( $i = 0; $i < $count; $i++ ) {
@@ -127,9 +175,79 @@ final class TextdomainLint {
 						$problems[] = $where . ': source string is not English (E-121): ' . $part[1];
 					}
 				}
+				$placeholder = false;
+				foreach ( self::TEXT_ARGUMENTS[ $token[1] ] as $index ) {
+					$text = $arguments[ $index ] ?? array();
+					if ( 1 !== count( $text ) || ! is_array( $text[0] ) || T_CONSTANT_ENCAPSED_STRING !== $text[0][0] ) {
+						$problems[] = $where . ': text argument ' . ( $index + 1 ) . ' of ' . $token[1] . '() must be one string literal (I18N-R-02).';
+						continue;
+					}
+					$placeholder = $placeholder || 1 === preg_match( '/%(?:\d+\$)?[sdfiuxXeEgGc]/', str_replace( '%%', '', $text[0][1] ) );
+				}
+				if ( $placeholder && ! self::has_translator_comment( $tokens, $i ) ) {
+					$problems[] = $where . ': ' . $token[1] . '() with placeholders needs a translators: comment (I18N-R-06).';
+				}
 			}
 		}
 		return $problems;
+	}
+
+	/**
+	 * Fixed display date formats (I18N-005) and physical CSS properties (I18N-R-12) in one file.
+	 *
+	 * @param string $file File relative to the root.
+	 * @return list<string>
+	 */
+	private function format_and_css_problems( string $file ): array {
+		$problems = array();
+		$tokens   = token_get_all( (string) file_get_contents( $this->root . '/' . $file ) );
+		$count    = count( $tokens );
+		for ( $i = 0; $i < $count; $i++ ) {
+			$token = $tokens[ $i ];
+			if ( ! is_array( $token ) ) {
+				continue;
+			}
+			if ( T_STRING === $token[0] && in_array( $token[1], array( 'wp_date', 'date_i18n' ), true ) ) {
+				$arguments = self::arguments( $tokens, $i + 1 );
+				$format    = $arguments[0] ?? array();
+				if ( null !== $arguments && 1 === count( $format ) && is_array( $format[0] ) && T_CONSTANT_ENCAPSED_STRING === $format[0][0] && ! in_array( substr( $format[0][1], 1, -1 ), self::ISO_FORMATS, true ) ) {
+					$problems[] = $file . ':' . $token[2] . ': ' . $token[1] . '() with fixed display format ' . $format[0][1] . '; use the site date/time format (I18N-005).';
+				}
+			}
+			if ( in_array( $token[0], array( T_CONSTANT_ENCAPSED_STRING, T_ENCAPSED_AND_WHITESPACE, T_INLINE_HTML ), true ) && 1 === preg_match( self::PHYSICAL_CSS, $token[1], $m ) ) {
+				$problems[] = $file . ':' . $token[2] . ': physical CSS property "' . trim( $m[0] ) . '"; use logical properties (I18N-R-12).';
+			}
+		}
+		return $problems;
+	}
+
+	/**
+	 * Whether a `translators:` comment precedes the call at $index within the
+	 * same statement and at most two lines above it.
+	 *
+	 * @param array<int, mixed> $tokens Tokens.
+	 * @param int               $index  Index of the function name.
+	 * @return bool
+	 */
+	private static function has_translator_comment( array $tokens, int $index ): bool {
+		$line = is_array( $tokens[ $index ] ) ? (int) $tokens[ $index ][2] : 0;
+		for ( $j = $index - 1; $j >= 0; $j-- ) {
+			$token = $tokens[ $j ];
+			if ( in_array( $token, array( ';', '{', '}' ), true ) ) {
+				return false;
+			}
+			if ( ! is_array( $token ) ) {
+				continue;
+			}
+			$end = (int) $token[2] + substr_count( $token[1], "\n" );
+			if ( $end < $line - 2 ) {
+				return false;
+			}
+			if ( in_array( $token[0], array( T_COMMENT, T_DOC_COMMENT ), true ) && false !== stripos( $token[1], 'translators:' ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
