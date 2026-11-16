@@ -181,10 +181,11 @@ final class Flashcards {
 		$claims   = $card['claims'];
 		$question = (int) $claims['q'];
 		$table    = $this->db->table( 'ccap_question_progress' );
+		// R0-21 R-2: create the row before the transaction.
+		$this->db->execute( $this->db->prepare( "INSERT IGNORE INTO `{$table}` (user_id, question_id, algorithm_version, learn_status) VALUES (%d, %d, %d, 'open')", $actor->user_id, $question, self::ALGORITHM_VERSION ) );
 		try {
 			$out = $this->db->transaction(
 				function ( Database $db ) use ( $actor, $claims, $question, $table, $key, $answer, $next ): array {
-					$db->execute( $db->prepare( "INSERT IGNORE INTO `{$table}` (user_id, question_id, algorithm_version, learn_status) VALUES (%d, %d, %d, 'open')", $actor->user_id, $question, self::ALGORITHM_VERSION ) );
 					$row = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND question_id = %d FOR UPDATE", $actor->user_id, $question ) );
 					if ( null !== $this->attempt( $actor->user_id, $key ) ) {
 						return self::state( $row, false );

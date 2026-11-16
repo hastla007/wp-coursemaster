@@ -323,7 +323,7 @@
   - **Ergebnis/Definition of Done:** Einladung, Claim, Ablauf, Abschluss, Fehler und Opt-out mit WP-Mail, Rate-Limits, Datenschutz und Test-Mail-Sink.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-22 · Skalierung und Lasttests**
+- [x] **R1-22 · Skalierung und Lasttests** — erledigt 16.11.2026: Nachweis `docs/r1/R1-22-nachweis.md`; R-CI-Gates in `PerformanceTest` (Query-Zähler je OP, Konstanzregel, EXPLAIN-Scanregel auf befüllten Tabellen, Outbox-Rückstand 2 000 Ereignisse); N+1 in „Mein Lernen“ (22/106/421 → 21/21/21) und Prüfungsstart (44/152 → 22) behoben; Integration 303, Multisite 315. Absolute Query-Budgets OP-01/03/04/05/06 überschritten (B-3, als Regressionsgrenze fixiert), k6-Profile L1–L4 auf R-M offen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-20.
   - **Ergebnis/Definition of Done:** Große Kurs-/Fragenmengen, parallele Prüfungen, Query-/Index-Analyse, Job-Backlog und Performancebudgets nachgewiesen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
@@ -408,7 +408,7 @@
   - **Ergebnis/Definition of Done:** Cron/Jobs/Import/Grant-Fehler mit IDs und sicheren Retry/Reconcile-Aktionen, Rollen-/Dedupe-Tests, redigiertem Diagnoseexport.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R1-39 · Distribution- und Erstinstallationsabnahme**
+- [x] **R1-39 · Distribution- und Erstinstallationsabnahme** — erledigt 16.11.2026: Nachweis `docs/r1/R1-39-nachweis.md`; reproduzierbarer ZIP-Build (`tools/release/build-zip.php`, SOURCE_DATE_EPOCH, SHA256SUMS), ZIP-Prüfung J-17 (`check-zip.php`), Artefakt-Installationstest auf frischem WP (`artifact-test.sh`), CI-Job `build-zip`, `DistributionTest` mit Negativfällen. Offen: Plugin Check, de_DE-Übersetzung (R1-19), Sicherheitsadresse SECURITY.md (Auftraggeber), SBOM J-18. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-23,R1-24,R1-30,R0-35.
   - **Ergebnis/Definition of Done:** Free-ZIP Clean-Install, Upgrade, WordPress.org-Readme, i18n, Demo ohne Fremdinhalte, Support-Runbook und Deaktivierung geprüft.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
@@ -423,7 +423,7 @@
   - **Ergebnis/Definition of Done:** Dry-run vor Commit, Fortschritt/Resume, pro Objekt validierte Fehler, idempotenter Reimport, Rollback und Rechteprüfung E2E.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-42 · Parallelitäts- und Datenintegritäts-Lastprofil**
+- [x] **R1-42 · Parallelitäts- und Datenintegritäts-Lastprofil** — erledigt 16.11.2026: Nachweis `docs/r1/R1-42-nachweis.md`; Mehrprozess-`RaceRunner` (fork, Startbarriere), `ConcurrencyTest` CON-001/002/005/008/011/015/016/019/040/042/043 mit N = 50 ohne verletzte Invariante; Deadlock-Retry (3×, Jitter) und `ccap_db_busy` (503) in `Database`, Vorab-INSERT der Fortschrittszeilen (R0-21 R-2), Lock-Reihenfolge NFR-012 dokumentiert; Integration 303, Multisite 315. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-20,R1-22,R1-40.
   - **Ergebnis/Definition of Done:** Gleichzeitige Enrollment-/Seat-/Attempt-/Completion-Operationen gegen echte DB, Unique-Invarianten, Deadlock-/Retry- und Messprotokoll.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.

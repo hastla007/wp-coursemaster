@@ -93,6 +93,22 @@ final class SmartTrainer {
 	}
 
 	/**
+	 * R0-21 R-2: create the progress row before the business transaction
+	 * (autocommit, content-neutral, idempotent), so parallel first answers
+	 * never upgrade S→X locks inside one transaction.
+	 *
+	 * @param Database $db       Database.
+	 * @param int      $user     Learner.
+	 * @param int      $question Question.
+	 * @param string   $status   Initial status (`new`, flashcards `open`).
+	 * @return void
+	 */
+	public static function ensure_row( Database $db, int $user, int $question, string $status = 'new' ): void {
+		$table = $db->table( 'ccap_question_progress' );
+		$db->execute( $db->prepare( "INSERT IGNORE INTO `{$table}` (user_id, question_id, algorithm_version, learn_status) VALUES (%d, %d, %d, %s)", $user, $question, self::ALGORITHM_VERSION, $status ) );
+	}
+
+	/**
 	 * Progress update for one learning answer (`applyProgress`); call inside
 	 * the transaction that stores the answer.
 	 *
@@ -105,8 +121,13 @@ final class SmartTrainer {
 	public static function apply( Database $db, int $user, int $question, bool $correct ): array {
 		$now   = self::now();
 		$table = $db->table( 'ccap_question_progress' );
-		$db->execute( $db->prepare( "INSERT IGNORE INTO `{$table}` (user_id, question_id, algorithm_version, learn_status) VALUES (%d, %d, %d, 'new')", $user, $question, self::ALGORITHM_VERSION ) );
-		$row      = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND question_id = %d FOR UPDATE", $user, $question ) );
+		$row   = $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND question_id = %d FOR UPDATE", $user, $question ) );
+		if ( null === $row ) {
+			// Fallback for callers without ensure_row() (R0-21 R-2 expects the row to exist).
+			self::ensure_row( $db, $user, $question );
+			$row = $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND question_id = %d FOR UPDATE", $user, $question ) );
+		}
+		$row      = (array) $row;
 		$attempts = (int) $row['attempts'] + 1;
 		$right    = (int) $row['correct_count'] + ( $correct ? 1 : 0 );
 		$wrong    = (int) $row['wrong_count'] + ( $correct ? 0 : 1 );

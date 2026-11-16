@@ -78,21 +78,23 @@ final class CourseProgress {
 	 * @return array{status: string, completion_ratio: string, mastery_ratio: string|null, activities_done: int, activities_total: int, course_revision_id: int|null, completed_revision_id: int|null, modules: list<array{module_id: int, required: bool, accessible: bool, done: int, total: int, completed: bool}>}
 	 */
 	public function recalculate( int $user_id, int $course_id ): array {
+		// R0-21 R-2: the row exists before the business transaction (autocommit, idempotent).
+		$initial = $this->current_revision_id( $course_id );
+		$this->db->execute(
+			$this->db->prepare(
+				'INSERT IGNORE INTO `' . $this->db->table( 'ccap_course_progress' ) . "` (user_id, course_id, course_revision_id, status, updated_at) VALUES (%d, %d, %s, 'not_started', %s)",
+				$user_id,
+				$course_id,
+				null === $initial ? null : (string) $initial,
+				$this->db->now()
+			)
+		);
 		return $this->db->transaction(
 			function ( Database $db ) use ( $user_id, $course_id ): array {
 				$table    = $db->table( 'ccap_course_progress' );
 				$now      = $db->now();
 				$revision = $this->current_revision_id( $course_id );
-				$db->execute(
-					$db->prepare(
-						"INSERT IGNORE INTO `{$table}` (user_id, course_id, course_revision_id, status, updated_at) VALUES (%d, %d, %s, 'not_started', %s)",
-						$user_id,
-						$course_id,
-						null === $revision ? null : (string) $revision,
-						$now
-					)
-				);
-				$row = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND course_id = %d FOR UPDATE", $user_id, $course_id ) );
+				$row      = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE user_id = %d AND course_id = %d FOR UPDATE", $user_id, $course_id ) );
 				// Forward roll with vested rights (R0-23 §3.2, RV-07…RV-10): the learner follows the
 				// published revision at the next access; completed activities keep their status via
 				// stable lesson IDs, a course completion stays an event of its revision (RV-09).

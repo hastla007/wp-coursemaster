@@ -515,13 +515,22 @@ final class ExamSessions {
 	private function create_session( Actor $actor, array $rule, ?int $variant_id, string $form_key, string $request_key, Randomizer $randomizer, array $plan ): int {
 		$settings = (array) $rule['settings'];
 		$items    = array();
+		// One query for the current revisions, three for their content (R0-14 OP-05: no per-question queries).
+		$qids    = array_map( static fn( array $q ): int => (int) $q['question_id'], $plan['questions'] );
+		$current = array();
+		if ( array() !== $qids ) {
+			foreach ( $this->db->rows( 'SELECT id, current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id IN (' . implode( ',', $qids ) . ')' ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Integer list.
+				$current[ (int) $row['id'] ] = (int) $row['current_revision_id'];
+			}
+		}
+		$revisions = $this->questions->revisions( array_values( $current ) );
 		foreach ( $plan['questions'] as $i => $q ) {
-			$current  = (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $q['question_id'] ) );
-			$revision = (array) $this->questions->revision( $current );
-			$order    = empty( $settings['shuffle_answers'] ) ? array() : QuestionTypes::deliver( $revision, $randomizer, (string) $q['question_id'] )['order'];
-			$items[]  = $q + array(
+			$revision_id = $current[ (int) $q['question_id'] ] ?? 0;
+			$revision    = (array) ( $revisions[ $revision_id ] ?? array() );
+			$order       = empty( $settings['shuffle_answers'] ) ? array() : QuestionTypes::deliver( $revision, $randomizer, (string) $q['question_id'] )['order'];
+			$items[]     = $q + array(
 				'position'    => $i + 1,
-				'revision_id' => $current,
+				'revision_id' => $revision_id,
 				'order'       => array_values( $order ),
 				'scoring'     => (string) ( $revision['settings']['scoring'] ?? QuestionTypes::ALL_OR_NOTHING ),
 			);
@@ -599,17 +608,13 @@ final class ExamSessions {
 						'deadline_at'        => null === $limit ? null : gmdate( 'Y-m-d H:i:s', $started + $limit ),
 					)
 				);
+				// One multi-row INSERT for all session questions (R0-14 OP-05).
+				$values = array();
 				foreach ( $items as $item ) {
-					$db->insert(
-						'ccap_exam_session_question',
-						array(
-							'session_id'   => $session,
-							'position'     => $item['position'],
-							'question_id'  => $item['question_id'],
-							'revision_id'  => $item['revision_id'],
-							'answer_order' => (string) wp_json_encode( $item['order'] ),
-						)
-					);
+					$values[] = $db->prepare( '(%d, %d, %d, %d, %s)', $session, $item['position'], $item['question_id'], $item['revision_id'], (string) wp_json_encode( $item['order'] ) );
+				}
+				if ( array() !== $values ) {
+					$db->execute( 'INSERT INTO `' . $db->table( 'ccap_exam_session_question' ) . '` (session_id, position, question_id, revision_id, answer_order) VALUES ' . implode( ',', $values ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Rows prepared above.
 				}
 				return $session;
 			}

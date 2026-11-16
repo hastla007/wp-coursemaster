@@ -122,6 +122,17 @@ final class PolicyService {
 	}
 
 	/**
+	 * Drop the request instance so the next call binds to the current `$wpdb`
+	 * (forked test processes with their own connection).
+	 *
+	 * @internal
+	 * @return void
+	 */
+	public static function reset_instance(): void {
+		self::$instance = null;
+	}
+
+	/**
 	 * Forget all memoized decisions (P-11, `switch_to_blog`).
 	 *
 	 * @return void

@@ -80,6 +80,7 @@ final class AnswerService {
 		$correct  = $eval->correct();
 		$progress = null;
 		SmartTrainer::current()->rate_limit( $actor->user_id );
+		SmartTrainer::ensure_row( $this->db, $actor->user_id, (int) $claims['q'] );
 		try {
 			$attempt = $this->db->transaction(
 				function ( Database $db ) use ( $actor, $claims, $answer, $idempotency_key, $context, $correct, $revision, &$progress ): int {

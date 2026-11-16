@@ -79,33 +79,66 @@ final class LearnerQueries {
 		if ( $actor->user_id <= 0 ) {
 			return array();
 		}
-		$ids = array_map(
-			'intval',
-			$this->db->wpdb()->get_col( $this->db->prepare( 'SELECT DISTINCT course_id FROM `' . $this->db->table( 'ccap_grant' ) . '` WHERE user_id = %d', $actor->user_id ) )
-		);
-		$out = array();
+		// R0-14 OP-01: a fixed number of queries independent of the number of courses (no N+1).
+		$grants = array();
+		foreach ( $this->db->rows( $this->db->prepare( 'SELECT course_id, module_id, status, valid_from, valid_until FROM `' . $this->db->table( 'ccap_grant' ) . '` WHERE user_id = %d', $actor->user_id ) ) as $row ) {
+			$grants[ (int) $row['course_id'] ][] = $row;
+		}
+		$ids = array_keys( $grants );
+		if ( array() === $ids ) {
+			return array();
+		}
+		_prime_post_caches( $ids, false, true );
+		$in       = implode( ',', array_map( 'intval', $ids ) );
+		$progress = array();
+		foreach ( $this->db->rows( $this->db->prepare( 'SELECT course_id, status, completion_ratio, last_activity_at FROM `' . $this->db->table( 'ccap_course_progress' ) . "` WHERE user_id = %d AND course_id IN ({$in})", $actor->user_id ) ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+			$progress[ (int) $row['course_id'] ] = $row;
+		}
+		$uids = array();
+		foreach ( $this->db->rows( 'SELECT object_id, uid FROM `' . $this->db->table( 'ccap_source_map' ) . "` WHERE object_type = 'course' AND object_id IN ({$in})" ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+			$uids[ (int) $row['object_id'] ] = (string) $row['uid'];
+		}
+		$out    = array();
+		$latest = null;
 		foreach ( $ids as $course_id ) {
 			$post = get_post( $course_id );
 			if ( ! $post instanceof \WP_Post || 'publish' !== $post->post_status ) {
 				continue;
 			}
-			$access   = $this->access_state( $actor, $course_id );
-			$progress = CourseProgress::current()->get( $actor->user_id, $course_id );
-			$out[]    = array(
+			$access = $this->access_from_rows( $actor, $course_id, $grants[ $course_id ] );
+			$row    = $progress[ $course_id ] ?? null;
+			$out[]  = array(
 				'course_id'  => $course_id,
-				'course_uid' => (string) ( new ObjectIdentity( $this->db ) )->ensure( $post ),
+				'course_uid' => $uids[ $course_id ] ?? (string) ( new ObjectIdentity( $this->db ) )->ensure( $post ),
 				'title'      => $post->post_title,
 				'access'     => $access,
 				'progress'   => array(
-					'completion_percent' => null === $progress ? 0 : (int) floor( (float) $progress['completion_ratio'] * 100 ),
-					'status'             => null === $progress ? 'not_started' : (string) $progress['status'],
+					'completion_percent' => null === $row ? 0 : (int) floor( (float) $row['completion_ratio'] * 100 ),
+					'status'             => null === $row ? 'not_started' : (string) $row['status'],
 				),
-				'resume'     => in_array( $access['state'], array( 'active', 'limited' ), true ) ? $this->resume( $actor, $course_id ) : null,
+				'resume'     => null,
 			);
+			if ( in_array( $access['state'], array( 'active', 'limited' ), true ) && ( null === $latest || (string) ( $row['last_activity_at'] ?? '' ) > $latest['at'] ) ) {
+				$latest = array(
+					'course' => $course_id,
+					'at'     => (string) ( $row['last_activity_at'] ?? '' ),
+				);
+			}
+		}
+		// "Continue" is computed for the most recently used course only (one course room, constant cost).
+		if ( null !== $latest ) {
+			$resume = $this->resume( $actor, $latest['course'] );
+			foreach ( $out as $i => $entry ) {
+				if ( $entry['course_id'] === $latest['course'] ) {
+					$entry['resume'] = $resume;
+					$out[ $i ]       = $entry;
+				}
+			}
 		}
 		usort( $out, static fn( array $a, array $b ): int => strcmp( $a['title'], $b['title'] ) );
 		return $out;
 	}
+
 
 	/**
 	 * Access state of a course (GM-091).
@@ -115,7 +148,18 @@ final class LearnerQueries {
 	 * @return array{state: string, valid_until: string|null}
 	 */
 	public function access_state( Actor $actor, int $course_id ): array {
-		$rows  = $this->db->rows( $this->db->prepare( 'SELECT module_id, status, valid_from, valid_until FROM `' . $this->db->table( 'ccap_grant' ) . '` WHERE user_id = %d AND course_id = %d', $actor->user_id, $course_id ) );
+		return $this->access_from_rows( $actor, $course_id, $this->db->rows( $this->db->prepare( 'SELECT module_id, status, valid_from, valid_until FROM `' . $this->db->table( 'ccap_grant' ) . '` WHERE user_id = %d AND course_id = %d', $actor->user_id, $course_id ) ) );
+	}
+
+	/**
+	 * Access state from already loaded grant rows of one course.
+	 *
+	 * @param Actor                            $actor     Learner.
+	 * @param int                              $course_id Course.
+	 * @param array<int, array<string, mixed>> $rows      Grant rows (module_id, status, valid_from, valid_until).
+	 * @return array{state: string, valid_until: string|null}
+	 */
+	private function access_from_rows( Actor $actor, int $course_id, array $rows ): array {
 		$now   = $this->db->now();
 		$found = array();
 		$until = null;

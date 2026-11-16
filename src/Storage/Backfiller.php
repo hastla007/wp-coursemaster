@@ -74,6 +74,7 @@ final class Backfiller {
 	 * @param BackfillStep $step Step.
 	 * @return array{status: string, error: string, rows: int}
 	 * @throws MigrationFencedException When the lease is lost (no status written).
+	 * @throws \CourseCaptain\Course\CourseException Domain errors other than `ccap_db_busy`.
 	 */
 	public function run( BackfillStep $step ): array {
 		$id  = $step->id();
@@ -132,6 +133,13 @@ final class Backfiller {
 			}
 		} catch ( MigrationFencedException $e ) {
 			throw $e;
+		} catch ( \CourseCaptain\Course\CourseException $e ) {
+			// `Database::transaction()` already retried deadlocks (R0-21 T-2): treat as transient.
+			if ( 'ccap_db_busy' !== $e->error_code ) {
+				throw $e;
+			}
+			$this->steps->pause( $id, $this->lease );
+			return self::outcome( self::TRANSIENT, 'ccap_db_busy', $rows );
 		} catch ( StorageException $e ) {
 			if ( $e->is_transient() ) {
 				$this->steps->pause( $id, $this->lease );

@@ -229,43 +229,88 @@ final class QuestionRepository {
 	 * @return array<string, mixed>|null
 	 */
 	private function load_revision( int $revision_id ): ?array {
-		$row = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_question_revision' ) . '` WHERE id = %d', $revision_id ) );
-		if ( null === $row ) {
-			return null;
-		}
-		$answers = $this->db->rows( $this->db->prepare( 'SELECT answer_key, answer_text, is_correct, sort_order FROM `' . $this->db->table( 'ccap_answer' ) . '` WHERE revision_id = %d ORDER BY sort_order, answer_key', $revision_id ) );
-		$tags    = $this->db->rows( $this->db->prepare( 'SELECT tag_type, tag_key, label FROM `' . $this->db->table( 'ccap_question_tag' ) . '` WHERE revision_id = %d ORDER BY tag_type, tag_key', $revision_id ) );
-		$decoded = json_decode( (string) $row['settings'], true );
-		return array(
-			'id'                 => (int) $row['id'],
-			'question_id'        => (int) $row['question_id'],
-			'revision_no'        => (int) $row['revision_no'],
-			'content_hash'       => (string) $row['content_hash'],
-			'editorial_status'   => (string) $row['editorial_status'],
-			'question_type'      => (string) $row['question_type'],
-			'question_text'      => (string) $row['question_text'],
-			'settings'           => is_array( $decoded ) ? $decoded : array(),
-			'feedback_correct'   => $row['feedback_correct'],
-			'feedback_incorrect' => $row['feedback_incorrect'],
-			'answers'            => array_map(
-				static fn( array $a ): array => array(
-					'key'     => (string) $a['answer_key'],
-					'text'    => (string) $a['answer_text'],
-					'correct' => '1' === (string) $a['is_correct'],
-					'sort'    => (int) $a['sort_order'],
-				),
-				$answers
-			),
-			'tags'               => array_map(
-				static fn( array $t ): array => array(
-					'type'  => (string) $t['tag_type'],
-					'key'   => (string) $t['tag_key'],
-					'label' => (string) $t['label'],
-				),
-				$tags
-			),
-		);
+		return $this->load_many( array( $revision_id ) )[ $revision_id ] ?? null;
 	}
+
+	/**
+	 * Several revisions with three queries in total (no per-revision queries, R0-14 OP-05).
+	 * Immutable revisions are put into the K1 cache like `revision()`.
+	 *
+	 * @param array<int> $revision_ids Revisions.
+	 * @return array<int, array<string, mixed>> Keyed by revision ID; unknown IDs are missing.
+	 */
+	public function revisions( array $revision_ids ): array {
+		$out     = array();
+		$missing = array();
+		foreach ( array_values( array_unique( array_map( 'intval', $revision_ids ) ) ) as $id ) {
+			$hit = wp_cache_get( \CourseCaptain\Cache\CacheStore::key( 'k1', 'shared', 'qrev:' . $id, array() ), \CourseCaptain\Cache\CacheStore::GROUP );
+			if ( is_array( $hit ) && array_key_exists( 'v', $hit ) && is_array( $hit['v'] ) ) {
+				$out[ $id ] = $hit['v'];
+			} else {
+				$missing[] = $id;
+			}
+		}
+		foreach ( $this->load_many( $missing ) as $id => $value ) {
+			if ( 'draft' !== $value['editorial_status'] ) {
+				wp_cache_set( \CourseCaptain\Cache\CacheStore::key( 'k1', 'shared', 'qrev:' . $id, array() ), array( 'v' => $value ), \CourseCaptain\Cache\CacheStore::GROUP, \CourseCaptain\Cache\CacheStore::TTL_K1 );
+			}
+			$out[ $id ] = $value;
+		}
+		return $out;
+	}
+
+	/**
+	 * Load revisions from the database (three queries).
+	 *
+	 * @param array<int> $ids Revision IDs.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function load_many( array $ids ): array {
+		$ids = array_values( array_filter( array_map( 'intval', $ids ), static fn( int $id ): bool => $id > 0 ) );
+		if ( array() === $ids ) {
+			return array();
+		}
+		$in      = implode( ',', $ids );
+		$rows    = $this->db->rows( 'SELECT * FROM `' . $this->db->table( 'ccap_question_revision' ) . "` WHERE id IN ({$in})" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+		$answers = array();
+		foreach ( $this->db->rows( 'SELECT revision_id, answer_key, answer_text, is_correct, sort_order FROM `' . $this->db->table( 'ccap_answer' ) . "` WHERE revision_id IN ({$in}) ORDER BY revision_id, sort_order, answer_key" ) as $a ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+			$answers[ (int) $a['revision_id'] ][] = array(
+				'key'     => (string) $a['answer_key'],
+				'text'    => (string) $a['answer_text'],
+				'correct' => '1' === (string) $a['is_correct'],
+				'sort'    => (int) $a['sort_order'],
+			);
+		}
+		$tags = array();
+		foreach ( $this->db->rows( 'SELECT revision_id, tag_type, tag_key, label FROM `' . $this->db->table( 'ccap_question_tag' ) . "` WHERE revision_id IN ({$in}) ORDER BY revision_id, tag_type, tag_key" ) as $t ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+			$tags[ (int) $t['revision_id'] ][] = array(
+				'type'  => (string) $t['tag_type'],
+				'key'   => (string) $t['tag_key'],
+				'label' => (string) $t['label'],
+			);
+		}
+		$out = array();
+		foreach ( $rows as $row ) {
+			$id         = (int) $row['id'];
+			$decoded    = json_decode( (string) $row['settings'], true );
+			$out[ $id ] = array(
+				'id'                 => $id,
+				'question_id'        => (int) $row['question_id'],
+				'revision_no'        => (int) $row['revision_no'],
+				'content_hash'       => (string) $row['content_hash'],
+				'editorial_status'   => (string) $row['editorial_status'],
+				'question_type'      => (string) $row['question_type'],
+				'question_text'      => (string) $row['question_text'],
+				'settings'           => is_array( $decoded ) ? $decoded : array(),
+				'feedback_correct'   => $row['feedback_correct'],
+				'feedback_incorrect' => $row['feedback_incorrect'],
+				'answers'            => $answers[ $id ] ?? array(),
+				'tags'               => $tags[ $id ] ?? array(),
+			);
+		}
+		return $out;
+	}
+
 
 	/**
 	 * Canonical content hash (`sha256:` + 64 hex) over everything that

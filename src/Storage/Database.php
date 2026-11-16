@@ -41,6 +41,18 @@ final class Database {
 	private static array $queues = array();
 
 	/**
+	 * Deadlocks seen in this process.
+	 *
+	 * @var int
+	 */
+	private static int $deadlocks = 0;
+
+	/**
+	 * Total attempts of a unit of work on deadlocks (T-2).
+	 */
+	public const DEADLOCK_RETRIES = 3;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param wpdb         $wpdb  WordPress database object.
@@ -119,6 +131,7 @@ final class Database {
 	 * @phpstan-param Closure(self): T $work
 	 * @return T
 	 * @throws Throwable Rethrown from the unit of work after rollback.
+	 * @throws \CourseCaptain\Course\CourseException `ccap_db_busy` after 3 deadlocks or a lock wait timeout.
 	 */
 	public function transaction( Closure $work ) {
 		$conn = spl_object_id( $this->wpdb );
@@ -131,19 +144,35 @@ final class Database {
 			}
 		}
 
-		$this->execute( 'START TRANSACTION' );
-		self::$depths[ $conn ] = 1;
-		self::$queues[ $conn ] = array();
-		try {
-			$result = $work( $this );
-			$this->execute( 'COMMIT' );
-		} catch ( Throwable $e ) {
-			// Explicit rollback, also after lock wait timeouts (R0-21 T-3).
-			$this->wpdb->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		// T-2: a deadlock (1213) re-runs the whole unit up to three times; T-3: a lock wait
+		// timeout (1205) is not retried. Both end in `503 ccap_db_busy` with `retry_after`.
+		for ( $attempt = 1; ; $attempt++ ) {
+			$this->execute( 'START TRANSACTION' );
+			self::$depths[ $conn ] = 1;
 			self::$queues[ $conn ] = array();
-			throw $e;
-		} finally {
+			try {
+				$result = $work( $this );
+				$this->execute( 'COMMIT' );
+			} catch ( Throwable $e ) {
+				// Explicit rollback, also after lock wait timeouts (R0-21 T-3).
+				$this->wpdb->query( 'ROLLBACK' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				self::$queues[ $conn ] = array();
+				self::$depths[ $conn ] = 0;
+				$code                  = $e instanceof StorageException ? (int) $e->getCode() : 0;
+				if ( 1213 === $code ) {
+					++self::$deadlocks;
+					if ( $attempt < self::DEADLOCK_RETRIES ) {
+						usleep( wp_rand( 5000, 25000 ) * $attempt );
+						continue;
+					}
+				}
+				if ( 1213 === $code || 1205 === $code ) {
+					throw new \CourseCaptain\Course\CourseException( 'ccap_db_busy', 'Database busy.', 503, array( 'retry_after' => 2 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not output: machine code for the entry point.
+				}
+				throw $e;
+			}
 			self::$depths[ $conn ] = 0;
+			break;
 		}
 		$callbacks             = self::$queues[ $conn ];
 		self::$queues[ $conn ] = array();
@@ -151,6 +180,15 @@ final class Database {
 			$callback();
 		}
 		return $result;
+	}
+
+	/**
+	 * Deadlocks seen in this process (measurement, R0-21 CON-046).
+	 *
+	 * @return int
+	 */
+	public static function deadlocks(): int {
+		return self::$deadlocks;
 	}
 
 	/**
