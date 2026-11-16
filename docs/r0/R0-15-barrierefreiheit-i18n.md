@@ -451,9 +451,9 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md`, 16.11.2026). Die D-Nummern bl
 
 ### Offene Punkte nach Einarbeitung
 
-- Welche Fassung der EN 301 549 zum Release gilt, wird bei der Freigabe von R1-19 geprüft (§1.1).
-- A11Y-093 im Default-Modus „immer laden“ (E-45a): Für den direkt geladenen Fremd-Player gibt es noch keinen eigenen Prüffall (z. B. zugänglicher Name des eingebetteten Players); in R1-19 ergänzen.
-- Ü-6/Ü-7 haben keinen eigenen Beschluss und werden in R0-25 bzw. R0-10 präzisiert.
+- Welche Fassung der EN 301 549 zum Release gilt, wird bei der Freigabe von R1-19 geprüft (§1.1). → **technisch, an R1-19 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A)
+- A11Y-093 im Default-Modus „immer laden“ (E-45a): Für den direkt geladenen Fremd-Player gibt es noch keinen eigenen Prüffall (z. B. zugänglicher Name des eingebetteten Players); in R1-19 ergänzen. → **technisch, an R1-19 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Prüffall für den direkt geladenen Fremd-Player ergänzen
+- Ü-6/Ü-7 haben keinen eigenen Beschluss und werden in R0-25 bzw. R0-10 präzisiert. → **technisch, an R0-25/R0-10 (präzisiert) übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A)
 
 ---
 

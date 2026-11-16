@@ -282,8 +282,8 @@ h2 Schutzfunktionen                              [Vorschlag: alle an, außer bei
    [x] Limit für „Passwort vergessen“
    [x] Limit für Registrierungen      (nur sichtbar, wenn „Jeder kann sich registrieren“ an ist)
    ( ) XML-RPC: WordPress-Standard   (•) XML-RPC abschalten
-   Sicherheits-Header:  [x] nosniff  [x] Referrer-Policy  [x] Einbetten nur auf eigener Website  [x] Permissions-Policy
-       je Header: „bereits vom Server gesetzt“ oder leer
+   Sicherheits-Header:  [x] nosniff  [x] Referrer-Policy  [x] Einbetten nur auf eigener Website  [x] Permissions-Policy (nur Course-Captain-Seiten, E-309)
+       je Header: „bereits vom Server gesetzt“ bzw. „bereits von {Plugin} gesetzt“ (dann ruht er, E-307) oder leer
 ⚠ Warnung (nur bei Proxy-Verdacht): Alle Anfragen scheinen von 10.0.0.5 zu kommen …  [Proxy eintragen]
 ℹ Notfall: Falls du dich aussperrst … define( 'COURSE_CAPTAIN_HARDENING', 'off' ); · wp course-captain hardening disable
 [Zurück] [Überspringen] [Speichern und weiter]
@@ -618,7 +618,7 @@ h3 Anmeldung
        Passwort vergessen je Adresse: 10/h · je Konto und Adresse: 3/h · je Konto: 10/h
    Aktive Sperren: 2   [Alle Sperren aufheben]   (keine Adressen sichtbar)
 h3 XML-RPC         ( ) WordPress-Standard  (•) Abschalten
-h3 Sicherheits-Header   [x] nosniff [x] Referrer-Policy [x] Einbetten nur auf eigener Website [x] Permissions-Policy
+h3 Sicherheits-Header   [x] nosniff [x] Referrer-Policy [x] Einbetten nur auf eigener Website [x] Permissions-Policy (nur Course-Captain-Seiten, E-309)
                         je Header Status: „wird gesendet“ | „bereits vom Server gesetzt“ | „aus“  [Header erneut prüfen]
 h3 Notfall
    p Falls du dich aussperrst: in wp-config.php  define( 'COURSE_CAPTAIN_HARDENING', 'off' );
@@ -871,9 +871,9 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §39 und §36, „Von Claude e
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-30-1 | Admin-Screens für Text-/Dateiaufgaben (Abgabenliste, Bewertung `submitted → returned/graded`) und ihr Menüplatz | E-168 zieht die Funktion nach R1, R0-30 spezifiziert dafür keine Wireframes | Architektur (R1 Aufgaben, R1-32) |
-| OP-30-2 | Enumeration-Schutz: E-241 nennt Opt-in, E-261 R4-Pool | widersprüchlich; hier ohne UI (E-261) | Auftraggeber (Klarstellung) |
-| OP-30-3 | Hinweistext zu externen Medien rechtlich und sprachlich prüfen | Text ist Entwurf; Bewertung liegt beim Betreiber (R0-17 §6.5) | Auftraggeber, Redaktion R1-24 |
+| OP-30-1 | Admin-Screens für Text-/Dateiaufgaben (Abgabenliste, Bewertung `submitted → returned/graded`) und ihr Menüplatz | E-168 zieht die Funktion nach R1, R0-30 spezifiziert dafür keine Wireframes | Architektur (R1 Aufgaben, R1-32) → **technisch, an R1-32/R1-46 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Wireframes Abgabenliste und Bewertung vor Taskbeginn (DoR); Bewertungsrechte nach E-288 |
+| OP-30-2 | Enumeration-Schutz: E-241 nennt Opt-in, E-261 R4-Pool | widersprüchlich; hier ohne UI (E-261) | Auftraggeber (Klarstellung) → **erledigt durch E-308** |
+| OP-30-3 | Hinweistext zu externen Medien rechtlich und sprachlich prüfen | Text ist Entwurf; Bewertung liegt beim Betreiber (R0-17 §6.5) | Auftraggeber, Redaktion R1-24 → **Auftraggeber-Aktion (Blocker für Gate A)**: rechtliche und sprachliche Prüfung des Hinweistexts zu externen Medien (Gate A-9, zusammen mit AR-01), AG-07 |
 
 ---
 

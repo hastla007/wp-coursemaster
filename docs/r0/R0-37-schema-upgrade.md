@@ -363,6 +363,6 @@ Weitere zugrunde liegende Beschlüsse: E-07, E-49, E-90 sowie R0-06 E-48 (FKs) u
 
 ## Offene Punkte nach Einarbeitung
 
-1. **Lease-Name:** R0-21 (Nachtrag) nannte `migration`, dieses Dokument `schema-migration`; R0-21 ist auf `schema-migration` angepasst.
-2. **Namen interner Sperren und Health-Tests** (`ccap_mig_…`, Site-Health-Test `ccap_migration`) wurden analog zu E-207 gewählt; E-207 nennt diese Kennungen nicht ausdrücklich.
-3. **E-173 Rechtsbezug:** Ob die Fristverlängerung bei `strict`-Nachweisprüfungen im Ergebnis vermerkt wird, ist in R0-08 noch offen (Δ-37-6).
+1. **Lease-Name:** R0-21 (Nachtrag) nannte `migration`, dieses Dokument `schema-migration`; R0-21 ist auf `schema-migration` angepasst. → **erledigt durch E-300**
+2. **Namen interner Sperren und Health-Tests** (`ccap_mig_…`, Site-Health-Test `ccap_migration`) wurden analog zu E-207 gewählt; E-207 nennt diese Kennungen nicht ausdrücklich. → **erledigt durch E-285**
+3. **E-173 Rechtsbezug:** Ob die Fristverlängerung bei `strict`-Nachweisprüfungen im Ergebnis vermerkt wird, ist in R0-08 noch offen (Δ-37-6). → **technisch, an R1-40/R1-08 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Δ-37-6: Vermerk der Fristverlängerung im Ergebnis

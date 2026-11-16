@@ -16,7 +16,8 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 | **E-45, E-45a** | Externe Medien werden standardmäßig **ohne Klick geladen** (`external_media_mode` = „immer laden“, umschaltbar auf „Klick zum Laden“). Die readme muss die externen Dienste offenlegen (§1.4 „External services“); Hinweis im Setup-Assistenten |
 | **E-188** | Repository privat bis zur ersten WordPress.org-Veröffentlichung, dann öffentlich |
 | E-193, E-204 | Deploy-Freigabe durch den Auftraggeber; er übernimmt vorerst auch die Reviewer-Rollen; Autor ≠ Reviewer bleibt Pflicht |
-| E-205 (D35-1) | Slug vor R1-Start prüfen und früh einreichen; Ersatz `course-captain-lms` |
+| E-205 (D35-1), **E-302** | Slug vor R1-Start **prüfen**; Einreichung erst, wenn die R1-Release-Checkliste RC-001…RC-078 grün ist (E-302 präzisiert „früh“); Ersatz `course-captain-lms` |
+| **E-303** | Sicherheitsfristen: Erstreaktion ≤ 72 h; Fix kritisch ≤ 7 Tage, hoch ≤ 30 Tage; zweiter Committer optional (§3.6, RC-004) |
 | **E-206** (D35-2) | WordPress.org-Konto mit 2FA legt der **Auftraggeber** an |
 | **E-207** (D35-3) | Präfix **`ccap_`** für CPTs, Caps, Rollen, Cron, Meta **und Tabellen**; vor R1-01 gegen die aktuelle Richtlinie prüfen |
 | E-208 (D35-4) | Sprachpaket über translate.wordpress.org, bis zur Freigabe zusätzlich `.mo`/JSON im ZIP |
@@ -38,7 +39,7 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 
 - **Free** (`course-captain`) geht ausschließlich über WordPress.org (E-09): GPL-2.0-or-later, kein LB-Code (E-01), kein Updater, kein Lizenzcode, kein Tracking (E-210), Fremdhost-Anfragen nur durch von Autoren eingebettete Medien (Default ohne Klick, E-45a, in der readme offengelegt), keine gesperrten Pro-Schalter (E-100). Der CI-Guard aus R0-18 §2.5 und die Negativliste §3.2 erzwingen das am ZIP.
 - **Pro** (`course-captain-pro`) geht nie zu WordPress.org, sondern über den License-Captain-Client mit `Update URI` (R0-36 L3) und signierten ZIPs (E-190). Pro wird in `captain-pro/addons/course-captain-pro` gebaut (E-273) und ist extern blockiert: License-Captain-Gates alle offen (R0-36 L12), Produktanlage E-42 offen, `captain-pro` ungeprüft (Zugriff nötig).
-- **Slug** `course-captain` ist ungeprüft (OP-20-1). Der Slug wird erst mit der Freigabe einer vollständigen Einreichung reserviert (MW). Beschluss E-205: vor R1-Start prüfen und früh einreichen, Ersatz `course-captain-lms`.
+- **Slug** `course-captain` ist ungeprüft (OP-20-1). Der Slug wird erst mit der Freigabe einer vollständigen Einreichung reserviert (MW). Beschluss E-205/E-302: vor R1-Start prüfen; eingereicht wird erst, wenn RC-001…RC-078 grün sind; Ersatz `course-captain-lms`.
 - **Neu gegenüber LB:** `readme.txt` mit Lizenzkopf und Abschnitt „External services/Privacy“, `LICENSE`, SVN-Assets, translate.wordpress.org statt mitgelieferter deutscher Quelle, `SECURITY.md`, Forum-Regeln, Plugin Check als Gate. LB hat bewusst `Update URI: false` und eine GitHub-Versionsabfrage (`readme.txt:58-61`, `release-regel.md` T117). Beides entfällt in Free.
 - **Release-Checkliste** §5: **RC-001…RC-078** (Free, Ziel R1-39) und **RC-090…RC-099** (Pro, Ziel R3-18). Jede Zeile nennt eine Nachweisart; „abgehakt“ heißt Protokoll mit Commit, Lauf-ID bzw. Datum und Prüfer (Muster License Captain `RELEASE-READINESS.md`: „A box is ticked only when the item was verified and the evidence is recorded“).
 - **Zehn Entscheidungen** D35-1…D35-10 (§6) sind als E-205…E-214 beschlossen, darunter das Präfix `ccap_` (E-207) und die GPL-Lizenz von Pro (E-213).
@@ -68,7 +69,7 @@ Nummern nach den „Detailed Plugin Guidelines“ (MW, 18 Richtlinien).
 | 13 | WordPress-Bibliotheken verwenden | React, jQuery, `wp-*`-Pakete als Abhängigkeit der Skript-Handles, keine gebündelten Kopien (`wp-scripts`-Externals) | RC-023 |
 | 14 | SVN nur für Releases | SVN-Commits nur aus `release.yml` Schritt 7 (R0-18 §3.6), keine Entwicklungs-Commits | RC-050 |
 | 15 | Version bei jeder Änderung erhöhen | Versionsgleichheit und „geändert, aber Version gleich“ (R0-18 §3.1) | RC-041 |
-| 16 | Vollständiges Plugin bei Einreichung | Einreichung früh (E-205), aber nur als vollständiges, funktionsfähiges Plugin (siehe Offene Punkte) | RC-005 |
+| 16 | Vollständiges Plugin bei Einreichung | Einreichung erst mit grüner R1-Release-Checkliste RC-001…RC-078 (E-302); Slug vorher nur prüfen | RC-005 |
 | 17 | Marken respektieren | Name und Slug ohne fremde Marke („WordPress“, „WP“, „WooCommerce“, LMS-Produktnamen); Abgrenzungstexte ohne Herabsetzung | RC-002 |
 | 18 | WordPress.org darf ändern, schließen, Sicherheitsupdates erzwingen | Sicherheitsprozess §3.6 rechnet damit | RC-066 |
 
@@ -278,7 +279,7 @@ Das Forum `wordpress.org/support/plugin/course-captain/` ist Stufe 4 aus R0-13 (
 | Unterstützte Versionen | nur die aktuelle Minor-Version von Free erhält Sicherheitskorrekturen (WordPress.org liefert nur den `Stable tag` aus); Pro nach License-Captain-Kanal |
 | Meldung | an die **Sicherheitsadresse des Auftraggebers** (E-211); zusätzlich privat über GitHub „Report a vulnerability“, sobald das Repository öffentlich ist (E-188); kein öffentliches Issue, kein Forum |
 | Inhalt einer Meldung | Version, betroffene Komponente, Schritte, Auswirkung; keine echten Personendaten |
-| Fristen | **Erstreaktion ≤ 72 h (beschlossen, E-211)**; Zielwerte (nicht beschlossen): Erstbewertung (CVSS) ≤ 10 Werktage, Korrektur kritisch/hoch ≤ 14 Tage, mittel ≤ 30 Tage, niedrig mit nächstem Release; koordinierte Veröffentlichung spätestens 90 Tage nach Eingang |
+| Fristen | **Erstreaktion ≤ 72 h (E-211); Fix kritisch ≤ 7 Tage, hoch ≤ 30 Tage (beschlossen, E-303)**; Zielwerte (nicht beschlossen): Erstbewertung (CVSS) ≤ 10 Werktage, mittel ≤ 30 Tage, niedrig mit nächstem Release; koordinierte Veröffentlichung spätestens 90 Tage nach Eingang |
 | Ablauf | PATCH nur mit der Korrektur (R0-16 §3.3 Nr. 8, LB `release-regel.md` T117); Changelog-Zeile „Sicherheitsupdate:“ ohne Ausnutzungsanleitung; normaler Release-Weg mit beschleunigter Freigabe (E-193); danach GitHub Security Advisory mit CVE (GitHub ist CVE-Vergabestelle für Advisories öffentlicher Repositories, MW) |
 | WordPress.org | Bei kritischen Lücken Kontakt zum Plugins-Team, das Updates erzwingen oder das Plugin bis zur Korrektur schließen kann (MW, Richtlinie 18). Kontaktweg im Runbook R1-24 |
 | Danksagung | Nennung der Melder nach Zustimmung |
@@ -322,8 +323,8 @@ Folge: Pro-Zeilen der Checkliste (RC-090…RC-099) haben das Ziel **R3-18**, nic
 | RC-001 | Fassung der WordPress.org-Richtlinien, Readme- und Asset-Regeln am Prüfdatum gelesen; alle (MW)-Angaben dieses Dokuments bestätigt oder korrigiert | DOK (QA/Release) | R0-35 |
 | RC-002 | Name „Course Captain“ und Slug ohne fremde Marke; Markenrecherche dokumentiert | DOK (PO) | – |
 | RC-003 | Slug `course-captain` verfügbar (OP-20-1) oder Ersatz `course-captain-lms` nach E-205 umgesetzt (Ordner, Textdomain, `.pot`, Guards) | EXT + MAN | R1-01 |
-| RC-004 | WordPress.org-Konto des Auftraggebers mit 2FA (E-206), Committer mit 2FA; SVN-Passwort nur im Environment `wordpress-org` | EXT + MAN | R1-01 |
-| RC-005 | Einreichung mit RC-ZIP, das alle Zeilen außer EXT erfüllt; Review-Antworten im Protokoll; Freigabe-Mail archiviert | EXT | – |
+| RC-004 | WordPress.org-Konto des Auftraggebers mit 2FA (E-206); zweiter Committer optional (E-303), falls vorhanden mit 2FA; SVN-Passwort nur im Environment `wordpress-org` | EXT + MAN | R1-01 |
+| RC-005 | Einreichung erst mit RC-ZIP, das RC-001…RC-078 außer den EXT-Zeilen der Einreichung selbst erfüllt (E-302); Review-Antworten im Protokoll; Freigabe-Mail archiviert | EXT | – |
 | RC-006 | Repository zur ersten WordPress.org-Veröffentlichung öffentlich geschaltet (E-188), Link in `readme.txt`/`Plugin URI` | MAN | R1-39 |
 
 ### 5.2 Rechte und Lizenz
@@ -463,12 +464,12 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §32 und Beschlussprotokoll, 1
 
 ### Offene Punkte nach Einarbeitung
 
-- **E-205 „früh einreichen“** und Richtlinie 16 (nur vollständige Plugins, MW) stehen in Spannung: Eine sehr frühe Einreichung mit unvollständigem Plugin riskiert die Ablehnung. Ab wann das Plugin als vollständig gilt, ist vor R1-Start festzulegen (RC-001 prüft die gültige Fassung).
-- **E-206** nennt nur das Konto des Auftraggebers; ob ein zweiter Committer bzw. eine Vertretung angelegt wird, ist offen (vgl. E-193: Vertretung vor R1-GATE).
-- **E-211** legt nur die Erstreaktion fest; die übrigen Fristen in §3.6 (Erstbewertung, Korrekturfristen, 90-Tage-Veröffentlichung) sind Zielwerte ohne Beschluss. Ein Reaktionsziel für das Forum (Empfehlung: 5 Werktage) ist in E-212 nicht festgelegt.
-- **E-45a**: Die Offenlegung in „External services“ muss mit der tatsächlichen Fremdhost-Erfassung (RC-027) übereinstimmen; ob das WordPress.org-Review den Default „immer laden“ ohne Einwilligung akzeptiert, ist offen (MW). Die datenschutzrechtliche Bewertung liegt beim Betreiber (Hinweis in E-45).
-- **E-207**: Die Prüfung gegen die aktuelle Review-Richtlinie (vor R1-01) steht aus.
-- **E-273**: Zugriff auf `captain-pro` fehlt; RC-090…RC-099 bleiben bis dahin unprüfbar.
+- **E-205 „früh einreichen“** und Richtlinie 16 (nur vollständige Plugins, MW) stehen in Spannung: Eine sehr frühe Einreichung mit unvollständigem Plugin riskiert die Ablehnung. Ab wann das Plugin als vollständig gilt, ist vor R1-Start festzulegen (RC-001 prüft die gültige Fassung). → **erledigt durch E-302** (Slug früh prüfen, Einreichung erst mit grüner Checkliste RC-001…078)
+- **E-206** nennt nur das Konto des Auftraggebers; ob ein zweiter Committer bzw. eine Vertretung angelegt wird, ist offen (vgl. E-193: Vertretung vor R1-GATE). → **erledigt durch E-303** (zweiter Committer optional); Konto mit 2FA anlegen: **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate C (R1-39, RC-004))**: AG-09
+- **E-211** legt nur die Erstreaktion fest; die übrigen Fristen in §3.6 (Erstbewertung, Korrekturfristen, 90-Tage-Veröffentlichung) sind Zielwerte ohne Beschluss. Ein Reaktionsziel für das Forum (Empfehlung: 5 Werktage) ist in E-212 nicht festgelegt. → **erledigt durch E-303** (Fix kritisch ≤ 7 Tage, hoch ≤ 30 Tage); Forum-Reaktionsziel: **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate C (R1-39))**: optional festlegen (E-212), AG-09
+- **E-45a**: Die Offenlegung in „External services“ muss mit der tatsächlichen Fremdhost-Erfassung (RC-027) übereinstimmen; ob das WordPress.org-Review den Default „immer laden“ ohne Einwilligung akzeptiert, ist offen (MW). Die datenschutzrechtliche Bewertung liegt beim Betreiber (Hinweis in E-45). → **erledigt durch E-312** (E-45a gilt); WordPress.org-Review bleibt externes Risiko (RC-027, R1-39); Datenschutzbewertung **Auftraggeber-Aktion (Blocker für Gate A)**: Gate A-9, AG-07
+- **E-207**: Die Prüfung gegen die aktuelle Review-Richtlinie (vor R1-01) steht aus. → **technisch, an R1-01 (RC-001) übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A)
+- **E-273**: Zugriff auf `captain-pro` fehlt; RC-090…RC-099 bleiben bis dahin unprüfbar. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: AG-01
 
 ---
 

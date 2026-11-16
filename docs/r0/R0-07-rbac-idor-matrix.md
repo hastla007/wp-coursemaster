@@ -4,6 +4,7 @@
 **Stand:** 16.11.2026
 **Bezug:** TODO R0-07 (DoD: WP-Capabilities, Rollen, Objekt-Scope, REST/Admin/Medien/CLI/Export-Matrix), R0-RBAC-001, R0-RBAC-002, CORE-SPEC-001, ID-01…ID-06 (Konzept 34.1); Konzept Kap. 17, 35.1, 36, 43.2/43.3; `docs/r0/R0-06-datenmodell-adr.md` (Entitäten E-01…E-52, Tabellen §4); `docs/r0/R0-02-inventar/D-admin-frontend-api.md` (§3 Admin-Menü, §4.1 W1–W52, §3.3 admin-post/AJAX, §6.1 Auth), `C-infrastruktur-content.md` (§2.5 Privacy, §2.6/§4.4 CLI, §3.5 Ablage, §4.3 Cron, §4.5 Exporter/Eraser), `A-lernen-pruefung.md` (§2.2 AccessService, §2.5 Gate/geschützte Dateien), `B-commerce.md` (§2.4 Gruppen, §4.1 Webhooks); `docs/r0/R0-05-golden-master.md` (Fixtures §2.7, GM-049/058/151/154); `docs/r0/R0-10-import-medien-sicherheit.md` (§4.3 Auslieferung, R10-D4).
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77` (nur gelesen, nicht verändert). Pfade in Abschnitt 6 sind relativ zu `bootspruefung-learning/`.
+**ADR-Bezug:** **ADR-008 Rollen und Datenschutz** (Konzept Kap. 28.2 Nr. 8; nach R0-24 T-1 Kurz-ADR mit Verweisen): Capabilities statt Rollenchecks §2–§3 (E-78…E-84, E-144); Datenexport, Löschung, Aufbewahrung und Rechtsgrundlagen je Datenkategorie in R0-17 §2, §5, §6 und R0-31 §2 (E-43, E-44, E-51, E-92, E-150…E-154, E-243); Testbeweis RBAC-001…RBAC-104, PRIV-001…PRIV-033, PSD-001…PSD-065; Datum 16.11.2026.
 
 ## Beschlussstand
 
@@ -372,7 +373,7 @@ CLI setzt Shell-Zugang voraus und gilt als Systemakteur. Ohne `--user` prüft CC
 
 | Bereich | Regel | Beschluss |
 |---|---|---|
-| PHP-Write-API, eingehende Webhooks, Read-API | In R1 gibt es keine registrierten Connectoren; `connector:<id>` setzt die Connector-Registry voraus, die Pro ist. Free erlaubt `course_captain_grant_access_v1` nur Nutzern mit `ccap_manage_grants` bzw. dem Kern selbst. Die PHP-Read-API für Connectoren und öffentliche Events liefert Pro/R3 | E-38 |
+| PHP-Write-API, eingehende Webhooks, Read-API | In R1 gibt es keine registrierten Connectoren; `connector:<id>` setzt die Connector-Registry voraus, die Pro ist. Die schreibende öffentliche PHP-API (`course_captain_grant_access_v1` u. a.) gibt es nur mit Pro (**E-291**); in Free liefert sie `ccap_feature_unavailable`, Zugänge entstehen über Admin-UI, Gruppen, Selbstanmeldung und CLI. Die PHP-Read-API für Connectoren und öffentliche Events liefert Pro/R3 | E-38, E-291 |
 | Schreibende Workflow-Aktionen | Nur über die Grant-Quelle `workflow` (eigene Grants dieser Quelle), idempotent, mit Audit und Akteur `connector:workflow`; Bestandteil des Course-Pro-Connectors; setzt die Änderung am Workflow-Captain-Konzept voraus | E-39, E-39b |
 | Website-Härtung (R1-45) | Einstellungen: #19; Notausschalter per Konstante `COURSE_CAPTAIN_HARDENING` und WP-CLI (`system:cli`, nur Admin-Kontext); Login auf bekannten Geräten bleibt möglich; Sperren wirken auf alle Konten, auch Admins, ohne Existenz-Orakel | E-10, E-242, E-263 |
 | Text-/Dateiaufgaben (R1-46) | Entwurf und Abgabe (kein Rückzug in R1, R0-08 §2.5): nur eigener Nutzer mit aktivem Grant für Kurs/Modul (M-02); Datei der Abgabe: Eigentümer, Bewertungsberechtigte nach M-10a oder #14 mit Begründung (E-82), sonst 404; Bewertung und Rückgabe: M-10a – Trainer, Autor und Kursmanager des Kurses (keine Selbstbewertung) | E-168, E-288 |
@@ -484,7 +485,7 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 | RBAC-044 | C | RF-MGR | `ccap_grant_change` per GET bzw. ohne Nonce | 403/405; keine Änderung | R1-03 | P-04 |
 | RBAC-045 | F | RF-AU2 | `ccap_grant_change` (revoke) mit manipulierter Grant-ID | 403 | R1-03 | M-13 |
 | RBAC-046 | A | RF-MGR | G-7 (abgelaufen) „verlängern“ | neue Revision/Ereignis in `ccap_grant_event`, kein stilles Wiederaufleben; Zugriff erst danach | R1-03 | Beschluss E-29 |
-| RBAC-047 | E | U-L1 (Theme-Formular ruft PHP-API) | `course_captain_grant_access_v1()` im Kontext U-L1 ohne Connector | `forbidden`; kein Grant | R1-03, R3-01 | 4.8 |
+| RBAC-047 | E | U-L1 (Theme-Formular ruft PHP-API) | `course_captain_grant_access_v1()` im Kontext U-L1 ohne Connector | Free: `ccap_feature_unavailable` (E-291); Pro: `forbidden`; kein Grant | R1-03, R3-01 | 4.8 |
 | RBAC-048 | E | registrierter, **deaktivierter** Connector | `course_captain_grant_access_v1` | `connector_disabled`; kein Grant | R3-01, R3-12 | Beschluss E-39 |
 | RBAC-049 | R | RF-MGR | Manager-Rolle entziehen; offene Seite S-13 „Widerrufen“ absenden | 403 | R1-03 | P-11 |
 | RBAC-050 | G | RF-BLK | Sperre setzen, dann aufheben | Grants unverändert; nach Aufhebung sofort Zugriff | R1-03 | D07-2 |
@@ -637,11 +638,11 @@ Spalte „Var.“: **F** fremde ID, **R** Rollenwechsel/-mangel, **G** gesperrte
 
 ### Offene Punkte nach Einarbeitung
 
-1. **Scopes und Modulzugang (E-27):** E-27 ersetzt „je Kurs mit Scopes“ durch „je Modul“. Ob die Scopes `view|download|exam` innerhalb eines Moduls weiter bestehen, ist nicht ausdrücklich beschlossen; M-02 führt beide Merkmale, bis R0-06/R0-09 den Grant-Schlüssel festlegen.
-2. **Präfix:** E-207 nennt CPTs, Caps, Rollen, Cron, Meta und Tabellen. Fehlercodes (`ccap_not_found` …), admin-post-/AJAX-Aktionen (§4.3), Nonce-Muster `ccap_<aktion>_<id>`, Shortcode `[ccap_restricted]`, Cache-Gruppe `ccap_policy` und Fixture-Konten `cc_fx_*` behalten `ccap_`; D-20-03 sieht für AJAX-Aktionen ohnehin `course_captain_` vor. Endgültige Benennung in R0-19/R0-20.
-3. **Lesender Zugriff auf Integrationen über #22:** E-255 nennt die Rollen, aber keine Cap; dieses Dokument nutzt `ccap_view_system_status` (#22). Bestätigung in R0-34.
-4. **E-99 vs. E-168:** Trainer bewerten Text-/Dateiabgaben schon in R1 (#15), während E-99 die Tutor-Bewertungsfunktionen ins Gradebook (Pro) legt. Abgrenzung in R0-08 bestätigen.
-5. **Testlücke:** Für R1-45 (Härtung), R1-46 (Abgaben), E-232 (Opt-in-Fortschritt) und den Modulzugang (E-27) gibt es noch keine RBAC-Testfälle; RBAC-047/048/093 (Connector) sind nach E-38 Pro-/R3-Fälle.
+1. **Scopes und Modulzugang (E-27):** E-27 ersetzt „je Kurs mit Scopes“ durch „je Modul“. Ob die Scopes `view|download|exam` innerhalb eines Moduls weiter bestehen, ist nicht ausdrücklich beschlossen; M-02 führt beide Merkmale, bis R0-06/R0-09 den Grant-Schlüssel festlegen. → **erledigt durch E-286**
+2. **Präfix:** E-207 nennt CPTs, Caps, Rollen, Cron, Meta und Tabellen. Fehlercodes (`ccap_not_found` …), admin-post-/AJAX-Aktionen (§4.3), Nonce-Muster `ccap_<aktion>_<id>`, Shortcode `[ccap_restricted]`, Cache-Gruppe `ccap_policy` und Fixture-Konten `cc_fx_*` behalten `ccap_`; D-20-03 sieht für AJAX-Aktionen ohnehin `course_captain_` vor. Endgültige Benennung in R0-19/R0-20. → **erledigt durch E-285** (alle genannten Kennungen tragen `ccap_`; nur Fixture-Konten `cc_fx_*` bleiben (Testdaten))
+3. **Lesender Zugriff auf Integrationen über #22:** E-255 nennt die Rollen, aber keine Cap; dieses Dokument nutzt `ccap_view_system_status` (#22). Bestätigung in R0-34. → **erledigt durch E-255** (R0-34 D34-2 bestätigt #22)
+4. **E-99 vs. E-168:** Trainer bewerten Text-/Dateiabgaben schon in R1 (#15), während E-99 die Tutor-Bewertungsfunktionen ins Gradebook (Pro) legt. Abgrenzung in R0-08 bestätigen. → **erledigt durch E-288** (M-10a: Trainer, Autor und Kursmanager des Kurses)
+5. **Testlücke:** Für R1-45 (Härtung), R1-46 (Abgaben), E-232 (Opt-in-Fortschritt) und den Modulzugang (E-27) gibt es noch keine RBAC-Testfälle; RBAC-047/048/093 (Connector) sind nach E-38 Pro-/R3-Fälle. → umgesetzt: RBAC-097…RBAC-104 (Modulzugang E-286/E-287, Abgaben E-288, Härtung R1-45); RBAC-047/048/093 auf R3-01/R3-12 umgehängt (E-38, E-291); E-232 ist Pro (R3-Katalog R0-29 GRP)
 
 **Weitere Abhängigkeiten (beschlossen):** Speicherklasse der Fragen-/Lektionsmedien → **R10-D4** (R0-10); Support ohne Antwortzugriff ist Konzept 43.3; Gastkauf-Claim → Beschluss E-30; Einladungsbindung → Beschluss E-28; Workflow-Schreibaktionen → Beschluss E-39; Retention → Beschluss E-44/E-51.
 

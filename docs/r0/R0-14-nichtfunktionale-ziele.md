@@ -16,7 +16,7 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 | **E-12** | Plattformmatrix eigenständig (R0-20), LB-Werte nicht als Startwert; §3 übernimmt die Festlegung aus R0-20 |
 | **E-195** (ersetzt E-57/D-14-01) | PHP-Untergrenze **8.3**, getestet 8.3/8.4/8.5; vor R1-GATE auf php.net verifizieren |
 | **E-58** (D-14-02) | CI: MariaDB 10.11 und 12.3 (bzw. 11.8 LTS), MySQL 8.4; MySQL 8.0/MariaDB 10.6 best effort; E-08 bleibt technische Mindestanforderung |
-| E-59 (D-14-05) | Dokumentierte Shared-Hosting-Klasse „bis 50 gleichzeitige Prüfungen“ (Messung in R1-22) |
+| E-59 (D-14-05), **E-304** | Dokumentierte Shared-Hosting-Klasse nur „bis 50 gleichzeitige Prüfungen“ (Messung in R1-22); **keine** Zahl für aktive Lernende (E-304) |
 | E-60 (D-14-07) | Zeitbudgets sind Release-Gate für R1-GATE |
 | **E-61** (D-14-08) | Browser: letzte zwei Hauptversionen Chrome, Edge, Firefox, Safari + Firefox ESR, iOS Safari, Android Chrome |
 | E-191 | Playwright je PR/nightly; echtes iOS/Android/Safari manuell vor jedem Minor-Release |
@@ -204,6 +204,7 @@ Stufen: **Ziel** = voller Lauf mit Integration + E2E + Lastmessung; **Untergrenz
 | NFR-016 | E2E-Pflichtabläufe (Lernen, Smarttrainer, Prüfung inkl. Reload/Netzabbruch, Admin-Import) grün in allen **Ziel**-Zeilen von §3 (Chromium, Firefox, WebKit; Desktop + Mobil-Viewport); Integration grün in allen **Untergrenze**-Zeilen | CI-Matrix | R1-18 |
 | NFR-017 | Plugin aktivierbar und lauffähig ohne `zip`/`intl` (mit Hinweis) und unter nginx ohne `.htaccess`; Import-/Exportdateien unter nginx nicht anonym abrufbar | Integration + HTTP-Probe | R1-18 |
 | NFR-018 | Jeder Lasttestlauf ist nach §2.3 Nr. 4 protokolliert und mit demselben Seed reproduzierbar (Streuung < 15 %) | Protokoll-Review | R1-22 |
+| NFR-019 | Masseneinschreibung (aus R0-12 §1.3 übernommen): 1 000 Grants per CLI bzw. Admin-Sammelaktion, Gruppe mit 1 000 Plätzen – im Budget der zugehörigen Operation, Outbox-Rückstand abgebaut, keine Lock-Timeouts in parallelen L1-Lernanfragen | Lasttest R-M (E-192), Protokoll nach §2.3 | R1-22, R1-42 |
 
 ---
 
@@ -224,6 +225,6 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §11/§30 und Beschlussprotoko
 
 ### Offene Punkte nach Einarbeitung
 
-- E-59 nennt nur „bis 50 gleichzeitige Prüfungen“; die Zusatzangabe „50 aktive Lernende“ aus D-14-05 steht im Beschluss nicht und bleibt Annahme bis R1-22.
-- Ob MariaDB 12.3 eine LTS-Version ist (sonst Ziel 11.8), wird bei der Verifikation in R0-20 §1.4 geklärt; davon hängt R-M ab.
-- FE-07 im Default „immer laden“ (E-45a): Welche Fremdhosts die eingebetteten Player zusätzlich nachladen, ist erst im E2E-Lauf feststellbar; die readme-Offenlegung (R0-35) muss dazu passen.
+- E-59 nennt nur „bis 50 gleichzeitige Prüfungen“; die Zusatzangabe „50 aktive Lernende“ aus D-14-05 steht im Beschluss nicht und bleibt Annahme bis R1-22. → **erledigt durch E-304** (keine Zahl für aktive Lernende)
+- Ob MariaDB 12.3 eine LTS-Version ist (sonst Ziel 11.8), wird bei der Verifikation in R0-20 §1.4 geklärt; davon hängt R-M ab. → **technisch, an R0-20 §1.4 / R1-18 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Verifikation vor R1-GATE
+- FE-07 im Default „immer laden“ (E-45a): Welche Fremdhosts die eingebetteten Player zusätzlich nachladen, ist erst im E2E-Lauf feststellbar; die readme-Offenlegung (R0-35) muss dazu passen. → **technisch, an R1-07 / R1-39 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Fremdhost-Erfassung im E2E-Lauf, abgeglichen mit RC-027

@@ -341,6 +341,7 @@ Umgebung: Staging-Compose (§3.1) mit Lastprofil `default` (E-52) für REC-001, 
 | REC-023 | Upgrade vom Release-Artefakt | Vorversion (letzter Tag) mit Lerndaten, neues ZIP ohne Reaktivierung | Migration ok, FKs vollständig, Zeilenzahlen ≥ vorher | R1-23 (R1-39) | INV-E-045 |
 | REC-024 | Multisite: Restore einer Site | zwei Sites, eine zurückspielen | andere Site unverändert; Locks und Identität je Site | R1-23 | E-49, R0-06 §6.6 |
 | REC-025 | Downgrade R-B | Code N auf Schema N+1 (nur Expand) | Hinweis; Lesen/Schreiben fehlerfrei; erneutes Upgrade ohne doppelte Schritte (E-90); Gegenprobe mit Contract-Schritt: Erwartung „Betrieb gesperrt mit Hinweis“ | R1-23 (R1-40) | R0-06 §6.2 |
+| REC-026 | Secret-Rotation (aus R0-12 §1.3 übernommen) | Rotation von `COURSE_CAPTAIN_SECRET_KEY` und eines Webhook-Secrets | gespeicherte Secrets neu verschlüsselt; alte Signatur nach Übergangsfrist abgelehnt; nirgends Klartext | R1-23, R1-28 | E-87, R0-19 §5.7 |
 
 ---
 
@@ -380,10 +381,10 @@ Technische Festlegungen ohne Auftraggeber-Entscheidung (Architektur): relative P
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-16-1 | Lieferform von Pro (eigenes Plugin mit vendortem Client vs. Add-on im `captain-pro`-Kernel), Update-Weg und Schema-Hash in §3.4 | E-273 legt den Ort fest, Kernel/FeatureRegistry von `captain-pro` sind ohne Zugriff nicht prüfbar | Auftraggeber (Zugriff), dann Architektur (R3-18) |
-| OP-16-2 | Release-Readiness-Gates von License Captain | extern offen (R0-36 L12, E-42) | License Captain |
-| OP-16-3 | Test für automatischen Tombstone-Nachlauf nach Restore als eigener REC-Fall | Tests liegen in R0-17 (PRIV-010…013); Zuordnung zu R1-23 bestätigen | Architektur |
-| OP-16-4 | Vertretung für die Deploy-Freigabe | wird laut E-193 vor R1-GATE benannt | Auftraggeber |
+| OP-16-1 | Lieferform von Pro (eigenes Plugin mit vendortem Client vs. Add-on im `captain-pro`-Kernel), Update-Weg und Schema-Hash in §3.4 | E-273 legt den Ort fest, Kernel/FeatureRegistry von `captain-pro` sind ohne Zugriff nicht prüfbar | Auftraggeber (Zugriff), dann Architektur (R3-18) → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: Zugriff auf `captain-pro` (E-273), AG-01 |
+| OP-16-2 | Release-Readiness-Gates von License Captain | extern offen (R0-36 L12, E-42) | License Captain → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: Release-Readiness-Gates mit License Captain klären (E-42), AG-02 |
+| OP-16-3 | Test für automatischen Tombstone-Nachlauf nach Restore als eigener REC-Fall | Tests liegen in R0-17 (PRIV-010…013); Zuordnung zu R1-23 bestätigen | Architektur → erledigt: PRIV-010…PRIV-013 (R0-17) tragen R1-23/R1-17/R1-38; kein eigener REC-Fall nötig |
+| OP-16-4 | Vertretung für die Deploy-Freigabe | wird laut E-193 vor R1-GATE benannt | Auftraggeber → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate B/C (R1-GATE))**: Vertretung für die Deploy-Freigabe benennen (E-193), AG-05 |
 
 ---
 

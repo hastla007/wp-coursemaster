@@ -416,7 +416,7 @@ Die Punkte stehen nicht im Beschlussprotokoll; sie sind Architekturfestlegungen 
 
 ## Offene Punkte nach Einarbeitung
 
-1. **D21-1…D21-6** stehen nicht im Beschlussprotokoll; sie gelten mit diesem Dokument als Architekturfestlegung (Empfehlung). Bestätigung durch die Architektur bei R1-25/R1-42.
-2. **Lease-Name Migration:** Der Nachtrag nennt `migration`, R0-37 §3.1 `schema-migration`; hier gilt `schema-migration`.
-3. **M4 bei Modul-Grants (E-27):** Schlüssel `grant-chain:<user>:<course>` deckt auch Modulketten ab (gröber, aber deadlockfrei); feinere Sperre je Modul ist nicht nötig, solange R1-42 keine Engpässe misst.
-4. **Bekannte Geräte bei fail-closed (E-46/E-263):** Wie das Geräte-Cookie ohne Zählerspeicher geprüft wird, regelt R0-31/R1-45, nicht dieses Dokument.
+1. **D21-1…D21-6** stehen nicht im Beschlussprotokoll; sie gelten mit diesem Dokument als Architekturfestlegung (Empfehlung). Bestätigung durch die Architektur bei R1-25/R1-42. → **technisch, an R1-25/R1-42 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Architekturbestätigung bei Taskbeginn
+2. **Lease-Name Migration:** Der Nachtrag nennt `migration`, R0-37 §3.1 `schema-migration`; hier gilt `schema-migration`. → **erledigt durch E-300** (`schema-migration`)
+3. **M4 bei Modul-Grants (E-27):** Schlüssel `grant-chain:<user>:<course>` deckt auch Modulketten ab (gröber, aber deadlockfrei); feinere Sperre je Modul ist nicht nötig, solange R1-42 keine Engpässe misst. → **technisch, an R1-42 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Messung; Modulsemantik nach E-286 unverändert
+4. **Bekannte Geräte bei fail-closed (E-46/E-263):** Wie das Geräte-Cookie ohne Zählerspeicher geprüft wird, regelt R0-31/R1-45, nicht dieses Dokument. → **technisch, an R1-45 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): R0-31 §3.4 HM-5, GM-204

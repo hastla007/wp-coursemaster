@@ -506,10 +506,10 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` Abschnitt 25; E-161, E-162, E-
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-26-1 | Die Autorensitzung (120 min) enthält jetzt zusätzlich AU-T12 (Aufgabe) und AU-T13 (Bewertung); die beschlossene Schwelle „Referenzkurs ≤ 90 min Median“ (E-166) gilt für AU-GES einschließlich AU-T12 | Ob 120 min Sitzungsdauer reichen, zeigt erst der Pilot; E-166 ist unveränderlich, die Sitzungsdauer nicht beschlossen | Pilot (§4.2 Schritt 3), Auftraggeber |
-| OP-26-2 | Budgetbetrag (E-162) | nennt der Auftraggeber vor R1-29 | Auftraggeber |
-| OP-26-3 | Wer bewertet in den Tests (Kursmanager oder Trainer)? AU-T13 nutzt die Rolle Course Manager | Bewertungsrecht in R1 nicht abschließend geregelt (R0-08 OP-08-1) | Auftraggeber / R0-07 |
-| OP-26-4 | Typmix und Aufgabenkonfiguration der Referenzkurse (§1.1) sind an E-22/E-69/E-168 angepasste Vorschläge | keine Vorgabe in den Beschlüssen | Produkt (vor Erstellung von `cc-fx-rk-v1`) |
+| OP-26-1 | Die Autorensitzung (120 min) enthält jetzt zusätzlich AU-T12 (Aufgabe) und AU-T13 (Bewertung); die beschlossene Schwelle „Referenzkurs ≤ 90 min Median“ (E-166) gilt für AU-GES einschließlich AU-T12 | Ob 120 min Sitzungsdauer reichen, zeigt erst der Pilot; E-166 ist unveränderlich, die Sitzungsdauer nicht beschlossen | Pilot (§4.2 Schritt 3), Auftraggeber → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate B (R1-29))**: Pilot nach §4.2 Schritt 3, Sitzungsdauer bestätigen, AG-12 |
+| OP-26-2 | Budgetbetrag (E-162) | nennt der Auftraggeber vor R1-29 | Auftraggeber → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate B (R1-29))**: Budgetbetrag nennen (E-162) vor R1-29, AG-06 |
+| OP-26-3 | Wer bewertet in den Tests (Kursmanager oder Trainer)? AU-T13 nutzt die Rolle Course Manager | Bewertungsrecht in R1 nicht abschließend geregelt (R0-08 OP-08-1) | Auftraggeber / R0-07 → **erledigt durch E-288** (Kursmanager darf bewerten; AU-T13 bleibt gültig) |
+| OP-26-4 | Typmix und Aufgabenkonfiguration der Referenzkurse (§1.1) sind an E-22/E-69/E-168 angepasste Vorschläge | keine Vorgabe in den Beschlüssen | Produkt (vor Erstellung von `cc-fx-rk-v1`) → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate B (R1-29))**: Typmix der Referenzkurse vor Erstellung von `cc-fx-rk-v1` bestätigen, AG-12 |
 
 ---
 

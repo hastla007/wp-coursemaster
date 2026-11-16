@@ -274,7 +274,7 @@ Der Validator baut einen gerichteten Graphen aus Voraussetzungen (`completed(act
 |---|---|---|---|---|---|
 | VAL-140 | Medium Bild | Alt-Text leer und nicht als dekorativ markiert (Lektion, Frage, Option) | **B** (E-131) | „{n} Bilder haben keinen Alternativtext, z. B. in {lesson}. Screenreader-Nutzende erfahren nicht, was zu sehen ist.“ (A-06 bzw. Block) | dialog „Alt-Text eingeben“ je Bild; quick_fix „Als dekorativ markieren“ (setzt `alt=""` ausdrücklich) |
 | VAL-141 | Frage | Pflichtmedium (`image_required`) ohne Alt-Text bzw. als dekorativ markiert | **B** (E-131) | „Die Frage ist ohne das Bild nicht lösbar, das Bild hat aber keinen Alternativtext.“ | dialog; **kein** quick_fix „dekorativ“ |
-| VAL-142 | Video/Audio | Video ohne Untertitelspur, Audio ohne Transkript | W; B, wenn die Site-Einstellung dafür aktiv ist (E-131; Schlüssel in R0-27) | „Das Video in {lesson} hat keine Untertitel.“ | jump (A-06 › Untertitel zuordnen) |
+| VAL-142 | Video/Audio | Video ohne Untertitelspur, Audio ohne Transkript | W; B, wenn die Site-Einstellung `display.require_captions` aktiv ist (E-131; R0-27, Default aus) | „Das Video in {lesson} hat keine Untertitel.“ | jump (A-06 › Untertitel zuordnen) |
 | VAL-143 | Untertitel | VTT ungültig (Parser) oder Sprache fehlt | W | „Die Untertiteldatei {file} ist fehlerhaft.“ | jump |
 | VAL-144 | Lektion | Überschriftenebenen übersprungen (h2 → h4), Tabellen ohne Kopfzeile, Linktexte ohne Aussage („hier“, „mehr“) | H | „In {lesson} fehlt eine Überschriftenebene.“ | jump (Block) |
 | VAL-145 | Option/Frage | Bedeutung nur über Farbe/Bild ohne Text (Option ohne Text, nur Bild ohne Alt) | W | „Antwort {key} besteht nur aus einem Bild ohne Beschreibung.“ | dialog |
@@ -547,10 +547,10 @@ Weitere hier angewandte Beschlüsse: E-18, E-20, E-22, E-23, E-27, E-45/E-45a, E
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-22-1 | Grenzwerte der Aufgaben-Regeln VAL-038 (Textlängen, Dateizahl, Dateigröße, Allowlist) | Werte fehlen in R0-27 (R0-08 OP-08-3, R0-10 OP-10-2) | Architektur, dann R0-27 |
-| OP-22-2 | Schlüssel und Default der Site-Einstellung, die fehlende Untertitel zum Blocker macht (VAL-142) | E-131 legt nur die Möglichkeit fest | R0-27 |
-| OP-22-3 | Wer darf Aufgaben bewerten (Voraussetzung für VAL-039)? | Widerspruch E-99/E-168 (R0-08 OP-08-1) | Auftraggeber / R0-07 |
-| OP-22-4 | VAL-012 erkennt gemischte Sprachen nur über vorhandene `lang`-Kennzeichnungen; nicht gekennzeichnete fremdsprachige Abschnitte erkennt der Validator nicht | E-157 nennt „Validator-Warnung“ ohne Erkennungsverfahren; eine Spracherkennung wäre nicht deterministisch (§1.1) | Architektur (R0-25) |
+| OP-22-1 | Grenzwerte der Aufgaben-Regeln VAL-038 (Textlängen, Dateizahl, Dateigröße, Allowlist) | Werte fehlen in R0-27 (R0-08 OP-08-3, R0-10 OP-10-2) | Architektur, dann R0-27 → **erledigt durch E-289** (Dateitypen, Größe, Anzahl in R0-27 `assignments.*`); Textlängen **technisch, an R1-46 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-22-2 | Schlüssel und Default der Site-Einstellung, die fehlende Untertitel zum Blocker macht (VAL-142) | E-131 legt nur die Möglichkeit fest | R0-27 → erledigt: Schlüssel `display.require_captions`, Default aus (R0-27 §1.3, SET-043), in VAL-142 eingetragen |
+| OP-22-3 | Wer darf Aufgaben bewerten (Voraussetzung für VAL-039)? | Widerspruch E-99/E-168 (R0-08 OP-08-1) | Auftraggeber / R0-07 → **erledigt durch E-288** |
+| OP-22-4 | VAL-012 erkennt gemischte Sprachen nur über vorhandene `lang`-Kennzeichnungen; nicht gekennzeichnete fremdsprachige Abschnitte erkennt der Validator nicht | E-157 nennt „Validator-Warnung“ ohne Erkennungsverfahren; eine Spracherkennung wäre nicht deterministisch (§1.1) | Architektur (R0-25) → bewusst akzeptierte Grenze (keine nicht-deterministische Spracherkennung, §1.1); **technisch, an R1-26 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
 
 ---
 

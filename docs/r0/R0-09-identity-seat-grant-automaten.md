@@ -548,8 +548,8 @@ Spalte **Art**: U = Unit, I = Integration (WP-Testsuite), P = Paralleltest (PHP-
 
 ## Offene Punkte nach Einarbeitung
 
-1. **E-26:** Abhängigkeit vom effektiven Zugang zum Basiskurs statt von einem bestimmten Grant (R0-04 K-04 nannte `depends_on_grant`); Laufzeitbegrenzung ohne Statuswechsel ist eine Festlegung bei der Einarbeitung und braucht die Bestätigung der Architektur.
-2. **E-27 Kursprüfung bei Modul-Grants:** Welche Module eine kursweite Prüfung und das Kurszertifikat voraussetzen, ist in R0-08 §1 noch nicht festgelegt (hier: Zugang zu allen Modulen, die die Prüfungsregel nutzt).
-3. **E-39b:** Schreibende Workflow-Aktionen setzen die Änderung des Workflow-Captain-Konzepts voraus (`wp-workflowmaster`); bis dahin ist die Quelle `workflow` nur spezifiziert.
-4. **Fehlercodes** bleiben `ccap_*` (E-207 nennt sie nicht, siehe R0-06 Offene Punkte).
-5. **Bundle in Gruppen:** Ob `ccap_group_course` einen Bundle-Kurs als Ziel haben darf (abgeleiteter Zugang für alle Mitglieder), ist nicht beschlossen; der Formel nach ja.
+1. **E-26:** Abhängigkeit vom effektiven Zugang zum Basiskurs statt von einem bestimmten Grant (R0-04 K-04 nannte `depends_on_grant`); Laufzeitbegrenzung ohne Statuswechsel ist eine Festlegung bei der Einarbeitung und braucht die Bestätigung der Architektur. → **erledigt durch E-287**
+2. **E-27 Kursprüfung bei Modul-Grants:** Welche Module eine kursweite Prüfung und das Kurszertifikat voraussetzen, ist in R0-08 §1 noch nicht festgelegt (hier: Zugang zu allen Modulen, die die Prüfungsregel nutzt). → **erledigt durch E-286** (Zugang zu allen Blueprint-Modulen); Kurszertifikat bei Teilzugang: **neue Frage NF-03** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-44))
+3. **E-39b:** Schreibende Workflow-Aktionen setzen die Änderung des Workflow-Captain-Konzepts voraus (`wp-workflowmaster`); bis dahin ist die Quelle `workflow` nur spezifiziert. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-17))**: Änderungsauftrag an Workflow Captain, AG-03
+4. **Fehlercodes** bleiben `ccap_*` (E-207 nennt sie nicht, siehe R0-06 Offene Punkte). → **erledigt durch E-285**
+5. **Bundle in Gruppen:** Ob `ccap_group_course` einen Bundle-Kurs als Ziel haben darf (abgeleiteter Zugang für alle Mitglieder), ist nicht beschlossen; der Formel nach ja. → **erledigt durch E-297** (Gruppenplätze auf Bundles erlaubt, §3.1)

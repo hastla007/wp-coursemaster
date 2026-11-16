@@ -20,7 +20,8 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 | E-186, E-187 | COMMERCE-/SUITEFLOW-Kataloge sind Eingangsbedingung von R3-01; Benachrichtigungsvertrag in R0-27 |
 | E-20, E-25/E-25a, E-26, E-27, E-31, E-33, E-34, E-39/E-39b | Editions- und Phasenänderungen, die die Gate-D-Kataloge (R3) erweitern |
 | E-195, E-196 | Plattformmatrix PHP ≥ 8.3; kommerzielle Plugins nur „best effort“ (C-14) |
-| E-207 | Präfix `ccap_` für Tabellen und Caps (z. B. `ccap_certificate`) |
+| E-207, E-285 | Präfix `ccap_` für Tabellen, Caps und Fehlercodes (z. B. `ccap_certificate`, `ccap_not_found`) |
+| E-286…E-312 | Folgeklärungen (16.11.2026): Modulzugang, Aufgaben (E-288…E-290), Woo/Voucher (E-293…E-295), ADR-Nummern (E-299), Integrationsstatus (E-311); Tests in den Fachkatalogen nachgezogen, §5 auf alle Kataloge erweitert |
 
 **Kernzahlen** (per Skript, §5)
 
@@ -30,11 +31,12 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 | davon mit R1-Anteil (Pflicht für Gate B/C; R1-01…R1-46) | 46 |
 | R1-Fälle ohne R1-Task / ohne Test | 0 / 0 |
 | Fälle mit dokumentierter Lücke (R1-Fälle 29 · nur R2/R3 17) | 46 |
-| Testfälle in 15 R0-Katalogen (GM 200 · RBAC 96 · GRANT 33 · SEAT 22 · ID 15 · IMP 32 · MED 32 · NFR 18 · REC 25 · REV 46 · CT 12 · SUP 44 · A11Y 66 · I18N 15 · SEC 55 · PRIV 33 · CON 52 · PUB 52 · LOC 29 · MS 23 · UX 58) | 958 |
-| davon mit R1-Ziel-Task / ohne Ziel-Task | 943 / 3 (MED-029, SEC-054, SEC-055) |
-| R1-Tasks (R1-01…R1-46) ohne Katalogtest in den 15 gezählten Katalogen / mit dünner Abdeckung (≤ 2 Tests) | 2 (R1-43, R1-44) / 3 (R1-33, R1-36, R1-46) |
+| Testfälle in allen Katalogen R0-05…R0-40 (29 Dokumente mit Tests; GM 210 · RBAC 104 · GRANT 33 · SEAT 22 · ID 15 · IMP 32 · MED 34 · NFR 19 · REC 26 · REV 48 · CT 12 · SUP 44 · A11Y 66 · I18N 15 · SEC 55 · PRIV 33 · CON 52 · PUB 62 · LOC 29 · MS 23 · UX 65 · SA 1 · KOMP 79 · SET 91 · NTF 37 · INH 49 · CRT 49 · GRP 48 · ADM 104 · PSD 65 · SEO 52 · INT 52 · RC 72 · MIG 27 · BIG 36 · LIC 65 · FIN 65) | 1891 |
+| davon mit R1-Ziel-Task / nur R2–R4 / ohne Ziel-Task | 1671 / 220 / 0 |
+| ausgenommene Platzhalterzeilen ohne Test (R0-20, „nicht unterstützt“/„nicht in R1“) | 3 (KOMP-018, KOMP-093, KOMP-105) |
+| R1-Tasks (R1-01…R1-46) ohne Katalogtest / mit dünner Abdeckung (≤ 2 Tests) | 0 / 0 |
 | Zusätzliche R1-Tasks gegenüber R1-01…R1-42 (beschlossen) | 4 (R1-43 interne Outbox, R1-44, R1-45, R1-46) |
-| Vorgeschlagene ergänzende Testfälle (§1.3) | 23 |
+| Vorgeschlagene ergänzende Testfälle (§1.3) | 23, alle in Fachkataloge übernommen bzw. auf vorhandene Tests zurückgeführt (§1.3, Stand) |
 
 **Lesehilfe.** „Release“ folgt R0-04 (Baustein BS-xx, Regeln Z-1…Z-10): **R1** = Free-Kern, **R1+R3** = neutraler Kern in R1, Adapter in R3.x, **R2** = zusätzliche P0, **R3.1/R3.2/R3.3/R3.4** = Woo, Voucher, gemeinsames Gate, übrige Suite, **R4** = nach Nachfrage. „Gate“ meint Konzept 28.6: **A** Portierbarkeit (= R0-GATE), **B** Free-Lernfluss, **C** Betriebsreife (B und C = R1-GATE), **D** Erweiterungen (R2-GATE, R3-GATE je Feature). Test-IDs mit „…“ sind lückenlose Bereiche. Ein Stern (R1-43, R1-44) kennzeichnet einen **vorgeschlagenen** Task (§2.3). „Lücke“ nennt, was fehlt; „–“ heißt: keine bekannte Lücke.
 
@@ -54,21 +56,21 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 | ID-06 | Multisite/Cross-Site-Identität | R4 (W-11, E-07); R1 nur Site-Isolation (BS-26) | R1-23, R1-30; R4-01 | RBAC-010, RBAC-078, GM-186, REC-024, MS-001…MS-022 | C (Isolation) · R4 | Multisite offiziell nicht unterstützt (E-07, E-49); R0-25 Entwurf, Abnahme offen |
 | LEARN-01 | Kurs: Entwurf → veröffentlicht → Revision → archiviert | R1 (BS-04, BS-05) | R1-04, R1-05, R1-26, R1-27, R1-37 | GM-001, GM-003, GM-137, GM-144, RBAC-002, RBAC-004, RBAC-017, REV-038, REV-039, REV-040, REV-043, REV-044, PUB-001…PUB-052, CON-011, CON-047, LOC-008 | B | – |
 | LEARN-02 | Lektion, Video, Datei, Activity bearbeiten, freigeben, absolvieren; keine fremden Uploads | R1 (BS-07, BS-15) | R1-05, R1-07, R1-14 | GM-007…GM-016, MED-001…MED-005, MED-010, RBAC-067…RBAC-076, IMP-012, PUB-025, PUB-028, PRIV-016, SEC-033, SEC-042 | B/C | – |
-| LEARN-03 | Fortschritt speichern, unterbrechen, fortsetzen, Gerätewechsel; nie rückwärts | R1 (BS-09) | R1-10, R1-16, R1-20 | GM-011, GM-027, GM-036, GM-075, GM-077, REV-036, CON-019, PRIV-018 | B | Doppelabschluss geprüft (CON-019); verspätete Requests mit älterem Stand (Monotonie, E-70) ohne Test → GM-191 |
+| LEARN-03 | Fortschritt speichern, unterbrechen, fortsetzen, Gerätewechsel; nie rückwärts | R1 (BS-09) | R1-10, R1-16, R1-20 | GM-011, GM-027, GM-036, GM-075, GM-077, GM-209, REV-036, CON-019, PRIV-018 | B | Doppelabschluss geprüft (CON-019); verspätete Requests mit älterem Stand (Monotonie, E-70) → GM-209 (übernommen aus §1.3, früher Vorschlag „GM-191“) |
 | LEARN-04 | Prüfung starten, speichern, Zeitlimit, Abgabe, Bewertung | R1 (BS-06, BS-08) | R1-06, R1-08, R1-09, R1-20, R1-33 | GM-027…GM-029, GM-035…GM-039, GM-045, GM-050, GM-053, GM-054, NFR-005, REC-011, SEC-009, SEC-011…SEC-014, CON-005, CON-016, CON-017 | B/C | – |
-| LEARN-05 | Nicht bestanden, Wiederholung, Versuchslimit, Sperrfrist; keine Umgehung per URL/REST | R1 (BS-08) | R1-08, R1-09, R1-20 | GM-030, GM-040, GM-041, GM-046, RBAC-031, REV-024, SEC-015 | B | `cooldown_seconds` (R0-08 §4.4) ohne Test → GM-192 |
+| LEARN-05 | Nicht bestanden, Wiederholung, Versuchslimit, Sperrfrist; keine Umgehung per URL/REST | R1 (BS-08) | R1-08, R1-09, R1-20 | GM-030, GM-040, GM-041, GM-046, GM-210, RBAC-031, REV-024, SEC-015, SET-060 | B | `cooldown_seconds` (R0-08 §4.4) → GM-210 (übernommen aus §1.3, früher Vorschlag „GM-192“) |
 | LEARN-06 | Smarttrainer, Karteikarten, Favoriten, Fehlertraining, Wiederholungsplan | R1 (BS-10, BS-11) | R1-11, R1-12 | GM-055…GM-074, RBAC-021, RBAC-023, REV-029, REV-035, SEC-016, SEC-017, SEC-018, CON-008 | B | Referenzlauf der Rechenlogik offen (E-56); Abweichungsliste offen (E-55) |
 | LEARN-07 | Completion, Mastery, Competency getrennt | R1 (BS-09) | R1-10 | GM-009, GM-066, GM-075, GM-076, REV-001, REV-003, REV-025 | B | Competency (abgeleitet, `competency_validity_days`, E-73) und „Zahlung ist keine Kompetenz“ ohne Test → CERT-009 |
 | LEARN-08 | Zertifikat ausstellen, verifizieren, korrigieren, widerrufen | R1 Free-Basis (Z-3, E-96); Designer R3 | R1-35, R1-44 | RBAC-060…RBAC-066, REV-045, REV-046, GRANT-028, SEC-034, PRIV-025, CON-037, PUB-038, PUB-039, LOC-020…LOC-022 | C | Kein LB-Quellbestand, kein GM (R0-04 §3, R0-06 E-39). Verifikation ist getestet; Ausstellung, Einmaligkeit (R0-09 R-06), Korrektur und E-113-Regel ohne Test → CERT-001…CERT-006; R0-29 fehlt; Task-Reihenfolge R1-27 → R1-35 widersprüchlich (§2.3) |
 | LEARN-09 | Lernnotizen, Aufgabenabgabe, Trainerfeedback, Vorlagen | R2 (Z-8) | R2-01…R2-04 | – | D (R2-GATE) | Für R1 nicht anwendbar; R2-Katalog entsteht mit R2-01…R2-04 |
 | LEARN-10 | Kurs löschen/archivieren, Inhalte importieren, Rollback | R1 (BS-16) | R1-15, R1-27, R1-41 | GM-118…GM-136, IMP-001…IMP-032, REV-026, REV-027, REV-041, REV-042, REC-017, SUP-032, LOC-025, LOC-026, SEC-028, SEC-029 | B/C | Endgültiges Löschen eines Kurses mit Lernständen (Lösch-Hooks, E-48) ohne Test → REV-047 |
 | ACCESS-01 | Kostenloser, manueller, administrativer oder Einladungszugang | R1 (BS-12…BS-14) | R1-13 | GM-081, GM-087, GM-094, GM-098, GRANT-002, GRANT-003, RBAC-042…RBAC-045, SUP-009 | B/C | – |
-| ACCESS-02 | Kauf-/Voucher-/Ticket-/Mitgliedschaftsgrant mit stabiler Quellreferenz | R1+R3 (Kern BS-12, K-01/K-02; Adapter R3.1/R3.2/R3.4) | R1-13; R3-02, R3-04, R3-07 | GM-088, GM-089, GRANT-004, GRANT-005, GRANT-006, GRANT-024 | C · R3-GATE | Mitgliedschafts-Entitlement ohne Vertrag (Kap. 34.7) |
+| ACCESS-02 | Kauf-/Voucher-/Ticket-/Mitgliedschaftsgrant mit stabiler Quellreferenz | R1+R3 (Kern BS-12, K-01/K-02; Adapter R3.1/R3.2/R3.4) | R1-13; R3-02, R3-04, R3-07 | GM-088, GM-089, GRANT-004, GRANT-005, GRANT-006, GRANT-024 | C · R3-GATE | Mitgliedschafts-Entitlement ohne Vertrag (Kap. 34.7) → E-203, R3-20 (E-301), FIN-080/081 (R0-40) |
 | ACCESS-03 | Mehrere gültige Grants für denselben Kurs | R1 (BS-12) | R1-13 | GM-085, GM-092, GRANT-010, GRANT-011 | B | – |
 | ACCESS-04 | Grant pending → active/failed/expired/revoked | R1 (BS-12) | R1-13; R3-10 | GRANT-001, GRANT-015, GRANT-016, GRANT-020, GRANT-022, GM-091, SUP-024, SUP-029 | C | Pending-Timeout und Eskalation offen (SEAM-006) |
 | ACCESS-05 | Ablauf, Verlängerung, Pause, Reaktivierung | R1 (BS-12, BS-13) | R1-13, R1-14, R1-17, R1-25 | GM-084, GM-086, GM-089, GRANT-009, GRANT-012, GRANT-013, GRANT-014, RBAC-009, RBAC-046, CON-013, CON-048, I18N-009 | B/C | – |
 | ACCESS-06 | Rückerstattung nach Kursbeginn oder nach Zertifikat | R1+R3 (Kern mit FakeSource; Woo R3.1) | R1-13, R1-25, R1-27; R3-03 | GRANT-007, GRANT-027, GRANT-028, RBAC-037, RBAC-065, REV-023, REV-046, GRANT-023, CON-010, CON-020, CON-021, CON-036 | C · R3-GATE | – |
-| ACCESS-07 | Paket/Bündel, mehrere Plätze, Teilwiderruf | R1+R3 (Seats BS-14; Bundle-Teil nach E-25/W-07; Teilrefund R3.1) | R1-13, R1-04; R3-03 | GM-101, SEAT-009, SEAT-010, SEAT-013, SEAT-020, CON-004 | C · R3-GATE | Relation „Kurs enthält Kurs“ (INV-A-107/144) ohne Test → GM-193 (Bundle R1 nach E-25a) |
+| ACCESS-07 | Paket/Bündel, mehrere Plätze, Teilwiderruf | R1+R3 (Seats BS-14; Bundle-Teil nach E-25/W-07; Teilrefund R3.1) | R1-13, R1-04; R3-03 | GM-101, GM-198, SEAT-009, SEAT-010, SEAT-013, SEAT-020, CON-004 | C · R3-GATE | Relation „Kurs enthält Kurs“ (INV-A-107/144) → GM-198 (Bundle R1 nach E-25a; der frühere Vorschlag „GM-193“ ist damit erledigt) |
 | ACCESS-08 | Gesperrter Kurs, eingeschränkte Lektion, geschützte Downloads; Prüfung bei jedem Zugriff | R1 (BS-15, BS-23) | R1-14, R1-37 | GM-015, GM-107…GM-116, MED-001…MED-017, RBAC-012…RBAC-020, RBAC-067…RBAC-075, CON-031…CON-036, SEC-032, SEC-033, SEC-037, LOC-010 | C | – |
 | ACCESS-09 | Quelle/Partner deaktiviert oder inkompatibel; kein stiller Massenwiderruf | R1+R3 (Kern Z-6; Connector R3) | R1-13, R1-43; R3-10 | GRANT-021, RBAC-048, CT-08, CT-09 | C · R3-GATE | Betreiber-Policy für Bestands-Grants (Kap. 35.2) ohne Setting und Test (R0-27) |
 | COMMERCE-01 | Woo-Produkt/Variation → Kurs; Zahlung bestätigt → Grant | R3.1 (BS-31) | R3-02, R3-06 | GRANT-004 | R3-GATE | Woo-Katalog fehlt (R3-FIRST-001/004: HPOS/Classic, Blocks/Classic, doppelte Hooks); GRANT-004 prüft nur den Kern |
@@ -78,22 +80,22 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 | COMMERCE-05 | Gutschein validate/reserve → grant → commit | R3.2 (BS-32) | R3-04, R3-05 | GRANT-024, GRANT-026, SEC-024 | R3-GATE | – |
 | COMMERCE-06 | Gutschein mehrfach, mit Guthaben/Plätzen, abgelaufen, ungültig | R3.2 | R3-04, R3-05 | – | R3-GATE | Kein Test; E-36 („ein Code je Platz“) offen |
 | COMMERCE-07 | Woo-Bestellung mit Voucher-Rabatt oder -Zahlung | R3.3 | R3-05, R3-06 | – | R3-GATE | Kein Test (R3-FIRST-105); „Voucher allein“ entfällt (ENTSCHEIDUNGEN §7) |
-| COMMERCE-08 | Gratisbestellung, 100 %-Rabatt, erneuter Kauf, Upgrade | R3.1 | R3-02 | – | R3-GATE | Kein Test; Freischaltpolicy offen |
-| COMMERCE-09 | Produkt-/Kursmapping nach Verkauf geändert oder gelöscht | R3.1 | R3-02, R3-03 | – | R3-GATE | Kein Test; Zuordnung über `entitlement_revision` im `grant_source_key` (Kap. 35.2) |
+| COMMERCE-08 | Gratisbestellung, 100 %-Rabatt, erneuter Kauf, Upgrade | R3.1 | R3-02 | – | R3-GATE | Kein Test; Freischaltpolicy offen → E-186 (COMMERCE-Katalog ist Eingangsbedingung von R3-01, nicht Gate A) |
+| COMMERCE-09 | Produkt-/Kursmapping nach Verkauf geändert oder gelöscht | R3.1 | R3-02, R3-03 | – | R3-GATE | Kein Test; Zuordnung über `entitlement_revision` im `grant_source_key` (Kap. 35.2) → E-186 (Eingangsbedingung R3-01) |
 | COMMERCE-10 | Partnerausfall zwischen Reservierung, Grant und Commit | R3.2 | R3-04, R3-10, R3-19 | GRANT-020, GRANT-024, SEC-025 | R3-GATE | Kompensationspfad nur teilweise (SEAM-002) |
 | SUITEFLOW-01 | Workflow: Enrollment, Lektion, Prüfung, Completion, Zertifikat als Event | R3.4, Pro (E-38); in R1 nur interne Outbox (R1-43, E-182) | R1-28, R1-43; R3-07, R3-12, R3-17 | CT-06, CT-07, CT-12, PRIV-023, SEC-039 | C · R3-GATE | Owner der internen Outbox ist R1-43; öffentliche Events R3 (E-38) |
-| SUITEFLOW-02 | Workflow-Action Enroll/Revoke oder Benachrichtigung | R3.4; v1 ohne schreibende Aktionen (E-39) | R3-17 | RBAC-047, RBAC-048 | R3-GATE | In v1 nicht anwendbar; Schleifenschutz ohne Test |
+| SUITEFLOW-02 | Workflow-Action Enroll/Revoke oder Benachrichtigung | R3.4; v1 ohne schreibende Aktionen (E-39) | R3-17 | RBAC-047, RBAC-048 | R3-GATE | In v1 nicht anwendbar; Schleifenschutz ohne Test → E-186 (Eingangsbedingung R3-01) |
 | SUITEFLOW-03 | Form: kursgebundenes Formular, Aufgabenreferenz | R3.4 (BS-33) | R3-07 | – | R3-GATE | Kein Test; Partner-Registry existiert nicht (E-40) |
 | SUITEFLOW-04 | Review: Abschluss → verifiziertes Erlebnis → Einladung | R3.4 | R3-07 | – | R3-GATE | Kein Test (E-41) |
-| SUITEFLOW-05 | Pass: Ticketkauf → Grant; Storno → Widerruf | R3.4 | R3-07 | – | R3-GATE | Kein Test; Check-in ist keine Completion (ENTSCHEIDUNGEN §7) |
-| SUITEFLOW-06 | Affiliate: Sale/Refund über autoritative Quelle | R3.4; v1 meldet Course nichts (E-37) | R3-07, R3-19 | – | R3-GATE | Kein Test „keine doppelte Provision“ |
+| SUITEFLOW-05 | Pass: Ticketkauf → Grant; Storno → Widerruf | R3.4 | R3-07 | – | R3-GATE | Kein Test; Check-in ist keine Completion (ENTSCHEIDUNGEN §7) → E-186 (Eingangsbedingung R3-01) |
+| SUITEFLOW-06 | Affiliate: Sale/Refund über autoritative Quelle | R3.4; v1 meldet Course nichts (E-37) | R3-07, R3-19 | – | R3-GATE | Kein Test „keine doppelte Provision“ → E-37; Provisionsinvarianten im FIN-Katalog R0-40 §6.6 |
 | SUITEFLOW-07 | License/Pro: aktiv, grace, abgelaufen, Server offline | R3 (BS-35) | R3-08, R3-15, R3-18 | SEC-038 | R3-GATE | Lizenzablauf/Grace/Offline ohne Test (SEC-038 prüft nur Datenminimierung); R0-39 fehlt; Free-Teil siehe OPS-10, CORE-10 |
 | SUITEFLOW-08 | Kombinierte Rezepte Kauf → Kurs → Prüfung → Workflow → Review | R3.4 | R3-07 | – | R3-GATE | Kein Test (SUITE-110) |
 | SUITEFLOW-09 | Partnerinstallationen erkennen und einzeln aktivieren | R3 (FLOW-204); Erkennung lesend in R1 (E-185, E-254) | R3-16; R1-43 | CT-08, CT-09 | R3-GATE | aufgelöst durch E-185/E-254 (R1 lesend, Aktivierung R3) |
 | SUITEFLOW-10 | Partner-Upgrade, Downgrade, Deaktivierung, Neuaktivierung | R3 | R3-11, R3-12 | CT-08, CT-12 | R3-GATE | – |
 | OPS-01 | WP-Datenexport, Lösch-/Anonymisierungsantrag, Retention | R1 (BS-19) | R1-17, R1-34 | GM-099, GM-103, GM-131, GM-162, GM-172…GM-177, ID-002, ID-009, ID-010, ID-011, ID-013, RBAC-086, RBAC-089, PRIV-001…PRIV-015, PRIV-024, PRIV-026…PRIV-029, MS-018 | C | Tombstones nach Restore getestet (PRIV-010, E-151); Retention-Defaults E-44/E-51/E-150 offen |
 | OPS-02 | Objektzugriff, REST-Nonce, Webhook-Signatur; IDOR, CSRF, Replay, SSRF, Rate-Limit, Secret-Rotation | R1 (BS-02, BS-03, BS-18) | R1-03, R1-28 | RBAC-040, RBAC-043, RBAC-044, RBAC-079, RBAC-081, RBAC-093, RBAC-096, ID-004, ID-005, GM-073, GM-152, CT-02, CT-11, REC-022, SEC-001…SEC-004, SEC-020, SEC-022, SEC-023, SEC-026, SEC-029, SEC-035, SEC-036 | C | Secret-Rotation ohne Test → REC-026 |
-| OPS-03 | Event verspätet, doppelt, out-of-order, verloren | R1+R3 (Kern FakeSource und Outbox; Partner R3) | R1-13, R1-43; R3-12 | GRANT-007, GRANT-025, RBAC-093, CT-07, CT-11, REC-016, CON-010, CON-018, PRIV-023 | C · R3-GATE | Outbox ohne R1-Owner (§2.3) |
+| OPS-03 | Event verspätet, doppelt, out-of-order, verloren | R1+R3 (Kern FakeSource und Outbox; Partner R3) | R1-13, R1-43; R3-12 | GRANT-007, GRANT-025, RBAC-093, CT-07, CT-11, REC-016, CON-010, CON-018, PRIV-023 | C · R3-GATE | Outbox ohne R1-Owner (§2.3) → R1-43 (E-182), Tests GRANT-002, REC-016, SUP-029, NTF-001, CT-06, CT-07 |
 | OPS-04 | Parallelität: zwei Zahlungen, Refunds, Einlösungen, Joins, Abgaben | R1 (BS-02) | R1-20, R1-42; R3-05 | GRANT-005, GRANT-017, SEAT-003…SEAT-006, SEAT-019, ID-014, GM-045, GM-053, GM-096, GM-188, NFR-010, NFR-011, REV-030, REV-031, REV-032, IMP-020, GRANT-026, CON-001…CON-019, CON-040…CON-046, SEC-014, SEC-024, SEC-027 | C | – |
 | OPS-05 | Job, Queue, DB, Netzwerk oder Partner offline | R1 (BS-02, BS-20) | R1-17, R1-22, R1-38 | GM-156, GM-157, NFR-009, NFR-013, IMP-022, REC-008, CT-07, SUP-022, SUP-024, SUP-030, CON-029, CON-041…CON-045 | C | RB-04…RB-06 über CON-029/CON-040…CON-045 abgedeckt; RB-01, RB-02, RB-07, RB-08 ohne eigene Test-ID; Alarmierung ohne Test |
 | OPS-06 | Admin-Diagnose, Healthcheck, Fehler-/Supportexport | R1 (BS-20) | R1-17, R1-24, R1-38 | GM-115, GM-146, GM-147, GM-148, MED-007, MED-008, RBAC-094, REC-022, SUP-017…SUP-028, SUP-033…SUP-037, PRIV-022, PRIV-030, SEC-043 | C | Integrationsstatus-Anzeige (R0-34) fehlt |
@@ -106,9 +108,9 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 
 | Fall-ID | Kurzbeschreibung | Release (R0-04) | R1/R3-Task(s) | Testfall-IDs | Gate | Lücke |
 |---|---|---|---|---|---|---|
-| CORE-01 | Gast kauft mit E-Mail eines bestehenden Dritten → kein Zugriff, kein Account-Link | R1+R3 (Kern mit FakeSource; Gastkauf R3.1) | R1-13; R3-02 | ID-001 | C · R3-GATE | Woo-Variante erst R3 |
+| CORE-01 | Gast kauft mit E-Mail eines bestehenden Dritten → kein Zugriff, kein Account-Link | R1+R3 (Kern mit FakeSource; Gastkauf R3.1) | R1-13; R3-02 | ID-001 | C · R3-GATE | Woo-Variante erst R3 → E-186 (Woo-Variante im R3-Katalog, FIN-001 ff.) |
 | CORE-02 | Zehn Plätze an verschiedene Lernende; keine Einsicht in fremde Antworten | R1+R3 (Seat BS-14; Kauf R3.1) | R1-13, R1-35; R3-02 | SEAT-001, SEAT-003, SEAT-005, SEAT-017, RBAC-036, RBAC-059, CON-001, CON-003, PRIV-019 | C | Fixture GRP-1 hat 6 Plätze; Variante mit 10 Plätzen und 10 Konten parametrisieren (SEAT-001) |
-| CORE-03 | Derselbe Hook/Callback zehnmal → genau ein Grant | R1+R3 | R1-13, R1-42; R3-02, R3-04 | GRANT-004, GRANT-005, RBAC-093, SEC-024, CON-010 | C · R3-GATE | Woo-/Voucher-spezifische Doppelhooks erst R3 |
+| CORE-03 | Derselbe Hook/Callback zehnmal → genau ein Grant | R1+R3 | R1-13, R1-42; R3-02, R3-04 | GRANT-004, GRANT-005, RBAC-093, SEC-024, CON-010 | C · R3-GATE | Woo-/Voucher-spezifische Doppelhooks erst R3 → E-186 (FIN-002, FIN-005, R3-05) |
 | CORE-04 | Zwei Quellen, eine widerrufen → Kurs bleibt zugänglich | R1 (BS-12) | R1-13 | GRANT-010, GM-085 | B | – |
 | CORE-05 | Teilrefund einer von drei Positionen | R3.1 | R3-03 | GRANT-023, SEAT-020 | R3-GATE | – |
 | CORE-06 | Refund nach Abschluss und Zertifikat → Zugang weg, Historie und Zertifikat bleiben | R1+R3 | R1-13, R1-35; R3-03 | GRANT-028, REV-046, RBAC-065 | C | – |
@@ -117,9 +119,11 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 | CORE-09 | Trainer ruft fremde Lernenden-/Kurs-ID über REST ab | R1 (BS-03) | R1-03 | RBAC-033, RBAC-034, RBAC-087, GM-154, SEC-003, PRIV-020 | C | – |
 | CORE-10 | Pro-Lizenz läuft ab → Free, Historie, Verifikation bleiben | R1+R3 (Free-Teil R1; Pro R3) | R1-18; R3-15, R3-18 | RBAC-065, CT-09, SEC-038 | C · R3-GATE | Kein direkter Test; R0-39 fehlt; Free-Teil über SA-001 |
 | CORE-11 | Zertifikat begründet widerrufen → Verifikation zeigt `revoked` | R1 Free-Basis | R1-35, R1-44 | RBAC-062, RBAC-063, REV-046, SEC-034, CON-037 | C | – |
-| CORE-12 | Connector deaktiviert und reaktiviert → keine Massenwiderrufe, keine Duplikate | R1+R3 | R1-13; R3-10, R3-11 | GRANT-021, RBAC-048, CT-09 | C · R3-GATE | Reconciliation nach Reaktivierung erst R3 |
+| CORE-12 | Connector deaktiviert und reaktiviert → keine Massenwiderrufe, keine Duplikate | R1+R3 | R1-13; R3-10, R3-11 | GRANT-021, RBAC-048, CT-09 | C · R3-GATE | Reconciliation nach Reaktivierung erst R3 → E-186 (R3-03, FIN-007) |
 
 ### 1.3 Ergänzende Akzeptanzfälle (Vorschlag zur Übernahme in die Fachkataloge)
+
+**Stand (finaler Konsistenz-Durchgang, 16.11.2026):** alle 23 übernommen – CERT-001…006 und CERT-008 → R0-29 CRT-001…CRT-007, CERT-007 → R0-29 CRT-064; NTF-001…007 → R0-27 §4.3; RBAC-097 → R0-07; Vorschläge „GM-191/GM-192“ → R0-05 **GM-209/GM-210** (Nummernkollision mit E-22/E-69), „GM-193“ → R0-05 GM-198; REV-047 → R0-23; REC-026 → R0-16; NFR-019 → R0-14; SA-001 → R0-18 §4.1. Die Tabelle bleibt als Herkunftsnachweis.
 
 Diese 23 Fälle schließen Lücken aus §1.1/§1.2, die auch die Kataloge aus R0-13, R0-15, R0-17, R0-21, R0-22, R0-25 und R0-26 nicht abdecken. Sie sind **Vorschläge** und zählen in §5 nicht mit. Die Nummern setzen die bestehenden Kataloge fort; die neuen Präfixe CERT, NTF und SA gehören in R0-29, R0-27 bzw. R0-18.
 
@@ -141,9 +145,9 @@ Diese 23 Fälle schließen Lücken aus §1.1/§1.2, die auch die Kataloge aus R0
 | NTF-006 | Staging bzw. Haltemodus (E-85, E-86) | alle Mails im Catcher bzw. zurückgehalten, keine externe Zustellung | R1-21, R1-23 | OPS-08 | R0-27 |
 | NTF-007 | Test-Mail-Sink in der CI | jede Mail der E2E-Läufe im Sink nachweisbar, 0 externe Zustellungen | R1-21, R1-18 | OPS-08 | R0-18 |
 | RBAC-097 | Aktivierung auf einer Site mit `editor` und `shop_manager` | beide ohne `ccap_*`-Caps (E-207), nur `administrator` erhält sie (E-83) | R1-03 | ID-04 | R0-07 |
-| GM-191 | Lektionsfortschritt: `PUT progress` mit älterem Stand nach neuerem | Stand geht nie zurück; `completed` nur per `manual_confirm` zurücknehmbar (E-70) | R1-10 | LEARN-03 | R0-05 |
-| GM-192 | Prüfungsregel mit `cooldown_seconds = 3600`, ein nicht bestandener Versuch | neuer Start vor Ablauf der Sperrfrist abgewiesen mit Restzeit, danach erlaubt; Fortsetzen nicht betroffen | R1-08, R1-20 | LEARN-05 | R0-05 |
-| GM-193 | Kombikurs enthält Teilkurs, Grant nur auf den Kombikurs | Inhalte und Dateien des Teilkurses freigegeben (E-25a: Bundle R1 Free) | R1-04, R1-14 | ACCESS-07 | R0-05 |
+| GM-209 | Lektionsfortschritt: `PUT progress` mit älterem Stand nach neuerem | Stand geht nie zurück; `completed` nur per `manual_confirm` zurücknehmbar (E-70) | R1-10 | LEARN-03 | R0-05 |
+| GM-210 | Prüfungsregel mit `cooldown_seconds = 3600`, ein nicht bestandener Versuch | neuer Start vor Ablauf der Sperrfrist abgewiesen mit Restzeit, danach erlaubt; Fortsetzen nicht betroffen | R1-08, R1-20 | LEARN-05 | R0-05 |
+| ~~GM-193~~ → GM-198 | Kombikurs enthält Teilkurs, Grant nur auf den Kombikurs | Inhalte und Dateien des Teilkurses freigegeben (E-25a: Bundle R1 Free) | R1-04, R1-14 | ACCESS-07 | R0-05 |
 | REV-047 | Kurs mit Lernständen und Zertifikaten wird endgültig gelöscht | nur mit Bestätigung und Anzahl der Betroffenen; Versuche und Zertifikate bleiben verifizierbar; Orphan-Check sauber (E-48) | R1-04, R1-27 | LEARN-10 | R0-23 |
 | REC-026 | Rotation von `COURSE_CAPTAIN_SECRET_KEY` und eines Webhook-Secrets | gespeicherte Secrets neu verschlüsselt; alte Signatur nach Übergangsfrist abgelehnt; nirgends Klartext | R1-23, R1-28 | OPS-02 | R0-16 |
 | NFR-019 | Masseneinschreibung: 1 000 Grants per CLI bzw. Admin-Sammelaktion, Gruppe mit 1 000 Plätzen | im Budget der zugehörigen Operation, Outbox-Rückstand abgebaut, keine Lock-Timeouts in parallelen L1-Lernanfragen | R1-22, R1-42 | OPS-09 | R0-14 |
@@ -181,60 +185,60 @@ PAR-01…PAR-12 sind in R0-05 §6 vollständig mit GM-Bereichen und R1-Tasks ver
 
 | Task | Fälle (§1) | Tests | Beispiele | R0-Spez. | Bewertung / Anmerkung |
 |---|---|---:|---|---|---|
-| R1-01 | OPS-07 OPS-10 | 8 | GM-158, MS-001, MS-002, MS-003 | R0-16, R0-25, R0-20, R0-35 | ok (MS-Aktivierung, GM-158); Clean-Install über SA-001 |
+| R1-01 | OPS-07 OPS-10 | 12 | GM-158, MS-001, MS-002, MS-003 | R0-16, R0-25, R0-20, R0-35 | ok (MS-Aktivierung, GM-158); Clean-Install über SA-001 |
 | R1-02 | OPS-07 | 10 | GM-149, GM-163, GM-164, GM-168 | R0-06, R0-37 | ok |
-| R1-03 | CORE-09 ID-01 ID-04 ID-05 OPS-02 | 105 | GM-049, GM-058, GM-079, GM-097 | R0-07, R0-17 | ok |
+| R1-03 | CORE-09 ID-01 ID-04 ID-05 OPS-02 | 123 | GM-049, GM-058, GM-079, GM-097 | R0-07, R0-17 | ok |
 | R1-04 | ACCESS-07 LEARN-01 | 14 | GM-001, GM-003, GM-004, LOC-001 | R0-06, R0-08, R0-23, R0-25 | ok |
 | R1-05 | LEARN-01 LEARN-02 | 7 | GM-127, GM-137, GM-138, GM-140 | R0-11, R0-22 | ok |
-| R1-06 | LEARN-04 | 16 | GM-017, GM-019, GM-020, GM-024 | R0-08, R0-17 | ok |
-| R1-07 | LEARN-02 | 17 | GM-007, GM-008, GM-010, GM-011 | R0-08, R0-10 | ok |
-| R1-08 | LEARN-04 LEARN-05 | 31 | GM-021, GM-023, GM-026, GM-027 | R0-08, R0-17 | ok |
-| R1-09 | LEARN-04 LEARN-05 | 13 | GM-018, GM-019, GM-030, GM-031 | R0-08 | ok |
-| R1-10 | LEARN-03 LEARN-07 | 18 | GM-005, GM-009, GM-010, GM-066 | R0-08, R0-23 | ok |
-| R1-11 | LEARN-06 | 10 | GM-055, GM-056, GM-057, GM-058 | R0-08 | ok |
-| R1-12 | LEARN-06 | 14 | GM-004, GM-043, GM-065, GM-066 | R0-08, R0-05 | ok |
-| R1-13 | ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03 | 75 | GM-042, GM-048, GM-072, GM-076 | R0-09 | ok |
-| R1-14 | ACCESS-05 ACCESS-08 LEARN-02 | 65 | GM-015, GM-016, GM-025, GM-107 | R0-07, R0-10 | ok |
-| R1-15 | LEARN-10 | 61 | GM-022, GM-064, GM-118, GM-119 | R0-10, R0-38 | ok |
-| R1-16 | ID-01 LEARN-03 OPS-08 | 17 | GM-001, GM-047, GM-050, GM-051 | R0-11, R0-15 | ok |
-| R1-17 | ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06 | 52 | GM-086, GM-090, GM-099, GM-102 | R0-13, R0-16, R0-17 | ok |
-| R1-18 | CORE-10 OPS-10 | 11 | LOC-026, MED-013, NFR-013, NFR-014 | R0-05, R0-14, R0-18 | Sammel-Task, nimmt alle R1-Tests ab (§3) |
-| R1-19 | OPS-08 | 84 | A11Y-001, A11Y-002, A11Y-003, A11Y-004 | R0-15, R0-25 | ok |
-| R1-20 | LEARN-03 LEARN-04 LEARN-05 OPS-04 | 19 | A11Y-070, A11Y-075, GM-035, GM-036 | R0-08, R0-14, R0-17 | ok |
-| R1-21 | OPS-08 | 8 | GM-159, GM-160, LOC-016, LOC-017 | R0-27 (D12-6), R0-25 §2 | teilweise: Inhalt/Sprache/Header (PRIV-021, LOC-016…019, SEC-040); Versand, Fehler, Opt-out fehlen → NTF-001…007; GM-159/160 sind Pro (E-24) |
-| R1-22 | OPS-05 OPS-09 | 16 | GM-006, GM-110, GM-142, GM-187 | R0-14 | ok |
-| R1-23 | ID-06 OPS-07 | 34 | GM-117, GM-169, GM-170, GM-183 | R0-16, R0-17 §5.5 | ok |
+| R1-06 | LEARN-04 | 20 | GM-017, GM-019, GM-020, GM-024 | R0-08, R0-17 | ok |
+| R1-07 | LEARN-02 | 21 | GM-007, GM-008, GM-010, GM-011 | R0-08, R0-10 | ok |
+| R1-08 | LEARN-04 LEARN-05 | 39 | GM-021, GM-023, GM-026, GM-027 | R0-08, R0-17 | ok |
+| R1-09 | LEARN-04 LEARN-05 | 18 | GM-018, GM-019, GM-030, GM-031 | R0-08 | ok |
+| R1-10 | LEARN-03 LEARN-07 | 21 | GM-005, GM-009, GM-010, GM-066 | R0-08, R0-23 | ok |
+| R1-11 | LEARN-06 | 13 | GM-055, GM-056, GM-057, GM-058 | R0-08 | ok |
+| R1-12 | LEARN-06 | 15 | GM-004, GM-043, GM-065, GM-066 | R0-08, R0-05 | ok |
+| R1-13 | ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03 | 91 | GM-042, GM-048, GM-072, GM-076 | R0-09 | ok |
+| R1-14 | ACCESS-05 ACCESS-08 LEARN-02 | 73 | GM-015, GM-016, GM-025, GM-107 | R0-07, R0-10 | ok |
+| R1-15 | LEARN-10 | 66 | GM-022, GM-064, GM-118, GM-119 | R0-10, R0-38 | ok |
+| R1-16 | ID-01 LEARN-03 OPS-08 | 32 | GM-001, GM-047, GM-050, GM-051 | R0-11, R0-15 | ok |
+| R1-17 | ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06 | 73 | GM-086, GM-090, GM-099, GM-102 | R0-13, R0-16, R0-17 | ok |
+| R1-18 | CORE-10 OPS-10 | 13 | LOC-026, MED-013, NFR-013, NFR-014 | R0-05, R0-14, R0-18 | Sammel-Task, nimmt alle R1-Tests ab (§3) |
+| R1-19 | OPS-08 | 107 | A11Y-001, A11Y-002, A11Y-003, A11Y-004 | R0-15, R0-25 | ok |
+| R1-20 | LEARN-03 LEARN-04 LEARN-05 OPS-04 | 27 | A11Y-070, A11Y-075, GM-035, GM-036 | R0-08, R0-14, R0-17 | ok |
+| R1-21 | OPS-08 | 52 | GM-159, GM-160, LOC-016, LOC-017 | R0-27 (D12-6), R0-25 §2 | ok: Benachrichtigungsvertrag R0-27 §3 mit NTF-001…NTF-037 (inkl. N-14…N-16 Aufgaben, E-290); GM-159/160 sind Pro (E-24) |
+| R1-22 | OPS-05 OPS-09 | 19 | GM-006, GM-110, GM-142, GM-187 | R0-14 | ok |
+| R1-23 | ID-06 OPS-07 | 51 | GM-117, GM-169, GM-170, GM-183 | R0-16, R0-17 §5.5 | ok |
 | R1-24 | OPS-06 | 9 | GM-189, GM-190, MS-023, PRIV-030 | R0-13, R0-16 §5 | ok; Doku-Inhalte per Review (SUP-039…042) |
-| R1-25 | ACCESS-05 ACCESS-06 | 28 | CON-020, CON-021, CON-022, CON-023 | R0-21 | ok |
-| R1-26 | LEARN-01 | 64 | GM-003, GM-022, GM-023, GM-137 | R0-22 | ok |
-| R1-27 | ACCESS-06 LEARN-01 LEARN-10 | 46 | GM-052, LOC-011, PUB-031, PUB-035 | R0-23 | ok |
-| R1-28 | OPS-02 SUITEFLOW-01 | 30 | CT-01, CT-02, CT-03, CT-04 | R0-19 | ok; CT-Anker ohne Ziel-Spalte (§5) |
-| R1-29 | OPS-08 | 77 | A11Y-007, A11Y-008, A11Y-020, A11Y-021 | R0-26 | ok: UX-Katalog R0-26 mit Schwellen E-166 |
-| R1-30 | ID-06 | 8 | LOC-014, LOC-027, LOC-028, MED-024 | R0-20, R0-25 | knapp: Konfliktmatrix R0-20 fehlt |
-| R1-31 | ID-04 | 3 | GM-178, GM-180, GM-181 | R0-27 | knapp: Feldverträge R0-27 fehlen |
-| R1-32 | OPS-07 | 5 | GM-179, UX-060 | R0-30, R0-11 Flow 4 | knapp: Wizard-Resume, feldnahe Fehler, Ungespeichert-Warnung ohne Test (R0-30) |
-| R1-33 | LEARN-04 | 2 | GM-031, REV-020 | R0-28 | **dünn**: Vererbungsmatrix R0-28 liegt vor, ihr Katalog ist in §5 nicht gezählt |
-| R1-34 | ID-04 OPS-01 | 12 | GM-012, GM-013, GM-152, GM-176 | R0-31, R0-10 §5 | ok |
-| R1-35 | CORE-02 CORE-06 CORE-11 ID-03 LEARN-08 | 20 | GM-105, GM-106, GRANT-028, LOC-020 | R0-29, R0-09 | ok für Seats und Verifikation; Ausstellung ohne Domäne → R1-44 |
-| R1-36 | OPS-07 | 2 | GM-179, GM-181 | R0-27 | **dünn**: Reset, Downgrade, Multisite-Grenze ohne Test (R0-27) |
-| R1-37 | ACCESS-08 LEARN-01 | 4 | LOC-023, LOC-024, REV-040, SEC-033 | R0-33, R0-25 | knapp: Yoast-Konflikttests fehlen (R0-33) |
-| R1-38 | ID-05 OPS-05 OPS-06 | 57 | GM-115, GM-134, GM-140, GM-146 | R0-13, R0-34 | ok |
-| R1-39 | OPS-07 | 4 | REC-023, SEC-045 | R0-35 | knapp: Clean-Install, Readme, ZIP-Inhalt ohne Test (R0-35) |
-| R1-40 | OPS-07 | 16 | GM-068, GM-080, GM-113, GM-149 | R0-37, R0-16 | ok |
-| R1-41 | LEARN-10 | 11 | GM-125, GM-136, IMP-017, IMP-018 | R0-38, R0-10 §3.5 | ok |
-| R1-42 | CORE-03 OPS-04 OPS-09 | 56 | CON-001, CON-002, CON-003, CON-004 | R0-14 L5, R0-09 §6, R0-21 | ok |
-| R1-43 | ACCESS-09, OPS-03, SUITEFLOW-01, SUITEFLOW-09 | 0 | GRANT-002, REC-016, SUP-029, NTF-001 | R0-19 §5 (intern), R0-06 | beschlossen (E-182, nur interne Outbox); Kataloge noch ohne Ziel R1-43 |
-| R1-44 | LEARN-08, CORE-11 | 0 | RBAC-060…RBAC-066, SEC-034, PRIV-025, CON-037; CERT-001…006 | R0-29, R0-08 §7.2, R0-06 | beschlossen (E-183); Kataloge noch ohne Ziel R1-44 |
-| R1-45 | – | 8 | SUP-043, SUP-044, SEC-047…SEC-051, PRIV-033; dazu ADM-050…ADM-054 (R0-30, nicht gezählt) | R0-31, R0-30, R0-20 | beschlossen (E-10, E-239); ok |
-| R1-46 | – | 2 | GM-195, GM-196 | R0-10, R0-08, R0-26 | beschlossen (E-168); **dünn**: Upload-, Rechte- und Workflow-Negativtests fehlen |
+| R1-25 | ACCESS-05 ACCESS-06 | 29 | CON-020, CON-021, CON-022, CON-023 | R0-21 | ok |
+| R1-26 | LEARN-01 | 80 | GM-003, GM-022, GM-023, GM-137 | R0-22 | ok |
+| R1-27 | ACCESS-06 LEARN-01 LEARN-10 | 53 | GM-052, LOC-011, PUB-031, PUB-035 | R0-23 | ok |
+| R1-28 | OPS-02 SUITEFLOW-01 | 27 | CT-01, CT-02, CT-03, CT-04 | R0-19 | ok; CT-Anker haben seit dem Konsistenz-Durchgang eine Ziel-Spalte (R0-19 §9) |
+| R1-29 | OPS-08 | 91 | A11Y-007, A11Y-008, A11Y-020, A11Y-021 | R0-26 | ok: UX-Katalog R0-26 mit Schwellen E-166 |
+| R1-30 | ID-06 | 104 | LOC-014, LOC-027, LOC-028, MED-024 | R0-20, R0-25 | ok: Konfliktmatrix R0-20 (KOMP-001…KOMP-134, Ziel R1-30) |
+| R1-31 | ID-04 | 80 | GM-178, GM-180, GM-181 | R0-27 | ok: Feldverträge R0-27 (SET-001…SET-134) |
+| R1-32 | OPS-07 | 117 | GM-179, UX-060 | R0-30, R0-11 Flow 4 | ok: Katalog ADM-001…ADM-104 (R0-30) |
+| R1-33 | LEARN-04 | 55 | GM-031, REV-020 | R0-28 | ok: Katalog INH-001…INH-049 (R0-28) |
+| R1-34 | ID-04 OPS-01 | 83 | GM-012, GM-013, GM-152, GM-176 | R0-31, R0-10 §5 | ok |
+| R1-35 | CORE-02 CORE-06 CORE-11 ID-03 LEARN-08 | 59 | GM-105, GM-106, GRANT-028, LOC-020 | R0-29, R0-09 | ok für Seats und Verifikation; Ausstellung ohne Domäne → R1-44 |
+| R1-36 | OPS-07 | 47 | GM-179, GM-181 | R0-27 | ok: SET-Fälle mit Ziel R1-36 (R0-27) |
+| R1-37 | ACCESS-08 LEARN-01 | 59 | LOC-023, LOC-024, REV-040, SEC-033 | R0-33, R0-25 | ok: Katalog SEO-001…SEO-052 (R0-33) |
+| R1-38 | ID-05 OPS-05 OPS-06 | 97 | GM-115, GM-134, GM-140, GM-146 | R0-13, R0-34 | ok |
+| R1-39 | OPS-07 | 78 | REC-023, SEC-045 | R0-35 | ok: Release-Checkliste RC-001…RC-078 (R0-35) |
+| R1-40 | OPS-07 | 48 | GM-068, GM-080, GM-113, GM-149 | R0-37, R0-16 | ok |
+| R1-41 | LEARN-10 | 47 | GM-125, GM-136, IMP-017, IMP-018 | R0-38, R0-10 §3.5 | ok |
+| R1-42 | CORE-03 OPS-04 OPS-09 | 72 | CON-001, CON-002, CON-003, CON-004 | R0-14 L5, R0-09 §6, R0-21 | ok |
+| R1-43 | ACCESS-09, OPS-03, SUITEFLOW-01, SUITEFLOW-09 | 9 | GRANT-002, REC-016, SUP-029, NTF-001, CT-06, CT-07, PRIV-023 | R0-19 §5 (intern), R0-06 | beschlossen (E-182, nur interne Outbox); ok (Ziel R1-43 in R0-09, R0-13, R0-16, R0-17, R0-19, R0-27 gesetzt) |
+| R1-44 | LEARN-08, CORE-11 | 34 | RBAC-060…RBAC-066, SEC-034, PRIV-025, CON-037; CRT-001…CRT-006 (= CERT-001…006) | R0-29, R0-08 §7.2, R0-06 | beschlossen (E-183); ok (Ziel R1-44 in R0-07, R0-17, R0-21, R0-29 gesetzt) |
+| R1-45 | – | 32 | SUP-043, SUP-044, SEC-047…SEC-051, PRIV-033, ADM-050…ADM-054, GM-201…GM-208, RBAC-104 | R0-31, R0-30, R0-20, R0-05 §1.23 | beschlossen (E-10, E-239); ok |
+| R1-46 | – | 30 | GM-195, GM-196, MED-027…MED-030, MED-033, MED-034, SEC-053…SEC-055, RBAC-100…RBAC-103, NTF-035…NTF-037 | R0-10, R0-08, R0-26, R0-27 | beschlossen (E-168, E-288…E-290); ok |
 
 ### 2.2 Befunde
 
-1. **R1-01…R1-42 haben je mindestens einen Katalogtest.** Seit R0-26 hat auch R1-29 (Usability) einen Katalog (UX-001…, Schwellen E-166). Von den beschlossenen R1-43…R1-46 haben R1-45 (8 Tests) und R1-46 (2 Tests) Katalogtests; **R1-43 und R1-44 haben noch keinen** (ihre Tests stehen als Vorschläge in §2.3 bzw. mit anderem Ziel in den Katalogen).
-2. **R1-21 nur teilweise abgedeckt.** Getestet sind Mailinhalt und -sprache (PRIV-021, LOC-016…LOC-019) und Header-Injection (SEC-040). Versand-Einmaligkeit, Zustellfehler, Opt-out, Rate-Limit, Haltemodus und Mail-Sink fehlen → NTF-001…NTF-007. GM-159/GM-160 prüfen die Ablauf-**Erinnerung** und den Abmeldelink; beides ist nach E-24 Pro (BS-30, R3-08/R3-15). Für Benachrichtigungen gibt es keine R0-Spezifikation (D12-6).
-3. **Dünn (≤ 2 Tests):** R1-33, R1-36, R1-46. **Knapp (3–5 Tests):** R1-31, R1-32, R1-37, R1-39. Die zugehörigen Spezifikationen R0-27 (R1-31, R1-36), R0-28 (R1-33), R0-30 (R1-32), R0-33 (R1-37) und R0-35 (R1-39) liegen inzwischen mit eigenen Katalogen vor; §5 zählt diese Kataloge noch nicht (Offene Punkte). Ein Ersatzkatalog in R0-12 wäre Doppelarbeit.
-4. **Sammel-Task:** R1-18 hat 11 eigene Tests, nimmt aber alle 943 Tests mit R1-Ziel ab (Gate B/C). Seine DoD wird über §3 gemessen, nicht über die Ziel-Spalte.
-5. **Zuordnungsfehler in den Katalogen** (technische Korrektur, keine Entscheidung): GM-159/GM-160 → R3-15 (siehe Nr. 2). GM-189/GM-190 (Starter-Inhalte) zusätzlich R2-03, weil die Starttexte nach E-16 erst mit R2-03 kommen. RBAC-060…RBAC-066, SEC-034, PRIV-025 und CON-037 (Verifikation) zusätzlich R1-44.
+1. **Alle R1-Tasks R1-01…R1-46 haben Katalogtests** (§5, finaler Lauf: 0 ohne Test, 0 mit ≤ 2 Tests). R1-43 (interne Outbox) hat 9 Tests (GRANT-002, REC-016, SUP-029, NTF-001, CT-06, CT-07, PRIV-023 u. a.), R1-44 hat 34 (CRT-*, RBAC-060…066, SEC-034, PRIV-025, CON-037), R1-45 hat 32 (u. a. GM-201…GM-208, ADM-050…054, SEC-047…051), R1-46 hat 30 (u. a. MED-027…034, SEC-053…055, RBAC-100…103, NTF-035…037).
+2. **R1-21 abgedeckt.** Der Benachrichtigungsvertrag liegt in R0-27 §3 (E-187) mit NTF-001…NTF-037 vor; GM-159/GM-160 prüfen die Ablauf-**Erinnerung** und den Abmeldelink und sind nach E-24 Pro (BS-30, R3-08/R3-15).
+3. **Früher dünn/knapp** (R1-31, R1-32, R1-33, R1-36, R1-37, R1-39): durch die Aufnahme der Kataloge aus R0-27, R0-28, R0-30, R0-33 und R0-35 in §5 erledigt.
+4. **Sammel-Task:** R1-18 hat 13 eigene Tests, nimmt aber alle 1671 Tests mit R1-Ziel ab (Gate B/C). Seine DoD wird über §3 gemessen, nicht über die Ziel-Spalte.
+5. **Zuordnungsfehler in den Katalogen** (technische Korrektur, keine Entscheidung): GM-159/GM-160 → R3-15 (siehe Nr. 2). GM-189/GM-190 (Starter-Inhalte) zusätzlich R2-03, weil die Starttexte nach E-16 erst mit R2-03 kommen. RBAC-060…RBAC-066, SEC-034, PRIV-025 und CON-037 (Verifikation) zusätzlich R1-44. **Umgesetzt** im Konsistenz-Durchgang: RBAC-060…066, SEC-034, PRIV-025, CON-037 tragen R1-44; MED-027/MED-029, SEC-054/SEC-055 tragen R1-46 (vorher ohne gültige Ziel-Task).
 6. **Reihenfolgedefekt:** R1-27 („Zertifikate nachvollziehbar“, REV-003/REV-045/REV-046) setzt eine Zertifikatsdomäne voraus, die erst R1-35 abnimmt; R1-35 hängt aber von R1-27 ab. Ohne Domäne vor R1-27 ist R1-27 nicht testbar (§2.3, R1-44).
 7. **Doppelte Abdeckung** (kein Fehler, aber bei R0-24 zu konsolidieren): Gruppenjoin-Races stehen als SEAT-003…SEAT-006, CON-001…CON-006 und SEC-027 in drei Katalogen; Webhook-Signatur als RBAC-093, CT-11 und SEC-026; Secrets in Ausgaben als REC-022 und SEC-036. Vorschlag: ein Fall führt, die anderen verweisen darauf.
 
@@ -261,12 +265,12 @@ Weitere Pflichtverhalten ohne Owner wurden **nicht** gefunden. Geprüft wurden i
 |---|---|---|---|
 | A-1 | Inventur vollständig | R0-02/R0-03: 835 Einträge, `unknown` = 0; R0-04-Prüfskript `fehlend [] · doppelt []` | 100 % |
 | A-2 | R1-Grenze eingefroren | R0-04 auf „beschlossen“ (erfüllt 16.11.2026); alle 25 Kopplungen K-01…K-25 mit Entkopplungsvertrag; Widersprüche W-01…W-12 entschieden | 100 % |
-| A-3 | Entscheidungen beantwortet | E-01…E-284 (mit E-25a, E-39b, E-45a) einschließlich D12-1…D12-6 (= E-182…E-187) beschlossen am 16.11.2026 – **erfüllt**. **E-01** = Clean Room: keine Codeübernahme, nur Verhalten nachbauen | 100 %; sonst Gate rot |
-| A-4 | R0-Dokumente freigegeben | Entwürfe auf „beschlossen“ mit Reviewer: R0-04…R0-11, R0-12 (dieses), R0-13…R0-17, R0-19, R0-21…R0-23, R0-25, R0-26, R0-32, R0-36. **Noch zu schreiben:** R0-18, R0-20, R0-24, R0-27…R0-31, R0-33…R0-35, R0-37…R0-40 (15) | 40/40 Tasks R0-01…R0-40 abgehakt |
-| A-5 | Testkataloge vollständig | Alle 958 gezählten Katalogtests haben Erwartung und Ziel-Task (§5: `ohne Ziel = 0`); die 23 Vorschläge aus §1.3 sind übernommen oder begründet verworfen; die Kataloge aus R0-27…R0-40 sind in §5 aufgenommen; R1-43…R1-46 haben je mindestens einen Katalogtest mit Ziel-Spalte (heute R1-43 und R1-44 ohne); MED-029, SEC-054, SEC-055 mit Ziel-Task | 100 % |
+| A-3 | Entscheidungen beantwortet | E-01…E-312 (mit E-25a, E-39b, E-45a; Folgeklärungen E-285…E-312) einschließlich D12-1…D12-6 (= E-182…E-187) beschlossen am 16.11.2026 – **erfüllt**; neue Fragen aus dem Konsistenz-Durchgang stehen in `R0-GATE-protokoll.md` §5. **E-01** = Clean Room: keine Codeübernahme, nur Verhalten nachbauen | 100 %; sonst Gate rot |
+| A-4 | R0-Dokumente freigegeben | Alle Dokumente R0-01, R0-02, R0-04…R0-40 liegen vor und stehen auf „Beschlossen – Beschlüsse eingearbeitet“ (Stand 16.11.2026); Reviewer-Abzeichnung nach E-204 und Abhaken der 40 Tasks durch den Auftraggeber | 40/40 Tasks R0-01…R0-40 abgehakt |
+| A-5 | Testkataloge vollständig | Alle gezählten Katalogtests (§5: 1891 in 29 Dokumenten R0-05…R0-40) haben Erwartung und Ziel-Task (`ohne Ziel = 0`); die 23 Vorschläge aus §1.3 sind übernommen (§1.3 Stand); die Kataloge aus R0-27…R0-40 sind in §5 aufgenommen; R1-43…R1-46 haben je Katalogtests mit Ziel-Spalte (9 / 34 / 32 / 30); MED-029, SEC-054, SEC-055 tragen R1-46 | 100 % |
 | A-6 | Traceability ohne Lücke | §5-Skript: `R1-Fälle ohne Task = 0`, `ohne Test = 0`, `unbekannte Test-IDs = []`; jede Zeile mit „Lücke“ hat einen Vorschlag aus §1.3 oder eine E-/D12-Referenz; R0-24 übernimmt §1 als Pflichtvorlage | 0 offene Pflichtlücken |
 | A-7 | Ausführbare Referenztests | `cc-fixture-neutral-v1` gebaut (E-02); Referenzlauf für die Rechenlogik-GM (GM-029…GM-031, GM-065…GM-068, GM-084, GM-131) nach E-56 protokolliert; Abweichungsliste (E-55) angelegt | 100 % der genannten GM |
-| A-8 | ADRs akzeptiert | ADR-001…ADR-008 (Konzept 28.2) in R0-06, R0-07, R0-08, R0-19, R0-25 als „beschlossen“ | 8/8 |
+| A-8 | ADRs akzeptiert | ADR-001…ADR-008 (Konzept 28.2) und ADR-009/ADR-010 (R0-19, E-299): ADR-001…003, 006 (Teil) R0-06; ADR-004, ADR-005 R0-08; ADR-006 R0-19 §5.4; ADR-007 R0-39 (Kopf, T-1); ADR-008 R0-07 (Kopf, Verweis-ADR nach T-1); ADR-009 R0-19 §3; ADR-010 R0-19 §5.1; zusätzlich ADR R0-25 (Site-Scope/Locale) – alle „beschlossen“ | 10/10 |
 | A-9 | Datenschutz, Sicherheit, Betrieb | R0-13, R0-16, R0-17, R0-21, R0-31 freigegeben; Retention E-44/E-51/E-150 bestätigt; DSFA-Bedarf bewertet | 100 % |
 | A-10 | R3-Vorbereitung | FLOW-001/002 für alle 55 Fälle: Owner, Zustände, Fehlerpfad und Testskizze dokumentiert (Grundlage §1.1); ausführbare COMMERCE-/SUITEFLOW-Kataloge erst als Eingangsbedingung von R3-01 (D12-5) | 55/55 skizziert |
 
@@ -353,38 +357,43 @@ Kommando (aus dem Repository-Wurzelverzeichnis, Python 3, nur lesend):
 
 ```bash
 python3 - <<'PY'
-import re, collections
+import re, collections, glob, os
 D = 'docs/r0/'
-PFX = r'(GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX)-\d{3}'
-CAT = ['R0-05-golden-master.md', 'R0-07-rbac-idor-matrix.md', 'R0-09-identity-seat-grant-automaten.md',
-       'R0-10-import-medien-sicherheit.md', 'R0-13-support-betrieb.md', 'R0-14-nichtfunktionale-ziele.md',
-       'R0-15-barrierefreiheit-i18n.md', 'R0-16-backup-recovery-deployment.md', 'R0-17-threat-model-dsfa.md',
-       'R0-19-api-erweiterungsvertraege.md', 'R0-21-cache-nebenlaeufigkeit.md', 'R0-22-kursvalidierung-publish.md',
-       'R0-23-revisionen-laufender-kurse.md', 'R0-25-mandanten-locale-adr.md', 'R0-26-ux-abnahme-nutzertests.md']
+# Testkataloge: alle R0-05…R0-40 außer R0-12 (Fallquelle) und R0-24 (Traceability, keine eigenen Tests)
+PFX = (r'(GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX|SA|KOMP|SET|NTF|INH|CRT|GRP'
+       r'|ADM|PSD|SEO|INT|RC|MIG|BIG|LIC|FIN)-\d{3}')
+CAT = sorted(f for f in glob.glob(D + 'R0-*.md') if 5 <= int(os.path.basename(f)[3:5]) <= 40
+             and not os.path.basename(f).startswith(('R0-12', 'R0-24')))
 def cells(l): return [c.strip().strip('*').strip() for c in l.strip().strip('|').split('|')]
-tests = {}                                   # Test-ID -> Ziel-Tasks (erste Fundstelle mit Ziel gilt)
+def tk(s): return set(re.findall(r'R[0-4]-\d{2}', s))
+tests, src, skipped = {}, {}, []            # Test-ID -> Ziel-Tasks (erste Fundstelle mit Ziel gilt)
 for f in CAT:
-    hdr = None
-    for l in open(D + f, encoding='utf-8'):
+    b = os.path.basename(f)[:5]; hdr = None
+    for l in open(f, encoding='utf-8'):
         if not l.startswith('|'): hdr = None; continue
         c = cells(l)
         if hdr is None: hdr = c; continue
         if set(''.join(c)) <= set('-: '): continue
         ic = next((i for i, h in enumerate(hdr) if h in ('GM-ID', 'Test-ID', 'ID', 'Anker')), None)
         if ic is None or ic >= len(c): continue
-        m = re.match(PFX + '|CT-\\d{2}', c[ic])
-        if not m: continue
+        m = re.match(PFX + r'|CT-\d{2}', c[ic].lstrip('~'))
+        if not m or c[ic].startswith('~'): continue
         t = m.group(0)
-        if f.startswith('R0-05') and not t.startswith('GM-'): continue      # R0-05 §2: Fixture-IDs, keine Tests
+        if b == 'R0-05' and not t.startswith('GM-'): continue          # R0-05 §2: Fixture-IDs, keine Tests
+        if b != 'R0-35' and t.startswith('RC-'): continue               # RC-x in R0-13/R0-30 sind Reconcile-/Prüfschritte
         if t in tests and tests[t]: continue
-        if t.startswith('CT-'): tests[t] = {'R1-28', 'R3-12'}; continue    # R0-19 §9: Anker für R1-28/R3-12
-        zc = next((i for i, h in enumerate(hdr) if h.startswith('Ziel')), None)
-        z = set(re.findall(r'R[0-4]-\d{2}', c[zc] if zc is not None and zc < len(c) else ''))
-        if t.startswith('UX-'): z |= {'R1-29'} | set(re.findall(r'R1-\d{2}', l))  # R0-26 §5: alle Ziel R1-29
-        tests[t] = z
+        col = lambda *n: next((c[i] for i, h in enumerate(hdr) if h.startswith(n) and i < len(c)), '')
+        z = tk(col('Ziel')) | tk(col('weitere')) | tk(col('auch'))
+        if t.startswith('UX-'): z |= {'R1-29'} | set(re.findall(r'R1-\d{2}', l))       # R0-26 §5: alle Ziel R1-29
+        if t.startswith('PSD-'): z |= {'R1-34'}                                           # R0-31 §4: Ziel aller PSD = R1-34
+        if t.startswith('RC-'): z |= {'R1-39'} if int(t[3:]) <= 78 else {'R3-18'}         # R0-35 §5
+        if t.startswith('KOMP-') and not col('Ziel'):                                     # R0-20 §2: Ausführung R1-30
+            if col('Test') in ('–', '-'): skipped.append(t); continue                     # Platzhalter ohne Test
+            z |= {'R1-30'}
+        tests[t] = z; src[t] = b
 def expand(s):                               # "GM-118…GM-136" -> Einzel-IDs
     out = []
-    for a, b in re.findall(r'([A-Z]+-\d{2,3})(?:…([A-Z]+-\d{2,3}))?', s):
+    for a, b in re.findall(r'([A-Z0-9]+-\d{2,3})(?:…([A-Z0-9]+-\d{2,3}))?', s):
         if b and a.split('-')[0] == b.split('-')[0]:
             p = a.split('-')[0]; out += [f'{p}-{n:03d}' for n in range(int(a.split('-')[1]), int(b.split('-')[1]) + 1)]
         else: out.append(a)
@@ -404,76 +413,84 @@ print('R1-Fälle', len(r1), '| ohne R1-Task', [x[0] for x in r1 if not x[2]],
       '| ohne Test', [x[0] for x in r1 if not x[3]])
 print('unbekannte Test-IDs', sorted({t for x in cases for t in x[3] if t not in tests}))
 print('Fälle mit Lücke', sum(1 for x in cases if x[4] not in ('–', '-')))
+print('Kataloge', len(CAT), '| Dokumente mit Tests', len(set(src.values())), sorted(set(src.values())))
 print('Katalogtests', len(tests), dict(sorted(collections.Counter(re.sub(r'-\d+$', '', t) for t in tests).items())))
+print('ausgenommen (Platzhalter ohne Test)', skipped)
 print('ohne Ziel', [t for t, z in tests.items() if not z],
-      '| mit R1-Ziel', sum(1 for z in tests.values() if any(x.startswith('R1') for x in z)))
+      '| mit R1-Ziel', sum(1 for z in tests.values() if any(x.startswith('R1') for x in z)),
+      '| nur R2/R3/R4', sum(1 for z in tests.values() if z and not any(x.startswith('R1') for x in z)))
 cov = collections.Counter(x for z in tests.values() for x in z)
 for n in range(1, 47):
     k = f'R1-{n:02d}'
     print(k, 'Tests', cov[k], '| Fälle', ' '.join(sorted(bytask[k])) or '–')
+print('R1-Tasks ohne Test', [f'R1-{n:02d}' for n in range(1, 47) if not cov[f'R1-{n:02d}']],
+      '| mit ≤ 2 Tests', [f'R1-{n:02d}' for n in range(1, 47) if 0 < cov[f'R1-{n:02d}'] <= 2])
 PY
 ```
 
-Ergebnis am 16.11.2026 (erneut ausgeführt nach Einarbeitung der Beschlüsse; parallel wurden Fachkataloge in R0-05, R0-10, R0-13, R0-17, R0-21 ergänzt, daher geänderte Summen):
+Ergebnis am 16.11.2026 (finaler Konsistenz-Durchgang; Skript auf alle Testkataloge in R0-05…R0-40 erweitert, wörtlich):
 
 ```
 Fälle 67 {'ID': 6, 'LEARN': 10, 'ACCESS': 9, 'COMMERCE': 10, 'SUITEFLOW': 10, 'OPS': 10, 'CORE': 12}
 R1-Fälle 46 | ohne R1-Task [] | ohne Test []
 unbekannte Test-IDs []
 Fälle mit Lücke 46
-Katalogtests 958 {'A11Y': 66, 'CON': 52, 'CT': 12, 'GM': 200, 'GRANT': 33, 'I18N': 15, 'ID': 15, 'IMP': 32, 'LOC': 29, 'MED': 32, 'MS': 23, 'NFR': 18, 'PRIV': 33, 'PUB': 52, 'RBAC': 96, 'REC': 25, 'REV': 46, 'SEAT': 22, 'SEC': 55, 'SUP': 44, 'UX': 58}
-ohne Ziel ['MED-029', 'SEC-054', 'SEC-055'] | mit R1-Ziel 943
-R1-01 Tests 8 | Fälle OPS-07 OPS-10
+Kataloge 34 | Dokumente mit Tests 29 ['R0-05', 'R0-07', 'R0-09', 'R0-10', 'R0-13', 'R0-14', 'R0-15', 'R0-16', 'R0-17', 'R0-18', 'R0-19', 'R0-20', 'R0-21', 'R0-22', 'R0-23', 'R0-25', 'R0-26', 'R0-27', 'R0-28', 'R0-29', 'R0-30', 'R0-31', 'R0-33', 'R0-34', 'R0-35', 'R0-37', 'R0-38', 'R0-39', 'R0-40']
+Katalogtests 1891 {'A11Y': 66, 'ADM': 104, 'BIG': 36, 'CON': 52, 'CRT': 49, 'CT': 12, 'FIN': 65, 'GM': 210, 'GRANT': 33, 'GRP': 48, 'I18N': 15, 'ID': 15, 'IMP': 32, 'INH': 49, 'INT': 52, 'KOMP': 79, 'LIC': 65, 'LOC': 29, 'MED': 34, 'MIG': 27, 'MS': 23, 'NFR': 19, 'NTF': 37, 'PRIV': 33, 'PSD': 65, 'PUB': 62, 'RBAC': 104, 'RC': 72, 'REC': 26, 'REV': 48, 'SA': 1, 'SEAT': 22, 'SEC': 55, 'SEO': 52, 'SET': 91, 'SUP': 44, 'UX': 65}
+ausgenommen (Platzhalter ohne Test) ['KOMP-018', 'KOMP-093', 'KOMP-105']
+ohne Ziel [] | mit R1-Ziel 1671 | nur R2/R3/R4 220
+R1-01 Tests 12 | Fälle OPS-07 OPS-10
 R1-02 Tests 10 | Fälle OPS-07
-R1-03 Tests 105 | Fälle CORE-09 ID-01 ID-04 ID-05 OPS-02
+R1-03 Tests 123 | Fälle CORE-09 ID-01 ID-04 ID-05 OPS-02
 R1-04 Tests 14 | Fälle ACCESS-07 LEARN-01
 R1-05 Tests 7 | Fälle LEARN-01 LEARN-02
-R1-06 Tests 16 | Fälle LEARN-04
-R1-07 Tests 17 | Fälle LEARN-02
-R1-08 Tests 31 | Fälle LEARN-04 LEARN-05
-R1-09 Tests 13 | Fälle LEARN-04 LEARN-05
-R1-10 Tests 18 | Fälle LEARN-03 LEARN-07
-R1-11 Tests 10 | Fälle LEARN-06
-R1-12 Tests 14 | Fälle LEARN-06
-R1-13 Tests 75 | Fälle ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03
-R1-14 Tests 65 | Fälle ACCESS-05 ACCESS-08 LEARN-02
-R1-15 Tests 61 | Fälle LEARN-10
-R1-16 Tests 17 | Fälle ID-01 LEARN-03 OPS-08
-R1-17 Tests 52 | Fälle ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06
-R1-18 Tests 11 | Fälle CORE-10 OPS-10
-R1-19 Tests 84 | Fälle OPS-08
-R1-20 Tests 19 | Fälle LEARN-03 LEARN-04 LEARN-05 OPS-04
-R1-21 Tests 8 | Fälle OPS-08
-R1-22 Tests 16 | Fälle OPS-05 OPS-09
-R1-23 Tests 34 | Fälle ID-06 OPS-07
+R1-06 Tests 20 | Fälle LEARN-04
+R1-07 Tests 21 | Fälle LEARN-02
+R1-08 Tests 39 | Fälle LEARN-04 LEARN-05
+R1-09 Tests 18 | Fälle LEARN-04 LEARN-05
+R1-10 Tests 21 | Fälle LEARN-03 LEARN-07
+R1-11 Tests 13 | Fälle LEARN-06
+R1-12 Tests 15 | Fälle LEARN-06
+R1-13 Tests 91 | Fälle ACCESS-01 ACCESS-02 ACCESS-03 ACCESS-04 ACCESS-05 ACCESS-06 ACCESS-07 ACCESS-09 CORE-01 CORE-02 CORE-03 CORE-04 CORE-06 CORE-07 CORE-12 ID-01 ID-02 ID-03 ID-05 OPS-03
+R1-14 Tests 73 | Fälle ACCESS-05 ACCESS-08 LEARN-02
+R1-15 Tests 66 | Fälle LEARN-10
+R1-16 Tests 32 | Fälle ID-01 LEARN-03 OPS-08
+R1-17 Tests 73 | Fälle ACCESS-05 ID-05 OPS-01 OPS-05 OPS-06
+R1-18 Tests 13 | Fälle CORE-10 OPS-10
+R1-19 Tests 107 | Fälle OPS-08
+R1-20 Tests 27 | Fälle LEARN-03 LEARN-04 LEARN-05 OPS-04
+R1-21 Tests 52 | Fälle OPS-08
+R1-22 Tests 19 | Fälle OPS-05 OPS-09
+R1-23 Tests 51 | Fälle ID-06 OPS-07
 R1-24 Tests 9 | Fälle OPS-06
-R1-25 Tests 28 | Fälle ACCESS-05 ACCESS-06
-R1-26 Tests 64 | Fälle LEARN-01
-R1-27 Tests 46 | Fälle ACCESS-06 LEARN-01 LEARN-10
-R1-28 Tests 30 | Fälle OPS-02 SUITEFLOW-01
-R1-29 Tests 77 | Fälle OPS-08
-R1-30 Tests 8 | Fälle ID-06
-R1-31 Tests 3 | Fälle ID-04
-R1-32 Tests 5 | Fälle OPS-07
-R1-33 Tests 2 | Fälle LEARN-04
-R1-34 Tests 12 | Fälle ID-04 OPS-01
-R1-35 Tests 20 | Fälle CORE-02 CORE-06 CORE-11 ID-03 LEARN-08
-R1-36 Tests 2 | Fälle OPS-07
-R1-37 Tests 4 | Fälle ACCESS-08 LEARN-01
-R1-38 Tests 57 | Fälle ID-05 OPS-05 OPS-06
-R1-39 Tests 4 | Fälle OPS-07
-R1-40 Tests 16 | Fälle OPS-07
-R1-41 Tests 11 | Fälle LEARN-10
-R1-42 Tests 56 | Fälle CORE-03 OPS-04 OPS-09
-R1-43 Tests 0 | Fälle ACCESS-09 OPS-03 SUITEFLOW-01 SUITEFLOW-09
-R1-44 Tests 0 | Fälle CORE-11 LEARN-08
-R1-45 Tests 8 | Fälle –
-R1-46 Tests 2 | Fälle –
+R1-25 Tests 29 | Fälle ACCESS-05 ACCESS-06
+R1-26 Tests 80 | Fälle LEARN-01
+R1-27 Tests 53 | Fälle ACCESS-06 LEARN-01 LEARN-10
+R1-28 Tests 27 | Fälle OPS-02 SUITEFLOW-01
+R1-29 Tests 91 | Fälle OPS-08
+R1-30 Tests 104 | Fälle ID-06
+R1-31 Tests 80 | Fälle ID-04
+R1-32 Tests 117 | Fälle OPS-07
+R1-33 Tests 55 | Fälle LEARN-04
+R1-34 Tests 83 | Fälle ID-04 OPS-01
+R1-35 Tests 59 | Fälle CORE-02 CORE-06 CORE-11 ID-03 LEARN-08
+R1-36 Tests 47 | Fälle OPS-07
+R1-37 Tests 59 | Fälle ACCESS-08 LEARN-01
+R1-38 Tests 97 | Fälle ID-05 OPS-05 OPS-06
+R1-39 Tests 78 | Fälle OPS-07
+R1-40 Tests 48 | Fälle OPS-07
+R1-41 Tests 47 | Fälle LEARN-10
+R1-42 Tests 72 | Fälle CORE-03 OPS-04 OPS-09
+R1-43 Tests 9 | Fälle ACCESS-09 OPS-03 SUITEFLOW-01 SUITEFLOW-09
+R1-44 Tests 34 | Fälle CORE-11 LEARN-08
+R1-45 Tests 32 | Fälle –
+R1-46 Tests 30 | Fälle –
+R1-Tasks ohne Test [] | mit ≤ 2 Tests []
 ```
 
-**Stand der Ausführung:** nach Einarbeitung der Beschlüsse am 16.11.2026 erneut ausgeführt, Bereich auf R1-01…R1-46 erweitert. Gegenüber dem Entwurf (920 Tests, 909 mit R1-Ziel, 45 R1-Fälle) zählt das Skript jetzt 958 Tests, 943 mit R1-Ziel und 46 R1-Fälle (die Fälle mit R1-43/R1-44 zählen jetzt als R1). Drei neue Tests haben noch keine Ziel-Task (MED-029, SEC-054, SEC-055). Bei einer Kontrollausführung kurz danach zählte das Skript bereits 977 Tests (962 mit R1-Ziel), weil parallel weitere Kataloge ergänzt wurden; die Zahlen sind daher vor der Freigabe erneut zu erzeugen. R1-43 und R1-44 haben 0 Tests, R1-45 hat 8 (SUP-043, SUP-044, SEC-047…SEC-051, PRIV-033), R1-46 hat 2 (GM-195, GM-196).
+**Stand der Ausführung:** im finalen Konsistenz-Durchgang am 16.11.2026 ausgeführt (aus dem Repository-Wurzelverzeichnis, fehlerfrei). Das Skript liest jetzt **alle** Testkataloge in R0-05…R0-40 (34 Dokumente, davon 29 mit Tests) statt der früheren 15. Gegenüber dem vorigen Stand (958 bzw. 977 Tests, 943 bzw. 962 mit R1-Ziel, 3 ohne Ziel) zählt es 1891 Tests, 1671 mit R1-Ziel, 220 nur mit R2–R4-Ziel und 0 ohne Ziel. R1-43 hat 9, R1-44 34, R1-45 32 und R1-46 30 Tests; kein R1-Task hat ≤ 2 Tests.
 
-**Grenzen der Zählung:** Das Skript liest die Ziel-Spalten der Kataloge, nicht deren fachliche Richtigkeit. Nebenziele in Klammern (z. B. REV „R1-27 (R1-10)“) zählen mit. Die 23 Vorschläge aus §1.3 sind nicht enthalten, bis sie in die Fachkataloge übernommen sind. CT-01…CT-12 tragen in R0-19 keine Ziel-Spalte; das Skript ordnet sie nach R0-19 §9 R1-28 und R3-12 zu. UX-Fälle haben laut R0-26 §5 alle das Ziel R1-29. Kommt eine Test-ID mehrfach vor (z. B. A11Y-001 in einer Übersicht), gilt die erste Zeile mit Ziel-Spalte. R0-05 §2 enthält Fixture-IDs (MED-001…), die nicht als Tests zählen.
+**Grenzen der Zählung:** Das Skript liest die Ziel-Spalten der Kataloge, nicht deren fachliche Richtigkeit. Neben „Ziel“/„Ziel-Task“ zählen die Spalten „weitere“ und „auch“ sowie Nebenziele in Klammern (z. B. REV „R1-27 (R1-10)“) mit. Standardziele ohne Ziel-Spalte nach dem jeweiligen Dokument: UX → R1-29 (R0-26 §5), PSD → R1-34 (R0-31 §5), RC-001…078 → R1-39 und RC-090…099 → R3-18 (R0-35 §5), KOMP ohne Ziel-Spalte → R1-30 (R0-20 §2); KOMP-Zeilen ohne Test („nicht unterstützt“, „nicht in R1“) zählen nicht. Gezählt werden nur die Präfixe der Testkataloge; Regel-, Fixture- und Kennzahlen-IDs (z. B. VAL, RV, K43, RT, FE, M, T, L) sind keine Tests. RC-Nummern außerhalb R0-35 (Reconcile-Schritte) und durchgestrichene IDs zählen nicht. Kommt eine Test-ID mehrfach vor, gilt die erste Zeile mit Ziel. R0-05 §2 enthält Fixture-IDs (MED-001…), die nicht als Tests zählen. Die Vorschläge aus §1.3 sind übernommen und werden in den Fachkatalogen gezählt.
 
 ---
 
@@ -494,10 +511,10 @@ Zusätzlich eingearbeitet: E-10/E-239 (R1-45), E-168 (R1-46), E-22/E-69 (B-10), 
 
 ### Offene Punkte nach Einarbeitung
 
-1. **Zählumfang §5:** Das Skript liest nur die 15 Kataloge aus R0-05…R0-26. Die Kataloge der inzwischen vorliegenden R0-27…R0-40 (z. B. ADM-xxx in R0-30 mit Ziel R1-45, Kataloge in R0-27, R0-29, R0-31, R0-33, R0-34) sind nicht gezählt; die Zahlen 958/943 sind deshalb eine Untergrenze. Die Erweiterung des Skripts ist Voraussetzung für Gate A-5.
-2. **R1-43 und R1-44 ohne Katalogtest mit Ziel-Spalte, R1-46 dünn:** Die Fachkataloge müssen die neuen Tasks als Ziel eintragen (z. B. RBAC-060…066 → R1-44; GRANT-002/REC-016 → R1-43). R1-46 hat nur GM-195/GM-196; für die neuen Fragetypen (E-22, E-69) gibt es keinen eigenen Katalog. Drei neue Tests (MED-029, SEC-054, SEC-055) haben keine Ziel-Task.
-3. **R1-43 und bisherige Event-Tests:** CT-06…CT-12, PRIV-023, RBAC-047/048/093 prüfen teils öffentliche Events/Registry (nach E-38 Pro). Ihre Ziel-Task (R1-43 oder R3-01/R3-12) ist je Test in R0-19/R0-07/R0-17 neu zu setzen.
-4. **Golden Master ohne LB-Quelle** für R1-46 und die neuen Fragetypen: Erwartungswerte müssen nach Spezifikation festgelegt werden (R0-05; E-55 greift mangels LB-Verhalten nicht).
+1. **Zählumfang §5:** Das Skript liest nur die 15 Kataloge aus R0-05…R0-26. Die Kataloge der inzwischen vorliegenden R0-27…R0-40 (z. B. ADM-xxx in R0-30 mit Ziel R1-45, Kataloge in R0-27, R0-29, R0-31, R0-33, R0-34) sind nicht gezählt; die Zahlen 958/943 sind deshalb eine Untergrenze. Die Erweiterung des Skripts ist Voraussetzung für Gate A-5. → erledigt im Konsistenz-Durchgang: §5 liest alle Kataloge R0-05…R0-40 (1891 Tests, 0 ohne Ziel)
+2. **R1-43 und R1-44 ohne Katalogtest mit Ziel-Spalte, R1-46 dünn:** Die Fachkataloge müssen die neuen Tasks als Ziel eintragen (z. B. RBAC-060…066 → R1-44; GRANT-002/REC-016 → R1-43). R1-46 hat nur GM-195/GM-196; für die neuen Fragetypen (E-22, E-69) gibt es keinen eigenen Katalog. Drei neue Tests (MED-029, SEC-054, SEC-055) haben keine Ziel-Task. → erledigt: R1-43 9, R1-44 34, R1-46 30 Tests; MED-029, SEC-054, SEC-055 → R1-46; neue Fragetypen über GM-191…GM-194 und PUB-Fälle
+3. **R1-43 und bisherige Event-Tests:** CT-06…CT-12, PRIV-023, RBAC-047/048/093 prüfen teils öffentliche Events/Registry (nach E-38 Pro). Ihre Ziel-Task (R1-43 oder R3-01/R3-12) ist je Test in R0-19/R0-07/R0-17 neu zu setzen. → erledigt: CT-06/CT-07 → R1-43, CT-08/CT-11/CT-12 → R3-01/R3-12, PRIV-023 → R1-43/R3-12, RBAC-047 → R1-03/R3-01, RBAC-048/093 → R3-01/R3-12 (E-38, E-291)
+4. **Golden Master ohne LB-Quelle** für R1-46 und die neuen Fragetypen: Erwartungswerte müssen nach Spezifikation festgelegt werden (R0-05; E-55 greift mangels LB-Verhalten nicht). → erledigt: Erwartungswerte nach Spezifikation in R0-05 §1.22 (GM-191…GM-200), gekennzeichnet „neu, ohne LB-Quelle“; E-55 greift dort nicht
 
 ---
 
@@ -506,7 +523,7 @@ Zusätzlich eingearbeitet: E-10/E-239 (R1-45), E-168 (R1-46), E-22/E-69 (B-10), 
 | Dokument | Delta |
 |---|---|
 | TODO | R1-43…R1-46 sind aufgenommen (erledigt); offen: Voraussetzung von R1-27 und R1-35 um R1-44 ergänzen; R1-21-DoD „Ablauf“ = Mitteilung nach Ablauf (E-24) |
-| R0-05 | GM-159/GM-160 Ziel → R3-15; GM-189/GM-190 zusätzlich R2-03; GM-191…GM-193 aufnehmen |
+| R0-05 | GM-159/GM-160 Ziel → R3-15; GM-189/GM-190 zusätzlich R2-03; Vorschläge als **GM-209, GM-210** aufgenommen (die Nummern GM-191…GM-193 hat R0-05 inzwischen für E-22/E-69 vergeben); „GM-193“ durch GM-198 erledigt – **eingearbeitet** |
 | R0-07 | RBAC-097 aufnehmen; RBAC-060…RBAC-066 zusätzlich R1-44 |
 | R0-14 | NFR-019 (Masseneinschreibung); Test-IDs für RB-01, RB-02, RB-07, RB-08 |
 | R0-16 | REC-026 (Secret-Rotation) |
@@ -525,4 +542,5 @@ Zusätzlich eingearbeitet: E-10/E-239 (R1-45), E-168 (R1-46), E-22/E-69 (B-10), 
 - Gelesen: `TODO-WETTBEWERBSANALYSE.md` vollständig; `konzept.md` Kap. 23, 28.6, 34, 35, 38, 39; `docs/r0/ENTSCHEIDUNGEN.md` (E-01…E-171); R0-04 §1–§5; R0-05 §1, §4–§6; R0-06 (Zertifikat- und Outbox-Entitäten); R0-07 §5, §7; R0-08 §4.4, §8; R0-09 §5, §6, §8; R0-10 §6–§7; R0-11 §1.4, §2.2, §2.3, §5; R0-14 §2.2, §4, §5; R0-16 §4, §6; R0-19 §7–§9; R0-23 §7–§8. Testkataloge der während der Bearbeitung hinzugekommenen Entwürfe R0-13 (SUP), R0-15 (A11Y, I18N), R0-17 (SEC, PRIV), R0-21 (CON), R0-22 (PUB), R0-25 (LOC, MS), R0-26 (UX) wurden zeilenweise nach Ziel-Task und Stichworten ausgewertet, nicht vollständig fachlich gelesen.
 - Zählungen: Skript in §5, Ergebnis dort wörtlich. Die Zuordnung Fall → Test in §1 ist fachlich hergeleitet und muss im Review gegengeprüft werden. Das Skript prüft nur, dass die IDs existieren und jeder R1-Fall einen Task und einen Test hat.
 - Beschlüsse vom 16.11.2026 eingearbeitet (Beschlussstand, §2.1, §2.3, §3, §4, §6); Skript §5 erneut ausgeführt.
-- Nicht erfolgt: keine Änderung an anderen Dateien, keine Implementierung, kein Testlauf, kein Commit.
+- Finaler Konsistenz-Durchgang (16.11.2026): Skript §5 auf alle Testkataloge R0-05…R0-40 erweitert und ausgeführt (Ausgabe wörtlich in §5); Ziel-Tasks in R0-07, R0-09, R0-10, R0-13, R0-16, R0-17, R0-19, R0-21 nachgezogen; Vorschläge §1.3 übernommen; Gate-A-Bewertung in `R0-GATE-protokoll.md`.
+- Nicht erfolgt: keine Implementierung, kein Testlauf, kein Commit.

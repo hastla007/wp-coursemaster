@@ -185,7 +185,7 @@ Skala nach üblicher Schutzbedarfsfeststellung: **normal / hoch / sehr hoch**, g
 | DK-12 | **Inbox/Outbox, Diagnose, gehaltene Mails** | Ereignis-Payload (UIDs), Fehlertexte, `held`-Mails mit Empfänger | Lernende | normal | hoch | normal | – | 90 d (E-116); gehaltene Mails E-151 Abs. 4 |
 | DK-13 | **Kursinhalte, Fragen, Lösungen** | CPT, `ccap_question_revision`, Paketkopien | Autoren (Urheber) | **hoch** (Lösungen) | hoch | normal | kommerzieller Fragenkatalog | Revisionen dauerhaft (R0-06) |
 | DK-14 | **Datenschutz-Tombstones** | HMAC(Nutzer), HMAC(E-Mail), Zeitpunkt, Umfang | gelöschte Personen | hoch | **sehr hoch** | hoch | – | E-151 |
-| DK-15 | **Aufgaben-Abgaben** (E-168) | Freitext, hochgeladene Dateien (beliebiger Inhalt, ggf. Metadaten wie Autor/Ort), Bewertung, Rückmeldung | Lernende, Bewertende | **hoch** | hoch | normal | Dateien mit Personen-, Gesundheits- oder Firmendaten | Annahme E-51 „Rohantworten 2 J. nach Kursende“, siehe Offene Punkte |
+| DK-15 | **Aufgaben-Abgaben** (E-168) | Freitext, hochgeladene Dateien (beliebiger Inhalt, ggf. Metadaten wie Autor/Ort), Bewertung, Rückmeldung | Lernende, Bewertende | **hoch** | hoch | normal | Dateien mit Personen-, Gesundheits- oder Firmendaten | E-289: wie E-51 „Rohantworten 2 J. nach Kursende“, siehe Offene Punkte |
 
 **Besondere Kategorien (Art. 9) und Minderjährige:** Course Captain verarbeitet planmäßig keine Daten nach Art. 9. Freitext-Antworten (`open_text`, Sammlungsnamen, Abgaben nach E-168) können solche Daten aber zufällig enthalten; deshalb gilt für DK-03/DK-04 Vertraulichkeit „hoch“, und Freitext wird nie in Mails, Outbox oder Berichts-CSVs übernommen. Course Captain erfindet keine Altersprüfung (Konzept 20); für Kinder- und Schulangebote siehe §6.3 Szenario S-3.
 
@@ -636,10 +636,10 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §23, „Von Claude entschiede
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-17-1 | Rechtliche Bewertung von AR-01 (externe Medien ohne Einwilligung) | bewusst beim Betreiber; dieses Dokument leistet keine Rechtsberatung | Betreiber |
-| OP-17-2 | Aufbewahrung und Art.-9-Risiko von Aufgaben-Abgaben (DK-15) | E-168 regelt die Funktion, keine Frist; Zuordnung zu E-51 ist Annahme | Betreiber/Auftraggeber |
-| OP-17-3 | User-Enumeration-Schutz: E-241 nennt ihn als Opt-in, E-261 verschiebt ihn in den R4-Pool | widersprüchliche Beschlüsse; hier gilt E-261 (nicht in R1) | Auftraggeber (Klarstellung) |
-| OP-17-4 | Juristische Bestätigung von E-44, E-51, E-92, E-150 | Beschlüsse verlangen Bestätigung durch den Betreiber | Betreiber |
+| OP-17-1 | Rechtliche Bewertung von AR-01 (externe Medien ohne Einwilligung) | bewusst beim Betreiber; dieses Dokument leistet keine Rechtsberatung | Betreiber → **Auftraggeber-Aktion (Blocker für Gate A)**: rechtliche Bewertung AR-01 (`always_load`) durch den Betreiber (Gate A-9), AG-07 |
+| OP-17-2 | Aufbewahrung und Art.-9-Risiko von Aufgaben-Abgaben (DK-15) | E-168 regelt die Funktion, keine Frist; Zuordnung zu E-51 ist Annahme | Betreiber/Auftraggeber → **erledigt durch E-289** (Frist wie Rohantworten); Art.-9-Risiko und Frist juristisch bestätigen: **Auftraggeber-Aktion (Blocker für Gate A)**: Gate A-9, AG-07 |
+| OP-17-3 | User-Enumeration-Schutz: E-241 nennt ihn als Opt-in, E-261 verschiebt ihn in den R4-Pool | widersprüchliche Beschlüsse; hier gilt E-261 (nicht in R1) | Auftraggeber (Klarstellung) → **erledigt durch E-308** |
+| OP-17-4 | Juristische Bestätigung von E-44, E-51, E-92, E-150 | Beschlüsse verlangen Bestätigung durch den Betreiber | Betreiber → **Auftraggeber-Aktion (Blocker für Gate A)**: juristische Bestätigung E-44, E-51, E-92, E-150 (Gate A-9), AG-07 |
 
 ---
 

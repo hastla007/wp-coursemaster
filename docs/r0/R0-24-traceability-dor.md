@@ -18,10 +18,11 @@ Alle Entscheidungen sind getroffen (`ENTSCHEIDUNGEN.md`, Beschlussprotokoll und 
 | **E-25**, E-25a | §3 Nr. 7: Bundle R1 |
 | E-16, E-26 | R0-04-Prüfliste: BS-24 −10 (öffentliche FAQ → BS-Z), BS-12 +1, BS-04 +1 |
 | E-200, E-201, E-202, E-203, E-204 | ersetzen D24-2…D24-5, D24-7 |
+| E-299, E-301 | ADR-009/ADR-010 statt ADR-007/008 in R0-19 (T-1 erledigt); R3-20 Membership-Adapter im TODO – Zeilennummern ab Z. 586 um 4 verschoben (§1.2, §1.4 angepasst) |
 | D24-6, D24-8, D24-9 | technisch festgelegt (ENTSCHEIDUNGEN §31): PAR-13…15, keine gestaffelte Readiness, Verweise an Duplikaten |
 | E-207 | Präfix `ccap_` (Rolle `ccap_trainer`) |
 
-Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, +8 Zeilen ab Z. 439 durch R1-45/R1-46) verschoben.
+Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, +8 Zeilen ab Z. 439 durch R1-45/R1-46) verschoben; im finalen Konsistenz-Durchgang erneut auf den Stand nach `98bfc38` (+4 Zeilen ab Z. 586 durch R3-20).
 
 **Kernzahlen** (per Skript, §5)
 
@@ -36,8 +37,8 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | führende Einträge „abgedeckt (Entwurf)“ / „offen“ | 38 / 64 |
 | führende R-Tasks, die Registereinträge tragen | 53 |
 | Registereinträge mit unbekannter Test-ID / unbekannter R-Task / unbekannter E-Nummer | 0 / 0 / 0 |
-| PAR-01…12 und LB-01…15 mit genau einer führenden Task | 27 / 27 |
-| R1-Bausteine (BS-01…BS-27) ohne PAR-Zeile | 4 (BS-19, BS-23, BS-24, BS-27; 58 INV-IDs) |
+| PAR-01…16 und LB-01…15 mit genau einer führenden Task | 31 / 31 |
+| R1-Bausteine (BS-01…BS-27) ohne PAR-Zeile | 0 (BS-19, BS-23, BS-24, BS-27 → PAR-13…PAR-16) |
 | INV-Zeilen mit „R2“ in Phase/Edition | 42 (davon 3 mit R2-Task, 39 ohne) |
 | weitere R2-Zuordnungen aus Entscheidungen ohne R2-Task | 5 (alle per Beschluss nach R1, R3 oder R4 zugeordnet, §3) |
 | R1-Tasks mit DoR-Zeile (R1-01…R1-46) | 46 |
@@ -78,7 +79,7 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 668 | P1 | Kompetenzmatrix/Lernziele | R1-10 | R0-08 §5 | GM-075, GM-076 | Duplikat → Z.710 | Auswertung der drei Dimensionen; Matrix-Editor ohne Task → R4-01 |
 | 669 | P1 | Kursdiskussionen und Trainerfragen | R4-01 | – | – | offen | kein Task R1–R3; Vorschlag R4-Nachfragepool |
 | 670 | P1 | Interaktive Medienaktivitäten | R4-01 | R0-08 §3; R0-15 K-12 | – | offen | Zuordnen/Sortieren → §3 Nr. 10 (E-69); Hotspots, Video-Fragen, Szenarien R4 |
-| 671 | P1 | Kurs-Bundles und Mitgliedschaften | R3-08 | R0-11 §1 („Abos/Mitgliedschaften/Bundles mit Verkauf“, Pro); R0-04 W-07 | GM-193* | offen | Bundle R1-04/R1-13 (E-25, E-25a); Mitgliedschaft = Grant-Quelle, Adapter R3 (E-203) |
+| 671 | P1 | Kurs-Bundles und Mitgliedschaften | R3-08 | R0-11 §1 („Abos/Mitgliedschaften/Bundles mit Verkauf“, Pro); R0-04 W-07 | GM-198 | offen | Bundle R1-04/R1-13 (E-25, E-25a); Mitgliedschaft = Grant-Quelle, Adapter R3 (E-203) |
 | 672 | P1 | Kursbewertungen | R3-07 | R0-32 §5 | – | Duplikat → Z.778 | E-41 |
 | 676 | P2 | Gamification | R4-01 | – | – | offen | führend für Sammelpunkt Z.758 |
 | 677 | P2 | SCORM/xAPI/H5P/LTI | R4-01 | R0-04 W-03 (Client-API R4) | – | offen | R4-Nachfragepool |
@@ -94,16 +95,16 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 693 | Tore | Free/Pro-Grenzen einzeln entscheiden | R0-11 | R0-11 §1 | – | Duplikat → Z.721 |  |
 | 694 | Tore | P0 bedeutet Prüfung/Planung, nicht automatisch v1.0-Pflicht | R0-04 | R0-04 §1 Z-8 | – | obsolet (Kap. 29, Z.720) | Grundsatz durch den Release-Plan Kap. 29 entschieden |
 | 695 | Tore | Aufnahme ins Konzept freigegeben | – | Konzept Kap. 27 | – | erledigt |  |
-| 701 | K28 Arch. | ADR-001 bis ADR-008 verfassen | R0-06 | R0-06 (ADR-001…003, 006 Teil); R0-08 (ADR-004, 005); R0-19 §5.4 (ADR-006); R0-11 §1 (Lizenzende); R0-07, R0-17 (Rollen, Datenschutz) | – | offen | Nummernkonflikt ADR-007/008 (T-1); ADR-007 „Lizenz-/Produktzugang“ ohne Dokument bis R0-39; E-47…E-52 |
+| 701 | K28 Arch. | ADR-001 bis ADR-008 verfassen | R0-06 | R0-06 (ADR-001…003, 006 Teil); R0-08 (ADR-004, 005); R0-19 §5.4 (ADR-006); R0-11 §1 (Lizenzende); R0-07, R0-17 (Rollen, Datenschutz) | – | offen | Nummernkonflikt gelöst (E-299: ADR-009/010 in R0-19); ADR-007 im Kopf von R0-39, ADR-008 im Kopf von R0-07 (T-1); E-47…E-52 |
 | 702 | K28 Arch. | Unveränderliche Prüfungs-Snapshots nachweisen | R1-08 | R0-08 §6, §7; R0-23 §2 | GM-027…GM-034, GM-052 | abgedeckt (Entwurf) | E-50 |
 | 703 | K28 Arch. | Zustandsmaschinen spezifizieren | R0-08 | R0-08 §6 (Versuch); R0-22 §2 (Content); R0-09 §2, §4 (Einschreibung) | GRANT-001, PUB-001 | offen | Automat der Aufgabenabgabe mit R1-46 (Z.658, E-168) |
 | 704 | K28 Arch. | Idempotenz- und Wiederanlauftests | R1-42 | R0-21 §2, §5; R0-09 §6; R0-19 §5.4 | CON-001…CON-048, GRANT-005, CT-07, REC-016 | abgedeckt (Entwurf) | Outbox-Teil braucht R1-43 (E-182) |
 | 705 | K28 Arch. | Golden-Master-Tests für Smarttrainer | R1-12 | R0-05 §1.6; R0-08 §5.2 | GM-065…GM-074 | abgedeckt (Entwurf) | Referenzlauf E-56 |
 | 706 | K28 Arch. | Datenmodell-/Upgrade-Probe | R1-23 | R0-06 §6; R0-16 §2, §4; R0-37 §4, §7; R0-14 §2 | REC-001…REC-025, MIG-001…MIG-026 | abgedeckt (Entwurf) |  |
-| 710 | K28 Lern/UX | Drei getrennte Fortschrittsdimensionen | R1-10 | R0-08 §5 | GM-066, GM-075, GM-076, CERT-007* | abgedeckt (Entwurf) | führend für Z.668; E-70, E-73 |
+| 710 | K28 Lern/UX | Drei getrennte Fortschrittsdimensionen | R1-10 | R0-08 §5 | GM-066, GM-075, GM-076, CRT-064 | abgedeckt (Entwurf) | führend für Z.668; E-70, E-73 |
 | 711 | K28 Lern/UX | Abschluss- und Bewertungsregeln je Activity | R1-09 | R0-08 §2.3, §4 | GM-017…GM-031 | abgedeckt (Entwurf) | E-74, E-76, E-77 |
 | 712 | K28 Lern/UX | Aufgaben-Workflow und sichere Uploads | R1-46 | R0-11 §1 (F1) | – | Duplikat → Z.658 | Detail-DoD (draft/submitted/returned/graded, MIME, private Ablage) übernehmen |
-| 713 | K28 Lern/UX | Kompetenzzuordnung | R1-10 | R0-08 §5.3 | CERT-007* | abgedeckt (Entwurf) | E-73 (abgeleitet, keine eigene Tabelle) |
+| 713 | K28 Lern/UX | Kompetenzzuordnung | R1-10 | R0-08 §5.3 | CRT-064 | abgedeckt (Entwurf) | E-73 (abgeleitet, keine eigene Tabelle) |
 | 714 | K28 Lern/UX | Drei neutrale Autorentests | R1-29 | R0-26 §1, §5 | UX-001…UX-015 | abgedeckt (Entwurf) | führend für Z.687; E-161…E-171 |
 | 715 | K28 Lern/UX | Lernenden-E2E und Accessibility | R1-18 | R0-15 §2; R0-26 §1–§5; R0-11 §3 Flow 2 | A11Y-001…A11Y-010, UX-050 | abgedeckt (Entwurf) | Gate B-4, C-10 |
 | 719 | K28 Produkt | Release-Gates A–D verbindlich abnehmen | R0-12 | R0-12 §3 | – | abgedeckt (Entwurf) | Kriterien A-1…D-7; E-184; Abhaken je Gate |
@@ -148,7 +149,7 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 791 | K30 R4 | SUITE-202 | R4-01 | – | – | offen | R4-Nachfragepool |
 | 801 | K31 R0 | SEAM-001 | R0-09 | R0-09 §2, §3 | GRANT-001…GRANT-022 | Duplikat → Z.888 |  |
 | 802 | K31 R0 | SEAM-002 | R0-40 | R0-09 §2, §5; R0-19 §5.4 | GRANT-020, GRANT-024 | offen | R0-40 liegt inzwischen vor; COMMERCE-10 nur teilweise |
-| 803 | K31 R0 | SEAM-003 | R0-08 | R0-08 §5.3; ENTSCHEIDUNGEN §7 | CERT-007* | abgedeckt (Entwurf) | Kompetenz nie aus Zahlung oder Check-in |
+| 803 | K31 R0 | SEAM-003 | R0-08 | R0-08 §5.3; ENTSCHEIDUNGEN §7 | CRT-064 | abgedeckt (Entwurf) | Kompetenz nie aus Zahlung oder Check-in |
 | 804 | K31 R0 | SEAM-004 | R0-30 | R0-11 §2, §3 | – | offen | R0-30 liegt inzwischen vor; Navigationsmuster → E-202 |
 | 805 | K31 R0 | SEAM-005 | R0-19 | R0-19 §1; R0-07; R0-17 §5; R0-16 §2 | – | abgedeckt (Entwurf) | Log-Retention E-44, E-116 |
 | 806 | K31 R0 | SEAM-006 | R0-09 | R0-09 §2 (G-06), §8 | – | offen | Gastkonto E-30; Pending-Timeout → E-201; Navigationsmuster → E-202 |
@@ -289,7 +290,7 @@ So sieht die Reihenfolge aus Sicht des R-Plans aus: Wer eine Task bearbeitet, pr
 1. **Kein Registereintrag ohne Task.** Alle 144 offenen Einträge haben genau eine führende R-Task. 13 Einträge hängen an R4-01 (Nachfragepool): 9 führend (Diskussionen, interaktive Medien, Gamification, SCORM, Kohorten, Anforderungsmatrix, SUITE-201, SUITE-202 und die obsolete Dashboard-Option), 4 Duplikate.
 2. **Eine Reihenfolge.** 40 Duplikate (darunter 6 Sammelpunkte nach RT-4) fallen als eigenständige Arbeit weg. Größte Bündel: Kap. 29 Release-Plan (16 Einträge, davon 15 Duplikate von P0-, FLOW- und R0-PAR-Einträgen), Kap. 31 SEAM-1xx (7 Duplikate von SUITE-, R3-FIRST- und FLOW-Einträgen), die Paritätspunkte P0/Kap. 29/R0-PAR/LB-AUDIT (10 Einträge auf die 4 führenden Z. 655, 904, 905, 906).
 3. **Fehlende R0-Dokumente** bestimmen den Großteil der offenen Spezifikationspunkte: R0-34 (Z. 771, 863), R0-39 (Z. 772, 782), R0-40 (Z. 802, 830), R0-29 (Z. 890), R0-30 (Z. 804). R0-20 liegt seit dieser Arbeit als Entwurf vor und deckt Z. 832 nur für die Koexistenz ab.
-4. **ADR-Nummernkonflikt** (Z. 701): R0-19 vergibt ADR-007 (Fehlerformat) und ADR-008 (Event-Envelope) neu. Kap. 28.2 belegt diese Nummern mit „Lizenz-/Produktzugang“ und „Rollen und Datenschutz“. R0-12 A-8 („8/8 ADRs“) ist deshalb nicht prüfbar → T-1.
+4. **ADR-Nummernkonflikt** (Z. 701): R0-19 vergibt ADR-007 (Fehlerformat) und ADR-008 (Event-Envelope) neu. Kap. 28.2 belegt diese Nummern mit „Lizenz-/Produktzugang“ und „Rollen und Datenschutz“. R0-12 A-8 („8/8 ADRs“) ist deshalb nicht prüfbar → T-1. **Gelöst durch E-299:** R0-19 führt ADR-009 (Fehlerformat) und ADR-010 (Event-Envelope); ADR-007 steht im Kopf von R0-39, ADR-008 als Verweis-ADR im Kopf von R0-07; R0-12 A-8 nennt 10 ADRs.
 5. **FLOW-002-Dimensionen** (Z. 860): R0-12 §7 übergibt an R0-24 Spalten je Fall für Ablehnung, Duplicate, Parallelität, Timeout, Partnerausfall, Retry, Widerruf, Recovery. Dieser Entwurf liefert sie **nicht**; sie sind fachliche Testableitung je Fall (67 × 8) und gehören zur Freigabe von R0-12 → T-4.
 
 ---
@@ -304,12 +305,12 @@ INV-IDs gelten über den Baustein (vollständige Liste je Baustein: R0-04 §6). 
 |---|---|---|---:|---|---|---|---|
 | PAR-01 | Kurskatalog, Kursstruktur, Freigabe | BS-04, BS-17 | 39 | R1-04 | R1-16, R1-26 | GM-001…GM-006 | B-1 |
 | PAR-02 | Lektionen, Medien, Videos, Downloads | BS-07, BS-15 | 35 | R1-07 | R1-14 | GM-007…GM-016 | B-1, C-3 |
-| PAR-03 | Fragenbank, Quiz, Auswertung | BS-06 | 11 | R1-06 | R1-09 | GM-017…GM-026 | B-1 |
-| PAR-04 | Zeitprüfungen und Versuche | BS-08 | 27 | R1-08 | R1-09, R1-20 | GM-027…GM-054 | B-1 |
+| PAR-03 | Fragenbank, Quiz, Auswertung | BS-06 | 11 | R1-06 | R1-09 | GM-017…GM-026, GM-191…GM-194, GM-197 | B-1 |
+| PAR-04 | Zeitprüfungen und Versuche | BS-08 | 27 | R1-08 | R1-09, R1-20 | GM-027…GM-054, GM-210 | B-1 |
 | PAR-05 | Karteikarten und Favoriten | BS-10 | 12 | R1-11 | – | GM-055…GM-064 | B-1 |
 | PAR-06 | Fehlertraining und Smarttrainer | BS-11 | 6 | R1-12 | R1-11 | GM-065…GM-074 | B-1, A-7 |
-| PAR-07 | Lernfortschritt und Completion | BS-09 | 4 | R1-10 | – | GM-075…GM-080 | B-1 |
-| PAR-08 | Zugang, Entitlements (+ Gruppen, Gate) | BS-12, BS-13, BS-14 | 66 | R1-13 | R1-14, R1-35 | GM-081…GM-117 | C-2 |
+| PAR-07 | Lernfortschritt und Completion | BS-09 | 4 | R1-10 | – | GM-075…GM-080, GM-209 | B-1 |
+| PAR-08 | Zugang, Entitlements (+ Gruppen, Gate) | BS-12, BS-13, BS-14 | 66 | R1-13 | R1-14, R1-35 | GM-081…GM-117, GM-198…GM-200 | C-2 |
 | PAR-09 | Import, Export, Rollback | BS-16 | 70 | R1-15 | R1-41 | GM-118…GM-136 | C-3 |
 | PAR-10 | Admin-Autorenworkflow, Darstellung | BS-05, BS-21, BS-22 | 32 | R1-05 | R1-26, R1-36 | GM-137…GM-144 | B-1 |
 | PAR-11 | REST/AJAX, Cron, Events | BS-03, BS-18, BS-20 | 68 | R1-28 | R1-03, R1-17, R1-38, R1-43 | GM-145…GM-162 | C-7 |
@@ -317,6 +318,7 @@ INV-IDs gelten über den Baustein (vollständige Liste je Baustein: R0-04 §6). 
 | PAR-13 (D24-6) | Datenschutz und Audit | BS-19 | 21 | R1-17 | R1-34 | GM-172…GM-177 | C-9 |
 | PAR-14 (D24-6) | SEO, Consent, Theme-/Cache-Interop | BS-23 | 6 | R1-37 | R1-30, R1-34 | GM-012, GM-013 (nur Consent) | C-14 |
 | PAR-16 (E-10, analog D24-6) | Website-Härtung | BS-27 | 8 | R1-45 | R1-32, R1-34 | GM-201…GM-208 (Verhalten aus LB-Belegen, Inventur C; Abweichungen A-03…A-05) | C-17 |
+| *ohne PAR* | Text-/Dateiaufgaben (E-168, kein Inventarbestand) | – | – | R1-46 | R1-14, R1-17 | GM-195, GM-196 (ohne LB-Quelle) | B-1 |
 | PAR-15 (D24-6) | Kurs-FAQ, Lerntipps (E-16) | BS-24 | 23 | R1-28 | R1-14, R1-15 | GM-189, GM-190 | C-8 |
 | *Querschnitt* | Performance, Parallelität | – | – | R1-22 | R1-42 | GM-187, GM-188 | C-6 |
 
@@ -358,7 +360,7 @@ Beschluss **E-54**: Jede R2-Zuordnung bekommt eine R2-Task, sonst wandert sie in
 | 4 | Website-Härtung (Login-Limit, XML-RPC, Header, Registrierungslimit, Gerätecookie) | INV-C-138, INV-C-140…INV-C-146, INV-C-193 (R2-Teil) | keine | **R1-45** (Free) | E-10, E-239; Enumeration und Anwendungspasswörter R4-Pool (E-261); LMS-eigene Limits R1 (BS-02) |
 | 5 | Token-/Client-API (Geräte, Client-Login, Client-Export, App-Settings, App-Health) | INV-D-059, INV-D-104, INV-D-106, INV-D-107, INV-D-108, INV-D-110, INV-D-116, INV-D-127, INV-D-128, INV-D-129, INV-D-135, INV-D-136, INV-D-147 | keine | **R4-Pool** (R4-01) bis ein Client beauftragt ist | E-05, E-54 |
 | 6 | Client-Varianten bei Web-Verträgen, Token-Anteil | INV-D-119…INV-D-124 (Client), INV-D-134, INV-D-141 (Token-Teil) | keine | Vertrag **R1** (R1-28, R1-17, R1-18); Client-Teil **R4-Pool** mit Nr. 5 | E-05 |
-| 7 | Kursbeziehung „enthält/empfiehlt“ (Bundle) | INV-B-068; E-25; R0-19 §4 `bootspruefung_course_relations` | keine | Bundle **R1-04/R1-13** (GM-193\*); Teil „empfiehlt“ nicht ausdrücklich beschlossen (Offene Punkte) | E-25, E-25a |
+| 7 | Kursbeziehung „enthält/empfiehlt“ (Bundle) | INV-B-068; E-25; R0-19 §4 `bootspruefung_course_relations` | keine | Bundle **R1-04/R1-13** (GM-198); Teil „empfiehlt“ nicht ausdrücklich beschlossen (Offene Punkte) | E-25, E-25a |
 | 8 | XLSX-Fragenimport | INV-E-028 | keine | **R4-Pool** | E-200 |
 | 9 | Kursmanager nur für zugewiesene Kurse | R0-07 D07-3 b) „Pro-/R2-Option“ | keine | später, Vorschlag **R3-08** (Pro) | E-80 („kursbezogene Kursmanager erst später“) |
 | 10 | Fragetypen Zuordnung, Sortieren, Lückentext („Free in R2“) | E-69; R0-22 VAL-041; R0-15 K-12 | keine | **R1-06** (Free) | E-69; E-199 (R2-08) entfällt |
@@ -473,13 +475,13 @@ Module sind **Vorschläge für die Neuanlage** (kein Course-Captain-Code im Repo
 | R1-01 | `CourseCaptain\Kernel` (Plugin, Requirements, Activator), `uninstall.php`; Ref. BS-01 | MS-001…MS-003, GM-158, KOMP-001, SA-001* | `composer test -- --group=R1-01` · `npx playwright test --grep @R1-01` | aktivierbar/deaktivierbar ohne Woo/Suite/Pro; Mindestversionen geprüft; Gate B-6 | TL, ARC | E-195 ersetzt E-57 (PHP 8.3) |
 | R1-02 | `CourseCaptain\Storage` (Schema, Migrator, Repositories); Ref. BS-02 | GM-163, GM-164, GM-168, MIG-001 | `composer test -- --group=R1-02` · `npx playwright test --grep @R1-02` | Install/Upgrade/Backfill ohne Datenverlust; Gate C-8 | TL, ARC | FK-Strategie (E-48) |
 | R1-03 | `CourseCaptain\Policy` (Caps, Meta-Caps, PolicyService); Ref. BS-03 | RBAC-001…RBAC-096, RBAC-097*, SEC-003, SEC-004 | `composer test -- --group=R1-03` · `npx playwright test --grep @R1-03` | Gate C-1; RBAC-096 ohne Ausnahme | TL, SEC | Zielkorrektur RBAC-093 (T-2) |
-| R1-04 | `CourseCaptain\Course` (CPT Kurs/Modul/Lektion, Revision); Ref. BS-04 | GM-002, GM-003, REV-047*, GM-193* | `composer test -- --group=R1-04` · `npx playwright test --grep @R1-04` | LEARN-01; Gate B-1 (PAR-01) | TL, ARC | Teilkurs-Relation (E-25) |
+| R1-04 | `CourseCaptain\Course` (CPT Kurs/Modul/Lektion, Revision); Ref. BS-04 | GM-002, GM-003, REV-047*, GM-198 | `composer test -- --group=R1-04` · `npx playwright test --grep @R1-04` | LEARN-01; Gate B-1 (PAR-01) | TL, ARC | Teilkurs-Relation (E-25) |
 | R1-05 | `CourseCaptain\Admin\Authoring` (Editor-Panels, Blöcke); Ref. BS-05, BS-21 | GM-138, GM-140, A11Y-020 | `composer test -- --group=R1-05` · `npx playwright test --grep @R1-05` | R0-11 Flow 1; PAR-10 | TL, A11Y, PO | Abgrenzung zu R2-04 |
 | R1-06 | `CourseCaptain\Question` (Typ-Registry, Revisionen); Ref. BS-06 | GM-024, GM-025, SEC-016 | `composer test -- --group=R1-06` · `npx playwright test --grep @R1-06` | PAR-03 (GM-017…GM-026) | TL, PO | Fragetypen R2 (§3 Nr. 10) |
 | R1-07 | `CourseCaptain\Activity` (Contract, Registry, Video, Download, Consent-Adapter); Ref. BS-07 | GM-015, MED-021…MED-025 | `composer test -- --group=R1-07` · `npx playwright test --grep @R1-07` | PAR-02 (GM-007…GM-016) | TL, ARC, SEC | – |
-| R1-08 | `CourseCaptain\Exam` (Blueprint, Versuchsautomat, Snapshot, Timer); Ref. BS-08 | GM-042, GM-045, GM-052, CON-005, GM-192* | `composer test -- --group=R1-08` · `npx playwright test --grep @R1-08` | PAR-04 (GM-027…GM-054) | TL, ARC, SEC | – |
+| R1-08 | `CourseCaptain\Exam` (Blueprint, Versuchsautomat, Snapshot, Timer); Ref. BS-08 | GM-042, GM-045, GM-052, CON-005, GM-210 | `composer test -- --group=R1-08` · `npx playwright test --grep @R1-08` | PAR-04 (GM-027…GM-054) | TL, ARC, SEC | – |
 | R1-09 | `CourseCaptain\Grading` (Regeln, Teilpunkte, Ergebnis); Ref. BS-06, BS-08 | GM-030, GM-031, GM-046 | `composer test -- --group=R1-09` · `npx playwright test --grep @R1-09` | Bewertung nach belegter Regel, Retake-UX | TL, PO | – |
-| R1-10 | `CourseCaptain\Progress` (Completion, Mastery-Read-Model, Competency abgeleitet); Ref. BS-09 | GM-079, GM-080, GM-191*, CERT-007* | `composer test -- --group=R1-10` · `npx playwright test --grep @R1-10` | PAR-07 (GM-075…GM-080) | TL, SEC | Monotonie (GM-191*) |
+| R1-10 | `CourseCaptain\Progress` (Completion, Mastery-Read-Model, Competency abgeleitet); Ref. BS-09 | GM-079, GM-080, GM-209, CRT-064 | `composer test -- --group=R1-10` · `npx playwright test --grep @R1-10` | PAR-07 (GM-075…GM-080) | TL, SEC | Monotonie (GM-209) |
 | R1-11 | `CourseCaptain\Practice` (Favoriten, Sammlungen, Fehlertraining, Karteikarten); Ref. BS-10 | GM-058, GM-064 | `composer test -- --group=R1-11` · `npx playwright test --grep @R1-11` | PAR-05 (GM-055…GM-064) | TL | – |
 | R1-12 | `CourseCaptain\Practice\SmartTrainer` (versionierte Regeln); Ref. BS-11 | GM-071, GM-072, GM-073 | `composer test -- --group=R1-12` · `npx playwright test --grep @R1-12` | PAR-06 (GM-065…GM-074) mit Referenzlauf | TL, PO | Referenzlauf (E-56) |
 | R1-13 | `CourseCaptain\Access` (Grant, Seat, Claim, Reconciler, FakeSource); Ref. BS-12…BS-14 | GRANT-007, GRANT-021, SEAT-015, ID-004, CON-001…CON-004 | `composer test -- --group=R1-13` · `npx playwright test --grep @R1-13` | Gate C-2; CORE-01…04, 06, 07, 12 (R1-Teil) | TL, ARC, SEC | Pending-Timeout (E-201) |
@@ -557,7 +559,7 @@ done = {i for i, l in boxes.items() if l.startswith('- [x]')}
 tasks = set(re.findall(r'^- \[[ x]\] \*\*(R\d-(?:\d\d|GATE))\b', '\n'.join(todo[:start]), re.M))
 E = set(re.findall(r'^\| \**(E-\d+)\**', ent, re.M))
 # Testkataloge (ohne R0-12; in R0-05 nur GM) und Vorschläge aus R0-12 §1.3
-PFX = r'(?:GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX|MIG|BIG|KOMP)-\d{3}|CT-\d{2}'
+PFX = r'(?:GM|RBAC|GRANT|SEAT|ID|IMP|MED|NFR|REC|REV|SUP|A11Y|I18N|SEC|PRIV|CON|PUB|LOC|MS|UX|MIG|BIG|KOMP|SA|SET|NTF|INH|CRT|GRP|ADM|PSD|SEO|INT|RC|LIC|FIN)-\d{3}|CT-\d{2}'
 cat = set()
 for f in glob.glob(D + 'R0-*.md'):
     if 'R0-12' in f or 'R0-24' in f: continue
@@ -614,7 +616,7 @@ print('PAR', sum(c[0].startswith('PAR') for c in par), '| LB', len(lb), '| Lead 
       [c[0] for c in par + lb if c[4].rstrip('†') not in tasks], '| BS doppelt', [b for b in set(bsl) if bsl.count(b) > 1],
       '| R1-BS fehlend', [b for b in bsn if b[3:].isdigit() and int(b[3:]) <= 26 and b not in bsl],
       '| INV-Summe falsch', [s[0] for s in sums if s[1] != s[2]], '| INV R1', sum(bsn[b] for b in set(bsl)),
-      '| GM fehlend', len({f'GM-{n:03d}' for n in range(1, 191)} - gm))
+      '| GM fehlend', len({f'GM-{n:03d}' for n in range(1, 211)} - gm))
 # §3 R2-Zuordnungen
 inv2 = set()
 for f in glob.glob(D + 'R0-02-inventar/*.md'):
@@ -648,15 +650,20 @@ print('DoR-Zeilen', len(dor), '/', len(dor2), '| abweichend', bad4, '| nicht rea
 PY
 ```
 
-Ergebnis am 16.11.2026 (nach Einarbeitung der Beschlüsse und Zeilenverschiebung erneut ausgeführt):
+Ergebnis am 16.11.2026 (finaler Konsistenz-Durchgang, aus dem Repository-Wurzelverzeichnis ausgeführt, fehlerfrei; der vorige Eintrag war ein Lauf aus dem falschen Verzeichnis). Vorher angepasst: Registerzeilen auf den TODO-Stand nach `98bfc38` (+4 ab Z. 586), PAR-13…PAR-16, Test-Präfixe aller Kataloge, GM-Prüfung GM-001…GM-210:
 
 ```
-Traceback (most recent call last):
-  File "<stdin>", line 3, in <module>
-FileNotFoundError: [Errno 2] No such file or directory: 'docs/r0/R0-24-traceability-dor.md'
+Register 147 | TODO 147 | fehlend [] | überzählig []
+erledigt 3 | offen 144 | führend 102 | Duplikat 40 | obsolet 2
+führend: abgedeckt 38 | offen 64 | führende Tasks 53
+Fehler {} | unbekannte E [] | unbekannte R-Tasks []
+§1.4 Zeilen 53 | Abweichungen []
+PAR 16 | LB 15 | Lead ungültig [] | BS doppelt [] | R1-BS fehlend [] | INV-Summe falsch [] | INV R1 546 | GM fehlend 0
+INV mit R2 42 | nicht in §3 []
+DoR-Zeilen 46 / 46 | abweichend [] | nicht ready 0
 ```
 
-**Grenzen der Zählung:** Das Skript prüft Existenz, Eindeutigkeit und Vollständigkeit der Zuordnung, nicht ihre fachliche Richtigkeit (Review). Test-IDs gelten als bekannt, wenn sie in einer Katalogzeile der genannten R0-Dokumente stehen; vorgeschlagene IDs (\*) müssen in R0-12 §1.3 stehen. Bereiche „A…B“ werden aufgelöst und jede ID einzeln geprüft. Die Spalte „E zusätzlich“ der DoR-Tabelle wird nur auf Existenz geprüft; „E direkt“ und „E über Dokument“ müssen exakt der Berechnung aus `ENTSCHEIDUNGEN.md` entsprechen. Die Zeilennummern beziehen sich auf den Stand `d5b31f7`; jede Änderung am TODO oberhalb von Z. 653 verschiebt sie (das Skript meldet dann `fehlend`/`überzählig`).
+**Grenzen der Zählung:** Das Skript prüft Existenz, Eindeutigkeit und Vollständigkeit der Zuordnung, nicht ihre fachliche Richtigkeit (Review). Test-IDs gelten als bekannt, wenn sie in einer Katalogzeile der genannten R0-Dokumente stehen; vorgeschlagene IDs (\*) müssen in R0-12 §1.3 stehen. Bereiche „A…B“ werden aufgelöst und jede ID einzeln geprüft. Die Spalte „E zusätzlich“ der DoR-Tabelle wird nur auf Existenz geprüft; „E direkt“ und „E über Dokument“ müssen exakt der Berechnung aus `ENTSCHEIDUNGEN.md` entsprechen. Die Zeilennummern beziehen sich auf den Stand nach `98bfc38` (R3-20 eingefügt, +4 ab Z. 586); jede Änderung am TODO oberhalb von Z. 653 verschiebt sie (das Skript meldet dann `fehlend`/`überzählig`).
 
 ---
 
@@ -680,11 +687,11 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §31 und „Von Claude entschi
 
 ### Offene Punkte nach Einarbeitung
 
-1. **BS-27 ohne PAR-Zeile:** Mit E-10 ist die Härtung ein R1-Baustein (8 INV-IDs); D24-6 nennt nur PAR-13…15 für BS-19/23/24. Eine PAR-Zeile (oder ausdrückliche Ausnahme, da Clean Room ohne LB-Code nach E-01) ist in Kap. 38/R0-05 nachzuziehen.
-2. **Registerstatus nach neuen Dokumenten:** Zeilen mit „R0-xx liegt inzwischen vor“ (R0-27…R0-40) stehen noch auf „offen“; ob die neuen Dokumente sie vollständig abdecken („abgedeckt (Entwurf)“), ist im Review je Zeile zu prüfen. Die Zählung „abgedeckt 38 / offen 64“ ist deshalb vorläufig.
-3. **R1-46 ohne Workflow-Vertrag:** Führende Dokumente R0-08/R0-10 müssen den Abgabe-Automaten `draft/submitted/returned/graded` nach E-168 aufnehmen; bis dahin ist DoR-2 für R1-46 nur formal erfüllt.
-4. **Teil „empfiehlt“ der Kursbeziehung** (§3 Nr. 7) ist nicht ausdrücklich beschlossen (E-25a nennt nur das Bundle).
-5. **GM-Prüfung im Skript** deckt GM-001…GM-190 ab; die inzwischen ergänzten GM-191…GM-200 (u. a. GM-195/GM-196 für R1-46) werden nicht auf PAR-Zuordnung geprüft.
+1. **BS-27 ohne PAR-Zeile:** Mit E-10 ist die Härtung ein R1-Baustein (8 INV-IDs); D24-6 nennt nur PAR-13…15 für BS-19/23/24. Eine PAR-Zeile (oder ausdrückliche Ausnahme, da Clean Room ohne LB-Code nach E-01) ist in Kap. 38/R0-05 nachzuziehen. → erledigt: **PAR-16** Website-Härtung (BS-27) in §2.1 mit GM-201…GM-208 (R0-05 §1.23); PAR-13…15 für BS-19/23/24 eingetragen (D24-6)
+2. **Registerstatus nach neuen Dokumenten:** Zeilen mit „R0-xx liegt inzwischen vor“ (R0-27…R0-40) stehen noch auf „offen“; ob die neuen Dokumente sie vollständig abdecken („abgedeckt (Entwurf)“), ist im Review je Zeile zu prüfen. Die Zählung „abgedeckt 38 / offen 64“ ist deshalb vorläufig. → **technisch, an Review je Registerzeile (R0-GATE) übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Zählung 38/64 bleibt bis zum Zeilen-Review vorläufig; Skript §5 läuft fehlerfrei
+3. **R1-46 ohne Workflow-Vertrag:** Führende Dokumente R0-08/R0-10 müssen den Abgabe-Automaten `draft/submitted/returned/graded` nach E-168 aufnehmen; bis dahin ist DoR-2 für R1-46 nur formal erfüllt. → erledigt: Abgabe-Automat in R0-08 §2.5 und R0-10 §4.5 (E-168, E-288…E-290)
+4. **Teil „empfiehlt“ der Kursbeziehung** (§3 Nr. 7) ist nicht ausdrücklich beschlossen (E-25a nennt nur das Bundle). → **erledigt durch E-298** (R4-Pool)
+5. **GM-Prüfung im Skript** deckt GM-001…GM-190 ab; die inzwischen ergänzten GM-191…GM-200 (u. a. GM-195/GM-196 für R1-46) werden nicht auf PAR-Zuordnung geprüft. → erledigt: Skript §5 prüft jetzt GM-001…GM-210 auf PAR-Zuordnung (GM fehlend 0)
 
 ### 6.2 Technische Korrekturen (ohne Auftraggeber-Entscheidung, mit Freigabe der betroffenen Dokumente einzuarbeiten)
 

@@ -2,7 +2,7 @@
 
 **Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet. Es gibt keine Implementierung; alle Namen, Signaturen und Schemas sind Spezifikation, kein Code im Repository.
 **Stand:** 16.11.2026
-**ADR-Bezug:** ADR-006 (Outbox-Zustellung, von R0-06 §4.6 an R0-19 übergeben), ADR-007 (Fehlerformat, neu), ADR-008 (Event-Envelope v1, neu).
+**ADR-Bezug:** ADR-006 (Outbox-Zustellung, von R0-06 §4.6 an R0-19 übergeben), **ADR-009** (Fehlerformat, neu), **ADR-010** (Event-Envelope v1, neu) – nach **E-299** umbenannt, weil Konzept Kap. 28.2 ADR-007/ADR-008 für Lizenz-/Produktzugang bzw. Rollen und Datenschutz vergibt.
 **Bezug:** TODO R0-19 (DoD: Hooks, Filter, REST, Shortcodes, Blocks, CLI, Events mit Versionierung, Auth, Fehlercodes, Deprecation), R1-28, R3-01, R3-12, SUITE-003; Konzept Kap. 8 (Adapter-Handshake), 13 (Präfixe, `konzept.md:257`), 18, 18.1, 18.2, 30.2–30.4, 31, 33; Inventur `R0-02-inventar/D-admin-frontend-api.md` (§4.1 W1–W52, §4.2 M1–M78, §5.1, §6), `C-infrastruktur-content.md` (§2.6/§4.4 CLI, §4.3 Cron, §4.7 Hooks), `A-lernen-pruefung.md` (§4.2 Hooks, §4.3 Shortcodes/Blocks, §5.6 Fehler), `B-commerce.md` (§2.5 Grant-Vertrag, §4.4 Hooks, §5.1 Grant-Zustände); `R0-04-r1-r3-grenze.md` (K-01…K-25); `R0-05-golden-master.md` (Fehlercodes in Erwartungswerten); `R0-06-datenmodell-adr.md` (§4.6 Outbox/Inbox, `ccap_request_idempotency`); `R0-07-rbac-idor-matrix.md` (RG-01…RG-21, Caps, Meta-Caps M-01…M-24); `R0-08-kurs-activity-pruefungsvertraege.md` (§2 Activity-Provider, §6.6 Fehlercodes, §7.3 Versionskennungen); `R0-16-backup-recovery-deployment.md` (Haltemodus, CLI-Namen); `R0-32-suite-traceability.md` (§6 Envelope-Abgleich, W2/W5/W10/W13/W14, F2, F6, V3, V6); `R0-36-suite-vertragsdeltas.md` (§3 Voucher `redemptions`, §4 Affiliate, X4).
 **Quelle:** LearnBoating `hastla007/learnboating` @ `9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (nur gelesen, nicht verändert). Pfade relativ zu `bootspruefung-learning/`. Zusätzlich gelesen: `src/Mobile/Problem.php` (Fehlerobjekt der App-API), `src/Learning/Services/QuestionPresenter.php:145-170` (Frage-Token).
 
@@ -22,7 +22,10 @@
 | E-207, D-20-03, **E-285** | §1.2: Tabellen, CPTs, Meta, Caps, Rollen, Cron `ccap_*`; Optionen, Transients, Query-Vars, öffentliche Hooks/Funktionen `course_captain_*`; CSS `ccap-`; Fehlercodes, AJAX-/admin-post-Aktionen, Nonces, Shortcodes, Cache-Gruppe `ccap_*` (E-285) |
 | E-39/E-39b | Quelle `workflow` nur über den Course-Pro-Connector (§4.1, §5.8) |
 | E-27, E-25a, E-26 | Grant-Payload und Events mit `module_uid`; `depends_on_course_uid`; Bundle-Zugang abgeleitet (§4.1, §5.3, §5.8) |
-| E-168 | neue Routen R-54…R-58 für Text-/Dateiaufgaben (R1-46), Bewertungsliste R-46 |
+| E-168, **E-288**, **E-290** | neue Routen R-54…R-58 für Text-/Dateiaufgaben (R1-46), Bewertungsliste R-46; Bewertung über M-10a (Trainer, Autor, Kursmanager); Events `assignment.*` nur in der internen Outbox (§5.3) |
+| **E-291**, **E-292** | schreibende öffentliche PHP-API (`grant_access_v1` u. a.) nur mit Pro (§4.1); Nachbewertung R-47: Datenvertrag (`evaluation_no`) R1, Route und Oberfläche Pro |
+| **E-299** | ADR-Nummern: Fehlerformat **ADR-009** (§3), Event-Envelope **ADR-010** (§5.1) |
+| **E-311** | Integrationszustand `failed` erst nach 3 Dead-Lettern in 1 h; Replay zugestellter Events nur mit Flag, Begründung und Audit (§5.4 Nr. 7, §6) |
 | E-20/E-147, E-96, E-231, E-74 | Erklärungstexte nur Pro (R-08/R-09/R-22/R-25); PDF R-41 Pro; Gruppenbericht R-45 Pro; Prüfungs-Nachbewertung R-47 mit Gradebook (Pro) |
 | E-10, E-33 | Härtungs-Hooks im Kern (R1-45); Shop-Recht, PayPal/Klarna-Dispute im Woo-Adapter (§4.4, R0-40 §4.4) |
 | E-45/E-45a | Filter für externe Medien wirkt im Modus „Klick zum Laden“ (§4.3) |
@@ -223,7 +226,7 @@ Gruppenbildung, Caps und Scope-Prüfungen stammen aus **R0-07 §4.1 (RG-01…RG-
 | R-55 | `PUT /courses/{course}/assignments/{lesson}/draft` | neu (E-168) | RG-10 | C | M-02(`view`) | `{text? , submission_uid?}`; `If-Match` optional | `{submission_uid, status: draft, row_version}`; legt bei Bedarf die nächste `submission_no` an (nach `returned`) | N | `ccap_validation_failed` (`reason: not_editable`), `ccap_version_conflict`, `ccap_content_locked` |
 | R-56 | `POST /assignment-submissions/{submission}/files` | neu (E-168) | RG-10 | C | eigene Abgabe im Status `draft` | `multipart/form-data` (Upload-Regeln R0-10) | 201 `{file{media_uid, name, size_bytes}}` | **P** | `ccap_validation_failed` (Typ, Größe, Anzahl), `ccap_not_found`, `ccap_rate_limited` |
 | R-57 | `POST /assignment-submissions/{submission}/submit` | neu (E-168) | RG-10 | C | eigene Abgabe | – | `{status: submitted, submitted_at}`; Wiederholung 200 | N | `ccap_validation_failed` (`reason: empty`), `ccap_version_conflict` |
-| R-58 | `PUT /assignment-submissions/{submission}/grade` | neu (E-168) | RG-16 | C | M-10 (nie eigene Abgabe) | `{action: grade\|return, points_milli?, feedback?, reason?}` | `{status: graded\|returned, evaluation_no}`; Neubewertung = neue `evaluation_no` mit Pflichtbegründung | **P** | `ccap_forbidden`, `ccap_validation_failed`, `ccap_version_conflict` |
+| R-58 | `PUT /assignment-submissions/{submission}/grade` | neu (E-168) | RG-16 | C | M-10a (Trainer, Autor, Kursmanager des Kurses, E-288; nie eigene Abgabe) | `{action: grade\|return, points_milli?, feedback?, reason?}` | `{status: graded\|returned, evaluation_no}`; Neubewertung = neue `evaluation_no` mit Pflichtbegründung | **P** | `ccap_forbidden`, `ccap_validation_failed`, `ccap_version_conflict` |
 
 **Entfallende LB-Routen (Test: `404 rest_no_route`):** W21–W23 (Navigation; Ersatz ist der neutrale Fragetyp „Zahl mit Toleranz“, E-22), W29–W44 (Funk, Gerätesimulation), W52 (Prüfungsanmeldung) – `exclude_domain_specific` (Inventur D §4.1); öffentliche `/faqs` (INV-D-056, Website-FAQ ist Theme-Sache, E-16); `/webhooks/paypal`, `/webhooks/dispute` im Kern – das Verhalten wird nach E-33 im Woo-Adapter (Pro, R3.1) neu gebaut (R-51, R0-40 §4.4); App-API `boatingschool/v1` M1–M78 als eigene API (E-05). Übernommene App-Muster: Problem-Fehlerobjekt (§3), Idempotency-Key-Header (M23, M32), If-Match (M14), Range-Auslieferung (M17), Rate-Limit-Speicher.
 
@@ -231,7 +234,7 @@ Gruppenbildung, Caps und Scope-Prüfungen stammen aus **R0-07 §4.1 (RG-01…RG-
 
 ---
 
-## 3. Einheitlicher Fehlerkatalog (ADR-007, Beschluss E-06)
+## 3. Einheitlicher Fehlerkatalog (ADR-009, Beschluss E-06, E-299)
 
 ### 3.1 Format
 
@@ -374,7 +377,7 @@ Alle Funktionen existieren erst nach `course_captain_loaded_v1` (vorher: `functi
 | `course_captain_get_completion_v1( int $user_id, string $course_uid, array $context )` | `verify_completion` | L | wie oben | – | `{state, completed_at, completion_uid, revision_no, evidence[]}` | stabil, Pro |
 | `course_captain_verify_certificate_v1( string $certificate_uid_or_token, array $context = [] )` | `verify_certificate` | L | Token: jeder (Minimaldaten wie R-42); UID: M-18 | – | `{status, course_uid, issued_at, revision_no}` | stabil, Pro |
 | `course_captain_preview_grant_v1( array $payload, array $context )` | – | L | wie Grant | – | `{existing[], effective_from, effective_until}` (LB `VoucherGrants::check`, INV-B-057) | stabil, Pro |
-| `course_captain_grant_access_v1( array $payload, array $context )` | `enroll_learner` | W | Connector mit Fähigkeit `grant_source` für **eigene** `source_type`, oder Nutzer mit `ccap_manage_grants` | **Pflicht** `idempotency_key` (≤ 64, `^[A-Za-z0-9][A-Za-z0-9._:\-]{7,63}$`); eindeutig je `grant_source_key` (K-01) | `{success, code: created\|duplicate\|updated, grant_uid, status, request_id}` \| `WP_Error` | stabil, Pro (Aufrufer R3) |
+| `course_captain_grant_access_v1( array $payload, array $context )` | `enroll_learner` | W | Connector mit Fähigkeit `grant_source` für **eigene** `source_type`, oder Nutzer mit `ccap_manage_grants` | **Pflicht** `idempotency_key` (≤ 64, `^[A-Za-z0-9][A-Za-z0-9._:\-]{7,63}$`); eindeutig je `grant_source_key` (K-01) | `{success, code: created\|duplicate\|updated, grant_uid, status, request_id}` \| `WP_Error` | stabil, **nur mit Pro** (E-291; Aufrufer R3). Ohne Pro: `WP_Error` `ccap_feature_unavailable`; Free vergibt Zugänge über Admin-UI, Gruppen, Selbstanmeldung und CLI |
 | `course_captain_revoke_access_v1( string $source_type, string $source_reference, array $context )` | `revoke_enrollment` | W | nur eigene `source_type` (E-39) bzw. `ccap_manage_grants` | natürlich (Zielzustand) | `{success, code: updated\|unchanged, grant_uids[]}` | stabil, Pro |
 | `course_captain_suspend_grant_v1( string $source_type, string $source_reference, array $context )` | – | W | wie revoke | natürlich | wie revoke | stabil, Pro (LB `bootspruefung_suspend_order`, INV-B-108) |
 | `course_captain_resume_grant_v1( string $source_type, string $source_reference, array $context )` | – | W | wie revoke; nie für `revoked` (E-29) | natürlich | wie revoke | stabil, Pro (LB `…_reactivate_order`) |
@@ -532,7 +535,7 @@ Entfallen: `bp_mobile_export_generate` (E-05), `update_check`/`media_relocate` (
 | Partnererkennung (Anzeige) | ja, nur lesend (E-185, E-254, E-256) | mit Aktionen |
 
 
-### 5.1 Event-Envelope v1 (ADR-008) – Konfliktauflösung Kap. 18 vs. Kap. 30.3
+### 5.1 Event-Envelope v1 (ADR-010, E-299) – Konfliktauflösung Kap. 18 vs. Kap. 30.3
 
 **Festlegung:** Es gibt genau **ein** Envelope v1. Basis ist die Struktur aus **Kap. 30.3**; aus **Kap. 18** kommen `idempotency_key`, `user_ref` und die Hooknamen (als Aliase); aus dem Suite-Abgleich (R0-32 §6, W5, W13) kommen `privacy_tags` und `causation_id`.
 
@@ -644,6 +647,7 @@ Alle Events entstehen **im selben Commit** wie die Fachänderung (Outbox, §5.4)
 | `certificate.corrected` | neue Revision (`supersedes`) | certificate | `revision_no, supersedes_revision_no` | dto. | stabil, R1 |
 | `certificate.revoked` | Widerruf (Akteur, Grund) | certificate | `reason` | dto. | stabil, R1 |
 | `seat.claimed` / `seat.released` | Gruppenplatz belegt / frei (E-17) | seat | `group_uid, seat_uid, reason` | `personal_ref, access_state` | experimentell, R1 |
+| `assignment.submitted` / `assignment.returned` / `assignment.graded` | Abgabe eingereicht / zurückgegeben / bewertet (R0-08 §2.5) | assignment_submission | `submission_uid, submission_no, evaluation_no?` | `personal_ref, assessment_result` | **intern, R1** – nur interne Outbox für die Benachrichtigungen N-14…N-16 (E-290); nicht öffentlich, kein Pro-Event in v1 |
 
 **Nicht als Event (Datensparsamkeit):** einzelne Lernantworten, Smarttrainer-Stände, Prüfungsstart, Antworten in Prüfungen, Video-Positionen (Workflow-Muster W17: „Fortschritt nicht je Item“). `exam.started` kann ein späteres Minor ergänzen, wenn ein Rezept es verlangt.
 
@@ -861,9 +865,9 @@ Ziel-Spalte nach E-38/E-182 je Anker gesetzt: Prüfungen der **internen** Outbox
 
 ## Offene Punkte nach Einarbeitung
 
-1. **Präfix der Fehlercodes und Nonces:** E-207 nennt sie nicht; hier Fehlercodes `ccap_*` (ENTSCHEIDUNGEN §19), Nonce-Aktionen `course_captain_` wie AJAX-Aktionen. R0-30 verwendet `ccap_setting_invalid` – vor R1-01 vereinheitlichen.
-2. **Umfang „Read-API“ in E-38:** Hier als lesende Partner-PHP-API (`get_*_v1`, `verify_certificate_v1`) und Pull-Route R-53 ausgelegt; die Lern- und Verwaltungsrouten in §2.3 bleiben Free. Ob die schreibende PHP-API (`grant_access_v1` usw.) für Drittplugins ohne Pro gesperrt sein soll, regelt E-38 nicht ausdrücklich (hier: nur mit Pro).
-3. **Routen für Text-/Dateiaufgaben (R-54…R-58)** und deren Fehler-`reason`-Werte sind ein Erstentwurf; Feinschnitt in R1-46 mit R0-08/R0-10. Ob Events `assignment.submitted`/`assignment.graded` in den Katalog §5.3 gehören (z. B. für Benachrichtigungen), ist nicht beschlossen.
-4. **ADR-Nummern:** R0-24 §6.2 verlangt, ADR-007/008 wegen Kollision mit Kap. 28.2 umzubenennen; neue Nummern sind nicht festgelegt.
-5. **Prüfungs-Nachbewertung R-47:** E-74 legt den Datenvertrag in R1, die Oberfläche in Pro fest; hier ist auch die REST-Route Pro. Bestätigung nötig.
-6. **E-39b** setzt die Änderung am Workflow-Captain-Konzept voraus (dort ist das LMS-Muster ausgeschlossen).
+1. **Präfix der Fehlercodes und Nonces:** E-207 nennt sie nicht; hier Fehlercodes `ccap_*` (ENTSCHEIDUNGEN §19), Nonce-Aktionen `course_captain_` wie AJAX-Aktionen. R0-30 verwendet `ccap_setting_invalid` – vor R1-01 vereinheitlichen. → **erledigt durch E-285** (Fehlercodes, Nonces, AJAX-Aktionen, Shortcodes `ccap_`; §1.2)
+2. **Umfang „Read-API“ in E-38:** Hier als lesende Partner-PHP-API (`get_*_v1`, `verify_certificate_v1`) und Pull-Route R-53 ausgelegt; die Lern- und Verwaltungsrouten in §2.3 bleiben Free. Ob die schreibende PHP-API (`grant_access_v1` usw.) für Drittplugins ohne Pro gesperrt sein soll, regelt E-38 nicht ausdrücklich (hier: nur mit Pro). → **erledigt durch E-291** (schreibende PHP-API nur mit Pro, §4.1)
+3. **Routen für Text-/Dateiaufgaben (R-54…R-58)** und deren Fehler-`reason`-Werte sind ein Erstentwurf; Feinschnitt in R1-46 mit R0-08/R0-10. Ob Events `assignment.submitted`/`assignment.graded` in den Katalog §5.3 gehören (z. B. für Benachrichtigungen), ist nicht beschlossen. → **erledigt durch E-290** (Events `assignment.*` nur interne Outbox, §5.3); `reason`-Feinschnitt **technisch, an R1-46 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A)
+4. **ADR-Nummern:** R0-24 §6.2 verlangt, ADR-007/008 wegen Kollision mit Kap. 28.2 umzubenennen; neue Nummern sind nicht festgelegt. → **erledigt durch E-299** (ADR-009 Fehlerformat, ADR-010 Event-Envelope)
+5. **Prüfungs-Nachbewertung R-47:** E-74 legt den Datenvertrag in R1, die Oberfläche in Pro fest; hier ist auch die REST-Route Pro. Bestätigung nötig. → **erledigt durch E-292**
+6. **E-39b** setzt die Änderung am Workflow-Captain-Konzept voraus (dort ist das LMS-Muster ausgeschlossen). → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-17))**: Änderungsauftrag an Workflow Captain, AG-03

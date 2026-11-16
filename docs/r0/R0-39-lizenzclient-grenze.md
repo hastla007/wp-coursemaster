@@ -2,6 +2,8 @@
 
 **Stand:** 16.11.2026 · **Status:** Beschlossen (Auftraggeber/Claude im Auftrag, 16.11.2026) – Beschlüsse eingearbeitet · **Bezug:** TODO R0-39 (DoD: „Core ohne Lizenzbibliothek, Updater, Lizenzserverzugriff; Add-on eigener Build/Namespace, Feature-Flags, Upgrade/Downgrade, Lizenzende und Ausfallverhalten spezifiziert“), Voraussetzungen R0-11, R0-19, R0-29; Folgetasks **R3-08**, **R3-15**, **R3-18** (Free-Teil der Grenze zusätzlich im Gate **R1-39**, R0-35 RC-020…022); Konzept Kap. 6, 7, 45; `R0-36` §5 (L1…L12), `R0-11` §1.2/§1.5/Flow 5, `R0-29` §3, `R0-18` §2.5/§3.5, `R0-19` §1.6/§4.2, `R0-35` §4/§5.11, `R0-16` U-9, `R0-27` (`pro.*`-Settings, SET-076/104/128).
 
+**ADR-Bezug:** **ADR-007 Lizenz-/Produktzugang** (Konzept Kap. 28.2 Nr. 7; nach R0-24 T-1 in diesem Dokument): Kontext und Grenze §1, Optionen und Entscheidung §2 (Add-on, Feature-Registry E-95, Ort E-273), Zustände und Folgen §3 (Abbildung der Client-Zustände, Verhaltensklassen, E-93/E-94/E-306), Testbeweis LIC-001…LIC-065, Datum 16.11.2026. Lernenden-Einschreibung (Grants) bleibt davon strikt getrennt (R0-09).
+
 **Quellvertrag (nur gelesen, nicht verändert):** `wp-license@c269e07` – `docs/CLIENT-INTEGRATION.md` (zitiert als **CI:Zeile**), `docs/ENTITLEMENTS.md` (**EN:**), `docs/UPDATES.md` (**UP:**), `docs/RELEASE-READINESS.md` (**RR:**), `bin/export-client.php`, `src/Catalog/EntitlementCatalog.php:129-133` (`PRODUCT_KEYS`), `examples/premium-addon-starter/README.md`; Free-Guard-Vorbild `wpaffiliatemaster/tests/run.php:332-363` (**A2**). `captain-pro` ist **nicht zugänglich**; der Build-Ort `captain-pro/addons/course-captain-pro` ist beschlossen (E-273), die Kernel-/Buildregistry-Aussagen aus Kap. 6 bleiben bis zum Zugriff offene Annahmen (R0-36 §6).
 
 **Verbindlich (Beschlussprotokoll 16.11.2026):** **E-01** Clean Room (kein LB-Code; LB-`learning_explanations`/`explanation_locked` dient nur als Verhaltensbefund). **E-09** Free über WordPress.org, Pro über License Captain. **E-20** Lösungserklärungen sind ein eigenes Pro-Feature; Free speichert die Texte trotzdem (Import/Export, kein Datenverlust bei Pro-Ende); Entitlement-Zuschnitt E-95 anpassen. **E-33/E-34** deutsche Shop-Rechtspflichten, PayPal/Klarna-Webhooks und automatisch gepflegte Woo-Produkte liegen im Woo-Adapter (Pro, R3.1).
@@ -246,17 +248,17 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 | K-05 `gradebook` | voll | lesend, CSV des letzten Stands; offene Bewertungen dürfen abgeschlossen werden (E-93) | unsichtbar, Daten bleiben |
 | K-06 `certificate_designer` | voll | Ausstellung mit zuletzt veröffentlichter Vorlage; PDF-Download bleibt (R0-29 Z-14/Z-16) | Basisvorlage, Fallback-Renderer (R0-29 Z-13) |
 | K-07 `groups_advanced` | voll | Delegierte lesen, schreiben 403 (R0-29 Z-03) | Delegationen wirkungslos, Untergruppen eigenständig (R0-29 Z-03/Z-04) |
-| K-08 `reminders` | Versand | **kein neuer Versand** (Erinnerung ist kein käuferschützender Vorgang); Abmeldelinks bleiben gültig | kein Versand; Abmeldeseite bleibt Free-Route |
+| K-08 `reminders` | Versand | **eingefroren (E-306):** bereits geplante Erinnerungen werden versendet, keine neuen Planungen und keine Konfigurationsänderung; Abmeldelinks bleiben gültig | kein Versand; Abmeldeseite bleibt Free-Route |
 | K-09 `analytics` | voll | letzter Stand lesbar und exportierbar | unsichtbar; Berichte Basic bleiben |
 | K-10 `commerce` | voll | **E-93:** bestehende Zuordnungen erzeugen Grants und Widerrufe, Reconcile läuft. **E-33-Rechtspflichten laufen vollständig weiter**, solange Auto-Produkte kaufbar sind (sonst verkauft der Shop ohne Pflichtangaben). **E-34-Sync:** keine neuen Produkte, keine Preis- oder Zuordnungsänderung; Produkte bleiben wie sie sind | keine Hooks, keine Rechtspflicht-Ausgabe → Auto-Produkte **standardmäßig „privat“** (E-271); nach Reaktivierung Reconcile ohne Duplikate (CORE-12) |
 | K-11 `suite_integrations` | voll | bestehende Verbindungen laufen, Mapping-Änderungen 403 | Connector `inactive`; öffentliche Events entfallen, Free hat nur die interne Outbox (E-38) |
-| K-12 `webhooks` | Zustellung | **Zustellung pausiert**, Outbox puffert bis E-258 (30 Tage), Protokoll lesbar | keine Zustellung |
+| K-12 `webhooks` | Zustellung | **eingefroren (E-306):** bestehende Abonnements werden weiter zugestellt, keine neuen Abonnements/Endpunkte; Protokoll lesbar | keine Zustellung |
 | K-13 `custom_activities` | voll | vorhandene nutzbar, Fortschritt zählt | „Inhalt derzeit nicht verfügbar“, nicht abschlusspflichtig (R0-11) |
 | K-14 `frontend_builder` | voll | Frontend-Bearbeitung 403, Admin-Editor (Free) bleibt | nicht vorhanden |
 | K-15 `multi_instructor` | voll | Zuordnungen lesbar, keine neuen | Zusatztrainer verlieren Objektrechte, Audit (R0-11) |
 | K-16 `advanced_roles` | voll | vorhandene Rollen wirken, keine Änderung | Pro-Caps wirkungslos, Rollen bleiben registriert-los; Free-Rollen unverändert |
 | K-17 `content_workflows` | voll | geplante Veröffentlichungen laufen (Inhalt ist schon freigegeben); neue Planungen 403 | geplante Veröffentlichungen pausieren; Free-Publish manuell |
-| K-18 `events` | voll | noch festzulegen (siehe Offene Punkte §7) | keine öffentlichen Events, keine Read-API; Free nur interne Outbox (E-38) |
+| K-18 `events` | voll | **eingefroren (E-306):** bestehende Abonnements und die Event-Speicherung laufen weiter, keine neuen Abonnements oder Event-Klassen-Freigaben | keine öffentlichen Events, keine Read-API; Free nur interne Outbox (E-38) |
 | K-19 `connectors` | voll | bestehende Registrierungen lesbar, neue 403 (wie K-11) | keine Registry; Partnererkennung nur lesend (E-185) |
 | Updater | Updates | „Update verfügbar, nicht automatisch“ mit Grund (CI:317) | – |
 
@@ -375,8 +377,8 @@ Ergänzt R0-11 §1.5 (Spalten dort: `expired` gesperrt/bleibt, ohne Add-on) und 
 | LIC-047 | I | signiert `suspended`, `revoked` | E (wie `expired`, E-270) | R3-08 | §3.1 |
 | LIC-048 | I | E: neue Woo-Bestellung bezahlt, Erstattung, Gutscheineinlösung auf bestehender Zuordnung | Grant bzw. Widerruf wie in V; Rechtspflicht-Ausgaben (E-33) unverändert | R3-08 | E-93, K-10 |
 | LIC-049 | I | E: neue Zuordnung, Preisänderung am Kurs, neues Modul (E-34-Sync) | 403 bzw. kein Sync; Produkt unverändert | R3-08 | K-10 |
-| LIC-050 | I | E: Webhooks und Erinnerungen | Webhook-Zustellung pausiert, Outbox puffert; keine Erinnerung; Abmeldelink 200 | R3-08 | K-08, K-12 |
-| LIC-051 | I | E → V durch Verlängerung | ohne Neuaktivierung; Outbox stellt zu; keine Nachhol-Erinnerungen | R3-08 | T-09, DI-4 |
+| LIC-050 | I | E: Webhooks und Erinnerungen | bestehende Webhook-Abonnements werden weiter zugestellt, neues Abonnement 403; bereits geplante Erinnerung wird versendet, neue Planung 403 (E-306); Abmeldelink 200 | R3-08 | K-08, K-12 |
+| LIC-051 | I | E → V durch Verlängerung | ohne Neuaktivierung; neue Abonnements und Planungen wieder möglich; keine Nachhol-Erinnerungen | R3-08 | T-09, DI-4 |
 | LIC-052 | I | DB-Kopie auf Staging-Host | `site_changed`, kein Request mit kopierten Zugangsdaten, E + Haltemodus | R3-08 | T-15, CI:273 |
 | LIC-053 | M | Staging aktivieren (`staging_parent_installation_id`), Umzug mit Bestätigung | Staging zählt nicht als Live-Site; Umzug übernimmt die Aktivierung | R3-18 | CI:274, :281 |
 | LIC-054 | I | Erklärungen in V, E, A | V: ausgeliefert; E: weiter ausgeliefert, keine neuen Erklärungen anlegbar (E-268); A: nicht ausgeliefert, Texte vorhanden, Export enthält sie | R3-08 | K-01, E-20 |
@@ -433,11 +435,11 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §40 und Beschlussprotokoll, 1
 
 ### Offene Punkte nach Einarbeitung
 
-- **Zugriff auf `captain-pro`** (E-273, XB-5) fehlt; §2.1/§2.4 bleiben bis dahin an den License-Client-Vertrag gebunden. Bis dahin ist offen, ob `captain-pro` einen eigenen Kernel/FeatureRegistry vorgibt.
-- E-271 nennt nur „standardmäßig privat“; ob der Betreiber im Wirkungsbericht abwählen darf und was bei Deinstallation gilt, ist nicht ausdrücklich beschlossen (Empfehlung D39-4 a).
-- **K-18/K-19 (E-95):** Der genaue Zuschnitt von `course.events` und `course.connectors` (welcher Schlüssel die Read-API trägt, Abgrenzung von `course.connectors` zu K-11 `course.suite_integrations`) ist im Beschluss nicht festgelegt; ebenso das Verhalten von K-18 im eingefrorenen Zustand E.
-- **E-39b:** Ob die Grant-Quelle `workflow` im Zustand E weiter Grants anlegt/entzieht (analog E-93 für Woo/Voucher), ist nicht entschieden.
-- Geplante Pro-Jobs bei Lizenzende: R0-32 W1 (pausieren, nicht nachholen) und E-94 (eingefroren weiter) sind für Kampagnen-Drip und Erinnerungen in §3.3 unterschiedlich umgesetzt (K-03 wirkt weiter, K-08 sendet nicht); das bleibt bis zur Bestätigung durch den Auftraggeber so.
+- **Zugriff auf `captain-pro`** (E-273, XB-5) fehlt; §2.1/§2.4 bleiben bis dahin an den License-Client-Vertrag gebunden. Bis dahin ist offen, ob `captain-pro` einen eigenen Kernel/FeatureRegistry vorgibt. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: AG-01
+- E-271 nennt nur „standardmäßig privat“; ob der Betreiber im Wirkungsbericht abwählen darf und was bei Deinstallation gilt, ist nicht ausdrücklich beschlossen (Empfehlung D39-4 a). → **neue Frage NF-13** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate D (R3-02))
+- **K-18/K-19 (E-95):** Der genaue Zuschnitt von `course.events` und `course.connectors` (welcher Schlüssel die Read-API trägt, Abgrenzung von `course.connectors` zu K-11 `course.suite_integrations`) ist im Beschluss nicht festgelegt; ebenso das Verhalten von K-18 im eingefrorenen Zustand E. → **erledigt durch E-306** (Verhalten von K-18 im Zustand E: eingefroren); Schlüsselzuschnitt: **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: mit dem Produktauftrag E-42 festlegen, AG-02
+- **E-39b:** Ob die Grant-Quelle `workflow` im Zustand E weiter Grants anlegt/entzieht (analog E-93 für Woo/Voucher), ist nicht entschieden. → **erledigt durch E-306** (bestehender Connector wirkt eingefroren weiter, analog E-93; keine neue Einrichtung)
+- Geplante Pro-Jobs bei Lizenzende: R0-32 W1 (pausieren, nicht nachholen) und E-94 (eingefroren weiter) sind für Kampagnen-Drip und Erinnerungen in §3.3 unterschiedlich umgesetzt (K-03 wirkt weiter, K-08 sendet nicht); das bleibt bis zur Bestätigung durch den Auftraggeber so. → **erledigt durch E-306** (K-08 sendet bereits geplante Erinnerungen, K-03 wirkt weiter; LIC-050/051 angepasst)
 
 ---
 

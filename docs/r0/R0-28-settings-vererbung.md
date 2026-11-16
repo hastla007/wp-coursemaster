@@ -369,8 +369,8 @@ Weitere hier angewandte Beschlüsse: E-20 (C-3), E-45/E-45a (#28, INH-033), E-50
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-28-1 | Einstellungen für Aufgaben (E-168: Dateigrößen, Allowlist, Textlängen) und für die neuen Fragetypen (E-22/E-69: z. B. Standard „Groß-/Kleinschreibung ignorieren“ beim Lückentext) haben noch keine Register-Zeile in R0-27 und damit keine Vererbungskette | die Beschlüsse legen nur die Funktionen fest; Werte und Scopes fehlen (R0-08 OP-08-3, R0-10 OP-10-2) | R0-27, dann R0-28 §1.4 |
-| OP-28-2 | Enum-Werte von `privacy.external_media_mode` (`always_load`, `click_to_load`, `link_only`) mit dem Register R0-27 abgleichen | R0-27 SET-114 führt noch `enum{click_to_load, link_only}` mit Default `click_to_load`; E-45a verlangt Default „immer laden“ | R0-27 |
+| OP-28-1 | Einstellungen für Aufgaben (E-168: Dateigrößen, Allowlist, Textlängen) und für die neuen Fragetypen (E-22/E-69: z. B. Standard „Groß-/Kleinschreibung ignorieren“ beim Lückentext) haben noch keine Register-Zeile in R0-27 und damit keine Vererbungskette | die Beschlüsse legen nur die Funktionen fest; Werte und Scopes fehlen (R0-08 OP-08-3, R0-10 OP-10-2) | R0-27, dann R0-28 §1.4 → **erledigt durch E-289** (Zeile #29 `assignments.*`, INH-049); Lückentext-Default „Groß-/Kleinschreibung ignorieren“ ist Fragetyp-Verhalten nach R0-08 §3.1 (kein Setting) – **technisch, an R1-06 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-28-2 | Enum-Werte von `privacy.external_media_mode` (`always_load`, `click_to_load`, `link_only`) mit dem Register R0-27 abgleichen | R0-27 SET-114 führt noch `enum{click_to_load, link_only}` mit Default `click_to_load`; E-45a verlangt Default „immer laden“ | R0-27 → erledigt: R0-27 SET-114 führt `enum{always_load, click_to_load, link_only}`, Default `always_load` (E-45a, E-312) |
 
 ---
 

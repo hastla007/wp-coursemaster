@@ -509,8 +509,8 @@ Art: U = Unit, I = Integration (WP-Testsuite mit echtem Woo bzw. Voucher Captain
 
 ## Offene Punkte nach Einarbeitung
 
-1. **E-275 Zielstatus:** Der Beschluss nennt „`refunded`/`cancelled`“ ohne Regel, wann welcher gilt; für `opened`/`won` ist nur die Empfehlung aus D40-1 übernommen. Feinschnitt in R3-03.
-2. **E-276 vs. §4.2:** Der Beschluss sagt „Grant entsteht erst bei Zahlung“; §4.2 legt für offene Bestellungen einen Grant `pending_confirmation` ohne Zugang an (Anzeige „wird aktiviert“). Klären, ob der Pending-Grant entfallen soll.
-3. **E-277 `failed` nach Release:** Ein freigegebener Gutscheinschlüssel ist nicht wiederholbar; `failed` ist hier für diesen Schlüssel endgültig, das erneute Einlösen erzeugt neue Grants (`n+1`). R0-09 G-13 (Retry) gilt dafür nicht.
-4. **Δ40-6:** eigene R3-Task „Membership-Adapter (E-203)“ fehlt weiterhin im TODO.
-5. **E-26 im Shop:** Ob Woo-Zusatzmodul-Produkte die Abhängigkeit automatisch aus dem Mapping setzen (E-34 Auto-Produkte), ist nicht beschlossen.
+1. **E-275 Zielstatus:** Der Beschluss nennt „`refunded`/`cancelled`“ ohne Regel, wann welcher gilt; für `opened`/`won` ist nur die Empfehlung aus D40-1 übernommen. Feinschnitt in R3-03. → **erledigt durch E-295** (`refunded` bei Rückbuchung, `cancelled` nur bei Storno vor Zahlung; §4.4, FIN-032)
+2. **E-276 vs. §4.2:** Der Beschluss sagt „Grant entsteht erst bei Zahlung“; §4.2 legt für offene Bestellungen einen Grant `pending_confirmation` ohne Zugang an (Anzeige „wird aktiviert“). Klären, ob der Pending-Grant entfallen soll. → **erledigt durch E-293** (kein Pending-Grant für unbezahlte Bestellungen; §4.2, FIN-008); Folgefrage Vorabfreigabe: **neue Frage NF-01** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate D (R3-02))
+3. **E-277 `failed` nach Release:** Ein freigegebener Gutscheinschlüssel ist nicht wiederholbar; `failed` ist hier für diesen Schlüssel endgültig, das erneute Einlösen erzeugt neue Grants (`n+1`). R0-09 G-13 (Retry) gilt dafür nicht. → **erledigt durch E-294**
+4. **Δ40-6:** eigene R3-Task „Membership-Adapter (E-203)“ fehlt weiterhin im TODO. → **erledigt durch E-301** (R3-20 im TODO; FIN-080/081 Ziel R3-20)
+5. **E-26 im Shop:** Ob Woo-Zusatzmodul-Produkte die Abhängigkeit automatisch aus dem Mapping setzen (E-34 Auto-Produkte), ist nicht beschlossen. → **neue Frage NF-12** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate D (R3-02))

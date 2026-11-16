@@ -201,7 +201,7 @@ Alle Aussagen unten mit `Datei:Zeile` beziehen sich auf diese Commits. Weil hier
 
 - **Free (`course-captain`):** CI-Guard nach Vorbild `wpaffiliatemaster:tests/run.php:332-363` (Musterliste aus 5.2) plus Test „Free macht keine ausgehenden Requests“ (Vorbild ZF6, `CONTRACT.md:278`). Free kennt keine Entitlement-Keys; Pro erweitert nur über öffentliche Course-Hooks (Kap. 18).
 - **Pro (`course-captain-pro`):** Client 2.0.x per Export unter eigenem Namespace; `Update URI`; `core_version` = Course-Free-Version (Release-Sperre über `requires_core`); `is_entitled()` erst ab `init`; Lizenzseite als Course-Untermenü (`settings_parent=false`); Entitlement-Keys mit Präfix `course.` (Kap. 6).
-- **Ablauf/Ausfall:** Verhalten je `LicenseStatus`-Zustand; Offline-Fenster nur aus signiertem `cache_expires_at`; nur signierte Antworten entziehen Rechte; geplante Pro-Jobs pausieren (siehe R0-32 W1); nie Free-Daten, Grants oder Nachweise löschen/verbergen (L5).
+- **Ablauf/Ausfall:** Verhalten je `LicenseStatus`-Zustand; Offline-Fenster nur aus signiertem `cache_expires_at`; nur signierte Antworten entziehen Rechte; geplante Pro-Jobs laufen nach **E-306** eingefroren weiter (bestehende Abonnements und geplante Jobs ja, keine neuen; Abweichung vom Suite-Muster R0-32 W1); nie Free-Daten, Grants oder Nachweise löschen/verbergen (L5).
 - **Multisite:** Lizenz **pro Site** (`network => false`, E-07).
 - **Partnerabhängigkeit:** `course-captain-pro` fehlt in `EntitlementCatalog::PRODUCT_KEYS` und in der License-TODO (L10/L11) – der Auftrag an License Captain bzw. Captain Pro ist beschlossen (E-42, vor R3-18, nach Neuzuschnitt E-95); bis er umgesetzt ist, ist R3-18 nicht abschließbar.
 - **Nicht verifizierbar:** Kernel, FeatureRegistry, Build-Registry und `TARIFE.md` in `captain-pro` (Abschnitt 6). Pro wird dort gebaut (E-273); der Zugriff ist Voraussetzung.
@@ -235,10 +235,10 @@ Alle Aussagen unten mit `Datei:Zeile` beziehen sich auf diese Commits. Weil hier
 
 **Offene Punkte nach Einarbeitung**
 
-- **Zugriff auf `captain-pro`** (E-42, E-273) fehlt weiterhin; §6 bleibt bis dahin unprüfbar.
-- **E-31** (Gutscheinziel auch WooCommerce-Produkt) steht in Spannung zu §3.3 Nr. 6 (Kurs-Voucher nur Kanal `course-captain`, nicht `shop`); wie der Woo-Produkt-Zieltyp ohne Doppel-Grant abgebildet wird, legen R0-40/R3-04 fest.
-- D1 sah zusätzlich eine Betreiber-Einstellung mit diesem Default vor; E-35 nennt sie nicht.
-- R0-32 W1 empfiehlt, geplante Pro-Jobs bei Lizenzablauf zu pausieren; E-94 sagt „Konfiguration wirkt eingefroren weiter“. Ob geplante Pro-Jobs (z. B. Kampagnen-Drip, Erinnerungen) damit weiterlaufen oder pausieren, ist in R0-39 zu klären.
+- **Zugriff auf `captain-pro`** (E-42, E-273) fehlt weiterhin; §6 bleibt bis dahin unprüfbar. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: AG-01
+- **E-31** (Gutscheinziel auch WooCommerce-Produkt) steht in Spannung zu §3.3 Nr. 6 (Kurs-Voucher nur Kanal `course-captain`, nicht `shop`); wie der Woo-Produkt-Zieltyp ohne Doppel-Grant abgebildet wird, legen R0-40/R3-04 fest. → teilweise **erledigt durch E-305** (Kanal `course-captain` für das neutrale Ziel); Woo-Produkt-Ziel über Woo-Checkout widerspricht E-279: **neue Frage NF-02** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate D (R3-04))
+- D1 sah zusätzlich eine Betreiber-Einstellung mit diesem Default vor; E-35 nennt sie nicht. → **neue Frage NF-18** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate D (R3-04))
+- R0-32 W1 empfiehlt, geplante Pro-Jobs bei Lizenzablauf zu pausieren; E-94 sagt „Konfiguration wirkt eingefroren weiter“. Ob geplante Pro-Jobs (z. B. Kampagnen-Drip, Erinnerungen) damit weiterlaufen oder pausieren, ist in R0-39 zu klären. → **erledigt durch E-306** (eingefroren: bestehende Abonnements und geplante Jobs laufen weiter, keine neuen; R0-39 K-08/K-12/K-18)
 
 ### 7.2 Quellinterne Drift (keine Course-Entscheidung, aber bei R3 zu beachten)
 

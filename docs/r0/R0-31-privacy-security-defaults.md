@@ -17,7 +17,8 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | **E-243…E-245** | Fristen für Daten ohne Regel, „Kursende“ = späterer Zeitpunkt aus Ende des letzten aktiven Grants und letzter Aktivität im Kurs, Verlängern nur mit Pflichtbegründung (§2) |
 | **E-20** | Erklärungs-Schalter sind Pro-Felder (R0-27); ohne Datenschutzbezug |
 | **E-38** | Events ohne Abonnent (RT-29) entstehen nur mit Pro |
-| **E-168** | Aufgaben-Abgaben als neue Datenart RT-45 (Frist offen, siehe Offene Punkte) |
+| **E-168**, **E-289** | Aufgaben-Abgaben als neue Datenart RT-45: Frist wie Rohantworten, 2 Jahre nach Kursende (E-289); juristische Bestätigung durch den Betreiber |
+| **E-307…E-309** | kein doppelter Security-Header (E-307); Enumeration-Schutz R4-Pool, E-241 insoweit überholt (E-308); `Permissions-Policy` nur auf Course-Captain-Antworten (E-309) (§3.4) |
 | **E-207** | Präfix `ccap_` für Caps, Rollen, Tabellen; Optionen `course_captain_*` (im Text umgestellt) |
 | **E-28, E-43, E-44, E-51, E-65, E-79, E-81…E-92, E-97, E-112, E-116, E-119, E-138, E-140, E-143…E-154, E-215…E-224** | wie angenommen |
 
@@ -196,7 +197,7 @@ Spalten: **Frist** = Default (änderbar, wo „Setting“ steht); **Auslöser** 
 | RT-42 | Settings-Undo-Snapshot | Option `course_captain_settings_undo_<tab>` | 30 d, eine Generation | fest | Reset/Import | löschen | nein | R0-27 §2.4 |
 | RT-43 | Unreferenzierte Mediendateien | `protected-<geheim>/`, `media/` | 7 d Karenz | `advanced.media_delete_grace_days` | Verlust der letzten Referenz | löschen | – | R0-16 I-3 |
 | RT-44 | Abgeschlossene WP-Datenschutzanträge (`user_request`) | WP-Kern | **keine Löschung durch CC**; Betreiberdoku schlägt 3 J. vor (E-243) | – | Abschluss | Betreiber | – | R0-17 §5.3 Nr. 5 |
-| RT-45 | Aufgaben-Abgaben (Text, Dateien, Bewertung, Rückmeldung; E-168) | Abgabetabelle, Dateien in `protected-<geheim>/` | **offen**; Annahme wie RT-05 (2 J. nach Kursende, E-51/E-244) | wie RT-04 (Annahme) | Kursende (E-244) | löschen (Dateien und Texte) | ja | E-168, R0-10 §4.5, R0-17 DK-15 |
+| RT-45 | Aufgaben-Abgaben (Text, Dateien, Bewertung, Rückmeldung; E-168) | Abgabetabelle, Dateien in `protected-<geheim>/` | 2 J. nach Kursende wie RT-05 (**E-289**, E-51/E-244) | wie RT-04 (`raw_answers_years_after_course_end`) | Kursende (E-244) | löschen (Dateien und Texte) | ja | E-168, R0-10 §4.5, R0-17 DK-15 |
 
 **Außerhalb des Datenbestands, nur Regel:**
 
@@ -312,8 +313,8 @@ Damit hat `privacy.retention` 21 Unterschlüssel. Fest bleiben: Diagnosepaket 24
 | `reset_limit` | `auto` nach Bestätigung | „Passwort vergessen“: gleiche Bestätigung für unbekannte Konten, Antwort vor dem Mailversand | 10 je IP, 3 je Konto+IP, 10 je Konto je h | **closed** | wie `login_limit` |
 | `registration_limit` | `auto` nach Bestätigung, wirksam nur bei `users_can_register` (E-241) | Registrierung über wp-login und Kern-REST | 10 je IP je h | **closed** | wie `login_limit`; CAPTCHA-Plugins zählen nicht als Konflikt |
 | `xmlrpc` | `auto` nach Bestätigung | authentifizierte XML-RPC-Methoden aus, `system.multicall` und `pingback.ping` abgewiesen, Header `X-Pingback` entfernt; öffentliche Methoden bleiben | – | – | Jetpack aktiv (braucht XML-RPC); anderes Plugin deaktiviert XML-RPC bereits (dann `held:already_restricted`) |
-| `site_headers` | `auto` nach Bestätigung | website-weit **vier** Header (E-261, Auswahl wie R0-30 §3.3.10): `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`, `Permissions-Policy` (Inhalt siehe Offene Punkte); **kein** HSTS, keine website-weite CSP | – | – | **je Header**: Header bereits in `headers_list()` oder im Loopback-Selbsttest (Server-/CDN-Header) vorhanden → nur dieser Header `held` |
-| ~~`user_enumeration`~~ | **nicht in R1** (R4-Pool nach E-261; E-241 nannte Opt-in, siehe Offene Punkte) | – | – | – | – |
+| `site_headers` | `auto` nach Bestätigung | **vier** Header (E-261, Auswahl wie R0-30 §3.3.10): website-weit `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: SAMEORIGIN`; `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()` **nur auf Course-Captain-Antworten** (E-309); Course Captain setzt keinen Header, den ein anderes Plugin oder der Server bereits setzt (E-307); **kein** HSTS, keine website-weite CSP | – | – | **je Header**: Header bereits in `headers_list()` oder im Loopback-Selbsttest (Server-/CDN-Header) vorhanden → nur dieser Header `held` |
+| ~~`user_enumeration`~~ | **nicht in R1** (R4-Pool nach E-261; E-241 insoweit überholt, **E-308**) | – | – | – | – |
 
 **Nicht im Modul** (Zuständigkeit anderswo): Anwendungspasswörter einschränken (WP-Kern), Benutzer-Sitemap und Feed-Autor (SEO-Plugin, LB-K-05), Content-Security-Policy außerhalb eigener Antworten, HSTS (Hosting).
 
@@ -390,7 +391,7 @@ Art: **P** positiv, **N** negativ. Ebene: **PU** PHPUnit ohne WP, **PI** PHPUnit
 | **Defaults, Bestätigung, Audit** |||||||
 | PSD-001 | P | Frischinstallation, Tabs Datenschutz & Sicherheit, Prüfungen, Einschreibung, Rollen, Zertifikate, E-Mails, Erweitert lesen | alle Werte aus §1.2/§1.3 = Default; Schema-Snapshot unverändert | PI | R1-31 | §1.2 |
 | PSD-002 | P | Schema-Scan aller Felder | jedes Feld mit Bezug M/U/S/Z/Sec hat `audit = true`, `risk` laut §1.2, `privacy`-Klasse, Hilfetext-Schlüssel | PU | R1-31 | PD-5 |
-| PSD-003 | N | Kurs-Override `external_media_mode = click_to_load` bei global `link_only`; Kurs-Override `holder_name_policy` lockerer | abgelehnt; strengerer Override gespeichert | PI | R1-33 | PD-4 |
+| PSD-003 | N | Medium-Override `external_media_mode = click_to_load` bei global `link_only` (Scope global → Medium, R0-28 #28); Kurs-Override `holder_name_policy` lockerer | abgelehnt; strengerer Override gespeichert | PI | R1-33 | PD-4 |
 | PSD-004 | N | POST auf R-Feld (`auto_erase_on_confirm`, `keep_evidence_on_erasure`, `trusted_proxies`, `csp_mode`, `file_delivery`, `show_avatars`, `exams.feedback` Δ-1, `hardening`) ohne bzw. mit fremdem, abgelaufenem, wiederverwendetem Bestätigungstoken | jeweils abgelehnt, Feldfehler; mit gültigem Token gespeichert | PI | R1-31 | PD-3 |
 | PSD-005 | P | Bestätigungsdialog per Tastatur und Screenreader | Folge und Anzahl werden vorgelesen; Fokus kehrt zurück; Abbrechen ändert nichts | PW | R1-29 | Konzept 43.2 |
 | PSD-006 | P | Änderung je Feld aus §1.2 | `settings_saved` mit Vorher/Nachher (`public`/`internal`), „geändert“ (`personal`), nie Secret; ohne Änderung kein Eintrag | PI | R1-31 | SR-6 |
@@ -472,7 +473,7 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §36, „Von Claude entschiede
 |---|---|---|---|---|
 | D31-1 | **E-239** | neue Task **R1-45** „Härtungsmodul“ in Free | §3.4, PSD-039…056 | R1-34, R1-45 |
 | D31-2 | **E-240** (angepasst an E-260) | zunächst alles aus, bis der Admin im Assistenten bestätigt; danach je Funktion `auto` (Rückzug bei erkanntem Security-Plugin) | §1.3, HM-0, §3.4 | R1-34, R1-45 |
-| D31-3 | **E-241** (ergänzt durch E-261) | Registrierungslimit und Gerätecookie ja; Enumeration-Schutz nach E-261 im R4-Pool | §3.4 | R1-45 |
+| D31-3 | **E-241** (ergänzt durch E-261, insoweit überholt nach **E-308**) | Registrierungslimit und Gerätecookie ja; Enumeration-Schutz nach E-261 im R4-Pool | §3.4 | R1-45 |
 | D31-4 | **E-242** (ergänzt durch E-263) | Notausschalter `COURSE_CAPTAIN_HARDENING` in `wp-config.php` und WP-CLI; bekannte Geräte dürfen weiter | §3.5 | R1-34, R1-45 |
 | D31-5 | **E-243** | beendete Grants 10 J., entfernte Plätze 365 d, geschlossene Gruppen 3 J., aufgehobene Lernsperren 30 d, Exportdateien 24 h | §2.1, §2.2 | R1-17, R1-34 |
 | D31-6 | **E-244** | „Kursende“ = späterer von: letzter aktiver Grant endet oder letzte Aktivität im Kurs (abweichend von der früheren Option a) | RT-04/05, PSD-013 | R1-17, R1-34 |
@@ -483,11 +484,11 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §36, „Von Claude entschiede
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-31-1 | Enumeration-Schutz: E-241 (Opt-in) gegen E-261 (R4-Pool) | widersprüchliche Beschlüsse; hier gilt E-261 | Auftraggeber (Klarstellung) |
-| OP-31-2 | Inhalt des vierten Headers `Permissions-Policy` | E-261 nennt nur „4 Security-Header“; R0-30 nennt Permissions-Policy, der frühere Stand hier schloss ihn aus | Architektur (R1-45) |
-| OP-31-3 | Frist für Aufgaben-Abgaben (RT-45) | E-168 regelt keine Frist; Gleichsetzung mit Rohantworten (E-51) ist Annahme; juristische Bestätigung durch den Betreiber | Auftraggeber/Betreiber |
-| OP-31-4 | Übernahme von Δ-1…Δ-7 und Δ-9, T31-2, T31-4 in R0-27 | technische Korrekturen ohne Beschluss; E-243-Unterschlüssel sind übernommen | Architektur (R1-31) |
-| OP-31-5 | Rechtliche Bewertung der Ausnahme `always_load` | Betreiberrisiko (R0-17 §6.5) | Betreiber |
+| OP-31-1 | Enumeration-Schutz: E-241 (Opt-in) gegen E-261 (R4-Pool) | widersprüchliche Beschlüsse; hier gilt E-261 | Auftraggeber (Klarstellung) → **erledigt durch E-308** |
+| OP-31-2 | Inhalt des vierten Headers `Permissions-Policy` | E-261 nennt nur „4 Security-Header“; R0-30 nennt Permissions-Policy, der frühere Stand hier schloss ihn aus | Architektur (R1-45) → **erledigt durch E-309** (`camera=(), microphone=(), geolocation=(), payment=()` nur auf Course-Captain-Antworten, §3.4) |
+| OP-31-3 | Frist für Aufgaben-Abgaben (RT-45) | E-168 regelt keine Frist; Gleichsetzung mit Rohantworten (E-51) ist Annahme; juristische Bestätigung durch den Betreiber | Auftraggeber/Betreiber → **erledigt durch E-289** (wie Rohantworten); juristische Bestätigung: **Auftraggeber-Aktion (Blocker für Gate A)**: Gate A-9, AG-07 |
+| OP-31-4 | Übernahme von Δ-1…Δ-7 und Δ-9, T31-2, T31-4 in R0-27 | technische Korrekturen ohne Beschluss; E-243-Unterschlüssel sind übernommen | Architektur (R1-31) → **technisch, an R1-31 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-31-5 | Rechtliche Bewertung der Ausnahme `always_load` | Betreiberrisiko (R0-17 §6.5) | Betreiber → **Auftraggeber-Aktion (Blocker für Gate A)**: rechtliche Bewertung `always_load` (Gate A-9), AG-07 |
 
 ---
 

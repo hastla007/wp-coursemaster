@@ -359,8 +359,8 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §24, 16.11.2026). Zugrunde li
 
 ### Offene Punkte nach Einarbeitung
 
-- D-25-03 sah zusätzlich einen Schalter „Mehrsprachiger Kurs“ vor, mit dem die Warnung abgeschaltet wird; E-157 nennt ihn nicht. Bis zur Klärung gilt nur „erlaubt mit Kennzeichnung und Warnung“.
-- E-25a (Bundle in R1) erlaubt die gemeinsame Vergabe mehrerer Sprachversionen; ob dafür eine eigene Bedienhilfe („alle Sprachversionen als Bundle“) gebraucht wird, ist nicht entschieden.
+- D-25-03 sah zusätzlich einen Schalter „Mehrsprachiger Kurs“ vor, mit dem die Warnung abgeschaltet wird; E-157 nennt ihn nicht. Bis zur Klärung gilt nur „erlaubt mit Kennzeichnung und Warnung“. → **neue Frage NF-15** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-26))
+- E-25a (Bundle in R1) erlaubt die gemeinsame Vergabe mehrerer Sprachversionen; ob dafür eine eigene Bedienhilfe („alle Sprachversionen als Bundle“) gebraucht wird, ist nicht entschieden. → **neue Frage NF-16** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-13/R1-32))
 
 ---
 

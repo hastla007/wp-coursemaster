@@ -174,7 +174,7 @@ Spalten nach Auftrag; „Quelle“ ergänzt die Herkunft (K43-Zeile, Entscheidun
 | `learning.feedback` | Lernen | K43-21, E-20, E-147, R0-08 §4.5 | object{visibility enum{always, after_submit, never}, show_correct_answers bool} | global, Kurs, Quiz | always, true | #19; Kurs: M-03; Quiz: M-06 | `show_*` nur wirksam bei `visibility ≠ never`; gilt für Lernmodus und unbewertete Quizze; Free zeigt richtig/falsch und ggf. die richtige Antwort, nie Erklärungstexte (E-20) | F/R1 | (LB-Feld `learning_explanations` → `pro.learning.feedback.show_explanations`) | ja | – | SET-064 |
 | `pro.learning.feedback.show_explanations` | Lernen (Pro) | E-20, E-95 (`course.explanations`), E-268, E-269 | bool | global, Kurs, Quiz | true | #19 + Pro aktiv; Kurs: M-03; Quiz: M-06 | nur wirksam, wenn `learning.feedback.visibility ≠ never`; ohne Pro unsichtbar (E-100); nach Lizenzende eingefroren weiter wirksam, neue Erklärungen nicht anlegbar (E-268, E-270); Texte bleiben in Free gespeichert (E-269) | P/R3 | `bp_learning_settings.learning_explanations` | ja | – | SET-132 |
 | `exams.max_attempts` | Prüfungen | K43-17, R0-08 §4.4 | int? 1–100 | global, Prüfung | `null` = unbegrenzt | #19; Prüfung: M-06 | eingefroren beim Versuchsstart; keine Rückwirkung; Zählung alter Versuche nach E-107 | F/R1 | – | ja | – | SET-060 |
-| `exams.cooldown_seconds` | Prüfungen | R0-08 §4.4, GM-192 | int 0–2 592 000 | global, Prüfung | 0 | #19; Prüfung: M-06 | Fortsetzen ist nicht betroffen | F/R1 | – | ja | – | SET-060 |
+| `exams.cooldown_seconds` | Prüfungen | R0-08 §4.4, GM-210 | int 0–2 592 000 | global, Prüfung | 0 | #19; Prüfung: M-06 | Fortsetzen ist nicht betroffen | F/R1 | – | ja | – | SET-060 |
 | `exams.count_cancelled` | Prüfungen | K43-22, E-71 | bool | global, Prüfung | true | #19; Prüfung: M-06 | wirkt nur bei gesetztem Limit; Ausnahmen `support_void` (E-137) und Kursrückzug (E-108) fest | F/R1 | – | ja | – | SET-065 |
 | `exams.time_limit_minutes` | Prüfungen | K43-18 | int? 1–1440 | global, Prüfung | `null` = aus | #19; Prüfung: M-06 | gespeichert als `time_limit_seconds`; Serverzeit maßgeblich (INV-S-03) | F/R1 | – | ja | – | SET-061 |
 | `exams.timer_mode` | Prüfungen | E-123, R0-15 §2.3 | enum{strict, practice} | global, Prüfung | `strict` | #19; Prüfung: M-06 | `practice` ist nicht nachweisfähig (Validator-Blocker bei `producesEvidence`) | F/R1 | – | ja | – | SET-061 |
@@ -605,7 +605,7 @@ Verboten: Punktzahl, Antworten, Freitext aus Antworten, fremde Adressen, IP, int
 | SET-054 | P | Suche nach Schalter für Fortsetzen/Autosave; Prüfung nach Reload | kein Schalter vorhanden; Wiederaufnahme ohne Antwortverlust (INV-S-01) | PW | R1-36 | R1-20 |
 | SET-055 | P | neuer Kurs ohne Drip-Regel; Drip-Regel 3 Tage | Module sofort frei; mit Regel ab Tag 3 (E-14, Free) | PI | R1-31 | R1-14 |
 | SET-056 | P | globales Prüfungs-Setting ändern, während ein Versuch läuft | laufender Versuch unverändert (Snapshot, INV-S-02) | PI | R1-36 | R1-33 |
-| SET-060 | P/N | `max_attempts` 0, 101, `null`; Cooldown 3600 nach Fehlversuch | 0/101 abgelehnt; `null` unbegrenzt; Start vor Ablauf der Sperrfrist abgewiesen (GM-192) | PI | R1-31 | R1-08 |
+| SET-060 | P/N | `max_attempts` 0, 101, `null`; Cooldown 3600 nach Fehlversuch | 0/101 abgelehnt; `null` unbegrenzt; Start vor Ablauf der Sperrfrist abgewiesen (GM-210) | PI | R1-31 | R1-08 |
 | SET-061 | P/N | Zeitlimit 0 und 1441; Kulanz 601; Filter liefert 900; `practice` bei Nachweisprüfung | abgelehnt bzw. auf 600 begrenzt; Validator-Blocker für `practice` | PI | R1-31 | R1-08 |
 | SET-062 | P/N | Vorschlag 0/10, 11/10, 7/10; neue Regel anlegen | 0/10 und 11/10 abgelehnt; neue Regel speichert expliziten Wert 7/10; Änderung des Vorschlags ändert bestehende Regeln nicht | PI | R1-31 | R1-08 |
 | SET-063 | N | feste Variante mit `shuffle_questions = all` | abgelehnt; Pool-Prüfung erlaubt `within_section`/`all`; `pinned` bleibt fest | PI | R1-31 | R1-08 |
@@ -723,9 +723,9 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §33, „Von Claude entschiede
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-27-1 | Settings für Aufgaben-Abgaben (erlaubte Dateitypen, Höchstgröße, ggf. Kurs-Override) und Mail bei `returned` | E-168 legt Funktion und Workflow fest, aber keine Feldwerte und keinen Mailtyp | Architektur (R1 Aufgaben), dann Register |
-| OP-27-2 | Schutz gegen User-Enumeration: E-241 (Opt-in) gegen E-261 (R4-Pool) | widersprüchliche Beschlüsse; im Register nicht geführt (E-261) | Auftraggeber (Klarstellung) |
-| OP-27-3 | Zählungen §8 nach Einarbeitung neu per Skript erzeugen | Skript-Lauf ist keine Planungsentscheidung | R1-31 |
+| OP-27-1 | Settings für Aufgaben-Abgaben (erlaubte Dateitypen, Höchstgröße, ggf. Kurs-Override) und Mail bei `returned` | E-168 legt Funktion und Workflow fest, aber keine Feldwerte und keinen Mailtyp | Architektur (R1 Aufgaben), dann Register → **erledigt durch E-289, E-290** (Register-Zeilen `assignments.*`, Mailtypen N-14…N-16, SET-134, NTF-035…037) |
+| OP-27-2 | Schutz gegen User-Enumeration: E-241 (Opt-in) gegen E-261 (R4-Pool) | widersprüchliche Beschlüsse; im Register nicht geführt (E-261) | Auftraggeber (Klarstellung) → **erledigt durch E-308** |
+| OP-27-3 | Zählungen §8 nach Einarbeitung neu per Skript erzeugen | Skript-Lauf ist keine Planungsentscheidung | R1-31 → erledigt: Skript §8 erneut ausgeführt, Ausgabe wörtlich, `Fehler: keine` |
 
 ---
 

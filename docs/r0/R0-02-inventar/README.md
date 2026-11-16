@@ -68,4 +68,4 @@ Entscheidungen aus allen Teilen: `../ENTSCHEIDUNGEN.md` – alle getroffen (16.1
 
 ## Offene Punkte nach Einarbeitung
 
-- Die Teildateien A–E enthalten in den Spalten noch die Klassen `reuse`/`abstract` mit der früheren Lesart in Freitexten (z. B. „übernehmen“). Maßgeblich ist die Tabelle „Bedeutung der Klassen nach E-01“ oben; eine Überarbeitung der Teildateien ist nicht Teil dieser Einarbeitung.
+- Die Teildateien A–E enthalten in den Spalten noch die Klassen `reuse`/`abstract` mit der früheren Lesart in Freitexten (z. B. „übernehmen“). Maßgeblich ist die Tabelle „Bedeutung der Klassen nach E-01“ oben; eine Überarbeitung der Teildateien ist nicht Teil dieser Einarbeitung. → bewusst nicht überarbeitet (Verhaltensinventur, maßgeblich ist die Tabelle „Bedeutung der Klassen nach E-01“); Zielnamen in den Teildateien sind nach E-285 auf `ccap_` umgestellt

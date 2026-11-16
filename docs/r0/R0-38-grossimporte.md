@@ -32,7 +32,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 4. **Schritte und Chunks:** Ein *Schritt* ist ein Request bzw. Job mit Zeitbudget, ein *Chunk* ist eine kurze DB-Transaktion (Ziel ≤ 1 s) und schreibt Daten, Cursor und Lease-Heartbeat zusammen. Die Chunkgröße passt sich an Zeit und Speicher an (AIMD). Daten werden aus einem während der Validierung angelegten NDJSON-Spool mit Offset-Index gelesen; der Speicherbedarf hängt also von der Chunkgröße ab, nicht von der Paketgröße (Delta zu IS `:479-481`).
 5. **Lease mit Fencing** (R0-21), Stale nach 600 s, Resume ab dem letzten committeten Chunk. Drei Ausführungswege mit demselben Runner: Hintergrund (Action Scheduler, sonst WP-Cron-Kette), Browser-Polling und WP-CLI. Wechsel zwischen ihnen ist mitten im Lauf erlaubt.
 6. **Rollback:** Vor der Aktivierung heißt Rollback „Verwerfen“: alle nicht aktivierten Artefakte des Batches werden entfernt. Nach der Aktivierung legt ein Rollback einen neuen Import aus der Paketkopie an (R0-10 §3.6). **Wiederholen nur fehlgeschlagener Objekte** ist ein Teilimport aus derselben Paketkopie mit Objektfilter, ohne neuen Automatenzustand.
-7. **Grenzwerte je Quelle** (Admin-Upload wie R0-10, Ablageordner/CLI höher) und **Paketserien** für große Medienbestände; Messgrößen M-01…M-16 als Startwerte für R1-41; Testfälle **BIG-001…BIG-040**; sechs beschlossene Entscheidungen **E-176…E-181**.
+7. **Grenzwerte je Quelle** (Admin-Upload wie R0-10, Ablageordner/CLI höher) und **Paketserien** für große Medienbestände (nach E-310 R4-Pool, nicht Pflicht in R1); Messgrößen M-01…M-16 als Startwerte für R1-41; Testfälle **BIG-001…BIG-040**; sechs beschlossene Entscheidungen **E-176…E-181**.
 
 ---
 
@@ -389,7 +389,7 @@ Neu: `import_cancel_requested`, `import_conflict_decided` (Einzeln/Sammel mit An
 
 Die Admin-Seite zeigt bei Überschreitung den Ausweichweg („Ablageordner oder WP-CLI verwenden“, wie R0-10 §3.1).
 
-**Paketserien (zusätzlicher technischer Weg, nicht Teil von E-178):** Große Medienbestände dürfen auf mehrere Pakete derselben `source.system` verteilt werden: zuerst Medienpakete (`partial`), dann das Inhaltspaket, das über `ccap_source_map` auf bereits importierte Medien verweist (R0-10 §1.4 „Teilpakete“). So bleiben 2 GB Medien auch im Admin-Upload möglich (10 × 200 MB). Wahl zwischen höheren Grenzen und Serien: E-178.
+**Paketserien (zusätzlicher technischer Weg, nicht Teil von E-178; nach **E-310** nicht Pflicht in R1, R4-Pool):** Große Medienbestände dürfen auf mehrere Pakete derselben `source.system` verteilt werden: zuerst Medienpakete (`partial`), dann das Inhaltspaket, das über `ccap_source_map` auf bereits importierte Medien verweist (R0-10 §1.4 „Teilpakete“). So bleiben 2 GB Medien auch im Admin-Upload möglich (10 × 200 MB). Wahl zwischen höheren Grenzen und Serien: E-178.
 
 ### 6.2 Messgrößen für R1-41
 
@@ -457,7 +457,7 @@ Fixtures synthetisch und neutral (E-02). Paket BIG-P1 aus §6.2; BIG-P0 = 10 000
 | BIG-037 | Resume nach Plugin-Update mit neuer Schema-Version bzw. nach Löschen der Paketkopie | erneute Validierung verlangt bzw. IMP-B1.07 | R1-41 |
 | BIG-038 | Anderer Import wird aktiviert, während dieser `aborted` ist | Resume abgelehnt (IMP-B1.06), nur Verwerfen | R1-41 (IMP-019) |
 | BIG-039 | L3 mit BIG-P1 statt BIG-P0 | M-10 erfüllt | R1-42 (R1-41, R1-22) |
-| BIG-040 | Paketserie: 10 Medienpakete à 200 MB per Admin-Upload, dann Inhaltspaket | Verweise über `ccap_source_map` aufgelöst; keine Archivierung durch Teilpakete | R1-41 |
+| BIG-040 | Paketserie: 10 Medienpakete à 200 MB per Admin-Upload, dann Inhaltspaket | Verweise über `ccap_source_map` aufgelöst; keine Archivierung durch Teilpakete | R4-01 (Paketserien nach E-310 R4-Pool) |
 
 ---
 
@@ -491,9 +491,9 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §27, „Von Claude entschiede
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-38-1 | Paketserien (§6.1) als zusätzlicher Weg: E-178 nennt nur Ablageordner/WP-CLI; die frühere Empfehlung c) umfasste beides | Bestätigung, ob Paketserien in R1 Pflicht sind | Architektur (R1-41) |
-| OP-38-2 | Fehlerschwelle: R0-38 sah einen Filter vor, R0-27 führt ein Setting `advanced.import_error_threshold` | beides vereinbar (Setting mit Filter-Grenze); Festlegung in R1-41 | Architektur |
-| OP-38-3 | Messwerte M-01…M-16 sind Startwerte | Messung in R1-41 auf R-M (Cloud-VM nach E-192) | R1-41 |
+| OP-38-1 | Paketserien (§6.1) als zusätzlicher Weg: E-178 nennt nur Ablageordner/WP-CLI; die frühere Empfehlung c) umfasste beides | Bestätigung, ob Paketserien in R1 Pflicht sind | Architektur (R1-41) → **erledigt durch E-310** (nicht Pflicht in R1, R4-Pool; BIG-040 → R4-01) |
+| OP-38-2 | Fehlerschwelle: R0-38 sah einen Filter vor, R0-27 führt ein Setting `advanced.import_error_threshold` | beides vereinbar (Setting mit Filter-Grenze); Festlegung in R1-41 | Architektur → **technisch, an R1-41 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-38-3 | Messwerte M-01…M-16 sind Startwerte | Messung in R1-41 auf R-M (Cloud-VM nach E-192) | R1-41 → **technisch, an R1-41 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Messung auf R-M (Cloud-VM nach E-192) |
 
 ---
 

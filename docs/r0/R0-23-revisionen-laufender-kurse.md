@@ -391,8 +391,8 @@ Weitere hier angewandte Beschlüsse: E-20, E-27, E-29, E-38, E-50, E-74, E-75, E
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-23-1 | RV-22 (Aufgaben unter Revisionen) ist aus P-1 … P-3 abgeleitet; kein Beschluss regelt ausdrücklich, ob ein entfernter Aufgabenentwurf schreibgeschützt bleibt oder verfällt | E-168 legt nur die Funktion fest | Auftraggeber (Didaktik) |
-| OP-23-2 | Grant auf ein Modul (E-27), das eine Revision aus dem Kurs entfernt: Bleibt der Grant ohne Inhalt bestehen, wird er gemeldet oder umgehängt? | E-27 regelt nur die Granularität; Umhängen wäre ein Grant-Vorgang nach E-117 (neue Revision) | Auftraggeber / R0-09 |
+| OP-23-1 | RV-22 (Aufgaben unter Revisionen) ist aus P-1 … P-3 abgeleitet; kein Beschluss regelt ausdrücklich, ob ein entfernter Aufgabenentwurf schreibgeschützt bleibt oder verfällt | E-168 legt nur die Funktion fest | Auftraggeber (Didaktik) → **neue Frage NF-05** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-46)) |
+| OP-23-2 | Grant auf ein Modul (E-27), das eine Revision aus dem Kurs entfernt: Bleibt der Grant ohne Inhalt bestehen, wird er gemeldet oder umgehängt? | E-27 regelt nur die Granularität; Umhängen wäre ein Grant-Vorgang nach E-117 (neue Revision) | Auftraggeber / R0-09 → **neue Frage NF-04** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-27)) |
 
 ---
 

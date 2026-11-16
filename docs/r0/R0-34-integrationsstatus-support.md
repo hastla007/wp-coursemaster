@@ -17,6 +17,7 @@ Die Annahmen und die Fragen D34-1…D34-8 sind entschieden (`ENTSCHEIDUNGEN.md`,
 | E-255 | Lesen mit #22 (`ccap_view_system_status`): Admin, Kursmanager, `ccap_support` |
 | E-256 | Erkannte Partner mit Hinweis „kein Vertrag verfügbar“; nicht installierte nicht bewerben (E-100) |
 | E-257 | Alarm-Mail bei `failed` (R3), gebündelt höchstens einmal je 24 h |
+| **E-311** | `failed` erst nach 3 Dead-Lettern innerhalb 1 h (AB-4, INT-026); Replay zugestellter Events nur mit Flag, Begründung und Audit (IA-03) |
 | **E-258** | Offene Zustellungen höchstens **30 Tage**, danach Dead-Letter mit Grund `retention` (statt 90 Tage nach der früheren Empfehlung) |
 | E-259 | Übernahme einer Course-Aktion durch einen Partner erst in R3, mit sichtbarem Hinweis und Abschaltmöglichkeit |
 | E-119, E-120 | Event-Speicherung ohne Abonnent und Freigabe je Event-Klasse gelten nur mit Pro |
@@ -432,10 +433,10 @@ Summe: 52 (R1-38: 20, R3-10: 29 inkl. Doppelzuordnung, R3-16: 9 inkl. Doppelzuor
 
 ### Offene Punkte nach Einarbeitung
 
-1. **D34-4 und D34-7** stehen nicht in `ENTSCHEIDUNGEN.md`; beide betreffen nur R3 (R3-10). Die Spezifikation folgt bis zu einem Eintrag der damaligen Empfehlung a); vor R3-10 ins Register aufnehmen.
-2. **E-258 und das Feldschema:** E-258 verlangt nach 30 Tagen einen Dead-Letter mit Grund `retention`; §2.1 führt dafür bisher `skipped.by_reason.retention_expired`. Status (`dead` statt `skipped`) und Grundname sind in R0-19 §5.4/R0-06 anzugleichen.
-3. **Registry in R1:** Nach E-38 gibt es in R1 keine `ConnectorRegistry`; die Zugriffswege in §2.6 (PHP `ConnectorRegistry::status()`) gelten ab Pro. Ob R1 eine schmale interne Status-API für den Partnerkatalog bereitstellt, ist in R0-19 festzulegen.
-4. **E-39b** setzt eine Änderung am Workflow-Captain-Konzept voraus; bis dahin bleibt `workflow-captain` ohne Vertrag.
+1. **D34-4 und D34-7** stehen nicht in `ENTSCHEIDUNGEN.md`; beide betreffen nur R3 (R3-10). Die Spezifikation folgt bis zu einem Eintrag der damaligen Empfehlung a); vor R3-10 ins Register aufnehmen. → **erledigt durch E-311** (AB-4, IA-03, INT-026; D34-4/D34-7 in §7 eingetragen)
+2. **E-258 und das Feldschema:** E-258 verlangt nach 30 Tagen einen Dead-Letter mit Grund `retention`; §2.1 führt dafür bisher `skipped.by_reason.retention_expired`. Status (`dead` statt `skipped`) und Grundname sind in R0-19 §5.4/R0-06 anzugleichen. → **erledigt durch E-311 / E-258** (Status `dead` mit `last_error_class = retention` in R0-06 §4.6, R0-19 §5.4 und §2.1 angeglichen; `skip_reason` ohne `retention_expired`)
+3. **Registry in R1:** Nach E-38 gibt es in R1 keine `ConnectorRegistry`; die Zugriffswege in §2.6 (PHP `ConnectorRegistry::status()`) gelten ab Pro. Ob R1 eine schmale interne Status-API für den Partnerkatalog bereitstellt, ist in R0-19 festzulegen. → **erledigt durch E-185, E-254** (R1 liest über `GET /integrations` (INT-020, #22) und H-34; PHP-`ConnectorRegistry::status()` erst mit Pro)
+4. **E-39b** setzt eine Änderung am Workflow-Captain-Konzept voraus; bis dahin bleibt `workflow-captain` ohne Vertrag. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-17))**: AG-03
 
 **Weitere Abhängigkeiten (beschlossen):** 8 Zustände → R0-19 §6; Freigabe je Event-Klasse → E-120; Halte-/Ausgangsmodus → E-85/E-86/E-88; Secrets → E-87; Connector-Ort/Edition → E-40/E-53; Hersteller nur über Diagnosepaket → E-142; Fehler-/Debug-Fristen → E-143; kein Upselling → E-100; kanonisches Zugangs-Event `enrollment.created` → bereits R0-19 §5.3 (R0-32 W9); Empfänger-Resolver → E-41, R0-19 §4.1.
 

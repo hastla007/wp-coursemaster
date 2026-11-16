@@ -84,5 +84,5 @@ Quellen: `CREDITS.md`, `docs/lizenz.md` (dort To-do T93, „Lizenz legt der Betr
 
 ## 5. Offene Punkte nach Einarbeitung
 
-- Konzept 46.2 spricht von „Codeparität“; nach E-01 gilt Verhaltensparität. Die redaktionelle Anpassung des Konzepts ist nicht Teil dieses Dokuments.
-- Wie der Clean-Room-Prozess organisatorisch abgesichert wird (wer liest LB-Code, wer implementiert), ist im Beschluss nicht festgelegt.
+- Konzept 46.2 spricht von „Codeparität“; nach E-01 gilt Verhaltensparität. Die redaktionelle Anpassung des Konzepts ist nicht Teil dieses Dokuments. → **redaktionell offen (konzept.md, außerhalb docs/r0)**; Verhaltensparität gilt nach E-01 verbindlich, kein Blocker
+- Wie der Clean-Room-Prozess organisatorisch abgesichert wird (wer liest LB-Code, wer implementiert), ist im Beschluss nicht festgelegt. → **Auftraggeber-Aktion (Blocker für Gate A)**: Rollen „liest LB-Verhalten/Tests“ und „implementiert“ benennen und die Trennung dokumentieren, bevor R1-01 beginnt (E-01); Eintrag AG-11 im Gate-Protokoll

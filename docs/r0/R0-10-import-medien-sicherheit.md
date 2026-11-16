@@ -575,12 +575,12 @@ Alle Fragen dieses Dokuments sind entschieden (`ENTSCHEIDUNGEN.md`, 16.11.2026).
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-10-1 | Lektionsrevisionen in der Aktivierungsphase (§3.4: Weg a oder b) | technische Wahl, hängt an R0-23 und `wp_revisions_to_keep` | Architektur (R0-23/R1-15) |
-| OP-10-2 | Allowlist und Größenlimit für Datei-Abgaben (§4.5): konkrete Dateitypen und Default-Größe | E-168 legt nur die Funktion fest; Werte fehlen in R0-27 | Architektur, dann R0-27 |
-| OP-10-3 | Aufbewahrung von Datei-Abgaben: Gilt E-51 „Rohantworten 2 Jahre“ auch für Dateien? | Zuordnung ist hier angenommen, nicht beschlossen; juristische Bestätigung durch den Betreiber (E-51) | Betreiber |
-| OP-10-4 | Wer bewertet Aufgaben in R1 (Cap/Rolle)? E-99 legt Tutor-Bewertungsfunktionen in das Gradebook (Pro), E-168 verlangt Bewertung in R1 | Widerspruch zwischen E-99 und E-168 nicht aufgelöst | Auftraggeber/R0-07 |
-| OP-10-5 | Virenscan für Abgaben (z. B. per Filter-Hook) | in keinem Beschluss geregelt | Architektur |
-| OP-10-6 | Untertitel und Poster im Modus `always_load`: Datenminimierung über die Einbettung hinaus | E-45a regelt nur den Modus | Architektur (R1-07) |
+| OP-10-1 | Lektionsrevisionen in der Aktivierungsphase (§3.4: Weg a oder b) | technische Wahl, hängt an R0-23 und `wp_revisions_to_keep` | Architektur (R0-23/R1-15) → **technisch, an R1-15 (mit R0-23) übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-10-2 | Allowlist und Größenlimit für Datei-Abgaben (§4.5): konkrete Dateitypen und Default-Größe | E-168 legt nur die Funktion fest; Werte fehlen in R0-27 | Architektur, dann R0-27 → **erledigt durch E-289** (§4.5, R0-27 `assignments.*`) |
+| OP-10-3 | Aufbewahrung von Datei-Abgaben: Gilt E-51 „Rohantworten 2 Jahre“ auch für Dateien? | Zuordnung ist hier angenommen, nicht beschlossen; juristische Bestätigung durch den Betreiber (E-51) | Betreiber → **erledigt durch E-289** (wie Rohantworten, 2 Jahre nach Kursende); juristische Bestätigung der Frist: **Auftraggeber-Aktion (Blocker für Gate A)**: Gate A-9, AG-07 |
+| OP-10-4 | Wer bewertet Aufgaben in R1 (Cap/Rolle)? E-99 legt Tutor-Bewertungsfunktionen in das Gradebook (Pro), E-168 verlangt Bewertung in R1 | Widerspruch zwischen E-99 und E-168 nicht aufgelöst | Auftraggeber/R0-07 → **erledigt durch E-288** |
+| OP-10-5 | Virenscan für Abgaben (z. B. per Filter-Hook) | in keinem Beschluss geregelt | Architektur → **erledigt durch E-289** (kein eingebauter Scanner, Hook `course_captain_assignment_file_scan`, MED-034) |
+| OP-10-6 | Untertitel und Poster im Modus `always_load`: Datenminimierung über die Einbettung hinaus | E-45a regelt nur den Modus | Architektur (R1-07) → **technisch, an R1-07 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
 
 ---
 

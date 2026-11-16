@@ -367,9 +367,9 @@ D33-1…D33-7 sind als E-247…E-253 beschlossen (`ENTSCHEIDUNGEN.md` §37, „V
 
 ### Offene Punkte nach Einarbeitung
 
-1. **Abgeleitete Namen nach E-207:** REST-Basis, Query-Variable und Sitemap-Dateiname folgen dem CPT-Namen `ccap_*`, sofern R1-04 keinen eigenen `rest_base`/`query_var` festlegt; die Tests SEO-018, SEO-013 und SEO-032…SEO-034, SEO-043 sind mit den endgültigen Namen zu bestätigen.
-2. **Hook-Namen der SEO-Plugins** (v) sind weiterhin ungeprüft (§8).
-3. **E-45a** (externe Medien standardmäßig laden) widerspricht Kap. 43.3 „Consent vor Abruf“; für SEO ohne Folge, aber in R0-10/R0-31 einzuarbeiten.
+1. **Abgeleitete Namen nach E-207:** REST-Basis, Query-Variable und Sitemap-Dateiname folgen dem CPT-Namen `ccap_*`, sofern R1-04 keinen eigenen `rest_base`/`query_var` festlegt; die Tests SEO-018, SEO-013 und SEO-032…SEO-034, SEO-043 sind mit den endgültigen Namen zu bestätigen. → **technisch, an R1-04/R1-37 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Namen folgen `ccap_*` (E-207, E-285)
+2. **Hook-Namen der SEO-Plugins** (v) sind weiterhin ungeprüft (§8). → **technisch, an R1-37 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A)
+3. **E-45a** (externe Medien standardmäßig laden) widerspricht Kap. 43.3 „Consent vor Abruf“; für SEO ohne Folge, aber in R0-10/R0-31 einzuarbeiten. → **erledigt durch E-312**
 
 ---
 

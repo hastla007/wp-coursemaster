@@ -208,7 +208,7 @@ Damit können doppelte Sperren wie in LB entstehen. Die **Konfliktmatrix mit Sec
 | KOMP-056 | Mail-Plugins (WP Mail SMTP, FluentSMTP, Post SMTP) inkl. **Mail-Log** | m | Versand nur über `wp_mail()`; Mail-Logs speichern Mailtexte und damit kurzlebige Einladungs-/Claim-Links (K4) → Systemstatus-Hinweis „Mail-Log aktiv: Links in Einladungen werden mitprotokolliert“; Tokens laufen ab (R0-09) | KP-08 | **getestet** |
 | KOMP-057 | **Security-Plugin mit eigenem Login-/Reset-Limit** (Wordfence, Solid Security, Limit Login Attempts Reloaded, All-In-One WP Security, Loginizer; Liste nach LB-K-06) bei CC-Härtung `auto` | h | Das Plugin wird erkannt; Login- und Reset-Limit der CC-Härtung ziehen sich zurück (E-240), es entsteht keine doppelte Sperre. Der Assistent schlägt bei erkanntem Plugin „aus“ vor (E-260). Der Tab „Website-Härtung“ und der Systemstatus zeigen, welche Funktion wegen welchen Plugins ruht. Wird das Plugin deaktiviert, greift `auto` wieder | KP-03 (Wordfence free), KP-04 (Solid Security); LLAR, AIOS, Loginizer (jeweils kostenlos) als Variante in KP-03 | **zugesichert** (Pflicht nach E-10) |
 | KOMP-058 | XML-RPC doppelt gesperrt bzw. vom Security-Plugin bewusst erlaubt (z. B. für Jetpack/App) | m | CC-Funktion `auto` zieht sich bei erkannter Plugin-Regel zurück; ohne Erkennung wirken beide Sperren ohne Fehler; der Admin kann die CC-Sperre im Tab abschalten | KP-03, KP-04 | **zugesichert** (Pflicht nach E-10) |
-| KOMP-059 | Security-Header doppelt (Security-Plugin, Hoster oder Webserver setzt dieselben Header) | m | Kein doppelter oder widersprüchlicher Header in der Antwort; die genaue Vorrangregel legt R1-45 fest | KP-03, KP-04, KP-13: Header-Probe | **zugesichert** (Pflicht nach E-10) |
+| KOMP-059 | Security-Header doppelt (Security-Plugin, Hoster oder Webserver setzt dieselben Header) | m | Kein doppelter oder widersprüchlicher Header in der Antwort; Vorrangregel nach **E-307**: Course Captain setzt keinen Header, den ein anderes Plugin oder der Server bereits setzt (dieser Header ruht, R0-31 §3.4); `Permissions-Policy` nur auf Course-Captain-Antworten (E-309) | KP-03, KP-04, KP-13: Header-Probe | **zugesichert** (Pflicht nach E-10) |
 
 ### 2.7 SEO-Plugins (Kap. 21; Gate 23.2 Nr. 6)
 
@@ -378,10 +378,10 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §30 und Beschlussprotokoll, 1
 
 ### Offene Punkte nach Einarbeitung
 
-- Die Regel „Untergrenze = älteste Version mit ≥ 6 Monaten Restpflege zum Release“ stammt aus der Empfehlung zu D-20-01; E-195 legt nur 8.3 fest. Sie gilt hier als Arbeitsregel, bis der Auftraggeber sie bestätigt.
-- E-207 nennt Fehlercodes nicht; ob `ccap_*`-Fehlercodes (z. B. `ccap_db_busy`) ebenfalls auf `ccap_` umgestellt werden, ist offen (R0-19).
-- Die lose gekoppelten Integrationen für WP Rocket (D-20-04/05) lassen sich ohne Lizenz (E-196) nicht prüfen; sie bleiben ungetestet.
-- Die genaue Vorrangregel bei doppelten Security-Headern (KOMP-059) und die Erkennungsliste für Security-Plugins legt R1-45 fest.
+- Die Regel „Untergrenze = älteste Version mit ≥ 6 Monaten Restpflege zum Release“ stammt aus der Empfehlung zu D-20-01; E-195 legt nur 8.3 fest. Sie gilt hier als Arbeitsregel, bis der Auftraggeber sie bestätigt. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate C (C-14, R1-30))**: Arbeitsregel zur PHP-Untergrenze bestätigen, AG-10
+- E-207 nennt Fehlercodes nicht; ob `ccap_*`-Fehlercodes (z. B. `ccap_db_busy`) ebenfalls auf `ccap_` umgestellt werden, ist offen (R0-19). → **erledigt durch E-285** (Fehlercodes `ccap_*`, §3.1)
+- Die lose gekoppelten Integrationen für WP Rocket (D-20-04/05) lassen sich ohne Lizenz (E-196) nicht prüfen; sie bleiben ungetestet. → bewusst akzeptiert nach **E-196** (keine Lizenzen, „best effort“); kein offener Punkt
+- Die genaue Vorrangregel bei doppelten Security-Headern (KOMP-059) und die Erkennungsliste für Security-Plugins legt R1-45 fest. → **erledigt durch E-307** (KOMP-059); Erkennungsliste **technisch, an R1-45/R1-30 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A)
 
 ---
 

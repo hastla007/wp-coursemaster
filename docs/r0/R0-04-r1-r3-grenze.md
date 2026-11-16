@@ -241,13 +241,13 @@ Weitere beschlossene Punkte mit Wirkung auf dieses Dokument: E-01 (Clean Room), 
 
 ### Offene Punkte nach Einarbeitung
 
-1. **INV-C-138 ist eine Mischzeile.** XML-RPC gehört zu R1-45; Benutzer-Endpunkt, Autorenarchive, Benutzer-Sitemap und Anwendungspasswörter sind nach E-261 R4-Pool. E-241 nennt den Enumeration-Schutz dagegen „nur als Opt-in“. Die Zeile bleibt bis zur R1-45-DoR vollständig in BS-27; die Aufteilung und der Widerspruch E-241/E-261 sind dort zu klären (jüngerer Beschluss E-261 „ergänzt E-241“).
-2. **Teil „empfiehlt“ von INV-B-068:** E-25 übernimmt die Kursbeziehungen „wie in LB“, E-25a nennt aber nur das Bundle ausdrücklich. Die Zeile steht vollständig in BS-04 (R1); ob „empfiehlt/ausblenden“ ebenfalls R1 ist, ist nicht ausdrücklich beschlossen.
-3. **INV-B-134** (deutsche Ersatztexte der Woo-Widerrufsfunktion) bleibt in BS-Z. Ob sie zum Umfang von E-33 (Widerrufsbutton) gehört, ist nicht beschlossen.
-4. **INV-A-133…135** (Importer der Standard-FAQs) bleiben in BS-24, weil die Kurs-FAQ-Mechanik dasselbe Muster nutzt; mit dem Wegfall der öffentlichen FAQ ist in R1-15/R1-28 zu prüfen, ob sie nur noch für Kurs-FAQ gebraucht werden. INV-A-131 (JSON-LD `FAQPage`) entfällt mit der öffentlichen FAQ; R0-33 prüft das.
-5. **E-45/E-45a** (externe Medien standardmäßig laden) widerspricht Kap. 43.3 „Consent vor Abruf“, R0-10 §5 und R0-31; die Einarbeitung dort steht aus.
-6. **E-39/E-39b** setzt eine Änderung am Workflow-Captain-Konzept (`wp-workflowmaster`) voraus; bis dahin ist BS-33 für Workflow nur geplant.
-7. **E-33:** juristische Prüfung der Shop-Rechtspflichten durch den Betreiber.
+1. **INV-C-138 ist eine Mischzeile.** XML-RPC gehört zu R1-45; Benutzer-Endpunkt, Autorenarchive, Benutzer-Sitemap und Anwendungspasswörter sind nach E-261 R4-Pool. E-241 nennt den Enumeration-Schutz dagegen „nur als Opt-in“. Die Zeile bleibt bis zur R1-45-DoR vollständig in BS-27; die Aufteilung und der Widerspruch E-241/E-261 sind dort zu klären (jüngerer Beschluss E-261 „ergänzt E-241“). → **erledigt durch E-308** (E-261 gilt, E-241 insoweit überholt; XML-RPC in R1-45, Benutzer-Endpunkt, Autorenarchive, Benutzer-Sitemap, Anwendungspasswörter R4-Pool; R0-05 §1.21/§1.23)
+2. **Teil „empfiehlt“ von INV-B-068:** E-25 übernimmt die Kursbeziehungen „wie in LB“, E-25a nennt aber nur das Bundle ausdrücklich. Die Zeile steht vollständig in BS-04 (R1); ob „empfiehlt/ausblenden“ ebenfalls R1 ist, ist nicht ausdrücklich beschlossen. → **erledigt durch E-298** („empfiehlt“ ist R4-Pool (keine Zugangswirkung); in BS-04 gilt R1 nur für „enthält“/Bundle)
+3. **INV-B-134** (deutsche Ersatztexte der Woo-Widerrufsfunktion) bleibt in BS-Z. Ob sie zum Umfang von E-33 (Widerrufsbutton) gehört, ist nicht beschlossen. → **neue Frage NF-10** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate D (R3-02))
+4. **INV-A-133…135** (Importer der Standard-FAQs) bleiben in BS-24, weil die Kurs-FAQ-Mechanik dasselbe Muster nutzt; mit dem Wegfall der öffentlichen FAQ ist in R1-15/R1-28 zu prüfen, ob sie nur noch für Kurs-FAQ gebraucht werden. INV-A-131 (JSON-LD `FAQPage`) entfällt mit der öffentlichen FAQ; R0-33 prüft das. → **technisch, an R1-15/R1-28 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): Importer nur noch für Kurs-FAQ prüfen; INV-A-131 entfällt mit der öffentlichen FAQ (R0-33)
+5. **E-45/E-45a** (externe Medien standardmäßig laden) widerspricht Kap. 43.3 „Consent vor Abruf“, R0-10 §5 und R0-31; die Einarbeitung dort steht aus. → **erledigt durch E-312** (E-45a gilt; R0-10 §5 und R0-31 folgen dem Beschluss; Kap. 43.3 wird redaktionell angepasst)
+6. **E-39/E-39b** setzt eine Änderung am Workflow-Captain-Konzept (`wp-workflowmaster`) voraus; bis dahin ist BS-33 für Workflow nur geplant. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-17))**: Änderungsauftrag an Workflow Captain (`wp-workflowmaster`) stellen, AG-03
+7. **E-33:** juristische Prüfung der Shop-Rechtspflichten durch den Betreiber. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-GATE))**: juristische Prüfung der Shop-Rechtspflichten durch den Betreiber, AG-07
 
 ---
 

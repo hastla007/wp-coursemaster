@@ -355,7 +355,7 @@ Eine Angabe wie `CF:207` bezeichnet die Zeile der Prüfung. `CF:203§` bezeichne
 | Seeder | FQ:63, :128, :144, :204; OP:605, :606, :607, :624, :627, :628 | Starter-Inhalte idempotent, nicht in Besucheranfragen, unter Sperre | 5 neutrale FAQ FX-FAQ-1…5 | 1 Import; Update-Lauf ohne Doppel; Besucheranfrage importiert nicht; Sperre freigegeben | GM-189 | R1-24 | nein |
 | Cache/REST/Gate | FQ:259, :262, :265, :311, :336, :341 | Änderungen sofort sichtbar; Gäste ohne Entwürfe; Gate im Block | FX-FAQ-3 mit Gate-Block | sofort aktualisiert; Gast ohne Entwurf; Gast Hinweis statt Abschnitt | GM-190 | R1-24 | nein |
 
-**Summe:** 208 GM-Tests (GM-001…GM-190, GM-191…GM-200 in §1.22, GM-201…GM-208 in §1.23). 34 davon brauchen einen neuen Test (Lücke **ja**: GM-003, 013, 021, 026, 046, 052–054, 078, 079, 092, 106, 133–137, 144, 154, 162, 171, 181, 185, 187, 188, 191–196, 198–200), 9 sind teilweise belegt (GM-001, 011, 019, 033, 060, 071, 074, 094, 197).
+**Summe:** 210 GM-Tests (GM-001…GM-190, GM-191…GM-200 in §1.22, GM-201…GM-208 in §1.23, GM-209/GM-210 in §1.24). 34 davon brauchen einen neuen Test (Lücke **ja**: GM-003, 013, 021, 026, 046, 052–054, 078, 079, 092, 106, 133–137, 144, 154, 162, 171, 181, 185, 187, 188, 191–196, 198–200), 9 sind teilweise belegt (GM-001, 011, 019, 033, 060, 071, 074, 094, 197).
 
 ### 1.21 Bewusst nicht in den R1-Golden-Master (Herkunft für die Vollständigkeit)
 
@@ -406,6 +406,15 @@ Belege sind die Zeilen der Inventur C (`R0-02-inventar/C-infrastruktur-content.m
 | XML-RPC | INV-C-138 (`Hardening.php:72…74`), SE:594 | XML-RPC und Pingback aus | Gast; U-L1 | authentifizierte XML-RPC-Methoden abgewiesen (Filter `xmlrpc_enabled`), `pingback.ping` und `system.multicall` entfernt, Header `X-Pingback` fehlt | GM-206 | R1-45 | teilweise |
 | Security-Header | SE:594 (INV-C-141, `Hardening.php:144`, `:162`) | Sicherheits-Header setzen | Startseite, Lernbereich `/lernen/` | website-weit `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `X-Frame-Options: SAMEORIGIN`; `Permissions-Policy` nur auf Course-Captain-Antworten mit `camera=(), microphone=(), geolocation=(), payment=()` (**A-04**, E-309); kein Header doppelt, wenn Server oder anderes Plugin ihn bereits setzt (E-307) | GM-207 | R1-45 | teilweise |
 | Erkennung Security-Plugins | SE:585 (INV-C-142, `Hardening.php:173`, `:189`) | Bekanntes Sicherheits-Plugin erkannt → Login-Limit zieht sich zurück; Merkmal einzeln abschaltbar | Stub-Plugin mit Kennung aus der Konfliktliste (R0-20 §2.6); Merkmal per Einstellung aus | Login-Limit `held` (keine Hooks, keine Zähler), übrige Merkmale aktiv; abgeschaltetes Merkmal wirkt nicht. Vor der ersten Bestätigung durch den Admin wirkt **kein** Merkmal (**A-03**, E-260) | GM-208 | R1-45 | teilweise |
+
+### 1.24 Aus R0-12 §1.3 übernommene Fälle (früher Vorschläge „GM-191/GM-192“)
+
+Die Nummern GM-191…GM-193 sind in §1.22 für E-22/E-69 vergeben; die Vorschläge aus R0-12 §1.3 heißen deshalb GM-209 und GM-210. Der dritte Vorschlag (Kombikurs) ist durch GM-198 abgedeckt.
+
+| Bereich | Quelltest(s) | Prüfaussage | Fixture | Erwartetes Ergebnis | GM-ID | Ziel-Task | Lücke |
+|---|---|---|---|---|---|---|---|
+| Fortschritt-Monotonie (E-70) | – (Vorschlag R0-12 §1.3; LB-Code VS:246-247 erlaubt das Zurücksetzen von `completed` generell, kein Quelltest) | Verspätete Anfrage mit älterem Stand nach neuerem | U-L1, L-A-01 | `PUT progress` mit älterem Stand nach neuerem: Stand geht nie zurück; `completed` nur bei `manual_confirm` durch den Lernenden zurücknehmbar (**A-06**, E-70) | GM-209 | R1-10 | **ja** |
+| Sperrfrist (`cooldown_seconds`) | – (Vorschlag R0-12 §1.3; Vertrag R0-08 §4.4) | Neuer Start erst nach Ablauf der Sperrfrist | ER-A mit `cooldown_seconds = 3600`, U-L1 mit einem nicht bestandenen Versuch | Start vor Ablauf abgewiesen mit Restzeit, danach erlaubt; Fortsetzen eines laufenden Versuchs nicht betroffen | GM-210 | R1-08, R1-20 | **ja** |
 
 ## 2. Neutrales Referenz-Fixture-Paket `cc-fixture-neutral-v1`
 
@@ -631,16 +640,17 @@ Jede bewusste Abweichung eines GM-Erwartungswerts vom belegten LB-Verhalten steh
 | A-03 | GM-208 | Härtung wirkt ab Aktivierung (je Merkmal per Filter `bootspruefung_hardening` abschaltbar, INV-C-142) | alle Merkmale aus, bis der Admin im Setup-Assistenten oder Tab speichert; danach je Merkmal `auto` | Beschluss **E-260**, E-240 (Claude im Auftrag) | 16.11.2026 |
 | A-04 | GM-207 | `Permissions-Policy` website-weit mit `microphone=(self)` für das Funktraining (INV-C-141) | `Permissions-Policy` nur auf Course-Captain-Antworten mit `camera=(), microphone=(), geolocation=(), payment=()` | Beschluss **E-309** (Claude im Auftrag); Mikrofon-Freigabe war fachlich (`exclude_domain_specific`) | 16.11.2026 |
 | A-05 | – (§1.21) | Härtung umfasst auch `/wp/v2/users` für Gäste, Autorenarchive, Benutzer-Sitemap, oEmbed-/Feed-Autor, Anwendungspasswörter nur Redaktion (INV-C-138) | nicht im R1-Härtungsmodul; R4-Pool | Beschluss **E-261**, **E-308** (Claude im Auftrag) | 16.11.2026 |
+| A-06 | GM-209 | Lernender kann `completed` generell zurücksetzen (LB-Code VS:246-247 laut R0-08 §5.1) | nur `manual_confirm` durch den Lernenden; nachweisbasierte Abschlüsse nie; Reset durch die Kursverwaltung mit Audit | Beschluss **E-70** (Claude im Auftrag) | 16.11.2026 |
 
 ### 5.2 Offene Punkte nach Einarbeitung
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-05-1 | Genügt eine „Von Claude entschieden“-Festlegung (z. B. E-129, A-02) als schriftliche Freigabe nach E-55, oder muss der Auftraggeber den Eintrag in §5.1 gesondert abzeichnen? | E-55 verlangt „schriftlich durch den Auftraggeber“; der Auftrag an Claude deckt das nicht ausdrücklich ab | Auftraggeber |
-| OP-05-2 | Bleiben Bereichs-Scopes (`question_bank`, `exam`, `lessons` …) neben `module_id` bestehen? | E-27 sagt „Zugang je Modul statt je Kurs mit Scopes“; ob Scopes ganz entfallen, legen R0-06/R0-09 fest. Die Fixture-Grants in §2.8 sind bis dahin unverändert | Architektur (R0-06/R0-09) |
-| OP-05-3 | GM-Katalog für das Härtungsmodul R1-45 (Login-/Reset-Limit, bekanntes Gerät, XML-RPC, Security-Header) aus SE:279–631 | Quellabschnitt in R0-05 nie zeilengenau ausgewertet (früher ausgeschlossen); Nachtrag nötig | R1-45 / R1-18 |
-| OP-05-4 | Kursfortschritt bei Zugang nur zu einzelnen Modulen (Nenner von `completion_ratio`, GM-076-Analogie) | weder E-27 noch R0-08 legen den Nenner für Modul-Grants fest; GM-200 prüft deshalb nur den Zugang | Architektur (R0-08 §5.1) |
-| OP-05-5 | Benachrichtigung bei Rückgabe/Bewertung einer Aufgabe (R1-46 „Benachrichtigung“) | Mailkatalog R0-27 und E-136 nennen die Fälle nicht; GM-195 prüft deshalb keine Mail | R0-27 / R1-21 |
+| OP-05-1 | Genügt eine „Von Claude entschieden“-Festlegung (z. B. E-129, A-02) als schriftliche Freigabe nach E-55, oder muss der Auftraggeber den Eintrag in §5.1 gesondert abzeichnen? | E-55 verlangt „schriftlich durch den Auftraggeber“; der Auftrag an Claude deckt das nicht ausdrücklich ab | Auftraggeber → **Auftraggeber-Aktion (Blocker für Gate A)**: schriftliche Freigabe der Abweichungsliste §5.1 (A-01…A-06) im Freigabefeld des Gate-Protokolls (E-55, Gate A-7), AG-08 |
+| OP-05-2 | Bleiben Bereichs-Scopes (`question_bank`, `exam`, `lessons` …) neben `module_id` bestehen? | E-27 sagt „Zugang je Modul statt je Kurs mit Scopes“; ob Scopes ganz entfallen, legen R0-06/R0-09 fest. Die Fixture-Grants in §2.8 sind bis dahin unverändert | Architektur (R0-06/R0-09) → **erledigt durch E-286** (Scopes bleiben innerhalb eines Moduls; Fixture-Grants §2.8 unverändert) |
+| OP-05-3 | GM-Katalog für das Härtungsmodul R1-45 (Login-/Reset-Limit, bekanntes Gerät, XML-RPC, Security-Header) aus SE:279–631 | Quellabschnitt in R0-05 nie zeilengenau ausgewertet (früher ausgeschlossen); Nachtrag nötig | R1-45 / R1-18 → umgesetzt: **GM-201…GM-208** in §1.23 aus den LB-Belegen der Inventur C (E-10, E-261, E-307…E-309); Abweichungen A-03…A-05 |
+| OP-05-4 | Kursfortschritt bei Zugang nur zu einzelnen Modulen (Nenner von `completion_ratio`, GM-076-Analogie) | weder E-27 noch R0-08 legen den Nenner für Modul-Grants fest; GM-200 prüft deshalb nur den Zugang | Architektur (R0-08 §5.1) → **erledigt durch E-286** (Nenner = Pflicht-Activities der zugänglichen Module; in GM-200 ergänzt) |
+| OP-05-5 | Benachrichtigung bei Rückgabe/Bewertung einer Aufgabe (R1-46 „Benachrichtigung“) | Mailkatalog R0-27 und E-136 nennen die Fälle nicht; GM-195 prüft deshalb keine Mail | R0-27 / R1-21 → **erledigt durch E-290** (N-14…N-16 in R0-27, geprüft durch NTF-035…NTF-037) |
 
 ---
 

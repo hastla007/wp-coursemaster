@@ -303,6 +303,14 @@ Gates nach R0-12 §3; „grün“ = Pflichtzeilen der Matrix mit Protokoll (Comm
 | **Merge in `main`** | alle PR-●-Jobs (Required Checks, Branch-Schutz, keine Admin-Umgehung) |
 | **Release (Tag)** | Release-Lane komplett + Schritte §3.6 |
 
+**Pflichttests aus R0-12 §1.3 (übernommen, Delta R0-12 §7):**
+
+| ID | Fall | Erwartung | Job | Ziel |
+|---|---|---|---|---|
+| SA-001 | Frische Site, nur Course Captain Free, ausgehender HTTP-Verkehr blockiert (G-07) | R0-11 Flows 1–4 grün; 0 Anfragen an Lizenz-, Partner- oder Fremdhosts; keine Notices zu fehlenden Partnern | J-14 (E2E) mit `pre_http_request`-Sperre, blockierend | R1-18, R1-01 |
+
+NTF-007 (Test-Mail-Sink) steht in R0-27 §4.3 und läuft in J-12/J-14 (Zeile C-12).
+
 ### 4.2 Flake-Policy
 
 1. **Deterministische Suiten ohne Retry:** J-11, J-12, J-13, J-16, J-19 laufen mit `retries = 0`. Ein sporadischer Fehler gilt als Produkt- oder Testfehler (Race, Uhr, Reihenfolge), nicht als „Flake“.
@@ -344,9 +352,9 @@ Alle Punkte sind entschieden (`ENTSCHEIDUNGEN.md` §29 und Beschlussprotokoll, 1
 
 ### Offene Punkte nach Einarbeitung
 
-- E-193/E-204: Solange der Auftraggeber zugleich einziger Reviewer ist, darf er keine eigenen Änderungen bzw. eigenen Tags freigeben (Autor ≠ Reviewer). Wer in diesem Fall freigibt, ist bis zur Benennung der Vertretung (vor R1-Start bzw. R1-GATE) ungeklärt.
-- E-273: Ob `captain-pro` eigene CI-/Release-Konventionen vorgibt, an die `pro-release.yml` angepasst werden muss, lässt sich erst mit Zugriff auf das private Repository prüfen.
-- E-188: Ab wann genau (Einreichung bei WordPress.org oder erstes Release) das Repository öffentlich wird, steht im Beschluss als „zur ersten WordPress.org-Veröffentlichung“; der genaue Schritt in R1-39 ist noch festzulegen.
+- E-193/E-204: Solange der Auftraggeber zugleich einziger Reviewer ist, darf er keine eigenen Änderungen bzw. eigenen Tags freigeben (Autor ≠ Reviewer). Wer in diesem Fall freigibt, ist bis zur Benennung der Vertretung (vor R1-Start bzw. R1-GATE) ungeklärt. → **Auftraggeber-Aktion (Blocker für Gate A)**: Vertretung/zweite Person für Reviews und Tag-Freigaben benennen, sonst ist das Vier-Augen-Prinzip nicht erfüllbar (E-204 „vor R1-Start“), AG-05
+- E-273: Ob `captain-pro` eigene CI-/Release-Konventionen vorgibt, an die `pro-release.yml` angepasst werden muss, lässt sich erst mit Zugriff auf das private Repository prüfen. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-18))**: Zugriff auf `captain-pro`, AG-01
+- E-188: Ab wann genau (Einreichung bei WordPress.org oder erstes Release) das Repository öffentlich wird, steht im Beschluss als „zur ersten WordPress.org-Veröffentlichung“; der genaue Schritt in R1-39 ist noch festzulegen. → **technisch, an R1-39 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A): RC-006: öffentlich zur ersten WordPress.org-Veröffentlichung; Einreichung nach E-302 erst mit grüner Checkliste
 
 ---
 

@@ -383,6 +383,7 @@ Typ: **U** Unit, **I** Integration (PHPUnit + WP-Testsuite), **E** E2E (Playwrig
 | CRT-061 | L | Korrektur von Z-D in L4 | neue Revision mit gleicher `template_version`; in L6 Designer-Darstellung der neuen Revision | R3-08 | CF-09, Z-18 |
 | CRT-062 | L | L5D: Designer-Entwürfe und PDF-Cache gelöscht | veröffentlichte, referenzierte Versionen in `ccap_certificate_template` vorhanden; L6D rendert Z-D exakt | R3-08 | CR-3, Z-17 |
 | CRT-063 | L | Free ohne je installiertes Pro (L0): Settings, A-11, L-15 | keine Designer-, PDF- oder Lizenzelemente (SET-128) | R1-35 | E-100 |
+| CRT-064 (=CERT-007) | I | Kompetenz aus bestandener Prüfung mit `competency_validity_days = 30`; Grant aus Kauf ohne Prüfung | Kompetenz gültig bis T0 + 30 d, danach abgelaufen; ein Kauf allein erzeugt keine Kompetenz (aus R0-12 §1.3 übernommen; Vertrag R0-08 §5.3, E-73) | R1-10 | R0-08 §5.3 |
 
 **Zählung:** GRP 25 + 14 + 9 = 48 Fälle (GRP-001…025, 030…043, 044…046, 060…065), CRT 29 + 11 + 8 = 48 Fälle (CRT-001…029, 030…040, 041…044, 060…063). Lizenzfälle (Typ L): GRP 9, CRT 9 (inkl. CRT-007).
 
@@ -409,9 +410,9 @@ Die acht Punkte dieses Dokuments sind entschieden (`ENTSCHEIDUNGEN.md` Abschnitt
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-29-1 | E-232 nennt „Fortschritt/Abschluss“; die frühere Empfehlung enthielt zusätzlich „Zertifikat ja/nein“, „nur für Mitglieder, die nach dem Einschalten beitreten“ und „Mitglied kann die Freigabe zurücknehmen“. Hier gilt die strengere Lesart: **ohne** Zertifikatsstatus; Neubeitritte und Rücknahme bleiben als Schutz drin | E-232 äußert sich zu diesen Details nicht ausdrücklich; Transparenz/Einwilligung braucht die juristische Bestätigung durch den Betreiber | Auftraggeber (Datenschutz) |
-| OP-29-2 | Gruppen und Plätze je Modul (E-27: „Gruppenplätze je Modul möglich“): Felder der Gruppenzuordnung (`ccap_group_course` mit `module_id`) und Anzeige im Gruppenbericht | Datenmodell in R0-06/R0-09 noch nicht nachgezogen; Scopes neben `module_id` offen | Architektur (R0-06/R0-09) |
-| OP-29-3 | Zertifikate bei Zugang nur zu einzelnen Modulen (E-27) oder über ein Bundle (E-25a): Gilt die Ausstellungsregel je Kurs unverändert? | Beschlüsse regeln nur den Zugang, nicht die Nachweisregel | Auftraggeber (Didaktik) |
+| OP-29-1 | E-232 nennt „Fortschritt/Abschluss“; die frühere Empfehlung enthielt zusätzlich „Zertifikat ja/nein“, „nur für Mitglieder, die nach dem Einschalten beitreten“ und „Mitglied kann die Freigabe zurücknehmen“. Hier gilt die strengere Lesart: **ohne** Zertifikatsstatus; Neubeitritte und Rücknahme bleiben als Schutz drin | E-232 äußert sich zu diesen Details nicht ausdrücklich; Transparenz/Einwilligung braucht die juristische Bestätigung durch den Betreiber | Auftraggeber (Datenschutz) → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-08))**: juristische Bestätigung der Transparenz-/Einwilligungsregeln zu E-232 (Pro), AG-07 |
+| OP-29-2 | Gruppen und Plätze je Modul (E-27: „Gruppenplätze je Modul möglich“): Felder der Gruppenzuordnung (`ccap_group_course` mit `module_id`) und Anzeige im Gruppenbericht | Datenmodell in R0-06/R0-09 noch nicht nachgezogen; Scopes neben `module_id` offen | Architektur (R0-06/R0-09) → **erledigt durch E-286, E-297** (`ccap_group_course.module_id` in R0-06/R0-09; Scopes bleiben innerhalb des Moduls; Gruppenplätze auf Bundles erlaubt) |
+| OP-29-3 | Zertifikate bei Zugang nur zu einzelnen Modulen (E-27) oder über ein Bundle (E-25a): Gilt die Ausstellungsregel je Kurs unverändert? | Beschlüsse regeln nur den Zugang, nicht die Nachweisregel | Auftraggeber (Didaktik) → **neue Frage NF-03** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-44)) |
 
 ---
 

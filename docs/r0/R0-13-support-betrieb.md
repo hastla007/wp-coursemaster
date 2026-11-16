@@ -331,7 +331,7 @@ Anzeige wie in LB: Akteur nur mit Anzeigenamen, ohne E-Mail; gelöschte Konten a
 | Fehlertabelle / Job-Fehler (`error`, `warning`) | 30 Tage | Setting | stündlich | **neu**, E-143 |
 | Debug-Log-Dateien | 7 Tage | nein (Maximum) | Stundenlauf | **neu**, E-143 |
 | Diagnosepaket (Serverkopie) | 24 h | nein | Stundenlauf | §2.2 |
-| Reset-Journal (K-11) | 30 Tage | nein | täglich | E-138 |
+| Reset-Journal (K-11), Tabelle `ccap_reset_journal` (E-296) | 30 Tage | nein | täglich | E-138, E-296 |
 
 Die juristische Bestätigung der Fristen liegt beim Betreiber (E-44). Die Protokollansicht nennt die eingestellte Frist im Kopf (LB `AuditPage.php:50`).
 
@@ -510,9 +510,9 @@ Genutzt, nicht neu gefragt: E-19, E-44, E-51, E-79, E-81, E-82, E-85…E-92, E-1
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-13-1 | Schwellen für H-31 (Heartbeat > 15 min) und H-38 (Zeitraum fail-closed-Ereignisse) | technische Vorschläge, in keinem Beschluss festgelegt | Architektur (R1-38) |
-| OP-13-2 | Juristische Bestätigung der Fristen (E-44, E-143) und der Akteursdarstellung (E-145) | Beschlüsse verlangen Bestätigung durch den Betreiber | Betreiber |
-| OP-13-3 | Supportaktionen für Aufgaben-Abgaben (z. B. Abgabe zurückgeben, Bewertung korrigieren) | E-168 legt den Workflow fest, aber keine Supportaktionen; nicht in K-01…K-17 | Auftraggeber/Architektur (R1 Aufgaben) |
+| OP-13-1 | Schwellen für H-31 (Heartbeat > 15 min) und H-38 (Zeitraum fail-closed-Ereignisse) | technische Vorschläge, in keinem Beschluss festgelegt | Architektur (R1-38) → **technisch, an R1-38 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-13-2 | Juristische Bestätigung der Fristen (E-44, E-143) und der Akteursdarstellung (E-145) | Beschlüsse verlangen Bestätigung durch den Betreiber | Betreiber → **Auftraggeber-Aktion (Blocker für Gate A)**: juristische Bestätigung E-44, E-143, E-145 durch den Betreiber (Gate A-9), AG-07 |
+| OP-13-3 | Supportaktionen für Aufgaben-Abgaben (z. B. Abgabe zurückgeben, Bewertung korrigieren) | E-168 legt den Workflow fest, aber keine Supportaktionen; nicht in K-01…K-17 | Auftraggeber/Architektur (R1 Aufgaben) → **neue Frage NF-07** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate C (R1-38)) |
 
 ---
 
@@ -520,7 +520,7 @@ Genutzt, nicht neu gefragt: E-19, E-44, E-51, E-79, E-81, E-82, E-85…E-92, E-1
 
 | Dokument | Delta |
 |---|---|
-| R0-06 | `ccap_audit_log` um `actor_type`, `subject_user_id` (Index), `reason_code`, `correlation_id` (Index), `request_id`, `row_hash` ergänzen (§4.2); Tabelle `ccap_progress_reset_journal` (E-138); `ccap_exam_session.end_reason` um `support_void`; Zähler bzw. Tabelle für Zusatzversuche (K-09, E-137); Fehlertabelle `ccap_error_log` oder Teil der Job-Tabelle (DL-3) |
+| R0-06 | `ccap_audit_log` um `actor_type`, `subject_user_id` (Index), `reason_code`, `correlation_id` (Index), `request_id`, `row_hash` ergänzen (§4.2); Tabelle `ccap_reset_journal` (E-138; Name und Ort nach **E-296**, in R0-06 §4.10 eingearbeitet); `ccap_exam_session.end_reason` um `support_void`; Zähler bzw. Tabelle für Zusatzversuche (K-09, E-137); Fehlertabelle `ccap_error_log` oder Teil der Job-Tabelle (DL-3) |
 | R0-07 | Aktionen K-01…K-17 in §4.3 aufnehmen (`ccap_attempt_reevaluate`, `ccap_attempt_void`, `ccap_attempt_allowance`, `ccap_grant_transfer`, `ccap_grant_retry`, `ccap_progress_reset_undo`, `ccap_diagnostics_export`, `ccap_job_action`, `ccap_reconcile_apply`, `ccap_debug_toggle`, `ccap_audit_export`); Objekthistorie für Inhaber der Objekt-Cap (§4.5); Audit-Export nach E-140; Reason-Code-Kataloge je Aktion |
 | R0-08 | `support_void` zählt nicht gegen `max_attempts` (E-137); K-07/K-08 als Admin-Übergänge aus `broken` bestätigt, K-08 zusätzlich aus `in_progress` |
 | R0-09 | K-05/K-06 entsprechen G-12 `transferred` bzw. G-13; Audit-Aktionsnamen aus §4.1 übernehmen |

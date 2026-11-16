@@ -762,13 +762,13 @@ Weitere hier umgesetzte Beschlüsse: E-20/E-147/E-229/E-268/E-269 (§4.5), E-22 
 
 | Nr. | Punkt | Warum offen | Zuständig |
 |---|---|---|---|
-| OP-08-1 | Wer bewertet Aufgaben (Cap/Rolle)? Hier angenommen: Kursmanager und zugewiesene Trainer | E-99 legt Tutor-Bewertungsfunktionen in das Gradebook (Pro), E-168 verlangt Bewertung in R1; der Widerspruch ist nicht ausdrücklich aufgelöst (vgl. R0-10 OP-10-4) | Auftraggeber / R0-07 |
-| OP-08-2 | Benachrichtigungen bei Einreichen, Rückgabe und Bewertung (R1-46 nennt „Benachrichtigung“) | E-136 und der Mailkatalog R0-27 nennen die Fälle nicht | R0-27 / R1-21 |
-| OP-08-3 | Grenz- und Standardwerte für Aufgaben (Textlänge, Dateizahl, Dateigröße, Allowlist) und ihre Vererbung | E-168 legt nur die Funktion fest; R0-27/R0-28 führen keine Aufgaben-Einstellungen (vgl. OP-10-2) | Architektur, dann R0-27/R0-28 |
-| OP-08-4 | Standard-Abschlussregel `graded` und die Liste „nicht in R1“ (§2.5: kein Zurückziehen, keine Retakes, keine Fristen) | Spezifikationsvorschlag; R2-02 nannte Retakes, R1-46 nicht | Auftraggeber (Didaktik) |
-| OP-08-5 | Bleiben Bereichs-Scopes (`view`/`download`/`exam`) neben `module_id` bestehen? | E-27 ersetzt „je Kurs mit Scopes“ durch „je Modul“; ob Scopes ganz entfallen, regeln R0-06/R0-09 (`ActivityCapabilities.accessScope` bleibt bis dahin) | Architektur (R0-06/R0-09) |
-| OP-08-6 | Prüfung über mehrere Module bei Modul-Grants: „startbar nur, wenn alle Module frei“ (§1.4) ist aus der Drip-Regel abgeleitet; ebenso der Nenner von `completion_ratio` bei Teilzugang | E-27 regelt nur Granularität und Freischaltprüfung | Auftraggeber (Didaktik) / R0-09 |
-| OP-08-7 | Einheit bei `numeric_tolerance`: nur Anzeige, keine Eingabe, keine Umrechnung (§3.1) | E-22 nennt „Einheit“ nur als Validierungsgegenstand | Didaktik-Review R1-06 |
+| OP-08-1 | Wer bewertet Aufgaben (Cap/Rolle)? Hier angenommen: Kursmanager und zugewiesene Trainer | E-99 legt Tutor-Bewertungsfunktionen in das Gradebook (Pro), E-168 verlangt Bewertung in R1; der Widerspruch ist nicht ausdrücklich aufgelöst (vgl. R0-10 OP-10-4) | Auftraggeber / R0-07 → **erledigt durch E-288** (§2.5 Bewertungsrecht) |
+| OP-08-2 | Benachrichtigungen bei Einreichen, Rückgabe und Bewertung (R1-46 nennt „Benachrichtigung“) | E-136 und der Mailkatalog R0-27 nennen die Fälle nicht | R0-27 / R1-21 → **erledigt durch E-290** (§2.5, R0-27 N-14…N-16) |
+| OP-08-3 | Grenz- und Standardwerte für Aufgaben (Textlänge, Dateizahl, Dateigröße, Allowlist) und ihre Vererbung | E-168 legt nur die Funktion fest; R0-27/R0-28 führen keine Aufgaben-Einstellungen (vgl. OP-10-2) | Architektur, dann R0-27/R0-28 → **erledigt durch E-289** (Dateitypen, Größe, Anzahl; Register R0-27 `assignments.*`, Vererbung R0-28 #29); Textlängen-Defaults **technisch, an R1-46 übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
+| OP-08-4 | Standard-Abschlussregel `graded` und die Liste „nicht in R1“ (§2.5: kein Zurückziehen, keine Retakes, keine Fristen) | Spezifikationsvorschlag; R2-02 nannte Retakes, R1-46 nicht | Auftraggeber (Didaktik) → **neue Frage NF-06** (R0-GATE-protokoll.md §5; kein Blocker für Gate A, Klärung vor Gate B (R1-46)) |
+| OP-08-5 | Bleiben Bereichs-Scopes (`view`/`download`/`exam`) neben `module_id` bestehen? | E-27 ersetzt „je Kurs mit Scopes“ durch „je Modul“; ob Scopes ganz entfallen, regeln R0-06/R0-09 (`ActivityCapabilities.accessScope` bleibt bis dahin) | Architektur (R0-06/R0-09) → **erledigt durch E-286** (Scopes bleiben innerhalb eines Moduls) |
+| OP-08-6 | Prüfung über mehrere Module bei Modul-Grants: „startbar nur, wenn alle Module frei“ (§1.4) ist aus der Drip-Regel abgeleitet; ebenso der Nenner von `completion_ratio` bei Teilzugang | E-27 regelt nur Granularität und Freischaltprüfung | Auftraggeber (Didaktik) / R0-09 → **erledigt durch E-286** (§1.4 und §5.1) |
+| OP-08-7 | Einheit bei `numeric_tolerance`: nur Anzeige, keine Eingabe, keine Umrechnung (§3.1) | E-22 nennt „Einheit“ nur als Validierungsgegenstand | Didaktik-Review R1-06 → **technisch, an R1-06 (Didaktik-Review) übergeben** (kein Auftraggeber-Beschluss, kein Blocker für Gate A) |
 
 ---
 

@@ -137,10 +137,10 @@ Quelle: `ENTSCHEIDUNGEN.md`, Beschlussprotokoll und „Von Claude entschieden“
 
 ### Offene Punkte nach Einarbeitung
 
-- **Änderungsauftrag an `wp-workflowmaster` (E-39b)** ist noch nicht gestellt; Inhalt und Abstimmung mit dem Workflow-Captain-Verantwortlichen stehen aus. Ohne ihn bleibt WS2 bestehen und R3-17 blockiert.
-- E-39 lässt offen, ob `workflow` nur selbst erzeugte `workflow`-Grants entziehen darf (Empfehlung zu E2) oder auch andere; nach E-29/Grant-Automat (R0-09) ist das in R3-17 festzulegen.
-- E-38 weicht vom Form-Muster ab (Connector-Registry im Free-Kern, keine künstliche Pro-Kopplung, `wp-formmaster:konzept.md:297`); ob Form Captain das für Course akzeptiert, ist mit dem Partner zu klären (R3-07).
-- Für Form und Review fehlen weiterhin partnerseitige Aufträge (F10, V2/V10); E-40 setzt voraus, dass deren Registries real existieren.
+- **Änderungsauftrag an `wp-workflowmaster` (E-39b)** ist noch nicht gestellt; Inhalt und Abstimmung mit dem Workflow-Captain-Verantwortlichen stehen aus. Ohne ihn bleibt WS2 bestehen und R3-17 blockiert. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-17))**: AG-03
+- E-39 lässt offen, ob `workflow` nur selbst erzeugte `workflow`-Grants entziehen darf (Empfehlung zu E2) oder auch andere; nach E-29/Grant-Automat (R0-09) ist das in R3-17 festzulegen. → erledigt: R0-07 §4.10 und R0-19 §4.1 (`revoke_access_v1`: nur eigene `source_type`) legen „nur eigene `workflow`-Grants“ fest; Prüfung in R3-17
+- E-38 weicht vom Form-Muster ab (Connector-Registry im Free-Kern, keine künstliche Pro-Kopplung, `wp-formmaster:konzept.md:297`); ob Form Captain das für Course akzeptiert, ist mit dem Partner zu klären (R3-07). → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-07))**: Abstimmung mit Form Captain, AG-04
+- Für Form und Review fehlen weiterhin partnerseitige Aufträge (F10, V2/V10); E-40 setzt voraus, dass deren Registries real existieren. → **Auftraggeber-Aktion (kein Blocker für R0, aber für Gate D (R3-07))**: Partneraufträge F10, V2/V10 (E-40), AG-04
 
 ## 9. Widersprüche zu konzept.md
 
