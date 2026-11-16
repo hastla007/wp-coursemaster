@@ -90,6 +90,7 @@ final class CronHooks {
 				'outbox_purge'      => static fn() => \CourseCaptain\Event\OutboxDispatcher::current()->purge(),
 				'exam_expiry'       => static fn() => \CourseCaptain\Exam\ExamSessions::current()->expire_due(),
 				'retention'         => static fn() => \CourseCaptain\Privacy\RetentionService::run(),
+				'notifications'     => static fn() => \CourseCaptain\Notification\NotificationService::current()->hourly(),
 			)
 		);
 	}

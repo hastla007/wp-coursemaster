@@ -205,6 +205,7 @@ final class Plugin {
 		\CourseCaptain\Ops\HealthChecks::register();
 		\CourseCaptain\Ops\AuditScreen::register();
 		\CourseCaptain\Publish\PublishGuard::register();
+		\CourseCaptain\Notification\NotificationService::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		\CourseCaptain\Cache\CacheInvalidation::register();

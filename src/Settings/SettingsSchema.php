@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * rules (`min`, `max`, `nullable`, `values`, `fields`). Free core fields
  * only; `pro.*` keys are registered by the add-on (SR-8). Roles, mail
  * templates and the retention sub-keys have their own stores (R1-34,
- * R1-21, R1-17).
+ * R1-21, R1-17); `emails.types` is a strict object (R1-21).
  */
 final class SettingsSchema {
 
@@ -326,6 +326,8 @@ final class SettingsSchema {
 					'values'  => array( 'multipart', 'text_only' ),
 					'default' => 'multipart',
 				),
+				// Informational types only; required types cannot be switched off (R0-27 §1.3, SET-102).
+				'types'        => \CourseCaptain\Notification\NotificationTypes::settings_field(),
 			),
 			'privacy'      => array(
 				'auto_export_on_confirm'  => array(
@@ -527,6 +529,10 @@ final class SettingsSchema {
 				);
 			case 'object':
 				if ( ! is_array( $value ) ) {
+					return $bad;
+				}
+				// Strict objects reject unknown keys instead of ignoring them.
+				if ( ! empty( $field['strict'] ) && array() !== array_diff( array_keys( $value ), array_keys( (array) $field['fields'] ) ) ) {
 					return $bad;
 				}
 				$out = array();

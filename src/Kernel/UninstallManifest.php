@@ -76,6 +76,8 @@ final class UninstallManifest {
 		'course_captain_slug_history',
 		'course_captain_integrations',
 		'course_captain_extensions_seen',
+		// Notifications (R1-21): mail state (template errors).
+		'course_captain_mail_state',
 	);
 
 	/**
@@ -144,6 +146,16 @@ final class UninstallManifest {
 	public const USER_META = array( 'ccap_notice_state' );
 
 	/**
+	 * Per-site user options (stored as `<blog prefix><name>` user meta, MS-R-05).
+	 *
+	 * @var list<string>
+	 */
+	public const USER_OPTIONS = array(
+		// Opt-out per informational mail type (R0-27 §3.7, RT-32).
+		'course_captain_notification_prefs',
+	);
+
+	/**
 	 * Post meta keys (R1-04).
 	 *
 	 * @var list<string>
@@ -184,6 +196,15 @@ final class UninstallManifest {
 	 */
 	public static function user_meta(): array {
 		return self::USER_META;
+	}
+
+	/**
+	 * Per-site user options.
+	 *
+	 * @return list<string>
+	 */
+	public static function user_options(): array {
+		return self::USER_OPTIONS;
 	}
 
 	/**
@@ -239,6 +260,7 @@ final class UninstallManifest {
 			self::all_option_names(),
 			self::transients(),
 			self::user_meta(),
+			self::user_options(),
 			self::post_meta(),
 			CronHooks::ALL,
 			Capabilities::PRIMITIVE
@@ -264,6 +286,7 @@ final class UninstallManifest {
 			'options'      => self::all_option_names(),
 			'transients'   => self::transients(),
 			'user_meta'    => self::user_meta(),
+			'user_options' => self::user_options(),
 			'post_meta'    => self::post_meta(),
 			'tables'       => self::tables(),
 			'roles'        => self::roles(),
