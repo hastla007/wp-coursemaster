@@ -114,7 +114,7 @@
   - **Ergebnis/Definition of Done:** Unterstützte WP-/PHP-/DB-Versionen, Multisite-Grenze, Cache-/Security-/SEO-/Theme-/Woo-Kombinationen und Testinstallationen beschlossen.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-21 · Cache-, Nebenläufigkeits- und Konsistenzregeln entscheiden**
+- [ ] **R0-21 · Cache-, Nebenläufigkeits- und Konsistenzregeln entscheiden** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-21-cache-nebenlaeufigkeit.md` (ein LockService mit GET_LOCK und Lease, Entscheidungsregel UNIQUE/CAS/Row-Lock/Named Lock je Operation, globale Lock-Reihenfolge, Deadlock-/Lock-Wait-Behandlung, Cache-Klassen K0…K4 mit Invalidierungsmatrix, Stale-read-Regeln, CON-001…048); nur technische Festlegungen D21-1…6, keine Auftraggeber-Entscheidung nötig
   - **Voraussetzung:** R0-06,R0-09.
   - **Ergebnis/Definition of Done:** Invalidierung bei Grants/Refunds/Revisionen, Objektcache, HTTP/CDN-Cache, Locks, Race- und stale-read-Verhalten mit Negativtests spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
