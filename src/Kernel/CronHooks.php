@@ -80,6 +80,10 @@ final class CronHooks {
 	 * @return void
 	 */
 	public static function run_hourly(): void {
+		// W1 (R0-37 §3.3, MIG-025): housekeeping pauses until the schema is current.
+		if ( ! Plugin::schema_ready() ) {
+			return;
+		}
 		// Access housekeeping (R0-09 G-10, E-201, SEAT-007); access itself never depends on it.
 		// Every step is isolated (GM-156).
 		\CourseCaptain\Ops\HealthChecks::run_isolated(

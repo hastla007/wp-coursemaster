@@ -23,9 +23,10 @@ defined( 'ABSPATH' ) || exit;
  *
  * Phases per run (R0-37 §4.1): P0 bootstrap (`ccap_lease`,
  * `ccap_migration_step`) → P1 preflight → P2 `dbDelta` + drift check → P3
- * imperative steps (generated columns + unique keys, foreign keys) → version.
- * Backfill (P5) and contract (P6) have no steps yet; lock/resume edge cases
- * are proven in R1-40.
+ * imperative steps (generated columns + unique keys, foreign keys) → version
+ * → P5 online backfill in batches within the time budget (R1-40). Crash
+ * detection (`crash_count`, poison), fatal-error handler and fault points
+ * follow R0-37 §4.5/§7. P4 and contract (P6) have no steps yet.
  */
 final class Migrator implements MigrationRunner {
 
@@ -40,6 +41,7 @@ final class Migrator implements MigrationRunner {
 	public const STEP_TABLES     = 'core:0000_tables';
 	public const STEP_FOREIGN    = 'core:0003_foreign_keys';
 	public const RETRY_AFTER     = 30;
+	public const LOCK_NULL_COUNT = 'course_captain_named_lock_unavailable';
 	private const BOOTSTRAP_TTL  = 300;
 	private const MODULE         = 'core';
 	private const ERR_DUP_COLUMN = 1060;
@@ -53,13 +55,64 @@ final class Migrator implements MigrationRunner {
 	private SchemaInspector $inspector;
 
 	/**
+	 * Registered backfill steps in run order.
+	 *
+	 * @var list<BackfillStep>
+	 */
+	private array $backfills;
+
+	/**
+	 * Fixed time budget (tests); default per context.
+	 *
+	 * @var MigrationBudget|null
+	 */
+	private ?MigrationBudget $budget = null;
+
+	/**
+	 * Fixed batch size (tests); default per context.
+	 *
+	 * @var int|null
+	 */
+	private ?int $batch_size = null;
+
+	/**
+	 * Whether `GET_LOCK` is used (false simulates `GET_LOCK = NULL`).
+	 *
+	 * @var bool
+	 */
+	private bool $use_named_lock = true;
+
+	/**
+	 * Lease of the running run (fatal-error handler).
+	 *
+	 * @var Lease|null
+	 */
+	private ?Lease $active_lease = null;
+
+	/**
+	 * Step the running run is working on (fatal-error handler).
+	 *
+	 * @var string|null
+	 */
+	private ?string $current_step = null;
+
+	/**
+	 * Whether the shutdown handler is registered for this instance.
+	 *
+	 * @var bool
+	 */
+	private bool $shutdown_registered = false;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Database $db             Database access.
-	 * @param string   $plugin_version Plugin version (fingerprint, `released_in`).
+	 * @param Database                $db             Database access.
+	 * @param string                  $plugin_version Plugin version (fingerprint, `released_in`).
+	 * @param list<BackfillStep>|null $backfills      Backfill steps; default {@see self::core_backfills()}.
 	 */
-	public function __construct( private Database $db, private string $plugin_version ) {
+	public function __construct( private Database $db, private string $plugin_version, ?array $backfills = null ) {
 		$this->inspector = new SchemaInspector( $db );
+		$this->backfills = $backfills ?? self::core_backfills();
 	}
 
 	/**
@@ -69,6 +122,50 @@ final class Migrator implements MigrationRunner {
 	 */
 	public static function for_current_site(): self {
 		return new self( Database::current(), COURSE_CAPTAIN_VERSION );
+	}
+
+	/**
+	 * Backfill steps of the core schema (none in schema 1.0.0).
+	 *
+	 * @return list<BackfillStep>
+	 */
+	public static function core_backfills(): array {
+		return array();
+	}
+
+	/**
+	 * Test seam: fixed time budget.
+	 *
+	 * @internal
+	 * @param MigrationBudget $budget Budget.
+	 * @return self
+	 */
+	public function with_budget( MigrationBudget $budget ): self {
+		$this->budget = $budget;
+		return $this;
+	}
+
+	/**
+	 * Test seam: fixed batch size.
+	 *
+	 * @internal
+	 * @param int $size Rows per batch.
+	 * @return self
+	 */
+	public function with_batch_size( int $size ): self {
+		$this->batch_size = $size;
+		return $this;
+	}
+
+	/**
+	 * Test seam: behave as if `GET_LOCK` returned NULL (ProxySQL, Galera).
+	 *
+	 * @internal
+	 * @return self
+	 */
+	public function without_named_lock(): self {
+		$this->use_named_lock = false;
+		return $this;
 	}
 
 	/**
@@ -97,6 +194,9 @@ final class Migrator implements MigrationRunner {
 		$result = $this->run( MigrationTrigger::CONTEXT_ACTIVATION );
 		if ( 'failed' === $result['status'] ) {
 			throw new StorageException( esc_html( $result['error'] ) );
+		}
+		if ( 'poison' === $result['status'] ) {
+			throw new StorageException( esc_html( 'Migration step blocked after repeated aborts (' . $result['error'] . '); run "wp course-captain migrate".' ) );
 		}
 		if ( 'skipped_locked' === $result['status'] ) {
 			$this->schedule();
@@ -226,9 +326,13 @@ final class Migrator implements MigrationRunner {
 	/**
 	 * Run the migration for the current site.
 	 *
+	 * Statuses: `done`, `none` (nothing to do), `partial` (budget used up or
+	 * transient error; `ccap_migrate` re-scheduled), `skipped_locked`,
+	 * `failed`, `poison`, `fenced`, `newer`, `blocked`.
+	 *
 	 * @param string $context Trigger context.
 	 * @param bool   $force   Run all phases even when the version is current (CLI/tests).
-	 * @return array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>}
+	 * @return array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>}
 	 * @throws MigrationFencedException Internally only; reported as status `fenced`.
 	 */
 	public function run( string $context, bool $force = false ): array {
@@ -238,6 +342,7 @@ final class Migrator implements MigrationRunner {
 			'dbdelta'   => array(),
 			'drift'     => array(),
 			'fk_issues' => array(),
+			'backfill'  => array(),
 		);
 
 		if ( NetworkGuard::is_network_forced( $this->network_basename() ) ) {
@@ -245,18 +350,27 @@ final class Migrator implements MigrationRunner {
 			return $result;
 		}
 
+		$manual    = MigrationTrigger::CONTEXT_CLI === $context;
+		$budget    = $this->budget ?? MigrationBudget::for_context( $context );
 		$lock      = NamedLock::schema_migration( $this->db );
-		$lock_mode = $lock->acquire();
+		$lock_mode = $this->use_named_lock ? $lock->acquire() : NamedLock::UNAVAILABLE;
 		if ( NamedLock::BUSY === $lock_mode ) {
 			$result['status'] = 'skipped_locked';
 			return $result;
+		}
+		if ( NamedLock::UNAVAILABLE === $lock_mode ) {
+			// R0-21 §2.5: counter for the health check.
+			update_option( self::LOCK_NULL_COUNT, (int) get_option( self::LOCK_NULL_COUNT, 0 ) + 1, false );
+		}
+		if ( ! $manual ) {
+			$this->prepare_long_run();
 		}
 
 		$bootstrap_lock = false;
 		$lease          = null;
 		try {
-			// P0 bootstrap. Without GET_LOCK and before ccap_lease exists, an option lock protects it.
-			if ( NamedLock::UNAVAILABLE === $lock_mode && ! isset( $this->inspector->tables()['ccap_lease'] ) ) {
+			// P0 bootstrap. Without GET_LOCK and before both bootstrap tables exist, an option lock protects it.
+			if ( NamedLock::UNAVAILABLE === $lock_mode && array() !== array_diff( Schema::BOOTSTRAP_TABLES, array_keys( $this->inspector->tables() ) ) ) {
 				$bootstrap_lock = $this->acquire_bootstrap_lock();
 				if ( ! $bootstrap_lock ) {
 					$result['status'] = 'skipped_locked';
@@ -270,9 +384,12 @@ final class Migrator implements MigrationRunner {
 				$result['status'] = 'skipped_locked';
 				return $result;
 			}
+			$this->active_lease = $lease;
+			$this->register_shutdown_handler();
 
 			// Double check inside the lock, bypassing the options cache (QB-10).
 			$state = $this->state( true );
+			$steps = new StepLog( $this->db );
 			if ( ! $force && $state['stored_version'] === $state['code_version'] && ! $state['steps_open'] ) {
 				$this->write_signals();
 				return $result;
@@ -284,63 +401,34 @@ final class Migrator implements MigrationRunner {
 				return $result;
 			}
 
-			$steps = new StepLog( $this->db );
-
-			// P2 declarative structure + drift check.
-			$steps->start( self::STEP_TABLES, self::MODULE, 'structure', Schema::definition_hash(), $this->plugin_version, $lease );
-			$this->assert_lock( $lock, $lease );
-			$result['dbdelta'] = array_merge( $result['dbdelta'], $this->db_delta( Schema::table_names() ) );
-			$result['drift']   = $this->inspector->drift( Schema::table_names() );
-			if ( array() !== $result['drift'] ) {
-				$steps->failed( self::STEP_TABLES, 'Schema drift: ' . implode( '; ', $result['drift'] ), $lease );
-				$result['status'] = 'failed';
-				$result['error']  = 'Schema drift: ' . implode( '; ', $result['drift'] );
+			// Poison (R0-37 §4.6): only a manual run (CLI) tries again.
+			if ( $state['poison'] && ! $manual ) {
+				$result['status'] = 'poison';
 				return $result;
 			}
-			$steps->done( self::STEP_TABLES, $lease );
 
-			// P3 imperative structure: generated columns + unique keys.
-			foreach ( Schema::generated_columns() as $step_id => $definition ) {
-				$steps->start( $step_id, self::MODULE, 'structure', sha1( (string) wp_json_encode( $definition ) ), $this->plugin_version, $lease );
-				try {
-					$this->assert_lock( $lock, $lease );
-					$this->apply_generated_column( $definition );
-				} catch ( MigrationFencedException $e ) {
-					throw $e;
-				} catch ( Throwable $e ) {
-					$steps->failed( $step_id, $e->getMessage(), $lease );
-					$result['status'] = 'failed';
-					$result['error']  = $step_id . ': ' . $e->getMessage();
+			if ( $force || $state['stored_version'] !== $state['code_version'] || $this->structure_open( $steps ) ) {
+				$result = $this->run_structure( $result, $steps, $lock, $lease, $manual );
+				if ( 'none' !== $result['status'] ) {
 					return $result;
 				}
-				$steps->done( $step_id, $lease );
 			}
 
-			// P3 foreign keys: non-fatal (E-48).
-			$steps->start( self::STEP_FOREIGN, self::MODULE, 'structure', sha1( (string) wp_json_encode( Schema::foreign_keys() ) ), $this->plugin_version, $lease );
-			$this->assert_lock( $lock, $lease );
-			$result['fk_issues'] = $this->apply_foreign_keys();
-			update_option( self::FK_ISSUES, $result['fk_issues'], false );
-			$steps->done( self::STEP_FOREIGN, $lease );
-
-			// End of W1: version, fingerprint, compatibility mark.
-			if ( ! $lease->heartbeat( self::LEASE_TTL_DDL ) ) {
-				throw new MigrationFencedException( 'Lease lost.' );
+			// P5 backfill (W2), serial, within the time budget.
+			$result = $this->run_backfills( $result, $steps, $lease, $budget, $context, $manual );
+			if ( 'none' === $result['status'] ) {
+				$result['status'] = 'done';
 			}
-			update_option( self::DB_VERSION, Schema::db_version(), true );
-			update_option( self::COMPAT_MIN, Schema::COMPAT_MIN, true );
-			if ( false === get_option( self::BACKFILL_OPEN ) ) {
-				update_option( self::BACKFILL_OPEN, array(), true );
-			}
-			$this->write_signals();
-			$result['status'] = 'done';
 		} catch ( MigrationFencedException $e ) {
 			$result['status'] = 'fenced';
 			$result['error']  = $e->getMessage();
 		} catch ( Throwable $e ) {
 			$result['status'] = 'failed';
-			$result['error']  = $e->getMessage();
+			$result['error']  = ( null === $this->current_step ? '' : $this->current_step . ': ' ) . $e->getMessage();
+			$this->mark_current_failed( $e->getMessage() );
 		} finally {
+			$this->current_step = null;
+			$this->active_lease = null;
 			if ( null !== $lease ) {
 				try {
 					$lease->release();
@@ -358,6 +446,336 @@ final class Migrator implements MigrationRunner {
 	}
 
 	/**
+	 * Phases P2–P3 and the version switch (end of W1).
+	 *
+	 * @param array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>} $result Result so far.
+	 * @param StepLog                                                                                                                                             $steps  Step log.
+	 * @param NamedLock                                                                                                                                           $lock   Named lock.
+	 * @param Lease                                                                                                                                               $lease  Lease.
+	 * @param bool                                                                                                                                                $manual Manual run (CLI).
+	 * @return array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>} Status `none` = continue.
+	 * @throws MigrationFencedException When the lease or lock is lost.
+	 */
+	private function run_structure( array $result, StepLog $steps, NamedLock $lock, Lease $lease, bool $manual ): array {
+		// Gates of new backfills close before the structure changes (W2 signal).
+		$pending = array();
+		foreach ( $this->backfills as $backfill ) {
+			$row = $steps->get( $backfill->id() );
+			if ( null === $row || StepLog::DONE !== $row['status'] ) {
+				$pending[] = $backfill->id();
+			}
+		}
+		BackfillGate::open( $pending );
+
+		// P2 declarative structure + drift check.
+		if ( ! $this->begin( $steps, self::STEP_TABLES, Schema::definition_hash(), $lease, $manual ) ) {
+			return self::poisoned( $result, self::STEP_TABLES );
+		}
+		$this->assert_lock( $lock, $lease );
+		MigrationFault::point( self::STEP_TABLES, 'before_ddl' );
+		$result['dbdelta'] = array_merge( $result['dbdelta'], $this->db_delta( Schema::table_names() ) );
+		MigrationFault::point( self::STEP_TABLES, 'after_ddl' );
+		$result['drift'] = $this->inspector->drift( Schema::table_names() );
+		if ( array() !== $result['drift'] ) {
+			$steps->failed( self::STEP_TABLES, 'Schema drift: ' . implode( '; ', $result['drift'] ), $lease );
+			$this->current_step = null;
+			$result['status']   = 'failed';
+			$result['error']    = 'Schema drift: ' . implode( '; ', $result['drift'] );
+			return $result;
+		}
+		MigrationFault::point( self::STEP_TABLES, 'before_status' );
+		$steps->done( self::STEP_TABLES, $lease );
+		$this->current_step = null;
+
+		// P3 imperative structure: generated columns + unique keys (I-M1/I-M3).
+		foreach ( Schema::generated_columns() as $step_id => $definition ) {
+			if ( ! $this->begin( $steps, $step_id, sha1( (string) wp_json_encode( $definition ) ), $lease, $manual ) ) {
+				return self::poisoned( $result, $step_id );
+			}
+			try {
+				$this->assert_lock( $lock, $lease );
+				$this->apply_generated_column( $step_id, $definition );
+				MigrationFault::point( $step_id, 'before_status' );
+			} catch ( MigrationFencedException $e ) {
+				throw $e;
+			} catch ( Throwable $e ) {
+				$steps->failed( $step_id, $e->getMessage(), $lease );
+				$this->current_step = null;
+				$result['status']   = 'failed';
+				$result['error']    = $step_id . ': ' . $e->getMessage();
+				return $result;
+			}
+			$steps->done( $step_id, $lease );
+			$this->current_step = null;
+		}
+
+		// P3 foreign keys: non-fatal (E-48).
+		if ( ! $this->begin( $steps, self::STEP_FOREIGN, sha1( (string) wp_json_encode( Schema::foreign_keys() ) ), $lease, $manual ) ) {
+			return self::poisoned( $result, self::STEP_FOREIGN );
+		}
+		$this->assert_lock( $lock, $lease );
+		MigrationFault::point( self::STEP_FOREIGN, 'before_ddl' );
+		$result['fk_issues'] = $this->apply_foreign_keys();
+		update_option( self::FK_ISSUES, $result['fk_issues'], false );
+		MigrationFault::point( self::STEP_FOREIGN, 'before_status' );
+		$steps->done( self::STEP_FOREIGN, $lease );
+		$this->current_step = null;
+
+		// End of W1: version, fingerprint, compatibility mark.
+		if ( ! $lease->heartbeat( self::LEASE_TTL_DDL ) ) {
+			throw new MigrationFencedException( 'Lease lost.' );
+		}
+		update_option( self::DB_VERSION, Schema::db_version(), true );
+		update_option( self::COMPAT_MIN, Schema::COMPAT_MIN, true );
+		if ( false === get_option( self::BACKFILL_OPEN ) ) {
+			update_option( self::BACKFILL_OPEN, array(), true );
+		}
+		$this->write_signals();
+		return $result;
+	}
+
+	/**
+	 * Phase P5: backfills one after another (one lease, R0-37 §4.4).
+	 *
+	 * @param array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>} $result Result so far.
+	 * @param StepLog                                                                                                                                             $steps   Step log.
+	 * @param Lease                                                                                                                                               $lease   Lease.
+	 * @param MigrationBudget                                                                                                                                     $budget  Time budget.
+	 * @param string                                                                                                                                              $context Trigger context.
+	 * @param bool                                                                                                                                                $manual  Manual run (CLI).
+	 * @return array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>}
+	 * @throws MigrationFencedException When the lease is lost.
+	 */
+	private function run_backfills( array $result, StepLog $steps, Lease $lease, MigrationBudget $budget, string $context, bool $manual ): array {
+		if ( array() === $this->backfills ) {
+			return $result;
+		}
+		$size       = $this->batch_size ?? ( MigrationTrigger::CONTEXT_CLI === $context ? Backfiller::BATCH_CLI : Backfiller::BATCH_WEB );
+		$backfiller = new Backfiller( $this->db, $steps, $lease, $budget, $size, $this->plugin_version, $manual );
+		foreach ( $this->backfills as $backfill ) {
+			$this->current_step                    = $backfill->id();
+			$outcome                               = $backfiller->run( $backfill );
+			$this->current_step                    = null;
+			$result['backfill'][ $backfill->id() ] = $outcome['status'];
+			if ( Backfiller::DONE === $outcome['status'] ) {
+				continue;
+			}
+			if ( Backfiller::BUDGET === $outcome['status'] || Backfiller::TRANSIENT === $outcome['status'] ) {
+				// Continue right away in the next cron run (R0-37 §2.3).
+				$this->schedule();
+				$result['status'] = 'partial';
+			} elseif ( Backfiller::POISON === $outcome['status'] ) {
+				$result['status'] = 'poison';
+				$result['error']  = $backfill->id();
+			} else {
+				$result['status'] = 'failed';
+				$result['error']  = $backfill->id() . ': ' . $outcome['error'];
+			}
+			break;
+		}
+		return $result;
+	}
+
+	/**
+	 * Start a structure step and remember it for the fatal-error handler.
+	 *
+	 * @param StepLog $steps    Step log.
+	 * @param string  $step_id  Step ID.
+	 * @param string  $checksum Checksum.
+	 * @param Lease   $lease    Lease.
+	 * @param bool    $manual   Manual run.
+	 * @return bool False when poisoned.
+	 */
+	private function begin( StepLog $steps, string $step_id, string $checksum, Lease $lease, bool $manual ): bool {
+		if ( ! $steps->start( $step_id, self::MODULE, 'structure', $checksum, $this->plugin_version, $lease, $manual ) ) {
+			return false;
+		}
+		$this->current_step = $step_id;
+		return true;
+	}
+
+	/**
+	 * Result for a step that was poisoned now.
+	 *
+	 * @param array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>} $result  Result.
+	 * @param string                                                                                                                                              $step_id Step ID.
+	 * @return array{status: string, error: string, dbdelta: list<string>, drift: list<string>, fk_issues: array<string, string>, backfill: array<string, string>}
+	 */
+	private static function poisoned( array $result, string $step_id ): array {
+		$result['status'] = 'poison';
+		$result['error']  = $step_id;
+		return $result;
+	}
+
+	/**
+	 * Whether a non-backfill step is not done (interrupted structure run).
+	 *
+	 * @param StepLog $steps Step log.
+	 * @return bool
+	 */
+	private function structure_open( StepLog $steps ): bool {
+		foreach ( $steps->all() as $row ) {
+			if ( 'backfill' !== $row['kind'] && StepLog::DONE !== $row['status'] ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Mark the current step `failed` after an unexpected error (only with a
+	 * valid fence, R0-37 §4.5).
+	 *
+	 * @param string $error Message.
+	 * @return void
+	 */
+	private function mark_current_failed( string $error ): void {
+		if ( null === $this->current_step || null === $this->active_lease ) {
+			return;
+		}
+		try {
+			( new StepLog( $this->db ) )->failed( $this->current_step, $error, $this->active_lease );
+		} catch ( Throwable $e ) {
+			// Fence lost: another runner owns the step.
+			unset( $e );
+		}
+	}
+
+	/**
+	 * Shutdown callback: a PHP fatal inside a step marks it `failed`.
+	 *
+	 * @return void
+	 */
+	public function on_shutdown(): void {
+		$this->handle_fatal( error_get_last() );
+	}
+
+	/**
+	 * Fatal-error handler (R0-37 §4.5): with a valid fence, the step the run
+	 * died in becomes `failed`; without, it stays `running` (resume point).
+	 *
+	 * @param array{type: int, message: string, file?: string, line?: int}|null $error Last error.
+	 * @return bool Whether a status was written.
+	 */
+	public function handle_fatal( ?array $error ): bool {
+		if ( null === $error || null === $this->current_step || null === $this->active_lease ) {
+			return false;
+		}
+		if ( ! in_array( $error['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ), true ) ) {
+			return false;
+		}
+		// No paths in stored messages (R0-37 §3.5).
+		$message = (string) preg_replace( '#\s+in\s+\S+(?:\s+on line \d+|:\d+).*$#s', '', $error['message'] );
+		try {
+			( new StepLog( $this->db ) )->failed( $this->current_step, 'PHP fatal error: ' . substr( $message, 0, 200 ), $this->active_lease );
+			$this->active_lease->release();
+		} catch ( Throwable $e ) {
+			unset( $e );
+			return false;
+		}
+		$this->current_step = null;
+		$this->active_lease = null;
+		return true;
+	}
+
+	/**
+	 * Register the shutdown handler once per instance.
+	 *
+	 * @return void
+	 */
+	private function register_shutdown_handler(): void {
+		if ( ! $this->shutdown_registered ) {
+			register_shutdown_function( array( $this, 'on_shutdown' ) );
+			$this->shutdown_registered = true;
+		}
+	}
+
+	/**
+	 * Admin/cron/overdue: keep running after the client left (R0-37 QB-05).
+	 *
+	 * @return void
+	 */
+	private function prepare_long_run(): void {
+		ignore_user_abort( true );
+		if ( function_exists( 'set_time_limit' ) && ! str_contains( (string) ini_get( 'disable_functions' ), 'set_time_limit' ) ) {
+			set_time_limit( 0 );
+		}
+	}
+
+	/**
+	 * Status report for health check and CLI (`--status`).
+	 *
+	 * @return array{state: string, stored_version: string|null, code_version: string, steps: array<string, array{status: string, kind: string, attempts: int, crash_count: int, blocked_reason: string|null, rows_done: int, rows_total: int|null, last_error: string|null}>, poison: list<string>, failed: list<string>, checksum_mismatch: list<string>, backfill_open: list<string>, lease_held: bool, named_lock_unavailable: int}
+	 */
+	public function report(): array {
+		$state    = $this->state( true );
+		$steps    = array();
+		$poison   = array();
+		$failed   = array();
+		$mismatch = array();
+		$sums     = array();
+		foreach ( $this->backfills as $backfill ) {
+			$sums[ $backfill->id() ] = $backfill->checksum();
+		}
+		$lease_held = false;
+		if ( isset( $this->inspector->tables()['ccap_migration_step'] ) ) {
+			foreach ( ( new StepLog( $this->db ) )->all() as $id => $row ) {
+				$steps[ $id ] = array(
+					'status'         => (string) $row['status'],
+					'kind'           => (string) $row['kind'],
+					'attempts'       => (int) $row['attempts'],
+					'crash_count'    => (int) $row['crash_count'],
+					'blocked_reason' => null === $row['blocked_reason'] ? null : (string) $row['blocked_reason'],
+					'rows_done'      => (int) $row['rows_done'],
+					'rows_total'     => null === $row['rows_total'] ? null : (int) $row['rows_total'],
+					'last_error'     => null === $row['last_error'] || '' === $row['last_error'] ? null : (string) $row['last_error'],
+				);
+				if ( StepLog::POISON === $row['blocked_reason'] ) {
+					$poison[] = $id;
+				} elseif ( StepLog::FAILED === $row['status'] ) {
+					$failed[] = $id;
+				}
+				// MIG-023: a done step whose definition changed is reported, never re-run.
+				if ( StepLog::DONE === $row['status'] && isset( $sums[ $id ] ) && $sums[ $id ] !== $row['checksum'] ) {
+					$mismatch[] = $id;
+				}
+			}
+			$lease      = $this->db->table( 'ccap_lease' );
+			$lease_held = null !== $this->db->scalar( $this->db->prepare( "SELECT 1 FROM `{$lease}` WHERE name = %s AND expires_at >= %s", self::LEASE_NAME, $this->db->now() ) );
+		}
+
+		$open = BackfillGate::open_ids();
+		if ( null !== $state['stored_version'] && version_compare( Schema::semver_of( $state['stored_version'] ), Schema::VERSION, '>' ) ) {
+			$summary = 'newer';
+		} elseif ( array() !== $poison ) {
+			$summary = 'blocked';
+		} elseif ( array() !== $failed ) {
+			$summary = 'failed';
+		} elseif ( $lease_held ) {
+			$summary = 'running';
+		} elseif ( $state['stored_version'] !== $state['code_version'] || ! $state['fingerprint_current'] ) {
+			$summary = 'pending';
+		} elseif ( $state['steps_open'] || array() !== $open ) {
+			$summary = 'backfill';
+		} else {
+			$summary = 'ok';
+		}
+
+		return array(
+			'state'                  => $summary,
+			'stored_version'         => $state['stored_version'],
+			'code_version'           => $state['code_version'],
+			'steps'                  => $steps,
+			'poison'                 => $poison,
+			'failed'                 => $failed,
+			'checksum_mismatch'      => $mismatch,
+			'backfill_open'          => $open,
+			'lease_held'             => $lease_held,
+			'named_lock_unavailable' => (int) get_option( self::LOCK_NULL_COUNT, 0 ),
+		);
+	}
+
+	/**
 	 * State for the trigger decision.
 	 *
 	 * @param bool $fresh Read the version directly from the DB.
@@ -370,12 +788,19 @@ final class Migrator implements MigrationRunner {
 		$failed = null;
 		if ( isset( $this->inspector->tables()['ccap_migration_step'] ) ) {
 			$steps = new StepLog( $this->db );
-			foreach ( $steps->all() as $row ) {
+			$rows  = $steps->all();
+			foreach ( $rows as $row ) {
 				if ( StepLog::DONE !== $row['status'] ) {
 					$open = true;
 				}
 				if ( 'poison' === $row['blocked_reason'] ) {
 					$poison = true;
+				}
+			}
+			// A registered backfill without a row is open as well.
+			foreach ( $this->backfills as $backfill ) {
+				if ( ! isset( $rows[ $backfill->id() ] ) ) {
+					$open = true;
 				}
 			}
 			$failed = $steps->last_failure();
@@ -420,19 +845,24 @@ final class Migrator implements MigrationRunner {
 	/**
 	 * Add a generated column and its unique key if missing (I-M1/I-M3).
 	 *
+	 * @param string                                                                                           $step_id    Step ID (fault points).
 	 * @param array{table: string, column: string, definition: string, key: string, key_columns: list<string>} $definition Step definition.
 	 * @return void
 	 * @throws StorageException When the column or key is missing afterwards.
 	 */
-	private function apply_generated_column( array $definition ): void {
+	private function apply_generated_column( string $step_id, array $definition ): void {
 		$table = $this->db->table( $definition['table'] );
 		if ( ! in_array( $definition['column'], $this->inspector->columns( $definition['table'] ), true ) ) {
+			MigrationFault::point( $step_id, 'before_ddl' );
 			$this->ddl( "ALTER TABLE `{$table}` ADD COLUMN `{$definition['column']}` {$definition['definition']}", self::ERR_DUP_COLUMN );
+			MigrationFault::point( $step_id, 'after_ddl' );
 		}
 		$indexes = $this->inspector->indexes( $definition['table'] );
 		if ( ! isset( $indexes[ $definition['key'] ] ) ) {
 			$columns = '`' . implode( '`,`', $definition['key_columns'] ) . '`';
+			MigrationFault::point( $step_id, 'before_ddl' );
 			$this->ddl( "ALTER TABLE `{$table}` ADD UNIQUE KEY `{$definition['key']}` ({$columns})", self::ERR_DUP_KEY );
+			MigrationFault::point( $step_id, 'after_ddl' );
 		}
 		$indexes = $this->inspector->indexes( $definition['table'] );
 		if ( ! in_array( $definition['column'], $this->inspector->columns( $definition['table'] ), true )

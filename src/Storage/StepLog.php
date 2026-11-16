@@ -23,6 +23,21 @@ final class StepLog {
 	public const DONE    = 'done';
 
 	/**
+	 * `blocked_reason` of a step that automatic runs no longer try.
+	 */
+	public const POISON = 'poison';
+
+	/**
+	 * Aborted runs in the same step until it is poisoned (R0-37 §4.5).
+	 */
+	public const CRASH_LIMIT = 3;
+
+	/**
+	 * Failed attempts of the same step until it is poisoned (R0-37 §4.6).
+	 */
+	public const FAIL_LIMIT = 5;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Database $db Database access.
@@ -69,33 +84,138 @@ final class StepLog {
 	/**
 	 * Mark a step as running (creates the row if needed).
 	 *
+	 * A row still `running` belongs to a run that died (timeout, fatal,
+	 * `kill -9`): `crash_count` grows. From {@see self::CRASH_LIMIT} crashes
+	 * on, automatic runs stop and the step becomes `failed` with
+	 * `blocked_reason = poison` (R0-37 §4.5/§4.6). A manual run (CLI) clears
+	 * the poison mark and starts again.
+	 *
+	 * Cursor and progress survive a restart (resume, I-M4).
+	 *
 	 * @param string $step_id  Step ID.
 	 * @param string $module   Module.
 	 * @param string $kind     structure|data|backfill|contract.
 	 * @param string $checksum Checksum of the step definition.
 	 * @param string $release  Plugin version introducing the step.
 	 * @param Lease  $lease    Held lease.
-	 * @return void
+	 * @param bool   $manual   Manual run (CLI): ignores and clears the poison mark.
+	 * @return bool False when the step is poisoned and was not started.
 	 */
-	public function start( string $step_id, string $module, string $kind, string $checksum, string $release, Lease $lease ): void {
+	public function start( string $step_id, string $module, string $kind, string $checksum, string $release, Lease $lease, bool $manual = false ): bool {
 		$this->guard( $lease );
 		$table = $this->db->table( 'ccap_migration_step' );
 		$now   = $this->db->now();
+		$row   = $this->get( $step_id );
+
+		if ( null === $row ) {
+			$this->db->execute(
+				$this->db->prepare(
+					"INSERT INTO `{$table}` (step_id, module, kind, status, attempts, fence, checksum, started_at, heartbeat_at, released_in) VALUES (%s, %s, %s, %s, 1, %d, %s, %s, %s, %s)",
+					$step_id,
+					$module,
+					$kind,
+					self::RUNNING,
+					$lease->fence,
+					$checksum,
+					$now,
+					$now,
+					$release
+				)
+			);
+			return true;
+		}
+
+		$poisoned = self::POISON === $row['blocked_reason'];
+		$crashes  = (int) $row['crash_count'] + ( self::RUNNING === $row['status'] ? 1 : 0 );
+		if ( $manual && $poisoned ) {
+			$crashes = 0;
+		}
+		if ( ! $manual && ( $poisoned || $crashes >= self::CRASH_LIMIT ) ) {
+			$this->db->execute(
+				$this->db->prepare(
+					"UPDATE `{$table}` SET status = %s, crash_count = %d, blocked_reason = %s, fence = %d, last_error = %s, finished_at = %s, heartbeat_at = %s WHERE step_id = %s",
+					self::FAILED,
+					$crashes,
+					self::POISON,
+					$lease->fence,
+					$poisoned ? (string) $row['last_error'] : sprintf( 'Run aborted %d times in this step (poison).', $crashes ),
+					$poisoned && null !== $row['finished_at'] ? (string) $row['finished_at'] : $now,
+					$now,
+					$step_id
+				)
+			);
+			return false;
+		}
+
 		$this->db->execute(
 			$this->db->prepare(
-				"INSERT INTO `{$table}` (step_id, module, kind, status, attempts, fence, checksum, started_at, heartbeat_at, released_in) VALUES (%s, %s, %s, %s, 1, %d, %s, %s, %s, %s)
-				ON DUPLICATE KEY UPDATE crash_count = crash_count + IF(status = %s, 1, 0), status = VALUES(status), attempts = attempts + 1, fence = VALUES(fence), checksum = VALUES(checksum), started_at = VALUES(started_at), heartbeat_at = VALUES(heartbeat_at), finished_at = NULL, last_error = NULL, blocked_reason = NULL",
-				$step_id,
-				$module,
-				$kind,
+				"UPDATE `{$table}` SET status = %s, attempts = attempts + 1, crash_count = %d, fence = %d, checksum = %s, started_at = %s, heartbeat_at = %s, finished_at = NULL, last_error = NULL, blocked_reason = NULL WHERE step_id = %s",
 				self::RUNNING,
+				$crashes,
 				$lease->fence,
 				$checksum,
 				$now,
 				$now,
-				$release,
-				self::RUNNING
+				$step_id
 			)
+		);
+		return true;
+	}
+
+	/**
+	 * Save backfill progress (cursor and rows) of a running step; part of
+	 * the batch transaction, guarded by the fence (I-M4).
+	 *
+	 * @param string $step_id Step ID.
+	 * @param string $cursor  New cursor.
+	 * @param int    $rows    Rows written in this batch.
+	 * @param Lease  $lease   Held lease.
+	 * @return void
+	 * @throws MigrationFencedException When the step belongs to another fence.
+	 */
+	public function progress( string $step_id, string $cursor, int $rows, Lease $lease ): void {
+		$this->guard( $lease );
+		$table = $this->db->table( 'ccap_migration_step' );
+		$this->db->execute(
+			$this->db->prepare(
+				"UPDATE `{$table}` SET `cursor` = %s, rows_done = rows_done + %d, heartbeat_at = %s WHERE step_id = %s AND fence = %d",
+				$cursor,
+				$rows,
+				$this->db->now(),
+				$step_id,
+				$lease->fence
+			)
+		);
+		$this->assert_fence( $step_id, $lease );
+	}
+
+	/**
+	 * Store the number of rows a backfill expects (display only).
+	 *
+	 * @param string $step_id Step ID.
+	 * @param int    $total   Expected rows.
+	 * @param Lease  $lease   Held lease.
+	 * @return void
+	 */
+	public function set_total( string $step_id, int $total, Lease $lease ): void {
+		$this->guard( $lease );
+		$table = $this->db->table( 'ccap_migration_step' );
+		$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET rows_total = %d WHERE step_id = %s AND fence = %d", $total, $step_id, $lease->fence ) );
+	}
+
+	/**
+	 * Hand a running step back to `pending` (time budget used up). The next
+	 * run resumes at the cursor without counting a crash.
+	 *
+	 * @param string $step_id Step ID.
+	 * @param Lease  $lease   Held lease.
+	 * @return void
+	 */
+	public function pause( string $step_id, Lease $lease ): void {
+		$this->guard( $lease );
+		$table = $this->db->table( 'ccap_migration_step' );
+		$this->db->execute(
+			$this->db->prepare( "UPDATE `{$table}` SET status = %s, heartbeat_at = %s WHERE step_id = %s AND fence = %d", self::PENDING, $this->db->now(), $step_id, $lease->fence )
 		);
 	}
 
@@ -137,15 +257,35 @@ final class StepLog {
 		$now   = $this->db->now();
 		$this->db->execute(
 			$this->db->prepare(
-				"UPDATE `{$table}` SET status = %s, last_error = %s, finished_at = %s, heartbeat_at = %s WHERE step_id = %s AND fence = %d",
+				"UPDATE `{$table}` SET status = %s, last_error = %s, finished_at = %s, heartbeat_at = %s, blocked_reason = IF(%s = %s AND attempts >= %d, %s, NULL) WHERE step_id = %s AND fence = %d",
 				$status,
 				(string) $error,
 				$now,
 				$now,
+				$status,
+				self::FAILED,
+				self::FAIL_LIMIT,
+				self::POISON,
 				$step_id,
 				$lease->fence
 			)
 		);
+	}
+
+	/**
+	 * The step row must carry our fence, otherwise another runner owns it.
+	 *
+	 * @param string $step_id Step ID.
+	 * @param Lease  $lease   Held lease.
+	 * @return void
+	 * @throws MigrationFencedException When the fence differs.
+	 */
+	private function assert_fence( string $step_id, Lease $lease ): void {
+		$table = $this->db->table( 'ccap_migration_step' );
+		$fence = $this->db->scalar( $this->db->prepare( "SELECT fence FROM `{$table}` WHERE step_id = %s", $step_id ) );
+		if ( (string) $lease->fence !== $fence ) {
+			throw new MigrationFencedException( 'Step owned by another runner.' );
+		}
 	}
 
 	/**

@@ -124,6 +124,18 @@ final class Plugin {
 	}
 
 	/**
+	 * Whether background jobs may run: false while the schema of this site
+	 * is not current (W1, R0-37 §3.3). Test runners other than the real
+	 * migrator always report ready.
+	 *
+	 * @return bool
+	 */
+	public static function schema_ready(): bool {
+		$runner = self::migration_runner();
+		return ! $runner instanceof Migrator || $runner->fingerprint_current();
+	}
+
+	/**
 	 * The instance booted by WordPress, if any.
 	 *
 	 * @return self|null
@@ -187,6 +199,7 @@ final class Plugin {
 		add_action( CronHooks::HOURLY, array( CronHooks::class, 'run_hourly' ) );
 		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
 		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
+		\CourseCaptain\Ops\MigrateCommand::register();
 		MetaCaps::register();
 		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
 		ObjectIdentity::register();
@@ -283,6 +296,13 @@ final class Plugin {
 	 * @return void
 	 */
 	public static function run_outbox_dispatch(): void {
+		if ( ! self::schema_ready() ) {
+			// W1 (R0-37 §3.3, MIG-025): no delivery against a half-migrated schema; rows stay queued.
+			if ( false === wp_next_scheduled( CronHooks::OUTBOX_DISPATCH ) ) {
+				wp_schedule_single_event( time() + Migrator::RETRY_AFTER, CronHooks::OUTBOX_DISPATCH );
+			}
+			return;
+		}
 		$dispatcher = OutboxDispatcher::current();
 		$stats      = $dispatcher->dispatch();
 		if ( $stats['delivered'] + $stats['retried'] + $stats['failed'] + $stats['dead'] + $stats['skipped'] >= OutboxDispatcher::BATCH ) {
