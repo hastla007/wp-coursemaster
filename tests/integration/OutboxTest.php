@@ -84,7 +84,8 @@ final class OutboxTest extends SchemaTestCase {
 	}
 
 	/**
-	 * Create one manual grant (3 events: created, activated, access.changed).
+	 * Create one manual grant (3 events: created, activated, access.changed;
+	 * 4 deliveries: `cache` for all three, `notification` for access.changed, R1-21).
 	 */
 	private function grant(): int {
 		return GrantService::current()->grant_manual( Actor::user( $this->admin ), $this->learner, $this->course, wp_generate_uuid4(), 'x' );
@@ -97,11 +98,11 @@ final class OutboxTest extends SchemaTestCase {
 	 */
 	public function test_delivery(): void {
 		$this->grant();
-		self::assertSame( array( 'pending' => 3 ), self::statuses() );
+		self::assertSame( array( 'pending' => 4 ), self::statuses() );
 		self::assertNotFalse( wp_next_scheduled( \CourseCaptain\Kernel\CronHooks::OUTBOX_DISPATCH ), 'dispatch scheduled soon' );
 		$stats = OutboxDispatcher::current()->dispatch();
-		self::assertSame( 3, $stats['delivered'] );
-		self::assertSame( array( 'delivered' => 3 ), self::statuses() );
+		self::assertSame( 4, $stats['delivered'] );
+		self::assertSame( array( 'delivered' => 4 ), self::statuses() );
 		self::assertSame( 0, OutboxDispatcher::current()->dispatch()['delivered'], 'at least once, not twice' );
 	}
 
@@ -157,7 +158,7 @@ final class OutboxTest extends SchemaTestCase {
 		$db    = Database::current();
 		$table = $db->table( 'ccap_outbox_delivery' );
 		$db->execute( $db->prepare( "UPDATE `{$table}` SET status = 'dispatching', lock_owner = 'dead-process', locked_until = %s", $db->now( -1 ) ) );
-		self::assertSame( 3, OutboxDispatcher::current()->dispatch()['delivered'] );
+		self::assertSame( 4, OutboxDispatcher::current()->dispatch()['delivered'] );
 	}
 
 	/**
@@ -171,8 +172,8 @@ final class OutboxTest extends SchemaTestCase {
 		$deliveries = $db->table( 'ccap_outbox_delivery' );
 		$events     = $db->table( 'ccap_outbox_event' );
 		$db->execute( $db->prepare( "UPDATE `{$deliveries}` SET created_at = %s", $db->now( -31 * DAY_IN_SECONDS ) ) );
-		self::assertSame( 3, OutboxDispatcher::current()->purge()['dead'] );
-		self::assertSame( array( 'dead' => 3 ), self::statuses() );
+		self::assertSame( 4, OutboxDispatcher::current()->purge()['dead'] );
+		self::assertSame( array( 'dead' => 4 ), self::statuses() );
 
 		$uuid = (string) $db->scalar( "SELECT event_uuid FROM `{$events}` WHERE event_type = 'grant.created'" );
 		try {

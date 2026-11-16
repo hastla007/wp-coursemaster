@@ -107,7 +107,7 @@ final class PrivacyService {
 		'cc-grants'        => array( 'Course access', 'ccap_grant', 'user_id', array( 'course_id', 'module_id', 'status', 'source_type', 'valid_from', 'valid_until', 'created_at' ) ),
 		'cc-seats'         => array( 'Group seats', 'ccap_seat', 'user_id', array( 'group_id', 'status', 'invited_at', 'claimed_at', 'removed_at' ) ),
 		'cc-certificates'  => array( 'Certificates', 'ccap_certificate', 'user_id', array( 'certificate_uid', 'course_id', 'status' ) ),
-		'cc-notifications' => array( 'Notifications', 'ccap_notification', 'recipient_user_id', array( 'type', 'status' ) ),
+		'cc-notifications' => array( 'Notifications', 'ccap_notification', 'recipient_user_id', array( 'type', 'status', 'created_at', 'sent_at' ) ),
 		'cc-submissions'   => array( 'Assignment submissions', 'ccap_assignment_submission', 'user_id', array( 'course_id', 'activity_id', 'status', 'text_answer', 'submitted_at', 'graded_at' ) ),
 	);
 
@@ -177,6 +177,20 @@ final class PrivacyService {
 					'data'        => $item,
 				);
 			}
+		}
+		$prefs = get_user_option( 'course_captain_notification_prefs', (int) $user->ID );
+		if ( is_array( $prefs ) ) {
+			$data[] = array(
+				'group_id'    => 'cc-notification-prefs',
+				'group_label' => 'Notification preferences',
+				'item_id'     => 'cc-notification-prefs',
+				'data'        => array(
+					array(
+						'name'  => 'optout',
+						'value' => implode( ', ', array_map( 'strval', (array) ( $prefs['optout'] ?? array() ) ) ),
+					),
+				),
+			);
 		}
 		$data = array_merge( $data, self::invitations( (string) $user->user_email ) );
 		return array(

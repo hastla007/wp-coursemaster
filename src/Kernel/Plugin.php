@@ -204,6 +204,7 @@ final class Plugin {
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();
 		\CourseCaptain\Ops\AuditScreen::register();
+		\CourseCaptain\Notification\NotificationService::register();
 		\CourseCaptain\Access\ProtectedFiles::register();
 		Invalidation::register();
 		EscalationGuard::register();

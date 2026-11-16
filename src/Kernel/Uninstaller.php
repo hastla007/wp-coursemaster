@@ -95,6 +95,11 @@ final class Uninstaller {
 		 */
 		do_action( 'course_captain_uninstall', $manifest );
 
+		global $wpdb;
+		foreach ( UninstallManifest::user_options() as $user_option ) {
+			delete_metadata( 'user', 0, $wpdb->get_blog_prefix() . $user_option, '', true );
+		}
+
 		foreach ( UninstallManifest::post_meta() as $meta_key ) {
 			delete_post_meta_by_key( $meta_key );
 		}
