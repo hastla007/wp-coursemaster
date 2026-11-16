@@ -1,0 +1,43 @@
+# R0-02 / R0-03 · LearnBoating-Funktionsinventur – Übersicht
+
+**Quellcommit:** `hastla007/learnboating@9f37c77a2a6a3284f3cea700103bf6d3ecc5debd` (siehe `../R0-01-baseline.md`)
+**Methode:** Fünf Teilinventuren mit getrenntem Dateiumfang. Jede öffentliche Methode bzw. jedes zusammengehörige Verhalten ist eine Zeile mit Quellpfad:Zeile, Art, Klassifikation, Zielbaustein, Phasenvorschlag, Task-Bezug und Golden-Master-Kandidat.
+
+| Teil | Datei | Umfang | Einträge | reuse | abstract | replace | exclude |
+|---|---|---|---|---|---|---|---|
+| A | `A-lernen-pruefung.md` | Learning, Exams, Trainers, Gate, ExamGuide, Tips, Faq · 39 PHP-Dateien, 10 033 Zeilen | 154 | 80 | 33 | 9 | 32 |
+| B | `B-commerce.md` | Commerce, WooCommerce, Affiliate-/Voucher-Connector · 55 PHP-Dateien, 14 375 Zeilen | 177 | 65 | 89 | 16 | 7 |
+| C | `C-infrastruktur-content.md` | Bootstrap, Content/Import/Medien, Infrastruktur, Settings, Security, Privacy, CLI, Extensions, 17 JSON-Schemas · 49 PHP-Dateien, 12 374 Zeilen | 199 | 97 | 71 | 20 | 11 |
+| D | `D-admin-frontend-api.md` | Admin, Frontend, REST (52 Web-Routen), Mobile-API (78 Routen), Templates, Assets | 144 | 54 | 70 | 6 | 14 |
+| E | `E-theme-tools-content-docs.md` | Theme, tools, schema, staging, content-source, docs, Test-/CI-Infrastruktur | 148 | 22 | 65 | 14 | 47 |
+| **Summe** | | | **822** | **318** | **328** | **65** | **111** |
+
+**`unknown`: 0.** Damit ist die DoD von R0-03 erfüllt.
+
+Zählkommando: `grep -E '^\| INV-' <datei> | grep -c '<klasse>'`.
+
+## Abdeckung und Restpunkte
+
+- **Vollständig gelesen:** Teile A, B und C (sämtliche PHP-Dateien), die Schemas in C, die Routen in D sowie der Großteil von D.
+- **Rest in Teil D:** Einige Mobile-Hilfsklassen und `assets/app.js` waren zunächst nur strukturell gelesen. Ein Nachlesen läuft; danach wird R0-02 abgehakt.
+- **Tests:** Fachliche Testdateien sind nach Prüfabschnitten ausgewertet, nicht Zeile für Zeile. Die Zeilengenauigkeit für Golden-Master-Tests liefert R0-05.
+- **Bewusst summarisch und als `exclude` eingestuft:** Gerätesimulation, Produktbilder, CSS, `content-source/` (Laravel-Snapshot).
+
+## Wichtigste Querbefunde (für Folge-Tasks)
+
+| Befund | Teil | Folge-Task |
+|---|---|---|
+| Grant-Kern ist schon weitgehend shop-neutral; nur `wc_item:<id>` und Bestell-/SKU-Spalten sind Woo-gebunden | B | R0-04, R0-06, R0-09 |
+| `idempotency_key` ist nicht eindeutig; eindeutig ist nur `reference_scope` | B | R0-06, R0-21 |
+| Zwei Lock-Techniken, dazu eine eigene `GET_LOCK`-Kopie im Voucher-Connector | B, C | R0-21, R0-37 |
+| Gruppen entstehen nur aus Bestellungen; manuelle Gruppen ohne Kauf fehlen | B | R0-29, R1-13 |
+| Fester Bestehensschwellenwert 0.75 in `ContentRepository::examRule` (widerspricht Kap. 26.4) | C | R0-08, R0-27 |
+| `Settings::sanitize()` setzt bei Teilformularen alle nicht gesendeten Felder auf den Default zurück | C | R0-27, R1-31 |
+| Uninstall lässt `bp_entitlement_prune_last` und `_bp_catalog_fields` zurück | C | R0-16, R1-23 |
+| Monitor-Schlüssel ist per `?key=` erlaubt und landet so in Logs | C | R0-17 |
+| Alle Integrationstests laufen gegen das Boots-Inhaltspaket; Fixtures müssen neutral ersetzt werden | A, C | R0-05 |
+| Harte Kurscode-Tabellen (`SectionFiles::PARTS`, `RUBRIC_KEYS`, `SCHEIN_KEYS`), Theme-Filter, Rate-Limiter im Mobile-Namespace | A | R0-04 |
+| Für Prüfungsstart-Limit und `wrongQuestionIds` gibt es keinen direkten Test | A | R0-05 |
+| In der Quelle fehlen SAST, Dependency-Scan und Paketsignatur | E | R0-18 |
+
+Offene Produktentscheidungen aus allen Teilen: `../ENTSCHEIDUNGEN.md`.

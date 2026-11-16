@@ -24,7 +24,7 @@
   - **Ergebnis/Definition of Done:** Jede UI-, PHP-, Daten-, API-, Cron-, Import-, Test- und Commerce-Funktion mit Quellpfad erfasst.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R0-03 · Jede Originalfunktion klassifizieren**
+- [x] **R0-03 · Jede Originalfunktion klassifizieren** — erledigt 16.11.2026: 822 Einträge in `docs/r0/R0-02-inventar/` (reuse 318, abstract 328, replace 65, exclude 111, **unknown 0**); Übersicht `docs/r0/R0-02-inventar/README.md`; Produktentscheidungen → `docs/r0/ENTSCHEIDUNGEN.md`
   - **Voraussetzung:** R0-02.
   - **Ergebnis/Definition of Done:** Jede Funktion reuse/abstract/replace/exclude_domain_specific; keine unknown.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
