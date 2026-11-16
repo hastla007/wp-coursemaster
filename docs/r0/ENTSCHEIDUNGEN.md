@@ -129,7 +129,7 @@ Die technischen Punkte D-14-03 (kürzere Lock-Wartezeiten), D-14-04 (FULLTEXT-Su
 
 | ID | Frage | Empfehlung | Herkunft | Blockiert |
 |---|---|---|---|---|
-| E-57 | PHP-Untergrenze | **PHP 8.2** (LB: 8.1). Lebenszyklus in R0-20 belegen und vor dem R1-Release neu bewerten | R0-14 D-14-01 | R0-20 |
+| E-57 | PHP-Untergrenze | ~~PHP 8.2~~ → **ersetzt durch E-195** (R0-20 empfiehlt 8.3) | R0-14 D-14-01 | R0-20 |
 | E-58 | Welche Datenbankversionen werden getestet? | **MariaDB 10.11 und MySQL 8.4 in der CI**; MySQL 8.0 und MariaDB 10.6 „best effort“ (E-08 bleibt technische Mindestanforderung) | R0-14 D-14-02 | R0-20 |
 | E-59 | Kapazitätsaussage für Shared Hosting | **Dokumentierte Klasse** „bis 50 gleichzeitige Prüfungen / 50 aktive Lernende“ (Annahme, Messung in R1-22); darüber VPS empfohlen | R0-14 D-14-05 | R1-22, R1-24 |
 | E-60 | Sind Zeitbudgets ein Release-Gate? | **Ja für R1-GATE**; danach Query- und Scan-Gates in jeder CI-Runde und eine Zeitmessung je Minor-Release | R0-14 D-14-07 | R1-18, R1-GATE |
@@ -379,3 +379,14 @@ Hinweis: E-58 nennt für die CI MariaDB 10.11, R0-14 nimmt MariaDB 12.3 als Ziel
 | E-192 | Messumgebung R-M für Performance-Releases | **Cloud-VM mit festem Instanztyp**, je Lauf erzeugt und danach gelöscht (Kosten beim Auftraggeber) | R0-18 D18-5 | R1-01, R1-39 |
 | **E-193** | Wer gibt Deploys zu WordPress.org bzw. License Captain frei? | **Der Auftraggeber** (Vertretung benennen); Selbstfreigabe durch den Tag-Ersteller ausgeschlossen | R0-18 D18-6 | R1-01, R1-39 |
 | E-194 | Koexistenztest mit dem LB-Plugin in der CI | **Nightly gegen den festen LB-Commit `9f37c77`**, nur installiert, nie verändert oder weitergegeben; braucht einen lesenden Deploy-Key für learnboating | R0-18 D18-7 | R1-01, R1-39 |
+
+## 30. Kompatibilität und Konflikte (aus R0-20)
+
+Technisch festgelegt: CSS-Präfix `ccap-` (kollidiert sonst mit Cookie-Banner-Bibliotheken, die `cc-` nutzen), Optionen, AJAX-Aktionen und Query-Vars `course_captain_` (Nachtrag zu R0-19 §1.2; D-20-03). Die Rollen `cc_trainer`, `cc_support` und `cc_author` bekommen `view_admin_dashboard`, sonst leitet WooCommerce sie auf „Mein Konto“ um (D-20-10). Ausschlüsse für JS-Optimierer und Purge-Aufrufe für LiteSpeed/WP Rocket (D-20-04/05); der Lernbereich funktioniert auch mit einfachen Permalinks (D-20-08); die Zertifikatsverifikation wird serverseitig gerendert, weil Security-Plugins REST für Gäste oft sperren (D-20-09). Der MariaDB-Widerspruch ist nur scheinbar: E-58 regelt die Untergrenze 10.11, das Ziel ist 12.3 (bzw. 11.8, falls 12.3 keine LTS ist). **Offen:** Verfügbarkeit des Slugs `course-captain` auf WordPress.org prüfen (OP-20-1, kein Internetzugriff).
+
+| ID | Frage | Empfehlung | Herkunft | Blockiert |
+|---|---|---|---|---|
+| **E-195** | PHP-Untergrenze (ersetzt die Empfehlung in E-57) | **PHP 8.3**, getestet 8.3/8.4/8.5. Begründung: 8.2 bekommt laut Modellwissen ab 01.01.2027 keine Sicherheitsupdates, R1 erscheint frühestens 2027. Vor R1-GATE auf php.net verifizieren | R0-20 D-20-01 | R1-01 |
+| E-196 | Lizenzen für kommerzielle Plugins in den Kompatibilitätstests (WP Rocket, Elementor Pro u. a.) | **Stellt der Auftraggeber**; ohne Lizenz wird die Kombination als „best effort“ geführt | R0-20 D-20-07 | R1-30 |
+| E-197 | Öffentlicher URL-Slug für Kurse (`course`/`courses` sind von LifterLMS, Tutor, LearnDash belegt) | **Nur `cc_course` bekommt eine öffentliche URL**, Standard-Slug `kurs` (in den Einstellungen änderbar); Lernbereich `/lernen/` | R0-20 D-20-11 | R1-04, R1-37 |
+| E-198 | DB-Query-Caches (z. B. W3TC-Datenbankcache) | **Nicht unterstützt**, mit Warnung im Systemstatus (Gefahr veralteter Zugriffsentscheidungen) | R0-20 D-20-06 | R1-25, R1-30 |

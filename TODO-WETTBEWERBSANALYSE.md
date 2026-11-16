@@ -109,7 +109,7 @@
   - **Ergebnis/Definition of Done:** Alle Hooks, Filter, REST-Routen, Shortcodes, Blocks, CLI-Kommandos und geplanten Events mit Versionierung, Auth, Fehlercodes und Deprecation-Policy tabellarisch spezifiziert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R0-20 · WordPress-Kompatibilität und Konfliktmatrix festlegen**
+- [ ] **R0-20 · WordPress-Kompatibilität und Konfliktmatrix festlegen** — **Entwurf fertig 16.11.2026:** `docs/r0/R0-20-kompatibilitaet-konflikte.md` (Versionsmatrix PHP/WP/DB mit Lebenszyklus-Vorbehalt, KOMP-001…134 über Webserver, Caches, CDN, Security, SEO, Builder, Themes, Übersetzung, Woo, andere LMS, Namenskonflikte, 14 Testprofile KP-01…14); Entscheidung offen → E-195…E-198
   - **Voraussetzung:** R0-14,R0-18.
   - **Ergebnis/Definition of Done:** Unterstützte WP-/PHP-/DB-Versionen, Multisite-Grenze, Cache-/Security-/SEO-/Theme-/Woo-Kombinationen und Testinstallationen beschlossen.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.

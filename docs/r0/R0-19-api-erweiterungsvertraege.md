@@ -806,3 +806,10 @@ interface SourceStatusMapper
 - Abgeleitet aus: Inventur D §4.1 (W1–W52), §4.2 (M1–M78), §5.1, §6.1–6.4; Inventur C §2.6, §4.3, §4.4, §4.7, §5.5; Inventur A §4.2, §4.3, §5.6; Inventur B §2.5, §4.4, §4.6, §5.1, §5.3; R0-04 K-01…K-25; R0-07 §3, §4; R0-08 §2, §6.6, §7.3; R0-16; R0-32 §6–§9; R0-36 §3–§4, §8.
 - Konzept gelesen: Kap. 8 (Adapter-Handshake), 13 (Präfixe), 18, 18.1, 18.2, 30.1–30.5, 31.1–31.7, 32, 33.
 - Kein Code, keine Tests ausführbar (keine Implementierung). Abhaken von R0-19 erst nach Freigabe dieses Entwurfs, Beschluss D19-1…D19-6 und Übernahme der Deltas (§8).
+
+## Nachträge aus Folge-Tasks
+
+| Datum | Quelle | Änderung |
+|---|---|---|
+| 16.11.2026 | R0-20 D-20-03 | §1.2: CSS-Präfix `ccap-`; Optionen, AJAX-Aktionen und Query-Vars `course_captain_`. `cc_` bleibt für Tabellen, Caps, Cron-Hooks und Fehlercodes |
+| 16.11.2026 | R0-37 | Cron-Hook für Migration heißt `cc_migrate` |
