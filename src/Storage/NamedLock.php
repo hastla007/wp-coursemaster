@@ -44,6 +44,18 @@ final class NamedLock {
 	}
 
 	/**
+	 * Named lock for an arbitrary key of the current site (≤ 64 characters).
+	 *
+	 * @param Database $db  Database access.
+	 * @param string   $key Key, e.g. `group-seats:12`.
+	 * @return self
+	 */
+	public static function for_key( Database $db, string $key ): self {
+		$db_name = defined( 'DB_NAME' ) ? (string) DB_NAME : '';
+		return new self( $db, 'ccap_' . substr( md5( $db_name . '|' . $db->wpdb()->prefix . '|' . $key ), 0, 24 ) );
+	}
+
+	/**
 	 * Lock name for the schema migration of the current site (R0-37 §3.1).
 	 *
 	 * @param Database $db Database access.
@@ -55,12 +67,13 @@ final class NamedLock {
 	}
 
 	/**
-	 * Try once, without waiting.
+	 * Try to acquire; waits at most `$timeout` seconds (0 = never wait).
 	 *
+	 * @param int $timeout Seconds (interactive ≤ 2, background ≤ 10; R0-09 §6.1).
 	 * @return string One of the class constants.
 	 */
-	public function acquire(): string {
-		$result = $this->db->scalar( $this->db->prepare( 'SELECT GET_LOCK(%s, 0)', $this->name ) );
+	public function acquire( int $timeout = 0 ): string {
+		$result = $this->db->scalar( $this->db->prepare( 'SELECT GET_LOCK(%s, %d)', $this->name, max( 0, $timeout ) ) );
 		if ( null === $result ) {
 			$this->state = self::UNAVAILABLE;
 		} elseif ( '1' === $result ) {

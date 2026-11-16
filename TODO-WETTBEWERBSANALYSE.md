@@ -278,7 +278,7 @@
   - **Ergebnis/Definition of Done:** Belegte Algorithmen/Intervalle als neutrale Regeln; deterministische Tests.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-13 · Standalone-Free-Zugänge und Gruppenplätze**
+- [x] **R1-13 · Standalone-Free-Zugänge und Gruppenplätze** — erledigt 16.11.2026: Nachweis `docs/r1/R1-13-nachweis.md`; Grant-Automat G-01…G-15 mit CAS/Event/Outbox in einer TX, Kette/Restack, Ablauf, Pending-Timeout; Gruppen, Einladungen, Gruppenlink, Claim unter Lock, Reduktion, Statusweitergabe; GRANT-/SEAT-Tests grün; Unit 85, Integration 82, Multisite 91. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-03, R1-04.
   - **Ergebnis/Definition of Done:** Kostenlose/manuelle/zeitgesteuerte Grants, Seat/Claim, Mehrfachzugang, kein Woo.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.

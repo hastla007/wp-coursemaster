@@ -45,6 +45,7 @@ class StorageException extends RuntimeException {
 	public static function errno_from_message( string $error ): int {
 		$patterns = array(
 			1060 => '/^Duplicate column name/i',
+			1062 => '/^Duplicate entry/i',
 			1061 => '/^Duplicate key name/i',
 			1205 => '/^Lock wait timeout exceeded/i',
 			1213 => '/^Deadlock found/i',
@@ -57,6 +58,15 @@ class StorageException extends RuntimeException {
 			}
 		}
 		return 0;
+	}
+
+	/**
+	 * Unique key violation.
+	 *
+	 * @return bool
+	 */
+	public function is_duplicate(): bool {
+		return 1062 === $this->getCode();
 	}
 
 	/**

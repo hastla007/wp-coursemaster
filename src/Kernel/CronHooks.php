@@ -80,6 +80,9 @@ final class CronHooks {
 	 * @return void
 	 */
 	public static function run_hourly(): void {
-		// Intentionally empty until the task runner exists.
+		// Access housekeeping (R0-09 G-10, E-201, SEAT-007); access itself never depends on it.
+		\CourseCaptain\Access\GrantService::current()->expire_due();
+		\CourseCaptain\Access\GrantService::current()->fail_stale_pending();
+		\CourseCaptain\Access\GroupService::current()->expire_invitations();
 	}
 }

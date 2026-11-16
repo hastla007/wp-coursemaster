@@ -599,7 +599,7 @@ final class PolicyService {
 		if ( ! $view->allowed ) {
 			return $view;
 		}
-		return $this->require( $user, array( 'ccap_manage_grants' ) );
+		return $this->require( $user, array( 'ccap_manage_grants' ), Decision::FORBIDDEN );
 	}
 
 	/**
@@ -682,6 +682,9 @@ final class PolicyService {
 		}
 		$seat = $target['seat'];
 		if ( null !== $seat ) {
+			if ( 'active' === $seat['status'] && (int) $seat['user_id'] === $user ) {
+				return Decision::allow( array( 'read' ) );
+			}
 			if ( 'invited' !== $seat['status'] ) {
 				return Decision::deny( Decision::FORBIDDEN, 'claim_used' );
 			}
