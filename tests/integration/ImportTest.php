@@ -314,8 +314,9 @@ final class ImportTest extends SchemaTestCase {
 	private function entries( string $file ): array {
 		$zip = new \ZipArchive();
 		$zip->open( $file );
-		$out = array();
-		for ( $i = 0; $i < $zip->count(); $i++ ) {
+		$out   = array();
+		$count = $zip->count();
+		for ( $i = 0; $i < $count; $i++ ) {
 			$name = (string) $zip->getNameIndex( $i );
 			if ( 'manifest.json' !== $name ) {
 				$out[ $name ] = (string) $zip->getFromName( $name );
