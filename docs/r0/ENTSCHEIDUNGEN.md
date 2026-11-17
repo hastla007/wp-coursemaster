@@ -899,3 +899,9 @@ D30-1 (Task R1-45 für die Härtung) ist identisch mit E-239.
 | E-282 | Kursprodukte einzeln oder als Menge (mehrere Plätze) verkaufen? | **Einzeln**; mehrere Plätze nur über Gruppenprodukte | R0-40 D40-8 | R3-02…R3-05, R3-19 |
 | E-283 | Manuelle Support-Aktion „Gutscheinwert zurückgeben“ | **Ja**, mit Begründung und Audit | R0-40 D40-9 | R3-02…R3-05, R3-19 |
 | E-284 | Lernbeginn als Vermerk an der Woo-Bestellposition (Widerrufsrecht) | **Ja**, Zeitpunkt des ersten Lernzugriffs wird vermerkt | R0-40 D40-10 | R3-02…R3-05, R3-19 |
+
+## MINVER-1. Einheitliche Mindestversionen der Captain-Plugins (17.11.2026)
+
+| ID | Frage | Beschluss | Herkunft | Wirkung |
+|---|---|---|---|---|
+| **MINVER-1** | Mindestversionen für alle Captain-Plugins, Pro-Add-ons und Connectoren | **PHP 8.5+** (8.6 experimentell in der CI), **WordPress 7.0+**, WooCommerce 11.2+ (wo genutzt, R3), **MySQL 9.7+ / MariaDB 12.3+**; ältere Datenbankserver ab der harten Untergrenze (MariaDB 10.6 / MySQL 8.0, E-08) nur mit Warnung im Systemstatus, keine Sperre | Inhaberin, 17.11.2026 (suiteweit abgestimmt) | ersetzt E-195 (PHP 8.3) und die „unterstützt ab“-Werte aus E-58 (MariaDB 10.11 / MySQL 8.4); R0-20 §1.2 und R0-18 §1.3 sind entsprechend zu lesen. Umsetzung: `Requirements`, Plugin-Kopf, `readme.txt`, `composer.json`, PHPCS/PHPStan-Zielversion, CI-Matrix (M-Z, M-U, M-M9, M-M best effort, J-17b PHP 8.4) |

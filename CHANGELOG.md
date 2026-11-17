@@ -4,6 +4,7 @@ All notable changes to Course Captain (Free) are documented here. Versions follo
 
 ## 1.0.0-dev – unreleased
 
+- Requirements raised (MINVER-1, 17.11.2026): PHP 8.5, WordPress 7.0, recommended MariaDB 12.3 / MySQL 9.7; older database servers from MariaDB 10.6 / MySQL 8.0 still work with a system status warning.
 - Plugin core (R1-01): requirements check (PHP 8.3, WordPress 7.0, MariaDB 10.6 / MySQL 8.0 with InnoDB, JSON and utf8mb4), activation per site, network activation blocked, hold mode for forced network activation, deactivation removes own cron events, uninstall based on an exact manifest (data stays unless deletion was confirmed).
 - Course model (R1-04/R1-05/R1-26): courses, modules, lessons, immutable course revisions, authoring meta boxes and REST routes, publish validator with stable VAL codes and acknowledgements. **Schema** (R1-02: 53 tables).
 - Learning and exams (R1-06…R1-12, R1-20): nine neutral question types, activity providers, exam rules with blueprints and snapshots, offline buffer and start limit, learning answers with idempotency, course completion, flashcards, favorites, smart trainer v1.

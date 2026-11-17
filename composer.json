@@ -5,7 +5,7 @@
 	"license": "GPL-2.0-or-later",
 	"homepage": "https://wordpress.org/plugins/course-captain/",
 	"require": {
-		"php": ">=8.3"
+		"php": ">=8.5"
 	},
 	"require-dev": {
 		"brain/monkey": "^2.7",
@@ -44,7 +44,7 @@
 			"dealerdirect/phpcodesniffer-composer-installer": true
 		},
 		"platform": {
-			"php": "8.3.0"
+			"php": "8.5.0"
 		},
 		"sort-packages": true
 	},

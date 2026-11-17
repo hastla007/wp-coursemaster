@@ -3,7 +3,7 @@ Contributors: coursecaptain
 Tags: lms, courses, e-learning, quiz, education
 Requires at least: 7.0
 Tested up to: 7.1
-Requires PHP: 8.3
+Requires PHP: 8.5
 Stable tag: 1.0.0-dev
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -21,7 +21,7 @@ Some screens are not available yet in this build: settings pages, the question a
 == Installation ==
 
 1. Install the plugin from the plugin directory or upload the ZIP file under "Plugins > Add New".
-2. Make sure the site meets the requirements: WordPress 7.0 or newer, PHP 8.3 or newer, MariaDB 10.6+ or MySQL 8.0+ with InnoDB and JSON functions (MariaDB 10.11+ or MySQL 8.4+ recommended).
+2. Make sure the site meets the requirements: WordPress 7.0 or newer, PHP 8.5 or newer, MariaDB 12.3+ or MySQL 9.7+ with InnoDB and JSON functions (older database servers from MariaDB 10.6 / MySQL 8.0 work with a warning in the system status).
 3. Activate the plugin. If a requirement is not met, activation stops with a message and nothing is changed.
 
 Multisite: activate Course Captain on each site individually. Network activation is blocked.

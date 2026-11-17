@@ -5,7 +5,7 @@
  * Description:       Neutral learning management for WordPress: courses, lessons, exams and certificates without required add-ons.
  * Version:           1.0.0-dev
  * Requires at least: 7.0
- * Requires PHP:      8.3
+ * Requires PHP:      8.5
  * Author:            Course Captain
  * Author URI:        https://wordpress.org/plugins/course-captain/
  * License:           GPL-2.0-or-later
@@ -27,7 +27,7 @@
  *
  * IMPORTANT: This file must stay parseable on old PHP versions (see
  * tools/qa/phpcs-bootstrap-compat.xml). Only after the PHP version check
- * below has passed may code that needs PHP 8.3 be loaded.
+ * below has passed may code that needs PHP 8.5 be loaded.
  *
  * @package CourseCaptain
  */
@@ -37,7 +37,7 @@ defined( 'ABSPATH' ) || exit;
 define( 'COURSE_CAPTAIN_VERSION', '1.0.0-dev' );
 define( 'CourseCaptain\VERSION', COURSE_CAPTAIN_VERSION );
 define( 'COURSE_CAPTAIN_CONTRACT_VERSION', '0.1.0' );
-define( 'COURSE_CAPTAIN_MIN_PHP', '8.3.0' );
+define( 'COURSE_CAPTAIN_MIN_PHP', '8.5.0' );
 define( 'COURSE_CAPTAIN_MIN_WP', '7.0' );
 define( 'COURSE_CAPTAIN_FILE', __FILE__ );
 define( 'COURSE_CAPTAIN_DIR', __DIR__ );

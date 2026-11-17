@@ -6,9 +6,9 @@ Geprüft gegen: `course-captain.php`, `readme.txt`, `composer.json`, `src/Kernel
 
 | Bereich | Mindestens (harte Grenze) | Empfohlen | Prüfung |
 |---|---|---|---|
-| PHP | 8.3 | 8.3 – 8.5 | bei Aktivierung und bei jeder Anfrage |
+| PHP | 8.5 | 8.5 (8.6 in Erprobung) | bei Aktivierung und bei jeder Anfrage |
 | WordPress | 7.0 | 7.1 (`Tested up to`) | bei Aktivierung und bei jeder Anfrage |
-| Datenbank | MariaDB 10.6 oder MySQL 8.0 | MariaDB 10.11+ oder MySQL 8.4+ | nur bei Aktivierung |
+| Datenbank | MariaDB 10.6 oder MySQL 8.0 (darunter keine Aktivierung; bis MariaDB 12.2 / MySQL 9.6 nur mit Warnung im Systemstatus) | MariaDB 12.3+ oder MySQL 9.7+ (MINVER-1) | nur bei Aktivierung |
 | Tabellen-Engine | InnoDB | – | bei Aktivierung |
 | Datenbankfunktionen | `JSON_VALID`, Zeichensatz `utf8mb4` | – | bei Aktivierung |
 | Permalinks | sprechende Permalinks (nicht „Einfach“) | – | **keine Prüfung**: Lernbereich, Nachweis- und Abmeldeseiten nutzen Rewrite-Regeln (`/lernen/…`) |

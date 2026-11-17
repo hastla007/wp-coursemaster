@@ -151,7 +151,7 @@ Format: **Symptom → Prüfen (nur lesend) → Ursache und Aktion → Eskalation
 Website-Härtung ist noch nicht gebaut (R1-45). Die Einstellungen `hardening.*` haben keine Wirkung. Sperren stammen aus anderen Plugins.
 
 ### Antwortvorlagen (Forum, Free)
-- **Erstinstallation:** „Bitte nennen Sie PHP-, WordPress- und Datenbankversion sowie die Meldung bei der Aktivierung (Code `ccap_requirement_…`). Voraussetzungen: PHP 8.3, WordPress 7.0, MariaDB 10.6/MySQL 8.0 mit InnoDB.“
+- **Erstinstallation:** „Bitte nennen Sie PHP-, WordPress- und Datenbankversion sowie die Meldung bei der Aktivierung (Code `ccap_requirement_…`). Voraussetzungen: PHP 8.5, WordPress 7.0, empfohlen MariaDB 12.3/MySQL 9.7 mit InnoDB (ab MariaDB 10.6/MySQL 8.0 mit Warnung).“
 - **Upgrade/Migration fehlgeschlagen:** „Bitte prüfen Sie Werkzeuge › Website-Zustand (Einträge ‚Course Captain‘) und ob schreibende Anfragen `ccap_maintenance` melden. Bitte keine Tabellen von Hand ändern. Nennen Sie uns die Version vorher und nachher.“
 - **Restore:** „Stellen Sie Datenbank und `uploads/course-captain` gemeinsam aus demselben Zeitpunkt wieder her.“
 - **Konflikt mit Cache-/Security-Plugin:** „Bitte schließen Sie `/lernen/*` und die REST-Route `course-captain/v1` vom Seiten-Cache aus und prüfen Sie, ob das Plugin `DONOTCACHEPAGE` beachtet.“
