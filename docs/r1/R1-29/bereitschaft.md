@@ -29,13 +29,13 @@ Legende: **bereit** = per Oberfläche lösbar · **teilweise** = lösbar mit bek
 | ID | Stand | Einschränkung / fehlende Oberfläche | Zuständig |
 |---|---|---|---|
 | LE-T01 | **blockiert** | Katalog (`/kurse/`) vorhanden, aber **keine Selbstanmeldung** (kein Knopf, keine Route). Ersatz für Folgeaufgaben: `scenario einschreiben` | R1-09/R1-16 |
-| LE-T02 | bereit (Code) | **Befund B-01 behoben:** Lektionslinks führen auf die Lernbereichsroute `/lernen/kurs/<uid>/lektion/<id>` (`LessonView`), Abschluss `manual_confirm`/`view`/`downloaded` per Formular ohne JS; abgedeckt durch `tests/integration/LessonViewTest.php`. Rauchtest gegen die Referenz-Site steht noch aus | R1-16 |
+| LE-T02 | bereit | **Befund B-01 behoben:** Lektionslinks führen auf die Lernbereichsroute `/lernen/kurs/<uid>/lektion/<id>` (`LessonView`), Abschluss `manual_confirm`/`view`/`downloaded` per Formular ohne JS; abgedeckt durch `tests/integration/LessonViewTest.php`; Rauchtest §3 (Nachlauf) grün | – |
 | LE-T03 | **blockiert** | kein Video-Player im Lernbereich (R1-16 A-1, R1-19 A11Y-063/090) | R1-16/R1-19 |
 | LE-T04, LE-T05, LE-T07 | **blockiert** | Smarttrainer, Fehlertraining, fällige Wiederholung nur REST (R1-19 A11Y-024 offen) | R1-16/R1-19 |
 | LE-T06 | teilweise | Prüfungsraum ohne JS: Start, Antworten, Markieren, Timer mit Ansagen, Bestätigung, Wiederaufnahme serverseitig **bereit**. **Freitext, Karteikarte, Reihenfolge, Lückentext** sind im Prüfungsraum nicht beantwortbar („zählt als unbeantwortet“) – UX-038 nur für Zuordnung und Zahl prüfbar | R1-19/R1-20 |
 | LE-T08 | bereit | Ergebnis im Prüfungsraum, Nachweisliste, Nachweisansicht mit Prüf-Link, öffentliche Verifikation (Rauchtest §3) | – |
 | LE-T09 | **blockiert** | kein Export im Lernbereich; nur WordPress-Datenschutzanfrage durch den Betreiber (R1-34) | R1-34 |
-| LE-T10 | bereit (Code) | „Continue: <Lektion>“ öffnet die Lektion direkt (B-01 behoben); Rauchtest gegen die Referenz-Site steht noch aus | R1-16 |
+| LE-T10 | bereit | „Continue: <Lektion>“ öffnet die Lektion direkt (B-01 behoben); Rauchtest §3 (Nachlauf) grün | – |
 | LE-T11, LE-T12 | **blockiert** | keine Abgabe-Oberfläche (R1-46 §5) | R1-46 Folge |
 | UX-031 | bereit | Sperrgründe als Text im Kursraum (Drip „Available from …“, „Locked: not yet released“) | – |
 | UX-032 | bereit | Ablaufmeldung und Ergebnis im Prüfungsraum (Rauchtest §3) | – |
@@ -70,7 +70,7 @@ Legende: **bereit** = per Oberfläche lösbar · **teilweise** = lösbar mit bek
 
 | Nr. | Befund | Schwere (Vorschlag nach R0-26 §4.4) | Beleg |
 |---|---|---|---|
-| B-01 | Lektionslinks im Kursraum führen auf 404; Lernende erreichen keine Lektion | S1 (kritische Aufgabe LE-T02/LE-T10 unlösbar) | Rauchtest §3, `LearningArea::course_room()` nutzt `get_permalink()` eines nicht öffentlichen Typs. **Behoben (17.11.2026):** Lernbereichsroute `kurs/<uid>/lektion/<id>` mit `LessonView`; Rauchtest wiederholen |
+| B-01 | Lektionslinks im Kursraum führen auf 404; Lernende erreichen keine Lektion | S1 (kritische Aufgabe LE-T02/LE-T10 unlösbar) | Rauchtest §3, `LearningArea::course_room()` nutzt `get_permalink()` eines nicht öffentlichen Typs. **Behoben (17.11.2026):** Lernbereichsroute `kurs/<uid>/lektion/<id>` mit `LessonView`; Rauchtest-Nachlauf §3 grün |
 | B-02 | Keine Selbstanmeldung (UX-020 ★) | S1 | kein Handler für `free_enrollment` im Lernbereich |
 | B-03 | Fragen aus einem Modulpool mit **Karteikarten** werden in Blueprint-Prüfungen gezogen und sind dort nicht beantwortbar (RK-1-Abschlussquiz zieht 20 aus 50 inkl. 5 Karteikarten) | zu klären (Produkt): Karteikarten aus Prüfungspools ausschließen oder Drehbuch ändern | Rauchtest §3; im deterministischen Seed enthält Prüfung 1 eine Karteikarte (Position 3) sowie Reihenfolge (13, 15) und Lückentext (20) |
 | B-04 | Freitext/Reihenfolge/Lückentext im Prüfungsraum nicht beantwortbar; RK-2-Prüfung enthält diese Typen | S2 bei Prüfungen mit diesen Typen | R1-19 A11Y-023, Rauchtest |
@@ -93,6 +93,8 @@ Lokaler Lauf mit `php -S 127.0.0.1:8099` auf `/tmp/ccap-usab-referenz` (Konten m
 | `cc_fx_ux_abgelaufen` → `/lernen/pruefung/2` | 200, „The time is up. Your answers have been submitted. Not passed …“ |
 | `cc_fx_ux_bestanden` → Nachweise | 200, Nachweis „Valid“, Prüf-Link; Prüf-Link anonym 200 „Certificate verification Valid“ |
 | `scenario sitzungen-beenden` | danach `/lernen/` → 302 auf die Anmeldung (UX-012-Störfall wirkt) |
+
+**Nachlauf B-01 (17.11.2026, Stand `claude/vigilant-sagan-wzdo1a`, Site neu aufgebaut mit `--worktree`):** `cc_fx_ux_p01` → „Continue: Zellen, Zeilen, Spalten“ → `/lernen/kurs/<uid>/lektion/36` 200 mit „Mark as completed“; alle 15 verlinkten Lektionen in RK-2/RK-3 200, keine `post_type=ccap_lesson`-Links mehr; die 5 Drip-gesperrten Lektionen in RK-3 direkt aufgerufen 403 „Available from November 18, 2026“; Formular-POST → 302 auf `?ccap_status=completed`, danach „Lesson completed.“ und „Status: completed“; Lektion anonym 302 auf die Anmeldung.
 
 Die englischen Texte im Rauchtest folgen aus B-06.
 
