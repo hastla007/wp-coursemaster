@@ -1,0 +1,20 @@
+{
+    "name": "course-captain/old-runtime-probe",
+    "description": "RC-047 probe environment: WordPress 6.9 and WP-CLI resolved for PHP 8.2 (CI job old-runtime).",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "roots/wordpress-no-content": "6.9.*",
+        "wp-cli/wp-cli-bundle": "^2.11"
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0"
+        },
+        "allow-plugins": {
+            "roots/wordpress-core-installer": true
+        }
+    },
+    "extra": {
+        "wordpress-install-dir": "wordpress"
+    }
+}
