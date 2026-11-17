@@ -76,7 +76,7 @@ Legende: **bereit** = per Oberfläche lösbar · **teilweise** = lösbar mit bek
 | B-04 | Freitext/Reihenfolge/Lückentext im Prüfungsraum nicht beantwortbar; RK-2-Prüfung enthält diese Typen | S2 bei Prüfungen mit diesen Typen | R1-19 A11Y-023, Rauchtest |
 | B-05 | Alt-Text-Regel fehlt im Veröffentlichungs-Validator; AU-T09-Blocker 1 wird nicht erkannt | S1 für AU-T09 (UX-009 ★) | R1-19 A11Y-091 offen |
 | B-06 | Ohne WordPress-Sprachpaket `de_DE` bleibt der Lernbereich englisch (Testsprache E-169) | Umgebung | Seed-Lauf in diesem Container (kein Download möglich) |
-| B-07 | `vendor/bin/wp` lädt `CourseCaptain\` aus `<repo>/src` statt aus dem installierten Plugin; betrifft auch `tools/release/artifact-test.sh` (J-17 prüft dann nicht den ZIP-Code) | Werkzeug | `isolate-autoload.php`, Kontrollzeile im Seed-Lauf |
+| B-07 | `vendor/bin/wp` lädt `CourseCaptain\` aus `<repo>/src` statt aus dem installierten Plugin; betrifft auch `tools/release/artifact-test.sh` (J-17 prüft dann nicht den ZIP-Code) | Werkzeug | `isolate-autoload.php`, Kontrollzeile im Seed-Lauf; Artefakttest seit 17.11.2026 isoliert und mit Herkunftsprüfung (`tools/qa/wp-cli-autoload-isolation.php`) |
 
 ## 3. Rauchtest gegen die Referenz-Site (17.11.2026)
 
