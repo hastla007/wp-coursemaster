@@ -197,7 +197,6 @@ final class A11yI18nTest extends SchemaTestCase {
 	 */
 	private function switcher_locales(): array {
 		$property = new \ReflectionProperty( $GLOBALS['wp_locale_switcher'], 'available_languages' );
-		$property->setAccessible( true );
 		return array_values( (array) $property->getValue( $GLOBALS['wp_locale_switcher'] ) );
 	}
 
@@ -209,7 +208,6 @@ final class A11yI18nTest extends SchemaTestCase {
 	 */
 	private function set_switcher_locales( array $locales ): void {
 		$property = new \ReflectionProperty( $GLOBALS['wp_locale_switcher'], 'available_languages' );
-		$property->setAccessible( true );
 		$property->setValue( $GLOBALS['wp_locale_switcher'], $locales );
 	}
 

@@ -60,7 +60,6 @@ final class DocReviewFixesTest extends SchemaTestCase {
 	public function test_B6_error_details_passed_through(): void {
 		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.
 		$route = new \ReflectionMethod( \CourseCaptain\Admin\AuthoringRoutes::class, 'run' );
-		$route->setAccessible( true );
 		$error = $route->invoke(
 			null,
 			static function (): void {
