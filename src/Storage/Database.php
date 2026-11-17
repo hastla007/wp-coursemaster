@@ -48,6 +48,14 @@ final class Database {
 	private static int $deadlocks = 0;
 
 	/**
+	 * Connections whose session was prepared (MariaDB snapshot isolation), keyed by
+	 * wpdb object and server thread so a reconnect is prepared again.
+	 *
+	 * @var array<string, true>
+	 */
+	private static array $sessions = array();
+
+	/**
 	 * Total attempts of a unit of work on deadlocks (T-2).
 	 */
 	public const DEADLOCK_RETRIES = 3;
@@ -146,6 +154,7 @@ final class Database {
 
 		// T-2: a deadlock (1213) re-runs the whole unit up to three times; T-3: a lock wait
 		// timeout (1205) is not retried. Both end in `503 ccap_db_busy` with `retry_after`.
+		$this->prepare_session();
 		for ( $attempt = 1; ; $attempt++ ) {
 			$this->execute( 'START TRANSACTION' );
 			self::$depths[ $conn ] = 1;
@@ -159,14 +168,15 @@ final class Database {
 				self::$queues[ $conn ] = array();
 				self::$depths[ $conn ] = 0;
 				$code                  = $e instanceof StorageException ? (int) $e->getCode() : 0;
-				if ( 1213 === $code ) {
+				// 1020 "record has changed since last read" (MariaDB snapshot isolation) is retried like a deadlock.
+				if ( 1213 === $code || 1020 === $code ) {
 					++self::$deadlocks;
 					if ( $attempt < self::DEADLOCK_RETRIES ) {
 						usleep( wp_rand( 5000, 25000 ) * $attempt );
 						continue;
 					}
 				}
-				if ( 1213 === $code || 1205 === $code ) {
+				if ( 1213 === $code || 1205 === $code || 1020 === $code ) {
 					throw new \CourseCaptain\Course\CourseException( 'ccap_db_busy', 'Database busy.', 503, array( 'retry_after' => 2 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Not output: machine code for the entry point.
 				}
 				throw $e;
@@ -180,6 +190,47 @@ final class Database {
 			$callback();
 		}
 		return $result;
+	}
+
+	/**
+	 * MariaDB 11.6.2+ (MINVER-1 target 12.3) enables `innodb_snapshot_isolation` by default:
+	 * a consistent read followed by `SELECT … FOR UPDATE` on a row changed meanwhile fails with
+	 * error 1020 and rolls back the whole transaction. The lock order of R0-21 relies on the
+	 * MySQL/MariaDB-10 semantics (locking reads see the latest committed row), so the session
+	 * switches it off once per connection. MySQL 9.7 has no such variable.
+	 *
+	 * @return void
+	 */
+	private function prepare_session(): void {
+		$dbh    = $this->wpdb->dbh ?? null;
+		$thread = $dbh instanceof \mysqli ? (string) $dbh->thread_id : '0';
+		$key    = spl_object_id( $this->wpdb ) . ':' . $thread;
+		if ( isset( self::$sessions[ $key ] ) ) {
+			return;
+		}
+		self::$sessions[ $key ] = true;
+		$version                = (string) $this->wpdb->get_var( 'SELECT VERSION()' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		if ( ! self::needs_snapshot_isolation_off( $version ) ) {
+			return;
+		}
+		$this->wpdb->query( 'SET SESSION innodb_snapshot_isolation = OFF' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
+	/**
+	 * Whether a server version has `innodb_snapshot_isolation` (MariaDB ≥ 11.6.2).
+	 *
+	 * @param string $version Raw `SELECT VERSION()` result.
+	 * @return bool
+	 */
+	public static function needs_snapshot_isolation_off( string $version ): bool {
+		if ( false === stripos( $version, 'mariadb' ) ) {
+			return false;
+		}
+		$clean = preg_replace( '/^5\.5\.5-/', '', $version );
+		if ( ! is_string( $clean ) || 1 !== preg_match( '/^(\d+\.\d+\.\d+)/', $clean, $m ) ) {
+			return false;
+		}
+		return version_compare( $m[1], '11.6.2', '>=' );
 	}
 
 	/**
