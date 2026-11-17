@@ -11,6 +11,8 @@
 # created and dropped. The database name must contain "test" (D-01).
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../../.." && pwd)
+# shellcheck source=../../release/php-min.sh
+source "$ROOT/tools/release/php-min.sh"; ccap_php_min || exit 1
 DB=${1:-${WP_TESTS_DB_NAME:-ccap_test}}
 [[ "$DB" == *test* ]] || { echo "Refusing: database name must contain 'test'"; exit 2; }
 PREFIX=ccape2e_
