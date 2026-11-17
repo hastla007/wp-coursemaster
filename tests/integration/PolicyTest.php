@@ -274,6 +274,7 @@ final class PolicyTest extends SchemaTestCase {
 	 * @group RBAC-034
 	 * @group RBAC-035
 	 * @group RBAC-036
+	 * @group GM-154
 	 */
 	public function test_RBAC_032_to_036_staff_on_attempts(): void {
 		self::assertDenied( self::d( $this->f->tut, P::GRADE_ATTEMPT, array( $this->f->session_tut ) ), Decision::FORBIDDEN, 'self_grading' );
@@ -507,6 +508,8 @@ final class PolicyTest extends SchemaTestCase {
 	 *
 	 * @group RBAC-098
 	 * @group RBAC-099
+	 * @group GM-199
+	 * @group GM-200
 	 */
 	public function test_RBAC_098_099_module_and_dependent_grants(): void {
 		$this->f->grant( $this->f->l2, $this->f->course_a, array( 'module_id' => $this->f->module_a1 ) );
@@ -527,6 +530,8 @@ final class PolicyTest extends SchemaTestCase {
 
 	/**
 	 * Bundles grant access to contained courses (E-25a, E-297).
+	 *
+	 * @group GM-198
 	 */
 	public function test_bundle_grants_access_to_contained_courses(): void {
 		$db     = Database::current();
@@ -589,6 +594,7 @@ final class PolicyTest extends SchemaTestCase {
 	 * roles and caps, foreign roles stay untouched.
 	 *
 	 * @group RBAC-095
+	 * @group GM-153
 	 */
 	public function test_RBAC_095_roles_on_deactivate_and_uninstall(): void {
 		Plugin::deactivate();

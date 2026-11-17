@@ -111,6 +111,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 * the status names the plugin; after deactivation `auto` applies again.
 	 *
 	 * @group KOMP-057
+	 * @group GM-208
 	 */
 	public function test_KOMP_057_security_plugins_auto_retreat(): void {
 		update_option( 'users_can_register', 1 );
@@ -535,6 +536,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 *
 	 * @group KOMP-015
 	 * @group KOMP-045
+	 * @group GM-152
 	 */
 	public function test_KOMP_015_045_trusted_proxies(): void {
 		$_SERVER['REMOTE_ADDR']            = '10.1.2.3';
@@ -570,6 +572,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 * @group KOMP-032
 	 * @group KOMP-033
 	 * @group KOMP-035
+	 * @group GM-116
 	 */
 	public function test_KOMP_03x_page_cache_signals(): void {
 		$headers = ContentProtection::uncacheable_headers();

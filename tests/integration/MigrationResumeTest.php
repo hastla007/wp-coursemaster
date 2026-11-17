@@ -371,6 +371,7 @@ final class MigrationResumeTest extends SchemaTestCase {
 	 * CLI finishes the migration once the cause is gone.
 	 *
 	 * @group MIG-010
+	 * @group GM-166
 	 */
 	public function test_MIG_010_fatal_in_step_marks_failed_and_keeps_w1(): void {
 		self::upgrade_due();
@@ -586,6 +587,7 @@ final class MigrationResumeTest extends SchemaTestCase {
 	 * they only schedule it.
 	 *
 	 * @group MIG-026
+	 * @group GM-166
 	 */
 	public function test_MIG_026_ajax_and_admin_post_only_schedule(): void {
 		self::upgrade_due();
@@ -638,6 +640,7 @@ final class MigrationResumeTest extends SchemaTestCase {
 	 * CLI exit code 1, writes 503.
 	 *
 	 * @group MIG-024
+	 * @group GM-169
 	 */
 	public function test_MIG_024_newer_schema_is_never_touched(): void {
 		Plugin::activate( false );
@@ -664,6 +667,7 @@ final class MigrationResumeTest extends SchemaTestCase {
 	 * equals a run without abort and no row is written twice.
 	 *
 	 * @group MIG-008
+	 * @group GM-171
 	 */
 	public function test_MIG_008_kill_inside_backfill_batch_resumes_at_cursor(): void {
 		self::backfill_due( 1000 );

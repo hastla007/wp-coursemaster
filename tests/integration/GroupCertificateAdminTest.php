@@ -178,6 +178,7 @@ final class GroupCertificateAdminTest extends SchemaTestCase {
 	 * @group GRP-001
 	 * @group GRP-002
 	 * @group GRP-003
+	 * @group GM-106
 	 */
 	public function test_GRP_001_002_003_create(): void {
 		$base = array(
@@ -267,6 +268,8 @@ final class GroupCertificateAdminTest extends SchemaTestCase {
 	 *
 	 * @group GRP-006
 	 * @group GRP-007
+	 * @group GM-097
+	 * @group GM-100
 	 */
 	public function test_GRP_006_007_validity_and_status(): void {
 		$group = $this->group();
@@ -304,6 +307,7 @@ final class GroupCertificateAdminTest extends SchemaTestCase {
 	 * @group GRP-009
 	 * @group GRP-010
 	 * @group GRP-018
+	 * @group GM-105
 	 */
 	public function test_GRP_008_009_010_018_owner_policy_members(): void {
 		$group = $this->group();

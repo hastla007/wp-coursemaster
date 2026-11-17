@@ -78,6 +78,7 @@ final class ApiContractTest extends SchemaTestCase {
 	 * CT-01: route snapshot (path, methods, args, public flag).
 	 *
 	 * @group CT-01
+	 * @group GM-155
 	 */
 	public function test_CT_01_route_snapshot(): void {
 		$snapshot = array();
@@ -148,6 +149,7 @@ final class ApiContractTest extends SchemaTestCase {
 	 *
 	 * @group CT-02
 	 * @group CT-03
+	 * @group GM-145
 	 */
 	public function test_CT_02_03_anonymous_and_error_format(): void {
 		wp_set_current_user( 0 );
@@ -197,6 +199,8 @@ final class ApiContractTest extends SchemaTestCase {
 
 	/**
 	 * Retry-After and details on 429 (rate limit carries bucket).
+	 *
+	 * @group GM-145
 	 */
 	public function test_rate_limit_problem(): void {
 		$body = RestContract::problem(

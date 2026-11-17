@@ -63,6 +63,7 @@ final class UninstallTest extends TestCase {
 	 * REC-018 (partial): default uninstall keeps data and removes only cron and rewrite rules.
 	 *
 	 * @group REC-018
+	 * @group GM-183
 	 */
 	public function test_REC_018_default_uninstall_keeps_data(): void {
 		update_option( 'rewrite_rules', array( 'x' => 'y' ) );

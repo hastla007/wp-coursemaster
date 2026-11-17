@@ -285,6 +285,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * @group BIG-011
 	 * @group BIG-020
 	 * @group BIG-022
+	 * @group GM-125
 	 */
 	public function test_BIG_020_chunked_commit_and_idempotent_reimport(): void {
 		$file  = $this->package( self::records( 1500 ), 'p1500' );
@@ -332,6 +333,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * @group BIG-023
 	 * @group BIG-024
 	 * @group BIG-027
+	 * @group GM-136
 	 */
 	public function test_BIG_023_crash_resume_and_lease(): void {
 		$batch  = $this->approved( $this->package( self::records( 300 ), 'p300' ) );
@@ -405,6 +407,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * imports; systematic failures above max(100, 2 %) abort the run.
 	 *
 	 * @group BIG-035
+	 * @group GM-136
 	 */
 	public function test_BIG_035_object_isolation_and_threshold(): void {
 		$admin = Actor::user( $this->admin );
@@ -526,6 +529,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 *
 	 * @group BIG-016
 	 * @group BIG-030
+	 * @group GM-126
 	 */
 	public function test_BIG_030_cancel_and_discard(): void {
 		$before = self::counts();
@@ -573,6 +577,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 *
 	 * @group BIG-037
 	 * @group BIG-038
+	 * @group GM-124
 	 */
 	public function test_BIG_037_resume_prechecks(): void {
 		$admin  = Actor::user( $this->admin );
@@ -739,6 +744,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * E-178: WP-CLI path with the same runner, no time budget; report to a file.
 	 *
 	 * @group E-178
+	 * @group GM-134
 	 */
 	public function test_cli_run_status_and_report(): void {
 		$admin = Actor::user( $this->admin );

@@ -208,6 +208,8 @@ final class ImportTest extends SchemaTestCase {
 
 	/**
 	 * V1–V5 and `requires`.
+	 *
+	 * @group GM-122
 	 */
 	public function test_validation(): void {
 		$good = PackageExporter::write( self::records(), 'fixture-a', 'Fixture', $this->dir . '/good.zip' );
@@ -328,6 +330,8 @@ final class ImportTest extends SchemaTestCase {
 
 	/**
 	 * Full path: create → unchanged → update/archive/conflict → rollback.
+	 *
+	 * @group GM-121
 	 */
 	public function test_import_lifecycle(): void {
 		$v1    = PackageExporter::write( self::records( 1 ), 'fixture-a', 'Fixture', $this->dir . '/v1.zip' );
@@ -440,6 +444,8 @@ final class ImportTest extends SchemaTestCase {
 
 	/**
 	 * Export: package of an authored course validates and contains no learner data.
+	 *
+	 * @group GM-133
 	 */
 	public function test_export(): void {
 		$admin  = Actor::user( $this->admin );

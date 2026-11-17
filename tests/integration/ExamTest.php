@@ -499,6 +499,7 @@ final class ExamTest extends SchemaTestCase {
 	 * GRANT-027 / E-113: answers refused after revocation; submission still evaluated.
 	 *
 	 * @group GRANT-027
+	 * @group GM-042
 	 */
 	public function test_GRANT_027_revoked_during_exam(): void {
 		$sessions = ExamSessions::current();
@@ -551,6 +552,8 @@ final class ExamTest extends SchemaTestCase {
 	 *
 	 * @group R1-09
 	 * @group GM-018
+	 * @group GM-150
+	 * @group GM-197
 	 */
 	public function test_GM_018_learning_answer_idempotent(): void {
 		$learner  = Actor::user( $this->learner );
@@ -590,6 +593,7 @@ final class ExamTest extends SchemaTestCase {
 	 * E-147 / E-20: result visibility follows the frozen feedback settings.
 	 *
 	 * @group R1-09
+	 * @group GM-197
 	 */
 	public function test_E147_feedback_visibility(): void {
 		$sessions = ExamSessions::current();
@@ -690,6 +694,9 @@ final class ExamTest extends SchemaTestCase {
 	 * R1-20: offline buffer bounded by the late tolerance; older tab state never overwrites newer.
 	 *
 	 * @group R1-20
+	 * @group GM-036
+	 * @group GM-037
+	 * @group GM-054
 	 */
 	public function test_R120_offline_buffer_and_tabs(): void {
 		$sessions = ExamSessions::current();
@@ -806,6 +813,7 @@ final class ExamTest extends SchemaTestCase {
 	 * R1-20: start limit 40/h (only new attempts count), ccap_rate_limited with retry_after.
 	 *
 	 * @group R1-20
+	 * @group GM-046
 	 */
 	public function test_R120_start_rate_limit(): void {
 		$sessions = ExamSessions::current();
@@ -836,6 +844,7 @@ final class ExamTest extends SchemaTestCase {
 	 * R1-20 / R0-19 R-18…R-24: exam REST routes, no-store, catalog codes.
 	 *
 	 * @group R1-20
+	 * @group GM-038
 	 */
 	public function test_R120_rest(): void {
 		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.

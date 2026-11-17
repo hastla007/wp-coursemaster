@@ -219,6 +219,7 @@ final class ActivityTest extends SchemaTestCase {
 	 * completes; completion is monotonic; no access → no progress.
 	 *
 	 * @group GM-011
+	 * @group GM-209
 	 */
 	public function test_GM_011_progress(): void {
 		$lesson = $this->post( 'ccap_lesson', $this->module );

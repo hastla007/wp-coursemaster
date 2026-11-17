@@ -95,6 +95,7 @@ final class HardeningTest extends SchemaTestCase {
 	 * PSD-065 / HM-0 / HM-2: before confirmation nothing is hooked.
 	 *
 	 * @group PSD-065
+	 * @group GM-208
 	 */
 	public function test_PSD_065_inactive_until_confirmed(): void {
 		Hardening::apply();
@@ -111,6 +112,8 @@ final class HardeningTest extends SchemaTestCase {
 	 *
 	 * @group PSD-039
 	 * @group PSD-040
+	 * @group GM-201
+	 * @group GM-202
 	 */
 	public function test_PSD_039_040_login_limits(): void {
 		$this->confirm();
@@ -138,6 +141,7 @@ final class HardeningTest extends SchemaTestCase {
 	 * PSD-046 / E-242: device cookie bypasses IP and account+IP locks; invalid after password change.
 	 *
 	 * @group PSD-046
+	 * @group GM-204
 	 */
 	public function test_PSD_046_known_device(): void {
 		$this->confirm();
@@ -174,6 +178,7 @@ final class HardeningTest extends SchemaTestCase {
 	 * PSD-043: password reset limits before mail; same response for unknown accounts.
 	 *
 	 * @group PSD-043
+	 * @group GM-203
 	 */
 	public function test_PSD_043_reset_limit(): void {
 		$this->confirm();
@@ -192,6 +197,7 @@ final class HardeningTest extends SchemaTestCase {
 	 * PSD-053: registration limit only with open registration.
 	 *
 	 * @group PSD-053
+	 * @group GM-205
 	 */
 	public function test_PSD_053_registration(): void {
 		update_option( 'users_can_register', 0 );
@@ -210,6 +216,7 @@ final class HardeningTest extends SchemaTestCase {
 	 *
 	 * @group PSD-047
 	 * @group PSD-048
+	 * @group GM-208
 	 */
 	public function test_PSD_047_048_conflicts(): void {
 		$this->confirm();
@@ -230,6 +237,7 @@ final class HardeningTest extends SchemaTestCase {
 	 * PSD-050: XML-RPC restrictions.
 	 *
 	 * @group PSD-050
+	 * @group GM-206
 	 */
 	public function test_PSD_050_xmlrpc(): void {
 		$this->confirm();
@@ -255,6 +263,7 @@ final class HardeningTest extends SchemaTestCase {
 	 * PSD-051 / E-307 / E-309: only missing headers; Permissions-Policy only on own REST responses; no HSTS.
 	 *
 	 * @group PSD-051
+	 * @group GM-207
 	 */
 	public function test_PSD_051_site_headers(): void {
 		$missing = Hardening::missing_headers( array( 'X-Frame-Options: DENY', 'Content-Type: text/html' ) );

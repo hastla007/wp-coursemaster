@@ -170,6 +170,7 @@ final class LifecycleTest extends TestCase {
 	 * reactivation plans again.
 	 *
 	 * @group GM-158
+	 * @group GM-153
 	 */
 	public function test_GM_158_activation_deactivation_reactivation(): void {
 		Plugin::activate( false );

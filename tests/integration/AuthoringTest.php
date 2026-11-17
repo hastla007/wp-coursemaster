@@ -246,6 +246,8 @@ final class AuthoringTest extends SchemaTestCase {
 
 	/**
 	 * Screens: every field labelled (GM-141 / A11Y), saving through the form with nonce.
+	 *
+	 * @group GM-141
 	 */
 	public function test_editor_screens(): void {
 		wp_set_current_user( $this->admin );
