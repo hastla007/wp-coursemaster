@@ -161,7 +161,7 @@ Weitere Läufe: Profil `autor` (16 s; 2 Konten, Setup abgeschlossen, kein Kurs) 
 ## 6. Folgeaufgaben
 
 - Lektionsansicht im Lernbereich und Links aus dem Kursraum (B-01) – als Folgeaufgabe vorgeschlagen.
-- `tools/release/artifact-test.sh` lädt Plugin-Klassen aus dem Repository statt aus dem ZIP (B-07) – als Folgeaufgabe vorgeschlagen.
+- `tools/release/artifact-test.sh` lud Plugin-Klassen aus dem Repository statt aus dem ZIP (B-07) – erledigt 17.11.2026: gemeinsame Isolierung `tools/qa/wp-cli-autoload-isolation.php` plus Prüfung der Klassenherkunft im Artefakttest.
 - Karteikarten in Prüfungspools (B-03) – Produktentscheidung (AG-6).
 
 Review durch zweite Person vor Merge (AG-05).

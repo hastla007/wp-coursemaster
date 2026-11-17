@@ -366,7 +366,7 @@ jobs:
       - name: Install, refused activation, admin notice on PHP 8.4 / WP 6.9
         env:
           WP_CLI: ${{ runner.temp }}/oldrt/vendor/bin/wp
-        run: tools/release/old-runtime-test.sh dist/course-captain-*.zip "$RUNNER_TEMP/oldrt/wordpress" ccap_old_runtime
+        run: tools/release/old-runtime-test.sh dist/course-captain-*.zip "$RUNNER_TEMP/oldrt/vendor/roots/wordpress-no-content" ccap_old_runtime
 
   build-zip:
     name: J-17 build-zip (package, negative list, versions, artefact test)

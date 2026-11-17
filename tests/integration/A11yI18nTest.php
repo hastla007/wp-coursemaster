@@ -449,7 +449,8 @@ final class A11yI18nTest extends SchemaTestCase {
 		self::assertInstanceOf( \DOMElement::class, $timer->item( 0 ) );
 		self::assertSame( 'off', $timer->item( 0 )->getAttribute( 'aria-live' ) );
 		self::assertSame( 'ltr', $timer->item( 0 )->getAttribute( 'dir' ), 'I18N-R-13 clock stays LTR' );
-		self::assertSame( '10:00', trim( (string) $timer->item( 0 )->textContent ) );
+		// The session starts in session() before the page is rendered; a second boundary in between shows 9:59.
+		self::assertMatchesRegularExpression( '/^(10:00|9:5\d)$/', trim( (string) $timer->item( 0 )->textContent ), 'timer starts at the 10-minute limit' );
 		self::assertStringContainsString( '10 minutes remaining.', $timer->item( 0 )->getAttribute( 'data-t600' ) );
 		self::assertStringContainsString( '1 minute remaining.', $timer->item( 0 )->getAttribute( 'data-t60' ), '_n singular' );
 		self::assertSame( 1, $exam->query( '//*[@role="status"][@aria-live="polite"][@id="ccap-exam-live"]' )->length, 'A11Y-025 one polite status region' );
