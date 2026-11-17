@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # RC-047 / R0-35 §5.6 / R0-20 §1.2: below the hard minimum (PHP 8.3, WordPress 7.0)
-# the release ZIP must install without a fatal error, refuse the activation
+# the release ZIP must install (or be refused by WordPress itself) without a fatal error, refuse the activation
 # without writing anything and show an admin notice instead of breaking the site.
 #
 # Usage: tools/release/old-runtime-test.sh <zip> <wp_core_dir> [db_name]
@@ -15,7 +15,14 @@ HOSTPORT=${WP_TESTS_DB_HOST:-localhost}; DBHOST=${HOSTPORT%%:*}; DBPORT=3306; [[
 MYSQL=(mysql -u"${WP_TESTS_DB_USER:-ccap}" -p"${WP_TESTS_DB_PASSWORD:-ccap}" -h"$DBHOST" -P"$DBPORT")
 SQL() { "${MYSQL[@]}" -N -B "$DB" -e "$1" 2>/dev/null; }
 fail() { echo "FAIL: $1"; exit 1; }
-php_errors() { grep -qE "PHP (Parse error|Fatal error|Warning|Notice|Deprecated)|^(Parse error|Fatal error|Warning|Notice|Deprecated):"; }
+# Parse/fatal errors count wherever they come from; warnings, notices and deprecations only
+# from the plugin (WordPress 6.9 with WP_DEBUG prints its own notices on every WP-CLI call,
+# e.g. wp_is_block_theme, and failed update checks while external HTTP is blocked).
+php_errors() {
+	local out; out=$(cat)
+	echo "$out" | grep -qE "PHP (Parse error|Fatal error)|^(Parse error|Fatal error):" && return 0
+	echo "$out" | grep -E "PHP (Warning|Notice|Deprecated)|^(Warning|Notice|Deprecated):" | grep -q "plugins/course-captain/"
+}
 trap '[ -n "${CCAP_KEEP_SITE:-}" ] && echo "site kept: $SITE" || rm -rf "$SITE"' EXIT
 
 cp -r "$CORE"/. "$SITE"/
@@ -27,7 +34,22 @@ $WP --path="$SITE" core install --url=http://old-runtime.test --title=OldRuntime
 echo "WordPress $($WP --path="$SITE" core version), PHP $(php -r 'echo PHP_VERSION;')"
 
 # 1. Install without activation: unpacking must not parse modern code.
-OUT=$($WP --path="$SITE" plugin install "$ZIP" 2>&1) || fail "install failed: $OUT"
+#    Since MINVER-1 WordPress itself refuses the upload ("requires 8.5", Requires PHP header).
+#    That is a valid "too old" outcome; the ZIP then goes in as on a manual/FTP install, so the
+#    plugin's own guard (steps 2 and 3) is still checked.
+set +e
+OUT=$($WP --path="$SITE" plugin install "$ZIP" 2>&1); RC=$?
+set -e
+if [ "$RC" -ne 0 ] || [ ! -f "$SITE/wp-content/plugins/course-captain/course-captain.php" ]; then
+	echo "$OUT" | grep -qE "PHP version on your server is [0-9.]+, however the uploaded plugin requires" || fail "install failed: $OUT"
+	echo "$OUT" | php_errors && fail "PHP error during the refused install"
+	[ ! -e "$SITE/wp-content/plugins/course-captain" ] || fail "refused install left files behind"
+	echo "upload refused by WordPress (Requires PHP); installing the ZIP manually"
+	unzip -q "$ZIP" -d "$SITE/wp-content/plugins/"
+	[ -f "$SITE/wp-content/plugins/course-captain/course-captain.php" ] || fail "manual install: course-captain.php missing"
+else
+	echo "$OUT" | php_errors && fail "PHP error during install"
+fi
 if [ -n "${CCAP_SIMULATE_MIN_PHP:-}" ]; then
 	sed -i "s/define( 'COURSE_CAPTAIN_MIN_PHP', '[0-9.]*' );/define( 'COURSE_CAPTAIN_MIN_PHP', '${CCAP_SIMULATE_MIN_PHP}' );/" "$SITE/wp-content/plugins/course-captain/course-captain.php"
 	echo "simulated minimum PHP: ${CCAP_SIMULATE_MIN_PHP}"
