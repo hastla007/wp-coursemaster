@@ -24,6 +24,14 @@
 | Artefakttest (WordPress 7.1.4, PHP 8.3.6, MariaDB 10.11) | Aktivierung ohne PHP-Meldung, Schema `1.0.0+…`, 53 eigene Tabellen, Deaktivierung/Reaktivierung ohne Datenänderung, Uninstall ohne Bestätigung behält 53 Tabellen |
 | `DistributionTest` | 2 Tests grün (7 Negativfälle rot wie erwartet) |
 
+**Nachtrag 17.11.2026 (B-07, Autoloader-Isolierung im Artefakttest).** Der Artefakttest vom 16.11.2026 lief noch ohne Isolierung, hat also die Klassen aus `<repo>/src` statt aus dem ZIP ausgeführt; sein Ergebnis belegt den ZIP-Inhalt deshalb nicht vollständig.
+
+| Prüfung | Ergebnis |
+|---|---|
+| Build `--worktree` + `check-zip.php` | OK (187 Einträge, keine Datei aus `tools/`) |
+| Isolierung und Herkunftsprüfung (`tools/qa/wp-cli-autoload-isolation.php`) mit nachgebildetem WP-CLI und dem echten Composer-`ClassLoader`, PHP 8.3.6 | mit Isolierung: Klassen aus dem Plugin-Ordner, Prüfung `OK` (auch bei Classmap-Eintrag auf `<repo>/src`); ohne Isolierung: `FAIL`, Exit 1, Klasse und Datei in `<repo>/src` genannt; Datei fehlt im Plugin: Klasse nicht ladbar statt stillem Rückgriff auf das Repository |
+| Artefakttest `tools/release/artifact-test.sh` mit Isolierung | **nicht gelaufen**: in der Arbeitsumgebung fehlen PHP 8.5 (MINVER-1), MariaDB und `vendor/` (kein `composer install` erlaubt); der CI-Job J-17 build-zip startet erst mit einem Pull Request, weil `main` noch keine Workflows hat. Offen: einmal laufen lassen (CI-Job J-17 oder lokal) und hier eintragen; erwartet wird zusätzlich die Zeile `autoload guard: … WP-CLI calls, all Course Captain classes from the installed plugin` |
+
 ## 3. DoD-Abdeckung
 
 | DoD-Punkt | Nachweis |
