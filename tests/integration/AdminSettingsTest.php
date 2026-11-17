@@ -118,6 +118,7 @@ final class AdminSettingsTest extends SchemaTestCase {
 	 *
 	 * @group ADM-070
 	 * @group ADM-059
+	 * @group GM-179
 	 */
 	public function test_ADM_070_tabs_and_navigation(): void {
 		$html = SettingsScreen::html( array( 'tab' => 'exams' ), $this->admin );

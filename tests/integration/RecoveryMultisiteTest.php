@@ -193,6 +193,7 @@ final class RecoveryMultisiteTest extends SchemaTestCase {
 	 *
 	 * @group REC-019
 	 * @group MS-015
+	 * @group GM-186
 	 */
 	public function test_REC_019_multisite_deletes_only_on_agreeing_sites(): void {
 		$user = (int) self::factory()->user->create();

@@ -140,6 +140,7 @@ final class AccessTest extends SchemaTestCase {
 	 *
 	 * @group GRANT-002
 	 * @group GRANT-003
+	 * @group GM-087
 	 */
 	public function test_GRANT_002_003_manual(): void {
 		$key   = wp_generate_uuid4();
@@ -165,6 +166,7 @@ final class AccessTest extends SchemaTestCase {
 	 *
 	 * @group GRANT-004
 	 * @group GRANT-006
+	 * @group GM-088
 	 */
 	public function test_GRANT_004_006_source_idempotency(): void {
 		$spec = array(
@@ -212,6 +214,7 @@ final class AccessTest extends SchemaTestCase {
 	 * GRANT-010: revoking one of two equivalent grants emits no access.changed.
 	 *
 	 * @group GRANT-010
+	 * @group GM-085
 	 */
 	public function test_GRANT_010_no_access_change_with_second_source(): void {
 		$actor = Actor::user( $this->manager );
@@ -226,6 +229,7 @@ final class AccessTest extends SchemaTestCase {
 	 * GRANT-012: extend chain and restack after refund of the first grant.
 	 *
 	 * @group GRANT-012
+	 * @group GM-084
 	 */
 	public function test_GRANT_012_chain_and_restack(): void {
 		$actor  = Actor::user( $this->manager );
@@ -333,6 +337,7 @@ final class AccessTest extends SchemaTestCase {
 	 *
 	 * @group SEAT-001
 	 * @group SEAT-021
+	 * @group GM-094
 	 */
 	public function test_SEAT_001_021_create(): void {
 		$key   = wp_generate_uuid4();
@@ -349,6 +354,7 @@ final class AccessTest extends SchemaTestCase {
 	 * @group SEAT-002
 	 * @group SEAT-005
 	 * @group ID-002
+	 * @group GM-098
 	 */
 	public function test_SEAT_002_005_invitations(): void {
 		$service = GroupService::current();
@@ -376,6 +382,7 @@ final class AccessTest extends SchemaTestCase {
 	 *
 	 * @group SEAT-014
 	 * @group SEAT-016
+	 * @group GM-095
 	 */
 	public function test_group_link_full_rotation_and_status(): void {
 		$service = GroupService::current();
@@ -401,6 +408,7 @@ final class AccessTest extends SchemaTestCase {
 	 *
 	 * @group SEAT-009
 	 * @group SEAT-010
+	 * @group GM-101
 	 */
 	public function test_SEAT_009_010_remove_and_reduce(): void {
 		$service = GroupService::current();
@@ -433,6 +441,7 @@ final class AccessTest extends SchemaTestCase {
 	 *
 	 * @group SEAT-007
 	 * @group SEAT-015
+	 * @group GM-099
 	 */
 	public function test_SEAT_007_015_expiry_and_address_binding(): void {
 		$service = GroupService::current();

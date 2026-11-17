@@ -97,6 +97,7 @@ final class SettingsRegressionTest extends SchemaTestCase {
 	 * @group SET-002
 	 * @group SET-003
 	 * @group SET-005
+	 * @group GM-179
 	 */
 	public function test_SET_002_005_partial_save(): void {
 		Settings::save( $this->actor(), 'learning', array( 'mistake_training_enabled' => false ), array( 'mistake_training_enabled' ), 0 );

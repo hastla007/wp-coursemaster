@@ -208,6 +208,7 @@ final class UninstallProbeTest extends SchemaTestCase {
 	 *
 	 * @group REC-019
 	 * @group LIC-063
+	 * @group GM-184
 	 */
 	public function test_REC_019_confirmed_deletion_removes_exactly_the_manifest(): void {
 		$revisions = wp_get_post_revisions( $this->course );

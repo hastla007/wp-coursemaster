@@ -58,6 +58,7 @@ final class ManifestCoverageTest extends TestCase {
 	 * and classified for privacy (GM-173).
 	 *
 	 * @group REC-020
+	 * @group GM-185
 	 */
 	public function test_REC_020_every_used_table_is_in_the_manifest(): void {
 		$used = self::used_tables( self::files() );

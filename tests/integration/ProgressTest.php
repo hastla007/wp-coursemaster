@@ -188,6 +188,7 @@ final class ProgressTest extends SchemaTestCase {
 	 * E-286: module grants — denominator of the accessible modules, completion still needs all required modules.
 	 *
 	 * @group E-286
+	 * @group GM-200
 	 */
 	public function test_E286_partial_access(): void {
 		$partial = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
