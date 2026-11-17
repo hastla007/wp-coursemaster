@@ -37,6 +37,8 @@ SITE=${SITE:-/tmp/ccap-usab-$PROFIL}; DB=${DB:-ccap_usab_$PROFIL}; URL=${URL:-ht
 if [[ -e "$SITE" && ! -f "$SITE/.ccap-ux-testsite" && -n "$(ls -A "$SITE" 2>/dev/null)" ]]; then
 	echo "Abbruch: $SITE existiert und ist keine von diesem Skript erzeugte Test-Site." >&2; exit 2
 fi
+# shellcheck source=../release/php-min.sh
+source "$ROOT/tools/release/php-min.sh"; ccap_php_min || exit 1
 CORE=${WP_CORE_DIR:-$ROOT/vendor/roots/wordpress-no-content}
 WP=("$ROOT/vendor/bin/wp" --allow-root --path="$SITE" --require="$ROOT/tools/usability/isolate-autoload.php")
 DBUSER=${WP_TESTS_DB_USER:-ccap}; DBPASS=${WP_TESTS_DB_PASSWORD:-ccap}; HOSTPORT=${WP_TESTS_DB_HOST:-localhost}

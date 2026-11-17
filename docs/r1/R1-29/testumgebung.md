@@ -2,6 +2,8 @@
 
 > **Nur für Test-Sites.** `tools/usability/setup-site.sh` löscht die angegebene Datenbank und das Site-Verzeichnis und legt Konten mit Passwörtern an. Der WP-CLI-Befehl `wp ccap-ux` arbeitet nur, wenn in der `wp-config.php` die Konstante `CCAP_UX_TESTSITE` gesetzt ist; das Skript setzt sie. Auf einer Produktiv-Site niemals ausführen.
 
+> **PHP 8.5 nötig (MINVER-1).** Das Skript nutzt automatisch `php8.5`, wenn das Standard-`php` älter ist. Für die Befehle `wp ccap-ux …` von Hand ebenfalls PHP 8.5 verwenden, z. B. `PATH=<Verzeichnis mit php → php8.5>:$PATH` oder `WP_CLI_PHP=php8.5`.
+
 ## 1. Überblick
 
 | Baustein | Datei | Aufgabe |

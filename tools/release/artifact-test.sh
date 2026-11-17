@@ -6,6 +6,8 @@
 set -euo pipefail
 ZIP=$(realpath "$1"); DB=${2:-ccap_zip_test}
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
+# shellcheck source=../release/php-min.sh
+source "$ROOT/tools/release/php-min.sh"; ccap_php_min || exit 1
 CORE=${WP_CORE_DIR:-$ROOT/vendor/roots/wordpress-no-content}
 WP="$ROOT/vendor/bin/wp --allow-root"
 SITE=$(mktemp -d /tmp/ccap-artefact-XXXX)
