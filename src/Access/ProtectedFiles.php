@@ -89,6 +89,16 @@ final class ProtectedFiles {
 		if ( null === $uid ) {
 			return $url;
 		}
+		return self::url( (string) $uid );
+	}
+
+	/**
+	 * URL of the checked endpoint for a media UID.
+	 *
+	 * @param string $uid Media UID.
+	 * @return string
+	 */
+	public static function url( string $uid ): string {
 		// KOMP-016: query fallback with plain permalinks.
 		return \CourseCaptain\Ops\Compatibility::plain_permalinks() ? add_query_arg( self::QUERY_VAR, $uid, home_url( '/' ) ) : home_url( '/cc-file/' . $uid . '/' );
 	}

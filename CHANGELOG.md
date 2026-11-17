@@ -11,4 +11,5 @@ All notable changes to Course Captain (Free) are documented here. Versions follo
 - Access (R1-13/R1-14/R1-43): grant state machine, groups and seats, content gate, protected storage, internal outbox with dead letters.
 - Learning area (R1-16), notifications with opt-out and outbound modes (R1-21), basic certificates with verification (R1-44), object cache with generations (R1-25), settings register (R1-31).
 - Privacy and operations (R1-17): exporter and eraser, retention jobs, Site Health checks, audit log screen.
+- Lesson view in the learning area (R1-29 B-01): `/<area>/kurs/<course-uid>/lektion/<lesson-id>`, server-rendered, gated by `ContentGate::lesson()` (403 with the lock reason, 404 outside the course), content through `the_content` (`ContentProtection` applies), completion without JavaScript (`manual_confirm`, `view`, `downloaded`), previous/next navigation. Course room and "Continue" link there instead of the non-public lesson permalink.
 - Documentation (R1-24): operator, author, learner, support, privacy, developer and release guides in `docs/user/`.
