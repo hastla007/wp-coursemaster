@@ -1,0 +1,83 @@
+{
+    "package": "cc-fx-rk-v1",
+    "id": "RK-3",
+    "title": "Einarbeitung bei der Beispiel GmbH",
+    "status": "publish",
+    "modules": [
+        {
+            "title": "Ankommen",
+            "lessons": 5,
+            "activity_types": [
+                "lesson",
+                "lesson",
+                "video",
+                "file",
+                "lesson"
+            ],
+            "questions": 25,
+            "question_types": {
+                "flashcard": 2,
+                "multi_choice": 5,
+                "single_choice": 13,
+                "true_false": 5
+            }
+        },
+        {
+            "title": "Zusammenarbeiten",
+            "lessons": 5,
+            "activity_types": [
+                "lesson",
+                "video",
+                "file",
+                "lesson",
+                "assignment"
+            ],
+            "questions": 25,
+            "question_types": {
+                "flashcard": 3,
+                "multi_choice": 5,
+                "single_choice": 12,
+                "true_false": 5
+            }
+        }
+    ],
+    "lessons_total": 10,
+    "questions": 50,
+    "question_types": {
+        "flashcard": 5,
+        "multi_choice": 10,
+        "single_choice": 25,
+        "true_false": 10
+    },
+    "images": {
+        "count": 1,
+        "alt_or_decorative_ratio": 1
+    },
+    "internal_videos_with_vtt": true,
+    "exam": {
+        "version": "Abschlusscheck",
+        "blueprint": null,
+        "fixed": 15,
+        "time_limit": 1200,
+        "pass": "4/5",
+        "parts": null,
+        "max_attempts": null,
+        "timer_mode": "practice"
+    },
+    "assignment": {
+        "submission_type": "text_and_file",
+        "max_points": 10,
+        "passing_points": null,
+        "completion": "submitted",
+        "allowlist": [
+            "pdf",
+            "docx",
+            "odt"
+        ]
+    },
+    "access": {
+        "mode": "group",
+        "seats": 5,
+        "drip_days": 1
+    }
+}

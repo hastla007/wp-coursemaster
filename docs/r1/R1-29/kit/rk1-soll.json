@@ -1,0 +1,107 @@
+{
+    "package": "cc-fx-rk-v1",
+    "id": "RK-1",
+    "title": "Zeitmanagement im Alltag",
+    "status": "publish",
+    "modules": [
+        {
+            "title": "Grundlagen",
+            "lessons": 4,
+            "activity_types": [
+                "lesson",
+                "lesson",
+                "video",
+                "file"
+            ],
+            "questions": 18,
+            "question_types": {
+                "flashcard": 2,
+                "matching": 1,
+                "multi_choice": 3,
+                "open_text": 2,
+                "single_choice": 8,
+                "true_false": 2
+            }
+        },
+        {
+            "title": "Planen",
+            "lessons": 3,
+            "activity_types": [
+                "lesson",
+                "video",
+                "lesson"
+            ],
+            "questions": 16,
+            "question_types": {
+                "flashcard": 1,
+                "matching": 1,
+                "multi_choice": 3,
+                "open_text": 1,
+                "ordering": 1,
+                "single_choice": 7,
+                "true_false": 2
+            }
+        },
+        {
+            "title": "Umsetzen",
+            "lessons": 3,
+            "activity_types": [
+                "lesson",
+                "lesson",
+                "assignment"
+            ],
+            "questions": 16,
+            "question_types": {
+                "cloze": 1,
+                "flashcard": 2,
+                "multi_choice": 3,
+                "open_text": 1,
+                "ordering": 1,
+                "single_choice": 7,
+                "true_false": 1
+            }
+        }
+    ],
+    "lessons_total": 10,
+    "questions": 50,
+    "question_types": {
+        "cloze": 1,
+        "flashcard": 5,
+        "matching": 2,
+        "multi_choice": 9,
+        "open_text": 4,
+        "ordering": 2,
+        "single_choice": 22,
+        "true_false": 5
+    },
+    "images": {
+        "count": 2,
+        "alt_or_decorative_ratio": 1
+    },
+    "internal_videos_with_vtt": true,
+    "exam": {
+        "version": "Abschlussquiz",
+        "blueprint": [
+            7,
+            7,
+            6
+        ],
+        "fixed": null,
+        "time_limit": null,
+        "pass": "7/10",
+        "parts": null,
+        "max_attempts": null,
+        "timer_mode": "strict"
+    },
+    "assignment": {
+        "submission_type": "text",
+        "max_points": 10,
+        "passing_points": 6,
+        "completion": "graded",
+        "allowlist": null
+    },
+    "access": {
+        "mode": "free_limited",
+        "first_items": 3
+    }
+}
