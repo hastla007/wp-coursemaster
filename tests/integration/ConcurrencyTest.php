@@ -182,6 +182,7 @@ final class ConcurrencyTest extends SchemaTestCase {
 	 *
 	 * @group CON-001
 	 * @group CON-002
+	 * @group GM-096
 	 */
 	public function test_CON_001_002_last_seat(): void {
 		$limit_round = RaceRunner::repeat( 2 );
@@ -227,6 +228,7 @@ final class ConcurrencyTest extends SchemaTestCase {
 	 * CON-005: parallel exam starts of one learner with different request keys.
 	 *
 	 * @group CON-005
+	 * @group GM-045
 	 */
 	public function test_CON_005_parallel_starts(): void {
 		$rule    = $this->rule();
@@ -249,6 +251,7 @@ final class ConcurrencyTest extends SchemaTestCase {
 	 * CON-016: submit of one session in parallel → one evaluation, identical results, one event.
 	 *
 	 * @group CON-016
+	 * @group GM-053
 	 */
 	public function test_CON_016_parallel_submit(): void {
 		add_filter( 'course_captain_internal_subscribers', static fn( array $s ): array => $s + array( 'test' => array( 'exam.*' ) ) );
@@ -278,6 +281,7 @@ final class ConcurrencyTest extends SchemaTestCase {
 	 * CON-008: first answers of many tokens on the same question in parallel → one progress row.
 	 *
 	 * @group CON-008
+	 * @group GM-188
 	 */
 	public function test_CON_008_first_progress_row(): void {
 		$learner  = $this->learner();

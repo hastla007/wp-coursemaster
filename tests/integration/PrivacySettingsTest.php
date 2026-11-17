@@ -250,6 +250,7 @@ final class PrivacySettingsTest extends SchemaTestCase {
 	 *
 	 * @group SET-110
 	 * @group PRIV-014
+	 * @group GM-182
 	 */
 	public function test_SET_110_confirmed_requests(): void {
 		$learner = (int) self::factory()->user->create(

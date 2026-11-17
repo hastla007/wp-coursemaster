@@ -553,6 +553,7 @@ final class A11yI18nTest extends SchemaTestCase {
 	 * A11Y-020/-028/-080/-083 (server side): admin screens (incl. settings tabs, roles, setup steps) and blocks have labelled controls, named actions, table headers with scope, no positive tabindex.
 	 *
 	 * @group A11Y-028
+	 * @group GM-141
 	 */
 	public function test_A11Y_admin_screens_and_blocks(): void {
 		wp_set_current_user( $this->admin );

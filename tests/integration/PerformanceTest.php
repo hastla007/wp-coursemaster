@@ -233,6 +233,7 @@ final class PerformanceTest extends SchemaTestCase {
 	 * NFR-002 constancy rule for OP-01 (My learning): own queries must not grow with the number of courses.
 	 *
 	 * @group NFR-002
+	 * @group GM-142
 	 */
 	public function test_OP_01_my_learning_constancy(): void {
 		$learner = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
@@ -280,6 +281,7 @@ final class PerformanceTest extends SchemaTestCase {
 	 * OP-05/06/07 exam start, saveAnswer and submit; submit must not query per question (constancy 5 vs. 30).
 	 *
 	 * @group NFR-002
+	 * @group GM-187
 	 */
 	public function test_OP_05_06_07_exam_constancy(): void {
 		$c       = $this->course( 30 );

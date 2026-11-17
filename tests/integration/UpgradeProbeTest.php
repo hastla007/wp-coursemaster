@@ -211,6 +211,7 @@ final class UpgradeProbeTest extends SchemaTestCase {
 	 *
 	 * @group REC-023
 	 * @group GM-164
+	 * @group GM-170
 	 */
 	public function test_REC_023_upgrade_from_previous_release_keeps_data(): void {
 		$this->seed();

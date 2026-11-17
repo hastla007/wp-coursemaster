@@ -35,6 +35,7 @@ final class SchemaTest extends SchemaTestCase {
 	 * GM-163: first activation creates the full schema.
 	 *
 	 * @group GM-163
+	 * @group GM-080
 	 */
 	public function test_GM_163_activation_creates_complete_schema(): void {
 		Plugin::activate( false );
@@ -190,6 +191,8 @@ final class SchemaTest extends SchemaTestCase {
 
 	/**
 	 * A schema newer than the code is never touched (R0-06 §6.1, WN).
+	 *
+	 * @group GM-169
 	 */
 	public function test_newer_schema_is_left_alone(): void {
 		Plugin::activate( false );
@@ -203,6 +206,8 @@ final class SchemaTest extends SchemaTestCase {
 
 	/**
 	 * A second runner is skipped while the named lock is held (R0-37 L-A).
+	 *
+	 * @group GM-165
 	 */
 	public function test_second_runner_skips_while_locked(): void {
 		Plugin::activate( false );
@@ -225,6 +230,8 @@ final class SchemaTest extends SchemaTestCase {
 	/**
 	 * Lease with fencing: no takeover of a live lease without the named lock;
 	 * a takeover raises the fence and the old holder loses its writes.
+	 *
+	 * @group GM-165
 	 */
 	public function test_lease_fencing(): void {
 		Plugin::activate( false );

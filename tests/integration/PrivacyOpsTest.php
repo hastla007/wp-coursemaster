@@ -179,6 +179,7 @@ final class PrivacyOpsTest extends SchemaTestCase {
 	 *
 	 * @group GM-102
 	 * @group GM-103
+	 * @group GM-177
 	 */
 	public function test_GM_102_103_seats_and_invitations(): void {
 		$owner  = $this->learner_with_data();

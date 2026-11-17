@@ -346,6 +346,7 @@ final class SmartTrainerTest extends SchemaTestCase {
 	 * GM-069: second tab does not raise the streak; the just answered question does not come back at once.
 	 *
 	 * @group GM-069
+	 * @group GM-188
 	 */
 	public function test_GM_069_tabs_and_recent(): void {
 		$q      = $this->pool[ $this->modules[0] ][0];
