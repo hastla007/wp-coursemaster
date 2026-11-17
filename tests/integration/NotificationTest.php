@@ -731,7 +731,8 @@ final class NotificationTest extends SchemaTestCase {
 		self::assertStringNotContainsString( "\r", (string) $mail['subject'] );
 		self::assertStringNotContainsString( '<b>', (string) $mail['message'] );
 		foreach ( (array) $mail['headers'] as $header ) {
-			self::assertStringNotContainsStringIgnoringCase( 'bcc', (string) $header );
+			// A Bcc header name, also after an injected line break; not the letters "bcc" inside a token (List-Unsubscribe HMAC).
+			self::assertDoesNotMatchRegularExpression( '/^\s*bcc\s*:/im', (string) $header );
 		}
 		self::assertStringContainsString( '<bdi>', (string) $mail['message'] );
 
