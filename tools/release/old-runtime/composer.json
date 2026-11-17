@@ -13,8 +13,5 @@
         "allow-plugins": {
             "roots/wordpress-core-installer": true
         }
-    },
-    "extra": {
-        "wordpress-install-dir": "wordpress"
     }
 }
