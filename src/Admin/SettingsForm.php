@@ -316,24 +316,70 @@ final class SettingsForm {
 	/**
 	 * Turn service errors (`field => rule`) into field errors with parameters.
 	 *
+	 * An object field (e.g. `hardening.login_limits`) whose value fails as a
+	 * whole gets the rule of its first invalid part and `params.sub`, so the
+	 * message names the real limits and only that part is marked (SET-CC-P5).
+	 *
 	 * @param array<string, string> $errors Errors.
 	 * @param array<string, mixed>  $input  Input.
+	 * @param string                $tab    Tab (for the parts of object fields).
 	 * @return array<string, array{rule: string, params: array<string, mixed>}>
 	 */
-	public static function with_params( array $errors, array $input ): array {
-		$out = array();
+	public static function with_params( array $errors, array $input, string $tab = '' ): array {
+		$schema = '' === $tab ? array() : ( SettingsSchema::fields()[ $tab ] ?? array() );
+		$out    = array();
 		foreach ( $errors as $field => $rule ) {
-			$value         = $input[ $field ] ?? '';
+			$value  = $input[ $field ] ?? '';
+			$params = array();
+			if ( 'invalid' === $rule && isset( $schema[ $field ] ) ) {
+				$part = SettingsRules::invalid_part( $schema[ $field ], $value );
+				if ( null !== $part ) {
+					$rule          = $part['rule'];
+					$params['sub'] = $part['sub'];
+					$value         = is_array( $value ) ? ( $value[ $part['sub'] ] ?? '' ) : '';
+				}
+			}
 			$value         = is_scalar( $value ) ? (string) $value : '';
 			$out[ $field ] = array(
 				'rule'   => $rule,
 				'params' => array(
 					'value'      => $value,
 					'suggestion' => in_array( $rule, array( 'format', 'reserved', 'collision' ), true ) ? SettingsRules::slug_suggestion( $value . ( 'format' === $rule ? '' : '-1' ) ) : '',
-				),
+				) + $params,
 			);
 		}
 		return $out;
+	}
+
+	/**
+	 * Error of a rendered key: an error with `params.sub` belongs only to that part.
+	 *
+	 * @param array<string, array{rule: string, params: array<string, mixed>}> $errors Errors by field.
+	 * @param string                                                           $key    Rendered key.
+	 * @return array{rule: string, params: array<string, mixed>}|null
+	 */
+	public static function error_for( array $errors, string $key ): ?array {
+		list( $f, $sub ) = array_pad( explode( '.', $key, 2 ), 2, '' );
+		$error           = $errors[ $f ] ?? null;
+		if ( null === $error ) {
+			return null;
+		}
+		$part = (string) ( $error['params']['sub'] ?? '' );
+		return '' === $part || '' === $sub || $part === $sub ? $error : null;
+	}
+
+	/**
+	 * Rendered key an error summary links to (the invalid part, else the first key).
+	 *
+	 * @param string                                                 $field Field.
+	 * @param array{rule: string, params: array<string, mixed>}|null $error Error.
+	 * @param array                                                  $keys  Rendered keys.
+	 * @phpstan-param list<string> $keys
+	 * @return string
+	 */
+	public static function error_key( string $field, ?array $error, array $keys ): string {
+		$part = (string) ( $error['params']['sub'] ?? '' );
+		return '' !== $part && in_array( $field . '.' . $part, $keys, true ) ? $field . '.' . $part : self::first_key( $field, $keys );
 	}
 
 	/**
@@ -351,7 +397,7 @@ final class SettingsForm {
 		}
 		$items = '';
 		foreach ( $errors as $field => $error ) {
-			$key    = self::first_key( $field, $keys );
+			$key    = self::error_key( $field, $error, $keys );
 			$label  = SettingsFields::ui( $tab, $key )['label'];
 			$items .= '<li><a href="#' . esc_attr( self::id( $tab, $key ) ) . '">' . esc_html( $label ) . '</a></li>';
 		}

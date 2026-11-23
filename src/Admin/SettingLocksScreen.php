@@ -40,7 +40,7 @@ final class SettingLocksScreen {
 		add_action(
 			'admin_menu',
 			static function (): void {
-				add_submenu_page( '', __( 'Locks and course overrides', 'course-captain' ), __( 'Locks and course overrides', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) );
+				AdminUi::settings_assets( add_submenu_page( '', __( 'Locks and course overrides', 'course-captain' ), __( 'Locks and course overrides', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) ) );
 			},
 			19
 		);
@@ -163,7 +163,7 @@ final class SettingLocksScreen {
 		$labels = EffectiveSettings::labels();
 		$locks  = EffectiveSettings::locks();
 		$html   = '<p>' . esc_html__( 'Courses, exams, groups and media can deviate from these website values. A lock makes the website value apply everywhere; own values stay stored and apply again when the lock is removed.', 'course-captain' ) . '</p>';
-		$html  .= '<table class="widefat striped"><caption>' . esc_html__( 'Settings that can be changed per course, exam, group or media item', 'course-captain' ) . '</caption><thead><tr>'
+		$html  .= AdminUi::scroll_open( __( 'Settings that can be changed per course, exam, group or media item', 'course-captain' ) ) . '<table class="widefat striped"><caption>' . esc_html__( 'Settings that can be changed per course, exam, group or media item', 'course-captain' ) . '</caption><thead><tr>'
 			. '<th scope="col">' . esc_html__( 'Setting', 'course-captain' ) . '</th>'
 			. '<th scope="col">' . esc_html__( 'Changeable per', 'course-captain' ) . '</th>'
 			. '<th scope="col">' . esc_html__( 'Website value', 'course-captain' ) . '</th>'
@@ -190,7 +190,7 @@ final class SettingLocksScreen {
 			}
 			$html .= '<tr><th scope="row">' . esc_html( $label ) . '<br><code>' . esc_html( $key ) . '</code></th><td>' . esc_html( self::scopes( $meta['scopes'] ) ) . '</td><td>' . esc_html( CourseSettingsPanel::display( EffectiveSettings::global_value( $key )['value'] ) ) . '</td><td>' . $own . '</td><td>' . $lock . '</td></tr>';
 		}
-		return $html . '</tbody></table>';
+		return $html . '</tbody></table></div>';
 	}
 
 	/**
@@ -247,7 +247,7 @@ final class SettingLocksScreen {
 			return $html . '<p>' . esc_html__( 'No course or exam has an own value.', 'course-captain' ) . '</p>' . self::back();
 		}
 		$html .= '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '"><input type="hidden" name="page" value="' . esc_attr( self::SLUG ) . '"><input type="hidden" name="view" value="reset"><input type="hidden" name="key" value="' . esc_attr( $key ) . '">';
-		$html .= '<table class="widefat striped"><caption>' . esc_html__( 'Courses and exams with an own value', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Select', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Course or exam', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Own value', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th></tr></thead><tbody>';
+		$html .= AdminUi::scroll_open( __( 'Courses and exams with an own value', 'course-captain' ) ) . '<table class="widefat striped"><caption>' . esc_html__( 'Courses and exams with an own value', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Select', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Course or exam', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Own value', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th></tr></thead><tbody>';
 		foreach ( $rows as $row ) {
 			$ref  = $row['scope'] . ':' . $row['id'];
 			$id   = 'ccap-ovr-' . $row['scope'] . '-' . $row['id'];
@@ -261,7 +261,7 @@ final class SettingLocksScreen {
 			$title = is_string( $link ) && '' !== $link ? '<a href="' . esc_url( $link ) . '">' . esc_html( $name ) . '</a>' : esc_html( $name );
 			$html .= '<tr><td>' . $cell . '</td><th scope="row">' . $title . '</th><td>' . esc_html( CourseSettingsPanel::display( $row['value'] ) ) . '</td><td>' . esc_html( $row['status'] ) . '</td></tr>';
 		}
-		$html .= '</tbody></table><p><button type="submit" class="button">' . esc_html__( 'Reset selected to the website value…', 'course-captain' ) . '</button> ' . self::back() . '</p></form>';
+		$html .= '</tbody></table></div><p><button type="submit" class="button">' . esc_html__( 'Reset selected to the website value…', 'course-captain' ) . '</button> ' . self::back() . '</p></form>';
 		return $html;
 	}
 

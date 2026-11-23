@@ -11956,3 +11956,15 @@ msgstr "Dekoratives Bild"
 
 msgid "Only for images that carry no information. Screen readers skip them, so the alternative text stays empty. Images a question needs must be described."
 msgstr "Nur für Bilder ohne Informationsgehalt. Screenreader überspringen sie, der Alternativtext bleibt leer. Bilder, die eine Frage braucht, müssen beschrieben werden."
+
+#. translators: %s: field label
+#: src/Admin/SettingsFields.php
+#, php-format
+msgid "Error: %s: choose one of the offered options."
+msgstr "Fehler: %s: Wähle eine der angebotenen Möglichkeiten."
+
+#. translators: 1: field label, 2: minimum
+#: src/Admin/SettingsFields.php
+#, php-format
+msgid "Error: %1$s: enter a whole number of at least %2$s."
+msgstr "Fehler: %1$s: Gib eine ganze Zahl ab %2$s ein."

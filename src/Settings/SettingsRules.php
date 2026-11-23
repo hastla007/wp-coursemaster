@@ -72,6 +72,30 @@ final class SettingsRules {
 	}
 
 	/**
+	 * First invalid part of an object value with its rule (SET-CC-P5): the
+	 * form shows the error at that part with its own limits instead of a
+	 * general "check the value".
+	 *
+	 * @param array<string, mixed> $field Object field definition.
+	 * @param mixed                $value Submitted value.
+	 * @return array{sub: string, rule: string}|null
+	 */
+	public static function invalid_part( array $field, $value ): ?array {
+		if ( 'object' !== $field['type'] || ! is_array( $value ) ) {
+			return null;
+		}
+		foreach ( (array) ( $field['fields'] ?? array() ) as $sub => $def ) {
+			if ( array_key_exists( $sub, $value ) && ! SettingsSchema::validate( (array) $def, $value[ $sub ] )['ok'] ) {
+				return array(
+					'sub'  => (string) $sub,
+					'rule' => self::invalid_rule( (array) $def, $value[ $sub ] ),
+				);
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Semantic checks of a tab candidate.
 	 *
 	 * @param Actor                $actor     Actor.

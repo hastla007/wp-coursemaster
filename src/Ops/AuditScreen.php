@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Ops;
 
+use CourseCaptain\Admin\AdminUi;
 use CourseCaptain\Admin\EditorScreens;
 use CourseCaptain\Policy\Actor;
 
@@ -37,7 +38,7 @@ final class AuditScreen {
 		add_action(
 			'admin_menu',
 			static function (): void {
-				add_submenu_page( EditorScreens::MENU, __( 'Audit log', 'course-captain' ), __( 'Audit log', 'course-captain' ), AuditView::CAP, self::SLUG, array( self::class, 'render' ) );
+				AdminUi::settings_assets( add_submenu_page( EditorScreens::MENU, __( 'Audit log', 'course-captain' ), __( 'Audit log', 'course-captain' ), AuditView::CAP, self::SLUG, array( self::class, 'render' ) ) );
 			},
 			20
 		);
@@ -111,7 +112,7 @@ final class AuditScreen {
 			'key'       => __( 'Setting (e.g. privacy or privacy.show_avatars; area Settings)', 'course-captain' ),
 		);
 		foreach ( $fields as $key => $label ) {
-			$html .= '<label for="ccap-audit-' . esc_attr( $key ) . '">' . esc_html( $label ) . '</label> <input id="ccap-audit-' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $filters[ $key ] ) . '"> ';
+			$html .= '<label for="ccap-audit-' . esc_attr( $key ) . '">' . esc_html( $label ) . '</label> <input type="text" id="ccap-audit-' . esc_attr( $key ) . '" name="' . esc_attr( $key ) . '" value="' . esc_attr( $filters[ $key ] ) . '"> ';
 		}
 		$areas = array_unique( array_column( AuditView::registry(), 0 ) );
 		$html .= '<label for="ccap-audit-area">' . esc_html__( 'Area', 'course-captain' ) . '</label> <select id="ccap-audit-area" name="area"><option value="">' . esc_html__( 'All', 'course-captain' ) . '</option>';
@@ -128,11 +129,11 @@ final class AuditScreen {
 			return $html . self::settings_table( $filters, $page ) . '</div>';
 		}
 		$result = AuditView::query( Actor::user( get_current_user_id() ), array_filter( $filters ), $page );
-		$html  .= '<table class="widefat striped"><caption class="screen-reader-text">' . esc_html__( 'Audit entries', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Time (UTC)', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Event', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'By', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Object', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Details', 'course-captain' ) . '</th></tr></thead><tbody>';
+		$table  = '<table class="widefat striped"><caption class="screen-reader-text">' . esc_html__( 'Audit entries', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Time (UTC)', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Event', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'By', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Object', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Details', 'course-captain' ) . '</th></tr></thead><tbody>';
 		foreach ( $result['items'] as $item ) {
-			$html .= '<tr><td>' . esc_html( $item['time'] ) . '</td><td>' . esc_html( $item['label'] ) . '</td><td>' . esc_html( $item['actor'] ) . '</td><td>' . esc_html( $item['object'] ) . '</td><td>' . esc_html( $item['details'] ) . '</td></tr>';
+			$table .= '<tr><td>' . esc_html( $item['time'] ) . '</td><td>' . esc_html( $item['label'] ) . '</td><td>' . esc_html( $item['actor'] ) . '</td><td>' . esc_html( $item['object'] ) . '</td><td>' . esc_html( $item['details'] ) . '</td></tr>';
 		}
-		$html .= '</tbody></table>';
+		$html .= AdminUi::scroll_table( $table . '</tbody></table>', __( 'Audit entries', 'course-captain' ) );
 		/* translators: 1: page, 2: pages */
 		$html .= '<p>' . esc_html( sprintf( __( 'Page %1$d of %2$d', 'course-captain' ), $page, $result['pages'] ) ) . '</p></div>';
 		return $html;
@@ -162,7 +163,7 @@ final class AuditScreen {
 		if ( array() === $result['items'] ) {
 			$html .= '<tr><td colspan="6">' . esc_html__( 'No settings changes for this filter.', 'course-captain' ) . '</td></tr>';
 		}
-		$html .= '</tbody></table>';
+		$html = AdminUi::scroll_table( $html . '</tbody></table>', __( 'Settings changes with values before and after', 'course-captain' ) );
 		/* translators: 1: page, 2: pages */
 		return $html . '<p>' . esc_html( sprintf( __( 'Page %1$d of %2$d', 'course-captain' ), $page, $result['pages'] ) ) . '</p>';
 	}

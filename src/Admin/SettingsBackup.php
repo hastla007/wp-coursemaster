@@ -39,7 +39,7 @@ final class SettingsBackup {
 		add_action(
 			'admin_menu',
 			static function (): void {
-				add_submenu_page( '', __( 'Back up settings', 'course-captain' ), __( 'Back up settings', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) );
+				AdminUi::settings_assets( add_submenu_page( '', __( 'Back up settings', 'course-captain' ), __( 'Back up settings', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) ) );
 			},
 			19
 		);
