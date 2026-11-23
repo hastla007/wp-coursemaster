@@ -38,7 +38,7 @@ final class OpsDashboardTest extends SchemaTestCase {
 	private const CANARY_EMAIL = 'jane.doe@mailhost.test';
 	private const CANARY_IP4   = '203.0.113.77';
 	private const CANARY_IP6   = '2001:db8::7';
-	private const CANARY_TOKEN = 'abcdefABCDEF0123456789abcdefABCDEF0123456789';
+	private const CANARY_TOKEN = 'abcdefABCDEF0123456789abcdefABCDEF0123456789'; // gitleaks:allow -- Synthetic canary: proves that diagnostics redact token-like values.
 	private const CANARY_DIR   = 'protected-S3cr3tF0lder';
 
 	/**
