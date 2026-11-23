@@ -44,9 +44,16 @@ final class PrivacySettings {
 		);
 		add_action(
 			CronHooks::PRIVACY_EXPORT,
-			static function ( $request_id ): void {
+			static function ( $request_id, $user_id = 0 ): void {
+				// `[0, user_id]`: self-service export (GM-175); otherwise a core data request.
+				if ( (int) $user_id > 0 ) {
+					DataExport::generate( (int) $user_id );
+					return;
+				}
 				self::generate_export( $request_id );
-			}
+			},
+			10,
+			2
 		);
 		add_filter( 'pre_option_show_avatars', array( self::class, 'show_avatars' ) );
 	}

@@ -87,6 +87,8 @@ final class UninstallManifest {
 		// Base certificate template versions (R1-44, R0-29 CF-04).
 		'course_captain_certificate_templates',
 		'course_captain_setting_locks',
+		// Starter content state (R1-18, GM-189).
+		'course_captain_starter_state',
 	);
 
 	/**
@@ -162,6 +164,8 @@ final class UninstallManifest {
 	public const USER_OPTIONS = array(
 		// Opt-out per informational mail type (R0-27 §3.7, RT-32).
 		'course_captain_notification_prefs',
+		// Self-service data export job (GM-175).
+		'course_captain_data_export',
 	);
 
 	/**
@@ -184,6 +188,8 @@ final class UninstallManifest {
 		'_ccap_seo_index',
 		'_ccap_settings',
 		'_ccap_settings_undo',
+		// Marks WordPress data requests filed through the self-service (GM-174).
+		'_ccap_self_service',
 	);
 
 	/**

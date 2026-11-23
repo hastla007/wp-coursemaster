@@ -226,6 +226,8 @@ final class Plugin {
 		\CourseCaptain\Admin\TestMail::register();
 		\CourseCaptain\Admin\SettingsBackup::register();
 		\CourseCaptain\Privacy\PrivacySettings::register();
+		\CourseCaptain\Privacy\SelfService::register();
+		\CourseCaptain\Course\FaqService::register();
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();
@@ -357,6 +359,10 @@ final class Plugin {
 			return;
 		}
 		$this->migrations->maybe_run_in_admin();
+		\CourseCaptain\Admin\MigrationNotice::maybe_add( $this->migrations );
+		if ( self::schema_ready() ) {
+			\CourseCaptain\Course\StarterContent::maybe_run( 'admin' );
+		}
 	}
 
 	/**

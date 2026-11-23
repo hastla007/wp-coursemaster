@@ -143,6 +143,24 @@ final class LearnerRoutes {
 			),
 			array( '/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/reveal', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => array( 'model_answer' => ExamSessions::current()->reveal( $a, (int) $r['session'], (int) $r['position'] ) ) ),
 			array( '/exam-sessions/(?P<session>\d+)/submit', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => ExamSessions::current()->submit( $a, (int) $r['session'] ) ),
+			array(
+				'/me/privacy-requests',
+				'POST',
+				static function ( Actor $a, \WP_REST_Request $r ): \WP_REST_Response {
+					$result = \CourseCaptain\Privacy\SelfService::request( $a, (string) $r->get_param( 'type' ) );
+					return new \WP_REST_Response( array( 'status' => $result['status'] ), 202 );
+				},
+			),
+			array(
+				'/me/data-exports',
+				'POST',
+				static function ( Actor $a ): \WP_REST_Response {
+					$result = \CourseCaptain\Privacy\DataExport::request( $a );
+					return new \WP_REST_Response( $result['export'], 202 );
+				},
+			),
+			array( '/me/data-exports/(?P<uid>[0-9a-f-]{36})', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => \CourseCaptain\Privacy\DataExport::get( $a, (string) $r['uid'] ) ),
+			array( '/courses/' . $course . '/faqs', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => \CourseCaptain\Course\FaqService::for_course( $a, self::course( $r ) ) ),
 			array( '/exam-sessions/(?P<session>\d+)/abort', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => array( 'status' => ExamSessions::current()->cancel( $a, (int) $r['session'] ) ) ),
 		);
 		foreach ( $routes as $route ) {

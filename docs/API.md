@@ -58,6 +58,10 @@
 | `GET` | `/me/certificates` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/me/certificates/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/visibility` | angemeldet (Cookie + `X-WP-Nonce`) | `holder_name_public`* |
 | `GET` | `/me/courses` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `POST` | `/me/privacy-requests` | angemeldet (Cookie + `X-WP-Nonce`) | – (`type`: `export`\|`erase`; 202 `{status: created\|resent\|confirmed}`, 5/Tag, Bucket `privacy`) |
+| `POST` | `/me/data-exports` | angemeldet (Cookie + `X-WP-Nonce`) | – (202 `{uid, status: pending, created_at, expires_at}`) |
+| `GET` | `/me/data-exports/(?P<uid>[0-9a-f-]{36})` | angemeldet, nur Eigentümer (Cookie + `X-WP-Nonce`) | – (200 mit `data`; `409 ccap_export_not_ready`, `410 ccap_export_expired`/`ccap_export_failed`) |
+| `GET` | `/courses/(?P<course>[0-9a-f-]+)/faqs` | angemeldet, Zugang zum Kurs (Cookie + `X-WP-Nonce`) | – (Liste `{uid, question, answer_html, category}`, nur veröffentlichte Einträge) |
 
 Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `acknowledged[]`) prüft der jeweilige Dienst. Details stehen in den Nachweisen `docs/r1/R1-*-nachweis.md`.
 
@@ -135,6 +139,7 @@ Wichtige Verträge:
 | `[ccap_protected course="ID"]…[/ccap_protected]` | Shortcode | geschützter Abschnitt; `[course_captain_protected]` ist ein veralteter Alias |
 | `[ccap_learning_link]` | Shortcode | Link in den Lernbereich |
 | `[ccap_access]` | Shortcode | Zugangsstatus |
+| `[ccap_privacy_request]` | Shortcode | Self-Service-Formular für Export-/Löschantrag (angemeldet; Bestätigung per Mail, GET zeigt nur den Bestätigungsknopf) |
 | `course-captain/course-catalog` | Block (`apiVersion` 3, `version` 1.0.0) | dynamisch |
 | `course-captain/learning-link` | Block (`apiVersion` 3, `version` 1.0.0) | dynamisch |
 | `course-captain/certificate-verify` | Block (`apiVersion` 3, `version` 1.0.0) | Verifikationsformular |

@@ -215,6 +215,9 @@ final class RestContract {
 			'ccap_submission_incomplete'     => __( 'Submission incomplete', 'course-captain' ),
 			'ccap_submission_file_rejected'  => __( 'File not accepted', 'course-captain' ),
 			'ccap_grade_invalid'             => __( 'Check the grading', 'course-captain' ),
+			'ccap_export_not_ready'          => __( 'Export not ready', 'course-captain' ),
+			'ccap_export_expired'            => __( 'Download expired', 'course-captain' ),
+			'ccap_export_failed'             => __( 'Export failed', 'course-captain' ),
 		);
 		return $titles[ $code ] ?? __( 'Error', 'course-captain' );
 	}
@@ -254,6 +257,9 @@ final class RestContract {
 			'ccap_submission_incomplete'     => __( 'Please add the required text or file before submitting.', 'course-captain' ),
 			'ccap_submission_file_rejected'  => __( 'This file was not accepted. Please check its type and size.', 'course-captain' ),
 			'ccap_grade_invalid'             => __( 'Please check the points and add the required comment or reason.', 'course-captain' ),
+			'ccap_export_not_ready'          => __( 'Your export is still being created. Please try again shortly.', 'course-captain' ),
+			'ccap_export_expired'            => __( 'This download has expired. Please request a new export.', 'course-captain' ),
+			'ccap_export_failed'             => __( 'The export could not be created. Please request a new export.', 'course-captain' ),
 		);
 	}
 }
