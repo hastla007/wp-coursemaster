@@ -128,6 +128,51 @@ jobs:
           CCAP_DRY_RUN: '1'
         run: tools/ci/image-digests.sh refresh
 
+  sast:
+    name: J-06 sast (Semgrep, repo rules)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Semgrep (pinned, no registry rules, metrics off)
+        run: python3 -m pip install --user 'semgrep==1.186.0'
+      - name: Rule self-test (R0-18 §2.1)
+        run: ~/.local/bin/semgrep --metrics=off --test tools/semgrep/
+      - name: Scan – ERROR blocks; WARNING is reported (reviewed in docs/r1/R1-18-gate-c-nachweise.md §2.2)
+        run: |
+          ~/.local/bin/semgrep scan --metrics=off --config tools/semgrep/cc-rules.yml \
+            --severity ERROR --error \
+            course-captain.php uninstall.php src assets blocks
+          ~/.local/bin/semgrep scan --metrics=off --config tools/semgrep/cc-rules.yml \
+            --severity WARNING course-captain.php uninstall.php src assets blocks || true
+
+  secrets:
+    name: J-08 secrets (gitleaks)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      GITLEAKS_VERSION: '8.28.0'
+      GITLEAKS_SHA256: 'a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install gitleaks (pinned binary, checksum verified; not the licensed action)
+        run: |
+          curl -sSfL -o gl.tgz "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  gl.tgz" | sha256sum -c -
+          tar xzf gl.tgz gitleaks && rm gl.tgz
+      - name: Scan (PR = diff, otherwise full history)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            ./gitleaks git --no-banner --redact --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" .
+          else
+            ./gitleaks git --no-banner --redact .
+          fi
+
   free-guard:
     name: J-10 free-guard
     runs-on: ubuntu-24.04
