@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c5b0920996a0d921aaccd5285902e11d",
+    "content-hash": "366acffe11eaafc17ea897a0d10ed092",
     "packages": [],
     "packages-dev": [
         {
@@ -1448,11 +1448,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.6",
+            "version": "2.3.7",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/00cedebb76cc82c1592414fa4f616cefdccda16f",
-                "reference": "00cedebb76cc82c1592414fa4f616cefdccda16f",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/90c91c2498849ab8cc4e873864bbf1cb2bf6ea12",
+                "reference": "90c91c2498849ab8cc4e873864bbf1cb2bf6ea12",
                 "shasum": ""
             },
             "require": {
@@ -1508,7 +1508,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-11-15T19:58:26+00:00"
+            "time": "2026-11-19T10:31:11+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -1926,23 +1926,23 @@
         },
         {
             "name": "roots/wordpress-no-content",
-            "version": "7.1.4",
+            "version": "7.1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress.git",
-                "reference": "7.1.4"
+                "reference": "7.1.5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://downloads.w.org/release/wordpress-7.1.4-no-content.zip",
-                "reference": "7.1.4",
-                "shasum": "1dd4bfa7b13dec725c0062a3fb62ba0536cb8699"
+                "url": "https://downloads.w.org/release/wordpress-7.1.5-no-content.zip",
+                "reference": "7.1.5",
+                "shasum": "360c3644ce4e382e254aa4f0c1e56d5082efe2ff"
             },
             "require": {
                 "php": ">= 7.4"
             },
             "provide": {
-                "wordpress/core-implementation": "7.1.4"
+                "wordpress/core-implementation": "7.1.5"
             },
             "suggest": {
                 "ext-curl": "Performs remote request operations.",
@@ -1993,7 +1993,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-10-28T17:15:58+00:00"
+            "time": "2026-11-18T17:13:39+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -4290,5 +4290,5 @@
     "platform-overrides": {
         "php": "8.5.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
