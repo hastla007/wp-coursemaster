@@ -23,7 +23,8 @@ defined( 'ABSPATH' ) || exit;
  * (legacy layout). When the configured base differs and the recorded base
  * still holds class folders, they are moved: `rename`, else copy, check
  * and only then delete the source; symlinks are never followed. Absolute
- * attachment paths (`_wp_attached_file`) are rewritten. If the move
+ * attachment paths (`_wp_attached_file`) and package copies of import
+ * batches (`ccap_import_batch.storage_path`) are rewritten. If the move
  * fails, everything already moved goes back, the previous base stays
  * active, the failure is recorded (Site Health, audit) and the next
  * attempt waits one hour. Moving back (private folder removed) is the same
@@ -284,7 +285,7 @@ final class StorageLayout {
 	}
 
 	/**
-	 * Rewrite absolute attachment paths below the old base.
+	 * Rewrite absolute attachment and package copy paths below the old base.
 	 *
 	 * @param string $from Old base.
 	 * @param string $to   New base.
@@ -296,6 +297,10 @@ final class StorageLayout {
 		foreach ( (array) $rows as $row ) {
 			update_post_meta( (int) $row['post_id'], '_wp_attached_file', $to . substr( (string) $row['meta_value'], strlen( $from ) ) );
 		}
+		// Package copies of import batches move with `packages-<secret>` (found by `backup-check`, R1-18 h3).
+		$db    = Database::current();
+		$table = $db->table( 'ccap_import_batch' );
+		$db->execute( $db->prepare( "UPDATE `{$table}` SET storage_path = CONCAT(%s, SUBSTRING(storage_path, %d)) WHERE storage_path LIKE %s", $to, strlen( $from ) + 1, $wpdb->esc_like( $from . '/' ) . '%' ) );
 	}
 
 	/**

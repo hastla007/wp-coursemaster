@@ -474,12 +474,12 @@ final class GoldenMasterG3Test extends SchemaTestCase {
 		self::assertStringContainsString( '(packages|protected)- { deny all; }', $health['description'] );
 		self::assertStringContainsString( (string) wp_parse_url( ProtectedStorage::public_url( ProtectedStorage::default_base() ), PHP_URL_PATH ), StorageSelfTest::nginx_rule() );
 		self::assertStringNotContainsString( ProtectedStorage::secret(), $health['description'] );
-		self::assertSame( 2, $requests, 'protected and packages' );
+		self::assertSame( 3, $requests, 'protected, packages and the media script block (R1-18 h3)' );
 
 		// Cached: no new request.
 		$answer = 'blocked';
 		self::assertSame( 'critical', StorageSelfTest::health()['status'] );
-		self::assertSame( 2, $requests );
+		self::assertSame( 3, $requests );
 
 		$blocked = StorageSelfTest::run( true );
 		self::assertSame( 'ok', $blocked['state'] );
@@ -501,7 +501,7 @@ final class GoldenMasterG3Test extends SchemaTestCase {
 		$base = (string) ProtectedStorage::public_url( ProtectedStorage::default_base() );
 		foreach ( $GLOBALS['ccap_test_http_requests'] as $url ) {
 			self::assertStringStartsWith( $base . '/', $url );
-			self::assertMatchesRegularExpression( '#/ccap-selftest-[a-z0-9]{12}\.txt$#', $url );
+			self::assertMatchesRegularExpression( '#/ccap-selftest-[a-z0-9]{12}\.(txt|html)$#', $url );
 		}
 		$GLOBALS['ccap_test_http_requests'] = array();
 	}
@@ -550,7 +550,10 @@ final class GoldenMasterG3Test extends SchemaTestCase {
 		// Without the foreign folder and with the file back: ok.
 		self::remove_dir( $foreign );
 		file_put_contents( (string) get_attached_file( $removed['attachment'], true ), '%PDF-1.4' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-		self::assertSame( 'ok', RestoreCheck::run()['status'] );
+		// R1-18 h3: other bytes than recorded → size/SHA-256 warning; the original bytes → ok.
+		self::assertSame( 'warn', array_column( RestoreCheck::run()['checks'], null, 'id' )['files']['status'] );
+		file_put_contents( (string) get_attached_file( $removed['attachment'], true ), "%PDF-1.4\n" . str_repeat( 'g', 64 ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		self::assertSame( 'ok', RestoreCheck::run()['status'], (string) wp_json_encode( RestoreCheck::run() ) );
 		self::assertSame( 0, OpsCommand::execute( 'backup-check', array(), array(), Actor::cli() )['exit'] );
 		unset( $kept );
 	}

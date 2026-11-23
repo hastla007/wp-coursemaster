@@ -36,6 +36,7 @@ final class OpsScreen {
 	 */
 	public const OPS = array(
 		'migration_retry' => array( 'status', false, false ),
+		'storage_recheck' => array( 'status', false, false ),
 		'outbox_retry'    => array( 'jobs', false, false ),
 		'outbox_discard'  => array( 'jobs', true, true ),
 		'held_release'    => array( 'jobs', true, true ),
@@ -151,6 +152,9 @@ final class OpsScreen {
 					$run           = $service->retry_migration( $actor, null, $key );
 					$out['result'] = in_array( $run['status'], array( 'done', 'none' ), true ) ? 'ok' : 'migration_' . sanitize_key( $run['status'] );
 					break;
+				case 'storage_recheck':
+					$out['result'] = 'storage_' . sanitize_key( $service->recheck_storage( $actor, $key )['state'] );
+					break;
 				case 'outbox_retry':
 					$out['count'] = $service->retry_deliveries( $actor, $key )['count'];
 					break;
@@ -254,6 +258,10 @@ final class OpsScreen {
 			/* translators: %d: number of affected entries */
 			$text = sprintf( __( 'Done. Affected entries: %d.', 'course-captain' ), $count );
 			$type = 'success';
+		} elseif ( str_starts_with( $code, 'storage_' ) ) {
+			/* translators: %s: self test result, e.g. "blocked" */
+			$text = sprintf( __( 'The storage self test ran again. Result: %s.', 'course-captain' ), self::storage_label( substr( $code, 8 ) ) );
+			$type = in_array( $code, array( 'storage_ok', 'storage_private' ), true ) ? 'success' : 'error';
 		} elseif ( str_starts_with( $code, 'migration_' ) ) {
 			/* translators: %s: migration result */
 			$text = sprintf( __( 'The database update did not finish (result: %s). See the status below.', 'course-captain' ), substr( $code, 10 ) );
@@ -298,7 +306,56 @@ final class OpsScreen {
 		if ( RepairService::can( $actor ) && in_array( $migration['state'], array( 'failed', 'blocked', 'pending' ), true ) ) {
 			$html .= self::form( 'migration_retry', __( 'Retry now', 'course-captain' ), __( 'Runs the database update immediately, ignores the waiting time and tries a blocked step again (like "wp course-captain migrate").', 'course-captain' ) );
 		}
+		return $html . self::storage( $actor );
+	}
+
+	/**
+	 * Storage self test (R0-10 §4.4): cached result only (no request while
+	 * rendering) and "Check again" for #23.
+	 *
+	 * @param Actor $actor Viewer.
+	 * @return string
+	 */
+	private static function storage( Actor $actor ): string {
+		$test = StorageSelfTest::cached();
+		$html = '<h2>' . esc_html__( 'Storage self test', 'course-captain' ) . '</h2>';
+		if ( null === $test ) {
+			$html .= '<p>' . esc_html__( 'The self test has not run yet or its result has expired.', 'course-captain' ) . '</p>';
+		} else {
+			$labels = array(
+				'protected' => __( 'Protected files', 'course-captain' ),
+				'packages'  => __( 'Packages and exports', 'course-captain' ),
+			);
+			/* translators: 1: overall result, 2: date and time of the check */
+			$html .= '<p>' . esc_html( sprintf( __( 'Result: %1$s (checked %2$s).', 'course-captain' ), self::storage_label( $test['state'] ), wp_date( (string) get_option( 'date_format' ) . ' ' . (string) get_option( 'time_format' ), $test['checked_at'] ) ) ) . '</p><ul>';
+			foreach ( $test['folders'] as $kind => $state ) {
+				$html .= '<li>' . esc_html( ( $labels[ $kind ] ?? $kind ) . ': ' . self::storage_label( $state ) ) . '</li>';
+			}
+			$html .= '<li>' . esc_html( __( 'Scripts in the media folder', 'course-captain' ) . ': ' . self::storage_label( $test['scripts'] ) ) . '</li></ul>';
+			if ( 'exposed' === $test['state'] || 'unknown' === $test['state'] ) {
+				$html .= '<p>' . esc_html( 'exposed' === $test['scripts'] ? StorageSelfTest::nginx_media_rule() : StorageSelfTest::nginx_rule() ) . '</p>';
+			}
+		}
+		if ( RepairService::can( $actor ) ) {
+			$html .= self::form( 'storage_recheck', __( 'Check again', 'course-captain' ), __( 'Places a harmless test file in each storage folder, requests it over HTTP and removes it again. The result replaces the cached one.', 'course-captain' ) );
+		}
 		return $html;
+	}
+
+	/**
+	 * Words for a self test result.
+	 *
+	 * @param string $state private|ok|exposed|unknown.
+	 * @return string
+	 */
+	private static function storage_label( string $state ): string {
+		$labels = array(
+			'private' => __( 'outside the web root', 'course-captain' ),
+			'ok'      => __( 'blocked', 'course-captain' ),
+			'exposed' => __( 'reachable from the web (critical)', 'course-captain' ),
+			'unknown' => __( 'could not be checked', 'course-captain' ),
+		);
+		return $labels[ $state ] ?? __( 'could not be checked', 'course-captain' );
 	}
 
 	/**

@@ -8,7 +8,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
-"PO-Revision-Date: 2026-11-23T13:57:11+00:00\n"
+"PO-Revision-Date: 2026-11-23T14:05:43+00:00\n"
 "Language: de_DE\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
@@ -23,7 +23,7 @@ msgstr ""
 #: src/Notification/NotificationService.php:1029
 #: src/Ops/Compatibility.php:570
 #: src/Ops/HealthChecks.php:245
-#: src/Ops/StorageSelfTest.php:155
+#: src/Ops/StorageSelfTest.php:200
 #: src/Privacy/PrivacyService.php:125
 #: src/Privacy/PrivacyService.php:135
 #: src/Privacy/PrivacyService.php:359
@@ -107,9 +107,9 @@ msgstr "alle"
 #: src/Admin/GroupsScreen.php:344
 #: src/Admin/GroupsScreen.php:356
 #: src/Admin/GroupsScreen.php:378
-#: src/Ops/OpsScreen.php:213
-#: src/Ops/OpsScreen.php:279
-#: src/Ops/OpsScreen.php:313
+#: src/Ops/OpsScreen.php:217
+#: src/Ops/OpsScreen.php:287
+#: src/Ops/OpsScreen.php:370
 msgid "Status"
 msgstr "Status"
 
@@ -383,13 +383,13 @@ msgstr "Gespeichert."
 #: src/Admin/SettingsScreen.php:476
 #: src/Admin/SetupWizard.php:718
 #: src/Admin/TestMail.php:121
-#: src/Ops/OpsScreen.php:245
+#: src/Ops/OpsScreen.php:249
 msgid "The form has expired. Reload the page and try again."
 msgstr "Das Formular ist abgelaufen. Lade die Seite neu und versuche es noch einmal."
 
 #: src/Admin/CertificatesScreen.php:386
 #: src/Admin/GroupsScreen.php:475
-#: src/Ops/OpsScreen.php:246
+#: src/Ops/OpsScreen.php:250
 msgid "You are not allowed to run this action."
 msgstr "Du darfst diese Aktion nicht ausführen."
 
@@ -772,7 +772,7 @@ msgstr "Alle Gruppen"
 #: src/Admin/GroupsScreen.php:381
 #: src/Admin/GroupsScreen.php:432
 #: src/Certificate/CertificatePages.php:300
-#: src/Ops/OpsScreen.php:365
+#: src/Ops/OpsScreen.php:422
 msgid "Name"
 msgstr "Name"
 
@@ -1838,7 +1838,7 @@ msgid "Learning"
 msgstr "Lernen"
 
 #: src/Admin/SettingsFields.php:47
-#: src/Learner/ExamRoom.php:575
+#: src/Learner/ExamRoom.php:576
 msgid "Exams"
 msgstr "Prüfungen"
 
@@ -1961,7 +1961,7 @@ msgid "Sender"
 msgstr "Absender"
 
 #: src/Admin/SettingsFields.php:123
-#: src/Ops/OpsScreen.php:330
+#: src/Ops/OpsScreen.php:387
 msgid "Messages"
 msgstr "Nachrichten"
 
@@ -3360,7 +3360,7 @@ msgid "skipped"
 msgstr "übersprungen"
 
 #: src/Admin/SetupWizard.php:672
-#: src/Learner/ExamRoom.php:130
+#: src/Learner/ExamRoom.php:131
 msgid "open"
 msgstr "offen"
 
@@ -3548,6 +3548,7 @@ msgid "%1$s (%2$d)"
 msgstr "%1$s (%2$d)"
 
 #: src/Admin/SetupWizard.php:971
+#: src/Ops/OpsScreen.php:340
 msgid "Check again"
 msgstr "Erneut prüfen"
 
@@ -3976,7 +3977,7 @@ msgstr "%s %%"
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr "Course Captain kann nicht netzwerkweit aktiviert werden. Aktiviere es stattdessen auf jeder Website einzeln. Es wurde nichts geändert."
 
-#: src/Kernel/Plugin.php:396
+#: src/Kernel/Plugin.php:397
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr "Course Captain ist inaktiv, weil die Website die Voraussetzungen nicht erfüllt:"
 
@@ -4035,190 +4036,190 @@ msgstr "Umgebungstyp"
 msgid "database restored from an older state"
 msgstr "Datenbank aus einem älteren Stand wiederhergestellt"
 
-#: src/Learner/ExamRoom.php:80
+#: src/Learner/ExamRoom.php:81
 msgid "Exam result"
 msgstr "Prüfungsergebnis"
 
-#: src/Learner/ExamRoom.php:86
+#: src/Learner/ExamRoom.php:87
 msgid "Cancel the exam?"
 msgstr "Prüfung abbrechen?"
 
 #. translators: %s: number of minutes
-#: src/Learner/ExamRoom.php:100
+#: src/Learner/ExamRoom.php:101
 #, php-format
 msgid "%s minute remaining."
 msgid_plural "%s minutes remaining."
 msgstr[0] "Noch %s Minute."
 msgstr[1] "Noch %s Minuten."
 
-#: src/Learner/ExamRoom.php:104
+#: src/Learner/ExamRoom.php:105
 msgid "Time remaining:"
 msgstr "Verbleibende Zeit:"
 
-#: src/Learner/ExamRoom.php:108
+#: src/Learner/ExamRoom.php:109
 msgid "The time is up. Your answers are being submitted."
 msgstr "Die Zeit ist abgelaufen. Deine Antworten werden abgegeben."
 
 #. translators: %s: remaining time as clock value, e.g. 12:30
-#: src/Learner/ExamRoom.php:110
+#: src/Learner/ExamRoom.php:111
 #, php-format
 msgid "Remaining time: %s"
 msgstr "Verbleibende Zeit: %s"
 
 #. translators: %s: remaining time as clock value, e.g. 12:30
-#: src/Learner/ExamRoom.php:110
+#: src/Learner/ExamRoom.php:111
 msgid "Announce remaining time"
 msgstr "Verbleibende Zeit ansagen"
 
-#: src/Learner/ExamRoom.php:113
+#: src/Learner/ExamRoom.php:114
 msgid "Your answers have been saved."
 msgstr "Deine Antworten wurden gespeichert."
 
-#: src/Learner/ExamRoom.php:114
+#: src/Learner/ExamRoom.php:115
 msgid "The model answer is shown. Please assess your answer."
 msgstr "Die Musterantwort wird angezeigt. Bitte schätze deine Antwort ein."
 
-#: src/Learner/ExamRoom.php:118
+#: src/Learner/ExamRoom.php:119
 msgid "No connection. Your answers are kept on this device and sent as soon as the connection is back."
 msgstr "Keine Verbindung. Deine Antworten bleiben auf diesem Gerät gespeichert und werden gesendet, sobald die Verbindung wieder da ist."
 
-#: src/Learner/ExamRoom.php:120
+#: src/Learner/ExamRoom.php:121
 msgid "Please confirm that you want to submit the exam."
 msgstr "Bitte bestätige, dass du die Prüfung abgeben möchtest."
 
-#: src/Learner/ExamRoom.php:125
+#: src/Learner/ExamRoom.php:126
 msgid "Questions"
 msgstr "Fragen"
 
-#: src/Learner/ExamRoom.php:130
+#: src/Learner/ExamRoom.php:131
 msgid "answered"
 msgstr "beantwortet"
 
 #. translators: %s: answer state ("answered" or "open")
-#: src/Learner/ExamRoom.php:133
+#: src/Learner/ExamRoom.php:134
 #, php-format
 msgid "%s, marked for review"
 msgstr "%s, zur Überprüfung markiert"
 
 #. translators: %s: question number
-#: src/Learner/ExamRoom.php:138
+#: src/Learner/ExamRoom.php:139
 #, php-format
 msgid "Question %s"
 msgstr "Frage %s"
 
-#: src/Learner/ExamRoom.php:145
+#: src/Learner/ExamRoom.php:146
 msgid "Connection is back. All answers have been sent."
 msgstr "Die Verbindung ist wieder da. Alle Antworten wurden gesendet."
 
-#: src/Learner/ExamRoom.php:147
-#: src/Learner/ExamRoom.php:151
+#: src/Learner/ExamRoom.php:148
+#: src/Learner/ExamRoom.php:152
 msgid "Save answers"
 msgstr "Antworten speichern"
 
-#: src/Learner/ExamRoom.php:152
+#: src/Learner/ExamRoom.php:153
 msgid "Submit the exam"
 msgstr "Prüfung abgeben"
 
-#: src/Learner/ExamRoom.php:153
+#: src/Learner/ExamRoom.php:154
 msgid "I want to submit my answers now. I cannot change them afterwards."
 msgstr "Ich möchte meine Antworten jetzt abgeben. Danach kann ich sie nicht mehr ändern."
 
-#: src/Learner/ExamRoom.php:154
+#: src/Learner/ExamRoom.php:155
 msgid "Submit exam"
 msgstr "Prüfung abgeben"
 
-#: src/Learner/ExamRoom.php:155
+#: src/Learner/ExamRoom.php:156
 msgid "Cancel the exam"
 msgstr "Prüfung abbrechen"
 
-#: src/Learner/ExamRoom.php:155
+#: src/Learner/ExamRoom.php:156
 msgid "A cancelled attempt is not evaluated. You will be asked to confirm."
 msgstr "Ein abgebrochener Versuch wird nicht gewertet. Du wirst um Bestätigung gebeten."
 
-#: src/Learner/ExamRoom.php:156
+#: src/Learner/ExamRoom.php:157
 msgid "Cancel exam"
 msgstr "Prüfung abbrechen"
 
-#: src/Learner/ExamRoom.php:162
+#: src/Learner/ExamRoom.php:163
 #: src/Learner/LessonView.php:237
 msgid "Exam"
 msgstr "Prüfung"
 
-#: src/Learner/ExamRoom.php:280
 #: src/Learner/ExamRoom.php:281
+#: src/Learner/ExamRoom.php:282
 msgid "Choose one answer."
 msgstr "Wähle eine Antwort."
 
-#: src/Learner/ExamRoom.php:282
+#: src/Learner/ExamRoom.php:283
 msgid "Choose one or more answers."
 msgstr "Wähle eine oder mehrere Antworten."
 
-#: src/Learner/ExamRoom.php:283
+#: src/Learner/ExamRoom.php:284
 msgid "Enter a number."
 msgstr "Gib eine Zahl ein."
 
-#: src/Learner/ExamRoom.php:284
+#: src/Learner/ExamRoom.php:285
 msgid "Match each item."
 msgstr "Ordne jeden Eintrag zu."
 
-#: src/Learner/ExamRoom.php:285
+#: src/Learner/ExamRoom.php:286
 msgid "Answer in your mind, then compare with the model answer."
 msgstr "Beantworte die Frage im Kopf und vergleiche dann mit der Musterantwort."
 
 #. translators: 1: question number, 2: number of questions
-#: src/Learner/ExamRoom.php:291
+#: src/Learner/ExamRoom.php:292
 #, php-format
 msgid "Question %1$s of %2$s"
 msgstr "Frage %1$s von %2$s"
 
-#: src/Learner/ExamRoom.php:316
+#: src/Learner/ExamRoom.php:317
 msgid "Your answer"
 msgstr "Deine Antwort"
 
 #. translators: %s: unit, e.g. "km"
-#: src/Learner/ExamRoom.php:318
+#: src/Learner/ExamRoom.php:319
 #, php-format
 msgid "Your answer (in %s)"
 msgstr "Deine Antwort (in %s)"
 
-#: src/Learner/ExamRoom.php:329
+#: src/Learner/ExamRoom.php:330
 msgid "— choose —"
 msgstr "— auswählen —"
 
-#: src/Learner/ExamRoom.php:339
+#: src/Learner/ExamRoom.php:340
 msgid "Show model answer"
 msgstr "Musterantwort zeigen"
 
-#: src/Learner/ExamRoom.php:343
+#: src/Learner/ExamRoom.php:344
 msgid "Model answer:"
 msgstr "Musterantwort:"
 
-#: src/Learner/ExamRoom.php:344
+#: src/Learner/ExamRoom.php:345
 msgid "Did you know the answer?"
 msgstr "Wusstest du die Antwort?"
 
-#: src/Learner/ExamRoom.php:346
+#: src/Learner/ExamRoom.php:347
 msgid "Yes, I knew it"
 msgstr "Ja, ich wusste es"
 
-#: src/Learner/ExamRoom.php:347
+#: src/Learner/ExamRoom.php:348
 msgid "No, I did not know it"
 msgstr "Nein, ich wusste es nicht"
 
-#: src/Learner/ExamRoom.php:356
+#: src/Learner/ExamRoom.php:357
 msgid "This question type cannot be answered in this view yet. You can still submit the exam; the question counts as unanswered."
 msgstr "Dieser Fragetyp kann in dieser Ansicht noch nicht beantwortet werden. Du kannst die Prüfung trotzdem abgeben; die Frage zählt als unbeantwortet."
 
-#: src/Learner/ExamRoom.php:358
+#: src/Learner/ExamRoom.php:359
 msgid "Mark for review"
 msgstr "Zur Überprüfung markieren"
 
-#: src/Learner/ExamRoom.php:371
+#: src/Learner/ExamRoom.php:372
 msgid "All questions are answered."
 msgstr "Alle Fragen sind beantwortet."
 
 #. translators: %s: number of unanswered questions
-#: src/Learner/ExamRoom.php:376
+#: src/Learner/ExamRoom.php:377
 #, php-format
 msgid "%s question is unanswered."
 msgid_plural "%s questions are unanswered."
@@ -4226,36 +4227,36 @@ msgstr[0] "%s Frage ist unbeantwortet."
 msgstr[1] "%s Fragen sind unbeantwortet."
 
 #. translators: %s: number of questions marked for review
-#: src/Learner/ExamRoom.php:380
+#: src/Learner/ExamRoom.php:381
 #, php-format
 msgid "%s question is marked for review."
 msgid_plural "%s questions are marked for review."
 msgstr[0] "%s Frage ist zur Überprüfung markiert."
 msgstr[1] "%s Fragen sind zur Überprüfung markiert."
 
-#: src/Learner/ExamRoom.php:395
+#: src/Learner/ExamRoom.php:396
 msgid "The time is up. Your answers have been submitted."
 msgstr "Die Zeit ist abgelaufen. Deine Antworten wurden abgegeben."
 
-#: src/Learner/ExamRoom.php:398
+#: src/Learner/ExamRoom.php:399
 #: src/Rest/RestContract.php:254
 msgid "This attempt was cancelled."
 msgstr "Dieser Versuch wurde abgebrochen."
 
-#: src/Learner/ExamRoom.php:402
+#: src/Learner/ExamRoom.php:403
 msgid "Your answers have been submitted. The result is not available yet."
 msgstr "Deine Antworten wurden abgegeben. Das Ergebnis liegt noch nicht vor."
 
-#: src/Learner/ExamRoom.php:404
+#: src/Learner/ExamRoom.php:405
 msgid "Passed"
 msgstr "Bestanden"
 
-#: src/Learner/ExamRoom.php:404
+#: src/Learner/ExamRoom.php:405
 msgid "Not passed"
 msgstr "Nicht bestanden"
 
 #. translators: 1: correct answers, 2: number of questions
-#: src/Learner/ExamRoom.php:408
+#: src/Learner/ExamRoom.php:409
 #, php-format
 msgid "%1$s of %2$s question answered correctly."
 msgid_plural "%1$s of %2$s questions answered correctly."
@@ -4263,88 +4264,88 @@ msgstr[0] "%1$s von %2$s Frage richtig beantwortet."
 msgstr[1] "%1$s von %2$s Fragen richtig beantwortet."
 
 #. translators: 1: points reached, 2: maximum points
-#: src/Learner/ExamRoom.php:417
+#: src/Learner/ExamRoom.php:418
 #, php-format
 msgid "Points: %1$s of %2$s"
 msgstr "Punkte: %1$s von %2$s"
 
-#: src/Learner/ExamRoom.php:426
+#: src/Learner/ExamRoom.php:427
 msgid "Exam parts"
 msgstr "Prüfungsteile"
 
 #. translators: %s: part name
-#: src/Learner/ExamRoom.php:434
+#: src/Learner/ExamRoom.php:435
 #, php-format
 msgid "%s: no questions in this attempt"
 msgstr "%s: keine Fragen in diesem Versuch"
 
 #. translators: 1: part name, 2: correct answers, 3: number of questions, 4: "passed" or "not passed"
-#: src/Learner/ExamRoom.php:439
+#: src/Learner/ExamRoom.php:440
 #, php-format
 msgid "%1$s: %2$s of %3$s correct, %4$s"
 msgstr "%1$s: %2$s von %3$s richtig, %4$s"
 
-#: src/Learner/ExamRoom.php:443
+#: src/Learner/ExamRoom.php:444
 msgid "passed"
 msgstr "bestanden"
 
-#: src/Learner/ExamRoom.php:443
+#: src/Learner/ExamRoom.php:444
 msgid "not passed"
 msgstr "nicht bestanden"
 
 #. translators: 1: question number, 2: "correct" or "incorrect"
-#: src/Learner/ExamRoom.php:454
+#: src/Learner/ExamRoom.php:455
 #, php-format
 msgid "Question %1$s: %2$s"
 msgstr "Frage %1$s: %2$s"
 
-#: src/Learner/ExamRoom.php:456
+#: src/Learner/ExamRoom.php:457
 msgid "correct"
 msgstr "richtig"
 
-#: src/Learner/ExamRoom.php:456
+#: src/Learner/ExamRoom.php:457
 msgid "incorrect"
 msgstr "falsch"
 
-#: src/Learner/ExamRoom.php:460
+#: src/Learner/ExamRoom.php:461
 msgid "Back to my learning"
 msgstr "Zurück zu meinem Lernbereich"
 
-#: src/Learner/ExamRoom.php:486
+#: src/Learner/ExamRoom.php:487
 msgid "Do you really want to cancel the exam? The attempt is not evaluated and cannot be continued. Your answers so far are kept."
 msgstr "Willst du die Prüfung wirklich abbrechen? Der Versuch wird nicht gewertet und kann nicht fortgesetzt werden. Deine bisherigen Antworten bleiben gespeichert."
 
-#: src/Learner/ExamRoom.php:487
+#: src/Learner/ExamRoom.php:488
 msgid "Yes, cancel the exam"
 msgstr "Ja, Prüfung abbrechen"
 
-#: src/Learner/ExamRoom.php:488
+#: src/Learner/ExamRoom.php:489
 msgid "No, continue the exam"
 msgstr "Nein, Prüfung fortsetzen"
 
-#: src/Learner/ExamRoom.php:512
+#: src/Learner/ExamRoom.php:513
 msgid "The exam was cancelled. The attempt was not evaluated."
 msgstr "Die Prüfung wurde abgebrochen. Der Versuch wurde nicht gewertet."
 
 #. translators: %s: exam version label
-#: src/Learner/ExamRoom.php:578
+#: src/Learner/ExamRoom.php:579
 #, php-format
 msgid "Exam %s"
 msgstr "Prüfung %s"
 
 #. translators: %s: number of minutes
-#: src/Learner/ExamRoom.php:585
+#: src/Learner/ExamRoom.php:586
 #, php-format
 msgid "Time limit: %s minute"
 msgid_plural "Time limit: %s minutes"
 msgstr[0] "Zeitlimit: %s Minute"
 msgstr[1] "Zeitlimit: %s Minuten"
 
-#: src/Learner/ExamRoom.php:591
+#: src/Learner/ExamRoom.php:592
 msgid "Continue exam"
 msgstr "Prüfung fortsetzen"
 
-#: src/Learner/ExamRoom.php:593
+#: src/Learner/ExamRoom.php:594
 msgid "Start exam"
 msgstr "Prüfung starten"
 
@@ -5451,6 +5452,7 @@ msgid "After a restore or move, confirm it in the notice on the dashboard or wit
 msgstr "Bestätige nach einer Wiederherstellung oder einem Umzug den Hinweis im Dashboard oder mit „wp course-captain identity confirm same_place|moved|copy“. Zurückgehaltene Nachrichten werden dann zur Freigabe aufgelistet; standardmäßig werden sie verworfen."
 
 #: src/Ops/HealthChecks.php:139
+#: src/Ops/RestoreCheck.php:466
 msgid "The site identity is unchanged."
 msgstr "Die Website-Identität ist unverändert."
 
@@ -5634,140 +5636,193 @@ msgstr "Du darfst das nicht tun."
 msgid "Too many requests. Please wait a moment."
 msgstr "Zu viele Anfragen. Bitte warte einen Moment."
 
-#: src/Ops/OpsScreen.php:55
-#: src/Ops/OpsScreen.php:188
+#: src/Ops/OpsScreen.php:56
+#: src/Ops/OpsScreen.php:192
 msgid "System status"
 msgstr "Systemstatus"
 
-#: src/Ops/OpsScreen.php:103
+#: src/Ops/OpsScreen.php:104
 msgid "You are not allowed to export diagnostics."
 msgstr "Du darfst keine Diagnosedaten exportieren."
 
-#: src/Ops/OpsScreen.php:214
+#: src/Ops/OpsScreen.php:218
 msgid "Jobs"
 msgstr "Aufgaben"
 
-#: src/Ops/OpsScreen.php:215
-#: src/Ops/OpsScreen.php:365
+#: src/Ops/OpsScreen.php:219
+#: src/Ops/OpsScreen.php:422
 msgid "Integrations"
 msgstr "Integrationen"
 
-#: src/Ops/OpsScreen.php:216
+#: src/Ops/OpsScreen.php:220
 msgid "Diagnostics"
 msgstr "Diagnose"
 
-#: src/Ops/OpsScreen.php:218
+#: src/Ops/OpsScreen.php:222
 msgid "System status: areas"
 msgstr "Systemstatus: Bereiche"
 
-#: src/Ops/OpsScreen.php:247
+#: src/Ops/OpsScreen.php:251
 msgid "This action needs a confirmation. Tick the confirmation box and submit again."
 msgstr "Diese Aktion muss bestätigt werden. Kreuze das Bestätigungsfeld an und sende erneut."
 
-#: src/Ops/OpsScreen.php:248
+#: src/Ops/OpsScreen.php:252
 msgid "Reason: required, at least 10 characters (for example the ticket number and the cause)."
 msgstr "Grund: Pflicht, mindestens 10 Zeichen (zum Beispiel die Ticketnummer und die Ursache)."
 
-#: src/Ops/OpsScreen.php:249
+#: src/Ops/OpsScreen.php:253
 msgid "The user, course or action was not found."
 msgstr "Der Benutzer, der Kurs oder die Aktion wurde nicht gefunden."
 
-#: src/Ops/OpsScreen.php:250
+#: src/Ops/OpsScreen.php:254
 msgid "This form was already used for another action. Reload the page."
 msgstr "Dieses Formular wurde bereits für eine andere Aktion verwendet. Lade die Seite neu."
 
-#: src/Ops/OpsScreen.php:251
+#: src/Ops/OpsScreen.php:255
 msgid "The action is still running. Reload the page in a moment."
 msgstr "Die Aktion läuft noch. Lade die Seite gleich neu."
 
 #. translators: %d: number of affected entries
-#: src/Ops/OpsScreen.php:255
+#: src/Ops/OpsScreen.php:259
 #, php-format
 msgid "Done. Affected entries: %d."
 msgstr "Erledigt. Betroffene Einträge: %d."
 
+#. translators: %s: self test result, e.g. "blocked"
+#: src/Ops/OpsScreen.php:263
+#, php-format
+msgid "The storage self test ran again. Result: %s."
+msgstr "Der Ablage-Selbsttest wurde erneut ausgeführt. Ergebnis: %s."
+
 #. translators: %s: migration result
-#: src/Ops/OpsScreen.php:259
+#: src/Ops/OpsScreen.php:267
 #, php-format
 msgid "The database update did not finish (result: %s). See the status below."
 msgstr "Das Datenbank-Update wurde nicht abgeschlossen (Ergebnis: %s). Siehe den Status unten."
 
-#: src/Ops/OpsScreen.php:262
+#: src/Ops/OpsScreen.php:270
 msgid "The action failed."
 msgstr "Die Aktion ist fehlgeschlagen."
 
-#: src/Ops/OpsScreen.php:276
-#: src/Ops/OpsScreen.php:279
+#: src/Ops/OpsScreen.php:284
+#: src/Ops/OpsScreen.php:287
 msgid "Checks"
 msgstr "Prüfungen"
 
 #. translators: %s: overall status word
-#: src/Ops/OpsScreen.php:278
+#: src/Ops/OpsScreen.php:286
 #, php-format
 msgid "Overall: %s"
 msgstr "Gesamt: %s"
 
-#: src/Ops/OpsScreen.php:279
+#: src/Ops/OpsScreen.php:287
 msgid "Check"
 msgstr "Prüfung"
 
-#: src/Ops/OpsScreen.php:279
+#: src/Ops/OpsScreen.php:287
 msgid "Result"
 msgstr "Ergebnis"
 
-#: src/Ops/OpsScreen.php:279
+#: src/Ops/OpsScreen.php:287
 msgid "What to do"
 msgstr "Was zu tun ist"
 
-#: src/Ops/OpsScreen.php:279
+#: src/Ops/OpsScreen.php:287
 msgid "IDs"
 msgstr "IDs"
 
-#: src/Ops/OpsScreen.php:286
+#: src/Ops/OpsScreen.php:294
 msgid "Database update"
 msgstr "Datenbank-Update"
 
 #. translators: 1: state, 2: stored schema version, 3: code schema version
-#: src/Ops/OpsScreen.php:288
+#: src/Ops/OpsScreen.php:296
 #, php-format
 msgid "State: %1$s. Schema: %2$s (code %3$s)."
 msgstr "Zustand: %1$s. Schema: %2$s (Code %3$s)."
 
-#: src/Ops/OpsScreen.php:299
+#: src/Ops/OpsScreen.php:307
 msgid "Retry now"
 msgstr "Jetzt erneut versuchen"
 
-#: src/Ops/OpsScreen.php:299
+#: src/Ops/OpsScreen.php:307
 msgid "Runs the database update immediately, ignores the waiting time and tries a blocked step again (like \"wp course-captain migrate\")."
 msgstr "Führt das Datenbank-Update sofort aus, ignoriert die Wartezeit und versucht einen blockierten Schritt erneut (wie „wp course-captain migrate“)."
 
-#: src/Ops/OpsScreen.php:313
+#: src/Ops/OpsScreen.php:321
+msgid "Storage self test"
+msgstr "Ablage-Selbsttest"
+
+#: src/Ops/OpsScreen.php:323
+msgid "The self test has not run yet or its result has expired."
+msgstr "Der Selbsttest ist noch nicht gelaufen oder sein Ergebnis ist abgelaufen."
+
+#: src/Ops/OpsScreen.php:326
+msgid "Protected files"
+msgstr "Geschützte Dateien"
+
+#: src/Ops/OpsScreen.php:327
+msgid "Packages and exports"
+msgstr "Pakete und Exporte"
+
+#. translators: 1: overall result, 2: date and time of the check
+#: src/Ops/OpsScreen.php:330
+#, php-format
+msgid "Result: %1$s (checked %2$s)."
+msgstr "Ergebnis: %1$s (geprüft %2$s)."
+
+#: src/Ops/OpsScreen.php:334
+msgid "Scripts in the media folder"
+msgstr "Skripte im Medienordner"
+
+#: src/Ops/OpsScreen.php:340
+msgid "Places a harmless test file in each storage folder, requests it over HTTP and removes it again. The result replaces the cached one."
+msgstr "Legt in jedem Ablageordner eine harmlose Testdatei ab, ruft sie über HTTP ab und entfernt sie wieder. Das Ergebnis ersetzt das gespeicherte."
+
+#: src/Ops/OpsScreen.php:353
+msgid "outside the web root"
+msgstr "außerhalb des Webroots"
+
+#: src/Ops/OpsScreen.php:354
+msgid "blocked"
+msgstr "gesperrt"
+
+#: src/Ops/OpsScreen.php:355
+msgid "reachable from the web (critical)"
+msgstr "aus dem Web erreichbar (kritisch)"
+
+#: src/Ops/OpsScreen.php:356
+#: src/Ops/OpsScreen.php:358
+msgid "could not be checked"
+msgstr "konnte nicht geprüft werden"
+
+#: src/Ops/OpsScreen.php:370
 msgid "Internal deliveries"
 msgstr "Interne Zustellungen"
 
-#: src/Ops/OpsScreen.php:313
+#: src/Ops/OpsScreen.php:370
 msgid "Deliveries by status"
 msgstr "Zustellungen nach Status"
 
-#: src/Ops/OpsScreen.php:313
+#: src/Ops/OpsScreen.php:370
 msgid "Number"
 msgstr "Anzahl"
 
-#: src/Ops/OpsScreen.php:324
+#: src/Ops/OpsScreen.php:381
 msgid "Retry dead letters"
 msgstr "Unzustellbare Ereignisse erneut zustellen"
 
-#: src/Ops/OpsScreen.php:324
+#: src/Ops/OpsScreen.php:381
 msgid "Delivers the events again with the same event ID. Fix the cause first."
 msgstr "Stellt die Ereignisse mit derselben Ereignis-ID erneut zu. Behebe zuerst die Ursache."
 
 #. translators: %s: number of dead letters
-#: src/Ops/OpsScreen.php:326
+#: src/Ops/OpsScreen.php:383
 msgid "Discard dead letters"
 msgstr "Unzustellbare Ereignisse verwerfen"
 
 #. translators: %s: number of dead letters
-#: src/Ops/OpsScreen.php:326
+#: src/Ops/OpsScreen.php:383
 #, php-format
 msgid "%s dead letter is marked as discarded and no longer delivered. The event stays in the log."
 msgid_plural "%s dead letters are marked as discarded and no longer delivered. The events stay in the log."
@@ -5775,18 +5830,18 @@ msgstr[0] "%s unzustellbares Ereignis wird als verworfen markiert und nicht mehr
 msgstr[1] "%s unzustellbare Ereignisse werden als verworfen markiert und nicht mehr zugestellt. Die Ereignisse bleiben im Protokoll."
 
 #. translators: 1: held, 2: failed in 24 h, 3: unknown, 4: waiting
-#: src/Ops/OpsScreen.php:332
+#: src/Ops/OpsScreen.php:389
 #, php-format
 msgid "Held: %1$s · failed in 24 hours: %2$s · outcome unknown: %3$s · waiting: %4$s"
 msgstr "Zurückgehalten: %1$s · fehlgeschlagen in 24 Stunden: %2$s · Ergebnis unbekannt: %3$s · wartend: %4$s"
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsScreen.php:335
+#: src/Ops/OpsScreen.php:392
 msgid "Send held messages"
 msgstr "Zurückgehaltene Nachrichten senden"
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsScreen.php:335
+#: src/Ops/OpsScreen.php:392
 #, php-format
 msgid "%s held message is sent. Only do this if the site identity is confirmed (same site)."
 msgid_plural "%s held messages are sent. Only do this if the site identity is confirmed (same site)."
@@ -5794,95 +5849,95 @@ msgstr[0] "%s zurückgehaltene Nachricht wird gesendet. Tu das nur, wenn die Web
 msgstr[1] "%s zurückgehaltene Nachrichten werden gesendet. Tu das nur, wenn die Website-Identität bestätigt ist (gleiche Website)."
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsScreen.php:337
+#: src/Ops/OpsScreen.php:394
 msgid "Discard held messages"
 msgstr "Zurückgehaltene Nachrichten verwerfen"
 
 #. translators: %s: number of held messages
-#: src/Ops/OpsScreen.php:337
+#: src/Ops/OpsScreen.php:394
 #, php-format
 msgid "%s held message is discarded and never sent."
 msgid_plural "%s held messages are discarded and never sent."
 msgstr[0] "%s zurückgehaltene Nachricht wird verworfen und nie gesendet."
 msgstr[1] "%s zurückgehaltene Nachrichten werden verworfen und nie gesendet."
 
-#: src/Ops/OpsScreen.php:341
+#: src/Ops/OpsScreen.php:398
 msgid "Cache"
 msgstr "Cache"
 
-#: src/Ops/OpsScreen.php:342
+#: src/Ops/OpsScreen.php:399
 msgid "Empty cache"
 msgstr "Cache leeren"
 
-#: src/Ops/OpsScreen.php:342
+#: src/Ops/OpsScreen.php:399
 msgid "Starts a new cache generation. Access decisions are never cached, so this is always safe. Optionally limit it to one user or course."
 msgstr "Startet eine neue Cache-Generation. Zugriffsentscheidungen werden nie zwischengespeichert, daher ist das immer sicher. Optional auf einen Benutzer oder Kurs beschränken."
 
-#: src/Ops/OpsScreen.php:356
+#: src/Ops/OpsScreen.php:413
 msgid "Here you see which plugins Course Captain detects and whether a data exchange is set up. Course Captain does not install or activate other plugins."
 msgstr "Hier siehst du, welche Plugins Course Captain erkennt und ob ein Datenaustausch eingerichtet ist. Course Captain installiert oder aktiviert keine anderen Plugins."
 
-#: src/Ops/OpsScreen.php:361
+#: src/Ops/OpsScreen.php:418
 msgid "Only detected"
 msgstr "Nur erkannte"
 
-#: src/Ops/OpsScreen.php:361
+#: src/Ops/OpsScreen.php:418
 msgid "All known"
 msgstr "Alle bekannten"
 
-#: src/Ops/OpsScreen.php:363
+#: src/Ops/OpsScreen.php:420
 msgid "No partner plugin is installed. Course Captain works without them."
 msgstr "Kein Partner-Plugin ist installiert. Course Captain funktioniert ohne sie."
 
-#: src/Ops/OpsScreen.php:365
+#: src/Ops/OpsScreen.php:422
 msgid "State"
 msgstr "Zustand"
 
-#: src/Ops/OpsScreen.php:365
+#: src/Ops/OpsScreen.php:422
 msgid "Version found / required"
 msgstr "Gefundene / benötigte Version"
 
-#: src/Ops/OpsScreen.php:365
+#: src/Ops/OpsScreen.php:422
 msgid "Contract"
 msgstr "Vertrag"
 
-#: src/Ops/OpsScreen.php:365
+#: src/Ops/OpsScreen.php:422
 msgid "Privacy class"
 msgstr "Datenschutzklasse"
 
-#: src/Ops/OpsScreen.php:369
+#: src/Ops/OpsScreen.php:426
 msgid "No personal data. Course Captain only checks version and contract."
 msgstr "Keine personenbezogenen Daten. Course Captain prüft nur Version und Vertrag."
 
-#: src/Ops/OpsScreen.php:380
+#: src/Ops/OpsScreen.php:437
 msgid "The diagnostics package helps the technical operator or the Course Captain support without an account on this site. It contains versions, settings of the environment, check results, failed jobs and imports with error codes."
 msgstr "Das Diagnosepaket hilft dem technischen Betrieb oder dem Course-Captain-Support ohne Konto auf dieser Website. Es enthält Versionen, Umgebungseinstellungen, Prüfergebnisse, fehlgeschlagene Aufgaben und Importe mit Fehlercodes."
 
-#: src/Ops/OpsScreen.php:381
+#: src/Ops/OpsScreen.php:438
 msgid "Never included: names, email addresses, logins, user IDs, IP addresses, answers, course contents, audit entries, secrets, tokens, file paths and the domain in plain text. Error messages are redacted."
 msgstr "Niemals enthalten: Namen, E-Mail-Adressen, Logins, Benutzer-IDs, IP-Adressen, Antworten, Kursinhalte, Protokolleinträge, Geheimnisse, Tokens, Dateipfade und die Domain im Klartext. Fehlermeldungen werden geschwärzt."
 
-#: src/Ops/OpsScreen.php:382
+#: src/Ops/OpsScreen.php:439
 msgid "Download diagnostics package"
 msgstr "Diagnosepaket herunterladen"
 
-#: src/Ops/OpsScreen.php:399
+#: src/Ops/OpsScreen.php:456
 msgid "User ID (optional)"
 msgstr "Benutzer-ID (optional)"
 
-#: src/Ops/OpsScreen.php:399
+#: src/Ops/OpsScreen.php:456
 msgid "Course ID (optional)"
 msgstr "Kurs-ID (optional)"
 
-#: src/Ops/OpsScreen.php:402
+#: src/Ops/OpsScreen.php:459
 msgid "Reason (required, at least 10 characters)"
 msgstr "Grund (Pflicht, mindestens 10 Zeichen)"
 
-#: src/Ops/OpsScreen.php:402
+#: src/Ops/OpsScreen.php:459
 msgid "Ticket number and cause. No health data, passwords or payment data."
 msgstr "Ticketnummer und Ursache. Keine Gesundheitsdaten, Passwörter oder Zahlungsdaten."
 
-#: src/Ops/OpsScreen.php:405
+#: src/Ops/OpsScreen.php:462
 msgid "I have read the effect and want to continue."
 msgstr "Ich habe die Auswirkung gelesen und möchte fortfahren."
 
@@ -6051,83 +6106,237 @@ msgid_plural "%s partner plugins detected; no data exchange in the free edition.
 msgstr[0] "%s Partner-Plugin erkannt; kein Datenaustausch in der kostenlosen Ausgabe."
 msgstr[1] "%s Partner-Plugins erkannt; kein Datenaustausch in der kostenlosen Ausgabe."
 
-#: src/Ops/RestoreCheck.php:73
-msgid "The folder secret is missing: restore the options table together with the files."
-msgstr "Das Ordnergeheimnis fehlt: Stelle die Optionstabelle zusammen mit den Dateien wieder her."
+#: src/Ops/RestoreCheck.php:117
+msgid "The schema version is missing: restore the options table together with the tables."
+msgstr "Die Schemaversion fehlt: Stelle die Optionstabelle zusammen mit den Tabellen wieder her."
 
-#: src/Ops/RestoreCheck.php:74
+#. translators: 1: stored schema version, 2: schema version of the code
+#: src/Ops/RestoreCheck.php:121
+#, php-format
+msgid "The database schema (%1$s) is newer than this plugin version (%2$s): install the matching plugin version."
+msgstr "Das Datenbankschema (%1$s) ist neuer als diese Plugin-Version (%2$s): Installiere die passende Plugin-Version."
+
+#: src/Ops/RestoreCheck.php:124
+msgid "A data backfill of the database update is still open."
+msgstr "Eine Datennachbearbeitung des Datenbank-Updates ist noch offen."
+
+#. translators: %s: migration state, e.g. "pending"
+#: src/Ops/RestoreCheck.php:128
+#, php-format
+msgid "A database update is due (state: %s). Run \"wp course-captain migrate\"."
+msgstr "Ein Datenbank-Update ist fällig (Zustand: %s). Führe „wp course-captain migrate“ aus."
+
+#. translators: %s: schema version
+#: src/Ops/RestoreCheck.php:131
+#, php-format
+msgid "The database schema %s matches this plugin version."
+msgstr "Das Datenbankschema %s passt zu dieser Plugin-Version."
+
+#: src/Ops/RestoreCheck.php:150
+msgid "All Course Captain tables exist and use InnoDB."
+msgstr "Alle Course-Captain-Tabellen sind vorhanden und nutzen InnoDB."
+
+#: src/Ops/RestoreCheck.php:152
+msgid "Course Captain tables are missing or do not use InnoDB: restore the complete database."
+msgstr "Course-Captain-Tabellen fehlen oder nutzen nicht InnoDB: Stelle die vollständige Datenbank wieder her."
+
+#: src/Ops/RestoreCheck.php:174
+msgid "All foreign keys are in place."
+msgstr "Alle Fremdschlüssel sind vorhanden."
+
+#. translators: 1: number of foreign keys found, 2: number expected
+#: src/Ops/RestoreCheck.php:177
+#, php-format
+msgid "%1$d of %2$d foreign keys are in place. Course Captain works without them; run \"wp course-captain migrate\" to add them again."
+msgstr "%1$d von %2$d Fremdschlüsseln sind vorhanden. Course Captain funktioniert auch ohne sie; führe „wp course-captain migrate“ aus, um sie wieder anzulegen."
+
+#: src/Ops/RestoreCheck.php:191
+msgid "The folder secret is missing."
+msgstr "Das Ordnergeheimnis fehlt."
+
+#: src/Ops/RestoreCheck.php:195
+msgid "The installation UUID is not readable."
+msgstr "Die Installations-UUID ist nicht lesbar."
+
+#: src/Ops/RestoreCheck.php:198
+msgid "Options are missing: restore the options table together with the files."
+msgstr "Optionen fehlen: Stelle die Optionstabelle zusammen mit den Dateien wieder her."
+
+#: src/Ops/RestoreCheck.php:201
 msgid "The folder secret is present."
 msgstr "Das Ordnergeheimnis ist vorhanden."
 
-#: src/Ops/RestoreCheck.php:87
+#: src/Ops/RestoreCheck.php:201
+msgid "No installation UUID is recorded (not created by this version)."
+msgstr "Es ist keine Installations-UUID gespeichert (wird von dieser Version nicht angelegt)."
+
+#: src/Ops/RestoreCheck.php:203
+msgid "The folder secret and the installation UUID are present."
+msgstr "Ordnergeheimnis und Installations-UUID sind vorhanden."
+
+#: src/Ops/RestoreCheck.php:216
 msgid "The configured private folder is missing or not readable."
 msgstr "Der eingestellte private Ordner fehlt oder ist nicht lesbar."
 
-#: src/Ops/RestoreCheck.php:104
+#: src/Ops/RestoreCheck.php:233
 msgid "The storage folder does not exist yet."
 msgstr "Der Ablageordner existiert noch nicht."
 
 #. translators: %s: masked folder names
-#: src/Ops/RestoreCheck.php:123
+#: src/Ops/RestoreCheck.php:252
 #, php-format
 msgid "Folders of another installation found (left in place): %s"
 msgstr "Ordner einer anderen Installation gefunden (nicht verändert): %s"
 
 #. translators: %s: storage classes, e.g. "protected, packages"
-#: src/Ops/RestoreCheck.php:128
+#: src/Ops/RestoreCheck.php:257
 #, php-format
 msgid "Storage folders missing: %s"
 msgstr "Fehlende Ablageordner: %s"
 
-#: src/Ops/RestoreCheck.php:132
+#: src/Ops/RestoreCheck.php:261
 msgid "The private folder lies outside the WordPress folder: include it in the backup."
 msgstr "Der private Ordner liegt außerhalb des WordPress-Ordners: Nimm ihn in die Sicherung auf."
 
-#: src/Ops/RestoreCheck.php:134
+#: src/Ops/RestoreCheck.php:263
 msgid "The storage folders are in place."
 msgstr "Die Ablageordner sind vorhanden."
 
-#: src/Ops/RestoreCheck.php:134
+#: src/Ops/RestoreCheck.php:263
 msgid "The storage folders need attention."
 msgstr "Die Ablageordner brauchen Aufmerksamkeit."
 
-#: src/Ops/RestoreCheck.php:165
-msgid "All protected files are present."
-msgstr "Alle geschützten Dateien sind vorhanden."
+#: src/Ops/RestoreCheck.php:276
+msgid "The import tables are missing."
+msgstr "Die Import-Tabellen fehlen."
+
+#: src/Ops/RestoreCheck.php:280
+msgid "No imported package is in use."
+msgstr "Es ist kein importiertes Paket in Verwendung."
+
+#: src/Ops/RestoreCheck.php:295
+msgid "Imported content has no published import (active package missing): restore the import tables completely."
+msgstr "Importierte Inhalte haben keinen veröffentlichten Import (aktives Paket fehlt): Stelle die Import-Tabellen vollständig wieder her."
+
+#: src/Ops/RestoreCheck.php:298
+msgid "The package copy of the active import is missing: a content rollback is not possible."
+msgstr "Die Paketkopie des aktiven Imports fehlt: Ein Rollback der Inhalte ist nicht möglich."
+
+#: src/Ops/RestoreCheck.php:300
+msgid "The active package and its package copy are present."
+msgstr "Das aktive Paket und seine Paketkopie sind vorhanden."
 
 #. translators: %d: number of files
-#: src/Ops/RestoreCheck.php:168
+#: src/Ops/RestoreCheck.php:341
 #, php-format
 msgid "%d protected file is missing."
 msgid_plural "%d protected files are missing."
 msgstr[0] "%d geschützte Datei fehlt."
 msgstr[1] "%d geschützte Dateien fehlen."
 
-#: src/Ops/StorageSelfTest.php:131
+#. translators: %s: media UID
+#: src/Ops/RestoreCheck.php:352
+#, php-format
+msgid "%s: size or SHA-256 differs"
+msgstr "%s: Größe oder SHA-256 weicht ab"
+
+#. translators: %s: path inside the protected folder (without the folder secret)
+#: src/Ops/RestoreCheck.php:358
+#, php-format
+msgid "Unreferenced: %s"
+msgstr "Nicht referenziert: %s"
+
+#. translators: %d: number of files checked
+#: src/Ops/RestoreCheck.php:363
+#, php-format
+msgid "All protected files are present; %d file checked for size and SHA-256."
+msgid_plural "All protected files are present; %d files checked for size and SHA-256."
+msgstr[0] "Alle geschützten Dateien sind vorhanden; %d Datei auf Größe und SHA-256 geprüft."
+msgstr[1] "Alle geschützten Dateien sind vorhanden; %d Dateien auf Größe und SHA-256 geprüft."
+
+#: src/Ops/RestoreCheck.php:365
+msgid "Protected files differ from the database or are not referenced."
+msgstr "Geschützte Dateien weichen von der Datenbank ab oder sind nicht referenziert."
+
+#. translators: %s: grant UID
+#: src/Ops/RestoreCheck.php:417
+#, php-format
+msgid "grant:%s without user account"
+msgstr "grant:%s ohne Benutzerkonto"
+
+#. translators: 1: grant UID, 2: reason code
+#: src/Ops/RestoreCheck.php:425
+#, php-format
+msgid "grant:%1$s access check says no (%2$s)"
+msgstr "grant:%1$s Zugriffsprüfung verneint (%2$s)"
+
+#. translators: %d: number of grants checked
+#: src/Ops/RestoreCheck.php:430
+#, php-format
+msgid "%d active grant checked: access confirmed."
+msgid_plural "%d active grants checked: access confirmed."
+msgstr[0] "%d aktiver Zugang geprüft: Zugriff bestätigt."
+msgstr[1] "%d aktive Zugänge geprüft: Zugriff bestätigt."
+
+#: src/Ops/RestoreCheck.php:432
+msgid "Active grants do not give access or have no user account."
+msgstr "Aktive Zugänge gewähren keinen Zugriff oder haben kein Benutzerkonto."
+
+#: src/Ops/RestoreCheck.php:449
+msgid "No interrupted imports, overdue exams or stale deliveries."
+msgstr "Keine unterbrochenen Importe, überfälligen Prüfungen oder hängenden Zustellungen."
+
+#: src/Ops/RestoreCheck.php:451
+msgid "Interrupted jobs from the time of the backup: imports without heartbeat, exams past their deadline or deliveries with an expired lease. The maintenance run takes them over; resume or discard imports in the import screen."
+msgstr "Unterbrochene Vorgänge aus der Zeit der Sicherung: Importe ohne Lebenszeichen, Prüfungen nach ihrer Frist oder Zustellungen mit abgelaufener Lease. Der Wartungslauf übernimmt sie; setze Importe in der Import-Ansicht fort oder verwirf sie."
+
+#: src/Ops/RestoreCheck.php:462
+msgid "The site identity could not be compared because the private folder is missing."
+msgstr "Die Website-Identität konnte nicht verglichen werden, weil der private Ordner fehlt."
+
+#: src/Ops/RestoreCheck.php:466
+msgid "The site identity is not recorded yet."
+msgstr "Die Website-Identität ist noch nicht gespeichert."
+
+#: src/Ops/RestoreCheck.php:468
+msgid "The site identity differs: hold mode is active, messages are held. Confirm the identity in the system status or with \"wp course-captain identity\"."
+msgstr "Die Website-Identität weicht ab: Der Haltemodus ist aktiv, Nachrichten werden zurückgehalten. Bestätige die Identität im Systemstatus oder mit „wp course-captain identity“."
+
+#: src/Ops/StorageSelfTest.php:172
 msgid "Protected course files can be downloaded directly from the web server."
 msgstr "Geschützte Kursdateien können direkt vom Webserver heruntergeladen werden."
 
+#: src/Ops/StorageSelfTest.php:172
+msgid "The web server delivers script files from the Course Captain media folder."
+msgstr "Der Webserver liefert Skriptdateien aus dem Course-Captain-Medienordner aus."
+
 #. translators: %s: nginx configuration rule
-#: src/Ops/StorageSelfTest.php:133
+#: src/Ops/StorageSelfTest.php:174
 #, php-format
 msgid "Block direct access on the web server. For nginx add this rule: %s. Or set COURSE_CAPTAIN_PRIVATE_DIR to a folder outside the web root."
 msgstr "Sperre den Direktzugriff auf dem Webserver. Für nginx ergänze diese Regel: %s. Oder setze COURSE_CAPTAIN_PRIVATE_DIR auf einen Ordner außerhalb des Webroots."
 
-#: src/Ops/StorageSelfTest.php:137
+#. translators: %s: nginx configuration rule
+#: src/Ops/StorageSelfTest.php:177
+#, php-format
+msgid "Block scripts in the media folder on the web server. For nginx add this rule: %s."
+msgstr "Sperre Skripte im Medienordner auf dem Webserver. Für nginx ergänze diese Regel: %s."
+
+#: src/Ops/StorageSelfTest.php:182
 msgid "Course Captain could not check whether the protected folders are blocked on the web server."
 msgstr "Course Captain konnte nicht prüfen, ob die geschützten Ordner auf dem Webserver gesperrt sind."
 
 #. translators: %s: nginx configuration rule
-#: src/Ops/StorageSelfTest.php:139
+#: src/Ops/StorageSelfTest.php:184
 #, php-format
 msgid "Check the web server rules manually. For nginx the rule is: %s."
 msgstr "Prüfe die Regeln des Webservers von Hand. Für nginx lautet die Regel: %s."
 
-#: src/Ops/StorageSelfTest.php:143
+#: src/Ops/StorageSelfTest.php:188
 msgid "Protected course files are stored outside the web root (private)."
 msgstr "Geschützte Kursdateien liegen außerhalb des Webroots (privat)."
 
-#: src/Ops/StorageSelfTest.php:148
+#: src/Ops/StorageSelfTest.php:193
 msgid "Direct access to the protected folders is blocked."
 msgstr "Der Direktzugriff auf die geschützten Ordner ist gesperrt."
 
