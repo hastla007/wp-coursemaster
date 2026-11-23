@@ -125,12 +125,13 @@ final class Migrator implements MigrationRunner {
 	}
 
 	/**
-	 * Backfill steps of the core schema (none in schema 1.0.0).
+	 * Backfill steps of the core schema: split single partial-access
+	 * limits into one limit per kind (E-332).
 	 *
 	 * @return list<BackfillStep>
 	 */
 	public static function core_backfills(): array {
-		return array();
+		return array( new \CourseCaptain\Access\AccessRuleKindsBackfill() );
 	}
 
 	/**

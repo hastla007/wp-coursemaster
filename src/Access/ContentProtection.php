@@ -106,7 +106,7 @@ final class ContentProtection {
 			$modules = $db->wpdb()->get_col( $db->prepare( 'SELECT module_id FROM `' . $db->table( 'ccap_course_module' ) . '` WHERE course_id = %d ORDER BY sort_order', $course ) );
 			$gate    = ContentGate::current();
 			foreach ( array_merge( array( 0 ), array_map( 'intval', $modules ) ) as $module ) {
-				if ( $gate->module( Actor::user( $user_id ), $course, $module )->allowed() ) {
+				if ( $gate->module( Actor::user( $user_id ), $course, $module, 'view', null )->allowed() ) {
 					$locked = false;
 					break;
 				}

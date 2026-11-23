@@ -94,6 +94,7 @@ final class QuestionPresenter {
 		$module_id = (int) wp_get_post_parent_id( $lesson_id );
 		ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
 		$revision = $this->inline_revision( $lesson_id, $question_id );
+		$this->assert_card( $actor, $course_id, $lesson_id, $question_id, $revision );
 		$this->assert_not_in_running_exam( $actor->user_id, $question_id );
 		$uid      = (string) $this->db->scalar( $this->db->prepare( 'SELECT uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
 		$delivery = QuestionTypes::deliver( $revision, $randomizer ?? Randomizer::fresh(), $uid );
@@ -111,6 +112,26 @@ final class QuestionPresenter {
 			'question' => $delivery['payload'] + array( 'uid' => $uid ),
 			'token'    => self::sign( $claims ),
 		);
+	}
+
+	/**
+	 * Partial access for flashcards (GM-062, AR-06): only the first *n*
+	 * cards of a deck with the question limit (E-332); a locked card is
+	 * never delivered, so its back side stays hidden.
+	 *
+	 * @param Actor                $actor     Learner.
+	 * @param int                  $course_id Course.
+	 * @param int                  $lesson_id Deck lesson.
+	 * @param int                  $question  Card.
+	 * @param array<string, mixed> $revision  Current revision.
+	 * @return void
+	 * @throws CourseException `ccap_content_locked` (trial).
+	 */
+	private function assert_card( Actor $actor, int $course_id, int $lesson_id, int $question, array $revision ): void {
+		if ( QuestionTypes::FLASHCARD !== ( $revision['question_type'] ?? '' ) ) {
+			return;
+		}
+		ContentGate::current()->card( $actor, $course_id, $lesson_id, $question, $this->inline_questions( $lesson_id ) )->assert();
 	}
 
 	/**
@@ -145,7 +166,7 @@ final class QuestionPresenter {
 		$gate = ContentGate::current();
 		if ( $claims['a'] > 0 ) {
 			$gate->lesson( $actor, $claims['c'], $claims['a'] )->assert();
-			$this->inline_revision( $claims['a'], $claims['q'] );
+			$this->assert_card( $actor, $claims['c'], $claims['a'], $claims['q'], $this->inline_revision( $claims['a'], $claims['q'] ) );
 		} else {
 			$gate->module( $actor, $claims['c'], $claims['m'] )->assert();
 			$this->deliverable_revision( $claims['m'], $claims['q'] );

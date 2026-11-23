@@ -51,8 +51,8 @@ Ergebnis 17.11.2026: dreimal hintereinander `live-smoke: OK` (Tabellen danach en
 
 | Nr. | Befund | Wirkung / Vorschlag |
 |---|---|---|
-| F-1 | Prüfungsteile entstehen je Blueprint-Modul (`section` = Modul). Teil P2 aus R0-05 §2.4 (M-A2 + M-A3 ≥ 18/23) ist nicht abbildbar; ER-A prüft deshalb Gesamtquote und P1 | Abweichung nach §5.1 freigeben oder Teile über mehrere Module ermöglichen (R1-08/R1-09); Referenzlauf GM-029…GM-031 berücksichtigen |
-| F-2 | `free_limited` kennt **eine** Grenze je Kurs/Modul für Fragen, Lektionen, Bögen und Dateien; AR-02/03/06/07 mit unterschiedlichen Zahlen schließen sich aus (die größte gilt) | Fixture setzt die Regeln einzeln je Test; Abweichung freigeben oder Bereichsgrenzen einführen (R1-13/R1-14) |
+| F-1 | Prüfungsteile entstehen je Blueprint-Modul (`section` = Modul). Teil P2 aus R0-05 §2.4 (M-A2 + M-A3 ≥ 18/23) ist nicht abbildbar; ER-A prüft deshalb Gesamtquote und P1 | Abweichung nach §5.1 freigeben oder Teile über mehrere Module ermöglichen (R1-08/R1-09); Referenzlauf GM-029…GM-031 berücksichtigen. **Behoben** nach Beschluss E-331 (Teile über Modulgruppen, ER-A mit P2), siehe `R1-18-gm-nachtrag-g6.md` |
+| F-2 | `free_limited` kennt **eine** Grenze je Kurs/Modul für Fragen, Lektionen, Bögen und Dateien; AR-02/03/06/07 mit unterschiedlichen Zahlen schließen sich aus (die größte gilt) | Fixture setzt die Regeln einzeln je Test; Abweichung freigeben oder Bereichsgrenzen einführen (R1-13/R1-14). **Behoben** nach Beschluss E-332 (eigene Grenze je Art, Migration der Einzelgrenze), siehe `R1-18-gm-nachtrag-g6.md` |
 | F-3 | Antworten eines Lektionsquiz speisen den Fortschritt des Quiz-Providers (`answered`) nicht; ein Quiz schließt die Lektion nicht ab (GM-010) | Lücke R1-07/R1-10 |
 | F-4 | Offene Fragen sind im Prüfungsraum ohne JavaScript nicht beantwortbar (kein Aufdecken/Selbsteinschätzung im Formular); sie zählen sonst als unbeantwortet | Lücke R1-16 (auch A11Y-Flows); E2E nutzt die Prüfungs-API |
 | F-5 | Kein Import für Medien, Blueprints und Karteikarten; PKG-v1 enthält Q-A3-011 (Entwurf) nicht; `package_id` wird aus dem Inhalt gebildet (`cc-fx-neutral-v1-<sha12>`), nicht `…-000000000001` | GM-064, GM-118 (Zählungen), GM-120 (Kartenteil), GM-125/GM-128 (Medien) bleiben teilweise/offen |
@@ -111,7 +111,7 @@ phpcs 0 Fehler (1 bekannte Warnung `ImportTest.php`, durch zwei Docblock-Zeilen 
 | GM-012 | Test | `ActivityTest.php::test_GM_008_012_013_014_video_view` |
 | GM-013 | Test | `ActivityTest.php::test_GM_008_012_013_014_video_view` |
 | GM-014 | Test | `ActivityTest.php::test_GM_008_012_013_014_video_view` |
-| GM-015 | Test (teilweise) | `GoldenMasterTest.php::test_GM_015_downloads`, `ContentGateTest.php::test_protected_files` – AR-07 is an on-demand rule; Course Captain has one free_limited limit for every area. |
+| GM-015 | Test | `GoldenMasterTest.php::test_E332_GM_082_015_062_kind_limits_at_once`, `GoldenMasterTest.php::test_GM_015_downloads`, `ContentGateTest.php::test_protected_files` |
 | GM-016 | Test | `ContentGateTest.php::test_protected_files` |
 | GM-017 | Test | `QuestionBankTest.php::test_GM_017_024_025_delivery_and_token`, `QuestionTypesTest.php::test_GM_017_GM_026_delivery_and_distribution` |
 | GM-018 | Test | `ExamTest.php::test_GM_018_learning_answer_idempotent` |
@@ -125,9 +125,9 @@ phpcs 0 Fehler (1 bekannte Warnung `ImportTest.php`, durch zwei Docblock-Zeilen 
 | GM-026 | Test | `QuestionTypesTest.php::test_GM_017_GM_026_delivery_and_distribution` |
 | GM-027 | Test | `ExamTest.php::test_GM_027_028_029_start_resume_and_composition`, `live-smoke.js::exam started, answered, reloaded and submitted` |
 | GM-028 | Test | `GoldenMasterTest.php::test_GM_028_029_er_a`, `ExamTest.php::test_GM_027_028_029_start_resume_and_composition`, `live-smoke.js::exam started, answered, reloaded and submitted` |
-| GM-029 | Test (teilweise) | `GoldenMasterTest.php::test_GM_028_029_er_a`, `ExamTest.php::test_GM_027_028_029_start_resume_and_composition` – Part P2 (M-A2 + M-A3 ≥ 18/23) has no counterpart: one section per blueprint module (finding). |
-| GM-030 | Test | `GoldenMasterTest.php::test_GM_030` |
-| GM-031 | Test | `GoldenMasterTest.php::test_GM_031` |
+| GM-029 | Test | `GoldenMasterTest.php::test_GM_028_029_er_a`, `GoldenMasterTest.php::test_GM_029_parts_over_module_groups`, `GoldenMasterTest.php::test_E331_part_contract_and_validator`, `ExamTest.php::test_GM_027_028_029_start_resume_and_composition` |
+| GM-030 | Test | `GoldenMasterTest.php::test_GM_030`, `GoldenMasterTest.php::test_GM_030_part_p2_over_module_group` |
+| GM-031 | Test | `GoldenMasterTest.php::test_GM_031`, `GoldenMasterTest.php::test_GM_031_snapshot_parts_take_precedence` |
 | GM-032 | Test | `ExamTest.php::test_GM_032_033_reduced_practice_draft` |
 | GM-033 | Test | `GoldenMasterTest.php::test_GM_033`, `ExamTest.php::test_GM_032_033_reduced_practice_draft` |
 | GM-034 | Test | `ExamTest.php::test_GM_034_variant` |
@@ -158,7 +158,7 @@ phpcs 0 Fehler (1 bekannte Warnung `ImportTest.php`, durch zwei Docblock-Zeilen 
 | GM-059 | Test | `LearningListsTest.php::test_GM_055_060_favorites_and_collections` |
 | GM-060 | Test | `LearningListsTest.php::test_GM_055_060_favorites_and_collections` |
 | GM-061 | open | R1-28: 409 `ccap_request_in_progress` / `ccap_idempotency_key_reused` exist only for assignments and certificates, not for learning answers; orphaned entries after 5 min untested. |
-| GM-062 | Test | `GoldenMasterTest.php::test_GM_062_063_flashcards`, `LearningListsTest.php::test_GM_062_self_assessment` |
+| GM-062 | Test | `GoldenMasterTest.php::test_E332_GM_082_015_062_kind_limits_at_once`, `GoldenMasterTest.php::test_GM_062_063_flashcards`, `LearningListsTest.php::test_GM_062_self_assessment` |
 | GM-063 | Test | `GoldenMasterTest.php::test_GM_062_063_flashcards`, `LearningListsTest.php::test_GM_063_streak` |
 | GM-064 | open | R1-15/R1-41: No flashcard import (the runner imports courses, modules, lessons, questions), so a card removed from a package cannot become `source_archived`. |
 | GM-065 | Test | `SmartTrainerTest.php::test_GM_065_order` |
@@ -178,7 +178,7 @@ phpcs 0 Fehler (1 bekannte Warnung `ImportTest.php`, durch zwei Docblock-Zeilen 
 | GM-079 | open | R1-10/R1-03: Progress report per course for authorised roles (U-TUT only C-A) untested. |
 | GM-080 | Test (teilweise) | `SchemaTest.php::test_GM_163_activation_creates_complete_schema` – Generic schema completeness check (includes `due_at`). |
 | GM-081 | Test | `GoldenMasterTest.php::test_GM_081` |
-| GM-082 | Test (teilweise) | `GoldenMasterTest.php::test_GM_082` – One limit for questions, lessons and variants (AR-02 = AR-03). |
+| GM-082 | Test | `GoldenMasterTest.php::test_GM_082`, `GoldenMasterTest.php::test_E332_GM_082_015_062_kind_limits_at_once`, `GoldenMasterTest.php::test_E332_legacy_single_limit_migration` |
 | GM-083 | Test | `GoldenMasterTest.php::test_GM_048_083_drip` |
 | GM-084 | Test | `AccessTest.php::test_GRANT_012_chain_and_restack` |
 | GM-085 | Test | `AccessTest.php::test_GRANT_010_no_access_change_with_second_source` |

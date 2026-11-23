@@ -74,6 +74,25 @@ final class ExamFeedback {
 		}
 		$out['questions']         = $items;
 		$out['solutions_visible'] = $reveal;
+		// Part results (E-331): pass/fail and counts per part; points only with `show_score`.
+		$parts = array();
+		foreach ( (array) ( $result['parts'] ?? array() ) as $part ) {
+			$part = (array) $part;
+			$item = array(
+				'key'     => (string) ( $part['key'] ?? '' ),
+				'label'   => isset( $part['label'] ) ? (string) $part['label'] : null,
+				'passed'  => ! empty( $part['passed'] ),
+				'empty'   => ! empty( $part['empty'] ),
+				'correct' => (int) ( $part['correct'] ?? 0 ),
+				'total'   => (int) ( $part['total'] ?? 0 ),
+			);
+			if ( $score ) {
+				$item['points_milli']     = (int) ( $part['points'] ?? 0 );
+				$item['max_points_milli'] = (int) ( $part['max'] ?? 0 );
+			}
+			$parts[] = $item;
+		}
+		$out['parts'] = $parts;
 		return $out;
 	}
 }

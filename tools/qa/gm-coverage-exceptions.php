@@ -58,12 +58,9 @@ return array(
 		'GM-190' => array( 'open', 'R1-24 (E-16)', 'FAQ cache/REST/gate block not implemented.' ),
 	),
 	'partial'    => array(
-		'GM-015' => 'AR-07 is an on-demand rule; Course Captain has one free_limited limit for every area.',
-		'GM-029' => 'Part P2 (M-A2 + M-A3 ≥ 18/23) has no counterpart: one section per blueprint module (finding).',
 		'GM-038' => 'REST save with age_ms; 422 reason `ccap_exam_expired` over REST not asserted.',
 		'GM-045' => 'Code `ccap_exam_start_busy` (409) instead of `ccap_busy_retry` (422).',
 		'GM-080' => 'Generic schema completeness check (includes `due_at`).',
-		'GM-082' => 'One limit for questions, lessons and variants (AR-02 = AR-03).',
 		'GM-118' => 'Path and state machine on PKG-v2; manifest counts differ from R0-05 (no media/blueprint/flashcard import, no draft Q-A3-011 in PKG-v1).',
 		'GM-120' => 'Question part only; card archive (FC-A-08) needs flashcard import (GM-064).',
 		'GM-125' => 'Chunked steps; no media step (no media import).',

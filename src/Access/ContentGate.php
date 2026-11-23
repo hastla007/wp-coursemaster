@@ -22,9 +22,12 @@ defined( 'ABSPATH' ) || exit;
  * Evaluated on every read and write, first matching lock wins:
  *
  * 1. module access (E-27/E-286; grant, `free` rule) → `no_access`;
- *    without access, a `free_limited` rule grants partial access;
+ *    without access, a `free_limited` rule of the requested kind grants
+ *    partial access;
  * 2. partial access: only the first *n* elements per section (revision
- *    order) → `trial`;
+ *    order) → `trial`; each kind has its own limit (E-332,
+ *    {@see TrialLimits}): questions and flashcards per module, lessons
+ *    per module, fixed variants and files of the course;
  * 3. drip: module unlocks *d* days after the access start (max of the
  *    rules; start = earliest active grant, else registration) → `drip`;
  * 4. prerequisites (`completed_module`, `completed_activity`,
@@ -78,13 +81,18 @@ final class ContentGate {
 	/**
 	 * Gate of a module.
 	 *
-	 * @param Actor  $actor     Learner.
-	 * @param int    $course_id Course.
-	 * @param int    $module_id Module.
-	 * @param string $scope     view|download|exam.
+	 * The partial-access limit returned in `limit` is the one of `$kind`
+	 * (E-332); `null` accepts a rule of any kind (course room, access
+	 * state) and returns the largest limit.
+	 *
+	 * @param Actor       $actor     Learner.
+	 * @param int         $course_id Course.
+	 * @param int         $module_id Module.
+	 * @param string      $scope     view|download|exam.
+	 * @param string|null $kind      TrialLimits kind or null (any).
 	 * @return GateDecision
 	 */
-	public function module( Actor $actor, int $course_id, int $module_id, string $scope = 'view' ): GateDecision {
+	public function module( Actor $actor, int $course_id, int $module_id, string $scope = 'view', ?string $kind = TrialLimits::QUESTIONS ): GateDecision {
 		$decision = $this->policy->decide(
 			$actor,
 			PolicyService::LEARN,
@@ -97,7 +105,7 @@ final class ContentGate {
 		$refs     = array();
 		$limit    = null;
 		if ( ! $decision->allowed ) {
-			$trial = 'view' === $scope && Decision::CONTENT_LOCKED === $decision->code ? $this->limited_rule( $course_id, $module_id ) : null;
+			$trial = 'view' === $scope && Decision::CONTENT_LOCKED === $decision->code ? $this->limited_rule( $course_id, $module_id, $kind ) : null;
 			if ( null === $trial ) {
 				return GateDecision::locked( 'no_access', array(), null, array(), $decision );
 			}
@@ -126,7 +134,7 @@ final class ContentGate {
 	 */
 	public function lesson( Actor $actor, int $course_id, int $lesson_id, string $scope = 'view' ): GateDecision {
 		$module = (int) wp_get_post_parent_id( $lesson_id );
-		$gate   = $this->module( $actor, $course_id, $module, $scope );
+		$gate   = $this->module( $actor, $course_id, $module, $scope, TrialLimits::LESSONS );
 		if ( ! $gate->allowed() ) {
 			return $gate;
 		}
@@ -171,6 +179,35 @@ final class ContentGate {
 	}
 
 	/**
+	 * Gate of a flashcard of a deck lesson (GM-062, AR-06): the lesson gate,
+	 * and under partial access only the first *n* cards of the deck with
+	 * the question limit (flashcards are questions, E-332).
+	 *
+	 * @param Actor $actor     Learner.
+	 * @param int   $course_id Course.
+	 * @param int   $lesson_id Deck lesson.
+	 * @param int   $question  Card (question).
+	 * @param array $cards     Cards of the deck in order.
+	 * @phpstan-param list<int> $cards
+	 * @return GateDecision
+	 */
+	public function card( Actor $actor, int $course_id, int $lesson_id, int $question, array $cards ): GateDecision {
+		$gate = $this->lesson( $actor, $course_id, $lesson_id );
+		if ( ! $gate->allowed() || null === $gate->limit ) {
+			return $gate;
+		}
+		$limit = $this->module( $actor, $course_id, (int) wp_get_post_parent_id( $lesson_id ), 'view', TrialLimits::QUESTIONS );
+		if ( ! $limit->allowed() ) {
+			return GateDecision::locked( 'trial', $gate->rule_refs );
+		}
+		$position = array_search( $question, $cards, true );
+		if ( null !== $limit->limit && ( false === $position || $position >= $limit->limit ) ) {
+			return GateDecision::locked( 'trial', $limit->rule_refs );
+		}
+		return $gate;
+	}
+
+	/**
 	 * Gate of an exam over modules: all modules unlocked with scope `exam`
 	 * (E-286, drip); partial access allows fixed variants up to *n* only and
 	 * never random exams.
@@ -199,7 +236,7 @@ final class ContentGate {
 			// Partial access: only fixed variants within the limit.
 			$trial = array();
 			foreach ( $modules as $module ) {
-				$rule = $this->limited_rule( $course_id, (int) $module );
+				$rule = $this->limited_rule( $course_id, (int) $module, TrialLimits::VARIANTS );
 				if ( null === $rule ) {
 					return GateDecision::locked( 'no_access', array(), null, $locked, $first->policy );
 				}
@@ -232,7 +269,7 @@ final class ContentGate {
 		if ( $decision->allowed ) {
 			return GateDecision::unlocked();
 		}
-		$rule = Decision::CONTENT_LOCKED === $decision->code ? $this->limited_rule( $course_id, 0 ) : null;
+		$rule = Decision::CONTENT_LOCKED === $decision->code ? $this->limited_rule( $course_id, 0, TrialLimits::FILES ) : null;
 		if ( null === $rule ) {
 			return GateDecision::locked( 'no_access', array(), null, array(), $decision );
 		}
@@ -262,19 +299,26 @@ final class ContentGate {
 	}
 
 	/**
-	 * Active `free_limited` rule of course/module.
+	 * Active `free_limited` rule of course/module for a kind (E-332): rules
+	 * of that kind and legacy rules without a kind (`first_items`/NULL,
+	 * one limit for every kind); the largest limit wins.
 	 *
-	 * @param int $course_id Course.
-	 * @param int $module_id Module (0 = course).
+	 * @param int         $course_id Course.
+	 * @param int         $module_id Module (0 = course).
+	 * @param string|null $kind      TrialLimits kind or null (any).
 	 * @return array{id: int, n: int}|null
 	 */
-	private function limited_rule( int $course_id, int $module_id ): ?array {
-		$now = self::sql( self::now() );
-		$row = $this->db->row(
+	private function limited_rule( int $course_id, int $module_id, ?string $kind ): ?array {
+		$now  = self::sql( self::now() );
+		$kind = null !== $kind && isset( TrialLimits::KINDS[ $kind ] ) ? $kind : '';
+		$row  = $this->db->row(
 			$this->db->prepare(
-				'SELECT id, limit_value FROM `' . $this->db->table( 'ccap_access_rule' ) . "` WHERE course_id = %d AND access_type = 'free_limited' AND (module_id IS NULL OR module_id = 0 OR module_id = %d) AND (valid_from IS NULL OR valid_from <= %s) AND (valid_until IS NULL OR valid_until > %s) ORDER BY limit_value DESC, id LIMIT 1",
+				'SELECT id, limit_value FROM `' . $this->db->table( 'ccap_access_rule' ) . "` WHERE course_id = %d AND access_type = 'free_limited' AND (module_id IS NULL OR module_id = 0 OR module_id = %d) AND (%s = '' OR limit_type IS NULL OR limit_type = %s OR limit_type = %s) AND (valid_from IS NULL OR valid_from <= %s) AND (valid_until IS NULL OR valid_until > %s) ORDER BY limit_value DESC, id LIMIT 1",
 				$course_id,
 				$module_id,
+				$kind,
+				$kind,
+				TrialLimits::LEGACY,
 				$now,
 				$now
 			)

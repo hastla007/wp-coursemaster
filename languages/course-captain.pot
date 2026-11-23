@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
+"POT-Creation-Date: 2026-11-23T09:46:40+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -1825,7 +1825,7 @@ msgid "Learning"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:47
-#: src/Learner/ExamRoom.php:419
+#: src/Learner/ExamRoom.php:445
 msgid "Exams"
 msgstr ""
 
@@ -2453,6 +2453,7 @@ msgid "Strict"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:495
+#: src/Learner/LessonView.php:240
 msgid "Practice"
 msgstr ""
 
@@ -3723,6 +3724,7 @@ msgid "has successfully completed the course"
 msgstr ""
 
 #: src/Course/PostTypes.php:80
+#: src/Learner/LessonView.php:390
 msgid "Lessons"
 msgstr ""
 
@@ -4061,6 +4063,7 @@ msgid "Submit exam"
 msgstr ""
 
 #: src/Learner/ExamRoom.php:133
+#: src/Learner/LessonView.php:237
 msgid "Exam"
 msgstr ""
 
@@ -4164,162 +4167,321 @@ msgstr[1] ""
 msgid "Points: %1$s of %2$s"
 msgstr ""
 
+#: src/Learner/ExamRoom.php:356
+msgid "Exam parts"
+msgstr ""
+
+#. translators: %s: part name
+#: src/Learner/ExamRoom.php:364
+#, php-format
+msgid "%s: no questions in this attempt"
+msgstr ""
+
+#. translators: 1: part name, 2: correct answers, 3: number of questions, 4: "passed" or "not passed"
+#: src/Learner/ExamRoom.php:369
+#, php-format
+msgid "%1$s: %2$s of %3$s correct, %4$s"
+msgstr ""
+
+#: src/Learner/ExamRoom.php:373
+msgid "passed"
+msgstr ""
+
+#: src/Learner/ExamRoom.php:373
+msgid "not passed"
+msgstr ""
+
 #. translators: 1: question number, 2: "correct" or "incorrect"
-#: src/Learner/ExamRoom.php:358
+#: src/Learner/ExamRoom.php:384
 #, php-format
 msgid "Question %1$s: %2$s"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:360
+#: src/Learner/ExamRoom.php:386
 msgid "correct"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:360
+#: src/Learner/ExamRoom.php:386
 msgid "incorrect"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:364
+#: src/Learner/ExamRoom.php:390
 msgid "Back to my learning"
 msgstr ""
 
 #. translators: %s: exam version label
-#: src/Learner/ExamRoom.php:422
+#: src/Learner/ExamRoom.php:448
 #, php-format
 msgid "Exam %s"
 msgstr ""
 
 #. translators: %s: number of minutes
-#: src/Learner/ExamRoom.php:429
+#: src/Learner/ExamRoom.php:455
 #, php-format
 msgid "Time limit: %s minute"
 msgid_plural "Time limit: %s minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Learner/ExamRoom.php:435
+#: src/Learner/ExamRoom.php:461
 msgid "Continue exam"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:437
+#: src/Learner/ExamRoom.php:463
 msgid "Start exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:170
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:209
+#: src/Learner/LearningArea.php:235
+#: src/Learner/LearningArea.php:270
 msgid "My learning"
 msgstr ""
 
-#: src/Learner/LearningArea.php:188
+#: src/Learner/LearningArea.php:237
+msgid "This lesson is not available."
+msgstr ""
+
+#: src/Learner/LearningArea.php:237
 msgid "This course is not available."
 msgstr ""
 
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:270
 msgid "Skip to content"
 msgstr ""
 
-#: src/Learner/LearningArea.php:213
+#: src/Learner/LearningArea.php:282
 msgid "You are not enrolled in any course yet."
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 msgid "Progress:"
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 msgid "Course progress"
 msgstr ""
 
 #. translators: %s: percentage, e.g. "75 %"
-#: src/Learner/LearningArea.php:219
 #: src/Learner/LearningArea.php:288
+#: src/Learner/LearningArea.php:358
 #, php-format
 msgid "%s completed"
 msgstr ""
 
 #. translators: %s: lesson title
-#: src/Learner/LearningArea.php:221
+#: src/Learner/LearningArea.php:290
 #, php-format
 msgid "Continue: %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:238
+#: src/Learner/LearningArea.php:308
 msgid "Course contents"
 msgstr ""
 
 #. translators: %s: course
-#: src/Learner/LearningArea.php:290
+#: src/Learner/LearningArea.php:360
 #, php-format
 msgid "Open %s in the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:306
+#: src/Learner/LearningArea.php:376
 msgid "Go to the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:357
+#: src/Learner/LearningArea.php:427
 msgid "Access active"
 msgstr ""
 
-#: src/Learner/LearningArea.php:358
+#: src/Learner/LearningArea.php:428
 msgid "Partial access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:359
+#: src/Learner/LearningArea.php:429
 msgid "Access pending"
 msgstr ""
 
-#: src/Learner/LearningArea.php:360
+#: src/Learner/LearningArea.php:430
 msgid "Access suspended"
 msgstr ""
 
-#: src/Learner/LearningArea.php:361
+#: src/Learner/LearningArea.php:431
 msgid "Access expired"
 msgstr ""
 
-#: src/Learner/LearningArea.php:362
+#: src/Learner/LearningArea.php:432
 msgid "No access"
 msgstr ""
 
 #. translators: %s: date
-#: src/Learner/LearningArea.php:377
+#: src/Learner/LearningArea.php:447
 #, php-format
 msgid "Available from %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:380
+#: src/Learner/LearningArea.php:450
 msgid "Locked: no access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:381
+#: src/Learner/LearningArea.php:451
 msgid "Locked: not part of the preview"
 msgstr ""
 
-#: src/Learner/LearningArea.php:382
+#: src/Learner/LearningArea.php:452
 msgid "Locked: not yet released"
 msgstr ""
 
-#: src/Learner/LearningArea.php:383
+#: src/Learner/LearningArea.php:453
 msgid "Locked: complete the previous steps first"
 msgstr ""
 
-#: src/Learner/LearningArea.php:384
+#: src/Learner/LearningArea.php:454
 msgid "Locked during your running exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:386
+#: src/Learner/LearningArea.php:456
 msgid "Locked"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "completed"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "in progress"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "not started"
+msgstr ""
+
+#. translators: %s: course title
+#: src/Learner/LessonView.php:67
+#, php-format
+msgid "Back to the course: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Assignment"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Submitting the assignment is not available in the learning area yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:237
+msgid "Start the exam on the course page."
+msgstr ""
+
+#: src/Learner/LessonView.php:240
+msgid "This practice activity cannot be used on this page yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:253
+msgid "Video"
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:264
+#, php-format
+msgid "This video is hosted by %s and is only loaded after your consent."
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:274
+#, php-format
+msgid "Watch the video on %s (opens in a new tab)"
+msgstr ""
+
+#: src/Learner/LessonView.php:280
+msgid "The video is not available yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:287
+msgid "Subtitles"
+msgstr ""
+
+#: src/Learner/LessonView.php:289
+msgid "Download the video"
+msgstr ""
+
+#: src/Learner/LessonView.php:306
+msgid "Your progress"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: completed"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: not completed yet"
+msgstr ""
+
+#: src/Learner/LessonView.php:311
+msgid "Download the file"
+msgstr ""
+
+#: src/Learner/LessonView.php:318
+msgid "Mark as completed"
+msgstr ""
+
+#. translators: %s: number of minutes
+#: src/Learner/LessonView.php:328
+#, php-format
+msgid "You can mark this lesson as read after %s minute."
+msgid_plural "You can mark this lesson as read after %s minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Learner/LessonView.php:333
+msgid "Mark as read"
+msgstr ""
+
+#: src/Learner/LessonView.php:336
+msgid "This step is completed when you download the file."
+msgstr ""
+
+#: src/Learner/LessonView.php:339
+msgid "This step is completed when you have watched the video."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed with the exam."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed when your assignment has been graded."
+msgstr ""
+
+#: src/Learner/LessonView.php:346
+msgid "This step is completed automatically."
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:378
+#, php-format
+msgid "Previous: %s"
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:380
+#, php-format
+msgid "Next: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:401
+msgid "Lesson completed."
+msgstr ""
+
+#: src/Learner/LessonView.php:402
+msgid "Your progress has been saved."
+msgstr ""
+
+#: src/Learner/LessonView.php:403
+msgid "The download has been recorded."
+msgstr ""
+
+#: src/Learner/LessonView.php:409
+msgid "Please take a little more time with this lesson before you mark it as read."
 msgstr ""
 
 #: src/Notification/MailTemplates.php:195
@@ -5768,32 +5930,36 @@ msgstr ""
 msgid "All options of this multiple-choice question are correct."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:317
+#: src/Publish/CourseValidator.php:318
+msgid "A part of the pass rule is invalid. Each part needs at least one module and a pass mark between 0 and 100 %."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:320
 msgid "The pass mark of this exam is missing or invalid. Set a pass mark between 0 and 100 %."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:321
+#: src/Publish/CourseValidator.php:326
 msgid "The time limit must be between 1 second and 24 hours."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:326
+#: src/Publish/CourseValidator.php:331
 msgid "Grace and tolerance times must be between 0 and 600 seconds."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:333
+#: src/Publish/CourseValidator.php:338
 msgid "The exam draws from a module that is not part of this course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:337
+#: src/Publish/CourseValidator.php:342
 msgid "The exam must draw at least one question from each module."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:341
+#: src/Publish/CourseValidator.php:346
 msgid "The module has no deliverable questions for the exam."
 msgstr ""
 
 #. translators: 1: available questions, 2: required questions
-#: src/Publish/CourseValidator.php:357
+#: src/Publish/CourseValidator.php:362
 #, php-format
 msgid "Only %1$s of %2$s question is available in this module. Reduce the number or add questions."
 msgid_plural "Only %1$s of %2$s questions are available in this module. Reduce the number or add questions."
@@ -5801,32 +5967,42 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: variant number
-#: src/Publish/CourseValidator.php:368
+#: src/Publish/CourseValidator.php:373
 #, php-format
 msgid "Variant %d"
 msgstr ""
 
-#: src/Publish/CourseValidator.php:370
+#: src/Publish/CourseValidator.php:375
 msgid "The variant is empty or its positions have gaps."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:373
+#: src/Publish/CourseValidator.php:378
 msgid "The variant contains a question that cannot be delivered."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:396
+#. translators: %s: part key such as P2
+#: src/Publish/CourseValidator.php:418
+#, php-format
+msgid "Part %s refers to a module the exam does not draw from."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:436
+msgid "Some questions of this exam belong to no part and count only for the total."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:460
 msgid "A prerequisite points to a module of another course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:396
+#: src/Publish/CourseValidator.php:460
 msgid "A prerequisite points to a module that no longer exists."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:403
+#: src/Publish/CourseValidator.php:467
 msgid "A prerequisite points to an activity that is missing, archived or outside this course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:421
+#: src/Publish/CourseValidator.php:485
 msgid "The prerequisites form a cycle, so some modules can never be unlocked. Remove one prerequisite."
 msgstr ""
 
@@ -6212,7 +6388,7 @@ msgstr ""
 msgid "Invalid identifier."
 msgstr ""
 
-#: src/Storage/Migrator.php:271
+#: src/Storage/Migrator.php:272
 msgid "Course Captain is updating its database. Please try again in a few seconds."
 msgstr ""
 

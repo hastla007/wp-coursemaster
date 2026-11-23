@@ -350,6 +350,32 @@ final class ExamRoom {
 				)
 			) . '</p>';
 		}
+		$parts = (array) ( $result['parts'] ?? array() );
+		if ( array() !== $parts ) {
+			// Part results (E-331): a part may cover several modules.
+			$html .= '<h3>' . esc_html__( 'Exam parts', 'course-captain' ) . '</h3><ul class="ccap-result-parts">';
+			foreach ( $parts as $part ) {
+				$part  = (array) $part;
+				$name  = '' !== (string) ( $part['label'] ?? '' ) ? (string) $part['key'] . ' (' . (string) $part['label'] . ')' : (string) $part['key'];
+				$html .= '<li>' . esc_html(
+					! empty( $part['empty'] )
+						? sprintf(
+							/* translators: %s: part name */
+							__( '%s: no questions in this attempt', 'course-captain' ),
+							$name
+						)
+						: sprintf(
+							/* translators: 1: part name, 2: correct answers, 3: number of questions, 4: "passed" or "not passed" */
+							__( '%1$s: %2$s of %3$s correct, %4$s', 'course-captain' ),
+							$name,
+							number_format_i18n( (int) $part['correct'] ),
+							number_format_i18n( (int) $part['total'] ),
+							! empty( $part['passed'] ) ? __( 'passed', 'course-captain' ) : __( 'not passed', 'course-captain' )
+						)
+				) . '</li>';
+			}
+			$html .= '</ul>';
+		}
 		$html .= '<ol class="ccap-result-list">';
 		foreach ( (array) ( $result['questions'] ?? array() ) as $question ) {
 			$html .= '<li>' . esc_html(
