@@ -92,6 +92,7 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-336 | Redaktionelle Angleichung der R0-Dokumente an R0-19/R0-10 (23.11.2026): Monitor `GET /monitor` (Alias `/health`) mit Header `X-CC-Monitor-Key` (R0-13); `package_id` der Fixture-Pakete aus dem Inhalt gebildet (R0-05 §2.6); `ccap_access_exists` (409) und `ccap_user_required` (401) im Fehlerkatalog R0-19 §3 | nein |
 | E-337 (E-332) | Karteikarten zählen im kostenlosen Teilumfang als Fragen; keine eigene Kartengrenze (23.11.2026) | nein |
 | E-338 (GM-038/GM-150/GM-136) | R0-19 gilt für Statuscodes: abgelaufene Prüfung `410 ccap_exam_expired`, fehlender Antwortschlüssel `428 ccap_idempotency_key_required`; R0-05 angeglichen. GM-136 wird einmal lokal im Vollumfang (20 000 Fragen) gefahren, sonst gilt der skalierte Nachweis (23.11.2026) | nein |
+| E-339 (AG-05) | Einmalige, dokumentierte Abweichung von E-204: Für den ersten R1-Merge (PR hastla007/wp-coursemaster#3) zählt das Code-Review der Koordinations-Sitzung (KI) als zweites Review. Entscheidung der Inhaberin am 23.11.2026, im Chat bestätigt. Ab dem nächsten Merge gilt wieder das Vier-Augen-Prinzip mit menschlichem Reviewer (AG-05 bleibt offen) | nein |
 
 ### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
 
