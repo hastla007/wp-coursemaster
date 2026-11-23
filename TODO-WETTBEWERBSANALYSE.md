@@ -917,3 +917,20 @@ Dateiweise geprüft: Plugin-Bootstrap und Composer, `Plugin.php`, `AccessService
 - [ ] **LB-AUDIT-005 – R1/R3-Schnitt:** Generische Free-Kernfunktion nach R1; konkrete Woo-, Voucher- und Ticketadapter nach R3 gemäß bereits verbindlicher Reihenfolge. R1 muss standalone funktionieren.
 - [ ] **LB-AUDIT-006 – Golden Master:** Bestehende Integration-/E2E-/Importtests auf neutrale Fixtures abbilden, Regressionslücken und neue Tests für Zugänge, Seats, Medien, Privacy und Fehlerfälle schließen.
 - [ ] **LB-AUDIT-007 – Gate A:** R0 nicht abschließen, bevor alle Quellfunktionen codebasiert nachgewiesen und `unknown` aufgelöst sind; keine Aussage „100 % Parität“ allein aus der README.
+
+## Einstellungen für den Verkauf (Analyse vom 23.11.2026)
+
+Auftrag des Inhabers über die Lizenz-Sitzung (23.11.2026). Analyse: captain-pro `docs/settings/README.md` und `SETTINGS-course.md` (Stand Branch `claude/blissful-curie-tuuf7q` @ 1b662d1). Bereits entschieden: S1 Pro-Hinweis als graue, ausblendbare Hinweiszeile `{id, reiter, titel, text, link}` ohne Funktionscode im Kern; S2 Geschäftspolitik als Einstellung mit sicherer Vorgabe plus Filter (Filter gewinnt), technische Werte bleiben Konstanten; Länderprofile DE, AT, CH, EU, OTHER als Vorschlag mit Vorher/Nachher, nie still überschreiben, rechtlich gewichtige Werte „ungeprüft“ bis zur Freigabe; de_DE = „du“, de_DE_formal = „Sie“.
+
+- [ ] **SET-CC-01…29** – Aufgabenliste wird nach Eingang der Analyse-Datei hier vollständig übernommen (wartet auf Zusendung der Datei durch die Lizenz-Sitzung; Zugriff auf captain-pro besteht in dieser Sitzung nicht). Bereits in Arbeit und später gegen die Liste abzuhaken: Aufbewahrungsfristen als änderbare Vorgaben (Gruppe h8), Klick-zum-Laden für externe Videos (h9).
+
+## Prüfphase Einstellungen und neue Funktionen
+
+Auftrag des Inhabers (23.11.2026): sechs unabhängige Expertinnen/Experten prüfen am laufenden Plugin, schreiben jeden Befund als eigene Aufgabe (Schweregrad, Fundstelle, Nachstellung) und reparieren ihn mit Test. Eine Prüfaufgabe ist erledigt, wenn alle Befunde behoben oder begründet als „wartet auf Inhaber“ bzw. „Rechtsprüfung“ gekennzeichnet sind und die CI grün ist. Läuft nach jedem größeren Baustein und einmal am Ende über alle neuen Funktionen.
+
+- [ ] **SET-CC-P1 · Einstellungen und Daten** – Vorgabe, Prüfung, Speichern, Wirkung im Code (keine toten Werte, keine Registerfelder ohne Darstellung), Filter gewinnt, Migration ohne Verhaltensänderung, Export/Import-Rundlauf, Zurücksetzen, WP-CLI, Änderungsprotokoll, Multisite.
+- [ ] **SET-CC-P2 · Abläufe von Anfang bis Ende** – Einschreibung → Lernen → Prüfung → Zertifikat → Ablauf/Verlängerung mit geänderten Einstellungen (Grenzwerte, 0, leer, Maximum, widersprüchliche Kombinationen), Zeitzonen und Fristen über Mitternacht/Jahreswechsel, Wiederholungen/Doppelklicks, Rückwärtskompatibilität.
+- [ ] **SET-CC-P3 · Länder, Steuer und Recht** – Länderprofile DE/AT/CH/EU/OTHER (Vorschau, nichts still überschrieben, Formate), USt auf E-Learning, Zustimmung sofortiger Beginn/Widerruf, Altersgrenze, Pflichttexte, Fristen; kennzeichnet Rechtsprüfung, legt nichts Rechtliches fest.
+- [ ] **SET-CC-P4 · Sicherheit und Datenschutz** – Rechte und Nonces jeder Einstellungs-/Importaktion, Geheimnisse nie im Export/Protokoll, Ein-/Ausgaben, externe Videos, Aufbewahrung/Löschung/Auskunft mit neuen Fristen, Protokolle, Deinstallation.
+- [ ] **SET-CC-P5 · Bedienung, Sprache und Barrierefreiheit** – Hilfetext und Fehlermeldung an jedem Feld, Tastatur und Screenreader (auch Lernoberfläche, Untertitel), verständliche Sprache, de_DE „du“ und de_DE_formal „Sie“ vollständig, Hinweiszeilen unaufdringlich und ausblendbar, mobile Ansicht.
+- [ ] **SET-CC-P6 · Free/Pro-Grenze, Verträge und Betrieb** – kein Lizenzcode/keine Rechteschlüssel im Kern (Wächtertest), Hinweiszeile ohne Funktionscode, Andockpunkt für Add-on-Felder, Vertragsversion und Hook-Doku, Leistung, Mindestplattform und CI-Matrix, Aktualisierung von der Vorversion.
