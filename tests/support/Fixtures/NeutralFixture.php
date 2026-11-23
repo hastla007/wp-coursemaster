@@ -22,7 +22,6 @@ use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Roles;
 use CourseCaptain\Question\QuestionRepository;
-use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Storage\Database;
 
 /**
@@ -64,14 +63,19 @@ final class NeutralFixture {
 					if ( 2 === $version && 'A1-007' === $key ) {
 						$text .= ' (korrigiert)';
 					}
+					$revision = array(
+						'question_type' => $type,
+						'text_html'     => $text,
+						'settings'      => array(),
+					);
+					if ( 'A3-010' === $key ) {
+						// §2.3: rights unclear (GM-123, GM-127).
+						$revision['rights'] = array( 'status' => 'unknown' );
+					}
 					$questions[ $key ]  = PackageExporter::sealed(
 						array(
 							'source_id' => 'cc-fx-q-' . strtolower( $key ),
-							'revision'  => array(
-								'question_type' => $type,
-								'text_html'     => $text,
-								'settings'      => array(),
-							),
+							'revision'  => $revision,
 							'answers'   => self::answers( $key, $type ),
 							'tags'      => 'A1' === $module ? array(
 								array(
@@ -89,6 +93,44 @@ final class NeutralFixture {
 		foreach ( $pools as $module => $keys ) {
 			sort( $keys );
 			$pools[ $module ] = $keys;
+		}
+		// §2.3: Q-A3-011 is an additional draft, in no pool (71 questions incl. 1 draft, GM-118).
+		$questions['A3-011'] = PackageExporter::sealed(
+			array(
+				'source_id'        => 'cc-fx-q-a3-011',
+				'editorial_status' => 'draft',
+				'revision'         => array(
+					'question_type' => 'single_choice',
+					'text_html'     => 'Beispielfrage A3-011: Welche Aussage trifft auf Konzept 11 zu?',
+					'settings'      => array(),
+				),
+				'answers'          => self::answers( 'A3-011', 'single_choice' ),
+				'tags'             => array(),
+			)
+		);
+		// §2.5: FC-A-01…08 self-assessment (FC-A-07 rights unknown, FC-A-08 missing in PKG-v2), FC-B-01…05 streak.
+		$cards = array();
+		foreach ( array(
+			'FC-A' => array( 8, 'self_assessment' ),
+			'FC-B' => array( 5, 'streak_3' ),
+		) as $deck => $def ) {
+			for ( $i = 1; $i <= $def[0]; $i++ ) {
+				$key = sprintf( '%s-%02d', $deck, $i );
+				if ( 2 === $version && 'FC-A-08' === $key ) {
+					continue;
+				}
+				$card = array(
+					'source_id'  => 'cc-fx-' . strtolower( $key ),
+					'front_html' => 'Karte ' . $key . ': Begriff ' . $i,
+					'back_html'  => 'Rückseite ' . $key,
+					'mode'       => $def[1],
+					'tags'       => array(),
+				);
+				if ( 'FC-A-07' === $key ) {
+					$card['rights'] = array( 'status' => 'unknown' );
+				}
+				$cards[] = PackageExporter::sealed( $card );
+			}
 		}
 
 		$lessons = array();
@@ -186,10 +228,11 @@ final class NeutralFixture {
 			);
 		};
 		return array(
-			'questions' => array_values( $questions ),
-			'lessons'   => array_values( $lessons ),
-			'modules'   => array_values( $modules ),
-			'courses'   => array(
+			'questions'  => array_values( $questions ),
+			'flashcards' => $cards,
+			'lessons'    => array_values( $lessons ),
+			'modules'    => array_values( $modules ),
+			'courses'    => array(
 				$course( 'a', 'cc-a', 'Kurs Alpha', array( 'M-A1', 'M-A2', 'M-A3', 'LM-A1', 'LM-A2', 'LM-A3' ) ),
 				$course( 'b', 'cc-b', 'Kurs Beta', array( 'M-B1', 'M-B2' ) ),
 			),
@@ -829,8 +872,7 @@ final class NeutralFixture {
 			);
 			CourseStructure::current()->assign_module( $admin, (int) $fx['courses']['C-A'], $module, 70, false );
 		}
-		$repo = QuestionRepository::current();
-		$db   = Database::current();
+		$db = Database::current();
 		foreach ( array(
 			'FC-A' => array( 8, array( 'mode' => 'self_assessment' ) ),
 			'FC-B' => array(
@@ -866,16 +908,8 @@ final class NeutralFixture {
 				);
 				ActivityService::current()->define( $admin, $lesson, 'flashcard', $def[1], array( 'type' => 'all_known' ) );
 				for ( $i = 1; $i <= $def[0]; $i++ ) {
-					$key = sprintf( '%s-%02d', $deck, $i );
-					$id  = $repo->create(
-						$admin,
-						array(
-							'question_type' => QuestionTypes::FLASHCARD,
-							'question_text' => 'Karte ' . $key . ': Begriff ' . $i,
-							'settings'      => array( 'back' => 'Rückseite ' . $key ),
-						)
-					);
-					$repo->publish( $admin, $id );
+					// The cards come from PKG-v1 (§2.5); the deck lessons stay outside the package (GM-009).
+					$id = (int) self::object( 'flashcard', 'cc-fx-' . strtolower( sprintf( '%s-%02d', $deck, $i ) ) );
 					$db->insert(
 						'ccap_activity_question',
 						array(

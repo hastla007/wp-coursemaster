@@ -1,0 +1,1 @@
+{"$id": "urn:test:broken-ref", "type": "object", "properties": {"a": {"$ref": "common.schema.json#/$defs/doesNotExist"}, "b": {"$ref": "missing.schema.json#/$defs/x"}}}

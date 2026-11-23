@@ -70,8 +70,11 @@ final class GoldenMasterTest extends SchemaTestCase {
 	 * Fixture counts (§2.2/§2.3) and loader idempotence (D-03).
 	 */
 	public function test_fixture_counts_and_idempotence(): void {
-		$db = Database::current();
-		self::assertSame( '70', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_question' ) . "` WHERE status = 'published'" ) );
+		$db        = Database::current();
+		$published = static fn( string $op ): string => (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_question' ) . '` q JOIN `' . $db->table( 'ccap_question_revision' ) . "` r ON r.id = q.current_revision_id WHERE q.status = 'published' AND r.question_type {$op} 'flashcard'" );
+		self::assertSame( '70', $published( '<>' ) );
+		self::assertSame( '13', $published( '=' ), 'FC-A-01…08, FC-B-01…05 (§2.5)' );
+		self::assertSame( 'draft', (string) $db->scalar( $db->prepare( 'SELECT status FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', (int) NeutralFixture::object( 'question', 'cc-fx-q-a3-011' ) ) ), 'Q-A3-011 stays a draft (§2.3)' );
 		$pool  = static fn( string $module ): int => count( QuestionRepository::current()->pool( (int) NeutralFixture::object( 'module', $module ) ) );
 		self::assertSame( array( 24, 16, 10, 12, 8 ), array( $pool( 'cc-fx-m-a1' ), $pool( 'cc-fx-m-a2' ), $pool( 'cc-fx-m-a3' ), $pool( 'cc-fx-m-b1' ), $pool( 'cc-fx-m-b2' ) ) );
 		$again = NeutralFixture::load( $this->dir );
@@ -152,18 +155,32 @@ final class GoldenMasterTest extends SchemaTestCase {
 		$plan = $service->preview( $admin, $batch )['plan'];
 		self::assertSame(
 			array(
-				'unchanged' => 69,
+				'unchanged' => 70,
 				'update'    => 1,
 			),
 			$plan['questions']
 		);
 		self::assertSame( array( 'unchanged' => 11 ), $plan['lessons'] );
+		self::assertSame(
+			array(
+				'unchanged' => 12,
+				'archive'   => 1,
+			),
+			$plan['flashcards'],
+			'FC-A-08 removed'
+		);
+		$db    = Database::current();
+		$q     = (int) NeutralFixture::object( 'question', 'cc-fx-q-a1-007' );
+		$rev1  = (int) $db->scalar( $db->prepare( 'SELECT current_revision_id FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $q ) );
+		$card  = (int) NeutralFixture::object( 'flashcard', 'cc-fx-fc-a-08' );
+		$state = static fn( string $table, int $id, string $column ): string => (string) $db->scalar( $db->prepare( "SELECT {$column} FROM `" . $db->table( $table ) . '` WHERE id = %d', $id ) );
 		$service->approve( $admin, $batch );
 		$service->run( $admin, $batch );
-		$db  = Database::current();
-		$q   = (int) NeutralFixture::object( 'question', 'cc-fx-q-a1-007' );
 		$rev = (array) QuestionRepository::current()->revision( (int) $db->scalar( $db->prepare( 'SELECT current_revision_id FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $q ) ) );
 		self::assertStringEndsWith( '(korrigiert)', (string) $rev['question_text'] );
+		self::assertSame( 'published', $state( 'ccap_question_revision', (int) $rev['id'], 'editorial_status' ), 'rev2 published' );
+		self::assertSame( 'deprecated', $state( 'ccap_question_revision', $rev1, 'editorial_status' ), 'rev1 deprecated' );
+		self::assertSame( 'archived', $state( 'ccap_question', $card, 'status' ), 'card source_archived' );
 	}
 
 	/**
@@ -550,7 +567,8 @@ final class GoldenMasterTest extends SchemaTestCase {
 		$batch   = $service->upload( $admin, NeutralFixture::package( 1, $this->dir . '/pkg-v1-again.zip' ) );
 		$service->validate( $admin, $batch );
 		$plan = $service->preview( $admin, $batch )['plan'];
-		self::assertSame( array( 'unchanged' => 70 ), $plan['questions'] );
+		self::assertSame( array( 'unchanged' => 71 ), $plan['questions'] );
+		self::assertSame( array( 'unchanged' => 13 ), $plan['flashcards'] );
 		self::assertSame( array( 'unchanged' => 11 ), $plan['lessons'] );
 		$service->approve( $admin, $batch );
 		$service->run( $admin, $batch );

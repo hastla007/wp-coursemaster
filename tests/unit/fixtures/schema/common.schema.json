@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:course-captain:package:v1:common",
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "sourceId": {"type": "string", "minLength": 1, "maxLength": 191, "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"},
+    "rightsStatus": {"enum": ["own", "licensed", "public", "review", "unknown", "restricted"]},
+    "rights": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {"$ref": "#/$defs/rightsStatus"},
+        "owner": {"type": ["string", "null"], "maxLength": 255},
+        "license_url": {"type": ["string", "null"], "pattern": "^https://"},
+        "valid_until": {"type": ["string", "null"], "format": "date"}
+      }
+    }
+  }
+}

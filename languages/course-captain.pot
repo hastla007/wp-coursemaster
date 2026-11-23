@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
+"POT-Creation-Date: 2026-11-23T09:50:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -1481,6 +1481,7 @@ msgstr ""
 #: src/Admin/RoleSettings.php:353
 #: src/Admin/SettingsBackup.php:226
 #: src/Admin/SettingsScreen.php:639
+#: src/Import/RightsReleaseForm.php:124
 msgid "Cancel"
 msgstr ""
 
@@ -2453,6 +2454,7 @@ msgid "Strict"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:495
+#: src/Learner/LessonView.php:240
 msgid "Practice"
 msgstr ""
 
@@ -3723,6 +3725,7 @@ msgid "has successfully completed the course"
 msgstr ""
 
 #: src/Course/PostTypes.php:80
+#: src/Learner/LessonView.php:390
 msgid "Lessons"
 msgstr ""
 
@@ -3893,10 +3896,37 @@ msgid "Resume the import; if it stops again, contact support with the report."
 msgstr ""
 
 #. translators: %s: package ID
-#: src/Import/ImportRunner.php:965
+#: src/Import/ImportRunner.php:976
 #, php-format
 msgid "Import %s"
 msgstr ""
+
+#: src/Import/RightsReleaseForm.php:56
+#: src/Import/RightsReleaseForm.php:107
+msgid "Release unclear rights?"
+msgstr ""
+
+#. translators: %d: number of content items
+#: src/Import/RightsReleaseForm.php:109
+#, php-format
+msgid "%d imported item with unclear rights will be marked as licensed and shown to learners."
+msgid_plural "%d imported items with unclear rights will be marked as licensed and shown to learners."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: number of restricted items, 2: number of archived items
+#: src/Import/RightsReleaseForm.php:111
+#, php-format
+msgid "Not changed: %1$d restricted, %2$d archived."
+msgstr ""
+
+#. translators: %d: number of content items
+#: src/Import/RightsReleaseForm.php:127
+#, php-format
+msgid "Release %d item"
+msgid_plural "Release %d items"
+msgstr[0] ""
+msgstr[1] ""
 
 #. translators: %s: comma-separated table names
 #: src/Kernel/Activator.php:70
@@ -4061,6 +4091,7 @@ msgid "Submit exam"
 msgstr ""
 
 #: src/Learner/ExamRoom.php:133
+#: src/Learner/LessonView.php:237
 msgid "Exam"
 msgstr ""
 
@@ -4204,122 +4235,257 @@ msgstr ""
 msgid "Start exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:170
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:209
+#: src/Learner/LearningArea.php:235
+#: src/Learner/LearningArea.php:270
 msgid "My learning"
 msgstr ""
 
-#: src/Learner/LearningArea.php:188
+#: src/Learner/LearningArea.php:237
+msgid "This lesson is not available."
+msgstr ""
+
+#: src/Learner/LearningArea.php:237
 msgid "This course is not available."
 msgstr ""
 
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:270
 msgid "Skip to content"
 msgstr ""
 
-#: src/Learner/LearningArea.php:213
+#: src/Learner/LearningArea.php:282
 msgid "You are not enrolled in any course yet."
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 msgid "Progress:"
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 msgid "Course progress"
 msgstr ""
 
 #. translators: %s: percentage, e.g. "75 %"
-#: src/Learner/LearningArea.php:219
 #: src/Learner/LearningArea.php:288
+#: src/Learner/LearningArea.php:358
 #, php-format
 msgid "%s completed"
 msgstr ""
 
 #. translators: %s: lesson title
-#: src/Learner/LearningArea.php:221
+#: src/Learner/LearningArea.php:290
 #, php-format
 msgid "Continue: %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:238
+#: src/Learner/LearningArea.php:308
 msgid "Course contents"
 msgstr ""
 
 #. translators: %s: course
-#: src/Learner/LearningArea.php:290
+#: src/Learner/LearningArea.php:360
 #, php-format
 msgid "Open %s in the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:306
+#: src/Learner/LearningArea.php:376
 msgid "Go to the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:357
+#: src/Learner/LearningArea.php:427
 msgid "Access active"
 msgstr ""
 
-#: src/Learner/LearningArea.php:358
+#: src/Learner/LearningArea.php:428
 msgid "Partial access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:359
+#: src/Learner/LearningArea.php:429
 msgid "Access pending"
 msgstr ""
 
-#: src/Learner/LearningArea.php:360
+#: src/Learner/LearningArea.php:430
 msgid "Access suspended"
 msgstr ""
 
-#: src/Learner/LearningArea.php:361
+#: src/Learner/LearningArea.php:431
 msgid "Access expired"
 msgstr ""
 
-#: src/Learner/LearningArea.php:362
+#: src/Learner/LearningArea.php:432
 msgid "No access"
 msgstr ""
 
 #. translators: %s: date
-#: src/Learner/LearningArea.php:377
+#: src/Learner/LearningArea.php:447
 #, php-format
 msgid "Available from %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:380
+#: src/Learner/LearningArea.php:450
 msgid "Locked: no access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:381
+#: src/Learner/LearningArea.php:451
 msgid "Locked: not part of the preview"
 msgstr ""
 
-#: src/Learner/LearningArea.php:382
+#: src/Learner/LearningArea.php:452
 msgid "Locked: not yet released"
 msgstr ""
 
-#: src/Learner/LearningArea.php:383
+#: src/Learner/LearningArea.php:453
 msgid "Locked: complete the previous steps first"
 msgstr ""
 
-#: src/Learner/LearningArea.php:384
+#: src/Learner/LearningArea.php:454
 msgid "Locked during your running exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:386
+#: src/Learner/LearningArea.php:456
 msgid "Locked"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "completed"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "in progress"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "not started"
+msgstr ""
+
+#. translators: %s: course title
+#: src/Learner/LessonView.php:67
+#, php-format
+msgid "Back to the course: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Assignment"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Submitting the assignment is not available in the learning area yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:237
+msgid "Start the exam on the course page."
+msgstr ""
+
+#: src/Learner/LessonView.php:240
+msgid "This practice activity cannot be used on this page yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:253
+msgid "Video"
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:264
+#, php-format
+msgid "This video is hosted by %s and is only loaded after your consent."
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:274
+#, php-format
+msgid "Watch the video on %s (opens in a new tab)"
+msgstr ""
+
+#: src/Learner/LessonView.php:280
+msgid "The video is not available yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:287
+msgid "Subtitles"
+msgstr ""
+
+#: src/Learner/LessonView.php:289
+msgid "Download the video"
+msgstr ""
+
+#: src/Learner/LessonView.php:306
+msgid "Your progress"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: completed"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: not completed yet"
+msgstr ""
+
+#: src/Learner/LessonView.php:311
+msgid "Download the file"
+msgstr ""
+
+#: src/Learner/LessonView.php:318
+msgid "Mark as completed"
+msgstr ""
+
+#. translators: %s: number of minutes
+#: src/Learner/LessonView.php:328
+#, php-format
+msgid "You can mark this lesson as read after %s minute."
+msgid_plural "You can mark this lesson as read after %s minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Learner/LessonView.php:333
+msgid "Mark as read"
+msgstr ""
+
+#: src/Learner/LessonView.php:336
+msgid "This step is completed when you download the file."
+msgstr ""
+
+#: src/Learner/LessonView.php:339
+msgid "This step is completed when you have watched the video."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed with the exam."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed when your assignment has been graded."
+msgstr ""
+
+#: src/Learner/LessonView.php:346
+msgid "This step is completed automatically."
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:378
+#, php-format
+msgid "Previous: %s"
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:380
+#, php-format
+msgid "Next: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:401
+msgid "Lesson completed."
+msgstr ""
+
+#: src/Learner/LessonView.php:402
+msgid "Your progress has been saved."
+msgstr ""
+
+#: src/Learner/LessonView.php:403
+msgid "The download has been recorded."
+msgstr ""
+
+#: src/Learner/LessonView.php:409
+msgid "Please take a little more time with this lesson before you mark it as read."
 msgstr ""
 
 #: src/Notification/MailTemplates.php:195
@@ -4807,102 +4973,114 @@ msgid "Import report exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:69
-msgid "Website hardening state changed"
+msgid "Import package downloaded from a link"
 msgstr ""
 
 #: src/Ops/AuditView.php:70
-msgid "Website hardening switched off by constant"
+msgid "Rights status of a content item changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:71
-msgid "Maintenance action"
+msgid "Unclear rights of an import released"
 msgstr ""
 
 #: src/Ops/AuditView.php:72
-msgid "Personal data erased"
+msgid "Website hardening state changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:73
-msgid "Retention applied"
+msgid "Website hardening switched off by constant"
 msgstr ""
 
 #: src/Ops/AuditView.php:74
-msgid "Maintenance task failed"
+msgid "Maintenance action"
 msgstr ""
 
 #: src/Ops/AuditView.php:75
-msgid "Mail template saved"
+msgid "Personal data erased"
 msgstr ""
 
 #: src/Ops/AuditView.php:76
-msgid "Notification opt-out changed"
+msgid "Retention applied"
 msgstr ""
 
 #: src/Ops/AuditView.php:77
-msgid "Notification sent again"
+msgid "Maintenance task failed"
 msgstr ""
 
 #: src/Ops/AuditView.php:78
-msgid "Group invitation sent again"
+msgid "Mail template saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:79
-msgid "Held notifications released"
+msgid "Notification opt-out changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:80
-msgid "Held notifications discarded"
+msgid "Notification sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:81
-msgid "Course revision published"
+msgid "Group invitation sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:82
-msgid "Certificate issued manually"
+msgid "Held notifications released"
 msgstr ""
 
 #: src/Ops/AuditView.php:83
-msgid "Certificate corrected"
+msgid "Held notifications discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:84
-msgid "Certificate revoked"
+msgid "Course revision published"
 msgstr ""
 
 #: src/Ops/AuditView.php:85
-msgid "Certificate list exported"
+msgid "Certificate issued manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:86
-msgid "Certificate needs review after re-evaluation"
+msgid "Certificate corrected"
 msgstr ""
 
 #: src/Ops/AuditView.php:87
-msgid "Job retried"
+msgid "Certificate revoked"
 msgstr ""
 
 #: src/Ops/AuditView.php:88
-msgid "Dead letters discarded"
+msgid "Certificate list exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:89
-msgid "Cache emptied"
+msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
 #: src/Ops/AuditView.php:90
-msgid "Diagnostics package exported"
+msgid "Job retried"
 msgstr ""
 
 #: src/Ops/AuditView.php:91
+msgid "Dead letters discarded"
+msgstr ""
+
+#: src/Ops/AuditView.php:92
+msgid "Cache emptied"
+msgstr ""
+
+#: src/Ops/AuditView.php:93
+msgid "Diagnostics package exported"
+msgstr ""
+
+#: src/Ops/AuditView.php:94
 msgid "Site identity confirmed after restore, move or copy"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:147
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:147
 msgid "System"
 msgstr ""
 

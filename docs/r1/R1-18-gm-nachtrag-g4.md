@@ -1,0 +1,53 @@
+# R1-18 · GM-Nachtrag Gruppe g4
+
+**Stand:** 23.11.2026 · **Basis:** `claude/blissful-curie-tuuf7q` @ `1322ec4`
+**GM-IDs:** GM-064, GM-123, GM-127, GM-129, GM-130, GM-135, GM-137 (alle vorher `open` in `tools/qa/gm-coverage-exceptions.php`)
+**Quellen:** R0-05 §1 (Katalog), §2.3/§2.5/§2.6 (Fixture), §3 (D-03); R0-10 §1.2–§1.5, §2, §3.1, §3.6–§3.8; R0-17 T-30/SEC-029; R0-38 §5.1. Clean Room (E-01): kein LearnBoating-Code, nur die genannten Dokumente und der bestehende Code.
+
+## 1. Je GM-ID
+
+| GM-ID | Umsetzung | Test (`@group R1-18`) |
+|---|---|---|
+| GM-064 | **Karteikarten-Import** (Befund F-5): neue Entität `flashcards` (R0-10 §1.3) im Importer, gespeichert als Frage mit Typ `flashcard` (E-21), Quellzuordnung `object_type = flashcard`; V6-Prüfung (Vorder-/Rückseite, Modus `self_assessment`/`streak_3`, Rechtestatus); Erklärung `explanation_html` wird gespeichert (E-20). Lektionen können Karten und Fragen über `quiz[] {question|flashcard}` verknüpfen. Im Paket fehlende Karten werden wie alle Entitäten archiviert (`ccap_question.status = archived` = `source_archived`), nie gelöscht; der Rollback reaktiviert die alte Revision. Eine Entität, die ein Paket gar nicht enthält, archiviert nichts (R0-10 §1.4). Fixture: PKG-v1 enthält FC-A-01…08 (FC-A-07 `unknown`) und FC-B-01…05, PKG-v2 ohne FC-A-08; die Kartenlektionen LM-FC bleiben ein Bedarfsschritt (`flashcards()`), verknüpfen jetzt aber die importierten Karten | `GoldenMasterImportTest::test_GM_064_card_archived_and_restored`; zusätzlich `GoldenMasterTest::test_pkg_v2` (GM-120: `archive=1`, rev1 `deprecated`, Karte archiviert) |
+| GM-123 | `Import\Rights::override()`: Override in `ccap_override` (Feld `rights_status`), Pflichtbegründung, nur mit `ccap_import_content`, Audit `rights_override_set` (vorher/nachher). Der Import schreibt den Rechtestatus jetzt auf die Revision (R0-10 §2.1); fremdes `own` wird `licensed` mit Herausgeber als Inhaber (E-62). Overrides überleben jeden Reimport | `test_GM_123_rights_override` (Q-A3-010 `unknown`; ohne/leere Begründung, ungültiger Status, fremde Rolle, unbekanntes Objekt abgewiesen ohne Schreibzugriff/Audit; mit Begründung gespeichert + Audit; nach Reimport weiter wirksam) |
+| GM-127 | `Rights::release_preview()` / `release()`: alle nicht archivierten `unknown` der Paketquelle → Override `licensed`; `restricted` und Archiviertes bleiben; Ausführung nur mit bestätigter Anzahl (sonst 409 `ccap_confirmation_required`, nichts geändert), Pflichtbegründung, ein Audit `rights_bulk_release`. Ohne JS: `RightsReleaseForm` über `admin-post.php` (Schritt 1 Bestätigungsseite mit Anzahl, Schritt 2 Ausführung, Rücksprung auf die aufrufende Seite mit Ergebnis bzw. Fehlercode) | `test_GM_127_bulk_release` (Q-A3-010, FC-A-07 `unknown`, Q-A1-024 `restricted`, FC-A-08 archiviert) |
+| GM-129 | `Import\ImportSources::upload_limit()` = kleinster Wert aus `upload_max_filesize`, `post_max_size`, `wp_max_upload_size()` und Paketlimit (Filter `course_captain_import_package_limit`, max. 200 MB); `from_upload()` lehnt größere Pakete mit 413 `ccap_package_too_large` ab (nichts gespeichert). Ablageordner `<privat>/packages-<geheim>/import/` (`from_drop()`): nur Basisname, `realpath` direkt im Ordner, keine Links; übernommenes Paket wird gelöscht, abgelehntes bleibt. Systemdateien (`.DS_Store`, `Thumbs.db`, `__MACOSX/`) übersprang der Validator schon; sie werden nie entpackt (der Validator liest direkt aus dem ZIP) | `test_GM_129_upload_limit_and_drop_folder` (PKG-SYS, PKG-BAD-FOREIGN) |
+| GM-130 | `ImportSources::from_url()`: nur `https`, Port 443, keine Benutzerangaben; numerische/verschleierte Hosts und `localhost` abgewiesen; jede aufgelöste Adresse muss öffentlich sein (privat, Loopback, link-lokal, CGNAT, reserviert, Mapped-IPv6 u. a.); die Verbindung wird per cURL `CURLOPT_RESOLVE` an die geprüfte Adresse gebunden (IP-Pinning gegen DNS-Rebinding, R0-17 T-30), nur HTTPS-Protokoll; `wp_safe_remote_get` ohne automatische Weiterleitung, höchstens 3 Weiterleitungen, jede wie die erste geprüft; Größenlimit; optionale SHA-256 (falsch → verworfen); die Datei liegt im privaten Ordner und wird in jedem Fall gelöscht; Audit `import_link_downloaded`. Ohne cURL wird der Link-Import verweigert (kein Pinning möglich) | `test_GM_130_link_import` mit HTTP-Stub und Resolver-Stub (SEC-029-Liste, Weiterleitung ins Intranet/auf `http`, 4. Weiterleitung, Prüfsumme, DNS-Rebinding: genau eine Auflösung je Hop, Transport erhält die geprüfte IP, keine Temp-Dateien) |
+| GM-135 | `Import\Schema\SchemaValidator`: JSON-Schema-2020-12-Teilmenge in reinem PHP; unbekannte Schlüsselwörter und Formate brechen ab (`SchemaException`); `$ref` innerhalb des Dokuments, über Dateien (`common.schema.json#/$defs/…`) und über registrierte `$id`, keine entfernten Referenzen; `if`/`then`/`else`, `contains`/`minContains`/`maxContains`, `allOf`/`anyOf`/`oneOf`/`not` | `tests/unit/SchemaValidatorTest.php` SV-01…SV-10 mit Schemas unter `tests/unit/fixtures/schema/` |
+| GM-137 | `Course\StructureFingerprint`: identitätsfreier Struktur-Hash (Kurstexte, Module in Reihenfolge mit `required`, veröffentlichte Lektionen mit Typ und Einstellungen, `content_hash` der Poolfragen; ohne IDs, UIDs, Slugs, Autoren, Zeiten) | `test_GM_137_hand_built_course`: C-A über Editor-Dienste (Beiträge, `AuthoringService::define_activity`, `QuestionRepository`, `CourseStructure`, `CoursePublisher`) von Hand gebaut → gleicher Fingerprint wie das importierte C-A; geänderte Antwort → anderer Fingerprint |
+
+## 2. Technische Entscheidungen zu Befund F-5 (R0-05/R0-10)
+
+| Punkt | Entscheidung |
+|---|---|
+| Q-A3-011 (Entwurf) im Paket | **umgesetzt.** PKG-v1 enthält Q-A3-011 mit `editorial_status = draft` in keinem Pool (R0-05 §2.3: 71 Fragen inkl. 1 Entwurf). Der Importer übernimmt Datensätze mit `draft`/`review`/`approved` als Entwurf und veröffentlicht sie in der Aktivierung nicht (R0-10 §1.3). Angepasste Zahlen: `test_pkg_v2` 70 unverändert + 1 Update, `test_GM_119` 71 unverändert + 13 Karten; `test_fixture_counts_and_idempotence` zählt 70 veröffentlichte Fragen ohne Karten, 13 Karten, Q-A3-011 Entwurf |
+| `package_id`-Bildung | **bleibt inhaltsbasiert** (`<source.system>-<erste 12 Hex von content_sha256>`). R0-10 §1.2 ist der Formatvertrag („Gleicher Inhalt ergibt dieselbe ID“, Validator-Regel `V5_package_id_hash`), GM-132 verlangt identische `package_id` bei gleichem Inhalt. Die Werte `…-000000000001`/`…-000000000002` in R0-05 §2.6 würden die Validierung V5 nicht bestehen und werden als Bezeichner der Fixture-Pakete gelesen, nicht als Soll-Wert. Redaktioneller Nachtrag in R0-05 §2.6 empfohlen |
+| Import von Medien und Blueprints | **nicht in diesem Lauf.** Beides gehört zu GM-118/GM-125/GM-128 (Ausnahmeliste `partial`, nicht Teil von g4). Ein Medien- und Blueprint-Import verlangt außerdem den Umbau des Fixture-Loaders (MED-001…004, ER-A/ER-B, EP-* entstehen heute über die Dienste) und berührt die übrigen GM-Tests. `partial`-Eintrag GM-118 aktualisiert; GM-120 ist jetzt vollständig geprüft (Eintrag entfernt) |
+| Rechtestatus beim Import | Ohne `rights` gilt der Datensatz als `own` der Quelle und wird für fremde Pakete nach E-62 `licensed` (Inhaber = `publisher.name`, sonst `source.system`). „Eigen“ = `source.system = local` oder `exported_from_site` = Option `course_captain_installation_uuid` (wird bisher nirgends gesetzt; damit gilt derzeit jedes Paket außer `local` als fremd) |
+| „Struktur-Hash“ in GM-137 | `ccap_course_revision.structure_hash` enthält IDs und kann zwischen zwei Kursen nie gleich sein; GM-137 wird über den neuen identitätsfreien Fingerprint geprüft (technische Lesart, keine Produktentscheidung) |
+
+## 3. Dateien
+
+- neu: `src/Import/Rights.php`, `src/Import/RightsReleaseForm.php`, `src/Import/ImportSources.php`, `src/Import/Schema/SchemaValidator.php`, `src/Import/Schema/SchemaException.php`, `src/Course/StructureFingerprint.php`, `tests/integration/GoldenMasterImportTest.php`, `tests/unit/SchemaValidatorTest.php`, `tests/unit/fixtures/schema/*.schema.json`
+- geändert: `src/Import/ImportService.php` (Entität `flashcards`, Entwürfe, Rechte, `quiz[]`, Feedback-Texte, Archivierung nur für vorhandene Entitäten), `src/Import/ImportRunner.php` (Karten in Plan/Aktivierung/Verwerfen, Entwürfe nicht veröffentlichen), `src/Ops/AuditView.php` (`rights_override_set`, `rights_bulk_release`, `import_link_downloaded`), `tests/support/Fixtures/NeutralFixture.php`, `tests/integration/GoldenMasterTest.php`, `tools/qa/gm-coverage-exceptions.php`, `languages/course-captain.pot`
+
+## 4. Kommandos und Ergebnisse
+
+| Kommando | Ergebnis (23.11.2026) |
+|---|---|
+| `php8.5 vendor/bin/phpcs -q` | 0 Fehler, 0 Warnungen |
+| `php8.5 vendor/bin/phpstan analyse --no-progress --memory-limit=2G` | 0 Fehler (Level 8) |
+| `php8.5 vendor/bin/phpunit -c phpunit.xml.dist` | OK, 130 Tests / 2 923 Assertions (2 übersprungen) |
+| `WP_TESTS_DB_NAME=ccap_test_g4 php8.5 vendor/bin/phpunit -c phpunit-integration.xml.dist` | 429 Tests / 20 400 Assertions; einziger Fehler war der Hook-Snapshot CT-05 (neuer Filter) → `docs/api/hooks.v1.json` und `docs/API-CHANGELOG.md` nachgezogen, `ApiContractTest` danach OK (8 / 2 361); 31 übersprungen (pcntl) |
+| `WP_TESTS_DB_NAME=ccap_test_g4 php8.5 vendor/bin/phpunit -c phpunit-integration-multisite.xml.dist` | OK, 442 Tests / 19 910 Assertions (31 übersprungen) |
+| `--filter GoldenMasterImportTest` | OK, 6 Tests / 137 Assertions |
+| `php8.5 tests/guards/free-guard.php` | 0 Befunde |
+| `php8.5 tests/guards/textdomain-lint.php` | 0 Probleme |
+| `wp i18n make-pot …` (wie CI) | `.pot` neu: 1 486 Einträge (vorher 1 446, keiner entfernt; der Stand war schon vor g4 veraltet) |
+| `php8.5 tools/qa/gm-coverage.php` | 210 IDs, 178 mit Test, 32 Ausnahmen (29 `open`), missing/stale/invalid/unknown 0; keine g4-ID mehr `open` |
+
+## 5. Abweichungen / Freigaben
+
+- Keine neue `deviation`; alle sieben IDs sind mit Test abgedeckt.
+- Neue Audit-Aktionen (3) und ein neuer Filter `course_captain_import_package_limit`; keine neuen REST-Routen (R0-19 kennt keine Routen für Override, Sammelfreigabe oder Link-Import; die Dienste sind über PHP/`admin-post.php` erreichbar). Eine Admin-Oberfläche für Import und Rechte fehlt weiterhin (R1-15 A-4).
+- Hinweis Umgebung: Ein Symlink `vendor → /home/user/wp-coursemaster/vendor` lädt über den Composer-Autoloader (`realpath`) den Code des Haupt-Checkouts statt des Worktrees. Für die Läufe wurde `vendor/` als Verzeichnis mit eigenem `composer/`, `autoload.php`, `bin/` und `phpstan/` und Symlinks für die übrigen Pakete angelegt. `make-pot` lief offline mit dem mitgelieferten `block-i18n.json` (kein Netz zu `develop.svn.wordpress.org`).

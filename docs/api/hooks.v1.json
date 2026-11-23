@@ -10,6 +10,7 @@
     "course_captain_external_access_sources": "filter",
     "course_captain_hardening_conflicts": "filter",
     "course_captain_hardening_limits": "filter",
+    "course_captain_import_package_limit": "filter",
     "course_captain_internal_subscriber_handlers": "filter",
     "course_captain_internal_subscribers": "filter",
     "course_captain_loaded_v1": "action",
