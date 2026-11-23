@@ -25,8 +25,8 @@ defined( 'ABSPATH' ) || exit;
  * - `set <tab.field> <value>`: value as JSON (`true`, `5`, `{"a":1}`) or
  *   plain text; {@see Settings::check()} and {@see Settings::save()}
  *   (audit `settings_saved`, context `cli`). Risk fields (RiskRules) need
- *   `--confirm`; switching data deletion on needs `--confirm=<site name>`
- *   (E-89). Without confirmation: exit 1, nothing written, no audit.
+ *   `--confirm`; switching data deletion on needs `--confirm=LÖSCHEN`
+ *   (or LOESCHEN/DELETE, SET-CC-30). Without confirmation: exit 1, nothing written, no audit.
  * - `export [--output=<file>] [--include-personal] [--include=roles,…]`:
  *   stdout, or the safe export writer (`0600`, new file, outside the
  *   WordPress directory, EX-6).
@@ -179,13 +179,13 @@ final class SettingsCommand {
 		list( $tab, $field ) = self::key( $key );
 		$input               = array( $field => $value );
 		if ( isset( $assoc['confirm'] ) && '' !== (string) $assoc['confirm'] ) {
-			// E-89: the typed site name confirms switching data deletion on.
-			$input[ Settings::CONFIRM_SITE_FIELD ] = (string) $assoc['confirm'];
+			// SET-CC-30: the typed word (LÖSCHEN/LOESCHEN/DELETE) confirms switching data deletion on.
+			$input[ Settings::CONFIRM_WORD_FIELD ] = (string) $assoc['confirm'];
 		}
 		$check = Settings::check( $actor, $tab, $input, array( $field ) );
 		if ( array() !== $check['errors'] ) {
 			$rule = (string) ( $check['errors'][ $field ] ?? reset( $check['errors'] ) );
-			$hint = 'site_name' === $rule ? ' Add --confirm=<site name> to switch data deletion on.' : '';
+			$hint = 'confirm_word' === $rule ? ' Add --confirm=LÖSCHEN (or DELETE) to switch data deletion on.' : '';
 			return self::out( 1, $json, array( 'error' => 'ccap_validation_failed', 'fields' => $check['errors'] ), array( 'Error: ccap_validation_failed ' . $tab . '.' . $field . ': ' . $rule . '.' . $hint ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short JSON payload.
 		}
 		$risks = RiskRules::detect( $tab, $check['before'], $check['candidate'] );

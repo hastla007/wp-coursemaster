@@ -79,6 +79,7 @@ Mit R1-28 (parallel umgesetzt) tragen alle Fehler in `course-captain/v1` die Fel
 | `course_captain_outbox_dead_lettered` | Action | `int $delivery_id, string $subscriber_id` | Zustellung endgültig gescheitert |
 | `course_captain_certificate_fallback_rendered` | Action | `string $kind, string $certificate_uid` | Diagnose: unbekannte Vorlagenart, Standardlayout genutzt |
 | `course_captain_uninstall` | Action | `UninstallManifest $manifest` | während der Deinstallation |
+| `course_captain_business_rule` | Filter | `mixed $value, string $key` | Geschäftsregel aus dem Einstellungsregister ersetzen (Filter gewinnt, S2); Schlüssel z. B. `exams.starts_per_hour`, `learning.review_intervals`; ungültige Werte werden ignoriert |
 | `course_captain_cache_purge` | Action | `array{scope, ids, urls} $purge` | nach Veröffentlichen/Archivieren eines Kurses: öffentliche Seiten aus Page-Caches entfernen |
 | `course_captain_policy_changed` | Action | – | Rechte-/Zugangsänderung (leert Memo); auslösen, wenn eigene Regeln Zugriff ändern |
 | `course_captain_certificate_renderers` | Filter | `array $renderers` | weitere Zertifikats-Renderer |

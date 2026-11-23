@@ -106,22 +106,24 @@ final class SettingsFields {
 					array( __( 'Courses', 'course-captain' ), array( 'course_completion_default', 'mastery_algorithm', 'favorites_enabled', 'mistake_training_enabled' ) ),
 					array( __( 'Feedback while practising', 'course-captain' ), array( 'feedback.visibility', 'feedback.show_correct_answers' ) ),
 					array( __( 'Assignment submissions', 'course-captain' ), array( 'assignment_file_types', 'assignment_max_file_mb', 'assignment_max_files' ) ),
+					array( __( 'Review intervals of the smart trainer', 'course-captain' ), array( 'review_intervals.first', 'review_intervals.second', 'review_intervals.third' ) ),
+					array( __( 'Modules', 'course-captain' ), array( 'flashcards_enabled', 'assignments_enabled' ) ),
 				);
 			case 'exams':
 				return array(
-					array( __( 'Attempts and time', 'course-captain' ), array( 'max_attempts', 'cooldown_seconds', 'count_cancelled', 'time_limit_minutes', 'timer_mode', 'late_tolerance_seconds', 'auto_submit_inactive_days' ) ),
+					array( __( 'Attempts and time', 'course-captain' ), array( 'max_attempts', 'cooldown_seconds', 'count_cancelled', 'time_limit_minutes', 'timer_mode', 'late_tolerance_seconds', 'auto_submit_inactive_days', 'starts_per_hour' ) ),
 					array( __( 'Passing and order', 'course-captain' ), array( 'passing_ratio_proposal', 'shuffle_questions', 'shuffle_answers' ) ),
 					array( __( 'Result feedback', 'course-captain' ), array( 'feedback.visibility', 'feedback.show_score', 'feedback.show_correct_answers', 'feedback.show_correct_answers_when' ) ),
 				);
 			case 'enrollment':
-				$keys = array( 'self_enrollment', 'default_access_days', 'groups_enabled', 'invite_valid_days', 'claim_policy', 'pending_grant_timeout_hours' );
+				$keys = array( 'self_enrollment', 'default_access_days', 'default_drip_days', 'groups_enabled', 'invite_valid_days', 'claim_policy', 'pending_grant_timeout_hours' );
 				if ( (bool) apply_filters( 'course_captain_external_access_sources', false ) ) {
 					$keys[] = 'source_disabled_policy';
 				}
 				return array( array( __( 'Enrollment', 'course-captain' ), $keys ) );
 			case 'certificates':
 				return array(
-					array( __( 'Issuing', 'course-captain' ), array( 'auto_issue', 'holder_name_policy' ) ),
+					array( __( 'Issuing', 'course-captain' ), array( 'enabled', 'auto_issue', 'holder_name_policy' ) ),
 				);
 			case 'emails':
 				return array(
@@ -131,12 +133,13 @@ final class SettingsFields {
 			case 'privacy':
 				return array(
 					array( __( 'Data requests', 'course-captain' ), array( 'auto_export_on_confirm', 'auto_erase_on_confirm', 'backup_max_age_days' ) ),
-					array( __( 'External media', 'course-captain' ), array( 'external_media_mode', 'external_media_remember', 'consent_category', 'show_avatars' ) ),
+					array( __( 'External media', 'course-captain' ), array( 'external_media_mode', 'external_media_remember', 'consent_category', 'trusted_media_hosts', 'show_avatars' ) ),
 					array( __( 'Network and browser protection', 'course-captain' ), array( 'trusted_proxies', 'csp_mode' ) ),
 				);
 			case 'hardening':
 				return array(
-					array( __( 'Login', 'course-captain' ), array( 'login_limit', 'known_device', 'reset_limit', 'registration_limit' ) ),
+					array( __( 'Login', 'course-captain' ), array( 'login_limit', 'known_device', 'known_device_days', 'reset_limit', 'registration_limit' ) ),
+					array( __( 'Failed logins per 15 minutes', 'course-captain' ), array( 'login_limits.ip', 'login_limits.account_ip', 'login_limits.account' ) ),
 					array( __( 'XML-RPC', 'course-captain' ), array( 'xmlrpc' ) ),
 					array( __( 'Security headers', 'course-captain' ), array( 'site_headers' ) ),
 				);
@@ -144,6 +147,7 @@ final class SettingsFields {
 				return array(
 					array( __( 'Advanced', 'course-captain' ), array( 'import_execution', 'file_delivery', 'media_delete_grace_days', 'cron_stale_warning_minutes' ) ),
 					array( __( 'Logging', 'course-captain' ), array( 'log_level', 'error_log_days', 'debug_file_days' ) ),
+					array( __( 'Reports', 'course-captain' ), array( 'report_csv_columns', 'report_pseudonymize' ) ),
 				);
 		}
 		return array();
@@ -271,8 +275,14 @@ final class SettingsFields {
 			case 'count':
 				/* translators: %d: number of entries */
 				return sprintf( __( 'Error: at most 50 entries (now %d).', 'course-captain' ), (int) ( $params['count'] ?? 0 ) );
-			case 'site_name':
-				return __( 'Error: the entered name does not match the name of this website.', 'course-captain' );
+			case 'host':
+				/* translators: 1: line number, 2: entered value */
+				return sprintf( __( 'Error: line %1$d: “%2$s” is not a valid host name (for example media.example.org, without https:// and without a path).', 'course-captain' ), (int) ( $params['line'] ?? 0 ), (string) ( $params['value'] ?? '' ) );
+			case 'interval_order':
+				return __( 'Error: review intervals: each stage must be at least as long as the one before.', 'course-captain' );
+			case 'confirm_word':
+				/* translators: 1: German confirmation word, 2: English confirmation word (both typed literally) */
+				return sprintf( __( 'Error: to switch on the data deletion, type %1$s or %2$s into the confirmation field.', 'course-captain' ), 'LÖSCHEN', 'DELETE' );
 			case 'reason_required':
 				return __( 'Error: reason: required when evidence is kept despite an erasure request (at most 500 characters).', 'course-captain' );
 			case 'required_mail':
@@ -312,6 +322,11 @@ final class SettingsFields {
 			'element' => 'hardening',
 			'scope'   => 'system',
 		);
+		$limit_help       = static function ( string $key ): string {
+			$minutes = intdiv( \CourseCaptain\Security\Hardening::LIMITS[ $key ][1], 60 );
+			/* translators: %d: minutes */
+			return sprintf( _n( 'Attempts within %d minute before the lock applies. The time window is fixed.', 'Attempts within %d minutes before the lock applies. The time window is fixed.', $minutes, 'course-captain' ), $minutes );
+		};
 		$feedback_when    = array(
 			'no_attempts_left_or_passed' => __( 'Only when no attempts are left or the exam is passed', 'course-captain' ),
 			'after_submit'               => __( 'Directly after every submission', 'course-captain' ),
@@ -373,7 +388,8 @@ final class SettingsFields {
 				),
 				'delete_data_on_uninstall'        => array(
 					'label'   => __( 'Remove all data when the plugin is deleted', 'course-captain' ),
-					'help'    => __( 'Deactivating never deletes anything. Importing settings never takes over this setting. To switch it on, type the name of this website below.', 'course-captain' ),
+					/* translators: 1: German confirmation word, 2: English confirmation word (both typed literally) */
+					'help'    => sprintf( __( 'When you delete the plugin under Plugins, all Course Captain data of this website is removed: courses, modules, lessons, questions and exams, enrollments and groups, learning progress, exam results, certificates, submissions and uploaded files, logs and settings. Deactivating never deletes anything; background jobs are always removed. On a network each website decides for itself. Importing settings never takes over this setting. To switch it on, type %1$s or %2$s below; switching it off needs no confirmation.', 'course-captain' ), 'LÖSCHEN', 'DELETE' ),
 					'element' => 'checkbox',
 					'scope'   => 'system',
 				),
@@ -531,8 +547,44 @@ final class SettingsFields {
 					'help'    => __( 'Single assignments may only set a smaller number.', 'course-captain' ),
 					'element' => 'number',
 				),
+				'review_intervals.first'        => array(
+					'label'   => __( 'Review after the first secure stage', 'course-captain' ),
+					'help'    => __( 'A securely known question comes back for review after this many days. Applies to new answers.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
+				),
+				'review_intervals.second'       => array(
+					'label'   => __( 'Review after the second secure stage', 'course-captain' ),
+					'help'    => __( 'Must be at least as long as the first interval.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
+				),
+				'review_intervals.third'        => array(
+					'label'   => __( 'Review after further secure answers', 'course-captain' ),
+					'help'    => __( 'Must be at least as long as the second interval.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
+				),
+				'flashcards_enabled'            => array(
+					'label'   => __( 'Use flashcards', 'course-captain' ),
+					'help'    => __( 'Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything.', 'course-captain' ),
+					'element' => 'checkbox',
+					'scope'   => 'system',
+				),
+				'assignments_enabled'           => array(
+					'label'   => __( 'Use assignments', 'course-captain' ),
+					'help'    => __( 'Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything.', 'course-captain' ),
+					'element' => 'checkbox',
+					'scope'   => 'system',
+				),
 			),
 			'exams'        => array(
+				'starts_per_hour'                    => array(
+					'label'   => __( 'Exam starts per learner and hour', 'course-captain' ),
+					'help'    => __( 'Protects against automated starts. Further starts within the hour are refused with a waiting time.', 'course-captain' ),
+					'element' => 'number',
+					'scope'   => 'system',
+				),
 				'max_attempts'                       => array(
 					'label'   => __( 'Attempts per exam', 'course-captain' ),
 					'help'    => __( 'Counted per learner and exam; frozen when an attempt starts.', 'course-captain' ),
@@ -643,6 +695,14 @@ final class SettingsFields {
 				),
 			),
 			'enrollment'   => array(
+				'default_drip_days'           => array(
+					'label'   => __( 'Drip plan: release modules one after another', 'course-captain' ),
+					'help'    => __( 'Each further module opens this many days after the previous one, counted from the start of the access. A drip rule of a single module wins. Existing progress stays open.', 'course-captain' ),
+					'element' => 'nullable_number',
+					'unit'    => __( 'days', 'course-captain' ),
+					'scope'   => 'all',
+					'none'    => __( 'All modules at once', 'course-captain' ),
+				),
 				'self_enrollment'             => array(
 					'label'   => __( 'Enrollment', 'course-captain' ),
 					'help'    => __( 'Applies to all courses without an own setting. Selling via a shop is set up later under Integrations.', 'course-captain' ),
@@ -699,6 +759,12 @@ final class SettingsFields {
 				),
 			),
 			'certificates' => array(
+				'enabled'                       => array(
+					'label'   => __( 'Use certificates', 'course-captain' ),
+					'help'    => __( 'Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything. Issued certificates stay verifiable on the public verification page.', 'course-captain' ),
+					'element' => 'checkbox',
+					'scope'   => 'system',
+				),
 				'auto_issue'                    => array(
 					'label'   => __( 'Issue certificates automatically', 'course-captain' ),
 					'help'    => __( 'Applies to courses without an own setting that have a completion rule. Issued certificates do not change.', 'course-captain' ),
@@ -812,6 +878,12 @@ final class SettingsFields {
 						'functional'  => __( 'Functional', 'course-captain' ),
 					),
 				),
+				'trusted_media_hosts'     => array(
+					'label'   => __( 'Own media hosts', 'course-captain' ),
+					'help'    => __( 'One host name per line, for example media.example.org. Videos and files from these hosts count as your own and load without the external media notice. Only enter hosts you operate or have a processing agreement for.', 'course-captain' ),
+					'element' => 'hosts',
+					'scope'   => 'system',
+				),
 				'show_avatars'            => array(
 					'label'   => __( 'Show profile pictures (Gravatar)', 'course-captain' ),
 					'help'    => __( 'Hashed email addresses are transferred to Gravatar.', 'course-captain' ),
@@ -834,17 +906,43 @@ final class SettingsFields {
 				),
 			),
 			'hardening'    => array(
-				'login_limit'        => $hardening_toggle( __( 'Login limit', 'course-captain' ), __( 'Blocks further login attempts after too many failures. Pauses automatically while a security plugin has its own login lockout.', 'course-captain' ) ),
-				'known_device'       => array(
+				'login_limit'             => $hardening_toggle( __( 'Login limit', 'course-captain' ), __( 'Blocks further login attempts after too many failures. Pauses automatically while a security plugin has its own login lockout.', 'course-captain' ) ),
+				'known_device'            => array(
 					'label'   => __( 'Exempt known devices from address lockouts', 'course-captain' ),
 					'help'    => __( 'A signed, technically necessary cookie recognises devices on which the person already logged in successfully.', 'course-captain' ),
 					'element' => 'checkbox',
 					'scope'   => 'system',
 					'depends' => 'login_limit',
 				),
-				'reset_limit'        => $hardening_toggle( __( 'Limit for “Lost password”', 'course-captain' ), __( 'Limits requests per address and account. The answer is the same for known and unknown accounts.', 'course-captain' ) ),
-				'registration_limit' => $hardening_toggle( __( 'Limit for registrations', 'course-captain' ), __( 'Limits new accounts per address and hour. Only effective while anyone can register.', 'course-captain' ) ),
-				'xmlrpc'             => array(
+				'known_device_days'       => array(
+					'label'   => __( 'Remember known devices for', 'course-captain' ),
+					'help'    => __( 'Lifetime of the device cookie. Applies to new logins; existing cookies keep their expiry.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
+					'scope'   => 'system',
+					'depends' => 'login_limit',
+				),
+				'login_limits.ip'         => array(
+					'label'   => __( 'Failed logins per address', 'course-captain' ),
+					'help'    => $limit_help( 'login_ip' ),
+					'element' => 'number',
+					'scope'   => 'system',
+				),
+				'login_limits.account_ip' => array(
+					'label'   => __( 'Failed logins per account and address', 'course-captain' ),
+					'help'    => $limit_help( 'login_account_ip' ),
+					'element' => 'number',
+					'scope'   => 'system',
+				),
+				'login_limits.account'    => array(
+					'label'   => __( 'Failed logins per account', 'course-captain' ),
+					'help'    => $limit_help( 'login_account' ),
+					'element' => 'number',
+					'scope'   => 'system',
+				),
+				'reset_limit'             => $hardening_toggle( __( 'Limit for “Lost password”', 'course-captain' ), __( 'Limits requests per address and account. The answer is the same for known and unknown accounts.', 'course-captain' ) ),
+				'registration_limit'      => $hardening_toggle( __( 'Limit for registrations', 'course-captain' ), __( 'Limits new accounts per address and hour. Only effective while anyone can register.', 'course-captain' ) ),
+				'xmlrpc'                  => array(
 					'label'   => __( 'XML-RPC', 'course-captain' ),
 					'help'    => __( 'Old interface for external editors and pingbacks; often used for attacks.', 'course-captain' ),
 					'element' => 'xmlrpc',
@@ -854,7 +952,7 @@ final class SettingsFields {
 						'auto' => __( 'Switch off', 'course-captain' ),
 					),
 				),
-				'site_headers'       => $hardening_toggle( __( 'Security headers', 'course-captain' ), __( 'nosniff, Referrer-Policy, embedding only on this website and a Permissions-Policy for Course Captain responses. Headers the server already sends are not sent twice.', 'course-captain' ) ),
+				'site_headers'            => $hardening_toggle( __( 'Security headers', 'course-captain' ), __( 'nosniff, Referrer-Policy, embedding only on this website and a Permissions-Policy for Course Captain responses. Headers the server already sends are not sent twice.', 'course-captain' ) ),
 			),
 			'advanced'     => array(
 				'import_execution'           => array(
@@ -915,6 +1013,18 @@ final class SettingsFields {
 					'help'    => __( 'Log files with info and debug entries are deleted after this time (at most 30 days).', 'course-captain' ),
 					'element' => 'number',
 					'unit'    => __( 'days', 'course-captain' ),
+					'scope'   => 'system',
+				),
+				'report_csv_columns'         => array(
+					'label'   => __( 'Columns of the progress report CSV', 'course-captain' ),
+					'help'    => __( 'Preselected columns of the CSV download in Learners. The download form can change them for one export.', 'course-captain' ),
+					'element' => 'set',
+					'options' => \CourseCaptain\Progress\CourseReport::column_labels(),
+				),
+				'report_pseudonymize'        => array(
+					'label'   => __( 'Pseudonymise exports', 'course-captain' ),
+					'help'    => __( 'Report and certificate CSV files then contain a stable pseudonym per person instead of name and user ID; email addresses are never exported. The pseudonym stays the same across exports of this website.', 'course-captain' ),
+					'element' => 'checkbox',
 					'scope'   => 'system',
 				),
 			),

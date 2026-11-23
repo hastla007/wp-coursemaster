@@ -44,6 +44,10 @@ final class CertificatesScreen {
 		add_action(
 			'admin_menu',
 			static function (): void {
+				// SET-CC-24: no menu entry while the module is switched off.
+				if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) ) {
+					return;
+				}
 				add_submenu_page( EditorScreens::MENU, __( 'Certificates', 'course-captain' ), __( 'Certificates', 'course-captain' ), self::CAP, self::SLUG, array( self::class, 'render' ) );
 			},
 			20
@@ -126,6 +130,9 @@ final class CertificatesScreen {
 		if ( false === wp_verify_nonce( (string) ( $post['_wpnonce'] ?? '' ), self::TEMPLATE_ACTION ) ) {
 			return 'ccap_invalid_nonce';
 		}
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) ) {
+			return 'ccap_module_disabled';
+		}
 		$logo = absint( $post['logo_id'] ?? 0 );
 		if ( $logo > 0 ) {
 			$file = get_attached_file( $logo );
@@ -179,6 +186,9 @@ final class CertificatesScreen {
 		$actor = Actor::user( $user_id );
 		if ( ! CertificateAdmin::can_read( $actor ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to view certificates.', 403 );
+		}
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) ) {
+			return '<div class="wrap"><h1>' . esc_html__( 'Certificates', 'course-captain' ) . '</h1><p>' . esc_html__( 'Certificates are switched off under Settings → Certificates. Issued certificates are kept and stay verifiable.', 'course-captain' ) . '</p></div>';
 		}
 		$tab  = isset( $request['tab'] ) && 'template' === $request['tab'] ? 'template' : 'list';
 		$html = '<div class="wrap"><h1>' . esc_html__( 'Certificates', 'course-captain' ) . '</h1>' . self::nav( $tab ) . self::notice( $request );

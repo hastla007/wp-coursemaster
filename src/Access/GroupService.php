@@ -28,7 +28,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class GroupService {
 
-	public const INVITE_DAYS  = 30;
 	private const LOCK_WAIT   = 2;
 	private const TOKEN_BYTES = 32;
 
@@ -154,7 +153,7 @@ final class GroupService {
 								'status'           => 'invited',
 								'claim_token_hash' => hash( 'sha256', $token ),
 								'invited_at'       => $db->now(),
-								'claim_expires_at' => $db->now( self::INVITE_DAYS * DAY_IN_SECONDS ),
+								'claim_expires_at' => $db->now( \CourseCaptain\Settings\BusinessRules::invite_valid_days() * DAY_IN_SECONDS ),
 							),
 							array( 'created_at', 'updated_at' )
 						);

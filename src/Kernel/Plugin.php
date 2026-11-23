@@ -370,6 +370,7 @@ final class Plugin {
 			return;
 		}
 		$this->migrations->maybe_run_in_admin();
+		\CourseCaptain\Settings\Settings::maybe_migrate();
 		\CourseCaptain\Admin\MigrationNotice::maybe_add( $this->migrations );
 		if ( self::schema_ready() ) {
 			\CourseCaptain\Course\StarterContent::maybe_run( 'admin' );

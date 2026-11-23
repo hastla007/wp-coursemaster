@@ -4,7 +4,7 @@
 
 Dieses Handbuch listet jede Einstellung von Course Captain mit Standardwert, erlaubten Werten, Recht, Datenklasse und Exportverhalten. Bezeichnungen und Hilfetexte stehen in der Quellsprache der Oberfläche (Englisch); in der Oberfläche erscheinen sie übersetzt.
 
-Registerversion (`settings_version`): 1.
+Registerversion (`settings_version`): 2.
 
 ## Legende
 
@@ -58,7 +58,7 @@ Registerversion (`settings_version`): 1.
 - `general.use_profile_locale` – Automatic: learners see the learning area in their profile language as soon as more than one language is installed.
 - `general.catalog_group_language_versions` – Shows a course and its translations as one card with a language choice.
 - `general.catalog_indexing` – Public catalogue and course pages may appear in search engines. Learning area, lessons, certificates and invitations never appear.
-- `general.delete_data_on_uninstall` – Deactivating never deletes anything. Importing settings never takes over this setting. To switch it on, type the name of this website below.
+- `general.delete_data_on_uninstall` – When you delete the plugin under Plugins, all Course Captain data of this website is removed: courses, modules, lessons, questions and exams, enrollments and groups, learning progress, exam results, certificates, submissions and uploaded files, logs and settings. Deactivating never deletes anything; background jobs are always removed. On a network each website decides for itself. Importing settings never takes over this setting. To switch it on, type LÖSCHEN or DELETE below; switching it off needs no confirmation.
 
 <a id="tab-display"></a>
 ## Course display (`display`)
@@ -102,6 +102,9 @@ Registerversion (`settings_version`): 1.
 | `learning.mastery_algorithm` | Repetition strategy | enum: `smarttrainer.v1` | `"smarttrainer.v1"` | settings | internal | ja | course (sperrbar) |
 | `learning.favorites_enabled` | Allow favourites | bool | `true` | settings | internal | ja | course (sperrbar) |
 | `learning.mistake_training_enabled` | Offer mistake training | bool | `true` | settings | internal | ja | course (sperrbar) |
+| `learning.flashcards_enabled` | Use flashcards | bool | `true` | settings | internal | ja | – |
+| `learning.assignments_enabled` | Use assignments | bool | `true` | settings | internal | ja | – |
+| `learning.review_intervals` | review_intervals | object {first, second, third} | `{"first":7,"second":21,"third":60}` | settings | internal | ja | – |
 | `learning.assignment_file_types` | Allowed file types for submissions | set: `pdf`, `docx`, `odt`, `txt`, `jpg`, `png` | `["pdf","docx","odt","txt","jpg","png"]` | settings | internal | ja | – |
 | `learning.assignment_max_file_mb` | Maximum size per file | int 1–100 | `20` | settings | internal | ja | – |
 | `learning.assignment_max_files` | Maximum number of files per submission | int 1–20 | `5` | settings | internal | ja | – |
@@ -113,6 +116,9 @@ Registerversion (`settings_version`): 1.
 - `learning.mastery_algorithm` – Decides which questions come back while practising. A change only affects new answers.
 - `learning.favorites_enabled` – Favourites are private; trainers and reports never see them.
 - `learning.mistake_training_enabled` – Learners can practise the questions they answered wrongly.
+- `learning.flashcards_enabled` – Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything.
+- `learning.assignments_enabled` – Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything.
+- `learning.review_intervals` – `first`: Review after the first secure stage – A securely known question comes back for review after this many days. Applies to new answers. `second`: Review after the second secure stage – Must be at least as long as the first interval. `third`: Review after further secure answers – Must be at least as long as the second interval.
 - `learning.assignment_file_types` – Single assignments may only allow fewer types. Without a selection, learners cannot upload files, only text.
 - `learning.assignment_max_file_mb` – Single assignments may only set a smaller limit. The upload limit of the server can be lower.
 - `learning.assignment_max_files` – Single assignments may only set a smaller number.
@@ -136,6 +142,7 @@ Registerversion (`settings_version`): 1.
 | `exams.shuffle_answers` | Shuffle answers | bool | `true` | settings | internal | ja | exam_rule (sperrbar) |
 | `exams.feedback` | Exam feedback | object {visibility, show_score, show_correct_answers, show_correct_answers_when} | `{"visibility":"after_submit","show_score":true,"show_correct_answers":true,"show_correct_answers_when":"no_attempts_left_or_passed"}` | settings | internal | ja | exam_rule (sperrbar) |
 | `exams.auto_submit_inactive_days` | Submit automatically when inactive | int 1–365, null | `null` | settings | internal | ja | exam_rule (sperrbar) |
+| `exams.starts_per_hour` | Exam starts per learner and hour | int 1–1000 | `40` | settings | internal | ja | – |
 
 **Hilfetexte**
 
@@ -150,6 +157,7 @@ Registerversion (`settings_version`): 1.
 - `exams.shuffle_answers` – Answers marked as fixed (for example “All of the above”) keep their place.
 - `exams.feedback` – `visibility`: Result feedback – Whether learners see a result after submitting. `show_score`: Show points – Only effective when result feedback is shown. `show_correct_answers`: Show correct answers – Only effective when result feedback is shown. `show_correct_answers_when`: When correct answers appear – After every submission learners always see which questions were right or wrong. Showing solutions directly makes question pools exploitable across repeated attempts.
 - `exams.auto_submit_inactive_days` – Only for attempts without time limit. Learners are warned beforehand.
+- `exams.starts_per_hour` – Protects against automated starts. Further starts within the hour are refused with a waiting time.
 
 <a id="tab-enrollment"></a>
 ## Enrollment (`enrollment`)
@@ -160,6 +168,7 @@ Registerversion (`settings_version`): 1.
 |---|---|---|---|---|---|---|---|
 | `enrollment.self_enrollment` | Enrollment | bool | `false` | settings | internal | ja | course (sperrbar) |
 | `enrollment.default_access_days` | Duration of a new access | int 1–3650, null | `null` | settings | internal | ja | course (sperrbar) |
+| `enrollment.default_drip_days` | Drip plan: release modules one after another | int 1–365, null | `null` | settings | internal | ja | – |
 | `enrollment.groups_enabled` | Use groups with seats | bool | `false` | settings | internal | ja | course (sperrbar) |
 | `enrollment.invite_valid_days` | Validity of invitations | int 1–365 | `30` | settings | internal | ja | group |
 | `enrollment.claim_policy` | Who may accept an invitation? | enum: `transferable`, `invited_address_only` | `"transferable"` | settings | internal | ja | group (sperrbar) |
@@ -170,6 +179,7 @@ Registerversion (`settings_version`): 1.
 
 - `enrollment.self_enrollment` – Applies to all courses without an own setting. Selling via a shop is set up later under Integrations.
 - `enrollment.default_access_days` – Applies to new enrollments. Existing access stays unchanged. Duration of the access, not of the data.
+- `enrollment.default_drip_days` – Each further module opens this many days after the previous one, counted from the start of the access. A drip rule of a single module wins. Existing progress stays open.
 - `enrollment.groups_enabled` – For companies, clubs or classes. Switching off only prevents new groups; existing groups, seats and access stay.
 - `enrollment.invite_valid_days` – Applies to new invitations; single groups can be shorter.
 - `enrollment.claim_policy` – An email address does not prove who someone is.
@@ -190,12 +200,14 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 
 | Schlüssel | Bezeichnung | Typ / erlaubte Werte | Standard | Recht | Datenklasse | Export | Übersteuerbar |
 |---|---|---|---|---|---|---|---|
+| `certificates.enabled` | Use certificates | bool | `true` | settings | internal | ja | – |
 | `certificates.auto_issue` | Issue certificates automatically | bool | `false` | settings | internal | ja | course (sperrbar) |
 | `certificates.holder_name_policy` | Name on the public verification page | enum: `never`, `learner_opt_in` | `"learner_opt_in"` | settings | internal | ja | – |
 | `certificates.base_template` | Certificate template | object {issuer_name, footer_text, logo_id, signature_label} | `{"issuer_name":"","footer_text":"","logo_id":0,"signature_label":""}` | settings | internal | ja | course (sperrbar) |
 
 **Hilfetexte**
 
+- `certificates.enabled` – Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything. Issued certificates stay verifiable on the public verification page.
 - `certificates.auto_issue` – Applies to courses without an own setting that have a completion rule. Issued certificates do not change.
 - `certificates.holder_name_policy` – Email addresses never appear there.
 - `certificates.base_template` – `issuer_name`: Issuer – Leave empty to use the website title. Changes create a new template version; issued certificates keep theirs. `footer_text`: Footer – Text at the bottom of every certificate. `logo_id`: Logo (media ID) – ID of an image in the media library; 0 = no logo. `signature_label`: Signature line – Text below the signature area, for example a role.
@@ -235,6 +247,7 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 | `privacy.consent_category` | Category in the consent tool | enum: `marketing`, `statistics`, `preferences`, `functional` | `"marketing"` | settings | internal | ja | – |
 | `privacy.external_media_remember` | Learners may choose “Always load” | bool | `true` | settings | internal | ja | – |
 | `privacy.trusted_proxies` | Trusted proxies | ip_list (max. 50) | `[]` | admin | internal | nein | – |
+| `privacy.trusted_media_hosts` | Own media hosts | host_list | `[]` | settings | internal | ja | – |
 | `privacy.show_avatars` | Show profile pictures (Gravatar) | bool | `false` | settings | internal | ja | – |
 | `privacy.csp_mode` | Content Security Policy for Course Captain pages | enum: `enforce`, `report_only` | `"enforce"` | settings | internal | ja | – |
 
@@ -247,6 +260,7 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 - `privacy.consent_category` – Only effective with “Load after click”: Course Captain asks for consent in this category via the WP Consent API.
 - `privacy.external_media_remember` – Only effective with “Load after click”. The box is never pre-ticked for learners.
 - `privacy.trusted_proxies` – One address or range per line. Only enter addresses if your website runs behind your own proxy or load balancer.
+- `privacy.trusted_media_hosts` – One host name per line, for example media.example.org. Videos and files from these hosts count as your own and load without the external media notice. Only enter hosts you operate or have a processing agreement for.
 - `privacy.show_avatars` – Hashed email addresses are transferred to Gravatar.
 - `privacy.csp_mode` – Applies to the learning area including lessons and the exam room. Only scripts that WordPress loads in the regular way may run; frames only from this website and the known video services. Report only should be used only briefly, to find conflicts with the theme or other plugins in the browser console.
 
@@ -261,6 +275,8 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 | `hardening.reset_limit` | Limit for “Lost password” | enum: `auto`, `force`, `off` | `"off"` | admin | internal | ja | – |
 | `hardening.registration_limit` | Limit for registrations | enum: `auto`, `force`, `off` | `"off"` | admin | internal | ja | – |
 | `hardening.known_device` | Exempt known devices from address lockouts | bool | `true` | admin | internal | ja | – |
+| `hardening.known_device_days` | Remember known devices for | int 1–365 | `180` | admin | internal | ja | – |
+| `hardening.login_limits` | login_limits | object {ip, account_ip, account} | `{"ip":10,"account_ip":5,"account":30}` | admin | internal | ja | – |
 | `hardening.xmlrpc` | XML-RPC | enum: `auto`, `force`, `off` | `"off"` | admin | internal | ja | – |
 | `hardening.site_headers` | Security headers | enum: `auto`, `force`, `off` | `"off"` | admin | internal | ja | – |
 
@@ -270,6 +286,8 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 - `hardening.reset_limit` – Limits requests per address and account. The answer is the same for known and unknown accounts.
 - `hardening.registration_limit` – Limits new accounts per address and hour. Only effective while anyone can register.
 - `hardening.known_device` – A signed, technically necessary cookie recognises devices on which the person already logged in successfully.
+- `hardening.known_device_days` – Lifetime of the device cookie. Applies to new logins; existing cookies keep their expiry.
+- `hardening.login_limits` – `ip`: Failed logins per address – Attempts within 15 minutes before the lock applies. The time window is fixed. `account_ip`: Failed logins per account and address – Attempts within 15 minutes before the lock applies. The time window is fixed. `account`: Failed logins per account – Attempts within 15 minutes before the lock applies. The time window is fixed.
 - `hardening.xmlrpc` – Old interface for external editors and pingbacks; often used for attacks.
 - `hardening.site_headers` – nosniff, Referrer-Policy, embedding only on this website and a Permissions-Policy for Course Captain responses. Headers the server already sends are not sent twice.
 
@@ -287,6 +305,8 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 | `advanced.log_level` | Log level | enum: `error`, `warning`, `info`, `debug` | `"warning"` | settings | internal | nein | – |
 | `advanced.error_log_days` | Keep error logs for | int 1–365 | `30` | settings | internal | ja | – |
 | `advanced.debug_file_days` | Keep debug logs for | int 1–30 | `7` | settings | internal | ja | – |
+| `advanced.report_csv_columns` | Columns of the progress report CSV | set: `user_id`, `display_name`, `status`, `completion_percent`, `last_activity_at`, `total`, `new`, `unsure`, `learning`, `secure`, `mastered`, `due`, `percent`, `secure_percent` | `["user_id","display_name","status","completion_percent","last_activity_at","total","new","unsure","learning","secure","mastered","due","percent","secure_percent"]` | settings | internal | ja | – |
+| `advanced.report_pseudonymize` | Pseudonymise exports | bool | `false` | settings | internal | ja | – |
 
 **Hilfetexte**
 
@@ -297,6 +317,8 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 - `advanced.log_level` – Course Captain writes log files to the protected folder, never into the web root. “Info” and “Debug” write much more and fall back to “Warnings and errors” automatically after 7 days. Logs never contain answers, passwords or tokens.
 - `advanced.error_log_days` – Log files with errors and warnings are deleted after this time.
 - `advanced.debug_file_days` – Log files with info and debug entries are deleted after this time (at most 30 days).
+- `advanced.report_csv_columns` – Preselected columns of the CSV download in Learners. The download form can change them for one export.
+- `advanced.report_pseudonymize` – Report and certificate CSV files then contain a stable pseudonym per person instead of name and user ID; email addresses are never exported. The pseudonym stays the same across exports of this website.
 
 ## Sperren und Übersteuerungen
 

@@ -185,6 +185,8 @@ final class UninstallManifest {
 		'_ccap_completion_rule',
 		'_ccap_copied_from_uid',
 		'_ccap_current_revision_id',
+		// Enrollment closed (E-108, UI-F2).
+		'_ccap_enrollment',
 		'_ccap_language',
 		'_ccap_listing',
 		'_ccap_protected_course',

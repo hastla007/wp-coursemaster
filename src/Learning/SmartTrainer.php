@@ -34,7 +34,8 @@ final class SmartTrainer {
 	public const RECENT_EXCLUDE        = 3;
 	public const SECURE_STREAK         = 3;
 	public const CONSOLIDATE_GAP       = 72000;
-	public const REVIEW_INTERVAL_DAYS  = array( 7, 21, 60 );
+	/** Defaults of `learning.review_intervals` (SET-CC-13); the effective values come from BusinessRules. */
+	public const REVIEW_INTERVAL_DAYS = array( 7, 21, 60 );
 
 	/**
 	 * Injected clock (tests); null = real time.
@@ -182,14 +183,15 @@ final class SmartTrainer {
 	}
 
 	/**
-	 * Review interval in days (`reviewInterval`): streak 4 → 7, 5 → 21, ≥ 6 → 60.
+	 * Review interval in days (`reviewInterval`): streak 4, 5 and ≥ 6 map to
+	 * `learning.review_intervals` (defaults 7, 21, 60; SET-CC-13).
 	 *
 	 * @param int $streak Streak after the answer.
 	 * @return int
 	 */
 	public static function review_interval( int $streak ): int {
 		$index = max( 0, min( 2, $streak - self::SECURE_STREAK - 1 ) );
-		return self::REVIEW_INTERVAL_DAYS[ $index ];
+		return \CourseCaptain\Settings\BusinessRules::review_intervals()[ $index ];
 	}
 
 	/**

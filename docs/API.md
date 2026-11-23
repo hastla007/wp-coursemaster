@@ -31,6 +31,7 @@
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\d+)/draft` | angemeldet (Cookie + `X-WP-Nonce`) | `submission_uid`, `text` |
+| `POST` | `/courses/(?P<course>[0-9a-f-]+)/enrollment` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/courses/(?P<course>[0-9a-f-]+)/exam-sessions` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/faqs` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `DELETE` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
@@ -109,6 +110,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_activity_progress_changed` | action |
 | `course_captain_allow_unmoved_protected_file` | filter |
 | `course_captain_assignment_file_scan` | filter |
+| `course_captain_business_rule` | filter |
 | `course_captain_cache_purge` | action |
 | `course_captain_can_access` | filter |
 | `course_captain_certificate_fallback_rendered` | action |

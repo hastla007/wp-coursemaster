@@ -558,6 +558,8 @@ final class A11yI18nTest extends SchemaTestCase {
 		wp_set_current_user( $this->admin );
 		$screens = array(
 			'groups'       => GroupsScreen::html( array(), $this->admin ),
+			// SET-CC-26 / UI-F2: enrollment state and report download on the course view.
+			'learners'     => \CourseCaptain\Admin\LearnersScreen::html( array( 'course' => $this->course ), $this->admin ),
 			'certificates' => CertificatesScreen::html( array(), $this->admin ),
 			'template'     => CertificatesScreen::html( array( 'tab' => 'template' ), $this->admin ),
 			'audit'        => AuditScreen::html( array() ),

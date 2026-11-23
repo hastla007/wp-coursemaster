@@ -40,7 +40,7 @@ final class SettingsRules {
 	 *
 	 * @param array<string, mixed> $field Field definition.
 	 * @param mixed                $value Raw value.
-	 * @return string `format`, `range`, `length`, `email`, `ip`, `choice` or `invalid`.
+	 * @return string `format`, `range`, `length`, `email`, `ip`, `host`, `choice` or `invalid`.
 	 */
 	public static function invalid_rule( array $field, $value ): string {
 		switch ( $field['type'] ) {
@@ -58,6 +58,8 @@ final class SettingsRules {
 				return 'color';
 			case 'ip_list':
 				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'ip';
+			case 'host_list':
+				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'host';
 			case 'enum':
 			case 'set':
 			case 'bool':
@@ -117,6 +119,13 @@ final class SettingsRules {
 			// SET-CC-16 (R0-27 SET-041): white button text on the accent colour needs 4.5:1; too light colours are rejected.
 			if ( $check( 'accent_color' ) && '' !== $candidate['accent_color'] && self::contrast( (string) $candidate['accent_color'], '#ffffff' ) < self::MIN_CONTRAST ) {
 				$errors['accent_color'] = 'contrast';
+			}
+		}
+		// SET-CC-13: review intervals never shrink from one stage to the next.
+		if ( 'learning' === $tab && $check( 'review_intervals' ) ) {
+			$intervals = (array) $candidate['review_intervals'];
+			if ( (int) $intervals['second'] < (int) $intervals['first'] || (int) $intervals['third'] < (int) $intervals['second'] ) {
+				$errors['review_intervals'] = 'interval_order';
 			}
 		}
 		/**

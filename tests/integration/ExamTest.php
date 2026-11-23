@@ -812,6 +812,29 @@ final class ExamTest extends SchemaTestCase {
 	}
 
 	/**
+	 * SET-CC-13: the start limit comes from `exams.starts_per_hour`
+	 * (default 40 = former constant); a lower value applies at once.
+	 *
+	 * @group SET-CC-13
+	 */
+	public function test_SET_CC_13_start_limit_from_setting(): void {
+		\CourseCaptain\Settings\Settings::save( Actor::cli(), 'exams', array( 'starts_per_hour' => 2 ), array( 'starts_per_hour' ), \CourseCaptain\Settings\Settings::rev( 'exams' ) );
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$sessions->set_now( time() );
+		$start = fn(): int => $sessions->start( $learner, $this->rule(), null, wp_generate_uuid4(), new Randomizer( '7' ) );
+		$start();
+		$start();
+		try {
+			$start();
+			self::fail( 'third start within the hour' );
+		} catch ( CourseException $e ) {
+			self::assertSame( 'ccap_rate_limited', $e->error_code );
+			self::assertSame( 'exam_start', $e->data['bucket'] );
+		}
+	}
+
+	/**
 	 * R1-20: start limit 40/h (only new attempts count), ccap_rate_limited with retry_after.
 	 *
 	 * @group R1-20

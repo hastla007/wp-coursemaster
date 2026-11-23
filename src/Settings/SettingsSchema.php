@@ -24,7 +24,8 @@ defined( 'ABSPATH' ) || exit;
  */
 final class SettingsSchema {
 
-	public const VERSION = 1;
+	/** 2: business rules and module switches (SET-CC-13/24/25/26); v1 values stay as they are. */
+	public const VERSION = 2;
 
 	/** Maximum length of a button label of the learning area (SET-CC-16). */
 	public const BUTTON_LABEL_MAX = 40;
@@ -198,6 +199,41 @@ final class SettingsSchema {
 					'type'    => 'bool',
 					'default' => true,
 				),
+				// Module switches (SET-CC-24): off hides UI, REST and jobs; no data is deleted.
+				'flashcards_enabled'        => array(
+					'type'    => 'bool',
+					'default' => true,
+				),
+				'assignments_enabled'       => array(
+					'type'    => 'bool',
+					'default' => true,
+				),
+				// Smart trainer review intervals in days (SET-CC-13; former SmartTrainer::REVIEW_INTERVAL_DAYS).
+				'review_intervals'          => array(
+					'type'    => 'object',
+					'fields'  => array(
+						'first'  => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 365,
+						),
+						'second' => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 730,
+						),
+						'third'  => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1825,
+						),
+					),
+					'default' => array(
+						'first'  => 7,
+						'second' => 21,
+						'third'  => 60,
+					),
+				),
 				// Register `assignments.*` (R0-27 SET-134, E-289): a task may only be stricter.
 				'assignment_file_types'     => array(
 					'type'    => 'set',
@@ -323,6 +359,13 @@ final class SettingsSchema {
 					'nullable' => true,
 					'default'  => null,
 				),
+				// Exam starts per learner and hour (SET-CC-13; former ExamSessions::START_LIMIT_HOUR).
+				'starts_per_hour'           => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 1000,
+					'default' => 40,
+				),
 			),
 			'enrollment'   => array(
 				'self_enrollment'             => array(
@@ -333,6 +376,14 @@ final class SettingsSchema {
 					'type'     => 'int',
 					'min'      => 1,
 					'max'      => 3650,
+					'nullable' => true,
+					'default'  => null,
+				),
+				// Global drip plan (SET-CC-25): module n unlocks n × days after the access start; empty = at once.
+				'default_drip_days'           => array(
+					'type'     => 'int',
+					'min'      => 1,
+					'max'      => 365,
 					'nullable' => true,
 					'default'  => null,
 				),
@@ -364,6 +415,11 @@ final class SettingsSchema {
 				),
 			),
 			'certificates' => array(
+				// Module switch (SET-CC-24): issued certificates stay verifiable.
+				'enabled'            => array(
+					'type'    => 'bool',
+					'default' => true,
+				),
 				'auto_issue'         => array(
 					'type'    => 'bool',
 					'default' => false,
@@ -463,6 +519,12 @@ final class SettingsSchema {
 					'cap'     => 'admin',
 					'export'  => 'never_env',
 				),
+				// Hosts that do not count as foreign media hosts (SET-CC-13; filter `course_captain_trusted_media_hosts` wins).
+				'trusted_media_hosts'     => array(
+					'type'    => 'host_list',
+					'max'     => 50,
+					'default' => array(),
+				),
 				'show_avatars'            => array(
 					'type'    => 'bool',
 					'default' => false,
@@ -480,6 +542,42 @@ final class SettingsSchema {
 				'known_device'       => array(
 					'type'    => 'bool',
 					'default' => true,
+					'cap'     => 'admin',
+				),
+				// Lifetime of the device cookie (SET-CC-13; former Hardening::DEVICE_DAYS).
+				'known_device_days'  => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 365,
+					'default' => 180,
+					'cap'     => 'admin',
+				),
+				// Failed logins per 15 minutes (SET-CC-13, R1-45): `ip`, `account_ip`, `account`; windows and
+				// the reset/registration limits stay technical constants; the filter `course_captain_hardening_limits` wins.
+				'login_limits'       => array(
+					'type'    => 'object',
+					'fields'  => array(
+						'ip'         => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1000,
+						),
+						'account_ip' => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1000,
+						),
+						'account'    => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1000,
+						),
+					),
+					'default' => array(
+						'ip'         => 10,
+						'account_ip' => 5,
+						'account'    => 30,
+					),
 					'cap'     => 'admin',
 				),
 				'xmlrpc'             => $hardening,
@@ -527,6 +625,16 @@ final class SettingsSchema {
 					'min'     => 1,
 					'max'     => 30,
 					'default' => 7,
+				),
+				// Reports (SET-CC-26): default CSV columns and pseudonymised exports.
+				'report_csv_columns'         => array(
+					'type'    => 'set',
+					'values'  => \CourseCaptain\Progress\CourseReport::CSV_COLUMNS,
+					'default' => \CourseCaptain\Progress\CourseReport::CSV_COLUMNS,
+				),
+				'report_pseudonymize'        => array(
+					'type'    => 'bool',
+					'default' => false,
 				),
 			),
 		);
@@ -735,6 +843,21 @@ final class SettingsSchema {
 					'ok'    => true,
 					'value' => array_values( $value ),
 				);
+			case 'host_list':
+				if ( ! is_array( $value ) || count( $value ) > (int) ( $field['max'] ?? 50 ) ) {
+					return $bad;
+				}
+				$hosts = array();
+				foreach ( $value as $host ) {
+					if ( ! is_string( $host ) || ! self::is_host( strtolower( trim( $host ) ) ) ) {
+						return $bad;
+					}
+					$hosts[] = strtolower( trim( $host ) );
+				}
+				return array(
+					'ok'    => true,
+					'value' => array_values( array_unique( $hosts ) ),
+				);
 			case 'object':
 				if ( ! is_array( $value ) ) {
 					return $bad;
@@ -761,6 +884,16 @@ final class SettingsSchema {
 				);
 		}
 		return $bad;
+	}
+
+	/**
+	 * Host name (lower case, at least one dot, no scheme, port or path).
+	 *
+	 * @param string $value Value.
+	 * @return bool
+	 */
+	public static function is_host( string $value ): bool {
+		return strlen( $value ) <= 253 && 1 === preg_match( '/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/', $value );
 	}
 
 	/**

@@ -165,7 +165,7 @@ final class SettingsCliTransferTest extends SchemaTestCase {
 		// E-89: data deletion only with the typed site name.
 		self::assertSame( 1, self::cli( 'set', array( 'general.delete_data_on_uninstall', 'true' ), array( 'confirm' => true ) )['exit'] );
 		self::assertFalse( Settings::get( 'general.delete_data_on_uninstall' ) );
-		self::assertSame( 0, self::cli( 'set', array( 'general.delete_data_on_uninstall', 'true' ), array( 'confirm' => get_bloginfo( 'name' ) ) )['exit'] );
+		self::assertSame( 0, self::cli( 'set', array( 'general.delete_data_on_uninstall', 'true' ), array( 'confirm' => 'delete' ) )['exit'] );
 		self::assertTrue( Settings::get( 'general.delete_data_on_uninstall' ) );
 
 		// Reset: key → default (risk rules apply), tab only with --yes.
