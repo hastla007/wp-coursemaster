@@ -27,12 +27,12 @@ final class GateCSecurityTest extends TestCase {
 	/**
 	 * Body of a method as source text.
 	 *
-	 * @param class-string $class  Class.
+	 * @param class-string $class_name Class.
 	 * @param string       $method Method.
 	 * @return string
 	 */
-	private static function source( string $class, string $method ): string {
-		$ref   = new \ReflectionMethod( $class, $method );
+	private static function source( string $class_name, string $method ): string {
+		$ref   = new \ReflectionMethod( $class_name, $method );
 		$lines = (array) file( (string) $ref->getFileName() );
 		return implode( '', array_slice( $lines, (int) $ref->getStartLine() - 1, (int) $ref->getEndLine() - (int) $ref->getStartLine() + 1 ) );
 	}

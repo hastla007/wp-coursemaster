@@ -35,6 +35,17 @@ final class MigrationBudgetTest extends TestCase {
 	}
 
 	/**
+	 * Remaining seconds for the "stop before the next chunk" rule (R0-38 §4.3).
+	 */
+	public function test_remaining(): void {
+		self::assertSame( INF, ( new MigrationBudget( null ) )->remaining() );
+		self::assertSame( 0.0, ( new MigrationBudget( 0.0 ) )->remaining() );
+		$left = ( new MigrationBudget( 60.0 ) )->remaining();
+		self::assertGreaterThan( 59.0, $left );
+		self::assertLessThanOrEqual( 60.0, $left );
+	}
+
+	/**
 	 * Cursor `<pass>:<id>`; anything else starts from the beginning.
 	 */
 	public function test_cursor_format(): void {

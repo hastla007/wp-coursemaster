@@ -64,6 +64,15 @@ final class MigrationBudget {
 	}
 
 	/**
+	 * Seconds left (INF when unlimited, never negative).
+	 *
+	 * @return float
+	 */
+	public function remaining(): float {
+		return INF === $this->deadline ? INF : max( 0.0, $this->deadline - microtime( true ) );
+	}
+
+	/**
 	 * Whether the budget is used up.
 	 *
 	 * @return bool

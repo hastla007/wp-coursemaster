@@ -27,7 +27,6 @@ return array(
 		'GM-118' => 'Path and state machine on PKG-v2; PKG-v1 carries 71 questions incl. draft Q-A3-011 and 13 flashcards, but no media and blueprints (no media/blueprint import).',
 		'GM-125' => 'Chunked steps; no media step (no media import).',
 		'GM-128' => 'Upload validator with MED-BAD-1…6; no media import, no legacy quarantine.',
-		'GM-136' => 'Scaled: 600 questions with 3 defective, abort at 50 % and resume (test_GM_136), 5 000/1 500 questions (BIG-001/BIG-020) instead of PKG-LARGE with 20 000; the full volume is a load run on R-M (R1-41/R1-22 A-1).',
 		'GM-150' => 'Fully asserted over REST except the status: a missing key answers 428 `ccap_idempotency_key_required` (R0-19 R-08/§8) instead of the 422 named in R0-05. Needs client approval (§5.1).',
 		'GM-154' => 'C-B answers 404 (CT-02 "foreign = invisible") instead of 403.',
 		'GM-187' => 'Query constancy and ceilings run in CI; the p95 time budgets (R0-22/NFR-018, C-A with 200 learners) need the manual load run on R-M (R1-22 A-1).',
