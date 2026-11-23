@@ -54,7 +54,7 @@ final class PostTypes {
 		self::register_type(
 			Relations::COURSE_TYPE,
 			array(
-				'labels'              => self::labels( __( 'Courses', 'course-captain' ), __( 'Course', 'course-captain' ) ),
+				'labels'              => self::labels( __( 'Courses', 'course-captain' ), __( 'Course', 'course-captain' ), __( 'Add course', 'course-captain' ) ),
 				'public'              => true,
 				'publicly_queryable'  => true,
 				'exclude_from_search' => false,
@@ -70,14 +70,14 @@ final class PostTypes {
 		self::register_type(
 			Relations::MODULE_TYPE,
 			array(
-				'labels'       => self::labels( __( 'Modules', 'course-captain' ), __( 'Module', 'course-captain' ) ),
+				'labels'       => self::labels( __( 'Modules', 'course-captain' ), __( 'Module', 'course-captain' ), __( 'Add module', 'course-captain' ) ),
 				'hierarchical' => false,
 			) + $base
 		);
 		self::register_type(
 			Relations::LESSON_TYPE,
 			array(
-				'labels'   => self::labels( __( 'Lessons', 'course-captain' ), __( 'Lesson', 'course-captain' ) ),
+				'labels'   => self::labels( __( 'Lessons', 'course-captain' ), __( 'Lesson', 'course-captain' ), __( 'Add lesson', 'course-captain' ) ),
 				'supports' => array( 'title', 'editor', 'revisions', 'author', 'page-attributes' ),
 			) + $base
 		);
@@ -142,13 +142,18 @@ final class PostTypes {
 	 *
 	 * @param string $plural   Plural name.
 	 * @param string $singular Singular name.
+	 * @param string $add      "Add …" label (menu entry and editor title), empty = WordPress default.
 	 * @return array<string, string>
 	 */
-	private static function labels( string $plural, string $singular ): array {
-		return array(
+	private static function labels( string $plural, string $singular, string $add = '' ): array {
+		$labels = array(
 			'name'          => $plural,
 			'singular_name' => $singular,
 			'menu_name'     => $plural,
 		);
+		if ( '' !== $add ) {
+			$labels['add_new_item'] = $add;
+		}
+		return $labels;
 	}
 }

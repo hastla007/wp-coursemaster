@@ -1,10 +1,12 @@
 // R1-18 live E2E smoke against a running site (started by tools/qa/e2e/live-smoke.sh).
-// Learner U-L1 (`cc_fx_lea`): login → My learning → course room C-A → lesson L-A-01
+// R0-11 Flow 2. CCAP_E2E_LEARNER picks the account (default U-L1 `cc_fx_lea`), CCAP_E2E_DEVICE=mobile
+// runs it in phone emulation (Pixel 7: 412 px, touch, mobile UA; every page without horizontal
+// scrolling) – live-flows.sh uses `cc_e2e_mia` for that. Learner: login → My learning → course room C-A → lesson L-A-01
 // completed → learning question answered → exam ER-A started, answered, reloaded,
 // submitted → certificate issued (outbox), opened by the learner → verified as guest.
 // The fixture's correct answer is always option "Antwort A" (multi: A, B[, C]) in the
 // source (R0-05 §2.3); delivery shuffles, so options are chosen by their text.
-const { chromium } = require( 'playwright' );
+const { chromium, devices } = require( 'playwright' );
 const { execSync } = require( 'child_process' );
 const crypto = require( 'crypto' );
 
@@ -13,6 +15,8 @@ const SETUP = JSON.parse( process.env.CCAP_E2E_SETUP || '{}' );
 const area = ( p ) => BASE + '/?course_captain_app=' + encodeURIComponent( p );
 const rest = ( p ) => BASE + '/?rest_route=' + encodeURIComponent( '/course-captain/v1' + p );
 const results = [];
+const LEARNER = process.env.CCAP_E2E_LEARNER || 'cc_fx_lea';
+const MOBILE = 'mobile' === process.env.CCAP_E2E_DEVICE;
 
 async function step( name, fn ) {
 	try {
@@ -55,15 +59,25 @@ async function api( page, nonce, method, path, body ) {
 
 ( async () => {
 	const browser = await chromium.launch();
-	const learner = await browser.newContext();
+	const learner = await browser.newContext( MOBILE ? devices[ 'Pixel 7' ] : {} );
 	const page = await learner.newPage();
+	const overflow = [];
+	// Phone: no page of the flow may scroll sideways (R1-16, A11Y-050).
+	page.on( 'load', async () => {
+		if ( MOBILE ) {
+			const px = await page.evaluate( () => document.documentElement.scrollWidth - document.documentElement.clientWidth ).catch( () => 0 );
+			if ( px > 0 ) {
+				overflow.push( page.url() + ' (' + px + ' px)' );
+			}
+		}
+	} );
 	let nonce = '';
 	let session = '';
 	let verifyUrl = '';
 	try {
 		await step( 'learner logs in', async () => {
 			await page.goto( BASE + '/wp-login.php' );
-			await page.fill( '#user_login', 'cc_fx_lea' );
+			await page.fill( '#user_login', LEARNER );
 			await page.fill( '#user_pass', process.env.CCAP_E2E_PASS );
 			await Promise.all( [ page.waitForNavigation(), page.click( '#wp-submit' ) ] );
 			nonce = await page.evaluate( async ( u ) => ( await fetch( u, { credentials: 'same-origin' } ) ).text(), BASE + '/wp-admin/admin-ajax.php?action=rest-nonce' );
@@ -172,7 +186,7 @@ async function api( page, nonce, method, path, body ) {
 			const text = await g.locator( 'body' ).innerText();
 			assert( text.includes( 'Kurs Alpha' ), 'course named on the verification page' );
 			assert( ( await g.locator( '.ccap-status' ).count() ) === 1, 'status shown' );
-			assert( ! text.includes( 'cc_fx_lea' ) && ! text.includes( 'fixture.test' ), 'no login or address on the public page' );
+			assert( ! text.includes( LEARNER ) && ! text.includes( 'fixture.test' ) && ! text.includes( 'example.test' ), 'no login or address on the public page' );
 			const bad = await g.goto( verifyUrl.replace( /[0-9a-f]{4}$/, '0000' ) );
 			assert( ! ( await g.locator( 'body' ).innerText() ).includes( 'Kurs Alpha' ), 'a wrong token reveals nothing (' + bad.status() + ')' );
 			await guest.close();
@@ -183,10 +197,17 @@ async function api( page, nonce, method, path, body ) {
 			const value = await page.locator( 'progress' ).first().getAttribute( 'value' );
 			assert( parseInt( value, 10 ) > 0, 'progress > 0 (' + value + ')' );
 		} );
+
+		if ( MOBILE ) {
+			await step( 'phone: no horizontal scrolling on any page of the flow', async () => {
+				await page.waitForTimeout( 200 );
+				assert( overflow.length === 0, 'horizontal overflow: ' + overflow.join( ', ' ) );
+			} );
+		}
 	} catch ( e ) {
 		process.exitCode = 1;
 	} finally {
-		console.log( results.join( '\n' ) );
+		console.log( ( MOBILE ? '[mobile ' + LEARNER + ']\n' : '' ) + results.join( '\n' ) );
 		await browser.close();
 	}
 } )();

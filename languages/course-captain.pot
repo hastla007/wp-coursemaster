@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-23T14:51:25+00:00\n"
+"POT-Creation-Date: 2026-11-23T15:09:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -18,7 +18,7 @@ msgstr ""
 #. Author of the plugin
 #: course-captain.php:3
 #: course-captain.php:9
-#: src/Admin/EditorScreens.php:53
+#: src/Admin/EditorScreens.php:55
 #: src/Admin/Notices.php:120
 #: src/Notification/NotificationService.php:1029
 #: src/Ops/Compatibility.php:570
@@ -65,7 +65,7 @@ msgid "Please log in."
 msgstr ""
 
 #. translators: %s: original title
-#: src/Admin/AuthoringService.php:173
+#: src/Admin/AuthoringService.php:205
 #, php-format
 msgid "%s (copy)"
 msgstr ""
@@ -603,154 +603,173 @@ msgstr ""
 msgid "Logo (media ID)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:69
+#: src/Admin/EditorScreens.php:77
 #: src/Course/PostTypes.php:73
 msgid "Modules"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:70
+#: src/Admin/EditorScreens.php:78
 msgid "Publish revision"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:71
+#: src/Admin/EditorScreens.php:79
 msgid "Activity"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:87
+#: src/Admin/EditorScreens.php:95
 msgid "Modules of this course"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:87
+#: src/Admin/EditorScreens.php:95
+#: src/Admin/EditorScreens.php:229
 #: src/Course/PostTypes.php:73
 msgid "Module"
 msgstr ""
 
 #. translators: %d: lesson count
-#: src/Admin/EditorScreens.php:87
-#: src/Admin/EditorScreens.php:91
+#: src/Admin/EditorScreens.php:95
+#: src/Admin/EditorScreens.php:99
 msgid "Position"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:87
-#: src/Admin/EditorScreens.php:92
+#: src/Admin/EditorScreens.php:95
+#: src/Admin/EditorScreens.php:100
 msgid "Required"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:87
+#: src/Admin/EditorScreens.php:95
 #: src/Admin/GroupsScreen.php:364
 msgid "Remove"
 msgstr ""
 
 #. translators: %d: lesson count
-#: src/Admin/EditorScreens.php:90
+#: src/Admin/EditorScreens.php:98
 #, php-format
 msgid "%d lesson"
 msgid_plural "%d lessons"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/EditorScreens.php:93
+#: src/Admin/EditorScreens.php:101
 msgid "Remove from course"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:107
+#: src/Admin/EditorScreens.php:116
+#: src/Course/PostTypes.php:73
 msgid "Add module"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:107
+#: src/Admin/EditorScreens.php:116
+#: src/Admin/EditorScreens.php:229
 msgid "— none —"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:113
+#: src/Admin/EditorScreens.php:122
 msgid "Changes apply to the draft. Learners keep their published revision until you publish again."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:124
+#: src/Admin/EditorScreens.php:133
 msgid "Not published yet."
 msgstr ""
 
 #. translators: %d: revision number
-#: src/Admin/EditorScreens.php:124
+#: src/Admin/EditorScreens.php:133
 #, php-format
 msgid "Published revision: %d"
 msgstr ""
 
 #. translators: %d: revision number
-#: src/Admin/EditorScreens.php:125
+#: src/Admin/EditorScreens.php:134
 msgid "Kind of change"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:126
+#: src/Admin/EditorScreens.php:135
 msgid "Correction (no effect on progress)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:127
+#: src/Admin/EditorScreens.php:136
 msgid "Content change"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:128
+#: src/Admin/EditorScreens.php:137
 msgid "Note for learners (optional)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:130
+#: src/Admin/EditorScreens.php:139
 msgid "Publish a new revision when saving"
 msgstr ""
 
 #. translators: 1: blockers, 2: warnings, 3: notices
-#: src/Admin/EditorScreens.php:145
+#: src/Admin/EditorScreens.php:154
 #, php-format
 msgid "Check: %1$d blockers, %2$d warnings, %3$d notes"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:152
+#: src/Admin/EditorScreens.php:161
 msgid "Blocker"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:153
+#: src/Admin/EditorScreens.php:162
 #: src/Admin/Notices.php:148
 #: src/Ops/OpsStatus.php:152
 msgid "Warning"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:154
+#: src/Admin/EditorScreens.php:163
 #: src/Admin/Notices.php:148
 msgid "Note"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:159
+#: src/Admin/EditorScreens.php:168
 msgid "Read:"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:177
+#. translators: %s: module or lesson title
+#: src/Admin/EditorScreens.php:208
+#, php-format
+msgid "Edit \"%s\""
+msgstr ""
+
+#. translators: %d: module ID
+#: src/Admin/EditorScreens.php:232
+#, php-format
+msgid "Module without title (#%d)"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:236
 msgid "Activity type"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:182
+#: src/Admin/EditorScreens.php:241
 msgid "Settings (JSON)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:183
+#: src/Admin/EditorScreens.php:242
 msgid "Completion rule"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:183
+#: src/Admin/EditorScreens.php:242
 msgid "Leave empty for the default rule of the type."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:184
+#: src/Admin/EditorScreens.php:243
 msgid "The order of lessons in a module follows the \"Order\" field in the page attributes. Use \"Preview\" to see the lesson as a learner."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:257
+#: src/Admin/EditorScreens.php:288
+msgid "The module list was changed by an earlier save. Only an added module was saved; reload the page to change positions or remove modules."
+msgstr ""
+
+#: src/Admin/EditorScreens.php:350
 msgid "Duplicate"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:274
+#: src/Admin/EditorScreens.php:367
 msgid "The item could not be duplicated."
 msgstr ""
 
 #. translators: %s: error details
-#: src/Admin/EditorScreens.php:304
+#: src/Admin/EditorScreens.php:462
 #, php-format
 msgid "Not saved: %s"
 msgstr ""
@@ -3746,6 +3765,10 @@ msgstr ""
 msgid "has successfully completed the course"
 msgstr ""
 
+#: src/Course/PostTypes.php:57
+msgid "Add course"
+msgstr ""
+
 #: src/Course/PostTypes.php:80
 #: src/Learner/LessonView.php:533
 msgid "Lessons"
@@ -3753,6 +3776,10 @@ msgstr ""
 
 #: src/Course/PostTypes.php:80
 msgid "Lesson"
+msgstr ""
+
+#: src/Course/PostTypes.php:80
+msgid "Add lesson"
 msgstr ""
 
 #: src/Course/PostTypes.php:84

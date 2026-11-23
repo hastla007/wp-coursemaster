@@ -148,6 +148,38 @@ final class AuthoringService {
 	}
 
 	/**
+	 * Put a lesson into a module (R0-11 Flow 1 "Modul anlegen → Lektion
+	 * anlegen"; lessons hang below their module via `post_parent`). The
+	 * live draft changes; learners keep their published revision. The
+	 * order inside the module stays the lesson's "Order" (menu_order).
+	 *
+	 * @param Actor $actor     Author.
+	 * @param int   $lesson_id Lesson.
+	 * @param int   $module_id Module.
+	 * @return void
+	 * @throws CourseException 404 for an unknown lesson or module, 403 without the edit right on both.
+	 */
+	public function move_lesson( Actor $actor, int $lesson_id, int $module_id ): void {
+		$relations = new Relations( $this->db );
+		$lesson    = $relations->post( $lesson_id, Relations::LESSON_TYPE );
+		$module    = $relations->post( $module_id, Relations::MODULE_TYPE );
+		if ( null === $lesson || null === $module ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown lesson or module.', 404 );
+		}
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'edit_post', $lesson_id ) || ! user_can( $actor->user_id, 'edit_post', $module_id ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to move this lesson.', 403 );
+		}
+		if ( (int) $lesson->post_parent === $module_id ) {
+			return;
+		}
+		global $wpdb;
+		$wpdb->update( $wpdb->posts, array( 'post_parent' => $module_id ), array( 'ID' => $lesson_id ), array( '%d' ), array( '%d' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Parent only; a nested wp_update_post() would re-run the save hooks of the editor request.
+		clean_post_cache( $lesson_id );
+		\CourseCaptain\Cache\StructureCache::invalidate();
+		PolicyService::flush();
+	}
+
+	/**
 	 * Duplicate a module or lesson as a draft (`copied_from_uid`, new activity UID).
 	 *
 	 * @param Actor $actor   Author.

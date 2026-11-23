@@ -966,6 +966,9 @@ Quelle: captain-pro `docs/settings/SETTINGS-course.md` (Analyse-Stand 1b662d1; V
 - [ ] **UI-F2** „Einschreibung geschlossen“ (E-108) bei Selbstanmeldung berücksichtigen.
 - [ ] **UI-F3** Eigener Einstieg „Prüfungsfehler üben“ und „fällig“ per REST.
 - [ ] **UI-F4** R0-27 SET-070 redaktionell auf `free_enrollment` angleichen.
+- [ ] **UI-F5** Quiz mit `source: module_pool` liefert keine Fragen (VAL-029 blockiert) – nach R0-08 umsetzen (Ziehen aus dem Modulpool) statt Option entfernen (h5 L-2, Entscheidung Claude im Auftrag).
+- [ ] **UI-F6** Editor-Kästen aktualisieren sich nach dem Speichern nicht; „Beim Speichern neue Revision veröffentlichen“ bleibt angehakt und veröffentlicht beim nächsten Speichern erneut (h5 L-4, Bug).
+- [ ] **UI-F7** Browser-Matrix: Firefox/WebKit und Admin-Flows mobil, axe-core-Lauf (`AXE_PATH`), Praxis-Benchmark mit Person (UX-090) – braucht Umgebung mit weiteren Browsern (h5 L-7).
 
 **Suite-Entscheidungen S1–S11 (23.11.2026, E-346):** S5 Hinweiszeilen erst bei verkaufter Funktion (SET-CC-01 baut Mechanismus, Liste leer); S6 Logo/Absender frei (SET-CC-16 frei); S8 Länderprofile DE/AT/CH/EU/OTHER (SET-CC-07); S9 neue Installationen ohne Löschfrist, Profil schlägt vor, Website-Zustand mahnt (SET-CC-02, Gruppe h8); S10 Deinstallation behalten (vorhanden).
 
