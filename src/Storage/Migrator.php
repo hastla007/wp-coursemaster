@@ -371,19 +371,26 @@ final class Migrator implements MigrationRunner {
 		$lease          = null;
 		try {
 			// P0 bootstrap. Without GET_LOCK and before both bootstrap tables exist, an option lock protects it.
-			if ( NamedLock::UNAVAILABLE === $lock_mode && array() !== array_diff( Schema::BOOTSTRAP_TABLES, array_keys( $this->inspector->tables() ) ) ) {
+			$bootstrap_missing = array() !== array_diff( Schema::BOOTSTRAP_TABLES, array_keys( $this->inspector->tables() ) );
+			if ( NamedLock::UNAVAILABLE === $lock_mode && $bootstrap_missing ) {
 				$bootstrap_lock = $this->acquire_bootstrap_lock();
 				if ( ! $bootstrap_lock ) {
 					$result['status'] = 'skipped_locked';
 					return $result;
 				}
 			}
-			$result['dbdelta'] = $this->db_delta( Schema::BOOTSTRAP_TABLES );
+			if ( $bootstrap_missing ) {
+				$result['dbdelta'] = $this->db_delta( Schema::BOOTSTRAP_TABLES );
+			}
 
 			$lease = Lease::acquire( $this->db, self::LEASE_NAME, self::LEASE_TTL_DDL, NamedLock::ACQUIRED === $lock_mode );
 			if ( null === $lease ) {
 				$result['status'] = 'skipped_locked';
 				return $result;
+			}
+			if ( ! $bootstrap_missing ) {
+				// Drift repair of existing bootstrap tables only by the lease holder (MIG-003: no DDL outside the winner).
+				$result['dbdelta'] = $this->db_delta( Schema::BOOTSTRAP_TABLES );
 			}
 			$this->active_lease = $lease;
 			$this->register_shutdown_handler();
