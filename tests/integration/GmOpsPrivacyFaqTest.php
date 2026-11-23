@@ -300,6 +300,14 @@ final class GmOpsPrivacyFaqTest extends SchemaTestCase {
 		$page = SelfService::confirm_page( $result['request_id'], $key );
 		self::assertStringContainsString( '<form method="post"', $page );
 		self::assertStringContainsString( 'Confirm erasure', $page );
+		// The page as actually printed (handle_confirm output filter) keeps the working form.
+		$printed = SelfService::page_html( $page );
+		self::assertStringContainsString( '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">', $printed );
+		self::assertStringContainsString( '<input type="hidden" name="action" value="' . SelfService::ACTION_CONFIRM . '">', $printed );
+		self::assertStringContainsString( '<input type="hidden" name="request_id" value="' . $result['request_id'] . '">', $printed );
+		self::assertStringContainsString( 'name="confirm_key" value="', $printed );
+		self::assertStringContainsString( '<button type="submit">', $printed );
+		self::assertStringNotContainsString( '<script', SelfService::page_html( $page . '<script>alert(1)</script>' ) );
 		self::assertSame( 'request-pending', wp_get_user_request( $result['request_id'] )->status, 'GET: still pending' );
 		self::assertNotFalse( get_userdata( $this->learner ), 'GET never erases' );
 		self::assertSame( 'invalid', SelfService::confirm( $result['request_id'], 'wrong-key' ) );

@@ -229,7 +229,30 @@ final class SelfService {
 		} else {
 			$html = self::confirm_page( $id, $key );
 		}
-		wp_die( wp_kses_post( $html ), esc_html__( 'Data request', 'course-captain' ), array( 'response' => 200 ) );
+		wp_die( self::page_html( $html ), esc_html__( 'Data request', 'course-captain' ), array( 'response' => 200 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- page_html() is wp_kses with the post allowlist plus the confirmation form elements.
+	}
+
+	/**
+	 * Output filter of the confirmation pages: like `wp_kses_post`, plus the
+	 * form elements of the confirmation (wp_kses_post strips forms, which left
+	 * a button without a form and made confirmation impossible).
+	 *
+	 * @param string $html Page HTML (already escaped).
+	 * @return string
+	 */
+	public static function page_html( string $html ): string {
+		$allowed           = wp_kses_allowed_html( 'post' );
+		$allowed['form']   = array(
+			'method' => true,
+			'action' => true,
+		);
+		$allowed['input']  = array(
+			'type'  => true,
+			'name'  => true,
+			'value' => true,
+		);
+		$allowed['button'] = array( 'type' => true );
+		return wp_kses( $html, $allowed );
 	}
 
 	/**
