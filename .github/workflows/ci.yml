@@ -6,6 +6,7 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ['v*']
   schedule:
     - cron: '17 3 * * *' # nightly (R0-18 §1.2)
   workflow_dispatch:
@@ -22,7 +23,7 @@ permissions:
 
 # G-05: cancel superseded PR runs only.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # G-04: bash with pipefail.
