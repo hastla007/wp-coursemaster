@@ -304,12 +304,12 @@ final class SettingsRegressionTest extends SchemaTestCase {
 	public function test_PSD_057_064_export(): void {
 		Settings::save( $this->actor(), 'emails', array( 'from_name' => 'Akademie' ), array( 'from_name' ), 0 );
 		Settings::save( $this->actor(), 'privacy', array( 'trusted_proxies' => array( '10.0.0.1' ) ), array( 'trusted_proxies' ), 0 );
-		Settings::save( $this->actor(), 'advanced', array( 'file_delivery' => 'x_sendfile' ), array( 'file_delivery' ), 0 );
+		Settings::save( $this->actor(), 'advanced', array( 'log_level' => 'debug' ), array( 'log_level' ), 0 );
 		Settings::save( $this->actor(), 'hardening', array( 'login_limit' => 'auto' ), array( 'login_limit' ), 0 );
 		$export = Settings::export( $this->actor() );
 		self::assertArrayNotHasKey( 'from_name', $export['tabs']['emails']['values'], 'EX-1 personal only with opt-in' );
 		self::assertArrayNotHasKey( 'trusted_proxies', $export['tabs']['privacy']['values'], 'EX-2' );
-		self::assertArrayNotHasKey( 'file_delivery', $export['tabs']['advanced']['values'], 'EX-2' );
+		self::assertArrayNotHasKey( 'log_level', $export['tabs']['advanced']['values'], 'EX-2' );
 		self::assertArrayNotHasKey( 'delete_data_on_uninstall', $export['tabs']['general']['values'], 'EX-2' );
 		self::assertArrayNotHasKey( 'roles', $export['tabs'] );
 		self::assertSame( 'auto', $export['tabs']['hardening']['values']['login_limit'], 'EX-3 mode only' );
@@ -339,7 +339,7 @@ final class SettingsRegressionTest extends SchemaTestCase {
 		$file['tabs']['privacy']['values']['backup_max_age_days']      = 120;
 		$file['tabs']['privacy']['values']['trusted_proxies']          = array( '10.0.0.0/8' );
 		$file['tabs']['general']['values']['delete_data_on_uninstall'] = true;
-		$file['tabs']['advanced']['values']['file_delivery']           = 'x_accel_redirect';
+		$file['tabs']['advanced']['values']['log_level']               = 'debug';
 		$file['tabs']['emails']['values']['from_address']              = '<gesetzt>';
 		$file['tabs']['hardening']['values']['login_limit']            = 'auto';
 		$file['tabs']['exams']['values']['shuffle_answers']            = false;
@@ -354,7 +354,7 @@ final class SettingsRegressionTest extends SchemaTestCase {
 		self::assertSame( 'confirmation', $skipped['show_avatars'] );
 		self::assertSame( 'environment', $skipped['trusted_proxies'], 'IM-3' );
 		self::assertSame( 'environment', array_column( $preview['tabs']['general']['skipped'], 'reason', 'field' )['delete_data_on_uninstall'] );
-		self::assertSame( 'environment', array_column( $preview['tabs']['advanced']['skipped'], 'reason', 'field' )['file_delivery'] );
+		self::assertSame( 'environment', array_column( $preview['tabs']['advanced']['skipped'], 'reason', 'field' )['log_level'] );
 		self::assertSame( 'secret', array_column( $preview['tabs']['emails']['skipped'], 'reason', 'field' )['from_address'], 'SH-6' );
 		self::assertSame( 'confirmation', array_column( $preview['tabs']['hardening']['skipped'], 'reason', 'field' )['login_limit'] );
 
@@ -372,7 +372,7 @@ final class SettingsRegressionTest extends SchemaTestCase {
 		self::assertSame( 120, Settings::get( 'privacy.backup_max_age_days' ) );
 		self::assertSame( array(), Settings::get( 'privacy.trusted_proxies' ) );
 		self::assertFalse( Settings::get( 'general.delete_data_on_uninstall' ) );
-		self::assertSame( 'php', Settings::get( 'advanced.file_delivery' ) );
+		self::assertSame( 'warning', Settings::get( 'advanced.log_level' ) );
 		self::assertFalse( Settings::get( 'exams.shuffle_answers' ) );
 		self::assertGreaterThan( 0, Settings::undo_until( 'exams' ), 'IM-5 undo snapshot' );
 		self::assertTrue( Settings::undo( $this->actor(), 'exams' ) );

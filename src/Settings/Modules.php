@@ -41,6 +41,18 @@ final class Modules {
 	);
 
 	/**
+	 * Learner functions with a per-course switch (SET-CC-P1, R0-27 SET-050):
+	 * off refuses the function with `ccap_module_disabled` and hides its
+	 * entries; stored favourites and answers stay.
+	 *
+	 * @var array<string, string>
+	 */
+	public const COURSE_FEATURES = array(
+		'favorites'        => 'learning.favorites_enabled',
+		'mistake_training' => 'learning.mistake_training_enabled',
+	);
+
+	/**
 	 * Module of an activity type.
 	 *
 	 * @var array<string, string>
@@ -76,6 +88,39 @@ final class Modules {
 	 */
 	public static function activity_enabled( string $type ): bool {
 		return ! isset( self::ACTIVITY_TYPES[ $type ] ) || self::enabled( self::ACTIVITY_TYPES[ $type ] );
+	}
+
+	/**
+	 * Whether a learner function is on for a course (course override, then site value; errors count as on).
+	 *
+	 * @param string $feature   `favorites` or `mistake_training`.
+	 * @param int    $course_id Course.
+	 * @return bool
+	 */
+	public static function course_feature( string $feature, int $course_id ): bool {
+		if ( ! isset( self::COURSE_FEATURES[ $feature ] ) ) {
+			return true;
+		}
+		try {
+			return false !== EffectiveSettings::for_course( self::COURSE_FEATURES[ $feature ], $course_id );
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			return true;
+		}
+	}
+
+	/**
+	 * Refuse a learner function that is switched off for the course.
+	 *
+	 * @param string $feature   `favorites` or `mistake_training`.
+	 * @param int    $course_id Course.
+	 * @return void
+	 * @throws CourseException `ccap_module_disabled` (404).
+	 */
+	public static function assert_course_feature( string $feature, int $course_id ): void {
+		if ( ! self::course_feature( $feature, $course_id ) ) {
+			throw new CourseException( 'ccap_module_disabled', 'This function is switched off.', 404, array( 'module' => $feature ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
+		}
 	}
 
 	/**

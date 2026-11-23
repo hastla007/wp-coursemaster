@@ -69,8 +69,9 @@ final class GroupService {
 		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'ccap_manage_groups' ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to create groups.', 403 );
 		}
-		$name   = self::sanitize_name( $name );
-		$policy = (string) ( $options['claim_policy'] ?? 'transferable' );
+		$name = self::sanitize_name( $name );
+		// SET-CC-P1: without an explicit choice a new group starts with `enrollment.claim_policy`.
+		$policy = (string) ( $options['claim_policy'] ?? \CourseCaptain\Settings\Settings::get( 'enrollment.claim_policy' ) );
 		if ( '' === $name || $seats < 1 || array() === $targets || false === get_userdata( $owner ) || ! in_array( $policy, array( 'transferable', 'invited_address_only' ), true ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Invalid group data.', 422 );
 		}

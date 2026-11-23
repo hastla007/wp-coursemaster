@@ -218,8 +218,11 @@ final class HealthChecks {
 			/* translators: %s: step names */
 			return self::result( 'course_captain_cron', 'recommended', sprintf( __( 'Maintenance steps failed: %s', 'course-captain' ), implode( ', ', array_keys( $failures ) ) ), '' );
 		}
-		if ( 0 === $last || $last < time() - 3 * HOUR_IN_SECONDS ) {
-			return self::result( 'course_captain_cron', 'recommended', __( 'The maintenance has not run in the last three hours.', 'course-captain' ), __( 'Check that WP-Cron or a server cron job runs regularly.', 'course-captain' ) );
+		$stale = Monitor::cron_stale();
+		if ( 0 === $last || $last < time() - $stale ) {
+			$minutes = intdiv( $stale, MINUTE_IN_SECONDS );
+			/* translators: %d: number of minutes (setting "Warn when background jobs did not run for longer than") */
+			return self::result( 'course_captain_cron', 'recommended', sprintf( _n( 'The maintenance has not run in the last %d minute.', 'The maintenance has not run in the last %d minutes.', $minutes, 'course-captain' ), $minutes ), __( 'Check that WP-Cron or a server cron job runs regularly.', 'course-captain' ) );
 		}
 		return self::result( 'course_captain_cron', 'good', __( 'Maintenance runs regularly.', 'course-captain' ), '' );
 	}

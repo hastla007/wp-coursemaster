@@ -58,6 +58,7 @@ final class Favorites {
 	 * @return void
 	 */
 	public function add( Actor $actor, int $course_id, int $question ): void {
+		\CourseCaptain\Settings\Modules::assert_course_feature( 'favorites', $course_id );
 		$this->assert_accessible( $actor, $course_id, $question );
 		$this->db->execute(
 			$this->db->prepare(
@@ -105,6 +106,7 @@ final class Favorites {
 		if ( ! in_array( $sort, self::SORTS, true ) || ( str_starts_with( $sort, 'assigned' ) && null === $collection ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Invalid sort.', 422 );
 		}
+		\CourseCaptain\Settings\Modules::assert_course_feature( 'favorites', $course_id );
 		if ( null !== $collection ) {
 			$this->owned( $actor, $collection, $course_id );
 		}

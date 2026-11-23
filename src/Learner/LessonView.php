@@ -68,6 +68,7 @@ final class LessonView {
 				(string) $room['title']
 			)
 		) . '</a></p>';
+		$back   = self::breadcrumbs( $room, $found, $course_id, $lang ) . $back;
 		$gate   = ContentGate::current()->lesson( $actor, $course_id, $lesson_id );
 		$lesson = get_post( $lesson_id );
 		if ( ! $lesson instanceof \WP_Post ) {
@@ -201,6 +202,27 @@ final class LessonView {
 			}
 		}
 		throw new CourseException( 'ccap_not_found', 'Unknown lesson.', 404 );
+	}
+
+	/**
+	 * Breadcrumb navigation My learning › course › module › lesson
+	 * (`display.breadcrumbs`, per course overridable; SET-CC-P1).
+	 *
+	 * @param array<string, mixed> $room      Course room.
+	 * @param array<string, mixed> $found     Module and lesson of the room.
+	 * @param int                  $course_id Course.
+	 * @param string               $lang      Content language attributes.
+	 * @return string
+	 */
+	private static function breadcrumbs( array $room, array $found, int $course_id, string $lang ): string {
+		if ( true !== \CourseCaptain\Settings\EffectiveSettings::for_course( 'display.breadcrumbs', $course_id ) ) {
+			return '';
+		}
+		return '<nav class="ccap-breadcrumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'course-captain' ) . '"><ol>'
+			. '<li><a href="' . esc_url( LearningArea::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a></li>'
+			. '<li><a href="' . esc_url( LearningArea::url( 'kurs/' . LearningArea::course_uid( $course_id ) ) ) . '"' . $lang . '>' . esc_html( (string) $room['title'] ) . '</a></li>'
+			. '<li' . $lang . '>' . esc_html( (string) ( $found['module']['title'] ?? '' ) ) . '</li>'
+			. '<li aria-current="page"' . $lang . '>' . esc_html( (string) ( $found['lesson']['title'] ?? '' ) ) . '</li></ol></nav>';
 	}
 
 	/**

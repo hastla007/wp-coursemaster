@@ -31,6 +31,13 @@ defined( 'ABSPATH' ) || exit;
  * previewed as a diff like tabs, selected separately (`surfaces`) and
  * applied atomically per section; confirmations are `<key>.<item>`, a
  * trailing `*` confirms every item of a tab/section, a bare `*` all.
+ *
+ * SET-CC-01: add-on fields (`pro.*`, R0-27 SR-1) belong to the add-on. The
+ * core never writes, drops or rewrites them: a `pro` section is handed
+ * unchanged to the transfer provider with the key `pro` when the add-on
+ * registered one; otherwise the section, `pro.*` tabs and `pro.*` keys
+ * inside core tabs are left untouched and listed under `addon` (notice
+ * `addon_kept`) instead of being reported as unknown.
  */
 final class SettingsTransfer {
 
@@ -39,6 +46,7 @@ final class SettingsTransfer {
 	public const RATE_PREFIX  = 'ccap_settings_import_';
 	public const PLACEHOLDERS = array( '<gesetzt>', '<set>', '<leer>', '<empty>', '<konstante>', '<constant>' );
 	public const PROVIDERS    = 'course_captain_settings_transfer_providers';
+	public const ADDON_KEY    = 'pro';
 
 	/**
 	 * Head keys of the file a provider may not use.
@@ -152,7 +160,7 @@ final class SettingsTransfer {
 	 * @param Actor                $actor   Admin.
 	 * @param array<string, mixed> $data    Parsed file.
 	 * @param array<string, mixed> $options `tabs` (list|null), `surfaces` (list|null), `confirmed` (list of `tab.field` / `key.item`, `*` wildcards), `apply` (bool), `context` (audit, default `import`).
-	 * @return array{notices: list<string>, tabs: array<string, array{changed: list<array<string, mixed>>, skipped: list<array<string, mixed>>, errors: array<string, string>}>, applied: list<string>, surfaces: array<string, array{label: string, changed: list<array<string, mixed>>, skipped: list<array<string, mixed>>, errors: array<string, string>}>, applied_surfaces: list<string>}
+	 * @return array{notices: list<string>, tabs: array<string, array{changed: list<array<string, mixed>>, skipped: list<array<string, mixed>>, errors: array<string, string>}>, applied: list<string>, surfaces: array<string, array{label: string, changed: list<array<string, mixed>>, skipped: list<array<string, mixed>>, errors: array<string, string>}>, applied_surfaces: list<string>, addon: list<string>}
 	 * @throws CourseException `ccap_forbidden`, `ccap_rate_limited`.
 	 */
 	public static function import( Actor $actor, array $data, array $options = array() ): array {
@@ -172,6 +180,7 @@ final class SettingsTransfer {
 			'applied'          => array(),
 			'surfaces'         => array(),
 			'applied_surfaces' => array(),
+			'addon'            => array(),
 		);
 		if ( (string) ( $data['site_hash'] ?? '' ) !== hash( 'sha256', home_url() ) ) {
 			$report['notices'][] = 'other_site';
@@ -180,6 +189,12 @@ final class SettingsTransfer {
 		$keys       = array();
 		foreach ( (array) $data['tabs'] as $tab => $content ) {
 			$tab = (string) $tab;
+			if ( self::ADDON_KEY === $tab || str_starts_with( $tab, self::ADDON_KEY . '.' ) ) {
+				foreach ( array_keys( is_array( $content['values'] ?? null ) ? $content['values'] : array() ) as $field ) {
+					$report['addon'][] = ( self::ADDON_KEY === $tab ? '' : $tab . '.' ) . (string) $field;
+				}
+				continue;
+			}
 			if ( ! isset( $fields_all[ $tab ] ) || ( null !== $selected && ! in_array( $tab, $selected, true ) ) ) {
 				continue;
 			}
@@ -195,6 +210,10 @@ final class SettingsTransfer {
 			foreach ( $values as $field => $value ) {
 				$field = (string) $field;
 				$def   = $schema[ $field ] ?? null;
+				if ( str_starts_with( $field, self::ADDON_KEY . '.' ) ) {
+					$report['addon'][] = $field;
+					continue;
+				}
 				if ( null === $def ) {
 					$entry['skipped'][] = array(
 						'field'  => $field,
@@ -269,7 +288,17 @@ final class SettingsTransfer {
 			$report['tabs'][ $tab ] = $entry;
 		}
 		$surface_keys = array();
-		foreach ( self::providers() as $key => $provider ) {
+		$providers    = self::providers();
+		if ( ! isset( $providers[ self::ADDON_KEY ] ) && is_array( $data[ self::ADDON_KEY ] ?? null ) ) {
+			foreach ( array_keys( $data[ self::ADDON_KEY ] ) as $item ) {
+				$report['addon'][] = (string) $item;
+			}
+		}
+		$report['addon'] = array_values( array_unique( $report['addon'] ) );
+		if ( array() !== $report['addon'] ) {
+			$report['notices'][] = 'addon_kept';
+		}
+		foreach ( $providers as $key => $provider ) {
 			if ( ! is_array( $data[ $key ] ?? null ) || ( null !== $surfaces && ! in_array( $key, $surfaces, true ) ) ) {
 				continue;
 			}

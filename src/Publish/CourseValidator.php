@@ -18,6 +18,7 @@ use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
+use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
 
@@ -189,6 +190,7 @@ final class CourseValidator {
 		$structure = CourseStructure::current();
 		$registry  = ActivityRegistry::instance();
 		$required  = 0;
+		$exams     = 0;
 		foreach ( $structure->modules( $course_id ) as $link ) {
 			$module = get_post( $link['module_id'] );
 			if ( ! $module instanceof \WP_Post ) {
@@ -208,6 +210,7 @@ final class CourseValidator {
 				$type       = $definition['type'];
 				if ( $link['required'] ) {
 					++$required;
+					$exams += 'exam' === $type ? 1 : 0;
 				}
 				$key = mb_strtolower( trim( $lesson->post_title ) );
 				if ( isset( $titles[ $key ] ) ) {
@@ -240,6 +243,10 @@ final class CourseValidator {
 				// SET-CC-18 (A11Y-090): a video without transcript is reported; with `display.require_transcripts` it blocks.
 				if ( 'video' === $type && ! $placeholder && '' === trim( (string) ( $definition['settings']['transcript'] ?? '' ) ) && '' === (string) ( $definition['settings']['transcript_url'] ?? '' ) ) {
 					$this->add( 'VAL-144', true === Settings::get( 'display.require_transcripts' ) ? 'blocker' : 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.transcript', array(), __( 'This video lesson has no transcript. Enter the transcript as text or link in the lesson settings.', 'course-captain' ), 'settings.transcript' );
+				}
+				// SET-CC-P1 (R0-22 VAL-142, E-131): with `display.require_captions` a video without subtitle track blocks.
+				if ( 'video' === $type && ! $placeholder && true === Settings::get( 'display.require_captions' ) && 'vtt' !== ( $definition['settings']['subtitles'] ?? 'off' ) && ! in_array( 'subtitle', array_column( \CourseCaptain\Activity\MediaLibrary::current()->media_of( 'lesson', (int) $lesson->ID ), 'role' ), true ) ) {
+					$this->add( 'VAL-142', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.captions', array(), __( 'This video lesson has no subtitles. Add a subtitle file (WebVTT) in the lesson settings.', 'course-captain' ), 'settings.subtitles' );
 				}
 				if ( 'video' === $type && $placeholder ) {
 					$this->add( 'VAL-027', 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.placeholder', array(), __( 'This video lesson is a placeholder and does not count for completion.', 'course-captain' ), 'settings.placeholder' );
@@ -278,6 +285,11 @@ final class CourseValidator {
 		}
 		if ( 0 === $required && array() !== $structure->modules( $course_id ) ) {
 			$this->add( 'VAL-004', 'warning', 'course', $course_id, (string) get_the_title( $course_id ), 'cc.val.course.no_required', array(), __( 'The course has no required activity, so it can never be completed.', 'course-captain' ) );
+		}
+		// SET-CC-P1 (R0-27 SET-050): `learning.course_completion_default` = `required_modules_and_exam` needs a required exam activity.
+		$rule = EffectiveSettings::resolve( 'learning.course_completion_default', array( 'course' => EffectiveSettings::course_overrides( $course_id ) ) )['value'];
+		if ( 'required_modules_and_exam' === $rule && 0 === $exams && array() !== $structure->modules( $course_id ) ) {
+			$this->add( 'VAL-013', 'blocker', 'course', $course_id, (string) get_the_title( $course_id ), 'cc.val.course.exam_required', array(), __( 'This course is only completed with an exam, but no required module contains an exam. Add an exam lesson to a required module or change the completion rule.', 'course-captain' ) );
 		}
 	}
 

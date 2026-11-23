@@ -136,6 +136,8 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_register_activities` | action |
 | `course_captain_risk_text` | filter |
 | `course_captain_seo_indexable` | filter |
+| `course_captain_settings_hints_v1` | filter |
+| `course_captain_settings_register_fields_v1` | filter |
 | `course_captain_settings_risks` | filter |
 | `course_captain_settings_roles_html` | filter |
 | `course_captain_settings_roles_save` | filter |

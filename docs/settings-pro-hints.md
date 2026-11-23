@@ -25,3 +25,5 @@ Rechte-Namen dürfen NICHT im Kern-Code stehen; die Spalte dient nur der Zuordnu
 | white_label | display | Own product name, colours and CSS. Available with Course Captain Pro. | Eigener Produktname, Farben und CSS. Verfügbar mit Course Captain Pro. |
 
 Zuordnung Tab ist ein Vorschlag (Claude, 23.11.2026); die Analyse nennt nur die Texte.
+
+Mechanismus im Kern (SET-CC-01, 23.11.2026): Filter `course_captain_settings_hints_v1` mit `{id, tab, title, text, link}` (Vertrag in `docs/API.md`); die Kernliste ist leer (S5), das Add-on registriert die Zeilen oben (bereits übersetzte Texte), sobald die Funktion verkauft wird.

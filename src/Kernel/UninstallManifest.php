@@ -170,6 +170,8 @@ final class UninstallManifest {
 		'course_captain_notification_prefs',
 		// Self-service data export job (GM-175).
 		'course_captain_data_export',
+		// Hidden hint lines of the settings (SET-CC-01).
+		'course_captain_hints_dismissed',
 	);
 
 	/**

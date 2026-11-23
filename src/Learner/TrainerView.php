@@ -125,7 +125,9 @@ final class TrainerView {
 		$html .= '</ul></section>';
 		$html .= '<section aria-labelledby="ccap-modes-heading"><h2 id="ccap-modes-heading">' . esc_html__( 'Choose how you want to practise', 'course-captain' ) . '</h2><ul class="ccap-cards">';
 		$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'smart' ) ) . '">' . esc_html__( 'Smart practice', 'course-captain' ) . '</a></h3><p>' . esc_html__( 'The trainer picks the question that helps you most right now: new questions, mistakes and reviews.', 'course-captain' ) . '</p></li>';
-		$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'fehler' ) ) . '">' . esc_html__( 'Practise mistakes', 'course-captain' ) . '</a></h3><p>' . esc_html__( 'Only questions you answered incorrectly last time.', 'course-captain' ) . '</p></li>';
+		if ( \CourseCaptain\Settings\Modules::course_feature( 'mistake_training', $course_id ) ) {
+			$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'fehler' ) ) . '">' . esc_html__( 'Practise mistakes', 'course-captain' ) . '</a></h3><p>' . esc_html__( 'Only questions you answered incorrectly last time.', 'course-captain' ) . '</p></li>';
+		}
 		$count = count( $due['ids'] );
 		$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'faellig' ) ) . '">' . esc_html__( 'Due reviews', 'course-captain' ) . '</a></h3><p>' . esc_html(
 			0 === $count

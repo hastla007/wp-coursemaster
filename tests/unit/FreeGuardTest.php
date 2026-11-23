@@ -81,7 +81,7 @@ final class FreeGuardTest extends TestCase {
 	}
 
 	/**
-	 * LIC-010: self-test with one hit fixture per guard ID (14) and a clean fixture (0).
+	 * LIC-010: self-test with one hit fixture per guard ID (15, G-15 rights keys from SET-CC-01) and a clean fixture (0).
 	 *
 	 * @group LIC-010
 	 */
@@ -89,7 +89,7 @@ final class FreeGuardTest extends TestCase {
 		self::assertSame( array(), FreeGuard::self_test( dirname( __DIR__ ) . '/guards/fixtures/free-guard' ) );
 
 		$hits = ( new FreeGuard( dirname( __DIR__ ) . '/guards/fixtures/free-guard/hits' ) )->run();
-		self::assertCount( 14, $hits['findings'] );
+		self::assertCount( 15, $hits['findings'] );
 	}
 
 	/**

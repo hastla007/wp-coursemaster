@@ -91,7 +91,8 @@ final class CronHooks {
 				// Restore/copy detection first, so the send run below already sees the hold (R1-23, E-85).
 				'site_identity'     => static fn() => SiteIdentity::check(),
 				'grant_expiry'      => static fn() => \CourseCaptain\Access\GrantService::current()->expire_due(),
-				'pending_timeout'   => static fn() => \CourseCaptain\Access\GrantService::current()->fail_stale_pending(),
+				// SET-CC-P1: `enrollment.pending_grant_timeout_hours` (default 24 = former fixed value, E-201).
+				'pending_timeout'   => static fn() => \CourseCaptain\Access\GrantService::current()->fail_stale_pending( (int) \CourseCaptain\Settings\Settings::get( 'enrollment.pending_grant_timeout_hours' ) ),
 				'invitation_expiry' => static fn() => \CourseCaptain\Access\GroupService::current()->expire_invitations(),
 				'outbox_purge'      => static fn() => \CourseCaptain\Event\OutboxDispatcher::current()->purge(),
 				'exam_expiry'       => static fn() => \CourseCaptain\Exam\ExamSessions::current()->expire_due(),

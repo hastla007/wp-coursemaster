@@ -243,6 +243,10 @@ final class SmartTrainer {
 		if ( ! in_array( $mode, self::MODES, true ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Unknown mode.', 422 );
 		}
+		// SET-CC-P1: favourites and mistake training follow their course switches.
+		if ( 'favorites' === $mode || 'wrong' === $mode ) {
+			\CourseCaptain\Settings\Modules::assert_course_feature( 'favorites' === $mode ? 'favorites' : 'mistake_training', $course_id );
+		}
 		// One gate for the whole operation: module decisions, drip/prerequisites and running exams are read once (R0-14 OP-03).
 		$gate       = ContentGate::current();
 		$candidates = $this->candidates( $actor, $course_id, isset( $options['topic'] ) ? (string) $options['topic'] : null, $gate );
@@ -332,6 +336,7 @@ final class SmartTrainer {
 			$ids      = $due['ids'];
 			$next_due = $due['next_due'];
 		} elseif ( 'exam_mistakes' === $mode ) {
+			\CourseCaptain\Settings\Modules::assert_course_feature( 'mistake_training', $course_id );
 			$session = self::positive_id( $options['exam_session'] ?? null );
 			if ( null === $session && null !== ( $options['exam_session'] ?? null ) && '' !== $options['exam_session'] ) {
 				throw new CourseException( 'ccap_invalid_param', 'exam_session', 422 );

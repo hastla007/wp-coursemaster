@@ -4,7 +4,7 @@
 
 Dieses Handbuch listet jede Einstellung von Course Captain mit Standardwert, erlaubten Werten, Recht, Datenklasse und Exportverhalten. Bezeichnungen und Hilfetexte stehen in der Quellsprache der Oberfläche (Englisch); in der Oberfläche erscheinen sie übersetzt.
 
-Registerversion (`settings_version`): 2.
+Registerversion (`settings_version`): 3.
 
 ## Legende
 
@@ -44,7 +44,6 @@ Registerversion (`settings_version`): 2.
 | `general.learner_home_page_id` | Start page for learners | page_id | `0` | settings | internal | ja | – |
 | `general.learning_area_title` | Title of the learning area | string (max. 60) | `""` | settings | internal | ja | – |
 | `general.use_profile_locale` | Language for learners | bool, null | `null` | settings | internal | ja | – |
-| `general.catalog_group_language_versions` | Group language versions in the catalogue | bool | `false` | settings | internal | ja | – |
 | `general.catalog_indexing` | Search engines | enum: `public_catalog`, `noindex` | `"public_catalog"` | settings | internal | ja | course (sperrbar) |
 | `general.delete_data_on_uninstall` | Remove all data when the plugin is deleted | bool | `false` | admin | internal | nein | – |
 
@@ -56,7 +55,6 @@ Registerversion (`settings_version`): 2.
 - `general.learner_home_page_id` – Learners land here via “My learning”. If the page disappears later, Course Captain uses the learning area and reports it in the system status.
 - `general.learning_area_title` – Leave empty to use the website title.
 - `general.use_profile_locale` – Automatic: learners see the learning area in their profile language as soon as more than one language is installed.
-- `general.catalog_group_language_versions` – Shows a course and its translations as one card with a language choice.
 - `general.catalog_indexing` – Public catalogue and course pages may appear in search engines. Learning area, lessons, certificates and invitations never appear.
 - `general.delete_data_on_uninstall` – When you delete the plugin under Plugins, all Course Captain data of this website is removed: courses, modules, lessons, questions and exams, enrollments and groups, learning progress, exam results, certificates, submissions and uploaded files, logs and settings. Deactivating never deletes anything; background jobs are always removed. On a network each website decides for itself. Importing settings never takes over this setting. To switch it on, type LÖSCHEN or DELETE below; switching it off needs no confirmation.
 
@@ -298,9 +296,6 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 
 | Schlüssel | Bezeichnung | Typ / erlaubte Werte | Standard | Recht | Datenklasse | Export | Übersteuerbar |
 |---|---|---|---|---|---|---|---|
-| `advanced.import_execution` | Run imports | enum: `background`, `browser` | `"background"` | settings | internal | ja | – |
-| `advanced.file_delivery` | Delivery of protected files | enum: `php`, `x_sendfile`, `x_accel_redirect` | `"php"` | settings | internal | nein | – |
-| `advanced.media_delete_grace_days` | Remove deleted media permanently after | int 1–90 | `7` | settings | internal | ja | – |
 | `advanced.cron_stale_warning_minutes` | Warn when background jobs did not run for longer than | int 60–1440 | `180` | settings | internal | ja | – |
 | `advanced.log_level` | Log level | enum: `error`, `warning`, `info`, `debug` | `"warning"` | settings | internal | nein | – |
 | `advanced.error_log_days` | Keep error logs for | int 1–365 | `30` | settings | internal | ja | – |
@@ -310,9 +305,6 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 
 **Hilfetexte**
 
-- `advanced.import_execution` – WP-CLI is always possible.
-- `advanced.file_delivery` – PHP works everywhere. The server methods are faster for large files.
-- `advanced.media_delete_grace_days` – Unreferenced protected files are deleted after this grace period.
 - `advanced.cron_stale_warning_minutes` – The system status and Site Health warn after this time.
 - `advanced.log_level` – Course Captain writes log files to the protected folder, never into the web root. “Info” and “Debug” write much more and fall back to “Warnings and errors” automatically after 7 days. Logs never contain answers, passwords or tokens.
 - `advanced.error_log_days` – Log files with errors and warnings are deleted after this time.
