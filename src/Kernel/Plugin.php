@@ -231,6 +231,7 @@ final class Plugin {
 		\CourseCaptain\Import\ImportService::register();
 		\CourseCaptain\Learner\LearnerRoutes::register();
 		\CourseCaptain\Learner\LearningArea::register();
+		\CourseCaptain\Learner\ExamBufferPurge::register();
 		\CourseCaptain\Certificate\CertificateService::register();
 		\CourseCaptain\Certificate\CertificateRoutes::register();
 		\CourseCaptain\Assignment\AssignmentRoutes::register();

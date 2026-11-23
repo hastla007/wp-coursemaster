@@ -9,6 +9,9 @@
  *   (`age_ms`) when the browser is online again, on the next page load or
  *   every 15 seconds. An entry is removed only after the server answered;
  *   the result page removes the whole buffer (PRIV-018).
+ * - After a logout (marker cookie `ccap_exam_purge`, set by the server on
+ *   logout, ExamBufferPurge) every `ccap_exam_*` buffer of this browser is
+ *   removed before anything is read or sent (PRIV-018).
  * - The server stays authoritative: an older buffered state never
  *   overwrites a newer one (R0-08 §6.4), rejected answers are dropped.
  * The form keeps working without this script.
@@ -26,6 +29,20 @@
 	var live = document.getElementById( 'ccap-exam-live' );
 	var sending = false;
 	var timer = null;
+
+	// PRIV-018: buffers from before a logout are never re-sent or shown.
+	if ( -1 !== ( ';' + document.cookie ).replace( /\s/g, '' ).indexOf( ';ccap_exam_purge=' ) ) {
+		try {
+			[ window.localStorage, window.sessionStorage ].forEach( function ( storage ) {
+				for ( var i = storage.length - 1; i >= 0; i-- ) {
+					var key = storage.key( i );
+					if ( key && 0 === key.indexOf( 'ccap_exam_' ) ) {
+						storage.removeItem( key );
+					}
+				}
+			} );
+		} catch ( e ) {}
+	}
 
 	function load() {
 		try {

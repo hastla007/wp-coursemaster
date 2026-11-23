@@ -5,6 +5,9 @@
 //   the entry is sent and removed (0 entries), the server has 5 answers.
 // - GM-051: "Cancel exam" asks first; confirming returns to the course room with the start
 //   button and exactly one message (also none after a reload).
+// - PRIV-018 (R1-18 h3): a new attempt with a buffered answer (plus a sessionStorage entry and a
+//   key of another plugin); logging out removes every `ccap_exam_*` entry and the marker cookie,
+//   the foreign key stays; the second account (U-L1) logging in on the same browser finds none.
 const { chromium } = require( 'playwright' );
 
 const BASE = process.env.CCAP_E2E_URL;
@@ -110,6 +113,31 @@ function assert( cond, message ) {
 			assert( ( await page.locator( 'text=The exam was cancelled.' ).count() ) === 0, 'no duplicate message after reload' );
 			const state = await context.request.get( rest( '/exam-sessions/' + session ), { headers: { 'X-WP-Nonce': nonce } } );
 			assert( ( await state.json() ).status === 'cancelled', 'attempt cancelled' );
+		} );
+
+		// @group PRIV-018
+		await step( 'PRIV-018 logout empties the exam buffer, second account finds nothing', async () => {
+			await Promise.all( [ page.waitForNavigation(), page.click( 'form button:has-text("Start exam")' ) ] );
+			const key = 'ccap_exam_' + await page.getAttribute( 'form.ccap-exam-form', 'data-ccap-session' );
+			assert( key !== storeKey, 'new attempt, new buffer key' );
+			await page.evaluate( ( k ) => {
+				window.localStorage.setItem( k, JSON.stringify( { 1: { a: 'x', t: Date.now() } } ) );
+				window.sessionStorage.setItem( 'ccap_exam_probe', '1' );
+				window.localStorage.setItem( 'other_plugin_key', 'keep' );
+			}, key );
+			const exam = () => page.evaluate( () => [ window.localStorage, window.sessionStorage ].reduce( ( n, s ) => n + Object.keys( s ).filter( ( k ) => 0 === k.indexOf( 'ccap_exam_' ) ).length, 0 ) );
+			assert( ( await exam() ) === 2, 'two buffers before the logout' );
+			await page.goto( BASE + '/wp-login.php?action=logout' );
+			await Promise.all( [ page.waitForNavigation(), page.click( 'a[href*="action=logout"]' ) ] );
+			assert( page.url().includes( 'loggedout=true' ), 'logged out: ' + page.url() );
+			assert( ( await exam() ) === 0, 'no exam buffer after the logout' );
+			assert( 'keep' === await page.evaluate( () => window.localStorage.getItem( 'other_plugin_key' ) ), 'keys of other plugins stay' );
+			assert( ! ( await context.cookies() ).some( ( c ) => c.name === 'ccap_exam_purge' ), 'marker cookie removed' );
+			await page.fill( '#user_login', 'cc_fx_lea' );
+			await page.fill( '#user_pass', process.env.CCAP_E2E_PASS );
+			await Promise.all( [ page.waitForNavigation(), page.click( '#wp-submit' ) ] );
+			await page.goto( area( 'kurs/' + SETUP.course_a_uid ) );
+			assert( ( await exam() ) === 0, 'second account: no buffer of the first' );
 		} );
 	} catch ( e ) {
 		process.exitCode = 1;

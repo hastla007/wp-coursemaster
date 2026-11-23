@@ -2,7 +2,8 @@
 /**
  * Safe repair actions of the operations screen and CLI (R0-13 §3 K-16,
  * K-17 part, §3.2 RC-5 note; R0-34 §2.5, INT-012…INT-017; R0-37 §3.5
- * "Retry now"; R0-21 §3.7 manual cache flush).
+ * "Retry now"; R0-21 §3.7 manual cache flush; R0-10 §4.4 "Check again"
+ * for the storage self test).
  *
  * @package CourseCaptain
  */
@@ -108,6 +109,54 @@ final class RepairService {
 			)
 		);
 		$this->complete( $actor, 'ops_migration_retry', $request_key, $result );
+		return $result;
+	}
+
+	/**
+	 * "Check again" for the storage self test (R0-10 §4.4, R1-18 g3 H-4):
+	 * runs the HTTP probes of the private folders and the script block of
+	 * the media folder without the cache. The probes are HTTP requests and
+	 * cannot share a transaction with the audit entry; the audit follows
+	 * the run (like the migration retry).
+	 *
+	 * @param Actor  $actor       Actor.
+	 * @param string $request_key Form key (dedupe).
+	 * @return array{state: string, folders: array<string, string>, scripts: string}
+	 * @throws CourseException Without the capability.
+	 */
+	public function recheck_storage( Actor $actor, string $request_key = '' ): array {
+		self::assert_can( $actor );
+		$stored = $this->claim( $actor, 'ops_storage_recheck', $request_key, '' );
+		if ( null !== $stored ) {
+			return array(
+				'state'   => (string) ( $stored['state'] ?? '' ),
+				'folders' => array_map( 'strval', (array) ( $stored['folders'] ?? array() ) ),
+				'scripts' => (string) ( $stored['scripts'] ?? '' ),
+			);
+		}
+		$before = StorageSelfTest::cached();
+		$run    = StorageSelfTest::run( true );
+		$result = array(
+			'state'   => $run['state'],
+			'folders' => $run['folders'],
+			'scripts' => $run['scripts'],
+		);
+		AuditLog::write(
+			$this->db,
+			$actor,
+			'job_retried',
+			'storage',
+			'selftest',
+			null,
+			array(
+				'job'     => 'storage_selftest',
+				'before'  => null === $before ? 'unchecked' : $before['state'],
+				'state'   => $run['state'],
+				'folders' => $run['folders'],
+				'scripts' => $run['scripts'],
+			)
+		);
+		$this->complete( $actor, 'ops_storage_recheck', $request_key, $result );
 		return $result;
 	}
 

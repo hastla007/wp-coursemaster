@@ -120,11 +120,11 @@ final class OpsCommand {
 					}
 					return self::out( 0, $json, $records, $lines );
 				case 'backup-check':
-					// Read only (R0-16 §1.4): exit 1 on fail, 2 on warn.
-					$report = RestoreCheck::run();
+					// Read only (R0-16 §1.4): exit 1 on fail, 2 on warn; `--full` hashes every file.
+					$report = RestoreCheck::run( isset( $assoc['full'] ) );
 					$lines  = array( 'Overall: ' . $report['status'] );
 					foreach ( $report['checks'] as $check ) {
-						$lines[] = sprintf( '%-8s %-4s %s', $check['id'], $check['status'], $check['message'] );
+						$lines[] = sprintf( '%-12s %-4s %s', $check['id'], $check['status'], $check['message'] );
 						foreach ( $check['items'] as $item ) {
 							$lines[] = '  - ' . $item;
 						}

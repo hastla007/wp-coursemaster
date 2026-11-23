@@ -37,7 +37,8 @@ defined( 'ABSPATH' ) || exit;
  * With JavaScript, `assets/js/exam-room.js` saves each change at once and
  * buffers it in localStorage (key = session UID) while offline; the buffer
  * is re-sent with its age (`age_ms`) and removed after the server confirmed
- * it, after submission and on the result page (GM-050, R0-17 T-04, PRIV-018).
+ * it, after submission, on the result page and after a logout
+ * (ExamBufferPurge; GM-050, R0-17 T-04, PRIV-018).
  * The server stays authoritative for the time (R0-08 §4.3).
  */
 final class ExamRoom {
