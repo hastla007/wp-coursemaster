@@ -62,6 +62,8 @@
 | `POST` | `/me/data-exports` | angemeldet (Cookie + `X-WP-Nonce`) | – (202 `{uid, status: pending, created_at, expires_at}`) |
 | `GET` | `/me/data-exports/(?P<uid>[0-9a-f-]{36})` | angemeldet, nur Eigentümer (Cookie + `X-WP-Nonce`) | – (200 mit `data`; `409 ccap_export_not_ready`, `410 ccap_export_expired`/`ccap_export_failed`) |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/faqs` | angemeldet, Zugang zum Kurs (Cookie + `X-WP-Nonce`) | – (Liste `{uid, question, answer_html, category}`, nur veröffentlichte Einträge) |
+| `GET` | `/status` | angemeldet, `ccap_view_system_status` | – |
+| `GET` | `/health`, `/monitor` | öffentlich (Klasse K); Einzelprüfungen nur mit Header `X-CC-Monitor-Key` oder `ccap_view_system_status` | – |
 
 Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `acknowledged[]`) prüft der jeweilige Dienst. Details stehen in den Nachweisen `docs/r1/R1-*-nachweis.md`.
 
@@ -98,6 +100,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_allow_unmoved_protected_file` | filter |
 | `course_captain_assignment_file_scan` | filter |
 | `course_captain_cache_purge` | action |
+| `course_captain_can_access` | filter |
 | `course_captain_certificate_fallback_rendered` | action |
 | `course_captain_certificate_renderers` | filter |
 | `course_captain_explanations_available` | filter |
@@ -131,6 +134,7 @@ Wichtige Verträge:
 - `course_captain_loaded_v1` (Action, stabil; Argument `CourseCaptain\Contract\Api`). Erweiterungen registrieren sich erst danach.
 - `course_captain_cache_purge` (Action; `{scope, ids, urls}` nach Veröffentlichung oder Archivierung eines Kurses).
 - `course_captain_internal_subscribers` (interne Outbox-Abonnenten; intern).
+- `course_captain_can_access` (Filter bei jeder Lernzugriffsentscheidung M-02; `bool $allowed, int $user_id, string $course_uid, string $scope, Decision $decision`; darf nur einschränken, E-84).
 
 ## 5. Shortcodes und Blöcke
 
@@ -146,8 +150,7 @@ Wichtige Verträge:
 
 ## 6. Geplant (nicht Teil des aktuellen Vertrags)
 
-- `Idempotency-Key`-Header (CT-04) und `GET /status`
-- Filter `course_captain_can_access` mit Kern-Vorrang (CT-10)
+- `Idempotency-Key`-Header (CT-04)
 - JSON-Schema je Route mit `x-cc-stability`
 - UUID-Pfadparameter für Autorenrouten (derzeit numerische IDs)
 - WP-CLI `wp course-captain …`

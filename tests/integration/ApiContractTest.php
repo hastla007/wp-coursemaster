@@ -29,7 +29,12 @@ final class ApiContractTest extends SchemaTestCase {
 	 *
 	 * @var list<string>
 	 */
-	private const PUBLIC_ROUTES = array( '/course-captain/v1/certificates/verify/(?P<token>[0-9a-zA-Z]{1,64})' );
+	private const PUBLIC_ROUTES = array(
+		'/course-captain/v1/certificates/verify/(?P<token>[0-9a-zA-Z]{1,64})',
+		// R-50 monitor (auth class K): overall status only without header key (GM-147/GM-148).
+		'/course-captain/v1/health',
+		'/course-captain/v1/monitor',
+	);
 
 	/**
 	 * Setup.

@@ -17,22 +17,15 @@
 
 return array(
 	'exceptions' => array(
-		'GM-050' => array( 'open', 'R1-16/R1-20', 'Browser case (offline buffer in localStorage, notice, re-send); the server side is GM-036/GM-037 (ExamTest::test_R120_offline_buffer_and_tabs). Needs a JS exam client E2E.' ),
-		'GM-051' => array( 'open', 'R1-16', 'Browser case (abort dialog, single flash message); the server side is GM-040 (ExamTest::test_GM_040_041_cancel).' ),
-		'GM-061' => array( 'open', 'R1-28', '409 `ccap_request_in_progress` / `ccap_idempotency_key_reused` exist only for assignments and certificates, not for learning answers; orphaned entries after 5 min untested.' ),
 		'GM-077' => array( 'r2', 'E-05', 'Second channel is the app API (no app API in R1).' ),
 		'GM-089' => array( 'open', 'R1-13', 'Grant API rules `ccap_access_exists` / `ccap_user_required` do not exist; extend/parallel chains are GM-084.' ),
 		'GM-090' => array( 'open', 'R1-13/R1-17', 'Grant audit search by reference untested.' ),
 		'GM-092' => array( 'open', 'R1-13', 'Manual + group + free rule at the same time (union of scopes, latest end) untested.' ),
-		'GM-093' => array( 'open', 'R1-28', 'No public filter "owns course" in the hook snapshot.' ),
 		'GM-104' => array( 'open', 'R1-13/R1-16', 'Return to the invitation after login/registration untested.' ),
 		'GM-113' => array( 'open', 'R1-14/R1-40', 'Moving the legacy protected folder with fallback untested.' ),
 		'GM-114' => array( 'open', 'R1-14', 'Private folder outside the web root (self test "private", way back) untested.' ),
 		'GM-115' => array( 'open', 'R1-14/R1-38', 'HTTP self test of the protected folders (200 critical, 403 green, no answer yellow) untested.' ),
 		'GM-117' => array( 'open', 'R1-23', 'Read-only restore check of protected files untested.' ),
-		'GM-146' => array( 'open', 'R1-28/R1-38', 'No REST status route; R1-38 provides CLI status and Site Health (deviation candidate for §5.1).' ),
-		'GM-147' => array( 'open', 'R1-38', 'No REST health route without version (deviation candidate for §5.1).' ),
-		'GM-148' => array( 'open', 'R1-38', 'No anonymous monitor route / cron stall 503 (deviation candidate for §5.1).' ),
 		'GM-160' => array( 'r3', 'E-24, R0-12 C-8', 'Signed one-click unsubscribe is Pro (R3-15); N-01 unsubscribe headers are tested in NotificationTest.' ),
 		'GM-180' => array( 'deviation', 'R1-31 A-2', 'No `default_access` key in the R0-27 register; access comes from grants and `free` rules (GM-081). Needs the client decision (§5.1).' ),
 	),
