@@ -305,6 +305,9 @@ final class SettingsCommand {
 		}
 		$report = SettingsTransfer::import( $actor, $data, $options );
 		$lines  = in_array( 'other_site', $report['notices'], true ) ? array( 'Note: the file comes from another website.' ) : array();
+		if ( array() !== $report['addon'] ) {
+			$lines[] = 'Note: ' . count( $report['addon'] ) . ' extension setting(s) left unchanged (' . implode( ', ', $report['addon'] ) . ').';
+		}
 		foreach ( array_merge( $report['tabs'], $report['surfaces'] ) as $scope => $entry ) {
 			$lines[] = '[' . $scope . ']';
 			foreach ( $entry['changed'] as $change ) {

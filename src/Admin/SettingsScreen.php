@@ -17,6 +17,7 @@ use CourseCaptain\Security\Hardening;
 use CourseCaptain\Settings\RiskConfirm;
 use CourseCaptain\Settings\RiskRules;
 use CourseCaptain\Settings\Settings;
+use CourseCaptain\Settings\SettingsHints;
 use CourseCaptain\Settings\SettingsSchema;
 
 defined( 'ABSPATH' ) || exit;
@@ -35,6 +36,7 @@ final class SettingsScreen {
 	public const ACTION      = 'ccap_settings_save';
 	public const RESET       = 'ccap_settings_reset';
 	public const UNDO        = 'ccap_settings_undo';
+	public const HINT        = 'ccap_settings_hint_dismiss';
 	public const MENU_CAP    = 'ccap_menu_settings';
 	public const FORM_PREFIX = 'ccap_settings_form_';
 	public const FORM_TTL    = 600;
@@ -59,6 +61,7 @@ final class SettingsScreen {
 		add_action( 'admin_post_' . self::ACTION, array( self::class, 'handle_save' ) );
 		add_action( 'admin_post_' . self::RESET, array( self::class, 'handle_reset' ) );
 		add_action( 'admin_post_' . self::UNDO, array( self::class, 'handle_undo' ) );
+		add_action( 'admin_post_' . self::HINT, array( self::class, 'handle_hint' ) );
 	}
 
 	/**
@@ -158,6 +161,76 @@ final class SettingsScreen {
 	 */
 	public static function handle_undo(): void {
 		self::redirect( self::process_undo( wp_unslash( $_POST ), get_current_user_id() ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in process_undo().
+	}
+
+	/**
+	 * Admin-post: hide a hint line for the current person (SET-CC-01).
+	 *
+	 * @return void
+	 */
+	public static function handle_hint(): void {
+		self::redirect( self::process_hint( wp_unslash( $_POST ), get_current_user_id() ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in process_hint().
+	}
+
+	/**
+	 * Testable core of hiding a hint line: nonce per person and line, the
+	 * tab must be open to the person; only the own user option changes.
+	 *
+	 * @param array<string, mixed> $post    Unslashed POST.
+	 * @param int                  $user_id User.
+	 * @return array{tab: string, result: string, count: int}
+	 */
+	public static function process_hint( array $post, int $user_id ): array {
+		$tab = isset( $post['tab'] ) ? sanitize_key( (string) $post['tab'] ) : '';
+		$id  = isset( $post['hint'] ) ? sanitize_key( (string) $post['hint'] ) : '';
+		$out = array(
+			'tab'    => $tab,
+			'result' => 'ccap_forbidden',
+			'count'  => 0,
+		);
+		if ( ! self::tab_allowed( $tab, $user_id ) ) {
+			return $out;
+		}
+		if ( false === wp_verify_nonce( (string) ( $post['_wpnonce'] ?? '' ), self::HINT . '_' . $id ) ) {
+			$out['result'] = 'ccap_invalid_nonce';
+			return $out;
+		}
+		$hint = SettingsHints::all()[ $id ] ?? null;
+		if ( null === $hint || $tab !== $hint['tab'] ) {
+			$out['result'] = 'unchanged';
+			return $out;
+		}
+		SettingsHints::dismiss( $user_id, $id );
+		$out['result'] = 'hint_hidden';
+		return $out;
+	}
+
+	/**
+	 * Hint lines at the end of a tab (SET-CC-01, E-346 S1): grey text, no
+	 * field; each with its own small form to hide it (works without JS).
+	 *
+	 * @param string $tab     Tab.
+	 * @param int    $user_id User.
+	 * @return string
+	 */
+	public static function hints( string $tab, int $user_id ): string {
+		$hints = SettingsHints::for_tab( $tab, $user_id );
+		if ( array() === $hints ) {
+			return '';
+		}
+		$html = '<aside class="ccap-hints" aria-label="' . esc_attr__( 'Notes about further functions', 'course-captain' ) . '"><ul class="ccap-hint-list">';
+		foreach ( $hints as $hint ) {
+			$html .= '<li class="ccap-hint description"><strong>' . esc_html( $hint['title'] ) . '</strong> ' . esc_html( $hint['text'] );
+			if ( '' !== $hint['link'] ) {
+				/* translators: %s: title of the hint line */
+				$html .= ' <a href="' . esc_url( $hint['link'] ) . '">' . esc_html__( 'Learn more', 'course-captain' ) . '<span class="screen-reader-text"> ' . esc_html( sprintf( __( 'about %s', 'course-captain' ), $hint['title'] ) ) . '</span></a>';
+			}
+			$html .= ' <form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ccap-inline-form"><input type="hidden" name="action" value="' . esc_attr( self::HINT ) . '"><input type="hidden" name="tab" value="' . esc_attr( $tab ) . '"><input type="hidden" name="hint" value="' . esc_attr( $hint['id'] ) . '">'
+				. wp_nonce_field( self::HINT . '_' . $hint['id'], '_wpnonce', true, false )
+				/* translators: %s: title of the hint line */
+				. '<button type="submit" class="button-link">' . esc_html__( 'Hide', 'course-captain' ) . '<span class="screen-reader-text"> ' . esc_html( sprintf( __( 'note: %s', 'course-captain' ), $hint['title'] ) ) . '</span></button></form></li>';
+		}
+		return $html . '</ul></aside>';
 	}
 
 	/**
@@ -366,7 +439,8 @@ final class SettingsScreen {
 			return $html . self::confirm_page( $tab, $user_id ) . '</div>';
 		}
 		if ( 'roles' === $tab ) {
-			return $html . (string) apply_filters( 'course_captain_settings_roles_html', '', $request, $user_id ) . '</div>';
+			$result = isset( $request['ccap_result'] ) ? sanitize_key( (string) $request['ccap_result'] ) : '';
+			return $html . ( 'hint_hidden' === $result ? self::message( $tab, $result, 0, null ) : '' ) . (string) apply_filters( 'course_captain_settings_roles_html', '', $request, $user_id ) . self::hints( $tab, $user_id ) . '</div>';
 		}
 		if ( 'reset_confirm' === $result ) {
 			return $html . self::reset_page( $tab, $user_id ) . '</div>';
@@ -385,7 +459,7 @@ final class SettingsScreen {
 			$html  .= '<h3>' . esc_html__( 'Test mail', 'course-captain' ) . '</h3>' . TestMail::form( $user_id, 'settings' );
 			$status = TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' );
 		}
-		return $html . '<div role="status" aria-live="polite" id="ccap-status">' . esc_html( $status ) . '</div></div>';
+		return $html . self::hints( $tab, $user_id ) . '<div role="status" aria-live="polite" id="ccap-status">' . esc_html( $status ) . '</div></div>';
 	}
 
 	/**
@@ -487,6 +561,10 @@ final class SettingsScreen {
 				break;
 			case 'undone':
 				$text = __( 'Reset undone.', 'course-captain' );
+				break;
+			case 'hint_hidden':
+				$text = __( 'The note is hidden for you.', 'course-captain' );
+				$type = 'info';
 				break;
 			case 'undo_expired':
 				$text = __( 'There is nothing to undo any more.', 'course-captain' );

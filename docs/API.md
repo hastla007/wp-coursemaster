@@ -1,6 +1,6 @@
 # Course Captain – API-Referenz (Vertrag v1)
 
-**Vertragsversion:** `COURSE_CAPTAIN_CONTRACT_VERSION` (aktuell `0.1.0`, mit dem R1-Release `1.0.0`). Abrufbar über `course_captain_contract_version()`. Funktionsprüfung über `course_captain_supports( $feature )`; unbekannte Schlüssel → `false`.
+**Vertragsversion:** `COURSE_CAPTAIN_CONTRACT_VERSION` (aktuell `0.1.0`, mit dem R1-Release `1.0.0`). Abrufbar über `course_captain_contract_version()`. Funktionsprüfung über `course_captain_supports( $feature )`; unbekannte Schlüssel → `false`. Bekannte Merkmale: `certificates`, `settings.fields.v1`, `settings.hints.v1`.
 **Quellen:** R0-19 (Versionierung §1, REST §2, Fehlerkatalog §3, Hooks §4), Contract-Tests `tests/integration/ApiContractTest.php`, Snapshots `docs/api/routes.v1.json` und `docs/api/hooks.v1.json`.
 **Änderungen:** `docs/API-CHANGELOG.md`. Eine nicht deklarierte Änderung an Routen oder Hooks lässt den Contract-Test fehlschlagen (CT-01, CT-05). Snapshot neu schreiben: Testsuite einmal mit `CCAP_UPDATE_SNAPSHOTS=1` laufen lassen und den Changelog ergänzen.
 
@@ -136,6 +136,8 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_register_activities` | action |
 | `course_captain_risk_text` | filter |
 | `course_captain_seo_indexable` | filter |
+| `course_captain_settings_hints_v1` | filter |
+| `course_captain_settings_register_fields_v1` | filter |
 | `course_captain_settings_risks` | filter |
 | `course_captain_settings_roles_html` | filter |
 | `course_captain_settings_roles_save` | filter |
@@ -149,6 +151,9 @@ Wichtige Verträge:
 - `course_captain_loaded_v1` (Action, stabil; Argument `CourseCaptain\Contract\Api`). Erweiterungen registrieren sich erst danach.
 - `course_captain_cache_purge` (Action; `{scope, ids, urls}` nach Veröffentlichung oder Archivierung eines Kurses).
 - `course_captain_internal_subscribers` (interne Outbox-Abonnenten; intern).
+- `course_captain_settings_register_fields_v1` (Filter, stabil, SET-CC-01; Merkmal `settings.fields.v1`): Andockpunkt für Add-on-Felder des Einstellungsregisters. Rückgabe `array<string, array>` mit Schlüsseln `pro.<tab>.<feld>[.<unterfeld>]` (Kleinbuchstaben, Ziffern, `_`) und derselben Felddefinition wie im Kern (`type` aus `bool|int|page_id|enum|set|slug|string|text|color|email|ip_list|host_list|object`, `default`, optional `cap` `settings|admin`, `privacy` `public|internal|personal|secret`, `export` `true|false|never_env`, Typregeln `min`, `max`, `nullable`, `values`, `fields`, `strict`). Verworfen werden: andere Präfixe (Kernfelder sind nie ersetzbar), unbekannte Typen, ein `default`, der die eigene Prüfung nicht besteht, Objekte/Closures irgendwo in der Definition; `side_effects` werden geleert. Gelesen über `SettingsSchema::addon_fields()` (Ergebnis mit zusätzlichem `tab`). Der Kern speichert, zeigt, exportiert oder löscht diese Werte **nie** (Speicher, Oberfläche und Lizenzlogik bleiben im Add-on, R0-39).
+- `course_captain_settings_hints_v1` (Filter, stabil, SET-CC-01, E-346 S1/S5; Merkmal `settings.hints.v1`): Hinweiszeilen am Ende eines Einstellungs-Tabs. Liste von `{id, tab, title, text, link}`; `id` `[a-z0-9_]{1,40}` (erste Registrierung gewinnt, max. 100), `tab` einer der Tabs der Einstellungsseite (auch `roles`), `title` ≤ 80 und `text` ≤ 300 Zeichen (reiner Text, bereits übersetzt), `link` leer, `https://…` oder eine Seite dieser Verwaltung. Alle anderen Schlüssel werden verworfen, Einträge mit Nicht-Text-Werten ganz. Die Kernliste ist leer (S5). Darstellung als graue Textzeile ohne Feld mit „Ausblenden“ (admin-post `ccap_settings_hint_dismiss`, Nonce `ccap_settings_hint_dismiss_<id>`); ausgeblendete IDs je Person und Website in der User-Option `course_captain_hints_dismissed` (Deinstallations-Manifest).
+- Einstellungsdatei und Add-on-Felder (SET-CC-01): Ein Abschnitt `pro` gehört dem Add-on (eigener `TransferProvider` mit Schlüssel `pro` über `course_captain_settings_transfer_providers`) und wird ihm unverändert übergeben. Ohne diesen Anbieter lässt der Import den Abschnitt, Tabs `pro.<tab>` und `pro.*`-Schlüssel in Kern-Tabs unberührt und meldet sie unter `addon` (Hinweis `addon_kept`) statt als „unbekannt“.
 
 ## 5. Shortcodes und Blöcke
 
@@ -157,7 +162,7 @@ Wichtige Verträge:
 | `[ccap_protected course="ID"]…[/ccap_protected]` | Shortcode | geschützter Abschnitt; `[course_captain_protected]` ist ein veralteter Alias |
 | `[ccap_learning_link]` | Shortcode | Link in den Lernbereich |
 | `[ccap_access]` | Shortcode | Zugangsstatus |
-| `course-captain/course-catalog` | Block (`apiVersion` 3, `version` 1.0.0) | dynamisch |
+| `course-captain/course-catalog` | Block (`apiVersion` 3, `version` 1.1.0) | dynamisch; `orderBy` leer (Vorgabe) = Website-Einstellung `display.catalog_sort`, Karteninhalt nach `display.card_elements` |
 | `course-captain/learning-link` | Block (`apiVersion` 3, `version` 1.0.0) | dynamisch |
 | `course-captain/certificate-verify` | Block (`apiVersion` 3, `version` 1.0.0) | Verifikationsformular |
 

@@ -11000,3 +11000,53 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+msgid "Notes about further functions"
+msgstr "Hinweise zu weiteren Funktionen"
+
+msgid "Learn more"
+msgstr "Mehr erfahren"
+
+#. translators: %s: title of the hint line
+msgid "about %s"
+msgstr "über %s"
+
+msgid "Hide"
+msgstr "Ausblenden"
+
+#. translators: %s: title of the hint line
+msgid "note: %s"
+msgstr "Hinweis: %s"
+
+msgid "The note is hidden for you."
+msgstr "Der Hinweis ist für dich ausgeblendet."
+
+#. translators: %d: number of settings
+msgid "The file contains %d setting of an extension. It stays unchanged here; the extension imports it."
+msgid_plural "The file contains %d settings of an extension. They stay unchanged here; the extension imports them."
+msgstr[0] "Die Datei enthält %d Einstellung einer Erweiterung. Sie bleibt hier unverändert; die Erweiterung importiert sie."
+msgstr[1] "Die Datei enthält %d Einstellungen einer Erweiterung. Sie bleiben hier unverändert; die Erweiterung importiert sie."
+
+#. translators: %d: number of minutes (setting "Warn when background jobs did not run for longer than")
+msgid "The maintenance has not run in the last %d minute."
+msgid_plural "The maintenance has not run in the last %d minutes."
+msgstr[0] "Die Wartung ist in der letzten %d Minute nicht gelaufen."
+msgstr[1] "Die Wartung ist in den letzten %d Minuten nicht gelaufen."
+
+#. translators: %s: number of lessons
+msgid "%s lesson"
+msgid_plural "%s lessons"
+msgstr[0] "%s Lektion"
+msgstr[1] "%s Lektionen"
+
+msgid "Find courses in the catalogue"
+msgstr "Kurse im Katalog finden"
+
+msgid "Breadcrumb"
+msgstr "Navigationspfad"
+
+msgid "This video lesson has no subtitles. Add a subtitle file (WebVTT) in the lesson settings."
+msgstr "Diese Videolektion hat keine Untertitel. Füge in den Lektionseinstellungen eine Untertiteldatei (WebVTT) hinzu."
+
+msgid "This course is only completed with an exam, but no required module contains an exam. Add an exam lesson to a required module or change the completion rule."
+msgstr "Dieser Kurs gilt erst mit einer Prüfung als abgeschlossen, aber kein Pflichtmodul enthält eine Prüfung. Füge einem Pflichtmodul eine Prüfungslektion hinzu oder ändere die Abschlussregel."

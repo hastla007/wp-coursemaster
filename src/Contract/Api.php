@@ -48,6 +48,7 @@ final class Api {
 	 * @return list<string>
 	 */
 	private static function features(): array {
-		return array( 'certificates' );
+		// SET-CC-01: add-on register fields and settings hint lines (docking points, contract v1).
+		return array( 'certificates', 'settings.fields.v1', 'settings.hints.v1' );
 	}
 }

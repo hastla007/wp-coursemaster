@@ -212,7 +212,7 @@ final class GroupsScreen {
 			$key,
 			array(
 				'valid_until'  => $until,
-				'claim_policy' => isset( $post['claim_policy'] ) ? sanitize_key( (string) $post['claim_policy'] ) : 'transferable',
+				'claim_policy' => isset( $post['claim_policy'] ) ? sanitize_key( (string) $post['claim_policy'] ) : (string) \CourseCaptain\Settings\Settings::get( 'enrollment.claim_policy' ),
 				'reason'       => isset( $post['reason'] ) ? sanitize_textarea_field( (string) $post['reason'] ) : '',
 			)
 		);
@@ -509,7 +509,8 @@ final class GroupsScreen {
 			}
 		}
 		$fields .= '</fieldset><p><label for="ccap-new-valid">' . esc_html__( 'Valid until (date, empty = unlimited)', 'course-captain' ) . '</label><br><input id="ccap-new-valid" type="date" name="valid_until"> <label><input type="checkbox" name="unlimited_confirm" value="1"> ' . esc_html__( 'Confirm: unlimited', 'course-captain' ) . '</label></p>';
-		$fields .= '<p><label for="ccap-new-policy">' . esc_html__( 'Who may redeem an invitation', 'course-captain' ) . '</label><br><select id="ccap-new-policy" name="claim_policy"><option value="transferable">' . esc_html__( 'anyone with the link', 'course-captain' ) . '</option><option value="invited_address_only">' . esc_html__( 'only the invited address', 'course-captain' ) . '</option></select></p>';
+		$policy  = (string) \CourseCaptain\Settings\Settings::get( 'enrollment.claim_policy' );
+		$fields .= '<p><label for="ccap-new-policy">' . esc_html__( 'Who may redeem an invitation', 'course-captain' ) . '</label><br><select id="ccap-new-policy" name="claim_policy"><option value="transferable"' . selected( $policy, 'transferable', false ) . '>' . esc_html__( 'anyone with the link', 'course-captain' ) . '</option><option value="invited_address_only"' . selected( $policy, 'invited_address_only', false ) . '>' . esc_html__( 'only the invited address', 'course-captain' ) . '</option></select></p>';
 		$fields .= '<p><label for="ccap-new-reason">' . esc_html__( 'Note (optional, for example the order number)', 'course-captain' ) . '</label><br><input id="ccap-new-reason" type="text" name="reason" class="regular-text"></p>';
 		$fields .= '<input type="hidden" name="request_key" value="' . esc_attr( wp_generate_uuid4() ) . '">';
 		return '<h2>' . esc_html__( 'Create group', 'course-captain' ) . '</h2>' . self::form( 'create', 0, $fields, __( 'Create group', 'course-captain' ) );

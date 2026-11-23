@@ -92,7 +92,7 @@ final class SettingsFields {
 				return array(
 					array( __( 'Addresses', 'course-captain' ), array( 'learning_area_slug', 'course_slug' ) ),
 					array( __( 'Pages', 'course-captain' ), array( 'catalog_page_id', 'learner_home_page_id' ) ),
-					array( __( 'Learning area', 'course-captain' ), array( 'learning_area_title', 'use_profile_locale', 'catalog_group_language_versions', 'catalog_indexing' ) ),
+					array( __( 'Learning area', 'course-captain' ), array( 'learning_area_title', 'use_profile_locale', 'catalog_indexing' ) ),
 					array( __( 'Removing the plugin', 'course-captain' ), array( 'delete_data_on_uninstall' ) ),
 				);
 			case 'display':
@@ -145,7 +145,7 @@ final class SettingsFields {
 				);
 			case 'advanced':
 				return array(
-					array( __( 'Advanced', 'course-captain' ), array( 'import_execution', 'file_delivery', 'media_delete_grace_days', 'cron_stale_warning_minutes' ) ),
+					array( __( 'Advanced', 'course-captain' ), array( 'cron_stale_warning_minutes' ) ),
 					array( __( 'Logging', 'course-captain' ), array( 'log_level', 'error_log_days', 'debug_file_days' ) ),
 					array( __( 'Reports', 'course-captain' ), array( 'report_csv_columns', 'report_pseudonymize' ) ),
 				);
@@ -337,31 +337,31 @@ final class SettingsFields {
 		}
 		return array(
 			'general'      => array(
-				'learning_area_slug'              => array(
+				'learning_area_slug'       => array(
 					'label' => __( 'Address of the learning area', 'course-captain' ),
 					'help'  => __( 'Learners find their courses, exams and certificates here. Old addresses keep redirecting permanently. Allowed: lower-case letters, digits, hyphens.', 'course-captain' ),
 				),
-				'course_slug'                     => array(
+				'course_slug'              => array(
 					'label' => __( 'Address of single courses', 'course-captain' ),
 					'help'  => __( 'Stands in front of the name of every course.', 'course-captain' ),
 				),
-				'catalog_page_id'                 => array(
+				'catalog_page_id'          => array(
 					'label'   => __( 'Course catalogue page', 'course-captain' ),
 					'help'    => __( 'Page with the “Course catalogue” block. Course Captain never overwrites its content.', 'course-captain' ),
 					'element' => 'page',
 					'none'    => __( 'No own page – show the catalogue in the learning area', 'course-captain' ),
 				),
-				'learner_home_page_id'            => array(
+				'learner_home_page_id'     => array(
 					'label'   => __( 'Start page for learners', 'course-captain' ),
 					'help'    => __( 'Learners land here via “My learning”. If the page disappears later, Course Captain uses the learning area and reports it in the system status.', 'course-captain' ),
 					'element' => 'page',
 					'none'    => __( 'My learning in the learning area', 'course-captain' ),
 				),
-				'learning_area_title'             => array(
+				'learning_area_title'      => array(
 					'label' => __( 'Title of the learning area', 'course-captain' ),
 					'help'  => __( 'Leave empty to use the website title.', 'course-captain' ),
 				),
-				'use_profile_locale'              => array(
+				'use_profile_locale'       => array(
 					'label'   => __( 'Language for learners', 'course-captain' ),
 					'help'    => __( 'Automatic: learners see the learning area in their profile language as soon as more than one language is installed.', 'course-captain' ),
 					'element' => 'tristate',
@@ -371,12 +371,7 @@ final class SettingsFields {
 						'0' => __( 'Never, always website language', 'course-captain' ),
 					),
 				),
-				'catalog_group_language_versions' => array(
-					'label'   => __( 'Group language versions in the catalogue', 'course-captain' ),
-					'help'    => __( 'Shows a course and its translations as one card with a language choice.', 'course-captain' ),
-					'element' => 'checkbox',
-				),
-				'catalog_indexing'                => array(
+				'catalog_indexing'         => array(
 					'label'   => __( 'Search engines', 'course-captain' ),
 					'help'    => __( 'Public catalogue and course pages may appear in search engines. Learning area, lessons, certificates and invitations never appear.', 'course-captain' ),
 					'element' => 'radio',
@@ -386,7 +381,7 @@ final class SettingsFields {
 						'noindex'        => __( 'Index nothing', 'course-captain' ),
 					),
 				),
-				'delete_data_on_uninstall'        => array(
+				'delete_data_on_uninstall' => array(
 					'label'   => __( 'Remove all data when the plugin is deleted', 'course-captain' ),
 					/* translators: 1: German confirmation word, 2: English confirmation word (both typed literally) */
 					'help'    => sprintf( __( 'When you delete the plugin under Plugins, all Course Captain data of this website is removed: courses, modules, lessons, questions and exams, enrollments and groups, learning progress, exam results, certificates, submissions and uploaded files, logs and settings. Deactivating never deletes anything; background jobs are always removed. On a network each website decides for itself. Importing settings never takes over this setting. To switch it on, type %1$s or %2$s below; switching it off needs no confirmation.', 'course-captain' ), 'LÖSCHEN', 'DELETE' ),
@@ -955,33 +950,6 @@ final class SettingsFields {
 				'site_headers'            => $hardening_toggle( __( 'Security headers', 'course-captain' ), __( 'nosniff, Referrer-Policy, embedding only on this website and a Permissions-Policy for Course Captain responses. Headers the server already sends are not sent twice.', 'course-captain' ) ),
 			),
 			'advanced'     => array(
-				'import_execution'           => array(
-					'label'   => __( 'Run imports', 'course-captain' ),
-					'help'    => __( 'WP-CLI is always possible.', 'course-captain' ),
-					'element' => 'radio',
-					'options' => array(
-						'background' => __( 'In the background (recommended)', 'course-captain' ),
-						'browser'    => __( 'In the browser tab', 'course-captain' ),
-					),
-				),
-				'file_delivery'              => array(
-					'label'   => __( 'Delivery of protected files', 'course-captain' ),
-					'help'    => __( 'PHP works everywhere. The server methods are faster for large files.', 'course-captain' ),
-					'element' => 'radio',
-					'scope'   => 'system',
-					'options' => array(
-						'php'              => __( 'PHP', 'course-captain' ),
-						'x_sendfile'       => __( 'X-Sendfile (Apache)', 'course-captain' ),
-						'x_accel_redirect' => __( 'X-Accel-Redirect (nginx)', 'course-captain' ),
-					),
-				),
-				'media_delete_grace_days'    => array(
-					'label'   => __( 'Remove deleted media permanently after', 'course-captain' ),
-					'help'    => __( 'Unreferenced protected files are deleted after this grace period.', 'course-captain' ),
-					'element' => 'number',
-					'unit'    => __( 'days', 'course-captain' ),
-					'scope'   => 'system',
-				),
 				'cron_stale_warning_minutes' => array(
 					'label'   => __( 'Warn when background jobs did not run for longer than', 'course-captain' ),
 					'help'    => __( 'The system status and Site Health warn after this time.', 'course-captain' ),

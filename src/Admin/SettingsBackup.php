@@ -206,6 +206,11 @@ final class SettingsBackup {
 		if ( in_array( 'other_site', $report['notices'], true ) ) {
 			$html .= '<div class="notice notice-warning inline"><p>' . esc_html__( 'Note: the file comes from another website.', 'course-captain' ) . '</p></div>';
 		}
+		if ( array() !== $report['addon'] ) {
+			$count = count( $report['addon'] );
+			/* translators: %d: number of settings */
+			$html .= '<div class="notice notice-info inline"><p>' . esc_html( sprintf( _n( 'The file contains %d setting of an extension. It stays unchanged here; the extension imports it.', 'The file contains %d settings of an extension. They stay unchanged here; the extension imports them.', $count, 'course-captain' ), $count ) ) . '</p></div>';
+		}
 		$html .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="' . esc_attr( self::IMPORT ) . '"><input type="hidden" name="apply" value="1">' . wp_nonce_field( self::IMPORT, '_wpnonce', true, false );
 		foreach ( $report['tabs'] as $tab => $entry ) {
 			$label = SettingsFields::tab_label( $tab );

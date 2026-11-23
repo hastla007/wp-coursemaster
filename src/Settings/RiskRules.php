@@ -16,9 +16,10 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Maps a change of a tab (before → after) to the confirmations it needs.
- * RC-01…RC-18 are the dialogs of R0-30 §4.2; RC-19…RC-22 are the R
+ * RC-01…RC-18 are the dialogs of R0-30 §4.2; RC-19…RC-21 are the R
  * fields R0-31 added later without a dialog number (Δ-1 solutions after
- * submit, Δ-6 avatars, `consent_category = functional`, file delivery).
+ * submit, Δ-6 avatars, `consent_category = functional`). RC-22 (file
+ * delivery) is gone with `advanced.file_delivery` (SET-CC-P1, register v3).
  * Stricter changes never need a confirmation (PD-1). RC-02 (R+) is
  * confirmed by the typed site name instead of a token (E-89).
  */
@@ -29,7 +30,7 @@ final class RiskRules {
 	 *
 	 * @var list<string>
 	 */
-	public const CODES = array( 'RC-01', 'RC-03', 'RC-04', 'RC-05', 'RC-06', 'RC-07', 'RC-08', 'RC-09', 'RC-10', 'RC-12', 'RC-13', 'RC-14', 'RC-15', 'RC-16', 'RC-19', 'RC-20', 'RC-21', 'RC-22' );
+	public const CODES = array( 'RC-01', 'RC-03', 'RC-04', 'RC-05', 'RC-06', 'RC-07', 'RC-08', 'RC-09', 'RC-10', 'RC-12', 'RC-13', 'RC-14', 'RC-15', 'RC-16', 'RC-19', 'RC-20', 'RC-21' );
 
 	/**
 	 * Confirmations needed for a change.
@@ -112,11 +113,6 @@ final class RiskRules {
 				}
 				if ( $changed( 'xmlrpc' ) && 'off' !== $after['xmlrpc'] && 'off' === ( $before['xmlrpc'] ?? 'off' ) ) {
 					$risks[] = 'RC-15';
-				}
-				break;
-			case 'advanced':
-				if ( $changed( 'file_delivery' ) && 'php' !== $after['file_delivery'] ) {
-					$risks[] = 'RC-22';
 				}
 				break;
 		}

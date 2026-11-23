@@ -2,7 +2,8 @@
 /**
  * Free guard: no license client, no updater, no add-on probing in the Free core.
  *
- * Patterns G-1 ... G-14 of R0-39 §1.2 (extends R0-18 §2.5). Runs in CI job
+ * Patterns G-1 ... G-14 of R0-39 §1.2 (extends R0-18 §2.5) plus G-15
+ * (rights keys, SET-CC-01). Runs in CI job
  * J-10 on the source tree and in J-17 on the unpacked release ZIP.
  *
  * Usage:
@@ -43,6 +44,8 @@ final class FreeGuard {
 		'G-12' => array( '/feedback_explanation|show_explanations/' ),
 		// G-13 is a header rule, see self::check_header().
 		'G-14' => array( '/learnboating|bootspruefung|\bbp_|kurswasser|boatingschool|\blbac_|\blbvc_/i' ),
+		// G-15 (SET-CC-01/P6, E-346 S1): no rights keys of the license catalogue (`course.<feature>`, SET-CC-05) in the core.
+		'G-15' => array( '/[\'"]course\.(drip_campaigns|reminders|certificate_designer|commerce|groups_advanced|explanations|advanced_assessment|gradebook|analytics|advanced_roles|multi_instructor|advanced_paths|content_workflows|custom_activities|frontend_builder|events|webhooks|connectors|white_label)[\'"]/' ),
 	);
 
 	/** Guard IDs that must never be allowlisted (R0-39 FG-07). */
@@ -267,7 +270,7 @@ final class FreeGuard {
 			if ( array() !== $problems ) {
 				return 1;
 			}
-			fwrite( STDOUT, 'free-guard self-test: OK (14 guard IDs, clean fixture 0 findings)' . PHP_EOL );
+			fwrite( STDOUT, 'free-guard self-test: OK (' . count( self::PATTERNS ) . ' pattern guard IDs + G-13, clean fixture 0 findings)' . PHP_EOL );
 			return 0;
 		}
 

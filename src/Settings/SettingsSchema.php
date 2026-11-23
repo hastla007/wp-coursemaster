@@ -24,8 +24,29 @@ defined( 'ABSPATH' ) || exit;
  */
 final class SettingsSchema {
 
-	/** 2: business rules and module switches (SET-CC-13/24/25/26); v1 values stay as they are. */
-	public const VERSION = 2;
+	/**
+	 * 2: business rules and module switches (SET-CC-13/24/25/26); v1 values stay as they are.
+	 * 3: fields without any effect removed (SET-CC-P1): `general.catalog_group_language_versions`,
+	 * `advanced.import_execution`, `advanced.file_delivery`, `advanced.media_delete_grace_days`;
+	 * the migration drops their stored values, every other value stays.
+	 */
+	public const VERSION = 3;
+
+	/**
+	 * Docking point for add-on fields (SET-CC-01, R0-27 SR-1/SR-8): keys
+	 * `pro.<tab>.<field>`; the core validates the definitions but never
+	 * stores, renders or deletes their values.
+	 */
+	public const ADDON_FIELDS_FILTER = 'course_captain_settings_register_fields_v1';
+
+	/** Pattern of an add-on register key. */
+	public const ADDON_KEY_PATTERN = '/^pro\.[a-z][a-z0-9_]{0,39}(\.[a-z][a-z0-9_]{0,39}){1,3}$/';
+
+	/** Field types the register validator knows. */
+	public const TYPES = array( 'bool', 'int', 'page_id', 'enum', 'set', 'slug', 'string', 'text', 'color', 'email', 'ip_list', 'host_list', 'object' );
+
+	/** Removed register keys (VERSION 3), kept for documentation and tests. */
+	public const REMOVED = array( 'general.catalog_group_language_versions', 'advanced.import_execution', 'advanced.file_delivery', 'advanced.media_delete_grace_days' );
 
 	/** Maximum length of a button label of the learning area (SET-CC-16). */
 	public const BUTTON_LABEL_MAX = 40;
@@ -62,44 +83,40 @@ final class SettingsSchema {
 		);
 		$schema    = array(
 			'general'      => array(
-				'learning_area_slug'              => array(
+				'learning_area_slug'       => array(
 					'type'         => 'slug',
 					'default'      => 'lernen',
 					'side_effects' => array( 'rewrite_flush' ),
 				),
-				'course_slug'                     => array(
+				'course_slug'              => array(
 					'type'         => 'slug',
 					'default'      => 'kurs',
 					'side_effects' => array( 'rewrite_flush' ),
 				),
-				'catalog_page_id'                 => array(
+				'catalog_page_id'          => array(
 					'type'    => 'page_id',
 					'default' => 0,
 				),
-				'learner_home_page_id'            => array(
+				'learner_home_page_id'     => array(
 					'type'    => 'page_id',
 					'default' => 0,
 				),
-				'learning_area_title'             => array(
+				'learning_area_title'      => array(
 					'type'    => 'string',
 					'max'     => 60,
 					'default' => '',
 				),
-				'use_profile_locale'              => array(
+				'use_profile_locale'       => array(
 					'type'     => 'bool',
 					'nullable' => true,
 					'default'  => null,
 				),
-				'catalog_group_language_versions' => array(
-					'type'    => 'bool',
-					'default' => false,
-				),
-				'catalog_indexing'                => array(
+				'catalog_indexing'         => array(
 					'type'    => 'enum',
 					'values'  => array( 'public_catalog', 'noindex' ),
 					'default' => 'public_catalog',
 				),
-				'delete_data_on_uninstall'        => array(
+				'delete_data_on_uninstall' => array(
 					'type'    => 'bool',
 					'default' => false,
 					'cap'     => 'admin',
@@ -584,23 +601,6 @@ final class SettingsSchema {
 				'site_headers'       => $hardening,
 			),
 			'advanced'     => array(
-				'import_execution'           => array(
-					'type'    => 'enum',
-					'values'  => array( 'background', 'browser' ),
-					'default' => 'background',
-				),
-				'file_delivery'              => array(
-					'type'    => 'enum',
-					'values'  => array( 'php', 'x_sendfile', 'x_accel_redirect' ),
-					'default' => 'php',
-					'export'  => 'never_env',
-				),
-				'media_delete_grace_days'    => array(
-					'type'    => 'int',
-					'min'     => 1,
-					'max'     => 90,
-					'default' => 7,
-				),
 				'cron_stale_warning_minutes' => array(
 					'type'    => 'int',
 					'min'     => 60,
@@ -726,6 +726,83 @@ final class SettingsSchema {
 				'monotonic' => 'stricter',
 			),
 		);
+	}
+
+	/**
+	 * Add-on fields registered through `course_captain_settings_register_fields_v1`
+	 * (SET-CC-01). Same contract as a core field plus the `pro.` key prefix;
+	 * a definition is dropped when the key does not match
+	 * `pro.<tab>.<field>`, the type is unknown, the default does not pass
+	 * the validator or an object or closure is passed anywhere (no function code
+	 * through the register). Core fields can never be replaced this way.
+	 *
+	 * @return array<string, array<string, mixed>> Key => normalized definition.
+	 */
+	public static function addon_fields(): array {
+		/**
+		 * Add-on register fields (stable docking point, contract v1).
+		 *
+		 * @since 1.0.0
+		 * @param array<string, array<string, mixed>> $fields `pro.<tab>.<field>` => definition (`type`, `default`, optional `cap`, `privacy`, `export`, type rules).
+		 */
+		$raw = apply_filters( 'course_captain_settings_register_fields_v1', array() );
+		$out = array();
+		foreach ( is_array( $raw ) ? $raw : array() as $key => $def ) {
+			$def = self::addon_field( (string) $key, $def );
+			if ( null !== $def ) {
+				$out[ (string) $key ] = $def;
+			}
+		}
+		ksort( $out );
+		return $out;
+	}
+
+	/**
+	 * Normalize one add-on definition, null when it is not acceptable.
+	 *
+	 * @param string $key Register key.
+	 * @param mixed  $def Definition.
+	 * @return array<string, mixed>|null
+	 */
+	private static function addon_field( string $key, $def ): ?array {
+		if ( 1 !== preg_match( self::ADDON_KEY_PATTERN, $key ) || ! is_array( $def ) || self::has_callable( $def ) ) {
+			return null;
+		}
+		if ( ! in_array( $def['type'] ?? null, self::TYPES, true ) || ! array_key_exists( 'default', $def ) ) {
+			return null;
+		}
+		$def += array(
+			'cap'          => 'settings',
+			'privacy'      => 'internal',
+			'side_effects' => array(),
+			'export'       => true,
+		);
+		if ( ! in_array( $def['cap'], array( 'settings', 'admin' ), true ) || ! in_array( $def['privacy'], array( 'public', 'internal', 'personal', 'secret' ), true ) || ! in_array( $def['export'], array( true, false, 'never_env' ), true ) ) {
+			return null;
+		}
+		// Side effects belong to the add-on; the core runs none for foreign fields.
+		$def['side_effects'] = array();
+		$check               = self::validate( $def, $def['default'] );
+		if ( ! $check['ok'] || $check['value'] !== $def['default'] ) {
+			return null;
+		}
+		$def['tab'] = explode( '.', $key )[1];
+		return $def;
+	}
+
+	/**
+	 * Whether a definition carries a callable or object anywhere.
+	 *
+	 * @param array<mixed> $def Definition.
+	 * @return bool
+	 */
+	private static function has_callable( array $def ): bool {
+		foreach ( $def as $value ) {
+			if ( is_object( $value ) || ( is_array( $value ) && self::has_callable( $value ) ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

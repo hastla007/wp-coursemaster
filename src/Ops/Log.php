@@ -45,6 +45,9 @@ final class Log {
 	/** Option: since when the current level above the default is active (Unix time). */
 	public const SINCE_OPTION = 'course_captain_log_level_since';
 
+	/** Context keys whose value is never written (SET-CC-P4). */
+	public const SECRET_KEYS = '/secret|token|passw|nonce|api_?key|monitor_?key|signature|cookie|authorization|credential/i';
+
 	/** Rotation size per file (R0-13 DL-5). */
 	public const MAX_BYTES = 5242880;
 
@@ -157,6 +160,11 @@ final class Log {
 		$out = array();
 		foreach ( $context as $key => $value ) {
 			if ( ! is_scalar( $value ) && null !== $value ) {
+				continue;
+			}
+			// SET-CC-P4: secrets never reach a log file, even when a caller passes one by mistake.
+			if ( 1 === preg_match( self::SECRET_KEYS, (string) $key ) ) {
+				$out[ sanitize_key( (string) $key ) ] = '[redacted]';
 				continue;
 			}
 			if ( is_string( $value ) ) {

@@ -516,7 +516,9 @@ final class ExamsScreen {
 		$html   .= '</tbody></table><h2>' . esc_html__( 'New exam', 'course-captain' ) . '</h2>';
 		$fields  = '<p><label for="ccap-new-course">' . esc_html__( 'Course', 'course-captain' ) . '</label><br>' . AdminUi::course_select( 'ccap-new-course', 'course', $course, $user_id ) . '</p>';
 		$fields .= '<p><label for="ccap-new-version">' . esc_html__( 'Name of the exam', 'course-captain' ) . '</label><br><input id="ccap-new-version" type="text" name="version" class="regular-text" value="' . esc_attr__( 'Final exam', 'course-captain' ) . '"></p>';
-		$fields .= '<p><label for="ccap-new-pass">' . esc_html__( 'Pass mark in percent', 'course-captain' ) . '</label><br><input id="ccap-new-pass" type="text" inputmode="decimal" name="pass_percent" size="6" required aria-describedby="ccap-new-pass-help"> % <span id="ccap-new-pass-help" class="description">' . esc_html__( 'For example 60 for 60 % of the points.', 'course-captain' ) . '</span></p>';
+		// SET-CC-P1: prefilled with `exams.passing_ratio_proposal` (a suggestion; every exam stores its own threshold).
+		$proposal = (array) \CourseCaptain\Settings\Settings::get( 'exams.passing_ratio_proposal' );
+		$fields  .= '<p><label for="ccap-new-pass">' . esc_html__( 'Pass mark in percent', 'course-captain' ) . '</label><br><input id="ccap-new-pass" type="text" inputmode="decimal" name="pass_percent" size="6" value="' . esc_attr( AdminUi::percent( (int) ( $proposal['num'] ?? 7 ), max( 1, (int) ( $proposal['den'] ?? 10 ) ) ) ) . '" required aria-describedby="ccap-new-pass-help"> % <span id="ccap-new-pass-help" class="description">' . esc_html__( 'For example 60 for 60 % of the points.', 'course-captain' ) . '</span></p>';
 		return $html . AdminUi::form( self::ACTION, 'create', 0, $fields, __( 'Create exam draft', 'course-captain' ), '1' );
 	}
 

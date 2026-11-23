@@ -136,12 +136,6 @@ final class RiskDialog {
 					'text'   => __( 'Consent tools usually treat functional services as not requiring consent. External videos then load without asking learners.', 'course-captain' ),
 					'action' => __( 'Use “Functional”', 'course-captain' ),
 				);
-			case 'RC-22':
-				return array(
-					'title'  => __( 'Change file delivery?', 'course-captain' ),
-					'text'   => __( 'Protected files are then delivered by the web server; the access check stays with Course Captain. After a move or hosting change downloads can fail.', 'course-captain' ),
-					'action' => __( 'Change delivery', 'course-captain' ),
-				);
 		}
 		/**
 		 * Text of further risks (e.g. RC-07 of the role tab).
