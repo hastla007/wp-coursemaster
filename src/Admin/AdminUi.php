@@ -228,6 +228,64 @@ final class AdminUi {
 	}
 
 	/**
+	 * Layout rules of the settings screens (SET-CC-21, R0-15 A11Y-050): no
+	 * horizontal page scrolling at 320 px (wide controls shrink, wide tables
+	 * scroll inside their own focusable region), links in table cells stay
+	 * underlined (WCAG 1.4.1). Logical properties only.
+	 */
+	public const SETTINGS_CSS = '#wpbody-content .wrap select,#wpbody-content .wrap input[type=file],#wpbody-content .wrap input[type=text],#wpbody-content .wrap input[type=email],#wpbody-content .wrap textarea{max-inline-size:100%}'
+		. '.ccap-table-scroll{overflow-x:auto;max-inline-size:100%}.ccap-table-scroll:focus-visible{outline:2px solid #2271b1;outline-offset:2px}'
+		. '#wpbody-content .wrap td a{text-decoration:underline}';
+
+	/**
+	 * Script (focus of messages, unsaved-changes warning) and layout rules of
+	 * a settings screen; call with the hook suffix of `add_submenu_page()`.
+	 *
+	 * @param string|false $hook Page hook suffix.
+	 * @return void
+	 */
+	public static function settings_assets( $hook ): void {
+		if ( ! is_string( $hook ) || '' === $hook ) {
+			return;
+		}
+		add_action( 'admin_print_scripts-' . $hook, array( SettingsScreen::class, 'enqueue' ) );
+		add_action( 'admin_print_styles-' . $hook, array( self::class, 'settings_style' ) );
+	}
+
+	/**
+	 * Inline layout rules (no stylesheet file, no extra request).
+	 *
+	 * @return void
+	 */
+	public static function settings_style(): void {
+		wp_register_style( 'ccap-admin-settings', false, array(), COURSE_CAPTAIN_VERSION );
+		wp_enqueue_style( 'ccap-admin-settings' );
+		wp_add_inline_style( 'ccap-admin-settings', self::SETTINGS_CSS );
+	}
+
+	/**
+	 * A wide table in its own horizontally scrolling region: focusable so
+	 * keyboard users can scroll it, named after the table (WCAG 1.4.10, 2.1.1).
+	 *
+	 * @param string $table Escaped table HTML.
+	 * @param string $label Region name (plain text).
+	 * @return string
+	 */
+	public static function scroll_table( string $table, string $label ): string {
+		return self::scroll_open( $label ) . $table . '</div>';
+	}
+
+	/**
+	 * Opening tag of a scroll region (see scroll_table()); close it with `</div>`.
+	 *
+	 * @param string $label Region name (plain text).
+	 * @return string
+	 */
+	public static function scroll_open( string $label ): string {
+		return '<div class="ccap-table-scroll" role="region" tabindex="0" aria-label="' . esc_attr( $label ) . '">';
+	}
+
+	/**
 	 * Fresh idempotency key for a form.
 	 *
 	 * @return string

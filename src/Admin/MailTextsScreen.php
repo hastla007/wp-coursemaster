@@ -53,7 +53,7 @@ final class MailTextsScreen {
 		add_action(
 			'admin_menu',
 			static function (): void {
-				add_submenu_page( '', __( 'Mail texts', 'course-captain' ), __( 'Mail texts', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) );
+				AdminUi::settings_assets( add_submenu_page( '', __( 'Mail texts', 'course-captain' ), __( 'Mail texts', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) ) );
 			},
 			19
 		);
@@ -397,7 +397,7 @@ final class MailTextsScreen {
 			$rows .= '</tr>';
 		}
 		$html    = '<p>' . esc_html__( 'Every message exists as built-in text in all languages. Adapt a text per language; a learner gets the text in their profile language, else the same language in another variant, else the text of the website language, else the built-in text.', 'course-captain' ) . '</p>';
-		$html   .= '<table class="widefat striped ccap-mail-overview"><caption>' . esc_html__( 'Messages and languages', 'course-captain' ) . '</caption><thead>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table>';
+		$html   .= AdminUi::scroll_table( '<table class="widefat striped ccap-mail-overview"><caption>' . esc_html__( 'Messages and languages', 'course-captain' ) . '</caption><thead>' . $head . '</tr></thead><tbody>' . $rows . '</tbody></table>', __( 'Messages and languages', 'course-captain' ) );
 		$html   .= '<h2>' . esc_html__( 'Export and import', 'course-captain' ) . '</h2>';
 		$html   .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ccap-inline-form"><input type="hidden" name="action" value="' . esc_attr( self::EXPORT ) . '">' . wp_nonce_field( self::EXPORT, '_wpnonce', true, false )
 			. '<button type="submit" class="button">' . esc_html__( 'Export own mail texts (JSON)', 'course-captain' ) . '</button></form>';

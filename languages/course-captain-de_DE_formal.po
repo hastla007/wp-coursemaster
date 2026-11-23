@@ -11000,3 +11000,15 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+#. translators: %s: field label
+#: src/Admin/SettingsFields.php
+#, php-format
+msgid "Error: %s: choose one of the offered options."
+msgstr "Fehler: %s: Wählen Sie eine der angebotenen Möglichkeiten."
+
+#. translators: 1: field label, 2: minimum
+#: src/Admin/SettingsFields.php
+#, php-format
+msgid "Error: %1$s: enter a whole number of at least %2$s."
+msgstr "Fehler: %1$s: Geben Sie eine ganze Zahl ab %2$s ein."

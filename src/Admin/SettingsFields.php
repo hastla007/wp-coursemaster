@@ -254,6 +254,10 @@ final class SettingsFields {
 				/* translators: 1: field label, 2: maximum number of characters */
 				return sprintf( __( 'Error: %1$s: at most %2$s characters, no line breaks.', 'course-captain' ), $label, '' === $max ? '255' : $max );
 			case 'range':
+				if ( '' === $max ) {
+					/* translators: 1: field label, 2: minimum */
+					return sprintf( __( 'Error: %1$s: enter a whole number of at least %2$s.', 'course-captain' ), $label, $min );
+				}
 				/* translators: 1: field label, 2: minimum, 3: maximum */
 				return sprintf( __( 'Error: %1$s: enter a whole number from %2$s to %3$s.', 'course-captain' ), $label, $min, $max );
 			case 'number':
@@ -303,6 +307,9 @@ final class SettingsFields {
 			case 'contrast':
 				/* translators: 1: entered colour, 2: contrast ratio, 3: required ratio */
 				return sprintf( __( 'Error: the colour %1$s is too light: white text on it has a contrast of %2$s:1, at least %3$s:1 is needed. Choose a darker colour, for example #1d4ed8.', 'course-captain' ), (string) ( $params['value'] ?? '' ), number_format_i18n( SettingsRules::contrast( (string) ( $params['value'] ?? '#ffffff' ), '#ffffff' ), 2 ), number_format_i18n( SettingsRules::MIN_CONTRAST, 1 ) );
+			case 'choice':
+				/* translators: %s: field label */
+				return sprintf( __( 'Error: %s: choose one of the offered options.', 'course-captain' ), $label );
 			case 'logo_missing':
 				return __( 'Error: logo: no image with this media ID exists. Enter the ID of an image from the media library or 0.', 'course-captain' );
 		}

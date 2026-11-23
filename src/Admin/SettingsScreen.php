@@ -49,9 +49,7 @@ final class SettingsScreen {
 			'admin_menu',
 			static function (): void {
 				$hook = add_submenu_page( EditorScreens::MENU, __( 'Settings', 'course-captain' ), _x( 'Settings', 'admin menu', 'course-captain' ), self::MENU_CAP, self::SLUG, array( self::class, 'render' ) );
-				if ( is_string( $hook ) ) {
-					add_action( 'admin_print_scripts-' . $hook, array( self::class, 'enqueue' ) );
-				}
+				AdminUi::settings_assets( $hook );
 			},
 			19
 		);
@@ -223,7 +221,7 @@ final class SettingsScreen {
 			return $out;
 		}
 		if ( array() !== $check['errors'] ) {
-			self::keep_form( $user_id, $tab, $input, SettingsForm::with_params( $check['errors'], $input ) );
+			self::keep_form( $user_id, $tab, $input, SettingsForm::with_params( $check['errors'], $input, $tab ) );
 			$out['result'] = 'invalid';
 			return $out;
 		}
@@ -584,7 +582,7 @@ final class SettingsScreen {
 					$rows .= self::static_row( $tab, $key, SettingsFields::ui( $tab, $key )['options']['smarttrainer.v1'] );
 					continue;
 				}
-				$rows .= '<input type="hidden" name="_fields[]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, $errors[ $f ] ?? null, $opts );
+				$rows .= '<input type="hidden" name="_fields[]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, SettingsForm::error_for( $errors, $key ), $opts );
 				if ( 'general' === $tab && 'delete_data_on_uninstall' === $key && true !== $values[ $f ] ) {
 					$rows .= self::confirm_word_field( $tab, isset( $errors[ $f ] ) );
 				}

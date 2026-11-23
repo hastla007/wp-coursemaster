@@ -14,67 +14,7 @@ const path = require( 'path' );
 const { BASE, OUT, area, assert, login, api } = require( './lib' );
 
 const COURSE = JSON.parse( fs.readFileSync( path.join( OUT, 'reference-course.json' ), 'utf8' ) );
-const AXE = process.env.AXE_PATH && fs.existsSync( process.env.AXE_PATH ) ? process.env.AXE_PATH : null;
-
-// Built-in checks inside `scope` (CSS selector, default the whole document).
-function domChecks( scope ) {
-	const root = scope ? document.querySelector( scope ) : document;
-	const problems = [];
-	if ( ! root ) {
-		return [ 'scope not found: ' + scope ];
-	}
-	const name = ( el ) => {
-		const labelled = ( el.getAttribute( 'aria-labelledby' ) || '' ).split( /\s+/ ).filter( Boolean ).map( ( id ) => ( document.getElementById( id ) || {} ).textContent || '' ).join( ' ' );
-		const labels = el.labels ? [ ...el.labels ].map( ( l ) => l.textContent ).join( ' ' ) : '';
-		const img = [ ...el.querySelectorAll( 'img[alt]' ) ].map( ( i ) => i.alt ).join( ' ' );
-		return ( el.getAttribute( 'aria-label' ) || labelled || labels || el.getAttribute( 'title' ) || ( [ 'INPUT', 'SELECT', 'TEXTAREA' ].includes( el.tagName ) ? '' : el.textContent ) || img || ( 'submit' === el.type || 'button' === el.type ? el.value : '' ) || '' ).trim();
-	};
-	const visible = ( el ) => !! ( el.offsetWidth || el.offsetHeight || el.getClientRects().length ) && 'hidden' !== getComputedStyle( el ).visibility;
-	if ( ! scope ) {
-		if ( ! document.documentElement.lang ) {
-			problems.push( 'html without lang' );
-		}
-		if ( ! document.title.trim() ) {
-			problems.push( 'empty title' );
-		}
-		if ( ! document.querySelector( 'main, [role=main]' ) ) {
-			problems.push( 'no main landmark' );
-		}
-		const h1 = [ ...document.querySelectorAll( 'h1' ) ].filter( visible ).length;
-		if ( 1 !== h1 ) {
-			problems.push( h1 + ' visible h1' );
-		}
-	}
-	let last = scope ? 1 : 0;
-	for ( const h of root.querySelectorAll( 'h1, h2, h3, h4, h5, h6' ) ) {
-		if ( ! visible( h ) ) {
-			continue;
-		}
-		const level = parseInt( h.tagName.slice( 1 ), 10 );
-		if ( last && level > last + 1 ) {
-			problems.push( 'heading level skipped: ' + h.tagName + ' "' + h.textContent.trim().slice( 0, 40 ) + '"' );
-		}
-		last = level;
-	}
-	for ( const el of root.querySelectorAll( 'input:not([type=hidden]), select, textarea, button, a[href]' ) ) {
-		if ( visible( el ) && ! name( el ) ) {
-			problems.push( 'no accessible name: ' + el.outerHTML.slice( 0, 100 ) );
-		}
-	}
-	for ( const img of root.querySelectorAll( 'img:not([alt])' ) ) {
-		problems.push( 'img without alt: ' + img.outerHTML.slice( 0, 80 ) );
-	}
-	const ids = {};
-	for ( const el of root.querySelectorAll( '[id]' ) ) {
-		ids[ el.id ] = ( ids[ el.id ] || 0 ) + 1;
-	}
-	for ( const [ id, n ] of Object.entries( ids ) ) {
-		if ( n > 1 ) {
-			problems.push( 'duplicate id "' + id + '" (' + n + ')' );
-		}
-	}
-	return problems;
-}
+const { AXE, domChecks, runAxe } = require( './a11y-checks' );
 
 async function check( page, label, url, opts ) {
 	const o = opts || {};
@@ -120,15 +60,7 @@ async function check( page, label, url, opts ) {
 		}
 		await page.setViewportSize( { width: 1280, height: 900 } );
 	}
-	let axe = null;
-	if ( AXE ) {
-		await page.addScriptTag( { path: AXE } );
-		axe = await page.evaluate( async ( scope ) => {
-			const res = await window.axe.run( scope ? { include: [ scope ] } : document, { runOnly: { type: 'tag', values: [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa' ] }, resultTypes: [ 'violations' ] } );
-			return res.violations.map( ( v ) => 'axe ' + v.id + ' (' + v.nodes.length + '): ' + v.nodes.map( ( n ) => n.target.join( ' ' ) ).slice( 0, 3 ).join( ', ' ) );
-		}, o.scope || null );
-		problems.push( ...axe );
-	}
+	problems.push( ...( await runAxe( page, o.scope || null ) ) );
 	return { page: label, problems: [ ...new Set( problems ) ] };
 }
 

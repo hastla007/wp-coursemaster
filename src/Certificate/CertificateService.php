@@ -813,7 +813,7 @@ final class CertificateService {
 			return (string) $row['status'];
 		}
 		$until = json_decode( (string) $row['snapshot'], true )['valid_until'] ?? null;
-		return null !== $until && (string) $until < gmdate( 'Y-m-d' ) ? 'expired' : 'valid';
+		return null !== $until && (string) $until < self::site_today() ? 'expired' : 'valid';
 	}
 
 	/**
@@ -823,7 +823,7 @@ final class CertificateService {
 	 * @return bool
 	 */
 	public static function recertify_hint( $valid_until ): bool {
-		return is_string( $valid_until ) && $valid_until <= gmdate( 'Y-m-d', time() + self::RECERTIFY_DAYS * DAY_IN_SECONDS );
+		return is_string( $valid_until ) && $valid_until <= self::site_today( self::RECERTIFY_DAYS );
 	}
 
 	/**
@@ -1000,7 +1000,7 @@ final class CertificateService {
 				'rule_uid'           => isset( $snapshot['rule']['uid'] ) ? (string) $snapshot['rule']['uid'] : null,
 				'rule_version'       => isset( $snapshot['rule']['version'] ) ? (string) $snapshot['rule']['version'] : null,
 				'objectives'         => array_values( array_map( 'strval', (array) ( $snapshot['competency']['certifies_objectives'] ?? array() ) ) ),
-				'valid_until'        => null === $days || null === $evaluated ? null : gmdate( 'Y-m-d', (int) strtotime( $evaluated . ' UTC' ) + DAY_IN_SECONDS * max( 1, (int) $days ) ),
+				'valid_until'        => null === $days || null === $evaluated ? null : self::site_date_after( $evaluated, max( 1, (int) $days ) ),
 				'eligible'           => 'evaluated' === $row['status'] && '1' === (string) $row['passed'] && ! empty( $snapshot['evidence_eligible'] ) && empty( $snapshot['reduced'] ) && empty( $snapshot['practice'] ) && null !== $revision && null !== $evaluated,
 			);
 		}
@@ -1301,5 +1301,31 @@ final class CertificateService {
 	 */
 	public static function site_date( string $datetime ): string {
 		return '' === $datetime ? '' : (string) wp_date( 'Y-m-d', (int) strtotime( $datetime . ' UTC' ) );
+	}
+
+	/**
+	 * Last valid day of a certificate (SET-CC-P2): the site date of the
+	 * evaluation plus whole calendar days, so that "issued on" and "valid
+	 * until" count from the same local date, also across midnight, year end
+	 * and daylight saving changes.
+	 *
+	 * @param string $datetime UTC datetime of the evaluation.
+	 * @param int    $days     Validity in days.
+	 * @return string Y-m-d in the site time zone.
+	 */
+	public static function site_date_after( string $datetime, int $days ): string {
+		$local = ( new \DateTimeImmutable( '@' . (int) strtotime( $datetime . ' UTC' ) ) )->setTimezone( wp_timezone() );
+		return $local->setTime( 12, 0 )->modify( '+' . $days . ' days' )->format( 'Y-m-d' );
+	}
+
+	/**
+	 * Today (plus days) in the site time zone, the date certificate validity is compared with.
+	 *
+	 * @param int      $plus_days Days to add.
+	 * @param int|null $now       Unix time (tests), default now.
+	 * @return string Y-m-d.
+	 */
+	public static function site_today( int $plus_days = 0, ?int $now = null ): string {
+		return ( new \DateTimeImmutable( '@' . ( $now ?? time() ) ) )->setTimezone( wp_timezone() )->setTime( 12, 0 )->modify( '+' . $plus_days . ' days' )->format( 'Y-m-d' );
 	}
 }

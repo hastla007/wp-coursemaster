@@ -61,6 +61,10 @@ async function save( page, publish, metaBoxes ) {
 	const waits = [ page.waitForResponse( ( r ) => /wp\/v2\/|wp%2Fv2%2F/.test( r.url() ) && [ 'POST', 'PUT' ].includes( r.request().method() ), { timeout: 60000 } ) ];
 	if ( metaBoxes ) {
 		waits.push( page.waitForResponse( ( r ) => r.url().includes( 'meta-box-loader=1' ), { timeout: 60000 } ) );
+		// UI-F6: after the meta box save the panels are re-rendered from the stored state
+		// (editor-notices.js, admin-ajax `ccap_editor_flash`); a selection made before that
+		// response arrives would be replaced. Wait for it like a person waits for the panel.
+		waits.push( page.waitForResponse( ( r ) => r.url().includes( 'admin-ajax.php' ) && 'POST' === r.request().method() && String( r.request().postData() || '' ).includes( 'ccap_editor_flash' ), { timeout: 60000 } ) );
 	}
 	if ( publish ) {
 		await page.locator( '.editor-header__settings' ).getByRole( 'button', { name: 'Publish', exact: true } ).click();

@@ -505,7 +505,8 @@ final class GroupsScreen {
 		$fields .= '<fieldset><legend>' . esc_html__( 'Courses', 'course-captain' ) . '</legend>';
 		foreach ( $courses as $course ) {
 			if ( $course instanceof \WP_Post ) {
-				$fields .= '<label><input type="checkbox" name="courses[]" value="' . (int) $course->ID . '"> ' . esc_html( $course->post_title ) . '</label><br>';
+				// One paragraph per choice: enough space between the targets (WCAG 2.5.8, axe target-size).
+				$fields .= '<p><label><input type="checkbox" name="courses[]" value="' . (int) $course->ID . '"> ' . esc_html( $course->post_title ) . '</label></p>';
 			}
 		}
 		$fields .= '</fieldset><p><label for="ccap-new-valid">' . esc_html__( 'Valid until (date, empty = unlimited)', 'course-captain' ) . '</label><br><input id="ccap-new-valid" type="date" name="valid_until"> <label><input type="checkbox" name="unlimited_confirm" value="1"> ' . esc_html__( 'Confirm: unlimited', 'course-captain' ) . '</label></p>';
