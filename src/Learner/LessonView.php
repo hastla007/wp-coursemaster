@@ -244,7 +244,11 @@ final class LessonView {
 	}
 
 	/**
-	 * Video: native player for direct or protected files, otherwise a link (no third-party embed without JS).
+	 * Video (R0-10 §5.2, E-45a): native player for direct or protected files;
+	 * YouTube/Vimeo as privacy-friendly embed (MC-2) in `always_load`; in
+	 * `click_to_load` a placeholder without any connection to the foreign
+	 * host and a "Load video" button ({@see self::click_to_load()}); in
+	 * `link_only` only a link.
 	 *
 	 * @param array<string, mixed> $settings Video settings.
 	 * @return string
@@ -258,23 +262,19 @@ final class LessonView {
 		} else {
 			$view = ExternalMedia::video_view( $settings );
 			if ( $view['consent_required'] ) {
-				return $html . '<p>' . esc_html(
-					sprintf(
-						/* translators: %s: host name */
-						__( 'This video is hosted by %s and is only loaded after your consent.', 'course-captain' ),
-						(string) $view['foreign_host']
-					)
-				) . '</p></section>';
+				return $html . self::click_to_load( $view, (int) ( $settings['duration_seconds'] ?? 0 ) ) . '</section>';
 			}
-			$external = null !== $view['link_url'] ? (string) $view['link_url'] : ( in_array( $settings['provider'] ?? '', array( 'youtube', 'vimeo' ), true ) ? $view['video_url'] : null );
-			if ( null !== $external ) {
-				return $html . '<p><a href="' . esc_url( $external ) . '" target="_blank" rel="noopener noreferrer">' . esc_html(
-					sprintf(
-						/* translators: %s: host name */
-						__( 'Watch the video on %s (opens in a new tab)', 'course-captain' ),
-						(string) ( $view['foreign_host'] ?? wp_parse_url( $external, PHP_URL_HOST ) )
-					)
-				) . '</a></p></section>';
+			if ( null !== $view['link_url'] ) {
+				return $html . self::watch_link( (string) $view['link_url'], (string) $view['foreign_host'] ) . '</section>';
+			}
+			if ( null !== $view['embed_url'] ) {
+				$host = (string) ( $view['foreign_host'] ?? wp_parse_url( (string) $view['embed_url'], PHP_URL_HOST ) );
+				return $html . '<div class="ccap-media-frame"><iframe class="ccap-embed" src="' . esc_url( (string) $view['embed_url'] ) . '" title="' . esc_attr( self::frame_title( $host ) ) . '" width="560" height="315" allow="fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'
+					. ( null !== $view['watch_url'] ? self::watch_link( (string) $view['watch_url'], $host ) : '' ) . '</section>';
+			}
+			if ( null !== $view['video_url'] && in_array( $settings['provider'] ?? '', array( 'youtube', 'vimeo' ), true ) ) {
+				// A YouTube/Vimeo address without a recognizable video ID cannot be embedded.
+				return $html . self::watch_link( (string) $view['video_url'], (string) ( $view['foreign_host'] ?? wp_parse_url( (string) $view['video_url'], PHP_URL_HOST ) ) ) . '</section>';
 			}
 			if ( null === $view['video_url'] ) {
 				return $html . '<p>' . esc_html__( 'The video is not available yet.', 'course-captain' ) . '</p></section>';
@@ -287,6 +287,145 @@ final class LessonView {
 			$html .= '<track kind="subtitles" default src="' . esc_url( (string) $subtitles ) . '" label="' . esc_attr__( 'Subtitles', 'course-captain' ) . '">';
 		}
 		return $html . '<a href="' . esc_url( $src ) . '">' . esc_html__( 'Download the video', 'course-captain' ) . '</a></video></section>';
+	}
+
+	/**
+	 * Link to the video page of the foreign service (new tab).
+	 *
+	 * @param string $url  Page URL.
+	 * @param string $host Foreign host.
+	 * @return string
+	 */
+	private static function watch_link( string $url, string $host ): string {
+		return '<p class="ccap-media-link"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html(
+			sprintf(
+				/* translators: %s: name of the video service or host name */
+				__( 'Watch the video on %s (opens in a new tab)', 'course-captain' ),
+				ExternalMedia::service( $host )['name']
+			)
+		) . '</a></p>';
+	}
+
+	/**
+	 * Accessible name of an embedded player.
+	 *
+	 * @param string $host Host of the player.
+	 * @return string
+	 */
+	private static function frame_title( string $host ): string {
+		return sprintf(
+			/* translators: %s: name of the video service or host name */
+			__( 'Video on %s', 'course-captain' ),
+			ExternalMedia::service( $host )['name']
+		);
+	}
+
+	/**
+	 * "Click to load" placeholder (R0-10 §5.2.2/§5.3, R0-31 MC-1a/MC-3/MC-4/MC-7).
+	 *
+	 * The server output contains no element that connects to the foreign
+	 * host (no `iframe`, `video`, `track`, poster, `preconnect`); the same
+	 * HTML for every learner (MC-8). Without JavaScript the learner gets
+	 * the hint and a link to the service. The script
+	 * (`assets/js/external-media.js`) reveals the "Load video" button,
+	 * loads only this medium after the click, attaches subtitles only then,
+	 * and honours the WP Consent API, `window.courseCaptain.consent` and,
+	 * when `privacy.external_media_remember` is on, the per-service choice
+	 * "always load" in `localStorage` (never pre-ticked, revocable).
+	 *
+	 * @param array<string, mixed> $view     Result of `ExternalMedia::video_view()`.
+	 * @param int                  $duration Duration in seconds (0 = unknown).
+	 * @return string
+	 */
+	private static function click_to_load( array $view, int $duration ): string {
+		$host    = (string) $view['foreign_host'];
+		$service = ExternalMedia::service( $host );
+		$name    = $service['name'];
+		$pending = (array) $view['pending'];
+		$consent = ExternalMedia::consent();
+		$attrs   = array(
+			'data-ccap-external-media' => '1',
+			'data-ccap-service'        => strtolower( 'YouTube' === $name || 'Vimeo' === $name ? $name : $host ),
+			'data-ccap-kind'           => (string) $pending['kind'],
+			'data-ccap-src'            => esc_url_raw( (string) $pending['src'] ),
+			'data-ccap-title'          => self::frame_title( $host ),
+			'data-ccap-category'       => $consent['category'],
+			'data-ccap-remember'       => $consent['remember_offer'] ? '1' : '0',
+			'data-ccap-loaded-text'    => sprintf(
+				/* translators: %s: name of the video service or host name */
+				__( 'The video from %s has been loaded.', 'course-captain' ),
+				$name
+			),
+			'data-ccap-forget-text'    => sprintf(
+				/* translators: %s: name of the video service or host name */
+				__( 'Stop loading external media from %s automatically', 'course-captain' ),
+				$name
+			),
+			'data-ccap-forgotten-text' => sprintf(
+				/* translators: %s: name of the video service or host name */
+				__( 'Saved choice removed. Media from %s will only load after a click again.', 'course-captain' ),
+				$name
+			),
+		);
+		if ( 'file' === $pending['kind'] ) {
+			$attrs['data-ccap-download-text'] = __( 'Download the video', 'course-captain' );
+			if ( null !== $pending['subtitles'] ) {
+				$attrs['data-ccap-subtitles']       = esc_url_raw( (string) $pending['subtitles'] );
+				$attrs['data-ccap-subtitles-label'] = __( 'Subtitles', 'course-captain' );
+			}
+		}
+		$html = '<div class="ccap-external-media"';
+		foreach ( $attrs as $name_attr => $value ) {
+			$html .= ' ' . $name_attr . '="' . esc_attr( $value ) . '"';
+		}
+		$html .= '><p id="ccap-media-note">' . esc_html(
+			sprintf(
+				/* translators: %s: name of the video service or host name */
+				__( 'This video is hosted by %s and is only loaded after your consent.', 'course-captain' ),
+				$name
+			)
+		) . ' ' . esc_html(
+			sprintf(
+				/* translators: %s: name of the video service or host name */
+				__( 'When the video is loaded, data such as your IP address is transferred to %s.', 'course-captain' ),
+				$name
+			)
+		);
+		if ( null !== $service['privacy_url'] ) {
+			$html .= ' <a href="' . esc_url( $service['privacy_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html(
+				sprintf(
+					/* translators: %s: name of the video service */
+					__( 'Privacy policy of %s (opens in a new tab)', 'course-captain' ),
+					$name
+				)
+			) . '</a>';
+		}
+		$html .= '</p>';
+		if ( $duration > 0 ) {
+			$html .= '<p>' . esc_html(
+				sprintf(
+					/* translators: %s: duration as minutes:seconds, e.g. 4:05 */
+					__( 'Length: %s', 'course-captain' ),
+					sprintf( '%d:%02d', intdiv( $duration, 60 ), $duration % 60 )
+				)
+			) . '</p>';
+		}
+		// Revealed by the script; without JavaScript only the link below is offered (MC-7).
+		$html .= '<div class="ccap-media-load" hidden><p><button type="button" class="ccap-button" data-ccap-load aria-describedby="ccap-media-note">' . esc_html__( 'Load video', 'course-captain' ) . '</button></p>';
+		if ( $consent['remember_offer'] ) {
+			// MC-3: never pre-ticked.
+			$html .= '<p><input type="checkbox" id="ccap-media-remember" data-ccap-remember-box> <label for="ccap-media-remember">' . esc_html(
+				sprintf(
+					/* translators: %s: name of the video service or host name */
+					__( 'Always load external media from %s', 'course-captain' ),
+					$name
+				)
+			) . '</label></p>';
+		}
+		$html .= '</div><div class="ccap-media-frame" hidden></div><p class="ccap-media-forget" hidden><button type="button" class="ccap-button" data-ccap-forget></button></p>';
+		$html .= self::watch_link( (string) $view['watch_url'], $host ) . '<p class="screen-reader-text" role="status" data-ccap-media-status></p></div>';
+		wp_enqueue_script( 'ccap-external-media', plugins_url( 'assets/js/external-media.js', COURSE_CAPTAIN_FILE ), array(), COURSE_CAPTAIN_VERSION, true );
+		return $html;
 	}
 
 	/**

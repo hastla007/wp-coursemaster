@@ -36,6 +36,35 @@ final class QuestionPresenter {
 	}
 
 	/**
+	 * Gate shared by the calls of one operation (R0-14 OP-03/OP-04).
+	 *
+	 * @var ContentGate|null
+	 */
+	private ?ContentGate $gate = null;
+
+	/**
+	 * Copy that shares `$gate` (and its operation memo) with the caller,
+	 * e.g. the smart trainer or one learning answer (verify, then evaluate).
+	 *
+	 * @param ContentGate $gate Gate of the operation.
+	 * @return self
+	 */
+	public function with_gate( ContentGate $gate ): self {
+		$copy       = clone $this;
+		$copy->gate = $gate;
+		return $copy;
+	}
+
+	/**
+	 * Gate of this call: the shared one or a fresh one.
+	 *
+	 * @return ContentGate
+	 */
+	private function gate(): ContentGate {
+		return $this->gate ?? ContentGate::current();
+	}
+
+	/**
 	 * Instance for the current site.
 	 *
 	 * @return self
@@ -56,11 +85,12 @@ final class QuestionPresenter {
 	 * @throws CourseException When not allowed or not deliverable.
 	 */
 	public function deliver( Actor $actor, int $course_id, int $module_id, int $question_id, ?Randomizer $randomizer = null ): array {
-		ContentGate::current()->module( $actor, $course_id, $module_id )->assert();
-		$revision = $this->deliverable_revision( $module_id, $question_id );
-		ContentGate::current()->question( $actor, $course_id, $module_id, $question_id )->assert();
-		$this->assert_not_in_running_exam( $actor->user_id, $question_id );
-		$uid      = (string) $this->db->scalar( $this->db->prepare( 'SELECT uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
+		$gate = $this->gate();
+		$gate->module( $actor, $course_id, $module_id )->assert();
+		$revision = $this->deliverable_revision( $gate, $module_id, $question_id );
+		$gate->question( $actor, $course_id, $module_id, $question_id )->assert();
+		$this->assert_not_in_running_exam( $gate, $actor->user_id, $question_id );
+		$uid      = $this->question_uid( $gate, $question_id );
 		$delivery = QuestionTypes::deliver( $revision, $randomizer ?? Randomizer::fresh(), $uid );
 		$claims   = array(
 			'u'   => $actor->user_id,
@@ -92,11 +122,12 @@ final class QuestionPresenter {
 	 */
 	public function deliver_inline( Actor $actor, int $course_id, int $lesson_id, int $question_id, ?Randomizer $randomizer = null ): array {
 		$module_id = (int) wp_get_post_parent_id( $lesson_id );
-		ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
-		$revision = $this->inline_revision( $lesson_id, $question_id );
-		$this->assert_card( $actor, $course_id, $lesson_id, $question_id, $revision );
-		$this->assert_not_in_running_exam( $actor->user_id, $question_id );
-		$uid      = (string) $this->db->scalar( $this->db->prepare( 'SELECT uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
+		$gate      = $this->gate();
+		$gate->lesson( $actor, $course_id, $lesson_id )->assert();
+		$revision = $this->inline_revision( $gate, $lesson_id, $question_id );
+		$this->assert_card( $gate, $actor, $course_id, $lesson_id, $question_id, $revision );
+		$this->assert_not_in_running_exam( $gate, $actor->user_id, $question_id );
+		$uid      = $this->question_uid( $gate, $question_id );
 		$delivery = QuestionTypes::deliver( $revision, $randomizer ?? Randomizer::fresh(), $uid );
 		$claims   = array(
 			'u'   => $actor->user_id,
@@ -119,6 +150,7 @@ final class QuestionPresenter {
 	 * cards of a deck with the question limit (E-332); a locked card is
 	 * never delivered, so its back side stays hidden.
 	 *
+	 * @param ContentGate          $gate      Gate of the operation.
 	 * @param Actor                $actor     Learner.
 	 * @param int                  $course_id Course.
 	 * @param int                  $lesson_id Deck lesson.
@@ -127,11 +159,11 @@ final class QuestionPresenter {
 	 * @return void
 	 * @throws CourseException `ccap_content_locked` (trial).
 	 */
-	private function assert_card( Actor $actor, int $course_id, int $lesson_id, int $question, array $revision ): void {
+	private function assert_card( ContentGate $gate, Actor $actor, int $course_id, int $lesson_id, int $question, array $revision ): void {
 		if ( QuestionTypes::FLASHCARD !== ( $revision['question_type'] ?? '' ) ) {
 			return;
 		}
-		ContentGate::current()->card( $actor, $course_id, $lesson_id, $question, $this->inline_questions( $lesson_id ) )->assert();
+		$gate->card( $actor, $course_id, $lesson_id, $question, $this->inline_questions( $lesson_id ) )->assert();
 	}
 
 	/**
@@ -163,16 +195,16 @@ final class QuestionPresenter {
 		if ( $claims['exp'] < $this->db->time() ) {
 			throw new CourseException( 'ccap_content_locked', 'expired', 403 );
 		}
-		$gate = ContentGate::current();
+		$gate = $this->gate();
 		if ( $claims['a'] > 0 ) {
 			$gate->lesson( $actor, $claims['c'], $claims['a'] )->assert();
-			$this->assert_card( $actor, $claims['c'], $claims['a'], $claims['q'], $this->inline_revision( $claims['a'], $claims['q'] ) );
+			$this->assert_card( $gate, $actor, $claims['c'], $claims['a'], $claims['q'], $this->inline_revision( $gate, $claims['a'], $claims['q'] ) );
 		} else {
 			$gate->module( $actor, $claims['c'], $claims['m'] )->assert();
-			$this->deliverable_revision( $claims['m'], $claims['q'] );
+			$this->deliverable_revision( $gate, $claims['m'], $claims['q'] );
 			$gate->question( $actor, $claims['c'], $claims['m'], $claims['q'] )->assert();
 		}
-		$this->assert_not_in_running_exam( $actor->user_id, $claims['q'] );
+		$this->assert_not_in_running_exam( $gate, $actor->user_id, $claims['q'] );
 		return $claims;
 	}
 
@@ -225,19 +257,74 @@ final class QuestionPresenter {
 	}
 
 	/**
+	 * Record that a question is in the deliverable pool of a module, read by
+	 * the caller in this operation with the conditions of
+	 * `QuestionRepository::pool()` (e.g. the smart trainer's candidates).
+	 *
+	 * @param ContentGate $gate        Gate of the operation.
+	 * @param int         $module_id   Module.
+	 * @param int         $question_id Question.
+	 * @param int         $revision_id Current revision.
+	 * @param string      $uid         Question UID.
+	 * @return void
+	 */
+	public static function prime_deliverable( ContentGate $gate, int $module_id, int $question_id, int $revision_id, string $uid ): void {
+		$gate->remember(
+			'deliverable|' . $module_id . '|' . $question_id,
+			static fn(): array => array(
+				'current_revision_id' => $revision_id,
+				'uid'                 => $uid,
+			)
+		);
+	}
+
+	/**
+	 * Current revision and UID of a question (one query, memoized for the operation).
+	 *
+	 * @param ContentGate $gate        Gate of the operation.
+	 * @param int         $question_id Question.
+	 * @return array{current_revision_id: int, uid: string}
+	 */
+	private function question_row( ContentGate $gate, int $question_id ): array {
+		return $gate->remember(
+			'question|' . $question_id,
+			function () use ( $question_id ): array {
+				$row = $this->db->row( $this->db->prepare( 'SELECT current_revision_id, uid FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
+				return array(
+					'current_revision_id' => (int) ( $row['current_revision_id'] ?? 0 ),
+					'uid'                 => (string) ( $row['uid'] ?? '' ),
+				);
+			}
+		);
+	}
+
+	/**
+	 * UID of a question.
+	 *
+	 * @param ContentGate $gate        Gate of the operation.
+	 * @param int         $question_id Question.
+	 * @return string
+	 */
+	private function question_uid( ContentGate $gate, int $question_id ): string {
+		return $this->question_row( $gate, $question_id )['uid'];
+	}
+
+	/**
 	 * Published current revision of a question in the module pool.
 	 *
-	 * @param int $module_id   Module.
-	 * @param int $question_id Question.
+	 * @param ContentGate $gate        Gate of the operation.
+	 * @param int         $module_id   Module.
+	 * @param int         $question_id Question.
 	 * @return array<string, mixed>
 	 * @throws CourseException 404 when not deliverable.
 	 */
-	private function deliverable_revision( int $module_id, int $question_id ): array {
-		if ( ! in_array( $question_id, $this->questions->pool( $module_id ), true ) ) {
+	private function deliverable_revision( ContentGate $gate, int $module_id, int $question_id ): array {
+		$member = $gate->remember( 'deliverable|' . $module_id . '|' . $question_id, fn(): ?array => $this->questions->pool_member( $module_id, $question_id ) );
+		if ( null === $member ) {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
 		}
-		$current  = (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
-		$revision = $this->questions->revision( $current );
+		$gate->remember( 'question|' . $question_id, static fn(): array => $member );
+		$revision = $this->questions->revision( (int) $member['current_revision_id'] );
 		if ( null === $revision ) {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
 		}
@@ -247,16 +334,17 @@ final class QuestionPresenter {
 	/**
 	 * Published current revision of an inline question of a lesson.
 	 *
-	 * @param int $lesson_id   Lesson.
-	 * @param int $question_id Question.
+	 * @param ContentGate $gate        Gate of the operation.
+	 * @param int         $lesson_id   Lesson.
+	 * @param int         $question_id Question.
 	 * @return array<string, mixed>
 	 * @throws CourseException 404 when not deliverable.
 	 */
-	private function inline_revision( int $lesson_id, int $question_id ): array {
+	private function inline_revision( ContentGate $gate, int $lesson_id, int $question_id ): array {
 		if ( ! in_array( $question_id, $this->inline_questions( $lesson_id ), true ) ) {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
 		}
-		$current  = (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
+		$current  = $this->question_row( $gate, $question_id )['current_revision_id'];
 		$revision = $this->questions->revision( $current );
 		if ( null === $revision || 'published' !== $revision['editorial_status'] ) {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
@@ -269,23 +357,14 @@ final class QuestionPresenter {
 	 * locked in learning mode (no looking up answers during the exam); without
 	 * a time limit at most 24 h after the start (GM-044).
 	 *
-	 * @param int $user_id     Learner.
-	 * @param int $question_id Question.
+	 * @param ContentGate $gate        Gate of the operation (shares the running-exam lookup).
+	 * @param int         $user_id     Learner.
+	 * @param int         $question_id Question.
 	 * @return void
 	 * @throws CourseException `ccap_content_locked` with reason `exam_running`.
 	 */
-	private function assert_not_in_running_exam( int $user_id, int $question_id ): void {
-		$sessions  = $this->db->table( 'ccap_exam_session' );
-		$questions = $this->db->table( 'ccap_exam_session_question' );
-		$running   = $this->db->scalar(
-			$this->db->prepare(
-				"SELECT 1 FROM `{$questions}` sq JOIN `{$sessions}` s ON s.id = sq.session_id WHERE s.user_id = %d AND s.status = 'in_progress' AND sq.question_id = %d AND (s.deadline_at IS NOT NULL OR s.started_at > %s) LIMIT 1",
-				$user_id,
-				$question_id,
-				$this->db->now( -\CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
-			)
-		);
-		if ( null !== $running ) {
+	private function assert_not_in_running_exam( ContentGate $gate, int $user_id, int $question_id ): void {
+		if ( $gate->in_running_exam( $user_id, $question_id ) ) {
 			throw new CourseException( 'ccap_content_locked', 'exam_running', 403 );
 		}
 	}

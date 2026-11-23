@@ -6797,3 +6797,47 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+#: src/Learner/LessonView.php
+msgid "Load video"
+msgstr "Video laden"
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "Always load external media from %s"
+msgstr "Externe Medien von %s immer laden"
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "Video on %s"
+msgstr "Video auf %s"
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "Length: %s"
+msgstr "Länge: %s"
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "Privacy policy of %s (opens in a new tab)"
+msgstr "Datenschutzerklärung von %s (öffnet in einem neuen Tab)"
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "When the video is loaded, data such as your IP address is transferred to %s."
+msgstr "Beim Laden des Videos werden Daten wie deine IP-Adresse an %s übertragen."
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "The video from %s has been loaded."
+msgstr "Das Video von %s wurde geladen."
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "Stop loading external media from %s automatically"
+msgstr "Externe Medien von %s nicht mehr automatisch laden"
+
+#: src/Learner/LessonView.php
+#, php-format
+msgid "Saved choice removed. Media from %s will only load after a click again."
+msgstr "Gespeicherte Freigabe entfernt. Medien von %s werden wieder erst nach einem Klick geladen."

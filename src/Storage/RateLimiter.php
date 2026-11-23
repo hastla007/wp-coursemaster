@@ -35,15 +35,21 @@ final class RateLimiter {
 		$start = $now - $now % $window;
 		$key   = hash( 'sha256', $bucket . ':' . $subject );
 		$table = $db->table( 'ccap_rate_limit' );
-		$db->execute(
+		// The new counter comes back through LAST_INSERT_ID(expr) (one statement, R0-14 OP-04/OP-05):
+		// a new row affects 1 row (hits = 1), an updated row 2 rows with the counter as insert ID.
+		$affected = $db->execute(
 			$db->prepare(
-				"INSERT INTO `{$table}` (bucket_hash, window_start, hits, expires_at) VALUES (%s, %d, 1, %s) ON DUPLICATE KEY UPDATE hits = IF(window_start = VALUES(window_start), hits + 1, 1), window_start = VALUES(window_start), expires_at = VALUES(expires_at)",
+				"INSERT INTO `{$table}` (bucket_hash, window_start, hits, expires_at) VALUES (%s, %d, 1, %s) ON DUPLICATE KEY UPDATE hits = LAST_INSERT_ID(IF(window_start = VALUES(window_start), hits + 1, 1)), window_start = VALUES(window_start), expires_at = VALUES(expires_at)",
 				$key,
 				$start,
 				gmdate( 'Y-m-d H:i:s', $start + 2 * $window )
 			)
 		);
-		$hits = (int) $db->scalar( $db->prepare( "SELECT hits FROM `{$table}` WHERE bucket_hash = %s", $key ) );
+		$counter  = (int) $db->wpdb()->insert_id;
+		$hits     = 1 === $affected ? 1 : $counter;
+		if ( $hits <= 0 ) {
+			$hits = (int) $db->scalar( $db->prepare( "SELECT hits FROM `{$table}` WHERE bucket_hash = %s", $key ) );
+		}
 		if ( $hits > $limit ) {
 			$details = array(
 				'bucket'      => $bucket,

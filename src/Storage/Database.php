@@ -295,6 +295,44 @@ final class Database {
 	}
 
 	/**
+	 * Insert one row with a prepared statement and fixed formats, without
+	 * the column metadata lookup of `$wpdb->insert()` (`SHOW FULL COLUMNS`
+	 * once per table and request; R0-14 OP-04/OP-05 hot paths). Strings
+	 * are stored as valid UTF-8 (invalid bytes are stripped); NULL stays NULL.
+	 *
+	 * @param string               $table Table name without prefix.
+	 * @param array<string, mixed> $data  Column => int|float|bool|string|null.
+	 * @return int Insert ID.
+	 * @throws StorageException On database errors (duplicates: code 1062).
+	 */
+	public function insert_values( string $table, array $data ): int {
+		$columns = array();
+		$places  = array();
+		$values  = array();
+		foreach ( $data as $column => $value ) {
+			self::assert_identifier( (string) $column );
+			$columns[] = '`' . $column . '`';
+			if ( null === $value ) {
+				$places[] = 'NULL';
+				continue;
+			}
+			if ( is_int( $value ) || is_bool( $value ) ) {
+				$places[] = '%d';
+				$values[] = (int) $value;
+			} elseif ( is_float( $value ) ) {
+				$places[] = '%f';
+				$values[] = $value;
+			} else {
+				$places[] = '%s';
+				$values[] = wp_check_invalid_utf8( (string) $value, true );
+			}
+		}
+		$sql = 'INSERT INTO `' . $this->table( $table ) . '` (' . implode( ', ', $columns ) . ') VALUES (' . implode( ', ', $places ) . ')';
+		$this->execute( array() === $values ? $sql : $this->prepare( $sql, ...$values ) );
+		return (int) $this->wpdb->insert_id;
+	}
+
+	/**
 	 * Compare-and-swap update on `row_version` (Kap. 37, R0-06 §4.0).
 	 *
 	 * @param string               $table            Table name without prefix.

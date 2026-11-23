@@ -97,6 +97,14 @@ final class PolicyService {
 	private array $memo = array();
 
 	/**
+	 * Learner lock per user, same lifetime as `$memo` (one decision often
+	 * checks it twice, e.g. M-08 and the nested M-02).
+	 *
+	 * @var array<int, bool>
+	 */
+	private array $locked = array();
+
+	/**
 	 * Shared instance for the request.
 	 *
 	 * @var self|null
@@ -150,8 +158,34 @@ final class PolicyService {
 		// Keep the instance: services hold a reference and must see the flush too.
 		// Relations read `$wpdb->prefix` live, so `switch_to_blog` needs no new instance.
 		if ( null !== self::$instance ) {
-			self::$instance->memo = array();
+			self::$instance->memo   = array();
+			self::$instance->locked = array();
 		}
+	}
+
+	/**
+	 * Run decisions for many modules of a course with shared reads of grants
+	 * and module assignments (one operation, R0-14 constancy rule).
+	 *
+	 * @param callable $call Callback.
+	 * @return mixed
+	 */
+	public function batch( callable $call ) {
+		return $this->relations->batch( $call );
+	}
+
+	/**
+	 * Decide within `$call` with a row the caller has just read (no second
+	 * read of the same row in one operation, R0-14 OP-06).
+	 *
+	 * @param string                    $table Table without prefix.
+	 * @param int                       $id    Primary key.
+	 * @param array<string, mixed>|null $row   Row read by the caller.
+	 * @param callable                  $call  Callback that decides.
+	 * @return mixed
+	 */
+	public function with_row( string $table, int $id, ?array $row, callable $call ) {
+		return $this->relations->with_row( $table, $id, $row, $call );
 	}
 
 	/**
@@ -281,7 +315,7 @@ final class PolicyService {
 		if ( null !== $gate ) {
 			return $this->filtered( $user, $course, $scope, $gate );
 		}
-		if ( 0 !== $module && ! in_array( $course, $this->relations->courses_of_module( $module ), true ) ) {
+		if ( 0 !== $module && ! $this->relations->module_in_course( $module, $course ) ) {
 			return Decision::not_found();
 		}
 		$access = $this->relations->effective_access( $user, $course, $module, $scope );
@@ -347,7 +381,8 @@ final class PolicyService {
 			// No role on this site (R0-07 §3.4 b).
 			return Decision::deny( Decision::ACCOUNT_LOCKED, 'no_role' );
 		}
-		if ( $this->relations->is_locked( $user ) ) {
+		$this->locked[ $user ] ??= $this->relations->is_locked( $user );
+		if ( $this->locked[ $user ] ) {
 			return Decision::deny( Decision::ACCOUNT_LOCKED, 'locked' );
 		}
 		return null;

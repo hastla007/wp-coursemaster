@@ -101,12 +101,79 @@ final class ExternalMedia {
 	}
 
 	/**
+	 * Privacy-friendly embed URL of a YouTube or Vimeo page (R0-10 §5.1,
+	 * R0-31 MC-2): YouTube over `youtube-nocookie.com`, Vimeo with `dnt=1`.
+	 * Other URLs (files, unknown pages) have no embed URL.
+	 *
+	 * @param string $url Page or embed URL (https).
+	 * @return string|null
+	 */
+	public static function embed_url( string $url ): ?string {
+		$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );
+		$path = (string) wp_parse_url( $url, PHP_URL_PATH );
+		$host = str_starts_with( $host, 'www.' ) ? substr( $host, 4 ) : $host;
+		$id   = '';
+		if ( in_array( $host, array( 'youtube.com', 'm.youtube.com', 'youtube-nocookie.com' ), true ) ) {
+			parse_str( (string) wp_parse_url( $url, PHP_URL_QUERY ), $query );
+			if ( '/watch' === $path ) {
+				$id = is_string( $query['v'] ?? null ) ? $query['v'] : '';
+			} elseif ( 1 === preg_match( '#^/(?:embed|shorts|live)/([^/]+)/?$#', $path, $m ) ) {
+				$id = $m[1];
+			}
+		} elseif ( 'youtu.be' === $host && 1 === preg_match( '#^/([^/]+)/?$#', $path, $m ) ) {
+			$id = $m[1];
+		}
+		if ( '' !== $id ) {
+			return 1 === preg_match( '/^[A-Za-z0-9_-]{11}$/', $id ) ? 'https://www.youtube-nocookie.com/embed/' . $id : null;
+		}
+		if ( 'vimeo.com' === $host && 1 === preg_match( '#^/(?:channels/[^/]+/|groups/[^/]+/videos/)?(\d{1,12})/?$#', $path, $m ) ) {
+			return 'https://player.vimeo.com/video/' . $m[1] . '?dnt=1';
+		}
+		if ( 'player.vimeo.com' === $host && 1 === preg_match( '#^/video/(\d{1,12})/?$#', $path, $m ) ) {
+			return 'https://player.vimeo.com/video/' . $m[1] . '?dnt=1';
+		}
+		return null;
+	}
+
+	/**
+	 * Service name shown to learners (R0-10 §5.1 "Dienstname") and the link
+	 * to its privacy policy; unknown hosts are named by their host.
+	 *
+	 * @param string $host Foreign host.
+	 * @return array{name: string, privacy_url: string|null}
+	 */
+	public static function service( string $host ): array {
+		$host = strtolower( $host );
+		if ( 'youtube-nocookie.com' === $host || str_ends_with( $host, '.youtube-nocookie.com' ) || 'youtube.com' === $host || str_ends_with( $host, '.youtube.com' ) || 'youtu.be' === $host ) {
+			return array(
+				'name'        => 'YouTube',
+				'privacy_url' => 'https://policies.google.com/privacy',
+			);
+		}
+		if ( 'vimeo.com' === $host || str_ends_with( $host, '.vimeo.com' ) ) {
+			return array(
+				'name'        => 'Vimeo',
+				'privacy_url' => 'https://vimeo.com/privacy',
+			);
+		}
+		return array(
+			'name'        => $host,
+			'privacy_url' => null,
+		);
+	}
+
+	/**
 	 * Learner view of a video activity (server side).
+	 *
+	 * `embed_url` is set when a YouTube/Vimeo page may be embedded now. In
+	 * `click_to_load` without consent nothing of the foreign host is loaded;
+	 * `pending` then carries what the browser loads after the click (R0-10
+	 * §5.2.2) and `watch_url` the page for the link without JavaScript.
 	 *
 	 * @param array<string, mixed> $settings  Video settings.
 	 * @param bool                 $consented Learner consented for this video/host.
 	 * @param string               $mode      Mode (default from settings).
-	 * @return array{video_url: string|null, subtitles_url: string|null, consent_required: bool, foreign_host: string|null, link_url: string|null}
+	 * @return array{video_url: string|null, subtitles_url: string|null, consent_required: bool, foreign_host: string|null, link_url: string|null, embed_url: string|null, watch_url: string|null, pending: array{kind: string, src: string, subtitles: string|null}|null}
 	 */
 	public static function video_view( array $settings, bool $consented = false, ?string $mode = null ): array {
 		$mode      = $mode ?? self::mode();
@@ -116,31 +183,39 @@ final class ExternalMedia {
 		$subtitles = 'vtt' === ( $settings['subtitles'] ?? 'off' ) && SettingsSchema::is_https_url( (string) ( $settings['subtitle_url'] ?? '' ) ) ? (string) $settings['subtitle_url'] : null;
 		$foreign   = null === $valid_url ? array() : self::foreign_hosts( array( $valid_url ) );
 		$host      = $foreign[0] ?? null;
+		$embed     = null === $valid_url ? null : self::embed_url( $valid_url );
+		$view      = array(
+			'video_url'        => $valid_url,
+			'subtitles_url'    => null === $valid_url || null !== $embed ? null : $subtitles,
+			'consent_required' => false,
+			'foreign_host'     => $host,
+			'link_url'         => null,
+			'embed_url'        => $embed,
+			'watch_url'        => null === $host ? null : $valid_url,
+			'pending'          => null,
+		);
 		if ( null !== $host && self::LINK_ONLY === $mode ) {
 			// Never embedded: the learner opens the external page in a new tab (R0-31).
 			return array(
-				'video_url'        => null,
-				'subtitles_url'    => null,
-				'consent_required' => false,
-				'foreign_host'     => $host,
-				'link_url'         => $valid_url,
-			);
+				'video_url'     => null,
+				'subtitles_url' => null,
+				'link_url'      => $valid_url,
+				'embed_url'     => null,
+			) + $view;
 		}
 		if ( null !== $host && self::CLICK_TO_LOAD === $mode && ! $consented ) {
 			return array(
 				'video_url'        => null,
 				'subtitles_url'    => null,
 				'consent_required' => true,
-				'foreign_host'     => $host,
-				'link_url'         => null,
-			);
+				'embed_url'        => null,
+				'pending'          => array(
+					'kind'      => null === $embed ? 'file' : 'embed',
+					'src'       => (string) ( $embed ?? $valid_url ),
+					'subtitles' => null === $embed ? $subtitles : null,
+				),
+			) + $view;
 		}
-		return array(
-			'video_url'        => $valid_url,
-			'subtitles_url'    => null === $valid_url ? null : $subtitles,
-			'consent_required' => false,
-			'foreign_host'     => $host,
-			'link_url'         => null,
-		);
+		return $view;
 	}
 }

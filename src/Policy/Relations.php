@@ -45,6 +45,78 @@ final class Relations {
 	}
 
 	/**
+	 * Rows the caller has just read itself, used by `row()` while a
+	 * {@see PolicyService::with_row()} callback runs (R0-14 OP-06).
+	 *
+	 * @var array<string, array<int, array<string, mixed>|null>>
+	 */
+	private array $primed = array();
+
+	/**
+	 * Batch memo while a {@see self::batch()} callback runs: grant rows per
+	 * (user, course) and module sets per course, so decisions for all
+	 * modules of a course cost the same as one (R0-14 constancy rule).
+	 *
+	 * @var array<string, mixed>|null
+	 */
+	private ?array $batch = null;
+
+	/**
+	 * Run `$call` with the batch memo (nested calls share the outer batch).
+	 *
+	 * @param callable $call Callback.
+	 * @return mixed
+	 */
+	public function batch( callable $call ) {
+		if ( null !== $this->batch ) {
+			return $call();
+		}
+		$this->batch = array();
+		try {
+			return $call();
+		} finally {
+			$this->batch = null;
+		}
+	}
+
+	/**
+	 * Whether a module is assigned to a course.
+	 *
+	 * @param int $module_id Module.
+	 * @param int $course_id Course.
+	 * @return bool
+	 */
+	public function module_in_course( int $module_id, int $course_id ): bool {
+		if ( null === $this->batch ) {
+			return in_array( $course_id, $this->courses_of_module( $module_id ), true );
+		}
+		$key = 'modules|' . $course_id;
+		if ( ! isset( $this->batch[ $key ] ) ) {
+			$this->batch[ $key ] = array_flip( $this->ids( $this->db->prepare( 'SELECT module_id AS id FROM `' . $this->db->table( 'ccap_course_module' ) . '` WHERE course_id = %d', $course_id ) ) );
+		}
+		return isset( $this->batch[ $key ][ $module_id ] );
+	}
+
+	/**
+	 * Run `$call` with a row the caller read in this operation.
+	 *
+	 * @param string                    $table Table without prefix.
+	 * @param int                       $id    Primary key.
+	 * @param array<string, mixed>|null $row   Row (null = does not exist).
+	 * @param callable                  $call  Callback.
+	 * @return mixed
+	 */
+	public function with_row( string $table, int $id, ?array $row, callable $call ) {
+		$before                        = $this->primed;
+		$this->primed[ $table ][ $id ] = $row;
+		try {
+			return $call();
+		} finally {
+			$this->primed = $before;
+		}
+	}
+
+	/**
 	 * Post of an own type, or null.
 	 *
 	 * @param int         $id   Post ID.
@@ -257,6 +329,9 @@ final class Relations {
 		if ( $id <= 0 ) {
 			return null;
 		}
+		if ( isset( $this->primed[ $table ] ) && array_key_exists( $id, $this->primed[ $table ] ) ) {
+			return $this->primed[ $table ][ $id ];
+		}
 		$name = $this->db->table( $table );
 		return $this->db->row( $this->db->prepare( "SELECT * FROM `{$name}` WHERE id = %d", $id ) );
 	}
@@ -298,18 +373,22 @@ final class Relations {
 		}
 		$grant    = $this->db->table( 'ccap_grant' );
 		$relation = $this->db->table( 'ccap_course_relation' );
-		// The course itself or any bundle (one level, E-297) that contains it.
-		$courses = array_merge(
-			array( $course_id ),
-			$this->ids( $this->db->prepare( "SELECT course_id FROM `{$relation}` WHERE related_course_id = %d AND relation_type = 'contains'", $course_id ) )
-		);
-		$in      = implode( ',', array_map( 'intval', $courses ) );
-		$rows    = $this->db->rows(
-			$this->db->prepare(
-				"SELECT course_id, module_id, scopes, status, valid_from, valid_until, depends_on_course_id FROM `{$grant}` WHERE user_id = %d AND course_id IN ({$in})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
-				$user_id
-			)
-		);
+		// Grants of the course itself or of any bundle (one level, E-297) that contains it, in one query (R0-14).
+		$key  = 'grants|' . $user_id . '|' . $course_id;
+		$rows = null === $this->batch ? null : ( $this->batch[ $key ] ?? null );
+		if ( null === $rows ) {
+			$rows = $this->db->rows(
+				$this->db->prepare(
+					"SELECT course_id, module_id, scopes, status, valid_from, valid_until, depends_on_course_id FROM `{$grant}` WHERE user_id = %d AND (course_id = %d OR course_id IN (SELECT r.course_id FROM `{$relation}` r WHERE r.related_course_id = %d AND r.relation_type = 'contains'))",
+					$user_id,
+					$course_id,
+					$course_id
+				)
+			);
+			if ( null !== $this->batch ) {
+				$this->batch[ $key ] = $rows;
+			}
+		}
 
 		$now    = $this->db->now();
 		$reason = 'no_access';
