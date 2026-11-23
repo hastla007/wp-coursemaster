@@ -103,7 +103,7 @@ final class SiteIdentity {
 	public static function components(): array {
 		global $wpdb;
 		try {
-			$private = ProtectedStorage::base();
+			$private = ProtectedStorage::configured_base();
 		} catch ( \Throwable $e ) {
 			$private = '';
 		}

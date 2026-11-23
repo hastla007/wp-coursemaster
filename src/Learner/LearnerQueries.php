@@ -160,9 +160,10 @@ final class LearnerQueries {
 	 * @return array{state: string, valid_until: string|null}
 	 */
 	private function access_from_rows( Actor $actor, int $course_id, array $rows ): array {
-		$now   = $this->db->now();
-		$found = array();
-		$until = null;
+		$now       = $this->db->now();
+		$found     = array();
+		$until     = null;
+		$permanent = false;
 		foreach ( $rows as $row ) {
 			$status = (string) $row['status'];
 			if ( 'active' === $status && null !== $row['valid_until'] && (string) $row['valid_until'] <= $now ) {
@@ -174,7 +175,9 @@ final class LearnerQueries {
 			}
 			if ( 'active' === $status ) {
 				$status = 0 === (int) $row['module_id'] ? 'active' : 'limited';
-				$until  = null === $row['valid_until'] ? $until : max( (string) $until, (string) $row['valid_until'] );
+				// The latest end wins; a source without end makes the access permanent (GM-092).
+				$permanent = $permanent || null === $row['valid_until'];
+				$until     = null === $row['valid_until'] ? $until : max( (string) $until, (string) $row['valid_until'] );
 			}
 			$found[ $status ] = true;
 		}
@@ -182,7 +185,7 @@ final class LearnerQueries {
 			if ( isset( $found[ $state ] ) ) {
 				return array(
 					'state'       => $state,
-					'valid_until' => in_array( $state, array( 'active', 'limited' ), true ) ? $until : null,
+					'valid_until' => in_array( $state, array( 'active', 'limited' ), true ) && ! $permanent ? $until : null,
 				);
 			}
 		}

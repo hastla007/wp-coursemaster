@@ -51,7 +51,7 @@ final class AuditScreen {
 	 */
 	public static function html( array $request ): string {
 		$filters = array();
-		foreach ( array( 'user', 'area', 'action', 'from', 'to', 'object_id' ) as $key ) {
+		foreach ( array( 'user', 'area', 'action', 'from', 'to', 'object_id', 'reference' ) as $key ) {
 			$filters[ $key ] = isset( $request[ $key ] ) ? sanitize_text_field( wp_unslash( (string) $request[ $key ] ) ) : '';
 		}
 		$page   = isset( $request['paged'] ) ? max( 1, absint( $request['paged'] ) ) : 1;
@@ -60,6 +60,7 @@ final class AuditScreen {
 		$fields = array(
 			'user'      => __( 'User ID', 'course-captain' ),
 			'object_id' => __( 'Object ID', 'course-captain' ),
+			'reference' => __( 'Grant reference', 'course-captain' ),
 			'from'      => __( 'From (YYYY-MM-DD)', 'course-captain' ),
 			'to'        => __( 'To (YYYY-MM-DD)', 'course-captain' ),
 		);

@@ -143,11 +143,11 @@ final class UninstallManifest {
 	);
 
 	/**
-	 * Exact transient names. None in R1-01.
+	 * Exact transient names: the cached storage self test (R0-10 §4.4).
 	 *
 	 * @var list<string>
 	 */
-	public const TRANSIENTS = array();
+	public const TRANSIENTS = array( 'course_captain_storage_selftest' );
 
 	/**
 	 * Network-wide user meta keys. None in R1-01 (user values use user options, MS-R-05).

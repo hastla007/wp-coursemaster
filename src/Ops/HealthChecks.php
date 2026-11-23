@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Ops;
 
 use CourseCaptain\Access\ProtectedStorage;
+use CourseCaptain\Access\StorageLayout;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Kernel\CronHooks;
 use CourseCaptain\Kernel\SiteIdentity;
@@ -91,16 +92,20 @@ final class HealthChecks {
 	 * @return array<string, mixed>
 	 */
 	public static function tests( $tests ): array {
-		$tests                                    = (array) $tests;
-		$tests['direct']['course_captain_store']  = array(
+		$tests                                     = (array) $tests;
+		$tests['direct']['course_captain_store']   = array(
 			'label' => __( 'Course Captain protected storage', 'course-captain' ),
 			'test'  => array( self::class, 'test_storage' ),
 		);
-		$tests['direct']['course_captain_cron']   = array(
+		$tests['direct']['course_captain_storage'] = array(
+			'label' => __( 'Course Captain direct access to protected files', 'course-captain' ),
+			'test'  => array( StorageSelfTest::class, 'health' ),
+		);
+		$tests['direct']['course_captain_cron']    = array(
 			'label' => __( 'Course Captain maintenance', 'course-captain' ),
 			'test'  => array( self::class, 'test_cron' ),
 		);
-		$tests['direct']['course_captain_outbox'] = array(
+		$tests['direct']['course_captain_outbox']  = array(
 			'label' => __( 'Course Captain event delivery', 'course-captain' ),
 			'test'  => array( self::class, 'test_outbox' ),
 		);
@@ -175,6 +180,10 @@ final class HealthChecks {
 	 * @return array<string, mixed>
 	 */
 	public static function test_storage(): array {
+		$layout = StorageLayout::state();
+		if ( $layout['failed_at'] > 0 ) {
+			return self::result( 'course_captain_store', 'critical', __( 'Moving the protected folders to the new location failed; the previous folder is still in use.', 'course-captain' ), __( 'Check that the new folder is writable and has enough space. Course Captain tries again after one hour.', 'course-captain' ) );
+		}
 		try {
 			$dir = ProtectedStorage::dir( 'protected' );
 			$ok  = wp_is_writable( $dir ) && is_file( $dir . '/.htaccess' ) && is_file( $dir . '/index.php' );

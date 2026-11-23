@@ -36,7 +36,7 @@ final class OpsCommand {
 		if ( ! ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\WP_CLI' ) ) ) {
 			return;
 		}
-		foreach ( array( 'status', 'cache flush', 'outbox status', 'outbox retry', 'outbox discard', 'integrations status', 'diagnostics' ) as $command ) {
+		foreach ( array( 'status', 'cache flush', 'outbox status', 'outbox retry', 'outbox discard', 'integrations status', 'diagnostics', 'backup-check' ) as $command ) {
 			\WP_CLI::add_command(
 				'course-captain ' . $command,
 				static function ( array $args, array $assoc ) use ( $command ): void {
@@ -119,6 +119,25 @@ final class OpsCommand {
 						$lines[] = sprintf( '%-18s %s/%s %s', $record['provider_id'], $record['state'], $record['state_reason'], (string) ( $record['partner']['version'] ?? $record['partner']['contract_version'] ?? '' ) );
 					}
 					return self::out( 0, $json, $records, $lines );
+				case 'backup-check':
+					// Read only (R0-16 §1.4): exit 1 on fail, 2 on warn.
+					$report = RestoreCheck::run();
+					$lines  = array( 'Overall: ' . $report['status'] );
+					foreach ( $report['checks'] as $check ) {
+						$lines[] = sprintf( '%-8s %-4s %s', $check['id'], $check['status'], $check['message'] );
+						foreach ( $check['items'] as $item ) {
+							$lines[] = '  - ' . $item;
+						}
+					}
+					return self::out(
+						array(
+							'ok'   => 0,
+							'warn' => 2,
+						)[ $report['status'] ] ?? 1,
+						$json,
+						$report,
+						$lines
+					);
 				case 'diagnostics':
 					$package = Diagnostics::current()->export( $actor );
 					if ( isset( $assoc['output'] ) && '' !== $assoc['output'] ) {

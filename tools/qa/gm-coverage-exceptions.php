@@ -18,14 +18,6 @@
 return array(
 	'exceptions' => array(
 		'GM-077' => array( 'r2', 'E-05', 'Second channel is the app API (no app API in R1).' ),
-		'GM-089' => array( 'open', 'R1-13', 'Grant API rules `ccap_access_exists` / `ccap_user_required` do not exist; extend/parallel chains are GM-084.' ),
-		'GM-090' => array( 'open', 'R1-13/R1-17', 'Grant audit search by reference untested.' ),
-		'GM-092' => array( 'open', 'R1-13', 'Manual + group + free rule at the same time (union of scopes, latest end) untested.' ),
-		'GM-104' => array( 'open', 'R1-13/R1-16', 'Return to the invitation after login/registration untested.' ),
-		'GM-113' => array( 'open', 'R1-14/R1-40', 'Moving the legacy protected folder with fallback untested.' ),
-		'GM-114' => array( 'open', 'R1-14', 'Private folder outside the web root (self test "private", way back) untested.' ),
-		'GM-115' => array( 'open', 'R1-14/R1-38', 'HTTP self test of the protected folders (200 critical, 403 green, no answer yellow) untested.' ),
-		'GM-117' => array( 'open', 'R1-23', 'Read-only restore check of protected files untested.' ),
 		'GM-160' => array( 'r3', 'E-24, R0-12 C-8', 'Signed one-click unsubscribe is Pro (R3-15); N-01 unsubscribe headers are tested in NotificationTest.' ),
 		'GM-180' => array( 'deviation', 'R1-31 A-2', 'No `default_access` key in the R0-27 register; access comes from grants and `free` rules (GM-081). Needs the client decision (§5.1).' ),
 	),
