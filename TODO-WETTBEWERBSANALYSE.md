@@ -959,6 +959,8 @@ Quelle: captain-pro `docs/settings/SETTINGS-course.md` (Analyse-Stand 1b662d1; V
 - [ ] **SET-CC-28** Netzwerk-Standards – **zurückgestellt**, solange Multisite-Netzwerkaktivierung blockiert ist (R0-11).
 - [ ] **SET-CC-29** Einstellungs-Handbuch `docs/EINSTELLUNGEN.md` aus dem Register, per Skript geprüft.
 
+- [ ] **SET-CC-30** Deinstallation suite-einheitlich (S10, Standard von Pass/Form, 23.11.2026): Einschalten von `delete_data_on_uninstall` nur mit getipptem Wort LÖSCHEN/LOESCHEN/DELETE (Groß-/Kleinschreibung egal, serverseitig; ersetzt die Website-Namen-Bestätigung aus E-89), Ausschalten ohne Wort; Beschriftung „Beim Löschen des Plugins alle Daten entfernen“, Hilfetext nennt, was gelöscht wird; Multisite je Website; Cron-/Hintergrundjobs immer entfernt; nicht exportiert; WP-CLI `--confirm=LÖSCHEN`; Optionsname bleibt.
+
 **Folgeaufgaben aus R1-Oberflächen (E-348):**
 - [ ] **UI-F1** Besitzer-REST R-33…R-37 und Wartezeit-Anzeige für das Einladungsbudget (F3.7).
 - [ ] **UI-F2** „Einschreibung geschlossen“ (E-108) bei Selbstanmeldung berücksichtigen.
