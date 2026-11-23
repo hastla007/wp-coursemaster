@@ -244,9 +244,8 @@ final class CourseValidator {
 				if ( 'video' === $type && ! $placeholder && '' === trim( (string) ( $definition['settings']['transcript'] ?? '' ) ) && '' === (string) ( $definition['settings']['transcript_url'] ?? '' ) ) {
 					$this->add( 'VAL-144', true === Settings::get( 'display.require_transcripts' ) ? 'blocker' : 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.transcript', array(), __( 'This video lesson has no transcript. Enter the transcript as text or link in the lesson settings.', 'course-captain' ), 'settings.transcript' );
 				}
-				// SET-CC-P1 (R0-22 VAL-142, E-131): with `display.require_captions` a video without subtitle track blocks.
-				if ( 'video' === $type && ! $placeholder && true === Settings::get( 'display.require_captions' ) && 'vtt' !== ( $definition['settings']['subtitles'] ?? 'off' ) && ! in_array( 'subtitle', array_column( \CourseCaptain\Activity\MediaLibrary::current()->media_of( 'lesson', (int) $lesson->ID ), 'role' ), true ) ) {
-					$this->add( 'VAL-142', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.captions', array(), __( 'This video lesson has no subtitles. Add a subtitle file (WebVTT) in the lesson settings.', 'course-captain' ), 'settings.subtitles' );
+				if ( 'video' === $type && ! $placeholder ) {
+					$this->captions( $lesson, $definition['settings'] );
 				}
 				if ( 'video' === $type && $placeholder ) {
 					$this->add( 'VAL-027', 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.placeholder', array(), __( 'This video lesson is a placeholder and does not count for completion.', 'course-captain' ), 'settings.placeholder' );
@@ -543,6 +542,33 @@ final class CourseValidator {
 	}
 
 	/**
+	 * VAL-142 (E-131, R0-27 SET-043): a video without a captions track is a
+	 * notice; with `display.require_captions` a blocker. A track is a VTT
+	 * address (`subtitles = vtt` with an https `subtitle_url`) or a medium
+	 * of the lesson with the role `subtitle`. Embedded YouTube/Vimeo videos
+	 * bring their captions from the service, which the check cannot read:
+	 * they are always a notice ("check the captions there").
+	 *
+	 * @param \WP_Post             $lesson   Video lesson.
+	 * @param array<string, mixed> $settings Activity settings.
+	 * @return void
+	 */
+	private function captions( \WP_Post $lesson, array $settings ): void {
+		if ( 'vtt' === ( $settings['subtitles'] ?? 'off' ) && \CourseCaptain\Activity\SettingsSchema::is_https_url( (string) ( $settings['subtitle_url'] ?? '' ) ) ) {
+			return;
+		}
+		$db = Database::current();
+		if ( null !== $db->scalar( $db->prepare( 'SELECT 1 FROM `' . $db->table( 'ccap_content_media' ) . "` WHERE object_type = 'lesson' AND object_id = %d AND role = 'subtitle' LIMIT 1", (int) $lesson->ID ) ) ) {
+			return;
+		}
+		if ( in_array( (string) ( $settings['provider'] ?? '' ), array( 'youtube', 'vimeo' ), true ) ) {
+			$this->add( 'VAL-142', 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.captions_external', array(), __( 'This video is shown from a video service. The course check cannot see its captions: make sure captions are switched on there.', 'course-captain' ), 'settings.subtitles' );
+			return;
+		}
+		$this->add( 'VAL-142', true === Settings::get( 'display.require_captions' ) ? 'blocker' : 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.captions', array(), __( 'This video has no captions. Add a captions file (WebVTT) in the lesson settings.', 'course-captain' ), 'settings.subtitles' );
+	}
+
+	/**
 	 * VAL-140/VAL-141 (E-131, A11Y-110): images without alternative text.
 	 *
 	 * An image counts as described when its `alt` is not empty; `alt=""`
@@ -626,7 +652,12 @@ final class CourseValidator {
 			'missing'     => 0,
 			'undescribed' => 0,
 		);
-		if ( false === stripos( $html, '<img' ) || ! preg_match_all( '/<img\b[^>]*>/i', $html, $tags ) ) {
+		if ( false === stripos( $html, '<img' ) ) {
+			return $out;
+		}
+		// UI-F8: images of block-editor image blocks switched to "decorative" carry the marker.
+		$html = DecorativeImages::mark( $html );
+		if ( ! preg_match_all( '/<img\b[^>]*>/i', $html, $tags ) ) {
 			return $out;
 		}
 		foreach ( $tags[0] as $tag ) {

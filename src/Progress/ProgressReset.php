@@ -60,10 +60,12 @@ final class ProgressReset {
 	 * @param int         $user_id   Learner.
 	 * @param int         $course_id Course.
 	 * @param string|null $reason    Justification (required unless self-reset).
+	 * @param bool        $questions Also reset the question learning states (smart trainer).
+	 *                               The course staff screen leaves them by default (R0-23 §3.3, E-106).
 	 * @return array{rows: array<string, int>, journal_id: int, audit_id: int}
 	 * @throws CourseException 404 unknown course/learner, 403 without right, 422 without reason.
 	 */
-	public function reset_course( Actor $actor, int $user_id, int $course_id, ?string $reason = null ): array {
+	public function reset_course( Actor $actor, int $user_id, int $course_id, ?string $reason = null, bool $questions = true ): array {
 		if ( null === $this->relations->post( $course_id, Relations::COURSE_TYPE ) || $user_id <= 0 || false === get_userdata( $user_id ) ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown course or learner.', 404 );
 		}
@@ -74,11 +76,14 @@ final class ProgressReset {
 			throw new CourseException( 'ccap_invalid_param', 'reason', 422 );
 		}
 		$result = $this->db->transaction(
-			function ( Database $db ) use ( $actor, $user_id, $course_id, $reason, $self ): array {
+			function ( Database $db ) use ( $actor, $user_id, $course_id, $reason, $self, $questions ): array {
 				$where = $this->conditions( $db, $user_id, $course_id );
 				$prior = array();
 				$rows  = array();
 				foreach ( self::TABLES as $table ) {
+					if ( ! $questions && 'ccap_question_progress' === $table ) {
+						continue;
+					}
 					$name            = $db->table( $table );
 					$prior[ $table ] = $db->rows( "SELECT * FROM `{$name}` WHERE {$where[ $table ]} ORDER BY id FOR UPDATE" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared conditions.
 					$rows[ $table ]  = $db->execute( "DELETE FROM `{$name}` WHERE {$where[ $table ]}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared conditions.
@@ -91,9 +96,10 @@ final class ProgressReset {
 					(string) $course_id,
 					$self ? null : $reason,
 					array(
-						'scope' => 'course',
-						'rows'  => $rows,
-						'self'  => $self,
+						'scope'     => 'course',
+						'rows'      => $rows,
+						'self'      => $self,
+						'questions' => $questions,
 					),
 					$user_id
 				);

@@ -437,6 +437,11 @@ final class QuestionRepository {
 				'image_required'     => empty( $data['image_required'] ) ? 0 : 1,
 				'editorial_status'   => 'draft',
 				'rights_status'      => (string) ( $data['rights_status'] ?? 'own' ),
+				// Carried over by edits that only change tags (UI-F8): rights and validity stay.
+				'rights_owner'       => isset( $data['rights_owner'] ) ? (string) $data['rights_owner'] : null,
+				'license_reference'  => isset( $data['license_reference'] ) ? (string) $data['license_reference'] : null,
+				'valid_from'         => isset( $data['valid_from'] ) ? (string) $data['valid_from'] : null,
+				'valid_to'           => isset( $data['valid_to'] ) ? (string) $data['valid_to'] : null,
 				'created_by'         => $user_id > 0 ? $user_id : null,
 			),
 			array( 'created_at' )

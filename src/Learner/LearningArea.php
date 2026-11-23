@@ -621,6 +621,7 @@ final class LearningArea {
 		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'smart' ) ) . '">' . esc_html__( 'Smart practice', 'course-captain' ) . '</a></li>';
 		$html  .= \CourseCaptain\Settings\Modules::course_feature( 'mistake_training', $course ) ? '<li><a href="' . esc_url( TrainerView::url( $course, 'fehler' ) ) . '">' . esc_html__( 'Practise mistakes', 'course-captain' ) . '</a></li>' : '';
 		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'faellig' ) ) . '">' . esc_html__( 'Due reviews', 'course-captain' ) . '</a></li>';
+		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'pruefungsfehler' ) ) . '">' . esc_html__( 'Practise exam mistakes', 'course-captain' ) . '</a></li>';
 		return $html . '</ul></section>';
 	}
 

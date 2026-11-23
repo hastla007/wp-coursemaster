@@ -52,9 +52,11 @@ final class TrainerView {
 	 * @var array<string, string>
 	 */
 	public const MODES = array(
-		'smart'   => 'smart',
-		'fehler'  => 'wrong',
-		'faellig' => 'due',
+		'smart'           => 'smart',
+		'fehler'          => 'wrong',
+		'faellig'         => 'due',
+		// UI-F8: wrongly answered questions of the latest evaluated exam (SmartTrainer::entry() `exam_mistakes`).
+		'pruefungsfehler' => 'exam_mistakes',
 	);
 
 	/**
@@ -65,6 +67,7 @@ final class TrainerView {
 	private const ALIASES = array(
 		'wrong' => 'fehler',
 		'due'   => 'faellig',
+		'exam'  => 'pruefungsfehler',
 	);
 
 	/**
@@ -127,6 +130,7 @@ final class TrainerView {
 		$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'smart' ) ) . '">' . esc_html__( 'Smart practice', 'course-captain' ) . '</a></h3><p>' . esc_html__( 'The trainer picks the question that helps you most right now: new questions, mistakes and reviews.', 'course-captain' ) . '</p></li>';
 		if ( \CourseCaptain\Settings\Modules::course_feature( 'mistake_training', $course_id ) ) {
 			$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'fehler' ) ) . '">' . esc_html__( 'Practise mistakes', 'course-captain' ) . '</a></h3><p>' . esc_html__( 'Only questions you answered incorrectly last time.', 'course-captain' ) . '</p></li>';
+			$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'pruefungsfehler' ) ) . '">' . esc_html__( 'Practise exam mistakes', 'course-captain' ) . '</a></h3><p>' . esc_html__( 'The questions you answered incorrectly in your latest evaluated exam.', 'course-captain' ) . '</p></li>';
 		}
 		$count = count( $due['ids'] );
 		$html .= '<li class="ccap-card"><h3><a href="' . esc_url( self::url( $course_id, 'faellig' ) ) . '">' . esc_html__( 'Due reviews', 'course-captain' ) . '</a></h3><p>' . esc_html(
@@ -171,7 +175,16 @@ final class TrainerView {
 		self::forget( $actor->user_id );
 		$next = self::next( $actor, $course_id, $mode );
 		if ( null === $next['question'] ) {
-			return self::page( $room, $html . self::error( $status ) . '<p role="status">' . esc_html( self::empty_text( $mode, $next['next_due'] ) ) . '</p>', self::title( $mode ) );
+			return self::page( $room, $html . self::error( $status ) . '<p role="status">' . esc_html( $next['no_exam'] ? __( 'You have no evaluated exam in this course yet. After your first exam you can practise its mistakes here.', 'course-captain' ) : self::empty_text( $mode, $next['next_due'] ) ) . '</p>', self::title( $mode ) );
+		}
+		if ( 'pruefungsfehler' === $mode ) {
+			$html .= '<p>' . esc_html(
+				sprintf(
+					/* translators: %s: number of questions */
+					_n( '%s question of your latest exam was answered incorrectly. Practising it changes your learning stage, not the exam result.', '%s questions of your latest exam were answered incorrectly. Practising them changes your learning stage, not the exam result.', $next['remaining'], 'course-captain' ),
+					number_format_i18n( $next['remaining'] )
+				)
+			) . '</p>';
 		}
 		return self::page( $room, $html . self::error( $status ) . self::form( $course_id, $mode, (array) $next['question']['question'], (string) $next['question']['token'], $lang ), self::title( $mode ) );
 	}
@@ -262,21 +275,25 @@ final class TrainerView {
 	 * @param Actor  $actor     Learner.
 	 * @param int    $course_id Course.
 	 * @param string $mode      Mode slug.
-	 * @return array{question: array<string, mixed>|null, next_due: string|null}
+	 * @return array{question: array<string, mixed>|null, next_due: string|null, remaining: int, no_exam: bool}
 	 * @throws CourseException Without learning access.
 	 */
 	private static function next( Actor $actor, int $course_id, string $mode ): array {
 		$trainer = SmartTrainer::current();
-		if ( 'faellig' === $mode ) {
-			$due = $trainer->entry( $actor, $course_id, 'due' );
+		if ( 'faellig' === $mode || 'pruefungsfehler' === $mode ) {
+			$entry = $trainer->entry( $actor, $course_id, self::MODES[ $mode ] );
 			return array(
-				'question' => $due['question'],
-				'next_due' => $due['next_due'],
+				'question'  => $entry['question'],
+				'next_due'  => $entry['next_due'],
+				'remaining' => $entry['remaining'],
+				'no_exam'   => 'pruefungsfehler' === $mode && null === $entry['exam_session'],
 			);
 		}
 		return array(
-			'question' => $trainer->next( $actor, $course_id, self::MODES[ $mode ] ),
-			'next_due' => null,
+			'question'  => $trainer->next( $actor, $course_id, self::MODES[ $mode ] ),
+			'next_due'  => null,
+			'remaining' => 0,
+			'no_exam'   => false,
 		);
 	}
 
@@ -373,6 +390,9 @@ final class TrainerView {
 		if ( 'fehler' === $mode ) {
 			return __( 'There are no open mistakes. Well done!', 'course-captain' );
 		}
+		if ( 'pruefungsfehler' === $mode ) {
+			return __( 'Your latest exam has no mistakes you can practise here. Well done!', 'course-captain' );
+		}
 		if ( 'faellig' === $mode ) {
 			return null === $next_due
 				? __( 'All done – no reviews are due.', 'course-captain' )
@@ -411,9 +431,10 @@ final class TrainerView {
 	 */
 	private static function title( string $mode ): string {
 		$titles = array(
-			'smart'   => __( 'Smart practice', 'course-captain' ),
-			'fehler'  => __( 'Practise mistakes', 'course-captain' ),
-			'faellig' => __( 'Due reviews', 'course-captain' ),
+			'smart'           => __( 'Smart practice', 'course-captain' ),
+			'fehler'          => __( 'Practise mistakes', 'course-captain' ),
+			'faellig'         => __( 'Due reviews', 'course-captain' ),
+			'pruefungsfehler' => __( 'Practise exam mistakes', 'course-captain' ),
 		);
 		return $titles[ $mode ] ?? __( 'Practice', 'course-captain' );
 	}
