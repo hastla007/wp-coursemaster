@@ -17,6 +17,9 @@ defined( 'ABSPATH' ) || exit;
  */
 final class VideoProvider extends AbstractProvider {
 
+	/** Maximum length of a transcript text (characters). */
+	public const TRANSCRIPT_MAX = 100000;
+
 	/**
 	 * Type.
 	 *
@@ -73,6 +76,15 @@ final class VideoProvider extends AbstractProvider {
 					'format' => 'https-url',
 				),
 				'placeholder'      => array( 'type' => 'boolean' ),
+				// SET-CC-18 (A11Y-090): transcript as text and/or link; missing → VAL-144.
+				'transcript'       => array(
+					'type'      => 'string',
+					'maxLength' => self::TRANSCRIPT_MAX,
+				),
+				'transcript_url'   => array(
+					'type'   => 'string',
+					'format' => 'https-url',
+				),
 			),
 		);
 	}

@@ -149,6 +149,8 @@ final class LearningArea {
 			return;
 		}
 		ContentProtection::mark_uncacheable();
+		// SET-CC-10: CSP of the learning area per `privacy.csp_mode` (R0-17 §3.5, PSD-052).
+		\CourseCaptain\Security\Csp::start();
 		$claim = Invitation::token( isset( $_GET[ Invitation::PARAM ] ) ? sanitize_text_field( wp_unslash( $_GET[ Invitation::PARAM ] ) ) : null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Token link, verified by the group service.
 		if ( null !== $claim ) {
 			ContentProtection::send_token_page_headers();
@@ -383,7 +385,74 @@ final class LearningArea {
 		ob_start();
 		wp_footer();
 		$foot = (string) ob_get_clean();
-		return '<!doctype html><html' . Locale::ui_attributes() . '><head><meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1">' . $own_title . '<style>' . self::css() . '</style>' . $head . '</head><body class="ccap-learning"><a class="ccap-skip" href="#ccap-main">' . esc_html__( 'Skip to content', 'course-captain' ) . '</a><header class="ccap-bar"><a class="ccap-home" href="' . esc_url( self::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a>' . ( GroupsView::has_groups( $actor ) ? ' <a class="ccap-groups-link" href="' . esc_url( GroupsView::url() ) . '">' . esc_html__( 'My groups', 'course-captain' ) . '</a>' : '' ) . '</header><main id="ccap-main" tabindex="-1"><h1' . $title_attr . '>' . esc_html( $title ) . '</h1>' . $body . '</main>' . $foot . '</body></html>';
+		return '<!doctype html><html' . Locale::ui_attributes() . '><head><meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1">' . $own_title . '<style>' . self::css() . self::brand_css() . '</style>' . $head . '</head><body class="ccap-learning"><a class="ccap-skip" href="#ccap-main">' . esc_html__( 'Skip to content', 'course-captain' ) . '</a><header class="ccap-bar">' . self::logo() . '<a class="ccap-home" href="' . esc_url( self::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a>' . ( GroupsView::has_groups( $actor ) ? ' <a class="ccap-groups-link" href="' . esc_url( GroupsView::url() ) . '">' . esc_html__( 'My groups', 'course-captain' ) . '</a>' : '' ) . '</header><main id="ccap-main" tabindex="-1"><h1' . $title_attr . '>' . esc_html( $title ) . '</h1>' . $body . '</main>' . self::footer() . $foot . '</body></html>';
+	}
+
+	/**
+	 * Label of a main button: the operator text of `display.button_labels`
+	 * (all languages) or the translated default (SET-CC-16).
+	 *
+	 * @param string $key      `enroll`, `complete`, `start_exam`, `submit_exam`.
+	 * @param string $fallback Translated default text.
+	 * @return string
+	 */
+	public static function button_label( string $key, string $fallback ): string {
+		$labels = (array) Settings::get( 'display.button_labels' );
+		$own    = trim( (string) ( $labels[ $key ] ?? '' ) );
+		return '' === $own ? $fallback : $own;
+	}
+
+	/**
+	 * Logo of the learning area (`display.logo_id`, SET-CC-16): the website
+	 * name is the alternative text.
+	 *
+	 * @return string
+	 */
+	public static function logo(): string {
+		$id = (int) Settings::get( 'display.logo_id' );
+		if ( $id <= 0 || ! wp_attachment_is_image( $id ) ) {
+			return '';
+		}
+		$alt = '' !== (string) Settings::get( 'general.learning_area_title' ) ? (string) Settings::get( 'general.learning_area_title' ) : wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+		$img = wp_get_attachment_image(
+			$id,
+			'medium',
+			false,
+			array(
+				'class'   => 'ccap-logo',
+				'alt'     => $alt,
+				'loading' => 'eager',
+			)
+		);
+		return '' === $img ? '' : $img . ' ';
+	}
+
+	/**
+	 * Accent colour as CSS (`display.accent_color`, validated `#rrggbb` with
+	 * contrast ≥ 4.5:1 to white; SET-CC-16, R0-27 SET-041).
+	 *
+	 * @return string
+	 */
+	public static function brand_css(): string {
+		$accent = (string) Settings::get( 'display.accent_color' );
+		if ( 1 !== preg_match( '/^#[0-9a-f]{6}$/', $accent ) ) {
+			return '';
+		}
+		return 'body.ccap-learning{--ccap-accent:' . $accent . '}.ccap-learning .ccap-button{background:var(--ccap-accent);border-color:var(--ccap-accent);color:#fff}.ccap-learning progress{accent-color:var(--ccap-accent)}';
+	}
+
+	/**
+	 * Footer with the link to the accessibility statement (SET-CC-18).
+	 *
+	 * @return string
+	 */
+	public static function footer(): string {
+		$page = (int) Settings::get( 'display.accessibility_page_id' );
+		$post = $page > 0 ? get_post( $page ) : null;
+		if ( ! $post instanceof \WP_Post || 'publish' !== $post->post_status ) {
+			return '';
+		}
+		return '<footer class="ccap-footer"><a href="' . esc_url( (string) get_permalink( $post ) ) . '">' . esc_html__( 'Accessibility statement', 'course-captain' ) . '</a></footer>';
 	}
 
 	/**
@@ -473,7 +542,7 @@ final class LearningArea {
 				: __( 'You can enroll yourself for free and get access at once.', 'course-captain' )
 		) . '</p>';
 		$html .= '<form method="post" action="' . esc_url( self::url( 'kurs/' . self::course_uid( $course ) ) ) . '">' . wp_nonce_field( self::ENROLL_NONCE . ':' . $course, '_wpnonce', false, false ) . '<input type="hidden" name="ccap_do" value="enroll">';
-		$html .= '<button type="submit" class="ccap-button" aria-describedby="ccap-enroll-hint">' . esc_html__( 'Enroll for free', 'course-captain' ) . '</button></form>';
+		$html .= '<button type="submit" class="ccap-button" aria-describedby="ccap-enroll-hint">' . esc_html( self::button_label( 'enroll', __( 'Enroll for free', 'course-captain' ) ) ) . '</button></form>';
 		return $html . '</section>';
 	}
 
@@ -706,7 +775,7 @@ final class LearningArea {
 		return 'html{scroll-padding-block-start:6rem}body.ccap-learning{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere;background:#fff;color:#1d2327}'
 			. '.ccap-skip{position:absolute;inset-block-start:1rem;inset-inline-start:1rem;background:#fff;color:#1d2327;padding:.5rem;z-index:10}'
 			. '.ccap-skip:not(:focus){width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
-			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
+			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}.ccap-logo{max-block-size:3rem;inline-size:auto;vertical-align:middle;margin-inline-end:.75rem}.ccap-footer{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box;border-block-start:1px solid #8c8f94}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
 			. '.ccap-cards,.ccap-modules,.ccap-lessons,.ccap-qnav,.ccap-result-list{padding-inline-start:1.25rem}.ccap-card{margin-block-end:1rem}'
 			. '.ccap-button{display:inline-block;padding:.6rem 1rem;border:2px solid currentColor;border-radius:.25rem;text-decoration:none;min-block-size:44px;box-sizing:border-box;font:inherit;background:#fff;color:inherit;cursor:pointer}'
 			. ':focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}'

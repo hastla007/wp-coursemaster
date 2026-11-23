@@ -258,6 +258,39 @@ final class LessonView {
 	 * @return string
 	 */
 	private static function video( array $settings ): string {
+		$html       = self::player( $settings );
+		$transcript = self::transcript( $settings );
+		return '' !== $transcript && str_ends_with( $html, '</section>' ) ? substr( $html, 0, -10 ) . $transcript . '</section>' : $html;
+	}
+
+	/**
+	 * Transcript below the player (SET-CC-18, A11Y-090): text in a
+	 * disclosure, a link, or both. Shown in every external media mode,
+	 * because it loads nothing from the video service.
+	 *
+	 * @param array<string, mixed> $settings Video settings.
+	 * @return string
+	 */
+	private static function transcript( array $settings ): string {
+		$text = trim( (string) ( $settings['transcript'] ?? '' ) );
+		$url  = (string) ( $settings['transcript_url'] ?? '' );
+		$html = '';
+		if ( '' !== $text ) {
+			$html .= '<details class="ccap-transcript"><summary>' . esc_html__( 'Transcript', 'course-captain' ) . '</summary>' . wpautop( esc_html( $text ) ) . '</details>';
+		}
+		if ( '' !== $url && \CourseCaptain\Activity\SettingsSchema::is_https_url( $url ) ) {
+			$html .= '<p><a href="' . esc_url( $url ) . '">' . esc_html__( 'Open the transcript', 'course-captain' ) . '</a></p>';
+		}
+		return $html;
+	}
+
+	/**
+	 * Player part of a video lesson.
+	 *
+	 * @param array<string, mixed> $settings Video settings.
+	 * @return string
+	 */
+	private static function player( array $settings ): string {
 		$html = '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Video', 'course-captain' ) . '</h2>';
 		$uid  = (string) ( $settings['media_uid'] ?? '' );
 		if ( 'media' === ( $settings['provider'] ?? '' ) && 1 === preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
@@ -458,7 +491,7 @@ final class LessonView {
 		}
 		switch ( (string) $rule['type'] ) {
 			case 'manual_confirm':
-				$html .= $form . '<p><button type="submit" class="ccap-button" name="ccap_do" value="complete">' . esc_html__( 'Mark as completed', 'course-captain' ) . '</button></p></form>';
+				$html .= $form . '<p><button type="submit" class="ccap-button" name="ccap_do" value="complete">' . esc_html( LearningArea::button_label( 'complete', __( 'Mark as completed', 'course-captain' ) ) ) . '</button></p></form>';
 				break;
 			case 'view':
 				$min     = max( 0, (int) ( $rule['params']['min_seconds'] ?? 0 ) );

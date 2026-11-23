@@ -72,6 +72,14 @@ final class RetentionService {
 				}
 			} catch ( \Throwable $e ) {
 				$out[ $type ] = 'error:' . get_class( $e );
+				\CourseCaptain\Ops\Log::write(
+					'error',
+					'retention.step_failed',
+					array(
+						'step'  => $type,
+						'error' => get_class( $e ),
+					)
+				);
 			}
 		}
 		update_option(

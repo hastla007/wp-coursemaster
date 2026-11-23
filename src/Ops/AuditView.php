@@ -86,6 +86,8 @@ final class AuditView {
 			'audit_pruned'                   => array( 'ops', __( 'Old audit entries removed', 'course-captain' ) ),
 			'cron_task_failed'               => array( 'ops', __( 'Maintenance task failed', 'course-captain' ) ),
 			'mail_template_saved'            => array( 'notifications', __( 'Mail template saved', 'course-captain' ) ),
+			'mail_template_reset'            => array( 'notifications', __( 'Built-in mail text restored', 'course-captain' ) ),
+			'mail_templates_imported'        => array( 'notifications', __( 'Mail texts imported', 'course-captain' ) ),
 			'notification_optout_changed'    => array( 'notifications', __( 'Notification opt-out changed', 'course-captain' ) ),
 			'notification_resent'            => array( 'notifications', __( 'Notification sent again', 'course-captain' ) ),
 			'invitation_resent'              => array( 'groups', __( 'Group invitation sent again', 'course-captain' ) ),

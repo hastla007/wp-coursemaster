@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Admin;
 
 use CourseCaptain\Course\CourseException;
+use CourseCaptain\Notification\OutboundMode;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Security\Hardening;
 use CourseCaptain\Settings\RiskConfirm;
@@ -379,10 +380,48 @@ final class SettingsScreen {
 			$html .= '<h3>' . esc_html__( 'Base template', 'course-captain' ) . '</h3><p><a href="' . esc_url( admin_url( 'admin.php?page=course-captain-certificates' ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Edit the base template under Certificates', 'course-captain' ) . '</a></p>';
 		}
 		if ( 'emails' === $tab ) {
+			$html  .= '<h3>' . esc_html__( 'Mail texts', 'course-captain' ) . '</h3><p>' . esc_html__( 'Subject and text of every message, per language, with preview, test mail and export.', 'course-captain' ) . ' <a href="' . esc_url( MailTextsScreen::url() ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Edit mail texts', 'course-captain' ) . '</a></p>';
+			$html  .= self::outbound_status();
 			$html  .= '<h3>' . esc_html__( 'Test mail', 'course-captain' ) . '</h3>' . TestMail::form( $user_id, 'settings' );
 			$status = TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' );
 		}
 		return $html . '<div role="status" aria-live="polite" id="ccap-status">' . esc_html( $status ) . '</div></div>';
+	}
+
+	/**
+	 * Read-only test mode of outgoing mails (SET-CC-23, R0-27 §3.6): the
+	 * constants in wp-config.php stay the only source.
+	 *
+	 * @return string
+	 */
+	public static function outbound_status(): string {
+		$mode     = OutboundMode::current();
+		$constant = defined( 'COURSE_CAPTAIN_OUTBOUND' );
+		switch ( $mode['mode'] ) {
+			case OutboundMode::ON:
+				$text = __( 'On: mails go to the real recipients.', 'course-captain' );
+				break;
+			case OutboundMode::CATCH:
+				/* translators: %s: catch address */
+				$text = sprintf( __( 'Test mode: every mail goes only to %s, with “[catch]” in front of the subject. Learners receive nothing.', 'course-captain' ), $mode['catch_address'] );
+				break;
+			default:
+				$text = 'invalid_catch_address' === $mode['warning']
+					? __( 'Off: the catch address is not a valid email address, so no mails are sent at all.', 'course-captain' )
+					: __( 'Off: no mails are sent at all.', 'course-captain' );
+		}
+		$source = $constant
+			/* translators: %s: value of the constant */
+			? sprintf( __( 'Set in wp-config.php: COURSE_CAPTAIN_OUTBOUND = %s', 'course-captain' ), (string) constant( 'COURSE_CAPTAIN_OUTBOUND' ) )
+			/* translators: %s: environment type */
+			: sprintf( __( 'Automatic for the environment type “%s”: on only in production, otherwise test mode.', 'course-captain' ), wp_get_environment_type() );
+		$rows  = '<tr><th scope="row">' . esc_html__( 'Outgoing mails', 'course-captain' ) . '</th><td>' . esc_html( $text ) . '</td></tr>';
+		$rows .= '<tr><th scope="row">' . esc_html__( 'Source', 'course-captain' ) . '</th><td>' . esc_html( $source ) . '</td></tr>';
+		$rows .= '<tr><th scope="row">' . esc_html__( 'Catch address', 'course-captain' ) . '</th><td>' . esc_html( defined( 'COURSE_CAPTAIN_MAIL_CATCH_ADDRESS' ) ? (string) constant( 'COURSE_CAPTAIN_MAIL_CATCH_ADDRESS' ) : __( 'not set – the administration address of the website is used', 'course-captain' ) ) . '</td></tr>';
+		if ( OutboundMode::is_held() ) {
+			$rows .= '<tr><th scope="row">' . esc_html__( 'Hold mode', 'course-captain' ) . '</th><td>' . esc_html__( 'Active: the website seems to have moved or been restored. Mails are held until you confirm the website under System status.', 'course-captain' ) . '</td></tr>';
+		}
+		return '<h3>' . esc_html__( 'Test mode', 'course-captain' ) . '</h3><table class="widefat striped ccap-outbound" id="ccap-outbound-mode"><caption>' . esc_html__( 'Read only: change it with the constants COURSE_CAPTAIN_OUTBOUND (on, catch, off) and COURSE_CAPTAIN_MAIL_CATCH_ADDRESS in wp-config.php.', 'course-captain' ) . '</caption><tbody>' . $rows . '</tbody></table>';
 	}
 
 	/**

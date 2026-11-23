@@ -569,6 +569,15 @@ final class A11yI18nTest extends SchemaTestCase {
 			$screens[ 'settings-' . $tab ] = SettingsScreen::html( array( 'tab' => $tab ), $this->admin );
 		}
 		$screens['roles'] = RoleSettings::html( array(), $this->admin );
+		// SET-CC-04: mail text overview, editor and reset confirmation.
+		$screens['mail-texts']       = \CourseCaptain\Admin\MailTextsScreen::html( array(), $this->admin );
+		$screens['mail-text-editor'] = \CourseCaptain\Admin\MailTextsScreen::html(
+			array(
+				'type'   => 'access_granted',
+				'locale' => 'en_US',
+			),
+			$this->admin
+		);
 		foreach ( SetupState::STEPS as $step ) {
 			$screens[ 'setup-' . $step ] = SetupWizard::html( array( 'step' => $step ), $this->admin );
 		}

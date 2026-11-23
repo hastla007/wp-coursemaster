@@ -105,6 +105,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_can_access` | filter |
 | `course_captain_certificate_fallback_rendered` | action |
 | `course_captain_certificate_renderers` | filter |
+| `course_captain_csp_frame_hosts` | filter |
 | `course_captain_explanations_available` | filter |
 | `course_captain_external_access_sources` | filter |
 | `course_captain_hardening_conflicts` | filter |
@@ -137,6 +138,9 @@ Wichtige Verträge:
 - `course_captain_cache_purge` (Action; `{scope, ids, urls}` nach Veröffentlichung oder Archivierung eines Kurses).
 - `course_captain_internal_subscribers` (interne Outbox-Abonnenten; intern).
 - `course_captain_can_access` (Filter bei jeder Lernzugriffsentscheidung M-02; `bool $allowed, int $user_id, string $course_uid, string $scope, Decision $decision`; darf nur einschränken, E-84).
+- `course_captain_csp_frame_hosts` (Filter, experimentell; `list<string> $hosts` ohne Schema: weitere Hosts für `frame-src` der Content-Security-Policy des Lernbereichs, SET-CC-10; ungültige Hostnamen werden verworfen).
+
+Einstellungen dieses Standes (Register `SettingsSchema`, SET-CC-04/-09/-10/-16/-18/-22/-23): `display.logo_id` (int, nicht exportiert), `display.accent_color` (`#rrggbb` oder leer; Kontrast zu Weiß ≥ 4,5:1, sonst Feldfehler `contrast`), `display.button_labels` (`enroll`, `complete`, `start_exam`, `submit_exam`, je ≤ 40 Zeichen, leer = übersetzter Standard), `display.require_transcripts` (bool, Standard aus; VAL-144 Hinweis bzw. Blocker), `display.accessibility_page_id` (Seite, Link im Fuß des Lernbereichs), `advanced.log_level` (`error|warning|info|debug`, Standard `warning`, `info`/`debug` fallen nach 7 Tagen zurück, nie exportiert), `advanced.error_log_days` (1–365, 30), `advanced.debug_file_days` (1–30, 7). `privacy.csp_mode` (`enforce|report_only`) wirkt jetzt als Header `Content-Security-Policy` bzw. `Content-Security-Policy-Report-Only` auf allen Seiten des Lernbereichs. Videoaktivität: neue Einstellungen `transcript` (Text ≤ 100 000 Zeichen) und `transcript_url` (https). Mailtexte: Admin-Seite `admin.php?page=course-captain-mail-texts` (admin-post `ccap_mail_text`, `ccap_mail_text_export`), Exportformat `{format: "course-captain-mail-templates", format_version: 1, templates: {<typ>: {<locale>: {subject, body_html, body_text}}}}`.
 
 ## 5. Shortcodes und Blöcke
 

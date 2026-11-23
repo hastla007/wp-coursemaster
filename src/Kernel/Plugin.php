@@ -230,6 +230,7 @@ final class Plugin {
 		\CourseCaptain\Admin\RoleSettings::register();
 		\CourseCaptain\Admin\TestMail::register();
 		\CourseCaptain\Admin\SettingsBackup::register();
+		\CourseCaptain\Admin\MailTextsScreen::register();
 		\CourseCaptain\Privacy\PrivacySettings::register();
 		\CourseCaptain\Privacy\SelfService::register();
 		\CourseCaptain\Course\FaqService::register();
@@ -244,6 +245,7 @@ final class Plugin {
 		\CourseCaptain\Certificate\CertificateAdmin::register();
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();
+		\CourseCaptain\Ops\Log::register();
 		\CourseCaptain\Ops\AuditScreen::register();
 		\CourseCaptain\Ops\OpsScreen::register();
 		\CourseCaptain\Ops\Monitor::register();

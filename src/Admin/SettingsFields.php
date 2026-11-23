@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Admin;
 
 use CourseCaptain\Notification\NotificationPrefs;
+use CourseCaptain\Settings\SettingsRules;
 use CourseCaptain\Settings\SettingsSchema;
 
 defined( 'ABSPATH' ) || exit;
@@ -95,11 +96,16 @@ final class SettingsFields {
 					array( __( 'Removing the plugin', 'course-captain' ), array( 'delete_data_on_uninstall' ) ),
 				);
 			case 'display':
-				return array( array( __( 'Display', 'course-captain' ), array( 'container_width', 'breadcrumbs', 'catalog_sort', 'card_elements', 'require_captions' ) ) );
+				return array(
+					array( __( 'Display', 'course-captain' ), array( 'container_width', 'breadcrumbs', 'catalog_sort', 'card_elements' ) ),
+					array( __( 'Branding of the learning area', 'course-captain' ), array( 'logo_id', 'accent_color', 'button_labels.enroll', 'button_labels.complete', 'button_labels.start_exam', 'button_labels.submit_exam' ) ),
+					array( __( 'Accessibility of the content', 'course-captain' ), array( 'require_captions', 'require_transcripts', 'accessibility_page_id' ) ),
+				);
 			case 'learning':
 				return array(
 					array( __( 'Courses', 'course-captain' ), array( 'course_completion_default', 'mastery_algorithm', 'favorites_enabled', 'mistake_training_enabled' ) ),
 					array( __( 'Feedback while practising', 'course-captain' ), array( 'feedback.visibility', 'feedback.show_correct_answers' ) ),
+					array( __( 'Assignment submissions', 'course-captain' ), array( 'assignment_file_types', 'assignment_max_file_mb', 'assignment_max_files' ) ),
 				);
 			case 'exams':
 				return array(
@@ -135,7 +141,10 @@ final class SettingsFields {
 					array( __( 'Security headers', 'course-captain' ), array( 'site_headers' ) ),
 				);
 			case 'advanced':
-				return array( array( __( 'Advanced', 'course-captain' ), array( 'import_execution', 'file_delivery', 'media_delete_grace_days', 'cron_stale_warning_minutes' ) ) );
+				return array(
+					array( __( 'Advanced', 'course-captain' ), array( 'import_execution', 'file_delivery', 'media_delete_grace_days', 'cron_stale_warning_minutes' ) ),
+					array( __( 'Logging', 'course-captain' ), array( 'log_level', 'error_log_days', 'debug_file_days' ) ),
+				);
 		}
 		return array();
 	}
@@ -278,6 +287,14 @@ final class SettingsFields {
 				return __( 'Error: course title: required field.', 'course-captain' );
 			case 'title_length':
 				return __( 'Error: course title: at most 200 characters.', 'course-captain' );
+			case 'color':
+				/* translators: %s: field label */
+				return sprintf( __( 'Error: %s: enter a colour as #rrggbb, for example #1d4ed8, or leave the field empty.', 'course-captain' ), $label );
+			case 'contrast':
+				/* translators: 1: entered colour, 2: contrast ratio, 3: required ratio */
+				return sprintf( __( 'Error: the colour %1$s is too light: white text on it has a contrast of %2$s:1, at least %3$s:1 is needed. Choose a darker colour, for example #1d4ed8.', 'course-captain' ), (string) ( $params['value'] ?? '' ), number_format_i18n( SettingsRules::contrast( (string) ( $params['value'] ?? '#ffffff' ), '#ffffff' ), 2 ), number_format_i18n( SettingsRules::MIN_CONTRAST, 1 ) );
+			case 'logo_missing':
+				return __( 'Error: logo: no image with this media ID exists. Enter the ID of an image from the media library or 0.', 'course-captain' );
 		}
 		/* translators: %s: field label */
 		return sprintf( __( 'Error: %s: check the value.', 'course-captain' ), $label );
@@ -362,7 +379,7 @@ final class SettingsFields {
 				),
 			),
 			'display'      => array(
-				'container_width'  => array(
+				'container_width'           => array(
 					'label'   => __( 'Width of the learning area', 'course-captain' ),
 					'help'    => __( 'Theme uses the content width of your theme; the other options widen only the learning area.', 'course-captain' ),
 					'element' => 'radio',
@@ -373,13 +390,13 @@ final class SettingsFields {
 						'full'  => __( 'Full width', 'course-captain' ),
 					),
 				),
-				'breadcrumbs'      => array(
+				'breadcrumbs'               => array(
 					'label'   => __( 'Show breadcrumb navigation', 'course-captain' ),
 					'help'    => __( 'Shows the path course › module › lesson above the content.', 'course-captain' ),
 					'element' => 'checkbox',
 					'scope'   => 'course',
 				),
-				'catalog_sort'     => array(
+				'catalog_sort'              => array(
 					'label'   => __( 'Order in the catalogue', 'course-captain' ),
 					'help'    => __( 'With equal position, courses are sorted by title.', 'course-captain' ),
 					'element' => 'select',
@@ -389,7 +406,7 @@ final class SettingsFields {
 						'newest' => __( 'Newest', 'course-captain' ),
 					),
 				),
-				'card_elements'    => array(
+				'card_elements'             => array(
 					'label'   => __( 'Content of course cards', 'course-captain' ),
 					'help'    => __( 'Without a selection, the card shows only the title.', 'course-captain' ),
 					'element' => 'set',
@@ -400,10 +417,46 @@ final class SettingsFields {
 						'progress'     => __( 'Progress', 'course-captain' ),
 					),
 				),
-				'require_captions' => array(
+				'require_captions'          => array(
 					'label'   => __( 'Require captions for videos', 'course-captain' ),
 					'help'    => __( 'Courses with videos without captions can then not be published. Missing alternative texts always block.', 'course-captain' ),
 					'element' => 'checkbox',
+				),
+				'require_transcripts'       => array(
+					'label'   => __( 'Require transcripts for videos', 'course-captain' ),
+					'help'    => __( 'The course check always reports videos without a transcript. With this box ticked, such courses can no longer be published. Enter the transcript as text or link in the video lesson.', 'course-captain' ),
+					'element' => 'checkbox',
+				),
+				'accessibility_page_id'     => array(
+					'label'   => __( 'Accessibility statement', 'course-captain' ),
+					'help'    => __( 'Page with your accessibility statement. The learning area links to it at the bottom of every page.', 'course-captain' ),
+					'element' => 'page',
+					'none'    => __( 'No link', 'course-captain' ),
+				),
+				'logo_id'                   => array(
+					'label'   => __( 'Logo (media ID)', 'course-captain' ),
+					'help'    => __( 'ID of an image in the media library, shown at the top of the learning area with the website name as alternative text; 0 = no logo. Not taken over by a settings import.', 'course-captain' ),
+					'element' => 'number',
+				),
+				'accent_color'              => array(
+					'label' => __( 'Accent colour', 'course-captain' ),
+					'help'  => __( 'For buttons in the learning area, written as #rrggbb. Buttons get white text, so the colour needs a contrast of at least 4.5:1 to white; lighter colours are rejected. Leave empty for the neutral default.', 'course-captain' ),
+				),
+				'button_labels.enroll'      => array(
+					'label' => __( 'Button “Enroll for free”', 'course-captain' ),
+					'help'  => __( 'Own label in all languages; leave empty for the translated default text.', 'course-captain' ),
+				),
+				'button_labels.complete'    => array(
+					'label' => __( 'Button “Mark as completed”', 'course-captain' ),
+					'help'  => __( 'Own label in all languages; leave empty for the translated default text.', 'course-captain' ),
+				),
+				'button_labels.start_exam'  => array(
+					'label' => __( 'Button “Start exam”', 'course-captain' ),
+					'help'  => __( 'Own label in all languages; leave empty for the translated default text.', 'course-captain' ),
+				),
+				'button_labels.submit_exam' => array(
+					'label' => __( 'Button “Submit exam”', 'course-captain' ),
+					'help'  => __( 'Own label in all languages; leave empty for the translated default text.', 'course-captain' ),
 				),
 			),
 			'learning'     => array(
@@ -453,6 +506,30 @@ final class SettingsFields {
 					'element' => 'checkbox',
 					'scope'   => 'course',
 					'depends' => 'feedback.visibility',
+				),
+				'assignment_file_types'         => array(
+					'label'   => __( 'Allowed file types for submissions', 'course-captain' ),
+					'help'    => __( 'Single assignments may only allow fewer types. Without a selection, learners cannot upload files, only text.', 'course-captain' ),
+					'element' => 'set',
+					'options' => array(
+						'pdf'  => __( 'PDF', 'course-captain' ),
+						'docx' => __( 'Word (DOCX)', 'course-captain' ),
+						'odt'  => __( 'OpenDocument text (ODT)', 'course-captain' ),
+						'txt'  => __( 'Plain text (TXT)', 'course-captain' ),
+						'jpg'  => __( 'JPEG image', 'course-captain' ),
+						'png'  => __( 'PNG image', 'course-captain' ),
+					),
+				),
+				'assignment_max_file_mb'        => array(
+					'label'   => __( 'Maximum size per file', 'course-captain' ),
+					'help'    => __( 'Single assignments may only set a smaller limit. The upload limit of the server can be lower.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'MB', 'course-captain' ),
+				),
+				'assignment_max_files'          => array(
+					'label'   => __( 'Maximum number of files per submission', 'course-captain' ),
+					'help'    => __( 'Single assignments may only set a smaller number.', 'course-captain' ),
+					'element' => 'number',
 				),
 			),
 			'exams'        => array(
@@ -748,7 +825,7 @@ final class SettingsFields {
 				),
 				'csp_mode'                => array(
 					'label'   => __( 'Content Security Policy for Course Captain pages', 'course-captain' ),
-					'help'    => __( 'Blocks injected scripts on Course Captain pages. Report only should be used only briefly.', 'course-captain' ),
+					'help'    => __( 'Applies to the learning area including lessons and the exam room. Only scripts that WordPress loads in the regular way may run; frames only from this website and the known video services. Report only should be used only briefly, to find conflicts with the theme or other plugins in the browser console.', 'course-captain' ),
 					'element' => 'radio',
 					'options' => array(
 						'enforce'     => __( 'Enforce', 'course-captain' ),
@@ -812,6 +889,32 @@ final class SettingsFields {
 					'help'    => __( 'The system status and Site Health warn after this time.', 'course-captain' ),
 					'element' => 'number',
 					'unit'    => __( 'minutes', 'course-captain' ),
+					'scope'   => 'system',
+				),
+				'log_level'                  => array(
+					'label'   => __( 'Log level', 'course-captain' ),
+					'help'    => __( 'Course Captain writes log files to the protected folder, never into the web root. “Info” and “Debug” write much more and fall back to “Warnings and errors” automatically after 7 days. Logs never contain answers, passwords or tokens.', 'course-captain' ),
+					'element' => 'radio',
+					'scope'   => 'system',
+					'options' => array(
+						'error'   => __( 'Errors only', 'course-captain' ),
+						'warning' => __( 'Warnings and errors', 'course-captain' ),
+						'info'    => __( 'Info (for troubleshooting, 7 days)', 'course-captain' ),
+						'debug'   => __( 'Debug (for troubleshooting, 7 days)', 'course-captain' ),
+					),
+				),
+				'error_log_days'             => array(
+					'label'   => __( 'Keep error logs for', 'course-captain' ),
+					'help'    => __( 'Log files with errors and warnings are deleted after this time.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
+					'scope'   => 'system',
+				),
+				'debug_file_days'            => array(
+					'label'   => __( 'Keep debug logs for', 'course-captain' ),
+					'help'    => __( 'Log files with info and debug entries are deleted after this time (at most 30 days).', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
 					'scope'   => 'system',
 				),
 			),

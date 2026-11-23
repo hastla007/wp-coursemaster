@@ -26,6 +26,9 @@ final class SettingsSchema {
 
 	public const VERSION = 1;
 
+	/** Maximum length of a button label of the learning area (SET-CC-16). */
+	public const BUTTON_LABEL_MAX = 40;
+
 	/**
 	 * Tabs with their autoload flag (R0-27 §2.1).
 	 *
@@ -103,28 +106,77 @@ final class SettingsSchema {
 				),
 			),
 			'display'      => array(
-				'container_width'  => array(
+				'container_width'       => array(
 					'type'    => 'enum',
 					'values'  => array( 'theme', 'wide', 'full' ),
 					'default' => 'theme',
 				),
-				'breadcrumbs'      => array(
+				'breadcrumbs'           => array(
 					'type'    => 'bool',
 					'default' => true,
 				),
-				'catalog_sort'     => array(
+				'catalog_sort'          => array(
 					'type'    => 'enum',
 					'values'  => array( 'manual', 'title', 'newest' ),
 					'default' => 'manual',
 				),
-				'card_elements'    => array(
+				'card_elements'         => array(
 					'type'    => 'set',
 					'values'  => array( 'cover', 'summary', 'lesson_count', 'progress' ),
 					'default' => array( 'cover', 'summary', 'lesson_count', 'progress' ),
 				),
-				'require_captions' => array(
+				'require_captions'      => array(
 					'type'    => 'bool',
 					'default' => false,
+				),
+				// SET-CC-18: missing transcripts block publishing (VAL-144); without it they are a notice.
+				'require_transcripts'   => array(
+					'type'    => 'bool',
+					'default' => false,
+				),
+				'accessibility_page_id' => array(
+					'type'    => 'page_id',
+					'default' => 0,
+				),
+				// SET-CC-16: base branding of the learning area (E-346 S6: free).
+				'logo_id'               => array(
+					'type'    => 'int',
+					'min'     => 0,
+					'default' => 0,
+					// A media ID only means something on this website.
+					'export'  => false,
+				),
+				'accent_color'          => array(
+					'type'    => 'color',
+					'default' => '',
+				),
+				'button_labels'         => array(
+					'type'    => 'object',
+					'strict'  => true,
+					'fields'  => array(
+						'enroll'      => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+						'complete'    => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+						'start_exam'  => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+						'submit_exam' => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+					),
+					'default' => array(
+						'enroll'      => '',
+						'complete'    => '',
+						'start_exam'  => '',
+						'submit_exam' => '',
+					),
 				),
 			),
 			'learning'     => array(
@@ -457,6 +509,25 @@ final class SettingsSchema {
 					'max'     => 1440,
 					'default' => 180,
 				),
+				// SET-CC-22 (R0-13 DL-3, E-143): `info`/`debug` fall back to the default after 7 days.
+				'log_level'                  => array(
+					'type'    => 'enum',
+					'values'  => array( 'error', 'warning', 'info', 'debug' ),
+					'default' => 'warning',
+					'export'  => 'never_env',
+				),
+				'error_log_days'             => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 365,
+					'default' => 30,
+				),
+				'debug_file_days'            => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 30,
+					'default' => 7,
+				),
 			),
 		);
 		foreach ( $schema as $tab => $fields ) {
@@ -634,6 +705,18 @@ final class SettingsSchema {
 					'ok'    => true,
 					'value' => $clean,
 				);
+			case 'color':
+				// `#rrggbb` (normalized to lower case) or empty = theme/default colours.
+				if ( '' === $value ) {
+					return array(
+						'ok'    => true,
+						'value' => '',
+					);
+				}
+				return is_string( $value ) && 1 === preg_match( '/^#[0-9a-fA-F]{6}$/', $value ) ? array(
+					'ok'    => true,
+					'value' => strtolower( $value ),
+				) : $bad;
 			case 'email':
 				return is_string( $value ) && false !== is_email( $value ) ? array(
 					'ok'    => true,

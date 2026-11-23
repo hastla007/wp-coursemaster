@@ -101,6 +101,8 @@ final class CronHooks {
 				'import_watchdog'   => static fn() => \CourseCaptain\Import\ImportRunner::current()->watchdog(),
 				// Legacy media outside the allowlist: moved once into the quarantine (R0-10 §3.2 V4, GM-128).
 				'media_quarantine'  => static fn() => \CourseCaptain\Import\MediaQuarantine::run_once(),
+				// Log level fall-back after 7 days and log file retention (SET-CC-22).
+				'logs'              => static fn() => \CourseCaptain\Ops\Log::hourly(),
 			)
 		);
 	}

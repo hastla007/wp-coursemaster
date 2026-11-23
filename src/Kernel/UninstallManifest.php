@@ -86,6 +86,8 @@ final class UninstallManifest {
 		'course_captain_extensions_seen',
 		// Notifications (R1-21): mail state (template errors).
 		'course_captain_mail_state',
+		// Since when a raised log level is active (SET-CC-22, falls back after 7 days).
+		'course_captain_log_level_since',
 		// Base certificate template versions (R1-44, R0-29 CF-04).
 		'course_captain_certificate_templates',
 		'course_captain_setting_locks',

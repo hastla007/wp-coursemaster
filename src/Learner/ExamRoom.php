@@ -156,7 +156,7 @@ final class ExamRoom {
 		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="save">' . esc_html__( 'Save answers', 'course-captain' ) . '</button></p>';
 		$html .= '<section class="ccap-submit" aria-labelledby="ccap-submit-heading"><h2 id="ccap-submit-heading">' . esc_html__( 'Submit the exam', 'course-captain' ) . '</h2><p id="ccap-submit-summary">' . esc_html( self::summary( $open, $flagged ) ) . '</p>';
 		$html .= '<p><input type="checkbox" id="ccap-confirm" name="confirm" value="1" aria-describedby="ccap-submit-summary"> <label for="ccap-confirm">' . esc_html__( 'I want to submit my answers now. I cannot change them afterwards.', 'course-captain' ) . '</label></p>';
-		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="submit">' . esc_html__( 'Submit exam', 'course-captain' ) . '</button></p></section>';
+		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="submit">' . esc_html( LearningArea::button_label( 'submit_exam', __( 'Submit exam', 'course-captain' ) ) ) . '</button></p></section>';
 		$html .= '<section class="ccap-cancel" aria-labelledby="ccap-cancel-heading"><h2 id="ccap-cancel-heading">' . esc_html__( 'Cancel the exam', 'course-captain' ) . '</h2><p id="ccap-cancel-hint">' . esc_html__( 'A cancelled attempt is not evaluated. You will be asked to confirm.', 'course-captain' ) . '</p>';
 		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="cancel" aria-describedby="ccap-cancel-hint">' . esc_html__( 'Cancel exam', 'course-captain' ) . '</button></p></section></form>';
 		if ( null !== $view['remaining_seconds'] ) {
@@ -531,7 +531,7 @@ final class ExamRoom {
 			if ( isset( $running[ $rule['id'] ] ) ) {
 				$html .= '<p><a class="ccap-button" href="' . esc_url( LearningArea::url( 'pruefung/' . (int) $running[ $rule['id'] ] ) ) . '">' . esc_html__( 'Continue exam', 'course-captain' ) . '</a></p>';
 			} else {
-				$html .= '<form method="post" action=""><input type="hidden" name="ccap_do" value="start_exam"><input type="hidden" name="rule" value="' . (int) $rule['id'] . '"><input type="hidden" name="request_key" value="' . esc_attr( wp_generate_uuid4() ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false ) . '<button type="submit" class="ccap-button">' . esc_html__( 'Start exam', 'course-captain' ) . '</button></form>';
+				$html .= '<form method="post" action=""><input type="hidden" name="ccap_do" value="start_exam"><input type="hidden" name="rule" value="' . (int) $rule['id'] . '"><input type="hidden" name="request_key" value="' . esc_attr( wp_generate_uuid4() ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false ) . '<button type="submit" class="ccap-button">' . esc_html( LearningArea::button_label( 'start_exam', __( 'Start exam', 'course-captain' ) ) ) . '</button></form>';
 			}
 			$html .= '</li>';
 		}

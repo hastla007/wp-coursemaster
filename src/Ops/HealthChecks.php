@@ -71,6 +71,14 @@ final class HealthChecks {
 				$step();
 			} catch ( \Throwable $e ) {
 				$failures[ $name ] = get_class( $e );
+				Log::write(
+					'error',
+					'cron.task_failed',
+					array(
+						'task'  => (string) $name,
+						'error' => get_class( $e ),
+					)
+				);
 				AuditLog::write( Database::current(), Actor::cron(), 'cron_task_failed', 'cron', (string) $name, null, array( 'error' => get_class( $e ) ) );
 			}
 		}

@@ -18,6 +18,7 @@ use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
+use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -231,6 +232,10 @@ final class CourseValidator {
 				}
 				if ( 'video' === $type && ! $placeholder && '' === (string) ( $definition['settings']['url'] ?? '' ) && array() === \CourseCaptain\Activity\MediaLibrary::current()->media_of( 'lesson', (int) $lesson->ID ) ) {
 					$this->add( 'VAL-027', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.source', array(), __( 'This video lesson has no video. Add a video file or address.', 'course-captain' ), 'settings.url' );
+				}
+				// SET-CC-18 (A11Y-090): a video without transcript is reported; with `display.require_transcripts` it blocks.
+				if ( 'video' === $type && ! $placeholder && '' === trim( (string) ( $definition['settings']['transcript'] ?? '' ) ) && '' === (string) ( $definition['settings']['transcript_url'] ?? '' ) ) {
+					$this->add( 'VAL-144', true === Settings::get( 'display.require_transcripts' ) ? 'blocker' : 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.transcript', array(), __( 'This video lesson has no transcript. Enter the transcript as text or link in the lesson settings.', 'course-captain' ), 'settings.transcript' );
 				}
 				if ( 'video' === $type && $placeholder ) {
 					$this->add( 'VAL-027', 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.placeholder', array(), __( 'This video lesson is a placeholder and does not count for completion.', 'course-captain' ), 'settings.placeholder' );

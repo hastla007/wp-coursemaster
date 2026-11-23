@@ -24,6 +24,11 @@ defined( 'ABSPATH' ) || exit;
 final class SettingsRules {
 
 	/**
+	 * Minimum contrast of the accent colour against white (WCAG 1.4.3 AA, SET-CC-16).
+	 */
+	public const MIN_CONTRAST = 4.5;
+
+	/**
 	 * Reserved first path segments (F-02): WordPress rewrite bases and core paths.
 	 *
 	 * @var list<string>
@@ -49,6 +54,8 @@ final class SettingsRules {
 				return 'format';
 			case 'email':
 				return 'email';
+			case 'color':
+				return 'color';
 			case 'ip_list':
 				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'ip';
 			case 'enum':
@@ -95,6 +102,21 @@ final class SettingsRules {
 						$errors[ $field ] = $rule;
 					}
 				}
+			}
+		}
+		if ( 'display' === $tab ) {
+			if ( $check( 'accessibility_page_id' ) && 0 !== $candidate['accessibility_page_id'] ) {
+				$rule = self::page_rule( $actor, (int) $candidate['accessibility_page_id'] );
+				if ( null !== $rule ) {
+					$errors['accessibility_page_id'] = $rule;
+				}
+			}
+			if ( $check( 'logo_id' ) && 0 !== $candidate['logo_id'] && ! wp_attachment_is_image( (int) $candidate['logo_id'] ) ) {
+				$errors['logo_id'] = 'logo_missing';
+			}
+			// SET-CC-16 (R0-27 SET-041): white button text on the accent colour needs 4.5:1; too light colours are rejected.
+			if ( $check( 'accent_color' ) && '' !== $candidate['accent_color'] && self::contrast( (string) $candidate['accent_color'], '#ffffff' ) < self::MIN_CONTRAST ) {
+				$errors['accent_color'] = 'contrast';
 			}
 		}
 		/**
@@ -196,5 +218,36 @@ final class SettingsRules {
 			++$i;
 		}
 		return $slug;
+	}
+
+	/**
+	 * WCAG 2.x contrast ratio of two `#rrggbb` colours (1 … 21).
+	 *
+	 * @param string $a Colour A.
+	 * @param string $b Colour B.
+	 * @return float
+	 */
+	public static function contrast( string $a, string $b ): float {
+		$la = self::luminance( $a );
+		$lb = self::luminance( $b );
+		return ( max( $la, $lb ) + 0.05 ) / ( min( $la, $lb ) + 0.05 );
+	}
+
+	/**
+	 * Relative luminance of a `#rrggbb` colour.
+	 *
+	 * @param string $hex Colour.
+	 * @return float
+	 */
+	private static function luminance( string $hex ): float {
+		$hex = ltrim( $hex, '#' );
+		if ( 1 !== preg_match( '/^[0-9a-fA-F]{6}$/', $hex ) ) {
+			return 1.0;
+		}
+		$channel = static function ( string $part ): float {
+			$c = hexdec( $part ) / 255;
+			return $c <= 0.03928 ? $c / 12.92 : ( ( $c + 0.055 ) / 1.055 ) ** 2.4;
+		};
+		return 0.2126 * $channel( substr( $hex, 0, 2 ) ) + 0.7152 * $channel( substr( $hex, 2, 2 ) ) + 0.0722 * $channel( substr( $hex, 4, 2 ) );
 	}
 }
