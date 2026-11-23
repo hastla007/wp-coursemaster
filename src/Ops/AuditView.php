@@ -41,6 +41,7 @@ final class AuditView {
 			'group.owner_changed'            => array( 'groups', __( 'Group owner changed', 'course-captain' ) ),
 			'group.policy_changed'           => array( 'groups', __( 'Group invitation rule changed', 'course-captain' ) ),
 			'group.renamed'                  => array( 'groups', __( 'Group renamed', 'course-captain' ) ),
+			'progress_reset'                 => array( 'learner', __( 'Learning progress reset', 'course-captain' ) ),
 			'attempt_graded'                 => array( 'attempt', __( 'Exam attempt re-evaluated', 'course-captain' ) ),
 			'assignment_graded'              => array( 'attempt', __( 'Assignment graded', 'course-captain' ) ),
 			'assignment_regraded'            => array( 'attempt', __( 'Assignment re-graded', 'course-captain' ) ),

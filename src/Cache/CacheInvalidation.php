@@ -51,6 +51,9 @@ final class CacheInvalidation {
 			add_action( $hook, array( self::class, 'user_changed' ), 10, 1 );
 		}
 		add_filter( 'rest_post_dispatch', array( self::class, 'rest_headers' ), 99, 3 );
+		// Course/module index (GM-006): saved, trashed, restored or deleted posts.
+		add_action( 'save_post', array( StructureCache::class, 'post_changed' ), 10, 1 );
+		add_action( 'before_delete_post', array( StructureCache::class, 'post_changed' ), 10, 1 );
 	}
 
 	/**

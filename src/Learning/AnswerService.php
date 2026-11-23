@@ -79,6 +79,8 @@ final class AnswerService {
 		}
 		$correct  = $eval->correct();
 		$progress = null;
+		// GM-010: an inline question of a lesson is always answered in the lesson context.
+		$context = $claims['a'] > 0 ? 'lesson' : $context;
 		SmartTrainer::current()->rate_limit( $actor->user_id );
 		SmartTrainer::ensure_row( $this->db, $actor->user_id, (int) $claims['q'] );
 		try {
@@ -126,6 +128,9 @@ final class AnswerService {
 			}
 			// Parallel duplicate: the other request won; return its result.
 			return $this->result( $actor->user_id, (array) $this->existing( $actor->user_id, $idempotency_key ), true );
+		}
+		if ( $claims['a'] > 0 && $claims['c'] > 0 ) {
+			$this->feed_lesson_quiz( $actor->user_id, $claims['c'], $claims['a'] );
 		}
 		$row    = (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_attempt' ) . '` WHERE id = %d', $attempt ) );
 		$result = $this->result( $actor->user_id, $row, false, $eval->points_milli );
@@ -199,6 +204,45 @@ final class AnswerService {
 	 */
 	private function existing( int $user, string $key ): ?array {
 		return $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_attempt' ) . '` WHERE user_id = %d AND idempotency_key = %s', $user, $key ) );
+	}
+
+	/**
+	 * GM-010 (finding F-3): answers of a lesson quiz feed the quiz progress
+	 * (`answered`, `correct`, `total` over the published inline questions);
+	 * the completion rule of the quiz provider then completes the lesson
+	 * (monotonic, R0-08 §5.1) and the course progress recalculates.
+	 *
+	 * @param int $user      Learner.
+	 * @param int $course    Course.
+	 * @param int $lesson_id Lesson (quiz activity).
+	 * @return void
+	 */
+	private function feed_lesson_quiz( int $user, int $course, int $lesson_id ): void {
+		if ( 'quiz' !== \CourseCaptain\Activity\ActivityService::definition( $lesson_id )['type'] ) {
+			return;
+		}
+		$ids = $this->presenter->inline_questions( $lesson_id );
+		if ( array() === $ids ) {
+			return;
+		}
+		$list = implode( ',', array_map( 'intval', $ids ) );
+		$row  = (array) $this->db->row(
+			$this->db->prepare(
+				'SELECT COUNT(DISTINCT question_id) AS answered, COUNT(DISTINCT CASE WHEN is_correct = 1 THEN question_id END) AS correct FROM `' . $this->db->table( 'ccap_attempt' ) . "` WHERE user_id = %d AND context = 'lesson' AND context_ref = %s AND question_id IN ({$list})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				$user,
+				'lesson:' . $lesson_id
+			)
+		);
+		\CourseCaptain\Activity\ActivityProgress::current()->record_evidence(
+			$user,
+			$course,
+			$lesson_id,
+			array(
+				'answered' => (int) ( $row['answered'] ?? 0 ),
+				'correct'  => (int) ( $row['correct'] ?? 0 ),
+				'total'    => count( $ids ),
+			)
+		);
 	}
 
 	/**

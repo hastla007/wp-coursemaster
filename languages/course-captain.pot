@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-23T09:32:16+00:00\n"
+"POT-Creation-Date: 2026-11-23T10:07:29+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -57,7 +57,7 @@ msgid "This content is available to course participants."
 msgstr ""
 
 #: src/Admin/AuthoringRoutes.php:123
-#: src/Learner/LearnerRoutes.php:147
+#: src/Learner/LearnerRoutes.php:168
 #: src/Rest/RestContract.php:229
 msgid "Please log in."
 msgstr ""
@@ -4723,7 +4723,7 @@ msgid "Assignment returned"
 msgstr ""
 
 #: src/Notification/NotificationPrefs.php:247
-#: src/Ops/AuditView.php:45
+#: src/Ops/AuditView.php:46
 msgid "Assignment graded"
 msgstr ""
 
@@ -4849,198 +4849,202 @@ msgid "Group renamed"
 msgstr ""
 
 #: src/Ops/AuditView.php:44
+msgid "Learning progress reset"
+msgstr ""
+
+#: src/Ops/AuditView.php:45
 msgid "Exam attempt re-evaluated"
 msgstr ""
 
-#: src/Ops/AuditView.php:46
+#: src/Ops/AuditView.php:47
 msgid "Assignment re-graded"
 msgstr ""
 
-#: src/Ops/AuditView.php:47
+#: src/Ops/AuditView.php:48
 msgid "Assignment returned for revision"
 msgstr ""
 
-#: src/Ops/AuditView.php:48
+#: src/Ops/AuditView.php:49
 msgid "Assignment file opened by a grader"
 msgstr ""
 
-#: src/Ops/AuditView.php:49
+#: src/Ops/AuditView.php:50
 msgid "Settings saved"
 msgstr ""
 
-#: src/Ops/AuditView.php:50
+#: src/Ops/AuditView.php:51
 msgid "Settings reset"
 msgstr ""
 
-#: src/Ops/AuditView.php:51
+#: src/Ops/AuditView.php:52
 msgid "Setting locked for all courses"
 msgstr ""
 
-#: src/Ops/AuditView.php:52
+#: src/Ops/AuditView.php:53
 msgid "Setting lock removed"
 msgstr ""
 
-#: src/Ops/AuditView.php:53
+#: src/Ops/AuditView.php:54
 msgid "Course settings saved"
 msgstr ""
 
-#: src/Ops/AuditView.php:54
+#: src/Ops/AuditView.php:55
 msgid "Course settings reset to the defaults"
 msgstr ""
 
-#: src/Ops/AuditView.php:55
+#: src/Ops/AuditView.php:56
 msgid "Settings imported"
 msgstr ""
 
-#: src/Ops/AuditView.php:56
+#: src/Ops/AuditView.php:57
 msgid "Role permissions changed"
 msgstr ""
 
-#: src/Ops/AuditView.php:57
+#: src/Ops/AuditView.php:58
 msgid "Data request processed automatically"
 msgstr ""
 
-#: src/Ops/AuditView.php:58
+#: src/Ops/AuditView.php:59
 msgid "Event delivery replayed"
 msgstr ""
 
-#: src/Ops/AuditView.php:59
+#: src/Ops/AuditView.php:60
 msgid "Import approved"
 msgstr ""
 
-#: src/Ops/AuditView.php:60
+#: src/Ops/AuditView.php:61
 msgid "Import published"
 msgstr ""
 
-#: src/Ops/AuditView.php:61
+#: src/Ops/AuditView.php:62
 msgid "Import rollback started"
 msgstr ""
 
-#: src/Ops/AuditView.php:62
+#: src/Ops/AuditView.php:63
 msgid "Import resumed"
 msgstr ""
 
-#: src/Ops/AuditView.php:63
+#: src/Ops/AuditView.php:64
 msgid "Import resumed automatically"
 msgstr ""
 
-#: src/Ops/AuditView.php:64
+#: src/Ops/AuditView.php:65
 msgid "Import cancellation requested"
 msgstr ""
 
-#: src/Ops/AuditView.php:65
+#: src/Ops/AuditView.php:66
 msgid "Import stopped: too many failed objects"
 msgstr ""
 
-#: src/Ops/AuditView.php:66
+#: src/Ops/AuditView.php:67
 msgid "Imported course held back by the course check"
 msgstr ""
 
-#: src/Ops/AuditView.php:67
+#: src/Ops/AuditView.php:68
 msgid "Import discarded"
 msgstr ""
 
-#: src/Ops/AuditView.php:68
+#: src/Ops/AuditView.php:69
 msgid "Import report exported"
 msgstr ""
 
-#: src/Ops/AuditView.php:69
+#: src/Ops/AuditView.php:70
 msgid "Website hardening state changed"
 msgstr ""
 
-#: src/Ops/AuditView.php:70
+#: src/Ops/AuditView.php:71
 msgid "Website hardening switched off by constant"
 msgstr ""
 
-#: src/Ops/AuditView.php:71
+#: src/Ops/AuditView.php:72
 msgid "Maintenance action"
 msgstr ""
 
-#: src/Ops/AuditView.php:72
+#: src/Ops/AuditView.php:73
 msgid "Personal data erased"
 msgstr ""
 
-#: src/Ops/AuditView.php:73
+#: src/Ops/AuditView.php:74
 msgid "Retention applied"
 msgstr ""
 
-#: src/Ops/AuditView.php:74
+#: src/Ops/AuditView.php:75
 msgid "Maintenance task failed"
 msgstr ""
 
-#: src/Ops/AuditView.php:75
+#: src/Ops/AuditView.php:76
 msgid "Mail template saved"
 msgstr ""
 
-#: src/Ops/AuditView.php:76
+#: src/Ops/AuditView.php:77
 msgid "Notification opt-out changed"
 msgstr ""
 
-#: src/Ops/AuditView.php:77
+#: src/Ops/AuditView.php:78
 msgid "Notification sent again"
 msgstr ""
 
-#: src/Ops/AuditView.php:78
+#: src/Ops/AuditView.php:79
 msgid "Group invitation sent again"
 msgstr ""
 
-#: src/Ops/AuditView.php:79
+#: src/Ops/AuditView.php:80
 msgid "Held notifications released"
 msgstr ""
 
-#: src/Ops/AuditView.php:80
+#: src/Ops/AuditView.php:81
 msgid "Held notifications discarded"
 msgstr ""
 
-#: src/Ops/AuditView.php:81
+#: src/Ops/AuditView.php:82
 msgid "Course revision published"
 msgstr ""
 
-#: src/Ops/AuditView.php:82
+#: src/Ops/AuditView.php:83
 msgid "Certificate issued manually"
 msgstr ""
 
-#: src/Ops/AuditView.php:83
+#: src/Ops/AuditView.php:84
 msgid "Certificate corrected"
 msgstr ""
 
-#: src/Ops/AuditView.php:84
+#: src/Ops/AuditView.php:85
 msgid "Certificate revoked"
 msgstr ""
 
-#: src/Ops/AuditView.php:85
+#: src/Ops/AuditView.php:86
 msgid "Certificate list exported"
 msgstr ""
 
-#: src/Ops/AuditView.php:86
+#: src/Ops/AuditView.php:87
 msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
-#: src/Ops/AuditView.php:87
+#: src/Ops/AuditView.php:88
 msgid "Job retried"
 msgstr ""
 
-#: src/Ops/AuditView.php:88
+#: src/Ops/AuditView.php:89
 msgid "Dead letters discarded"
 msgstr ""
 
-#: src/Ops/AuditView.php:89
+#: src/Ops/AuditView.php:90
 msgid "Cache emptied"
 msgstr ""
 
-#: src/Ops/AuditView.php:90
+#: src/Ops/AuditView.php:91
 msgid "Diagnostics package exported"
 msgstr ""
 
-#: src/Ops/AuditView.php:91
+#: src/Ops/AuditView.php:92
 msgid "Site identity confirmed after restore, move or copy"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:145
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:145
 msgid "System"
 msgstr ""
 

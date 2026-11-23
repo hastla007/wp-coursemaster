@@ -4714,6 +4714,10 @@ msgid "Group renamed"
 msgstr "Gruppe umbenannt"
 
 #: src/Ops/AuditView.php:44
+msgid "Learning progress reset"
+msgstr "Lernfortschritt zurückgesetzt"
+
+#: src/Ops/AuditView.php:45
 msgid "Exam attempt re-evaluated"
 msgstr "Prüfungsversuch neu bewertet"
 

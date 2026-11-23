@@ -302,13 +302,104 @@ final class SmartTrainer {
 	}
 
 	/**
+	 * Targeted practice of one question (GM-074, web path of the source's
+	 * app route): the question is delivered with the normal learning token,
+	 * so the answer updates the same learning state (`ccap_question_progress`).
+	 *
+	 * Order of checks: parameters (422), course membership (404), learning
+	 * access, then the gate of the question now: partial access → 403
+	 * `ccap_content_locked`/`trial`, drip → 403 `ccap_content_locked`/`drip`.
+	 *
+	 * @param Actor                $actor     Learner.
+	 * @param int                  $course_id Course.
+	 * @param array<string, mixed> $params    `question` (required, ID), `module` (optional, ID).
+	 * @return array{question_id: int, module_id: int, reason: string, progress: array<string, mixed>, question: array<string, mixed>, token: string}
+	 * @throws CourseException 422 for missing or inconsistent parameters, 404 outside the course, 403 when locked.
+	 */
+	public function practice( Actor $actor, int $course_id, array $params ): array {
+		$question = self::positive_id( $params['question'] ?? null );
+		$module   = array_key_exists( 'module', $params ) && null !== $params['module'] && '' !== $params['module'] ? self::positive_id( $params['module'] ) : 0;
+		if ( null === $question || null === $module ) {
+			throw new CourseException( 'ccap_invalid_param', 'question', 422 );
+		}
+		$cm      = $this->db->table( 'ccap_course_module' );
+		$pool    = $this->db->table( 'ccap_module_question' );
+		$q       = $this->db->table( 'ccap_question' );
+		$rev     = $this->db->table( 'ccap_question_revision' );
+		$modules = array_map(
+			'intval',
+			$this->db->wpdb()->get_col(
+				$this->db->prepare(
+					"SELECT p.module_id FROM `{$pool}` p JOIN `{$cm}` cm ON cm.module_id = p.module_id AND cm.course_id = %d JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.question_id = %d AND q.status = 'published' AND r.question_type <> %s ORDER BY cm.sort_order, cm.module_id",
+					$course_id,
+					$question,
+					QuestionTypes::FLASHCARD
+				)
+			)
+		);
+		if ( array() === $modules ) {
+			throw new CourseException( 'ccap_not_found', 'Question not in this course.', 404 );
+		}
+		if ( $module > 0 && ! in_array( $module, $modules, true ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'module', 422 );
+		}
+		// Without `module` the first module of the course that unlocks the question wins.
+		$gate      = ContentGate::current();
+		$decision  = null;
+		$candidate = $module > 0 ? array( $module ) : $modules;
+		foreach ( $candidate as $id ) {
+			$check = $gate->question( $actor, $course_id, $id, $question );
+			if ( null === $decision || $check->allowed() ) {
+				$decision = $check;
+				$module   = $id;
+			}
+			if ( $check->allowed() ) {
+				break;
+			}
+		}
+		$decision->assert();
+		$rows     = $this->progress_rows( $actor->user_id, array( $question ) );
+		$row      = $rows[ $question ] ?? null;
+		$delivery = $this->presenter->deliver( $actor, $course_id, $module, $question );
+		return array(
+			'question_id' => $question,
+			'module_id'   => $module,
+			'reason'      => 'targeted',
+			'progress'    => array(
+				'status'   => null === $row ? 'new' : (string) $row['learn_status'],
+				'streak'   => null === $row ? 0 : (int) $row['streak'],
+				'attempts' => null === $row ? 0 : (int) $row['attempts'],
+				'due_at'   => null === $row ? null : $row['due_at'],
+			),
+			'question'    => $delivery['question'],
+			'token'       => $delivery['token'],
+		);
+	}
+
+	/**
+	 * Positive integer ID from a request value, null when invalid.
+	 *
+	 * @param mixed $value Value.
+	 * @return int|null
+	 */
+	private static function positive_id( $value ): ?int {
+		if ( is_int( $value ) ) {
+			return $value > 0 ? $value : null;
+		}
+		if ( is_string( $value ) && 1 === preg_match( '/^[1-9][0-9]{0,18}$/', $value ) ) {
+			return (int) $value;
+		}
+		return null;
+	}
+
+	/**
 	 * Stage distribution (`summaryFrom`); without answered questions the
 	 * percentages are null ("no data yet", never 0 %).
 	 *
 	 * @param Actor       $actor     Learner.
 	 * @param int         $course_id Course.
 	 * @param string|null $topic     Topic filter.
-	 * @return array{total: int, new: int, unsure: int, learning: int, secure: int, mastered: int, due: int, percent: int|null, secure_percent: int|null, topics?: array<string, array<string, int>>}
+	 * @return array{total: int, new: int, unsure: int, learning: int, secure: int, mastered: int, due: int, completed: int, percent: int|null, secure_percent: int|null, topics?: array<string, array<string, int>>}
 	 */
 	public function summary( Actor $actor, int $course_id, ?string $topic = null ): array {
 		$candidates = $this->candidates( $actor, $course_id, $topic );
@@ -339,6 +430,8 @@ final class SmartTrainer {
 			$key                      = '' === $candidate['topic'] ? '-' : $candidate['topic'];
 			$topics[ $key ][ $stage ] = ( $topics[ $key ][ $stage ] ?? 0 ) + 1;
 		}
+		// GM-075: `completed` = consolidated questions (the stage the percentage counts).
+		$out['completed']      = $out['mastered'];
 		$out['percent']        = 0 === $answered || 0 === $out['total'] ? null : (int) floor( $out['mastered'] * 100 / $out['total'] );
 		$out['secure_percent'] = 0 === $answered || 0 === $out['total'] ? null : (int) floor( $out['secure'] * 100 / $out['total'] );
 		if ( count( $topics ) >= 2 ) {
