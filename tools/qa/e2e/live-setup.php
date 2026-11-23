@@ -4,7 +4,7 @@
  *
  * Usage: php tools/qa/e2e/live-setup.php <site dir> [setup|dispatch]
  * `setup` (default, plugin active) loads the fixture, sets the fixed E2E
- * password of `cc_fx_lea` from CCAP_E2E_PASS (R0-05 §2.7: only E2E
+ * password of `cc_fx_lea` and `cc_fx_ole` from CCAP_E2E_PASS (R0-05 §2.7: only E2E
  * accounts get fixed test passwords), switches `certificates.auto_issue`
  * on and prints the IDs as JSON. `dispatch` runs the outbox once (what
  * WP-Cron does on a real site).
@@ -32,6 +32,8 @@ $ccap_dir = rtrim( $argv[1], '/' ) . '/ccap-fixture';
 wp_mkdir_p( $ccap_dir );
 $ccap_fx = NeutralFixture::load( $ccap_dir );
 wp_set_password( (string) getenv( 'CCAP_E2E_PASS' ), $ccap_fx['users']['lea'] );
+// U-L2 drives the exam room cases GM-050/GM-051 (tools/qa/e2e/exam-room.js).
+wp_set_password( (string) getenv( 'CCAP_E2E_PASS' ), $ccap_fx['users']['ole'] );
 Settings::save( Actor::user( $ccap_fx['users']['admin'] ), 'certificates', array( 'auto_issue' => true ), array( 'auto_issue' ), Settings::rev( 'certificates' ) );
 echo wp_json_encode(
 	array(

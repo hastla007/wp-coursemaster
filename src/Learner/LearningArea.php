@@ -161,7 +161,15 @@ final class LearningArea {
 			static function () use ( $actor, $path, $post ): string {
 				if ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)$#', $path, $m ) ) {
 					$status = ExamRoom::handle( $actor, (int) $m[1], $post );
-					return add_query_arg( 'ccap_status', 'submitted' === $status ? false : $status, self::url( 'pruefung/' . (int) $m[1] ) ) . ( 'submitted' === $status ? '#ccap-main' : '' );
+					if ( 'cancelled' === $status ) {
+						// GM-051: back to the course room with one message.
+						ExamRoom::flash_cancelled( $actor->user_id );
+						return self::url( 'kurs/' . ExamRoom::course_uid_of( (int) $m[1] ) ) . '#ccap-main';
+					}
+					if ( str_starts_with( $status, 'revealed:' ) ) {
+						return add_query_arg( 'ccap_status', 'revealed', self::url( 'pruefung/' . (int) $m[1] ) ) . '#ccap-q-' . (int) substr( $status, 9 );
+					}
+					return add_query_arg( 'ccap_status', 'submitted' === $status ? false : $status, self::url( 'pruefung/' . (int) $m[1] ) ) . ( in_array( $status, array( 'submitted', 'confirm_cancel' ), true ) ? '#ccap-main' : '' );
 				}
 				if ( 1 === preg_match( self::LESSON_ROUTE, $path, $m ) ) {
 					$course = LearnerQueries::current()->course_id( $m[1] );
@@ -221,7 +229,7 @@ final class LearningArea {
 				$room                 = LearnerQueries::current()->course( $actor, $course );
 				$result['title']      = $room['title'];
 				$result['title_attr'] = Locale::content_attributes( CourseStructure::course_language( $course ) );
-				$result['body']       = ( '' !== $status ? '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( $status ) ) . '</p>' : '' ) . self::course_room( $room ) . ExamRoom::course_exams( $actor, $course );
+				$result['body']       = ExamRoom::take_flash( $actor->user_id ) . ( '' !== $status ? '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( $status ) ) . '</p>' : '' ) . self::course_room( $room ) . ExamRoom::course_exams( $actor, $course );
 			} elseif ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)$#', $path, $m ) ) {
 				$exam            = ExamRoom::render( $actor, (int) $m[1], $status );
 				$result['title'] = $exam['title'];
@@ -489,7 +497,8 @@ final class LearningArea {
 			. '.ccap-exam-bar{position:sticky;inset-block-start:0;background:#fff;border-block-end:1px solid #8c8f94;padding-block:.25rem;z-index:5}.ccap-timer-line{margin:0;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}'
 			. '@media (max-height:32rem){.ccap-exam-bar{position:static}html{scroll-padding-block-start:0}}'
 			. '.ccap-lesson-nav{padding:0;display:flex;flex-wrap:wrap;gap:1rem;list-style:none}.ccap-status{border-inline-start:4px solid #00a32a;padding-inline-start:.75rem}'
-			. '.ccap-error{border-inline-start:4px solid #b32d2e;padding-inline-start:.75rem}[hidden]{display:none!important}'
+			. '.ccap-error{border-inline-start:4px solid #b32d2e;padding-inline-start:.75rem}'
+			. '.ccap-offline{position:fixed;inset-inline:0;inset-block-end:0;margin:0;padding:.75rem 1rem;background:#fcf0f1;color:#1d2327;border-block-start:4px solid #b32d2e;z-index:20}.ccap-model-answer{border-inline-start:4px solid #8c8f94;padding-inline-start:.75rem}[hidden]{display:none!important}'
 			. '@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
 			. '@media (forced-colors:active){:focus-visible{outline:3px solid CanvasText}.ccap-button{border-color:ButtonText}}';
 	}

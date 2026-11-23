@@ -260,6 +260,14 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/health",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": true
+    },
+    {
         "route": "/course-captain/v1/imports/(?P<id>\\d+)",
         "methods": [
             "GET"
@@ -371,6 +379,22 @@
     },
     {
         "route": "/course-captain/v1/me/courses",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/monitor",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": true
+    },
+    {
+        "route": "/course-captain/v1/status",
         "methods": [
             "GET"
         ],

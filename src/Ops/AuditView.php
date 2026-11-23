@@ -35,6 +35,7 @@ final class AuditView {
 		return array(
 			'grant.manual_created'           => array( 'access', __( 'Access granted manually', 'course-captain' ) ),
 			'grant.extended'                 => array( 'access', __( 'Access extended', 'course-captain' ) ),
+			'access_filter_ignored'          => array( 'access', __( 'An extension tried to grant access (ignored)', 'course-captain' ) ),
 			'group.created'                  => array( 'groups', __( 'Group created', 'course-captain' ) ),
 			'group.token_rotated'            => array( 'groups', __( 'Group invitation link renewed', 'course-captain' ) ),
 			'group.validity_changed'         => array( 'groups', __( 'Group validity changed', 'course-captain' ) ),

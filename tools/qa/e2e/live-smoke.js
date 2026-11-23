@@ -131,7 +131,7 @@ async function api( page, nonce, method, path, body ) {
 					await s.locator( 'li', { hasText: 'Antwort ' + letter + ' zu ' + key } ).locator( 'input' ).check();
 				}
 			}
-			await Promise.all( [ page.waitForNavigation(), page.click( 'button[name=ccap_do][value=save]' ) ] );
+			await Promise.all( [ page.waitForNavigation(), page.click( 'button.ccap-button[name=ccap_do][value=save]' ) ] );
 			const checked = await page.locator( 'section.ccap-question input:checked' ).count();
 			await page.reload();
 			assert( ( await page.locator( 'section.ccap-question input:checked' ).count() ) === checked && checked >= 25, 'answers kept after reload (' + checked + ')' );
@@ -139,16 +139,17 @@ async function api( page, nonce, method, path, body ) {
 			assert( ( await page.locator( 'a', { hasText: 'Continue exam' } ).count() ) === 1, 'course room offers "Continue exam" (resume, GM-027)' );
 			await page.click( 'a:has-text("Continue exam")' );
 			assert( page.url().includes( session ), 'same attempt resumed' );
-			// Open questions have no control in the exam room without JavaScript (finding R1-18 §4):
-			// the learner uses the exam API (reveal, then self-assessment).
+			// Open questions in the form (finding F-4 closed): "Show model answer", then the self-assessment.
 			for ( const position of open ) {
-				const rv = await api( page, nonce, 'POST', '/exam-sessions/' + session + '/answers/' + position + '/reveal' );
-				assert( rv.status === 200, 'reveal ' + rv.status );
-				const sv = await api( page, nonce, 'PUT', '/exam-sessions/' + session + '/answers/' + position, { answer: { known: true } } );
-				assert( sv.status === 200, 'open answer ' + sv.status + ' ' + JSON.stringify( sv.data ) );
+				await Promise.all( [ page.waitForNavigation(), page.click( 'button[name=ccap_reveal][value="' + position + '"]' ) ] );
+				assert( ( await page.locator( '#ccap-q-' + position + ' .ccap-model-answer' ).count() ) === 1, 'model answer shown for ' + position );
+				await page.check( '#ccap-q-' + position + '-known-1' );
+				await Promise.all( [ page.waitForNavigation(), page.click( 'button.ccap-button[name=ccap_do][value=save]' ) ] );
 			}
+			const state = await api( page, nonce, 'GET', '/exam-sessions/' + session );
+			assert( state.data.questions.every( ( q ) => q.answered ), 'all 30 questions answered: ' + state.data.questions.filter( ( q ) => ! q.answered ).map( ( q ) => q.position ).join( ',' ) );
 			await page.check( '#ccap-confirm' );
-			await Promise.all( [ page.waitForNavigation(), page.click( 'button[name=ccap_do][value=submit]' ) ] );
+			await Promise.all( [ page.waitForNavigation(), page.click( 'button.ccap-button[name=ccap_do][value=submit]' ) ] );
 			const result = await page.locator( 'main h2' ).allInnerTexts();
 			assert( result.includes( 'Passed' ), 'result page says Passed: ' + JSON.stringify( result ) );
 		} );

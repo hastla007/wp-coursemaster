@@ -570,10 +570,12 @@ final class ExamTest extends SchemaTestCase {
 		self::assertSame( array( 'A' ), $first['correct_ids'] );
 		self::assertStringNotContainsString( 'explanation', (string) wp_json_encode( $first ), 'E-20' );
 
-		$again = $answers->answer( $learner, $token, array( 'B' ), $key );
+		$again = $answers->answer( $learner, $token, array( 'A' ), $key );
 		self::assertTrue( $again['repeated'], 'double submit counts once' );
-		self::assertTrue( $again['correct'], 'stored result, not the new input' );
+		self::assertTrue( $again['correct'], 'stored result' );
 		self::assertSame( 1, $again['attempts'] );
+		// Same key with another answer is a conflict, never a second evaluation (R0-19 §2.1, GM-150, GM-061).
+		$this->assertRejected( fn() => $answers->answer( $learner, $token, array( 'B' ), $key ), 'ccap_idempotency_conflict' );
 
 		$wrong = $answers->answer( $learner, $token, array( 'B' ), wp_generate_uuid4() );
 		self::assertFalse( $wrong['correct'] );

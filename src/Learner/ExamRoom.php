@@ -29,7 +29,15 @@ defined( 'ABSPATH' ) || exit;
  * - save status in the same region, errors as `alert` (K-05, A11Y-025);
  * - question navigation lists the state as text (A11Y-007);
  * - submit needs a confirmation naming open and flagged questions (A11Y-074);
- * - expiry is announced as alert on the result (A11Y-073).
+ * - expiry is announced as alert on the result (A11Y-073);
+ * - open questions: "Show model answer" is a submit button, the
+ *   self-assessment two radio buttons (no JavaScript needed, R1-18 F-4);
+ * - cancelling asks on a page of its own and returns to the course room
+ *   with one message (GM-051).
+ * With JavaScript, `assets/js/exam-room.js` saves each change at once and
+ * buffers it in localStorage (key = session UID) while offline; the buffer
+ * is re-sent with its age (`age_ms`) and removed after the server confirmed
+ * it, after submission and on the result page (GM-050, R0-17 T-04, PRIV-018).
  * The server stays authoritative for the time (R0-08 §4.3).
  */
 final class ExamRoom {
@@ -41,7 +49,10 @@ final class ExamRoom {
 	 *
 	 * @var list<string>
 	 */
-	private const SUPPORTED = array( QuestionTypes::SINGLE, QuestionTypes::TRUE_FALSE, QuestionTypes::MULTI, QuestionTypes::NUMERIC, QuestionTypes::MATCHING );
+	private const SUPPORTED = array( QuestionTypes::SINGLE, QuestionTypes::TRUE_FALSE, QuestionTypes::MULTI, QuestionTypes::NUMERIC, QuestionTypes::MATCHING, QuestionTypes::OPEN_TEXT );
+
+	/** Transient prefix of the one-time course room message (GM-051). */
+	public const FLASH = 'ccap_flash_';
 
 	/**
 	 * Announcement thresholds in seconds (A11Y-071).
@@ -62,10 +73,18 @@ final class ExamRoom {
 	public static function render( Actor $actor, int $session, string $status = '' ): array {
 		$view = ExamSessions::current()->view( $actor, $session );
 		$lang = self::content_language( $session );
+		$uid  = self::session_uid( $session );
 		if ( 'in_progress' !== $view['status'] ) {
+			// PRIV-018: no exam buffer survives the end of the attempt.
 			return array(
 				'title' => __( 'Exam result', 'course-captain' ),
-				'body'  => self::result( $view, self::end_reason( $session ) ),
+				'body'  => self::result( $view, self::end_reason( $session ) ) . wp_get_inline_script_tag( 'try{window.localStorage.removeItem(' . wp_json_encode( 'ccap_exam_' . $uid ) . ');}catch(e){}' ),
+			);
+		}
+		if ( 'confirm_cancel' === $status ) {
+			return array(
+				'title' => __( 'Cancel the exam?', 'course-captain' ),
+				'body'  => self::cancel_dialog( $session ),
 			);
 		}
 		$items = (array) $view['questions'];
@@ -90,9 +109,14 @@ final class ExamRoom {
 			/* translators: %s: remaining time as clock value, e.g. 12:30 */
 			$html .= ' <button type="button" class="ccap-button ccap-timer-announce" id="ccap-timer-announce" hidden data-label="' . esc_attr__( 'Remaining time: %s', 'course-captain' ) . '">' . esc_html__( 'Announce remaining time', 'course-captain' ) . '</button></p>';
 		}
-		$html .= '<div id="ccap-exam-live" class="ccap-live" role="status" aria-live="polite">' . ( 'saved' === $status ? esc_html__( 'Your answers have been saved.', 'course-captain' ) : '' ) . '</div>';
+		$notes = array(
+			'saved'    => __( 'Your answers have been saved.', 'course-captain' ),
+			'revealed' => __( 'The model answer is shown. Please assess your answer.', 'course-captain' ),
+		);
+		$html .= '<div id="ccap-exam-live" class="ccap-live" role="status" aria-live="polite">' . esc_html( $notes[ $status ] ?? '' ) . '</div>';
 		$html .= '</div>';
-		if ( '' !== $status && 'saved' !== $status ) {
+		$html .= '<p id="ccap-offline" class="ccap-offline" hidden>' . esc_html__( 'No connection. Your answers are kept on this device and sent as soon as the connection is back.', 'course-captain' ) . '</p>';
+		if ( '' !== $status && ! isset( $notes[ $status ] ) ) {
 			$html .= '<p class="ccap-error" role="alert">' . esc_html( 'confirm_required' === $status ? __( 'Please confirm that you want to submit the exam.', 'course-captain' ) : RestContract::user_message( $status ) ) . '</p>';
 		}
 
@@ -118,17 +142,22 @@ final class ExamRoom {
 		}
 		$html .= $nav . '</ol></nav>';
 
-		$html .= '<form method="post" class="ccap-exam-form" action="' . esc_url( LearningArea::url( 'pruefung/' . $session ) ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false );
+		$html .= '<form method="post" class="ccap-exam-form" action="' . esc_url( LearningArea::url( 'pruefung/' . $session ) ) . '" data-ccap-session="' . esc_attr( $uid ) . '" data-ccap-rest="' . esc_url( rest_url( RestContract::NAMESPACE . '/exam-sessions/' . $session . '/answers/' ) ) . '" data-ccap-nonce="' . esc_attr( wp_create_nonce( 'wp_rest' ) ) . '" data-ccap-synced="' . esc_attr__( 'Connection is back. All answers have been sent.', 'course-captain' ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false );
+		// Implicit submission (Enter in a field) saves; it must never reveal a model answer or cancel.
+		$html .= '<button type="submit" class="screen-reader-text" name="ccap_do" value="save" tabindex="-1" aria-hidden="true">' . esc_html__( 'Save answers', 'course-captain' ) . '</button>';
 		foreach ( $items as $item ) {
 			$html .= self::question( $item, $total, $lang );
 		}
 		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="save">' . esc_html__( 'Save answers', 'course-captain' ) . '</button></p>';
 		$html .= '<section class="ccap-submit" aria-labelledby="ccap-submit-heading"><h2 id="ccap-submit-heading">' . esc_html__( 'Submit the exam', 'course-captain' ) . '</h2><p id="ccap-submit-summary">' . esc_html( self::summary( $open, $flagged ) ) . '</p>';
 		$html .= '<p><input type="checkbox" id="ccap-confirm" name="confirm" value="1" aria-describedby="ccap-submit-summary"> <label for="ccap-confirm">' . esc_html__( 'I want to submit my answers now. I cannot change them afterwards.', 'course-captain' ) . '</label></p>';
-		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="submit">' . esc_html__( 'Submit exam', 'course-captain' ) . '</button></p></section></form>';
+		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="submit">' . esc_html__( 'Submit exam', 'course-captain' ) . '</button></p></section>';
+		$html .= '<section class="ccap-cancel" aria-labelledby="ccap-cancel-heading"><h2 id="ccap-cancel-heading">' . esc_html__( 'Cancel the exam', 'course-captain' ) . '</h2><p id="ccap-cancel-hint">' . esc_html__( 'A cancelled attempt is not evaluated. You will be asked to confirm.', 'course-captain' ) . '</p>';
+		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="cancel" aria-describedby="ccap-cancel-hint">' . esc_html__( 'Cancel exam', 'course-captain' ) . '</button></p></section></form>';
 		if ( null !== $view['remaining_seconds'] ) {
 			$html .= wp_get_inline_script_tag( self::script() );
 		}
+		wp_enqueue_script( 'ccap-exam-room', plugins_url( 'assets/js/exam-room.js', COURSE_CAPTAIN_FILE ), array(), COURSE_CAPTAIN_VERSION, true );
 		return array(
 			'title' => __( 'Exam', 'course-captain' ),
 			'body'  => $html,
@@ -141,7 +170,8 @@ final class ExamRoom {
 	 * @param Actor                $actor   Learner.
 	 * @param int                  $session Session.
 	 * @param array<string, mixed> $post    Unslashed POST data.
-	 * @return string `saved`, `submitted`, `confirm_required` or an error code.
+	 * @return string `saved`, `submitted`, `confirm_required`, `revealed:<position>`,
+	 *                `confirm_cancel`, `cancelled` or an error code.
 	 */
 	public static function handle( Actor $actor, int $session, array $post ): string {
 		if ( false === wp_verify_nonce( (string) ( $post['_wpnonce'] ?? '' ), self::NONCE ) ) {
@@ -149,6 +179,11 @@ final class ExamRoom {
 		}
 		$sessions = ExamSessions::current();
 		try {
+			if ( 'cancel_confirmed' === ( $post['ccap_do'] ?? '' ) ) {
+				// Confirmation page (GM-051): no answer fields; never touch the stored answers.
+				$sessions->cancel( $actor, $session );
+				return 'cancelled';
+			}
 			$view    = $sessions->view( $actor, $session );
 			$answers = is_array( $post['answer'] ?? null ) ? $post['answer'] : array();
 			$flags   = is_array( $post['flag'] ?? null ) ? $post['flag'] : array();
@@ -161,7 +196,9 @@ final class ExamRoom {
 				if ( in_array( $type, self::SUPPORTED, true ) ) {
 					$given  = self::normalize( $type, $answers[ $position ] ?? null );
 					$stored = self::normalize( $type, $item['answer'] );
-					if ( $stored !== $given ) {
+					// Open questions: only after "Show model answer" and with a chosen self-assessment.
+					$skip = QuestionTypes::OPEN_TEXT === $type && ( null === $given || empty( $item['revealed'] ) );
+					if ( ! $skip && $stored !== $given ) {
 						$sessions->save_answer( $actor, $session, $position, $given );
 					}
 				}
@@ -169,6 +206,14 @@ final class ExamRoom {
 				if ( $flag !== (bool) $item['flagged'] ) {
 					$sessions->flag( $actor, $session, $position, $flag );
 				}
+			}
+			$reveal = (int) ( $post['ccap_reveal'] ?? 0 );
+			if ( $reveal > 0 ) {
+				$sessions->reveal( $actor, $session, $reveal );
+				return 'revealed:' . $reveal;
+			}
+			if ( 'cancel' === ( $post['ccap_do'] ?? '' ) ) {
+				return 'confirm_cancel';
 			}
 			if ( 'submit' === ( $post['ccap_do'] ?? '' ) ) {
 				if ( empty( $post['confirm'] ) ) {
@@ -207,6 +252,12 @@ final class ExamRoom {
 				return $map;
 			case QuestionTypes::NUMERIC:
 				return trim( str_replace( ',', '.', is_scalar( $answer ) ? (string) $answer : '' ) );
+			case QuestionTypes::OPEN_TEXT:
+				// Self-assessment {known: bool}; posted as "1"/"0", stored as JSON boolean.
+				if ( ! is_array( $answer ) || ! array_key_exists( 'known', $answer ) || ! in_array( $answer['known'], array( true, false, '1', '0', 1, 0 ), true ) ) {
+					return null;
+				}
+				return array( 'known' => in_array( $answer['known'], array( true, '1', 1 ), true ) );
 			default:
 				return is_scalar( $answer ) ? (string) $answer : '';
 		}
@@ -231,8 +282,9 @@ final class ExamRoom {
 			QuestionTypes::MULTI      => __( 'Choose one or more answers.', 'course-captain' ),
 			QuestionTypes::NUMERIC    => __( 'Enter a number.', 'course-captain' ),
 			QuestionTypes::MATCHING   => __( 'Match each item.', 'course-captain' ),
+			QuestionTypes::OPEN_TEXT  => __( 'Answer in your mind, then compare with the model answer.', 'course-captain' ),
 		);
-		$html     = '<section class="ccap-question" id="' . $id . '" tabindex="-1">';
+		$html     = '<section class="ccap-question" id="' . $id . '" tabindex="-1" data-ccap-position="' . $position . '" data-ccap-type="' . esc_attr( $type ) . '">';
 		$html    .= '<fieldset aria-labelledby="' . $id . '-legend ' . $id . '-text"><legend id="' . $id . '-legend">' . esc_html(
 			sprintf(
 				/* translators: 1: question number, 2: number of questions */
@@ -281,6 +333,24 @@ final class ExamRoom {
 					$html .= '</select></li>';
 				}
 				$html .= '</ul>';
+				break;
+			case QuestionTypes::OPEN_TEXT:
+				if ( empty( $item['revealed'] ) ) {
+					$html .= '<p><button type="submit" class="ccap-button" name="ccap_reveal" value="' . $position . '">' . esc_html__( 'Show model answer', 'course-captain' ) . '</button></p>';
+					break;
+				}
+				$known  = is_array( $answer ) && array_key_exists( 'known', $answer ) ? (bool) $answer['known'] : null;
+				$html  .= '<div class="ccap-model-answer" id="' . $id . '-model"><p><strong>' . esc_html__( 'Model answer:', 'course-captain' ) . '</strong></p><div' . $content . '>' . wp_kses_post( (string) ( $item['model_answer'] ?? '' ) ) . '</div></div>';
+				$html  .= '<fieldset class="ccap-self" aria-describedby="' . $id . '-model"><legend>' . esc_html__( 'Did you know the answer?', 'course-captain' ) . '</legend><ul class="ccap-options">';
+				$choice = array(
+					'1' => __( 'Yes, I knew it', 'course-captain' ),
+					'0' => __( 'No, I did not know it', 'course-captain' ),
+				);
+				foreach ( $choice as $value => $label ) {
+					$oid   = $id . '-known-' . $value;
+					$html .= '<li><input type="radio" id="' . $oid . '" name="' . esc_attr( $name . '[known]' ) . '" value="' . $value . '"' . checked( null !== $known && ( '1' === (string) $value ) === $known, true, false ) . '> <label for="' . $oid . '">' . esc_html( $label ) . '</label></li>';
+				}
+				$html .= '</ul></fieldset>';
 				break;
 			default:
 				$html .= '<p class="ccap-hint">' . esc_html__( 'This question type cannot be answered in this view yet. You can still submit the exam; the question counts as unanswered.', 'course-captain' ) . '</p>';
@@ -376,6 +446,66 @@ final class ExamRoom {
 		$m       = intdiv( $seconds % 3600, 60 );
 		$s       = $seconds % 60;
 		return $h > 0 ? sprintf( '%d:%02d:%02d', $h, $m, $s ) : sprintf( '%d:%02d', $m, $s );
+	}
+
+	/**
+	 * Confirmation page before cancelling (GM-051): question, consequence,
+	 * "Yes, cancel" (POST) and "No, continue" (back to the exam).
+	 *
+	 * @param int $session Session.
+	 * @return string
+	 */
+	private static function cancel_dialog( int $session ): string {
+		$url = LearningArea::url( 'pruefung/' . $session );
+		return '<section class="ccap-confirm-cancel" aria-labelledby="ccap-confirm-cancel-text"><p id="ccap-confirm-cancel-text" role="alert">' . esc_html__( 'Do you really want to cancel the exam? The attempt is not evaluated and cannot be continued. Your answers so far are kept.', 'course-captain' ) . '</p>'
+			. '<form method="post" action="' . esc_url( $url ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false ) . '<p><button type="submit" class="ccap-button" name="ccap_do" value="cancel_confirmed">' . esc_html__( 'Yes, cancel the exam', 'course-captain' ) . '</button> '
+			. '<a class="ccap-button" href="' . esc_url( $url ) . '">' . esc_html__( 'No, continue the exam', 'course-captain' ) . '</a></p></form></section>';
+	}
+
+	/**
+	 * Remember the one-time course room message after a cancel (GM-051).
+	 *
+	 * @param int $user User.
+	 * @return void
+	 */
+	public static function flash_cancelled( int $user ): void {
+		set_transient( self::FLASH . $user, 'exam_cancelled', 10 * MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * One-time course room message (read once, then removed).
+	 *
+	 * @param int $user User.
+	 * @return string HTML ('' = none).
+	 */
+	public static function take_flash( int $user ): string {
+		if ( $user <= 0 || 'exam_cancelled' !== get_transient( self::FLASH . $user ) ) {
+			return '';
+		}
+		delete_transient( self::FLASH . $user );
+		return '<p class="ccap-status ccap-flash" role="status">' . esc_html__( 'The exam was cancelled. The attempt was not evaluated.', 'course-captain' ) . '</p>';
+	}
+
+	/**
+	 * Course UID of a session (ownership checked by the caller).
+	 *
+	 * @param int $session Session.
+	 * @return string
+	 */
+	public static function course_uid_of( int $session ): string {
+		$db = Database::current();
+		return LearningArea::course_uid( (int) $db->scalar( $db->prepare( 'SELECT course_id FROM `' . $db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) ) );
+	}
+
+	/**
+	 * UID of a session (key of the client buffer, R0-17 T-04).
+	 *
+	 * @param int $session Session (ownership checked by the caller).
+	 * @return string
+	 */
+	private static function session_uid( int $session ): string {
+		$db = Database::current();
+		return (string) $db->scalar( $db->prepare( 'SELECT uid FROM `' . $db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
 	}
 
 	/**

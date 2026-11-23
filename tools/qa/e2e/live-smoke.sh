@@ -3,7 +3,8 @@
 # vendor/roots/wordpress-no-content, the plugin from this working tree,
 # `cc-fixture-neutral-v1` loaded, served by `php -S`, driven by Chromium
 # (Playwright): learner logs in → My learning → course → lesson → quiz
-# answer → exam start/answer/reload/submit → certificate verified as guest.
+# answer → exam start/answer/reload/submit → certificate verified as guest;
+# then the exam room cases GM-050/GM-051 (exam-room.js, learner U-L2).
 #
 # Usage: tools/qa/e2e/live-smoke.sh [db_name]
 # The site uses the table prefix `ccape2e_` inside the given test database
@@ -47,5 +48,7 @@ SERVER=$!
 for _ in $(seq 1 50); do curl -s -o /dev/null "$URL/wp-login.php" && break; sleep 0.2; done
 CCAP_E2E_URL="$URL" CCAP_E2E_SETUP="$SETUP" CCAP_E2E_DISPATCH="php $ROOT/tools/qa/e2e/live-setup.php $SITE dispatch" \
 	node "$ROOT/tools/qa/e2e/live-smoke.js"
+# Exam room in the browser: offline buffer (GM-050), abort dialog (GM-051), open questions without the API (F-4).
+CCAP_E2E_URL="$URL" CCAP_E2E_SETUP="$SETUP" node "$ROOT/tools/qa/e2e/exam-room.js"
 if grep -qE "PHP (Fatal|Warning|Notice|Deprecated)" "$SITE/server.log"; then echo "FAIL: PHP messages in the server log"; grep -E "PHP (Fatal|Warning|Notice|Deprecated)" "$SITE/server.log" | head -20; exit 1; fi
 echo "live-smoke: OK"

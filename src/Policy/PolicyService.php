@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Policy;
 
+use CourseCaptain\Course\ObjectIdentity;
+use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -100,6 +102,13 @@ final class PolicyService {
 	 * @var self|null
 	 */
 	private static ?self $instance = null;
+
+	/**
+	 * Ignored widenings of `course_captain_can_access` already audited in this request.
+	 *
+	 * @var array<string, true>
+	 */
+	private static array $widening_logged = array();
 
 	/**
 	 * Constructor.
@@ -270,16 +279,58 @@ final class PolicyService {
 		}
 		$gate = $this->learner_gate( $user );
 		if ( null !== $gate ) {
-			return $gate;
+			return $this->filtered( $user, $course, $scope, $gate );
 		}
 		if ( 0 !== $module && ! in_array( $course, $this->relations->courses_of_module( $module ), true ) ) {
 			return Decision::not_found();
 		}
 		$access = $this->relations->effective_access( $user, $course, $module, $scope );
 		if ( 'ok' !== $access ) {
-			return Decision::deny( Decision::CONTENT_LOCKED, $access );
+			return $this->filtered( $user, $course, $scope, Decision::deny( Decision::CONTENT_LOCKED, $access ) );
 		}
-		return Decision::allow( array( 'read' ) );
+		return $this->filtered( $user, $course, $scope, Decision::allow( array( 'read' ) ) );
+	}
+
+	/**
+	 * Public filter `course_captain_can_access` on every M-02 decision
+	 * (R0-19 §4.3, LB "user owns course", GM-093). It may only restrict:
+	 * `false` turns an allowed decision into `ccap_content_locked`
+	 * (reason `filtered`); `true` on a denied decision is ignored and
+	 * audited once per request (E-84).
+	 *
+	 * @param int      $user     User (0 = guest).
+	 * @param int      $course   Course.
+	 * @param string   $scope    view|download|exam.
+	 * @param Decision $decision Decision before the filter.
+	 * @return Decision
+	 */
+	private function filtered( int $user, int $course, string $scope, Decision $decision ): Decision {
+		if ( ! has_filter( 'course_captain_can_access' ) ) {
+			return $decision;
+		}
+		$uid = (string) ( new ObjectIdentity( Database::current() ) )->uid_of( 'course', $course );
+		/**
+		 * Restrict learning access to a course (only restrictive, E-84).
+		 *
+		 * @since 1.0.0
+		 * @param bool     $allowed  Decision of Course Captain (grants, lock, login).
+		 * @param int      $user_id  User (0 = guest).
+		 * @param string   $course   Course UID.
+		 * @param string   $scope    view|download|exam.
+		 * @param Decision $decision Full decision (code, reason).
+		 */
+		$allowed = (bool) apply_filters( 'course_captain_can_access', $decision->allowed, $user, $uid, $scope, $decision );
+		if ( $decision->allowed && ! $allowed ) {
+			return Decision::deny( Decision::CONTENT_LOCKED, 'filtered' );
+		}
+		if ( ! $decision->allowed && $allowed ) {
+			$key = $user . ':' . $course . ':' . $scope;
+			if ( ! isset( self::$widening_logged[ $key ] ) ) {
+				self::$widening_logged[ $key ] = true;
+				AuditLog::write( Database::current(), Actor::user( $user ), 'access_filter_ignored', 'course', (string) $course, 'only_restrictive', array( 'scope' => $scope ), $user > 0 ? $user : null );
+			}
+		}
+		return $decision;
 	}
 
 	/**
