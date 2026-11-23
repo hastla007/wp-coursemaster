@@ -249,6 +249,66 @@ final class ActivityTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-209 (E-70, A-06): `PUT progress` over REST. A late request with an
+	 * older state after a newer one never moves the state back; `completed`
+	 * can only be taken back by the learner for `manual_confirm`
+	 * (`unconfirm`), an evidence-based completion (`downloaded`) never.
+	 *
+	 * @group R1-18
+	 * @group GM-209
+	 */
+	public function test_GM_209_progress_monotonic_over_rest(): void {
+		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.
+		$admin  = Actor::user( $this->admin );
+		$manual = $this->post( 'ccap_lesson', $this->module );
+		ActivityService::current()->define( $admin, $manual, 'lesson', array(), array( 'type' => 'manual_confirm' ) );
+		$file = $this->post( 'ccap_lesson', $this->module );
+		ActivityService::current()->define( $admin, $file, 'file', array( 'media_uid' => wp_generate_uuid4() ), array( 'type' => 'downloaded' ) );
+		$put      = function ( int $lesson, string $kind, array $payload = array() ): \WP_REST_Response {
+			$request = new \WP_REST_Request( 'PUT', '/course-captain/v1/courses/' . $this->course . '/lessons/' . $lesson . '/progress' );
+			$request->set_param( 'kind', $kind );
+			$request->set_param( 'payload', $payload );
+			return rest_do_request( $request );
+		};
+		$progress = ActivityProgress::current();
+		wp_set_current_user( $this->learner );
+
+		self::assertSame( 200, $put( $manual, 'position', array( 'position_seconds' => 60 ) )->get_status() );
+		$done = $put( $manual, 'confirm' );
+		self::assertSame( 200, $done->get_status() );
+		self::assertSame( 'completed', $done->get_data()['status'] );
+		$completed_at = $progress->state( $this->learner, $manual )['completed_at'];
+		self::assertNotNull( $completed_at );
+
+		// Late request carrying the older state (position 10, nothing confirmed yet).
+		$late = $put( $manual, 'position', array( 'position_seconds' => 10 ) );
+		self::assertSame( 200, $late->get_status() );
+		self::assertSame( 'completed', $late->get_data()['status'], 'state never goes back' );
+		self::assertSame( 'manual_confirm', $late->get_data()['reason_code'] );
+		self::assertSame( $completed_at, $progress->state( $this->learner, $manual )['completed_at'] );
+
+		// The learner takes back the own manual confirmation.
+		$back = $put( $manual, 'unconfirm' );
+		self::assertSame( 200, $back->get_status() );
+		self::assertSame( 'started', $back->get_data()['status'] );
+		self::assertNull( $back->get_data()['completed_at'] );
+		self::assertNull( $back->get_data()['content_hash'] );
+		self::assertSame( 'started', $put( $manual, 'unconfirm' )->get_data()['status'], 'repeat changes nothing' );
+		self::assertSame( 'completed', $put( $manual, 'confirm' )->get_data()['status'], 'confirm again' );
+
+		// Evidence-based completion stays.
+		self::assertSame( 'completed', $put( $file, 'download' )->get_data()['status'] );
+		$denied = $put( $file, 'unconfirm' );
+		self::assertSame( 422, $denied->get_status() );
+		self::assertSame( 'ccap_validation_failed', $denied->as_error()->get_error_code() );
+		$state = $progress->state( $this->learner, $file );
+		self::assertSame( 'completed', $state['status'] );
+		self::assertSame( 'downloaded', $state['reason_code'] );
+		self::assertNotNull( $state['completed_at'] );
+		self::assertSame( 'completed', $put( $file, 'position', array( 'position_seconds' => 0 ) )->get_data()['status'] );
+	}
+
+	/**
 	 * GM-007: lesson quiz delivered without solution; evaluation through the token.
 	 *
 	 * @group GM-007

@@ -68,13 +68,15 @@ final class AnswerService {
 	 * @param string $idempotency_key Client UUID.
 	 * @param string $context         learn|lesson|review.
 	 * @return array{correct: bool, points_milli: int, repeated: bool, attempts: int, correct_ids?: list<string>, streak_counted?: bool|null, progress?: array<string, mixed>}
-	 * @throws CourseException `ccap_invalid_answer` for invalid or empty input.
+	 * @throws CourseException `ccap_invalid_answer` for invalid or empty input,
+	 *                         `ccap_idempotency_key_required` (428) without a UUID key.
 	 * @throws \Throwable StorageException on non-duplicate storage errors and any other error
 	 *                    while storing (the key is released and the error rethrown).
 	 */
 	public function answer( Actor $actor, string $token, $answer, string $idempotency_key, string $context = 'learn' ): array {
 		if ( 1 !== preg_match( '/^[0-9a-f-]{36}$/', $idempotency_key ) ) {
-			throw new CourseException( 'ccap_invalid_param', 'Invalid idempotency key.', 400 );
+			// R0-19 R-08 / §8: the key is mandatory (P); missing or not a UUID → 428 (GM-150).
+			throw new CourseException( 'ccap_idempotency_key_required', 'Idempotency key required.', 428 );
 		}
 		$claims = $this->presenter->verify( $actor, $token );
 		$hash   = hash( 'sha256', $token . "\n" . wp_json_encode( $answer ) );

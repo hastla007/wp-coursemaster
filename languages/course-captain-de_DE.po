@@ -8,7 +8,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
-"PO-Revision-Date: 2026-11-23T12:32:42+00:00\n"
+"PO-Revision-Date: 2026-11-23T13:01:32+00:00\n"
 "Language: de_DE\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
@@ -60,7 +60,7 @@ msgstr "Dieser Inhalt steht Kursteilnehmenden zur Verfügung."
 #: src/Admin/AuthoringRoutes.php:123
 #: src/Learner/LearnerRoutes.php:186
 #: src/Ops/Monitor.php:144
-#: src/Rest/RestContract.php:232
+#: src/Rest/RestContract.php:233
 msgid "Please log in."
 msgstr "Bitte melde dich an."
 
@@ -1103,7 +1103,7 @@ msgstr "Ausblenden"
 
 #: src/Admin/Notices.php:148
 #: src/Ops/OpsStatus.php:151
-#: src/Rest/RestContract.php:222
+#: src/Rest/RestContract.php:223
 msgid "Error"
 msgstr "Fehler"
 
@@ -4230,7 +4230,7 @@ msgid "The time is up. Your answers have been submitted."
 msgstr "Die Zeit ist abgelaufen. Deine Antworten wurden abgegeben."
 
 #: src/Learner/ExamRoom.php:398
-#: src/Rest/RestContract.php:252
+#: src/Rest/RestContract.php:254
 msgid "This attempt was cancelled."
 msgstr "Dieser Versuch wurde abgebrochen."
 
@@ -5613,12 +5613,12 @@ msgid "%1$s %2$s is active and compatible. A connector is needed for a data exch
 msgstr "%1$s %2$s ist aktiv und kompatibel. Für einen Datenaustausch wird ein Connector benötigt; es ist keiner installiert."
 
 #: src/Ops/Monitor.php:146
-#: src/Rest/RestContract.php:233
+#: src/Rest/RestContract.php:234
 msgid "You are not allowed to do this."
 msgstr "Du darfst das nicht tun."
 
 #: src/Ops/Monitor.php:193
-#: src/Rest/RestContract.php:244
+#: src/Rest/RestContract.php:246
 msgid "Too many requests. Please wait a moment."
 msgstr "Zu viele Anfragen. Bitte warte einen Moment."
 
@@ -6403,216 +6403,224 @@ msgid "Invalid link or token"
 msgstr "Ungültiger Link oder Token"
 
 #: src/Rest/RestContract.php:199
+msgid "Request key missing"
+msgstr "Anfrageschlüssel fehlt"
+
+#: src/Rest/RestContract.php:200
 msgid "Request conflict"
 msgstr "Anfragekonflikt"
 
-#: src/Rest/RestContract.php:200
+#: src/Rest/RestContract.php:201
 msgid "Still in progress"
 msgstr "Wird noch bearbeitet"
 
-#: src/Rest/RestContract.php:201
-#: src/Rest/RestContract.php:213
+#: src/Rest/RestContract.php:202
+#: src/Rest/RestContract.php:214
 msgid "Changed in the meantime"
 msgstr "Inzwischen geändert"
 
-#: src/Rest/RestContract.php:202
+#: src/Rest/RestContract.php:203
 msgid "Too many requests"
 msgstr "Zu viele Anfragen"
 
-#: src/Rest/RestContract.php:203
+#: src/Rest/RestContract.php:204
 msgid "Maintenance"
 msgstr "Wartung"
 
-#: src/Rest/RestContract.php:204
+#: src/Rest/RestContract.php:205
 msgid "Temporarily unavailable"
 msgstr "Vorübergehend nicht verfügbar"
 
-#: src/Rest/RestContract.php:205
+#: src/Rest/RestContract.php:206
 msgid "Exam cannot start"
 msgstr "Prüfung kann nicht starten"
 
-#: src/Rest/RestContract.php:206
+#: src/Rest/RestContract.php:207
 msgid "Exam is starting"
 msgstr "Prüfung wird gestartet"
 
-#: src/Rest/RestContract.php:207
+#: src/Rest/RestContract.php:208
 msgid "No attempts left"
 msgstr "Keine Versuche mehr"
 
-#: src/Rest/RestContract.php:208
+#: src/Rest/RestContract.php:209
 msgid "Time is over"
 msgstr "Zeit abgelaufen"
 
-#: src/Rest/RestContract.php:209
+#: src/Rest/RestContract.php:210
 msgid "Already submitted"
 msgstr "Bereits abgegeben"
 
-#: src/Rest/RestContract.php:210
+#: src/Rest/RestContract.php:211
 msgid "Attempt cancelled"
 msgstr "Versuch abgebrochen"
 
-#: src/Rest/RestContract.php:211
+#: src/Rest/RestContract.php:212
 msgid "Answer locked"
 msgstr "Antwort gesperrt"
 
-#: src/Rest/RestContract.php:212
+#: src/Rest/RestContract.php:213
 msgid "Invalid answer"
 msgstr "Ungültige Antwort"
 
-#: src/Rest/RestContract.php:214
+#: src/Rest/RestContract.php:215
 msgid "Cannot be changed"
 msgstr "Kann nicht geändert werden"
 
-#: src/Rest/RestContract.php:215
+#: src/Rest/RestContract.php:216
 msgid "Submission incomplete"
 msgstr "Einreichung unvollständig"
 
-#: src/Rest/RestContract.php:216
+#: src/Rest/RestContract.php:217
 msgid "File not accepted"
 msgstr "Datei nicht akzeptiert"
 
-#: src/Rest/RestContract.php:217
+#: src/Rest/RestContract.php:218
 msgid "Check the grading"
 msgstr "Prüfe die Bewertung"
 
-#: src/Rest/RestContract.php:218
+#: src/Rest/RestContract.php:219
 msgid "Export not ready"
 msgstr "Export noch nicht bereit"
 
-#: src/Rest/RestContract.php:219
+#: src/Rest/RestContract.php:220
 msgid "Download expired"
 msgstr "Download abgelaufen"
 
-#: src/Rest/RestContract.php:220
+#: src/Rest/RestContract.php:221
 msgid "Export failed"
 msgstr "Export fehlgeschlagen"
 
-#: src/Rest/RestContract.php:234
+#: src/Rest/RestContract.php:235
 msgid "Your learning access on this site is locked."
 msgstr "Dein Lernzugang auf dieser Website ist gesperrt."
 
-#: src/Rest/RestContract.php:235
+#: src/Rest/RestContract.php:236
 msgid "This content is not available to you right now."
 msgstr "Dieser Inhalt steht dir gerade nicht zur Verfügung."
 
-#: src/Rest/RestContract.php:236
+#: src/Rest/RestContract.php:237
 msgid "The requested item was not found."
 msgstr "Das angeforderte Element wurde nicht gefunden."
 
-#: src/Rest/RestContract.php:237
+#: src/Rest/RestContract.php:238
 msgid "Some data is not valid. Please check it."
 msgstr "Einige Daten sind ungültig. Bitte prüfe sie."
 
-#: src/Rest/RestContract.php:238
+#: src/Rest/RestContract.php:239
 msgid "Please confirm the warnings first."
 msgstr "Bitte bestätige zuerst die Warnungen."
 
-#: src/Rest/RestContract.php:239
+#: src/Rest/RestContract.php:240
 msgid "A parameter is missing or invalid."
 msgstr "Ein Parameter fehlt oder ist ungültig."
 
-#: src/Rest/RestContract.php:240
+#: src/Rest/RestContract.php:241
 msgid "This link or token is not valid."
 msgstr "Dieser Link oder Token ist ungültig."
 
-#: src/Rest/RestContract.php:241
+#: src/Rest/RestContract.php:242
+msgid "The request key is missing or invalid. Please reload the page and try again."
+msgstr "Der Anfrageschlüssel fehlt oder ist ungültig. Bitte lade die Seite neu und versuche es noch einmal."
+
+#: src/Rest/RestContract.php:243
 msgid "This request key was already used for a different request."
 msgstr "Dieser Anfrageschlüssel wurde bereits für eine andere Anfrage verwendet."
 
-#: src/Rest/RestContract.php:242
+#: src/Rest/RestContract.php:244
 msgid "The same request is still being processed. Please try again shortly."
 msgstr "Dieselbe Anfrage wird noch bearbeitet. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:243
+#: src/Rest/RestContract.php:245
 msgid "Someone changed this in the meantime. Please reload."
 msgstr "Jemand hat das inzwischen geändert. Bitte lade neu."
 
-#: src/Rest/RestContract.php:245
+#: src/Rest/RestContract.php:247
 msgid "Maintenance is running. Please try again shortly."
 msgstr "Es läuft eine Wartung. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:246
+#: src/Rest/RestContract.php:248
 msgid "This is temporarily unavailable. Please try again later."
 msgstr "Das ist vorübergehend nicht verfügbar. Bitte versuche es später noch einmal."
 
-#: src/Rest/RestContract.php:247
+#: src/Rest/RestContract.php:249
 msgid "This exam cannot be started right now."
 msgstr "Diese Prüfung kann gerade nicht gestartet werden."
 
-#: src/Rest/RestContract.php:248
+#: src/Rest/RestContract.php:250
 msgid "The exam is already starting. Please wait a moment."
 msgstr "Die Prüfung wird bereits gestartet. Bitte warte einen Moment."
 
-#: src/Rest/RestContract.php:249
+#: src/Rest/RestContract.php:251
 msgid "You have no attempts left for this exam right now."
 msgstr "Du hast für diese Prüfung gerade keine Versuche mehr."
 
-#: src/Rest/RestContract.php:250
+#: src/Rest/RestContract.php:252
 msgid "The time for this exam is over."
 msgstr "Die Zeit für diese Prüfung ist abgelaufen."
 
-#: src/Rest/RestContract.php:251
+#: src/Rest/RestContract.php:253
 msgid "This attempt has already been submitted."
 msgstr "Dieser Versuch wurde bereits abgegeben."
 
-#: src/Rest/RestContract.php:253
+#: src/Rest/RestContract.php:255
 msgid "This answer can no longer be changed."
 msgstr "Diese Antwort kann nicht mehr geändert werden."
 
-#: src/Rest/RestContract.php:254
+#: src/Rest/RestContract.php:256
 msgid "Please choose a valid answer."
 msgstr "Bitte wähle eine gültige Antwort."
 
-#: src/Rest/RestContract.php:255
+#: src/Rest/RestContract.php:257
 msgid "The attempt changed in the meantime. Please try again."
 msgstr "Der Versuch wurde inzwischen geändert. Bitte versuche es noch einmal."
 
-#: src/Rest/RestContract.php:256
+#: src/Rest/RestContract.php:258
 msgid "This submission can no longer be changed."
 msgstr "Diese Einreichung kann nicht mehr geändert werden."
 
-#: src/Rest/RestContract.php:257
+#: src/Rest/RestContract.php:259
 msgid "Please add the required text or file before submitting."
 msgstr "Bitte füge vor dem Einreichen den erforderlichen Text oder die Datei hinzu."
 
-#: src/Rest/RestContract.php:258
+#: src/Rest/RestContract.php:260
 msgid "This file was not accepted. Please check its type and size."
 msgstr "Diese Datei wurde nicht akzeptiert. Bitte prüfe Typ und Größe."
 
-#: src/Rest/RestContract.php:259
+#: src/Rest/RestContract.php:261
 msgid "Please check the points and add the required comment or reason."
 msgstr "Bitte prüfe die Punkte und füge den erforderlichen Kommentar oder Grund hinzu."
 
-#: src/Rest/RestContract.php:260
+#: src/Rest/RestContract.php:262
 msgid "Your export is still being created. Please try again shortly."
 msgstr "Dein Export wird noch erstellt. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:261
+#: src/Rest/RestContract.php:263
 msgid "This download has expired. Please request a new export."
 msgstr "Dieser Download ist abgelaufen. Bitte fordere einen neuen Export an."
 
-#: src/Rest/RestContract.php:262
+#: src/Rest/RestContract.php:264
 msgid "The export could not be created. Please request a new export."
 msgstr "Der Export konnte nicht erstellt werden. Bitte fordere einen neuen Export an."
 
-#: src/Security/Hardening.php:425
+#: src/Security/Hardening.php:420
 msgid "Too many attempts. Please wait a few minutes and try again."
 msgstr "Zu viele Versuche. Bitte warte einige Minuten und versuche es erneut."
 
-#: src/Security/Hardening.php:457
+#: src/Security/Hardening.php:452
 msgid "Login is temporarily unavailable. Please try again later."
 msgstr "Die Anmeldung ist vorübergehend nicht verfügbar. Bitte versuche es später noch einmal."
 
-#: src/Security/Hardening.php:754
-#: src/Security/Hardening.php:774
+#: src/Security/Hardening.php:749
+#: src/Security/Hardening.php:769
 msgid "Course Captain website hardening"
 msgstr "Website-Härtung von Course Captain"
 
-#: src/Security/Hardening.php:774
+#: src/Security/Hardening.php:769
 msgid "Website hardening is switched off by constant"
 msgstr "Die Website-Härtung ist per Konstante ausgeschaltet"
 
-#: src/Security/Hardening.php:777
+#: src/Security/Hardening.php:772
 msgid "Security"
 msgstr "Sicherheit"
 

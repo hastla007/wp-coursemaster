@@ -21,7 +21,7 @@
 
 | Methode | Pfad | Zugriff | Schema-Parameter (* Pflicht) |
 |---|---|---|---|
-| `POST` | `/answers` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `POST` | `/answers` | angemeldet (Cookie + `X-WP-Nonce`) | – (Header `Idempotency-Key` oder Feld `idempotency_key` Pflicht, UUID; fehlt/ungültig → `428 ccap_idempotency_key_required`) |
 | `GET` | `/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `DELETE` | `/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files/(?P<media>[0-9a-f-]+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
@@ -35,7 +35,7 @@
 | `DELETE` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/lessons` | angemeldet (Cookie + `X-WP-Nonce`) | – |
-| `PUT` | `/courses/(?P<course>[0-9a-f-]+)/lessons/(?P<lesson>\d+)/progress` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `PUT` | `/courses/(?P<course>[0-9a-f-]+)/lessons/(?P<lesson>\d+)/progress` | angemeldet (Cookie + `X-WP-Nonce`) | – (`kind`: `position`\|`confirm`\|`unconfirm`\|`view`\|`download`\|`cards`; `unconfirm` nur bei `manual_confirm`, sonst `422 ccap_validation_failed`, `reason: evidence_completion`) |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/next-question` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/courses/(?P<id>\d+)/publish` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<id>\d+)/structure` | angemeldet (Cookie + `X-WP-Nonce`) | – |

@@ -119,6 +119,38 @@ final class SchemaTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-080: schema n−1 without the column `due_at` (and its index) gets the
+	 * column by migration; existing rows survive and the version is set.
+	 *
+	 * @group R1-18
+	 * @group GM-080
+	 */
+	public function test_GM_080_due_at_added_by_migration(): void {
+		Plugin::activate( false );
+		$db    = Database::current();
+		$table = $db->table( 'ccap_question_progress' );
+		$db->execute( "ALTER TABLE `{$table}` DROP INDEX user_due" );
+		$db->execute( "ALTER TABLE `{$table}` DROP COLUMN due_at" );
+		// A learner row of schema n−1 (FK check off: no question object needed for the column check).
+		$db->execute( 'SET FOREIGN_KEY_CHECKS = 0' );
+		$db->execute( "INSERT INTO `{$table}` (user_id, question_id, attempts) VALUES (7, 11, 3)" );
+		$db->execute( 'SET FOREIGN_KEY_CHECKS = 1' );
+		update_option( Migrator::DB_VERSION, '0.9.0+000000000000' );
+		self::assertNotContains( 'due_at', self::inspector()->columns( 'ccap_question_progress' ), 'schema n−1' );
+
+		$result = Migrator::for_current_site()->run( MigrationTrigger::CONTEXT_ADMIN );
+
+		self::assertSame( 'done', $result['status'] );
+		self::assertContains( 'due_at', self::inspector()->columns( 'ccap_question_progress' ) );
+		self::assertSame( array( 'user_id', 'due_at' ), self::inspector()->indexes( 'ccap_question_progress' )['user_due']['columns'] );
+		self::assertSame( array(), self::inspector()->drift( Schema::table_names() ) );
+		self::assertSame( Schema::db_version(), get_option( Migrator::DB_VERSION ), 'version set' );
+		$row = (array) $db->row( "SELECT attempts, due_at FROM `{$table}` WHERE user_id = 7 AND question_id = 11" );
+		self::assertSame( '3', (string) $row['attempts'], 'existing row kept' );
+		self::assertNull( $row['due_at'] );
+	}
+
+	/**
 	 * GM-149: while the schema is pending, writes to the own REST namespace
 	 * get 503 + Retry-After, reads pass, `ccap_migrate` is scheduled once.
 	 *

@@ -565,6 +565,54 @@ final class CompatibilityTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-152: IPv6 clients share a limit per /64 (2001:db8::1 and ::2);
+	 * forwarding headers of an untrusted peer are ignored; behind the trusted
+	 * proxy 10.0.0.0/8 the rightmost untrusted X-Forwarded-For entry counts.
+	 * Checked on the login limit (5 per account+IP and 15 min, fixed clock).
+	 *
+	 * @group R1-18
+	 * @group GM-152
+	 */
+	public function test_GM_152_ipv6_prefix_shares_the_limit(): void {
+		self::assertSame( ClientIp::rate_key_of( '2001:db8::1' ), ClientIp::rate_key_of( '2001:db8::2' ) );
+		self::assertSame( ClientIp::rate_key_of( '2001:db8::1' ), ClientIp::rate_key_of( '2001:0db8:0000:0000:ffff:ffff:ffff:ffff' ) );
+		self::assertNotSame( ClientIp::rate_key_of( '2001:db8::1' ), ClientIp::rate_key_of( '2001:db8:0:1::1' ), 'next /64' );
+		self::assertSame( '198.51.100.7', ClientIp::rate_key_of( '198.51.100.7' ), 'IPv4 per address' );
+
+		self::factory()->user->create(
+			array(
+				'user_login' => 'gm152',
+				'user_pass'  => 'right-password',
+			)
+		);
+		$values = array_fill_keys( Hardening::FEATURES, 'auto' );
+		Settings::save( Actor::user( $this->admin ), 'hardening', $values, array_keys( $values ), Settings::rev( 'hardening' ) );
+		Hardening::set_now( 1800000000 );
+		Hardening::apply();
+		unset( $_SERVER['HTTP_X_FORWARDED_FOR'], $_SERVER['HTTP_CF_CONNECTING_IP'] );
+		$login = static function ( string $remote, string $password = 'right-password', string $forwarded = '' ) {
+			$_SERVER['REMOTE_ADDR']          = $remote;
+			$_SERVER['HTTP_X_FORWARDED_FOR'] = $forwarded;
+			return wp_authenticate( 'gm152', $password );
+		};
+
+		for ( $i = 0; $i < 5; $i++ ) {
+			self::assertInstanceOf( \WP_Error::class, $login( '2001:db8::1', 'wrong' ) );
+		}
+		$shared = $login( '2001:db8::2' );
+		self::assertInstanceOf( \WP_Error::class, $shared, 'same /64 shares the limit' );
+		self::assertSame( Hardening::ERROR_CODE, $shared->get_error_code() );
+		self::assertInstanceOf( \WP_User::class, $login( '2001:db8:0:1::1' ), 'other /64' );
+		self::assertInstanceOf( \WP_User::class, $login( '2001:db8:0:2::1', 'right-password', '2001:db8::7' ), 'X-Forwarded-For of an untrusted peer ignored' );
+
+		Settings::save( Actor::user( $this->admin ), 'privacy', array( 'trusted_proxies' => array( '10.0.0.0/8' ) ), array( 'trusted_proxies' ), Settings::rev( 'privacy' ) );
+		$locked = $login( '10.1.2.3', 'right-password', '2001:db8::7, 10.0.0.9' );
+		self::assertInstanceOf( \WP_Error::class, $locked, 'rightmost untrusted entry (2001:db8::7) counts' );
+		self::assertSame( Hardening::ERROR_CODE, $locked->get_error_code() );
+		self::assertInstanceOf( \WP_User::class, $login( '10.1.2.3', 'right-password', '2001:db8::7, 203.0.113.5, 10.0.0.9' ), 'rightmost untrusted entry is 203.0.113.5' );
+	}
+
+	/**
 	 * KOMP-013/014/030/032/033/035/037/041: protected HTML responses carry
 	 * every page-cache signal (DONOTCACHEPAGE, LiteSpeed action and header,
 	 * X-Accel-Expires, Surrogate-/CDN-Cache-Control, no-store).

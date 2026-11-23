@@ -386,7 +386,7 @@ final class CertificatePages {
 	 * @return string
 	 */
 	private static function client(): string {
-		return \CourseCaptain\Security\ClientIp::get();
+		return \CourseCaptain\Security\ClientIp::rate_key();
 	}
 
 	/**

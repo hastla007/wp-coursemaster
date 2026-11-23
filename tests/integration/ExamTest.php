@@ -587,7 +587,7 @@ final class ExamTest extends SchemaTestCase {
 		self::assertSame( '2', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_attempt' ) . '` WHERE user_id = %d', $this->learner ) ) );
 		self::assertSame( '2', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_attempt_answer' ) . '`' ) );
 
-		$this->assertRejected( fn() => $answers->answer( $learner, $token, array( 'A' ), 'not-a-uuid' ), 'ccap_invalid_param' );
+		$this->assertRejected( fn() => $answers->answer( $learner, $token, array( 'A' ), 'not-a-uuid' ), 'ccap_idempotency_key_required' );
 		$this->assertRejected( fn() => $answers->answer( $learner, $token, array(), wp_generate_uuid4() ), 'ccap_invalid_answer' );
 	}
 
@@ -923,6 +923,144 @@ final class ExamTest extends SchemaTestCase {
 
 		wp_set_current_user( (int) self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 		self::assertSame( 404, $call( 'GET', '/exam-sessions/' . $session )->get_status() );
+	}
+
+	/**
+	 * GM-197 (Free part, E-20/E-147/E-269): a question with explanation texts
+	 * answers in the learning mode with `correct` and `correct_ids`, never an
+	 * explanation; the stored texts stay unchanged and the package export
+	 * carries them; a passed exam with attempts left shows the solutions, no
+	 * explanation.
+	 *
+	 * @group R1-18
+	 * @group GM-197
+	 */
+	public function test_GM_197_explanations_stored_exported_never_delivered(): void {
+		$repo     = QuestionRepository::current();
+		$admin    = Actor::user( $this->admin );
+		$learner  = Actor::user( $this->learner );
+		$module   = $this->modules[0];
+		$question = $repo->create(
+			$admin,
+			array(
+				'question_type'      => QuestionTypes::SINGLE,
+				'question_text'      => 'Q-A1-001 like',
+				'feedback_correct'   => 'Explanation right GM197',
+				'feedback_incorrect' => 'Explanation wrong GM197',
+				'answers'            => array(
+					array(
+						'key'     => 'A',
+						'text'    => 'right',
+						'correct' => true,
+					),
+					array(
+						'key'  => 'B',
+						'text' => 'wrong',
+					),
+				),
+			)
+		);
+		$repo->publish( $admin, $question );
+		$repo->add_to_pool( $admin, $module, $question );
+		$token  = QuestionPresenter::current()->deliver( $learner, $this->course, $module, $question, new Randomizer( '20300115' ) )['token'];
+		$answer = AnswerService::current()->answer( $learner, $token, array( 'B' ), wp_generate_uuid4() );
+		self::assertFalse( $answer['correct'] );
+		self::assertSame( array( 'A' ), $answer['correct_ids'] );
+		$json = (string) wp_json_encode( $answer );
+		self::assertStringNotContainsString( 'explanation', $json );
+		self::assertStringNotContainsString( 'GM197', $json, 'no explanation text in Free' );
+
+		$db       = Database::current();
+		$revision = (array) $db->row( $db->prepare( 'SELECT feedback_correct, feedback_incorrect FROM `' . $db->table( 'ccap_question_revision' ) . '` WHERE question_id = %d ORDER BY id DESC LIMIT 1', $question ) );
+		self::assertSame(
+			array(
+				'feedback_correct'   => 'Explanation right GM197',
+				'feedback_incorrect' => 'Explanation wrong GM197',
+			),
+			$revision,
+			'stored text unchanged'
+		);
+		$records  = \CourseCaptain\Import\PackageExporter::records( $admin, array( $this->course ) );
+		$exported = array_values( array_filter( $records['questions'], static fn( array $r ): bool => 'Q-A1-001 like' === $r['revision']['text_html'] ) );
+		self::assertCount( 1, $exported );
+		self::assertSame( 'Explanation right GM197', $exported[0]['revision']['feedback_correct'], 'export keeps the text' );
+		self::assertSame( 'Explanation wrong GM197', $exported[0]['revision']['feedback_incorrect'] );
+
+		$sessions = ExamSessions::current();
+		$session  = $this->start( $this->rule() );
+		foreach ( array( 1, 2, 3, 4, 5 ) as $position ) {
+			$sessions->save_answer( $learner, $session, $position, array( 'A' ) );
+		}
+		$passed = $sessions->submit( $learner, $session );
+		self::assertTrue( $passed['passed'] );
+		self::assertTrue( $passed['solutions_visible'], 'passed (attempts left) → correct answer shown' );
+		self::assertSame( array( 'A' ), $passed['questions'][0]['correct_ids'] );
+		self::assertStringNotContainsString( 'explanation', (string) wp_json_encode( $passed ) );
+		self::assertStringNotContainsString( 'GM197', (string) wp_json_encode( $passed ) );
+	}
+
+	/**
+	 * GM-038: offline answers over REST after the deadline (setup as GM-037:
+	 * time limit 60 s, grace 5 s, late tolerance 120 s, deadline = now − 40 s).
+	 * Without `age_ms` the catalog code `ccap_exam_expired` comes back and
+	 * nothing is stored; with `age_ms` inside deadline + grace the buffered
+	 * answer is applied (200, `applied=true`); the submit evaluates the
+	 * buffered answers (positions 1, 3, 4 right). Status 410 per the R0-19
+	 * catalog (R0-05 names 422, see gm-coverage-exceptions).
+	 *
+	 * @group R1-18
+	 * @group R1-20
+	 * @group GM-038
+	 */
+	public function test_GM_038_offline_answers_over_rest(): void {
+		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.
+		$call    = static function ( string $method, string $route, array $body = array() ): \WP_REST_Response {
+			$request = new \WP_REST_Request( $method, '/course-captain/v1' . $route );
+			foreach ( $body as $key => $value ) {
+				$request->set_param( $key, $value );
+			}
+			$response = rest_do_request( $request );
+			return apply_filters( 'rest_post_dispatch', $response, rest_get_server(), $request ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core filter under test.
+		};
+		$session = $this->start( $this->rule( array(), 60 ) );
+		$db      = Database::current();
+		$now     = time();
+		$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_session' ) . '` SET started_at = %s, deadline_at = %s WHERE id = %d', gmdate( 'Y-m-d H:i:s', $now - 100 ), gmdate( 'Y-m-d H:i:s', $now - 40 ), $session ) );
+		wp_set_current_user( $this->learner );
+
+		$late = $call( 'PUT', '/exam-sessions/' . $session . '/answers/2', array( 'answer' => array( 'A' ) ) );
+		self::assertSame( 410, $late->get_status() );
+		self::assertSame( 'ccap_exam_expired', $late->get_data()['code'], 'catalog code, not the text' );
+		self::assertSame( 410, $late->get_data()['status'] );
+		$view = $call( 'GET', '/exam-sessions/' . $session );
+		self::assertSame( 200, $view->get_status(), 'still running inside the late tolerance' );
+		self::assertSame( 'in_progress', self::row( $session )['status'] );
+		self::assertEmpty( $view->get_data()['questions'][1]['answer'], 'nothing stored' );
+
+		foreach ( array(
+			1 => 60000,
+			3 => 50000,
+			4 => 45000,
+		) as $position => $age ) {
+			$saved = $call(
+				'PUT',
+				'/exam-sessions/' . $session . '/answers/' . $position,
+				array(
+					'answer' => array( 'A' ),
+					'age_ms' => $age,
+				)
+			);
+			self::assertSame( 200, $saved->get_status(), 'position ' . $position );
+			self::assertTrue( $saved->get_data()['applied'] );
+		}
+		$stored = $call( 'GET', '/exam-sessions/' . $session )->get_data()['questions'];
+		self::assertSame( array( 'A' ), $stored[0]['answer'], 'REST returns the stored state' );
+		self::assertSame( array( 'A' ), $stored[3]['answer'] );
+
+		$submit = $call( 'POST', '/exam-sessions/' . $session . '/submit' );
+		self::assertSame( 200, $submit->get_status() );
+		self::assertSame( 'evaluated', $submit->get_data()['status'] );
+		self::assertSame( array( true, false, true, true, false ), array_column( $submit->get_data()['questions'], 'correct' ), 'positions 1, 3, 4 right' );
 	}
 
 	/**
