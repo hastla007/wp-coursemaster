@@ -9014,35 +9014,35 @@ msgstr ""
 msgid "Data request"
 msgstr ""
 
-#: src/Privacy/SelfService.php:261
+#: src/Privacy/SelfService.php:284
 msgid "Please log in to request an export or erasure of your data."
 msgstr ""
 
-#: src/Privacy/SelfService.php:265
+#: src/Privacy/SelfService.php:288
 msgid "Please check your mailbox and confirm the request."
 msgstr ""
 
-#: src/Privacy/SelfService.php:266
+#: src/Privacy/SelfService.php:289
 msgid "The request is already open; the confirmation mail was sent again."
 msgstr ""
 
-#: src/Privacy/SelfService.php:267
+#: src/Privacy/SelfService.php:290
 msgid "The request is confirmed and being processed."
 msgstr ""
 
-#: src/Privacy/SelfService.php:268
+#: src/Privacy/SelfService.php:291
 msgid "Too many requests today. Please try again tomorrow."
 msgstr ""
 
-#: src/Privacy/SelfService.php:269
+#: src/Privacy/SelfService.php:292
 msgid "The request could not be sent."
 msgstr ""
 
-#: src/Privacy/SelfService.php:273
+#: src/Privacy/SelfService.php:296
 msgid "Request a copy of my data"
 msgstr ""
 
-#: src/Privacy/SelfService.php:274
+#: src/Privacy/SelfService.php:297
 msgid "Request erasure of my data"
 msgstr ""
 
