@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
+"POT-Creation-Date: 2026-11-23T09:32:16+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -2453,6 +2453,7 @@ msgid "Strict"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:495
+#: src/Learner/LessonView.php:240
 msgid "Practice"
 msgstr ""
 
@@ -3723,6 +3724,7 @@ msgid "has successfully completed the course"
 msgstr ""
 
 #: src/Course/PostTypes.php:80
+#: src/Learner/LessonView.php:390
 msgid "Lessons"
 msgstr ""
 
@@ -4061,6 +4063,7 @@ msgid "Submit exam"
 msgstr ""
 
 #: src/Learner/ExamRoom.php:133
+#: src/Learner/LessonView.php:237
 msgid "Exam"
 msgstr ""
 
@@ -4204,122 +4207,257 @@ msgstr ""
 msgid "Start exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:170
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:209
+#: src/Learner/LearningArea.php:235
+#: src/Learner/LearningArea.php:270
 msgid "My learning"
 msgstr ""
 
-#: src/Learner/LearningArea.php:188
+#: src/Learner/LearningArea.php:237
+msgid "This lesson is not available."
+msgstr ""
+
+#: src/Learner/LearningArea.php:237
 msgid "This course is not available."
 msgstr ""
 
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:270
 msgid "Skip to content"
 msgstr ""
 
-#: src/Learner/LearningArea.php:213
+#: src/Learner/LearningArea.php:282
 msgid "You are not enrolled in any course yet."
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 msgid "Progress:"
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:288
 msgid "Course progress"
 msgstr ""
 
 #. translators: %s: percentage, e.g. "75 %"
-#: src/Learner/LearningArea.php:219
 #: src/Learner/LearningArea.php:288
+#: src/Learner/LearningArea.php:358
 #, php-format
 msgid "%s completed"
 msgstr ""
 
 #. translators: %s: lesson title
-#: src/Learner/LearningArea.php:221
+#: src/Learner/LearningArea.php:290
 #, php-format
 msgid "Continue: %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:238
+#: src/Learner/LearningArea.php:308
 msgid "Course contents"
 msgstr ""
 
 #. translators: %s: course
-#: src/Learner/LearningArea.php:290
+#: src/Learner/LearningArea.php:360
 #, php-format
 msgid "Open %s in the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:306
+#: src/Learner/LearningArea.php:376
 msgid "Go to the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:357
+#: src/Learner/LearningArea.php:427
 msgid "Access active"
 msgstr ""
 
-#: src/Learner/LearningArea.php:358
+#: src/Learner/LearningArea.php:428
 msgid "Partial access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:359
+#: src/Learner/LearningArea.php:429
 msgid "Access pending"
 msgstr ""
 
-#: src/Learner/LearningArea.php:360
+#: src/Learner/LearningArea.php:430
 msgid "Access suspended"
 msgstr ""
 
-#: src/Learner/LearningArea.php:361
+#: src/Learner/LearningArea.php:431
 msgid "Access expired"
 msgstr ""
 
-#: src/Learner/LearningArea.php:362
+#: src/Learner/LearningArea.php:432
 msgid "No access"
 msgstr ""
 
 #. translators: %s: date
-#: src/Learner/LearningArea.php:377
+#: src/Learner/LearningArea.php:447
 #, php-format
 msgid "Available from %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:380
+#: src/Learner/LearningArea.php:450
 msgid "Locked: no access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:381
+#: src/Learner/LearningArea.php:451
 msgid "Locked: not part of the preview"
 msgstr ""
 
-#: src/Learner/LearningArea.php:382
+#: src/Learner/LearningArea.php:452
 msgid "Locked: not yet released"
 msgstr ""
 
-#: src/Learner/LearningArea.php:383
+#: src/Learner/LearningArea.php:453
 msgid "Locked: complete the previous steps first"
 msgstr ""
 
-#: src/Learner/LearningArea.php:384
+#: src/Learner/LearningArea.php:454
 msgid "Locked during your running exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:386
+#: src/Learner/LearningArea.php:456
 msgid "Locked"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "completed"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "in progress"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:466
 msgid "not started"
+msgstr ""
+
+#. translators: %s: course title
+#: src/Learner/LessonView.php:67
+#, php-format
+msgid "Back to the course: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Assignment"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Submitting the assignment is not available in the learning area yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:237
+msgid "Start the exam on the course page."
+msgstr ""
+
+#: src/Learner/LessonView.php:240
+msgid "This practice activity cannot be used on this page yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:253
+msgid "Video"
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:264
+#, php-format
+msgid "This video is hosted by %s and is only loaded after your consent."
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:274
+#, php-format
+msgid "Watch the video on %s (opens in a new tab)"
+msgstr ""
+
+#: src/Learner/LessonView.php:280
+msgid "The video is not available yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:287
+msgid "Subtitles"
+msgstr ""
+
+#: src/Learner/LessonView.php:289
+msgid "Download the video"
+msgstr ""
+
+#: src/Learner/LessonView.php:306
+msgid "Your progress"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: completed"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: not completed yet"
+msgstr ""
+
+#: src/Learner/LessonView.php:311
+msgid "Download the file"
+msgstr ""
+
+#: src/Learner/LessonView.php:318
+msgid "Mark as completed"
+msgstr ""
+
+#. translators: %s: number of minutes
+#: src/Learner/LessonView.php:328
+#, php-format
+msgid "You can mark this lesson as read after %s minute."
+msgid_plural "You can mark this lesson as read after %s minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Learner/LessonView.php:333
+msgid "Mark as read"
+msgstr ""
+
+#: src/Learner/LessonView.php:336
+msgid "This step is completed when you download the file."
+msgstr ""
+
+#: src/Learner/LessonView.php:339
+msgid "This step is completed when you have watched the video."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed with the exam."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed when your assignment has been graded."
+msgstr ""
+
+#: src/Learner/LessonView.php:346
+msgid "This step is completed automatically."
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:378
+#, php-format
+msgid "Previous: %s"
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:380
+#, php-format
+msgid "Next: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:401
+msgid "Lesson completed."
+msgstr ""
+
+#: src/Learner/LessonView.php:402
+msgid "Your progress has been saved."
+msgstr ""
+
+#: src/Learner/LessonView.php:403
+msgid "The download has been recorded."
+msgstr ""
+
+#: src/Learner/LessonView.php:409
+msgid "Please take a little more time with this lesson before you mark it as read."
 msgstr ""
 
 #: src/Notification/MailTemplates.php:195
