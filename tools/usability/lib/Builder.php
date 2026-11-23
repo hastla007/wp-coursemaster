@@ -396,7 +396,7 @@ final class Builder {
 			$media = $this->medium( (string) $q['img'] );
 			$src   = null === $media ? '' : $media['url'];
 			$alt   = (string) $image['alt'];
-			$text  = '<figure><img src="' . esc_url( $src ) . '" alt="' . esc_attr( $alt ) . '"' . ( '' === $alt ? ' role="presentation"' : '' ) . ' width="800" height="450"></figure>' . $text;
+			$text  = '<figure><img src="' . esc_url( $src ) . '" alt="' . esc_attr( $alt ) . '" width="800" height="450"></figure>' . $text;
 		}
 		$data = array(
 			'question_type' => self::TYPES[ $q[0] ],

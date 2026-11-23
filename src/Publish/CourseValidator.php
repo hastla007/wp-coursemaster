@@ -79,7 +79,7 @@ final class CourseValidator {
 		$post = get_post( $course_id );
 		$uid  = $post instanceof \WP_Post ? ( new ObjectIdentity( $db ) )->ensure( $post ) : '';
 		$hash = '';
-		foreach ( array( 'course', 'structure', 'questions', 'exams', 'prerequisites' ) as $group ) {
+		foreach ( array( 'course', 'structure', 'questions', 'exams', 'prerequisites', 'media' ) as $group ) {
 			try {
 				switch ( $group ) {
 					case 'course':
@@ -96,6 +96,9 @@ final class CourseValidator {
 						break;
 					case 'prerequisites':
 						$self->prerequisites( $course_id );
+						break;
+					case 'media':
+						$self->alt_texts( $course_id, $post instanceof \WP_Post ? $post : null );
 						break;
 				}
 			} catch ( \Throwable $e ) {
@@ -486,6 +489,111 @@ final class CourseValidator {
 				break;
 			}
 		}
+	}
+
+	/**
+	 * VAL-140/VAL-141 (E-131, A11Y-110): images without alternative text.
+	 *
+	 * An image counts as described when its `alt` is not empty; `alt=""`
+	 * counts only when it is explicitly decorative (`data-ccap-decorative`,
+	 * `role="presentation"`/`"none"` or `aria-hidden="true"`). Course media
+	 * rows (`ccap_media`) of type image need `alt_text` (NULL = missing,
+	 * '' = decorative). A question that needs its image (`image_required`)
+	 * must describe it in words; decorative is not enough (VAL-141). One
+	 * issue per object with the number of images.
+	 *
+	 * @param int           $course_id Course.
+	 * @param \WP_Post|null $post      Course post.
+	 * @return void
+	 */
+	private function alt_texts( int $course_id, ?\WP_Post $post ): void {
+		$db      = Database::current();
+		$message = static fn( int $n ): string => sprintf(
+			/* translators: %d: number of images */
+			_n( '%d image has no alternative text. Screen reader users do not learn what it shows. Add an alternative text or mark the image as decorative.', '%d images have no alternative text. Screen reader users do not learn what they show. Add an alternative text or mark the images as decorative.', $n, 'course-captain' ),
+			$n
+		);
+		$media   = static function ( string $type, int $id, bool $words = false ): int {
+			$db = Database::current();
+			return (int) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_content_media' ) . '` cm JOIN `' . $db->table( 'ccap_media' ) . "` m ON m.id = cm.media_id WHERE cm.object_type = %s AND cm.object_id = %d AND m.media_type = 'image' AND " . ( $words ? "(m.alt_text IS NULL OR m.alt_text = '')" : 'm.alt_text IS NULL' ), $type, $id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Fixed condition.
+		};
+		if ( $post instanceof \WP_Post ) {
+			$missing = self::images_without_alt( $post->post_content )['missing'] + $media( 'course', $course_id );
+			if ( $missing > 0 ) {
+				$this->add( 'VAL-140', 'blocker', 'course', $course_id, $post->post_title, 'cc.val.media.alt_missing', array( 'count' => $missing ), $message( $missing ), 'alt_text' );
+			}
+		}
+		$seen = array();
+		foreach ( CourseStructure::current()->modules( $course_id ) as $link ) {
+			$module  = (int) $link['module_id'];
+			$missing = $media( 'module', $module );
+			if ( $missing > 0 ) {
+				$this->add( 'VAL-140', 'blocker', 'module', $module, (string) get_the_title( $module ), 'cc.val.media.alt_missing', array( 'count' => $missing ), $message( $missing ), 'alt_text' );
+			}
+			foreach ( CourseStructure::current()->lessons( $module ) as $lesson ) {
+				$missing = self::images_without_alt( $lesson->post_content )['missing'] + $media( 'lesson', (int) $lesson->ID );
+				if ( $missing > 0 ) {
+					$this->add( 'VAL-140', 'blocker', 'lesson', (int) $lesson->ID, $lesson->post_title, 'cc.val.media.alt_missing', array( 'count' => $missing ), $message( $missing ), 'alt_text' );
+				}
+			}
+			foreach ( array_map( 'intval', $db->wpdb()->get_col( $db->prepare( 'SELECT question_id FROM `' . $db->table( 'ccap_module_question' ) . '` WHERE module_id = %d ORDER BY question_id', $module ) ) ) as $question ) {
+				if ( isset( $seen[ $question ] ) ) {
+					continue;
+				}
+				$seen[ $question ] = true;
+				$row               = $db->row( $db->prepare( 'SELECT r.id, r.question_text, r.image_required FROM `' . $db->table( 'ccap_question' ) . '` q JOIN `' . $db->table( 'ccap_question_revision' ) . "` r ON r.id = q.current_revision_id WHERE q.id = %d AND q.status <> 'archived'", $question ) );
+				if ( null === $row ) {
+					continue;
+				}
+				$title  = mb_substr( wp_strip_all_tags( (string) $row['question_text'] ), 0, 60 );
+				$images = self::images_without_alt( (string) $row['question_text'] );
+				if ( '1' === (string) $row['image_required'] ) {
+					$undescribed = $images['undescribed'] + $media( 'question_revision', (int) $row['id'], true );
+					if ( $undescribed > 0 ) {
+						$this->add( 'VAL-141', 'blocker', 'question', $question, $title, 'cc.val.media.alt_required', array( 'count' => $undescribed ), __( 'The question cannot be solved without the image, but the image is not described. Enter an alternative text; "decorative" is not enough here.', 'course-captain' ), 'alt_text' );
+					}
+					continue;
+				}
+				$missing = $images['missing'] + $media( 'question_revision', (int) $row['id'] );
+				if ( $missing > 0 ) {
+					$this->add( 'VAL-140', 'blocker', 'question', $question, $title, 'cc.val.media.alt_missing', array( 'count' => $missing ), $message( $missing ), 'alt_text' );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Images in HTML: total, `missing` (no alt, or an empty alt without a
+	 * decorative marker) and `undescribed` (empty alt, decorative or not).
+	 *
+	 * @param string $html HTML.
+	 * @return array{total: int, missing: int, undescribed: int}
+	 */
+	public static function images_without_alt( string $html ): array {
+		$out = array(
+			'total'       => 0,
+			'missing'     => 0,
+			'undescribed' => 0,
+		);
+		if ( false === stripos( $html, '<img' ) || ! preg_match_all( '/<img\b[^>]*>/i', $html, $tags ) ) {
+			return $out;
+		}
+		foreach ( $tags[0] as $tag ) {
+			++$out['total'];
+			$alt = null;
+			if ( 1 === preg_match( '/\salt\s*=\s*(?:"([^"]*)"|\'([^\']*)\')/i', $tag, $m ) ) {
+				$alt = trim( html_entity_decode( (string) ( $m[1] . ( $m[2] ?? '' ) ), ENT_QUOTES, 'UTF-8' ) );
+			}
+			if ( null !== $alt && '' !== $alt ) {
+				continue;
+			}
+			++$out['undescribed'];
+			$decorative = 1 === preg_match( '/data-ccap-decorative\s*=\s*["\']1["\']|role\s*=\s*["\'](?:presentation|none)["\']|aria-hidden\s*=\s*["\']true["\']/i', $tag );
+			if ( null === $alt || ! $decorative ) {
+				++$out['missing'];
+			}
+		}
+		return $out;
 	}
 
 	/**

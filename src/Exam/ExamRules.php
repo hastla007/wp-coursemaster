@@ -250,6 +250,40 @@ final class ExamRules {
 	}
 
 	/**
+	 * Remove a blueprint section of a draft rule (exam editor, A-08).
+	 *
+	 * @param Actor $actor     Actor.
+	 * @param int   $rule_id   Draft rule.
+	 * @param int   $module_id Module.
+	 * @return void
+	 * @throws CourseException For published rules or missing rights.
+	 */
+	public function remove_blueprint( Actor $actor, int $rule_id, int $module_id ): void {
+		$this->editable( $actor, $rule_id );
+		$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_exam_blueprint' ) . '` WHERE rule_id = %d AND module_id = %d', $rule_id, $module_id ) );
+	}
+
+	/**
+	 * Change version label and passing rule of a draft rule (exam editor,
+	 * A-08); the same validation as {@see create()}.
+	 *
+	 * @param Actor                $actor        Actor.
+	 * @param int                  $rule_id      Draft rule.
+	 * @param string               $version      Version label.
+	 * @param array<string, mixed> $passing_rule Passing rule.
+	 * @return void
+	 * @throws CourseException `ccap_rule_frozen`, `ccap_validation_failed`.
+	 */
+	public function update_draft( Actor $actor, int $rule_id, string $version, array $passing_rule ): void {
+		$this->editable( $actor, $rule_id );
+		$errors = self::validate_passing_rule( $passing_rule );
+		if ( array() !== $errors || '' === trim( $version ) ) {
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', array_merge( $errors, array( 'rule' ) ) ) ), 422 );
+		}
+		$this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_exam_rule' ) . "` SET version = %s, passing_rule = %s, updated_at = %s WHERE id = %d AND status = 'draft'", $version, (string) wp_json_encode( $passing_rule ), $this->db->now(), $rule_id ) );
+	}
+
+	/**
 	 * Create a fixed variant of a course with an ordered question list.
 	 *
 	 * @param Actor $actor     Actor.

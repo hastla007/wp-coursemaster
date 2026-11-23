@@ -131,6 +131,9 @@ final class EditorScreens {
 	public static function render_publish( \WP_Post $post ): void {
 		$current = CoursePublisher::current()->current_revision( (int) $post->ID );
 		echo '<p>' . esc_html( null === $current ? __( 'Not published yet.', 'course-captain' ) : sprintf( /* translators: %d: revision number */ __( 'Published revision: %d', 'course-captain' ), (int) $current['revision_no'] ) ) . '</p>';
+		if ( 'auto-draft' !== $post->post_status ) {
+			echo '<p><a href="' . esc_url( PreviewScreen::url( (int) $post->ID ) ) . '">' . esc_html__( 'Preview as learner', 'course-captain' ) . '</a></p>';
+		}
 		echo '<fieldset><legend>' . esc_html__( 'Kind of change', 'course-captain' ) . '</legend>';
 		echo '<label><input type="radio" name="ccap_change_class" value="patch"> ' . esc_html__( 'Correction (no effect on progress)', 'course-captain' ) . '</label><br>';
 		echo '<label><input type="radio" name="ccap_change_class" value="minor" checked> ' . esc_html__( 'Content change', 'course-captain' ) . '</label></fieldset>';
