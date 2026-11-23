@@ -9,6 +9,10 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Kernel;
 
+use CourseCaptain\Policy\Relations;
+use CourseCaptain\Policy\Roles;
+use CourseCaptain\Storage\Schema;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -19,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * the paid add-on, survives (INV-C-026, R0-39 FG-10). A CI scan (REC-020)
  * fails when code uses an own key that is missing here.
  *
- * Later tasks extend the lists (tables: R1-02, roles: R1-03, ...).
+ * Roles come from `Policy\Roles` (R1-03); tables come from `Storage\Schema` (R1-02).
  */
 final class UninstallManifest {
 
@@ -56,7 +60,10 @@ final class UninstallManifest {
 		'course_captain_backfill_open',
 		'course_captain_lock_migration',
 		'course_captain_fk_issues',
+		'course_captain_migration_bootstrap_lock',
 		'course_captain_migration_failed',
+		// Counter of runs without GET_LOCK (R1-40, R0-21 §2.5).
+		'course_captain_named_lock_unavailable',
 		'course_captain_cron_state',
 		'course_captain_lock_import',
 		'course_captain_lock_retention',
@@ -64,14 +71,22 @@ final class UninstallManifest {
 		'course_captain_storage_layout',
 		'course_captain_import_drop_state',
 		'course_captain_cache_generation',
+		'course_captain_hardening_state',
 		'course_captain_retention_state',
 		'course_captain_rewrite_version',
 		'course_captain_installation_uuid',
 		'course_captain_site_identity',
+		// State epoch for restore detection (R1-23, R0-17 §5.5).
+		'course_captain_state_epoch',
 		'course_captain_setup_state',
 		'course_captain_slug_history',
 		'course_captain_integrations',
 		'course_captain_extensions_seen',
+		// Notifications (R1-21): mail state (template errors).
+		'course_captain_mail_state',
+		// Base certificate template versions (R1-44, R0-29 CF-04).
+		'course_captain_certificate_templates',
+		'course_captain_setting_locks',
 	);
 
 	/**
@@ -137,28 +152,62 @@ final class UninstallManifest {
 	 *
 	 * @var list<string>
 	 */
-	public const USER_META = array();
+	public const USER_META = array( 'ccap_notice_state', 'ccap_certificate_name_public' );
 
 	/**
-	 * Post meta keys. None in R1-01.
+	 * Per-site user options (stored as `<blog prefix><name>` user meta, MS-R-05).
 	 *
 	 * @var list<string>
 	 */
-	public const POST_META = array();
+	public const USER_OPTIONS = array(
+		// Opt-out per informational mail type (R0-27 §3.7, RT-32).
+		'course_captain_notification_prefs',
+	);
 
 	/**
-	 * Own tables without the site prefix, children first. Filled by R1-02.
+	 * Post meta keys (R1-04).
 	 *
 	 * @var list<string>
 	 */
-	public const TABLES = array();
+	public const POST_META = array(
+		'_ccap_activity_settings',
+		'_ccap_activity_type',
+		'_ccap_activity_uid',
+		'_ccap_cache_gen',
+		'_ccap_completion_rule',
+		'_ccap_copied_from_uid',
+		'_ccap_current_revision_id',
+		'_ccap_language',
+		'_ccap_listing',
+		'_ccap_protected_course',
+		'_ccap_protected_origin',
+		'_ccap_seo_index',
+		'_ccap_settings',
+		'_ccap_settings_undo',
+	);
 
 	/**
-	 * Own roles. Filled by R1-03.
+	 * Own post types (R1-04); posts are deleted with revisions and meta (R0-16 §2.5 step 5).
 	 *
 	 * @var list<string>
 	 */
-	public const ROLES = array();
+	public const POST_TYPES = Relations::POST_TYPES;
+
+	/**
+	 * Own roles (R1-03).
+	 *
+	 * @var list<string>
+	 */
+	public const ROLES = Roles::ALL;
+
+	/**
+	 * Own post types.
+	 *
+	 * @return list<string>
+	 */
+	public static function post_types(): array {
+		return self::POST_TYPES;
+	}
 
 	/**
 	 * Exact transient names.
@@ -179,6 +228,15 @@ final class UninstallManifest {
 	}
 
 	/**
+	 * Per-site user options.
+	 *
+	 * @return list<string>
+	 */
+	public static function user_options(): array {
+		return self::USER_OPTIONS;
+	}
+
+	/**
 	 * Post meta keys.
 	 *
 	 * @return list<string>
@@ -193,7 +251,7 @@ final class UninstallManifest {
 	 * @return list<string>
 	 */
 	public static function tables(): array {
-		return self::TABLES;
+		return Schema::drop_order();
 	}
 
 	/**
@@ -231,6 +289,7 @@ final class UninstallManifest {
 			self::all_option_names(),
 			self::transients(),
 			self::user_meta(),
+			self::user_options(),
 			self::post_meta(),
 			CronHooks::ALL,
 			Capabilities::PRIMITIVE
@@ -256,7 +315,9 @@ final class UninstallManifest {
 			'options'      => self::all_option_names(),
 			'transients'   => self::transients(),
 			'user_meta'    => self::user_meta(),
+			'user_options' => self::user_options(),
 			'post_meta'    => self::post_meta(),
+			'post_types'   => self::post_types(),
 			'tables'       => self::tables(),
 			'roles'        => self::roles(),
 			'capabilities' => Capabilities::PRIMITIVE,

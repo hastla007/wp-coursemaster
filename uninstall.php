@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
-if ( version_compare( PHP_VERSION, '8.3.0', '<' ) ) {
+if ( version_compare( PHP_VERSION, '8.5.0', '<' ) ) {
 	return;
 }
 

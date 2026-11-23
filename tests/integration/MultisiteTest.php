@@ -46,6 +46,9 @@ final class MultisiteTest extends TestCase {
 					self::clear_own_cron();
 					// Written by the booted test copy of the plugin on `init`, not by an activation.
 					delete_option( Plugin::REWRITE_VERSION_OPTION );
+					// Runtime state of the booted copy (hardening status on `init`, backfill signal of earlier runs).
+					delete_option( 'course_captain_hardening_state' );
+					delete_option( \CourseCaptain\Storage\Migrator::BACKFILL_OPEN );
 				}
 			);
 		}

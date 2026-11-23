@@ -1,0 +1,17 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "course-captain/course-catalog",
+	"version": "1.0.0",
+	"title": "Course catalog",
+	"category": "widgets",
+	"description": "List of published courses.",
+	"textdomain": "course-captain",
+	"attributes": {
+		"perPage": { "type": "integer", "default": 12 },
+		"orderBy": { "type": "string", "enum": [ "title", "date", "menu_order" ], "default": "menu_order" },
+		"showProgress": { "type": "boolean", "default": true },
+		"showOnlyEnrolled": { "type": "boolean", "default": false }
+	},
+	"supports": { "align": true, "html": false }
+}

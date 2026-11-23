@@ -45,7 +45,7 @@ final class PluginHeaderTest extends TestCase {
 		$headers = self::headers( self::root() . '/course-captain.php' );
 
 		self::assertSame( 'Course Captain', $headers['Plugin Name'] );
-		self::assertSame( '8.3', $headers['Requires PHP'] );
+		self::assertSame( '8.5', $headers['Requires PHP'] );
 		self::assertSame( '7.0', $headers['Requires at least'] );
 		self::assertSame( 'course-captain', $headers['Text Domain'] );
 		self::assertSame( '/languages', $headers['Domain Path'] );

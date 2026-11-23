@@ -11,6 +11,7 @@ namespace CourseCaptain\Kernel;
 
 use Closure;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
+use CourseCaptain\Policy\Roles;
 use Throwable;
 
 defined( 'ABSPATH' ) || exit;
@@ -59,6 +60,20 @@ final class Activator {
 			self::abort( $messages );
 		}
 
+		// KOMP-131: never touch tables of the same name that are not ours.
+		$conflicts = $this->migrations->conflicting_tables();
+		if ( array() !== $conflicts ) {
+			self::abort(
+				array(
+					sprintf(
+						/* translators: %s: comma-separated table names */
+						__( 'Database tables with the names Course Captain needs already exist and belong to other software: %s. Nothing has been changed.', 'course-captain' ),
+						implode( ', ', $conflicts )
+					),
+				)
+			);
+		}
+
 		// The activation error page (plugins.php?action=error_scrape) re-runs this
 		// hook without arguments. It may report errors but must never write.
 		// Note: WP_SANDBOX_SCRAPING is defined on every activation and is no signal.
@@ -73,6 +88,8 @@ final class Activator {
 		}
 
 		Capabilities::grant_activation_defaults();
+		Roles::install();
+		\CourseCaptain\Settings\Settings::migrate();
 		CronHooks::schedule_recurring( time() );
 		// Rewrite rules are flushed once on the next request, after all rules are registered.
 		delete_option( Plugin::REWRITE_VERSION_OPTION );

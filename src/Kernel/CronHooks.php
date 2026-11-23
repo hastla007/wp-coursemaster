@@ -80,6 +80,26 @@ final class CronHooks {
 	 * @return void
 	 */
 	public static function run_hourly(): void {
-		// Intentionally empty until the task runner exists.
+		// W1 (R0-37 §3.3, MIG-025): housekeeping pauses until the schema is current.
+		if ( ! Plugin::schema_ready() ) {
+			return;
+		}
+		// Access housekeeping (R0-09 G-10, E-201, SEAT-007); access itself never depends on it.
+		// Every step is isolated (GM-156).
+		\CourseCaptain\Ops\HealthChecks::run_isolated(
+			array(
+				// Restore/copy detection first, so the send run below already sees the hold (R1-23, E-85).
+				'site_identity'     => static fn() => SiteIdentity::check(),
+				'grant_expiry'      => static fn() => \CourseCaptain\Access\GrantService::current()->expire_due(),
+				'pending_timeout'   => static fn() => \CourseCaptain\Access\GrantService::current()->fail_stale_pending(),
+				'invitation_expiry' => static fn() => \CourseCaptain\Access\GroupService::current()->expire_invitations(),
+				'outbox_purge'      => static fn() => \CourseCaptain\Event\OutboxDispatcher::current()->purge(),
+				'exam_expiry'       => static fn() => \CourseCaptain\Exam\ExamSessions::current()->expire_due(),
+				'retention'         => static fn() => \CourseCaptain\Privacy\RetentionService::run(),
+				'notifications'     => static fn() => \CourseCaptain\Notification\NotificationService::current()->hourly(),
+				// Stale imports: automatic resume up to three times, then aborted (R1-41, E-181).
+				'import_watchdog'   => static fn() => \CourseCaptain\Import\ImportRunner::current()->watchdog(),
+			)
+		);
 	}
 }

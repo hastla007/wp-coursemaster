@@ -40,20 +40,20 @@ final class RequirementsTest extends TestCase {
 		$failures = Requirements::evaluate( new EnvironmentSnapshot( '8.2.29', '6.9.1' ) );
 
 		self::assertSame( array( RequirementFailure::PHP, RequirementFailure::WORDPRESS ), self::codes( $failures ) );
-		self::assertStringContainsString( '8.3.0', $failures[0]->message() );
+		self::assertStringContainsString( '8.5.0', $failures[0]->message() );
 		self::assertStringContainsString( '8.2.29', $failures[0]->message() );
 		self::assertStringContainsString( '6.9.1', $failures[1]->message() );
 	}
 
 	/**
-	 * KOMP-001 precondition / RC-046: the lower bound of the matrix (PHP 8.3, WP 7.0) passes.
+	 * KOMP-001 precondition / RC-046: the lower bound of the matrix (PHP 8.5, WP 7.0) passes.
 	 *
 	 * @group RC-046
 	 */
 	public function test_RC_046_lower_bound_passes(): void {
-		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.3.0', '7.0' ) ) );
+		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.5.0', '7.0' ) ) );
 		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.5.1', '7.1.4' ) ) );
-		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.3.0', '7.0-RC2' ) ) );
+		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.5.0', '7.0-RC2' ) ) );
 	}
 
 	/**
@@ -65,13 +65,15 @@ final class RequirementsTest extends TestCase {
 		return array(
 			'MariaDB 10.5 below hard minimum' => array( '10.5.27-MariaDB', Requirements::LEVEL_UNSUPPORTED ),
 			'MariaDB 10.6 best effort'        => array( '10.6.21-MariaDB-0ubuntu0.22.04.2', Requirements::LEVEL_BEST_EFFORT ),
-			'MariaDB 10.11 supported'         => array( '10.11.14-MariaDB-0ubuntu0.24.04.1', Requirements::LEVEL_SUPPORTED ),
+			'MariaDB 10.11 best effort'       => array( '10.11.14-MariaDB-0ubuntu0.24.04.1', Requirements::LEVEL_BEST_EFFORT ),
+			'MariaDB 12.2 best effort'        => array( '12.2.1-MariaDB', Requirements::LEVEL_BEST_EFFORT ),
 			'MariaDB 12.3 supported'          => array( '12.3.3-MariaDB', Requirements::LEVEL_SUPPORTED ),
-			'MariaDB with 5.5.5 prefix'       => array( '5.5.5-10.11.6-MariaDB-1:10.11.6+maria~ubu2204', Requirements::LEVEL_SUPPORTED ),
+			'MariaDB with 5.5.5 prefix'       => array( '5.5.5-12.3.4-MariaDB-1:12.3.4+maria~ubu2404', Requirements::LEVEL_SUPPORTED ),
 			'MySQL 5.7 below hard minimum'    => array( '5.7.44', Requirements::LEVEL_UNSUPPORTED ),
 			'MySQL 8.0 best effort'           => array( '8.0.40', Requirements::LEVEL_BEST_EFFORT ),
-			'MySQL 8.4 supported'             => array( '8.4.3', Requirements::LEVEL_SUPPORTED ),
-			'Percona 8.4 supported'           => array( '8.4.2-2', Requirements::LEVEL_SUPPORTED ),
+			'MySQL 8.4 best effort'           => array( '8.4.3', Requirements::LEVEL_BEST_EFFORT ),
+			'MySQL 9.7 supported'             => array( '9.7.4', Requirements::LEVEL_SUPPORTED ),
+			'Percona 9.7 supported'           => array( '9.7.2-2', Requirements::LEVEL_SUPPORTED ),
 			'unknown server'                  => array( 'SQLite 3.45', Requirements::LEVEL_UNSUPPORTED ),
 			'empty answer'                    => array( '', Requirements::LEVEL_UNSUPPORTED ),
 		);
@@ -92,7 +94,7 @@ final class RequirementsTest extends TestCase {
 	 * Activation check: unsupported database and missing InnoDB/JSON/utf8mb4 refuse activation.
 	 */
 	public function test_database_capabilities_refuse_activation(): void {
-		$failures = Requirements::evaluate( new EnvironmentSnapshot( '8.3.0', '7.1', '5.7.44', false, false, false ) );
+		$failures = Requirements::evaluate( new EnvironmentSnapshot( '8.5.0', '7.1', '5.7.44', false, false, false ) );
 
 		self::assertSame(
 			array( RequirementFailure::DATABASE, RequirementFailure::INNODB, RequirementFailure::JSON, RequirementFailure::UTF8MB4 ),
@@ -107,14 +109,14 @@ final class RequirementsTest extends TestCase {
 	 * Best-effort databases are accepted (E-58): no failure, only a status level.
 	 */
 	public function test_best_effort_database_is_accepted(): void {
-		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.3.0', '7.1', '8.0.40' ) ) );
+		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.5.0', '7.1', '8.0.40' ) ) );
 	}
 
 	/**
 	 * Without a database inspection (runtime check) only PHP and WordPress are evaluated.
 	 */
 	public function test_runtime_check_skips_database(): void {
-		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.3.0', '7.1', null, false, false, false ) ) );
+		self::assertSame( array(), Requirements::evaluate( new EnvironmentSnapshot( '8.5.0', '7.1', null, false, false, false ) ) );
 	}
 
 	/**

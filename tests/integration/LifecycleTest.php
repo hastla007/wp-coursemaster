@@ -83,6 +83,29 @@ final class LifecycleTest extends TestCase {
 			public function maybe_run_in_admin(): void {
 				$this->calls[] = 'admin';
 			}
+
+			/**
+			 * T-5.
+			 */
+			public function run_cron(): void {
+				$this->calls[] = 'cron';
+			}
+
+			/**
+			 * T-4.
+			 */
+			public function on_request(): void {
+				$this->calls[] = 'request';
+			}
+
+			/**
+			 * KOMP-131.
+			 *
+			 * @return list<string>
+			 */
+			public function conflicting_tables(): array {
+				return array();
+			}
 		};
 	}
 
@@ -147,6 +170,7 @@ final class LifecycleTest extends TestCase {
 	 * reactivation plans again.
 	 *
 	 * @group GM-158
+	 * @group GM-153
 	 */
 	public function test_GM_158_activation_deactivation_reactivation(): void {
 		Plugin::activate( false );
@@ -329,7 +353,8 @@ final class LifecycleTest extends TestCase {
 		foreach ( self::own_options() as $option ) {
 			self::assertDoesNotMatchRegularExpression( '/wplc_|licen[cs]e/i', $option );
 		}
-		self::assertSame( array( Capabilities::GRANTS_OPTION ), self::own_options() );
+		// The hardening state is system state written on `init` (R1-45), depending on test order.
+		self::assertSame( array( Capabilities::GRANTS_OPTION ), array_values( array_diff( self::own_options(), array( \CourseCaptain\Security\Hardening::STATE_OPTION ) ) ) );
 		self::assertSame( array(), $GLOBALS['ccap_test_http_requests'] );
 	}
 }

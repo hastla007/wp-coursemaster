@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Requirements {
 
-	public const MIN_PHP = '8.3.0';
+	public const MIN_PHP = '8.5.0';
 	public const MIN_WP  = '7.0';
 
 	/** Hard minimum MariaDB (E-08). */
@@ -29,11 +29,11 @@ final class Requirements {
 	/** Hard minimum MySQL (E-08). */
 	public const MIN_MYSQL = '8.0.0';
 
-	/** MariaDB "supported from" (E-58). */
-	public const SUPPORTED_MARIADB = '10.11.0';
+	/** MariaDB "supported from" (E-58, raised by MINVER-1 on 17.11.2026; older servers only warn). */
+	public const SUPPORTED_MARIADB = '12.3.0';
 
-	/** MySQL "supported from" (E-58). */
-	public const SUPPORTED_MYSQL = '8.4.0';
+	/** MySQL "supported from" (E-58, raised by MINVER-1 on 17.11.2026; older servers only warn). */
+	public const SUPPORTED_MYSQL = '9.7.0';
 
 	public const LEVEL_SUPPORTED   = 'supported';
 	public const LEVEL_BEST_EFFORT = 'best_effort';

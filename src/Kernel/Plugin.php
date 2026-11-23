@@ -11,7 +11,15 @@ namespace CourseCaptain\Kernel;
 
 use CourseCaptain\Contract\Api;
 use CourseCaptain\Infrastructure\Migration\MigrationRunner;
-use CourseCaptain\Infrastructure\Migration\NullMigrationRunner;
+use CourseCaptain\Course\CoursePublisher;
+use CourseCaptain\Course\DeletionGuard;
+use CourseCaptain\Course\ObjectIdentity;
+use CourseCaptain\Course\PostTypes;
+use CourseCaptain\Event\OutboxDispatcher;
+use CourseCaptain\Policy\EscalationGuard;
+use CourseCaptain\Policy\Invalidation;
+use CourseCaptain\Policy\MetaCaps;
+use CourseCaptain\Storage\Migrator;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -26,7 +34,7 @@ final class Plugin {
 	public const REWRITE_VERSION_OPTION = 'course_captain_rewrite_version';
 
 	/** Bump when own rewrite rules change. */
-	public const REWRITE_VERSION = '1';
+	public const REWRITE_VERSION = '5';
 
 	/**
 	 * Instance booted by WordPress.
@@ -64,6 +72,13 @@ final class Plugin {
 	private HoldMode $hold_mode;
 
 	/**
+	 * Test override for the migration runner.
+	 *
+	 * @var MigrationRunner|null
+	 */
+	private static ?MigrationRunner $runner_override = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string          $basename   Plugin basename.
@@ -83,9 +98,41 @@ final class Plugin {
 	 */
 	public static function boot_instance(): void {
 		if ( null === self::$instance ) {
-			self::$instance = new self( plugin_basename( COURSE_CAPTAIN_FILE ), new NullMigrationRunner() );
+			self::$instance = new self( plugin_basename( COURSE_CAPTAIN_FILE ), self::migration_runner() );
 			self::$instance->boot();
 		}
+	}
+
+	/**
+	 * Migration runner for this site (overridable in tests only).
+	 *
+	 * @return MigrationRunner
+	 */
+	public static function migration_runner(): MigrationRunner {
+		return self::$runner_override ?? Migrator::for_current_site();
+	}
+
+	/**
+	 * Test seam: replace the migration runner of the static hooks.
+	 *
+	 * @internal Only for the test suites; never called by plugin code.
+	 * @param MigrationRunner|null $runner Runner or null for the real migrator.
+	 * @return void
+	 */
+	public static function override_migration_runner( ?MigrationRunner $runner ): void {
+		self::$runner_override = $runner;
+	}
+
+	/**
+	 * Whether background jobs may run: false while the schema of this site
+	 * is not current (W1, R0-37 §3.3). Test runners other than the real
+	 * migrator always report ready.
+	 *
+	 * @return bool
+	 */
+	public static function schema_ready(): bool {
+		$runner = self::migration_runner();
+		return ! $runner instanceof Migrator || $runner->fingerprint_current();
 	}
 
 	/**
@@ -104,7 +151,7 @@ final class Plugin {
 	 * @return void
 	 */
 	public static function activate( $network_wide = false ): void {
-		( new Activator( new NullMigrationRunner() ) )->activate( (bool) $network_wide );
+		( new Activator( self::migration_runner() ) )->activate( (bool) $network_wide );
 	}
 
 	/**
@@ -145,11 +192,63 @@ final class Plugin {
 			return;
 		}
 
+		// KOMP-015: is_ssl() behind a trusted TLS-terminating proxy.
+		\CourseCaptain\Security\ClientIp::apply_forwarded_https();
 		add_action( 'init', array( $this, 'load_textdomain' ), 1 );
+		Locale::register();
 		add_action( 'init', array( $this, 'maybe_flush_rewrite_rules' ), 999 );
 		add_action( 'admin_init', array( $this, 'on_admin_init' ) );
 		add_action( 'upgrader_process_complete', array( $this, 'on_upgrader_process_complete' ), 10, 2 );
 		add_action( CronHooks::HOURLY, array( CronHooks::class, 'run_hourly' ) );
+		add_action( CronHooks::MIGRATE, array( $this->migrations, 'run_cron' ) );
+		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
+		\CourseCaptain\Ops\MigrateCommand::register();
+		\CourseCaptain\Ops\OpsCommand::register();
+		\CourseCaptain\Ops\IdentityCommand::register();
+		MetaCaps::register();
+		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
+		ObjectIdentity::register();
+		CoursePublisher::register();
+		DeletionGuard::register();
+		\CourseCaptain\Progress\CourseProgress::register();
+		\CourseCaptain\Access\ContentProtection::register();
+		\CourseCaptain\Settings\Settings::register();
+		\CourseCaptain\Admin\AuthoringRoutes::register();
+		\CourseCaptain\Admin\Notices::register();
+		\CourseCaptain\Admin\IdentityNotice::register();
+		\CourseCaptain\Admin\EditorScreens::register();
+		\CourseCaptain\Admin\CourseSettingsPanel::register();
+		\CourseCaptain\Admin\GroupsScreen::register();
+		\CourseCaptain\Admin\CertificatesScreen::register();
+		\CourseCaptain\Admin\SettingsScreen::register();
+		\CourseCaptain\Admin\SetupWizard::register();
+		\CourseCaptain\Admin\RoleSettings::register();
+		\CourseCaptain\Admin\TestMail::register();
+		\CourseCaptain\Admin\SettingsBackup::register();
+		\CourseCaptain\Privacy\PrivacySettings::register();
+		\CourseCaptain\Import\ImportService::register();
+		\CourseCaptain\Learner\LearnerRoutes::register();
+		\CourseCaptain\Learner\LearningArea::register();
+		\CourseCaptain\Certificate\CertificateService::register();
+		\CourseCaptain\Certificate\CertificateRoutes::register();
+		\CourseCaptain\Assignment\AssignmentRoutes::register();
+		\CourseCaptain\Certificate\CertificatePages::register();
+		\CourseCaptain\Certificate\CertificateAdmin::register();
+		\CourseCaptain\Privacy\PrivacyService::register();
+		\CourseCaptain\Ops\HealthChecks::register();
+		\CourseCaptain\Ops\AuditScreen::register();
+		\CourseCaptain\Ops\OpsScreen::register();
+		\CourseCaptain\Publish\PublishGuard::register();
+		\CourseCaptain\Notification\NotificationService::register();
+		\CourseCaptain\Access\ProtectedFiles::register();
+		Invalidation::register();
+		\CourseCaptain\Cache\CacheInvalidation::register();
+		\CourseCaptain\Rest\RestContract::register();
+		\CourseCaptain\Seo\CourseSeo::register();
+		\CourseCaptain\Security\Hardening::register();
+		\CourseCaptain\Ops\Compatibility::register();
+		EscalationGuard::register();
+		add_action( 'init', array( $this, 'on_init' ), 5 );
 
 		require_once dirname( __DIR__ ) . '/functions.php';
 		$this->running = true;
@@ -211,6 +310,41 @@ final class Plugin {
 		}
 		flush_rewrite_rules( false );
 		update_option( self::REWRITE_VERSION_OPTION, self::REWRITE_VERSION, true );
+	}
+
+	/**
+	 * `ccap_outbox_dispatch`: deliver, then re-schedule when more is due.
+	 *
+	 * @return void
+	 */
+	public static function run_outbox_dispatch(): void {
+		if ( ! self::schema_ready() ) {
+			// W1 (R0-37 §3.3, MIG-025): no delivery against a half-migrated schema; rows stay queued.
+			if ( false === wp_next_scheduled( CronHooks::OUTBOX_DISPATCH ) ) {
+				wp_schedule_single_event( time() + Migrator::RETRY_AFTER, CronHooks::OUTBOX_DISPATCH );
+			}
+			return;
+		}
+		$dispatcher = OutboxDispatcher::current();
+		$stats      = $dispatcher->dispatch();
+		if ( $stats['delivered'] + $stats['retried'] + $stats['failed'] + $stats['dead'] + $stats['skipped'] >= OutboxDispatcher::BATCH ) {
+			OutboxDispatcher::schedule_soon();
+		}
+	}
+
+	/**
+	 * Trigger T-4 of R0-37 for frontend, REST, Ajax and admin-post requests.
+	 *
+	 * @return void
+	 */
+	public function on_init(): void {
+		if ( is_admin() && ! wp_doing_ajax() && 'admin-post.php' !== ( $GLOBALS['pagenow'] ?? '' ) ) {
+			return;
+		}
+		if ( wp_doing_cron() ) {
+			return;
+		}
+		$this->migrations->on_request();
 	}
 
 	/**

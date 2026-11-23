@@ -223,137 +223,137 @@
   - **Ergebnis/Definition of Done:** Plugin aktivierbar/deaktivierbar, Mindestversionen, Upgrade/Uninstall-Policy, keine Suite-Pflicht.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-02 · Storage, Migration und Repositories**
+- [x] **R1-02 · Storage, Migration und Repositories** — erledigt 16.11.2026: Nachweis `docs/r1/R1-02-nachweis.md`; 53 Kern-Tabellen, 37 FKs, Migrator P0–P3 mit Named Lock + Lease/Fencing, KOMP-131 (R1-01 O-7); phpcs 0/0, PHPStan L8 0, Unit 68/2369, Integration 25/314, Multisite 34/367, MS-002 OK. Absturz-/Backfill-/Contract-Pfade an R1-40 übergeben. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-01.
   - **Ergebnis/Definition of Done:** Schema versioniert; sichere Install/Upgrade/Backfill-Tests; keine verlorenen Lernstände.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-03 · Capabilities und zentralen Policy-Service**
+- [x] **R1-03 · Capabilities und zentralen Policy-Service** — erledigt 16.11.2026: Nachweis `docs/r1/R1-03-nachweis.md`; 4 Rollen, PolicyService M-01…M-24 + M-10a, `map_meta_cap`-Fassade, P-11-Invalidierung, Eskalationsschutz; 62 RBAC-Fälle auf Dienstebene grün, HTTP-Varianten an die Einstiegs-Tasks übergeben; Unit 73, Integration 47, Multisite 56. Offener Punkt A-1 (Kursmanager vergibt Support trotz #21) zur Klärung. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02.
   - **Ergebnis/Definition of Done:** Alle Server-Einstiege nutzen Objekt-/Site-Rechte; negative IDOR-Tests grün.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-04 · Kurs-/Modul-/Lektionsmodell**
+- [x] **R1-04 · Kurs-/Modul-/Lektionsmodell** — erledigt 16.11.2026: Nachweis `docs/r1/R1-04-nachweis.md`; 5 CPTs (nur Kurs öffentlich, Slug `kurs`), stabile UIDs, Modulzuordnung/Reihenfolge, Veröffentlichen mit unveränderlicher Kursrevision, Archiv, Löschschutz, Bundles; GM-001/GM-003/LOC-001 grün; Unit 73, Integration 56, Multisite 65. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02, R1-03.
   - **Ergebnis/Definition of Done:** Neutrale Kursstruktur, Revisionen, Entwurf/Publikation/Archiv, Zuordnungen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-05 · WP-native Autorenoberfläche**
+- [x] **R1-05 · WP-native Autorenoberfläche** — erledigt 16.11.2026: Nachweis `docs/r1/R1-05-nachweis.md`; Menü, Kursstruktur- und Veröffentlichungs-Panel, Lektions-Activity-Panel, Duplizieren mit `copied_from_uid`, REST-Routen mit HTTP-Varianten, gebündelte Hinweise (GM-140), beschriftete Felder (GM-141 Teil); Unit 85, Integration 134, Multisite 143. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04.
   - **Ergebnis/Definition of Done:** Kurs- und Lektionseditor, Preview, Reihenfolge, Validierung und Accessibility.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-06 · Fragenbank und neutrale Fragetypen**
+- [x] **R1-06 · Fragenbank und neutrale Fragetypen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-06-nachweis.md`; 9 Fragetypen inkl. E-22/E-69, Revisionen, Modul-Pool, signiertes Frage-Token, Seed-Randomizer; GM-017/019/020/022/023/024/025/026, GM-191…194, SEC-016 grün; Unit 82, Integration 63, Multisite 72. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04.
   - **Ergebnis/Definition of Done:** Single/Multi/Open/weitere belegte Typen, Revisionen, Medien und Feedback.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-07 · Activity-Provider und Lernmedien**
+- [x] **R1-07 · Activity-Provider und Lernmedien** — erledigt 16.11.2026: Nachweis `docs/r1/R1-07-nachweis.md`; Provider-Vertrag + Registry, 7 R1-Typen mit Abschlussregeln, Einfrieren in die Kursrevision, Fortschritt (GM-011), Video/Fremdhost/Consent-Modus (GM-008/012/013/014), Lektionsquiz (GM-007), Lernmedien; Unit 85, Integration 68, Multisite 77. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04, R1-06.
   - **Ergebnis/Definition of Done:** Versionierte Activity-Verträge, Video/Schritte/Downloads, externe Medien-Consent.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-08 · Prüfungsblueprints und Versuche**
+- [x] **R1-08 · Prüfungsblueprints und Versuche** — erledigt 16.11.2026: Nachweis `docs/r1/R1-08-nachweis.md`; Regeln/Blueprints/Varianten, Versuchsstart mit Snapshot, Antworten/Abgabe/Abbruch mit CAS, Fristablauf, Bewertung gegen Snapshot; GM-021/027…047/210, GRANT-027 grün; Unit 85, Integration 99, Multisite 108. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-06, R1-07.
   - **Ergebnis/Definition of Done:** Zufalls-/feste Prüfungen, Timer, immutable Snapshots, idempotente Abgabe.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-09 · Bewertung und Ergebnisanzeige**
+- [x] **R1-09 · Bewertung und Ergebnisanzeige** — erledigt 16.11.2026: Nachweis `docs/r1/R1-09-nachweis.md`; Lernantworten idempotent (GM-018), Ergebnisfilter nach eingefrorenen Feedback-Regeln (E-20/E-147), Nachbewertung als Datenvertrag mit `evaluation_no`, Audit und `exam.reevaluated` (E-74); Unit 85, Integration 102, Multisite 111. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08.
   - **Ergebnis/Definition of Done:** Richtig/Falsch/Teilpunkte nach belegter Regel, Ergebnis-/Retake-UX, Audit.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-10 · Fortschritt, Completion, Mastery, Competency**
+- [x] **R1-10 · Fortschritt, Completion, Mastery, Competency** — erledigt 16.11.2026: Nachweis `docs/r1/R1-10-nachweis.md`; Completion gegen die Revision des Lernenden (GM-009, E-286, monoton), `mastery_ratio`, abgeleitete Competency, Neuaufbau-Job; Unit 85, Integration 108, Multisite 117. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-07, R1-09.
   - **Ergebnis/Definition of Done:** Getrennte Zustände, Resume, Revisionsschutz, Datenschutz.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-11 · Karteikarten, Favoriten und Fehlertraining**
+- [x] **R1-11 · Karteikarten, Favoriten und Fehlertraining** — erledigt 16.11.2026: Nachweis `docs/r1/R1-11-nachweis.md`; Karteikarten in zwei Modi (E-21), Favoriten/Sammlungen mit Grenzen, Kaskaden und Sortierung, Fehlertraining aus Lern- und Prüfungsantworten; GM-055…063, 070, 071 grün; Unit 85, Integration 112, Multisite 121. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-06, R1-10.
   - **Ergebnis/Definition of Done:** Alle belegten neutralen Lern- und Wiederholungsfunktionen mit Persistenz.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-12 · Smarttrainer und Wiederholungsplanung**
+- [x] **R1-12 · Smarttrainer und Wiederholungsplanung** — erledigt 16.11.2026: Nachweis `docs/r1/R1-12-nachweis.md`; `smarttrainer.v1` mit festen Parametern, Auswahl, Intervallen, Rate-Limit und Aggregat; GM-004, GM-065…067, 069, 072, 073 und G-1…G-3 deterministisch grün; Unit 85, Integration 118, Multisite 127. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-10, R1-11.
   - **Ergebnis/Definition of Done:** Belegte Algorithmen/Intervalle als neutrale Regeln; deterministische Tests.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-13 · Standalone-Free-Zugänge und Gruppenplätze**
+- [x] **R1-13 · Standalone-Free-Zugänge und Gruppenplätze** — erledigt 16.11.2026: Nachweis `docs/r1/R1-13-nachweis.md`; Grant-Automat G-01…G-15 mit CAS/Event/Outbox in einer TX, Kette/Restack, Ablauf, Pending-Timeout; Gruppen, Einladungen, Gruppenlink, Claim unter Lock, Reduktion, Statusweitergabe; GRANT-/SEAT-Tests grün; Unit 85, Integration 82, Multisite 91. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-03, R1-04.
   - **Ergebnis/Definition of Done:** Kostenlose/manuelle/zeitgesteuerte Grants, Seat/Claim, Mehrfachzugang, kein Woo.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-14 · Zugriffsschutz und geschützte Inhalte**
+- [x] **R1-14 · Zugriffsschutz und geschützte Inhalte** — erledigt 16.11.2026: Nachweis `docs/r1/R1-14-nachweis.md`; ContentGate (Zugang, Teilumfang, Drip, Voraussetzungen, laufende Prüfung) in allen Lernpfaden, geschützte Ablage und Auslieferung (GM-015/016/111/112), Seitenschutz inkl. Feed/Auszug/REST/Abschnitt/Cache (GM-107…110, 116); Unit 85, Integration 124, Multisite 133. Offen nach Plan: GM-113…115 (R1-38/R1-40). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-13, R1-07.
   - **Ergebnis/Definition of Done:** Page/Block/Shortcode/API/Medien/Download-Gates, Schutz gegen Direktzugriff.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-15 · Import/Export/Dry-run/Rollback**
+- [x] **R1-15 · Import/Export/Dry-run/Rollback** — erledigt 16.11.2026: Nachweis `docs/r1/R1-15-nachweis.md`; Paketvalidierung V1–V5 (+`requires`), Dry-run mit V6-Objektfehlern, Zustandsautomat mit Aktivierung, Archiv statt Löschen, Konflikte, Rollback über Paketkopie, Export; Unit 85, Integration 138, Multisite 147. Großimport/Medien/Blueprints mit R1-41. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04, R1-06.
   - **Ergebnis/Definition of Done:** Neutrale Paketpipeline, Provenienz, Rights, Wiederholung, Revisionen, Recovery.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-16 · Lernoberfläche und responsive Navigation**
+- [x] **R1-16 · Lernoberfläche und responsive Navigation** — erledigt 16.11.2026: Nachweis `docs/r1/R1-16-nachweis.md`; Katalog (GM-001), Mein Lernen mit Zugangsstatus (GM-091) und Fortsetzen, Kursraum mit Sperrgründen, Lernenden-REST, Blöcke/Shortcodes, Lernbereich ohne JS, Browser-Prüfung 390 px; Unit 85, Integration 144, Multisite 153. Interaktive Lektions-/Prüfungs-UI mit R1-19/R1-20. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-05, R1-07, R1-08, R1-10, R1-11, R1-12, R1-13.
   - **Ergebnis/Definition of Done:** Kurskatalog, Kursraum, Activity, Prüfung, Fortschritt, Profile, Tastatur/Mobil.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-17 · Datenschutz, Diagnose und Wartungsjobs**
+- [x] **R1-17 · Datenschutz, Diagnose und Wartungsjobs** — erledigt 16.11.2026: Nachweis `docs/r1/R1-17-nachweis.md`; Exporter/Eraser mit Einstufung aller Tabellen (GM-172/173), Kontolöschung (GM-102/103), Retention-Jobs (GM-099/131/161), isolierte Wartung und Selbstheilung (GM-156/157), Health-Checks, Audit-Ansicht mit Registry (GM-138/139); Unit 85, Integration 150, Multisite 159. Klärungen A-1/A-2 im Nachweis. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02, R1-14, R1-15.
   - **Ergebnis/Definition of Done:** Export/Eraser, Retention, Cron-Recovery, Audit, Health-Checks, Security.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-18 · R1-Golden-Master- und E2E-Abnahme** — *Eingangskriterium (E-328): `cc-fixture-neutral-v1` gebaut und Referenzlauf des LB-Plugins für Rechenlogik-Fälle (E-56) durch getrennte Prüfrolle protokolliert.*
+- [ ] **R1-18 · R1-Golden-Master- und E2E-Abnahme** — *Teilstand 17.11.2026: Fixture `cc-fixture-neutral-v1` erweitert (Prüfungen ER-A/EP-A/ER-B, Medien, Downloads, Seiten, Nutzer, Gruppen, AR-/FC-/MED-BAD-Helfer), GM-Rückverfolgung `tools/qa/gm-coverage.php` über alle 210 GM-IDs (171 mit Test, 39 Ausnahmen davon 36 offen), Live-E2E `tools/qa/e2e/live-smoke.sh` (Login → Lernen → Prüfung mit Reload → Zertifikat als Gast), Nachweis `docs/r1/R1-18-nachweis.md` mit Gate-B/C-Stand und Befunden F-1…F-8; offen: Referenzlauf durch getrennte Prüfrolle (E-328/E-56), 36 offene GM-Fälle, Freigaben der Abweichungen, Gates B/C.* — *Eingangskriterium (E-328): `cc-fixture-neutral-v1` gebaut und Referenzlauf des LB-Plugins für Rechenlogik-Fälle (E-56) durch getrennte Prüfrolle protokolliert.*
   - **Voraussetzung:** R1-01, R1-02, R1-03, R1-04, R1-05, R1-06, R1-07, R1-08, R1-09, R1-10, R1-11, R1-12, R1-13, R1-14, R1-15, R1-16, R1-17.
   - **Ergebnis/Definition of Done:** Alle neutralen Originalfunktionen nachgewiesen; Free ohne Woo/Suite/Pro, Gates B/C bestanden.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-19 · Mehrsprachigkeit und Accessibility umsetzen**
+- [x] **R1-19 · Mehrsprachigkeit und Accessibility umsetzen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-19-nachweis.md`; deutsche Übersetzung `languages/course-captain-de_DE.po/.mo` (du-Form, im Release-ZIP), `Locale` (Varianten-Fallback, `lang`/`dir`, RTL je Sprach-Tag, Profilsprache E-124, REST-Fehler in Nutzersprache LOC-015), CSS nur logische Properties, sichtbarer Fokus, reduzierte Bewegung/Forced Colors, Prüfungsraum ohne JavaScript mit Timer-Ansagen und Bestätigung, `_n()`-Zählsätze, statischer i18n-Scan im Textdomain-Lint, DOM-A11y-Prüfungen `A11yI18nTest` für Lernbereich, Admin-Screens und Blöcke, Playwright-Tastatur- und axe-Lauf (0 Verstöße); Integration 398, Multisite 411. Offen: Screenreader-Test NVDA/VoiceOver (R1-29), axe als CI-Gate, Sie-Form, Polylang LOC-014/028, Alt-Text-Regeln im Validator. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-05,R1-16.
   - **Ergebnis/Definition of Done:** Lernraum/Admin per Tastatur bedienbar, übersetzbare Strings, Locale/RTL/Screenreader- und Responsive-Tests grün.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-20 · Prüfungsintegrität und Wiederaufnahme absichern**
+- [x] **R1-20 · Prüfungsintegrität und Wiederaufnahme absichern** — erledigt 16.11.2026: Nachweis `docs/r1/R1-20-nachweis.md`; Offline-Puffer mit begrenztem `age_ms`, Schutz älterer Tab-Stände, Start-Limit 40/h, Katalogcodes, Wiederaufnahme mit gespeichertem Stand, Prüfungs-REST R-18…R-24; Unit 85, Integration 167, Multisite 176. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08,R1-09.
   - **Ergebnis/Definition of Done:** Serverzeit/Timeout, Verbindungsabbruch, Doppelabgabe, Browser-Reload, Offline-Grenzen, Replay und Manipulationsschutz getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-21 · Benachrichtigungen und E-Mail-Vorlagen**
+- [x] **R1-21 · Benachrichtigungen und E-Mail-Vorlagen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-21-nachweis.md`; Outbox-Abonnent `notification`, 16 Mailtypen mit Variablen-Allowlist, Vorlagen je Sprache, Opt-out mit signiertem Link, Versandlauf mit Retry/Limits, Halte-/Ausgabemodus; Typen ohne Auslöser-Event folgen mit R1-38/R1-46, Mails N-05…N-07 an R1-44 anzuschließen; Integration 208, Multisite 217. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-13,R1-17.
   - **Ergebnis/Definition of Done:** Einladung, Claim, Ablauf, Abschluss, Fehler und Opt-out mit WP-Mail, Rate-Limits, Datenschutz und Test-Mail-Sink.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-22 · Skalierung und Lasttests**
+- [x] **R1-22 · Skalierung und Lasttests** — erledigt 16.11.2026: Nachweis `docs/r1/R1-22-nachweis.md`; R-CI-Gates in `PerformanceTest` (Query-Zähler je OP, Konstanzregel, EXPLAIN-Scanregel auf befüllten Tabellen, Outbox-Rückstand 2 000 Ereignisse); N+1 in „Mein Lernen“ (22/106/421 → 21/21/21) und Prüfungsstart (44/152 → 22) behoben; Integration 303, Multisite 315. Absolute Query-Budgets OP-01/03/04/05/06 überschritten (B-3, als Regressionsgrenze fixiert), k6-Profile L1–L4 auf R-M offen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-20.
   - **Ergebnis/Definition of Done:** Große Kurs-/Fragenmengen, parallele Prüfungen, Query-/Index-Analyse, Job-Backlog und Performancebudgets nachgewiesen.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-23 · Upgrade-, Restore- und Uninstall-Proben**
+- [x] **R1-23 · Upgrade-, Restore- und Uninstall-Proben** — erledigt 16.11.2026: Nachweis `docs/r1/R1-23-nachweis.md`; Site-Identität mit Restore-/Kopie-Erkennung (Epoche + Journal-Kopf) und Haltemodus für Mails, Bestätigung per Admin-Hinweis/CLI mit Audit, Upgrade-Proben bei offener Outbox/Lease, Uninstall mit/ohne Datenlöschung inkl. eigener Beiträge (Single/Multisite), Manifest-Abdeckung, `delete_data_on_uninstall` nur mit Site-Namen-Bestätigung (E-89); Integration 288, Multisite 300. backup-check/preflight, Lösch-Tombstones mit Wiederanwendung offen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-15,R1-17.
   - **Ergebnis/Definition of Done:** Migration von Vorversionen, Backup-Restore, Plugin-Deaktivierung, sichere Datenaufbewahrung und explizite Uninstall-Policy getestet.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-24 · Dokumentation, Onboarding und Support**
+- [x] **R1-24 · Dokumentation, Onboarding und Support** — erledigt 16.11.2026: Nachweis `docs/r1/R1-24-nachweis.md`; `docs/user/` (Installation, Admin, Autoren, Lernende, Troubleshooting-Runbook, Datenschutz, Entwickler, Release), `readme.txt`/`CHANGELOG.md` korrigiert; Code-Befunde B-1/B-3/B-6 behoben (`tests/integration/DocReviewFixesTest.php`), B-2/B-4/B-5/B-7/B-8 offen (Nachweis); `SECURITY.md` braucht Sicherheitsadresse des Auftraggebers. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-16,R1-21.
   - **Ergebnis/Definition of Done:** Installationsguide, Admin-/Autoren-/Lernendenhilfe, Troubleshooting, Privacy-Hinweise, API- und Release-Doku fertig.
   - **Nachweis:** konkreter Commit/Dateipfad, Test- oder Review-Protokoll und Referenz zu betroffenen Konzept-/FLOW-/CORE-/LB-Anforderungen; erst danach abhaken.
 
-- [ ] **R1-25 · Cache- und Zustandskonsistenz implementieren**
+- [x] **R1-25 · Cache- und Zustandskonsistenz implementieren** — erledigt 16.11.2026: Nachweis `docs/r1/R1-25-nachweis.md`; generationsversionierter Objektcache K1/K1g/K2 mit Leseprotokoll, Invalidierung nach Commit (Grant/Refund über Outbox, Kursrevision mit Purge, Fragenrevision, Rollen, Eraser), H-X-Header auf allen Statuscodes; Integration 176, Multisite 185. Mehrprozess-/Proxy-Proben mit R1-42/R1-30. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02,R1-13.
   - **Ergebnis/Definition of Done:** Grant-/Refund-/Kursrevisionen invalidieren Cache sicher; private Antworten nie öffentlich zwischengespeichert; Paralleltests grün.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-26 · Kurs-Publish-Validator und Fehlerführung bauen**
+- [x] **R1-26 · Kurs-Publish-Validator und Fehlerführung bauen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-26-nachweis.md`; Validator mit stabilen VAL-Codes und Report, Blocker ohne Override, Warnungsbestätigung je Fingerabdruck mit Audit, Editor-/REST-/Statuswechsel-Wege durch den Validator; Unit 85, Integration 162, Multisite 171. Weitere Regelgruppen mit R1-27/34/44/46. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-04,R1-05,R1-06,R1-08.
   - **Ergebnis/Definition of Done:** Autoren sehen konkrete Blocker/Warnungen; ungültige Kurse/Prüfungen werden nicht veröffentlicht; Preview testbar.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-27 · Kursänderungen während laufender Lernprozesse testen**
+- [x] **R1-27 · Kursänderungen während laufender Lernprozesse testen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-27-nachweis.md`; Vorwärtsrollen mit Besitzstand (E-103) inkl. Backfill nach Veröffentlichung, Kursabschluss bleibt Ereignis, `revision_recalc`, eingefrorene Abschnittsnamen im Prüfungssnapshot; REV-001/003/004/010/021/037 neu, weitere REV-Fälle über R1-08/R1-26/R1-44 abgedeckt; Integration 255, Multisite 265. Staging-Kopie (E-104) und Drip-Besitzstand offen (A-1/A-3). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08,R1-10,R1-15.
   - **Ergebnis/Definition of Done:** Versuche bleiben revisionsfest, Fortschritt bleibt konsistent, archivierte Inhalte und Zertifikate nachvollziehbar.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-28 · Öffentliche API-/Block-/Shortcode-Verträge absichern**
+- [x] **R1-28 · Öffentliche API-/Block-/Shortcode-Verträge absichern** — erledigt 16.11.2026: Nachweis `docs/r1/R1-28-nachweis.md`; Fehlerformat nach R0-19 §3.1 mit Request-ID, Deprecation-Header, Routen-/Hook-Snapshots als Contract-Gate, anonyme 401 für alle privaten Routen, Shortcode-Präfix `ccap_` mit Alias, Block-Versionen, `docs/API.md` + Changelog; Integration 216, Multisite 225. Idempotency-Header/Route-Schemas folgen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-03,R1-14,R1-16.
   - **Ergebnis/Definition of Done:** Versionierung, Permissions, Fehlerformate, Sanitization, Deprecation- und Contract-Tests für freigegebene Einstiegspunkte.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
@@ -363,84 +363,84 @@
   - **Ergebnis/Definition of Done:** Referenzaufgaben durchgespielt; Tastatur, Screenreader, mobile Prüfungen und Fehlerbehebung mit dokumentierten Befunden.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-30 · Konflikt- und Interoperabilitätstests**
+- [x] **R1-30 · Konflikt- und Interoperabilitätstests** — erledigt 16.11.2026: Nachweis `docs/r1/R1-30-nachweis.md` (Matrix aller KOMP-IDs, Befunde F-01…F-17); `CompatibilityTest`/`CompatibilityNamesTest` mit Fremd-Plugin-Stubs: Pflichtfälle KOMP-057…059 (Security-Plugin-Erkennung, Rückzug, Header-Vorrang E-307), REST-Gastsperre, DB-Query-Cache (kritisch), Mail-Log, SEO-Plugins, Woo-Koexistenz/`view_admin_dashboard`, Polylang, Elementor, Plain-Permalinks, DISABLE_WP_CRON, vertrauenswürdige Proxys; Namenskollisionen KOMP-130…132/134 (Kollisionsschutz für CPT/Rolle/Shortcode/Block, Slug-Prüfung F4.1 mit Bestätigung, Präfix-Inventar), Query-Vars nach D-20-03; Integration 389, Multisite 402. Offen: Profile KP-01…14 (Docker, echte Plugins, Redis/Varnish/Cloudflare, Browser-E2E), J-21 gegen LB. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-22,R1-28.
   - **Ergebnis/Definition of Done:** Themes, Objektcache, REST-Security, Mail-/Cache-Plugins und unterstützte Versionen in Matrix getestet; Konflikte dokumentiert.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-31 · Settings-Storage, Migration und Berechtigungen**
+- [x] **R1-31 · Settings-Storage, Migration und Berechtigungen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-31-nachweis.md`; Register als eine Quelle, Option je Tab mit Teil-Update, Rechten je Feld, Konflikterkennung, Audit nach Datenschutzklasse, Reset/Undo, Migration (GM-181), Export ohne Secrets, Fremdschreiber-Schutz; Unit 85, Integration 129, Multisite 138. Klärung GM-178/GM-180 im Nachweis. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02,R1-03,R0-27.
   - **Ergebnis/Definition of Done:** Versionierte Optionen, Typvalidierung, Capabilities, sichere Defaults, Upgrade- und Negativtests.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-32 · Setup-Assistent und globale Einstellungs-Tabs**
+- [x] **R1-32 · Setup-Assistent und globale Einstellungs-Tabs** — erledigt 16.11.2026: Nachweis `docs/r1/R1-32-nachweis.md`; Einstellungs-Screen mit Tabs (Felder, Validierung je Feld, Risiko-Bestätigung RC-*), Setup-Assistent mit Zustand und Bereitschaftsprüfung; Integration 369, Multisite 382. Offen: Übersichtsseite/Menübaum, Loopback-Prüfungen RDY-01/03/06/11/15 nur als Hinweis, Playwright/AXE. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-05,R1-31,R0-30.
   - **Ergebnis/Definition of Done:** Resumierbarer Wizard, feldnahe Fehler, Tab-Save/Reset, ungespeicherte Warnung, Accessibility.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-33 · Kurs-/Prüfungs-Overrides und Snapshot-Policy**
+- [x] **R1-33 · Kurs-/Prüfungs-Overrides und Snapshot-Policy** — erledigt 16.11.2026: Nachweis `docs/r1/R1-33-nachweis.md`; Resolver `EffectiveSettings` (global → Kurs → Regel, Sperren, Leaf-Merge, Monotonie C-1, Nachteilsausgleich), Kurs-Metabox mit Vorschau, Prüfungsregeln speichern nur Overrides (`_format = 2`) und frieren aufgelöste Werte beim Veröffentlichen ein, Snapshot v2 mit Herkunft; Integration 319, Multisite 331. Offen: UI für Sperren, Override-Index/Sammel-Reset, Activity-/Gruppen-/Medien-Overrides. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-08,R1-27,R1-31,R0-28.
   - **Ergebnis/Definition of Done:** Vererbung, Preview, Änderung laufender Versuche und historische Auswertung getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-34 · Rollen-, Datenschutz-, Medien- und Mail-Settings anbinden**
+- [x] **R1-34 · Rollen-, Datenschutz-, Medien- und Mail-Settings anbinden** — erledigt 16.11.2026: Nachweis `docs/r1/R1-34-nachweis.md`; Rollen-Tab (`RoleCaps`), Testmail, Datenschutz-Settings inkl. automatisierter Anfragen, externe Medien mit Consent API, vertrauenswürdige Proxys (`ClientIp`) in Härtung/Zertifikaten, Feedback-Sichtbarkeit `never` (B-5); Integration 369, Multisite 382. Offen: Mailvorlagen-Editor, CSP-Modus ohne Wirkung, Tombstone-Alter. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-21,R1-31,R0-31.
   - **Ergebnis/Definition of Done:** UI und serverseitige Wirkung inklusive Audit, Consent, Opt-out, Redaction und Permissions geprüft.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-35 · Gruppen- und Basiszertifikatsverwaltung Free abnehmen**
+- [x] **R1-35 · Gruppen- und Basiszertifikatsverwaltung Free abnehmen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-35-nachweis.md`; Admin-Screens Gruppen (A-10: Gültigkeit, Eigentümer, Claim-Policy, Umbenennen, Mitglieder maskiert) und Zertifikate (A-11: Liste, CSV mit Pflichtgrund, manuelle Ausstellung, Korrektur/Widerruf, Basisvorlage mit Versionen, Slug-Historie 301); Integration 319, Multisite 331. Offen: Δ-7 Vorlagentabelle, Δ-10 `revision_kind`, Untergruppen/Kontingente, Wiedereinsetzung beendeter Gruppen, E2E. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-13,R1-27,R0-29.
   - **Ergebnis/Definition of Done:** Seat/Claim-UI, Basisnachweis, Widerruf/Verifikation, Lizenzunabhängigkeit und E2E-Tests grün.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-36 · Admin-Settings-Regression und Migrationstests**
+- [x] **R1-36 · Admin-Settings-Regression und Migrationstests** — erledigt 16.11.2026: Nachweis `docs/r1/R1-36-nachweis.md`; `SettingsRegressionTest` (Register, Defaults, Validierung, Undo, Rechte), Settings-Export/-Import (`SettingsTransfer`, `never_env`), Backup-Screen, Migrationstests der Tab-Optionen; Integration 369, Multisite 382. Offen: Rollen-Tab im Export (Klärung), WP-CLI `settings`. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-32,R1-33,R1-34,R1-35.
   - **Ergebnis/Definition of Done:** Reset, invalid inputs, Downgrade, WP-Werte-Vererbung, Multisite-Grenzen und Security/Accessibility getestet.
   - **Nachweis:** Feld-/UI-Vertrag, Commit/Datei, positive und negative Testfälle, Security-/Accessibility-Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-37 · Kurs-SEO und Sichtbarkeit sicher umsetzen**
+- [x] **R1-37 · Kurs-SEO und Sichtbarkeit sicher umsetzen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-37-nachweis.md`; eine Indexierbarkeitsfunktion für robots/Sitemaps/Suche/JSON-LD, nur einschränkend (SG-03), privater Lernbereich `noindex, nofollow` ohne Canonical/OG, Yoast- und Rank-Math-Filterverträge, oEmbed/REST-Leakschutz; Integration 224, Multisite 233. Lauf mit echten SEO-Plugins in R1-30. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-14,R1-28,R0-33.
   - **Ergebnis/Definition of Done:** Öffentliche Kursseiten SEO-kompatibel; private Prüfungen, Profile, Medien und Grants nicht indexierbar oder per API abrufbar; Yoast-Konflikttests.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R1-38 · Betriebsdashboard mit sicheren Reparaturaktionen**
+- [x] **R1-38 · Betriebsdashboard mit sicheren Reparaturaktionen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-38-nachweis.md`; Statusseite (Prüfliste, Jobs, Integrationen, Diagnose), Reparaturaktionen mit Recht/Nonce/Begründung/Audit/Idempotenz (Migration erneut, Dead-Letter, gehaltene Mails, Cache), Integrationsstatus nur über Versions-APIs, Diagnosepaket mit Scrubber, WP-CLI `status|cache flush|outbox|integrations|diagnostics`. Korrekturdialoge K-01…K-15 und Reconcile offen. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-17,R1-24,R0-34.
   - **Ergebnis/Definition of Done:** Cron/Jobs/Import/Grant-Fehler mit IDs und sicheren Retry/Reconcile-Aktionen, Rollen-/Dedupe-Tests, redigiertem Diagnoseexport.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R1-39 · Distribution- und Erstinstallationsabnahme**
+- [x] **R1-39 · Distribution- und Erstinstallationsabnahme** — erledigt 16.11.2026: Nachweis `docs/r1/R1-39-nachweis.md`; reproduzierbarer ZIP-Build (`tools/release/build-zip.php`, SOURCE_DATE_EPOCH, SHA256SUMS), ZIP-Prüfung J-17 (`check-zip.php`), Artefakt-Installationstest auf frischem WP (`artifact-test.sh`), CI-Job `build-zip`, `DistributionTest` mit Negativfällen. Offen: Plugin Check, de_DE-Übersetzung (R1-19), Sicherheitsadresse SECURITY.md (Auftraggeber), SBOM J-18. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-23,R1-24,R1-30,R0-35.
   - **Ergebnis/Definition of Done:** Free-ZIP Clean-Install, Upgrade, WordPress.org-Readme, i18n, Demo ohne Fremdinhalte, Support-Runbook und Deaktivierung geprüft.
   - **Nachweis:** Quellkonzept/Abschnitt, Course-Delta, Datei/Commit, positive und negative Tests, Review; erst danach abhaken.
 
-- [ ] **R1-40 · Datenbankmigration mit Lock und Wiederaufnahme testen**
+- [x] **R1-40 · Datenbankmigration mit Lock und Wiederaufnahme testen** — erledigt 16.11.2026: Nachweis `docs/r1/R1-40-nachweis.md`; Migrator mit Struktur-/Backfill-Phase, Lease+Fencing, Zeitbudget, Poison-Erkennung, Wiederaufnahme nach hartem Abbruch (Mehrprozesstests mit `pcntl_fork`), Wartungsfenster W1, Site-Health, `wp course-captain migrate`; Integration 249, Multisite 259. P4/P6/Downgrade (MIG-018/019) und Admin-Hinweise offen (Nachweis O-1…O-5). Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02,R1-23,R0-37.
   - **Ergebnis/Definition of Done:** Parallele Admin/Cron/CLI-Upgradeversuche, Crash, Retry, Backfill und Restore ohne doppelte Schemaaktionen oder Datenverlust getestet.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-41 · Großimport-Batchverarbeitung mit Fehlerreport**
+- [x] **R1-41 · Großimport-Batchverarbeitung mit Fehlerreport** — erledigt 16.11.2026: Nachweis `docs/r1/R1-41-nachweis.md`; `ImportRunner` (NDJSON-Spool, Chunks je Transaktion mit Savepoint je Objekt, Lease mit Fencing, Zeit-/Speicherbudget, adaptive Chunkgröße, Retry bei Deadlock/`ccap_db_busy`, Fehlerschwelle, Abbruch/Resume, Auto-Wiederaufnahme mit Watchdog, Rechteprüfung je Schritt), `ImportReport` (stabile Codes, JSON-Keyset/CSV mit Injection-Schutz), REST-Fortschritt/Schritt/Abbruch/Resume/Report, WP-CLI `import`; Tests bis 5 000 Fragen (Dry-run) bzw. 1 500 (Commit); Integration 340, Multisite 352. Offen: Zeitscheiben für Plan/Dry-run, Messungen M-01…M-16, Medien-/Blueprint-Import, Admin-Oberfläche. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-15,R0-38.
   - **Ergebnis/Definition of Done:** Dry-run vor Commit, Fortschritt/Resume, pro Objekt validierte Fehler, idempotenter Reimport, Rollback und Rechteprüfung E2E.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-42 · Parallelitäts- und Datenintegritäts-Lastprofil**
+- [x] **R1-42 · Parallelitäts- und Datenintegritäts-Lastprofil** — erledigt 16.11.2026: Nachweis `docs/r1/R1-42-nachweis.md`; Mehrprozess-`RaceRunner` (fork, Startbarriere), `ConcurrencyTest` CON-001/002/005/008/011/015/016/019/040/042/043 mit N = 50 ohne verletzte Invariante; Deadlock-Retry (3×, Jitter) und `ccap_db_busy` (503) in `Database`, Vorab-INSERT der Fortschrittszeilen (R0-21 R-2), Lock-Reihenfolge NFR-012 dokumentiert; Integration 303, Multisite 315. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-20,R1-22,R1-40.
   - **Ergebnis/Definition of Done:** Gleichzeitige Enrollment-/Seat-/Attempt-/Completion-Operationen gegen echte DB, Unique-Invarianten, Deadlock-/Retry- und Messprotokoll.
   - **Nachweis:** referenzierter Quellvertrag, Datei/Commit, positive/negative Tests, Review und Freigabe; erst danach abhaken.
 
-- [ ] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — *Aufgenommen (E-182, angepasst an E-38): nur **interne** Outbox im Free-Kern; öffentliche Events/Read-API/Registry sind Pro (R3).*
+- [x] **R1-43 · Domain-Events, Outbox und Connector-Registry im Free-Kern** — erledigt 16.11.2026: Nachweis `docs/r1/R1-43-nachweis.md`; Outbox-Dispatcher (Lease, Backoff, Dead-Letter, Retention, Replay), GrantSourceAdapter/Mapper/FakeSource/Reconciler; Unit 85, Integration 87, Multisite 96. Review durch zweite Person vor Merge ausstehend (AG-05). — *Aufgenommen (E-182, angepasst an E-38): nur **interne** Outbox im Free-Kern; öffentliche Events/Read-API/Registry sind Pro (R3).*
   - **Voraussetzung:** R1-02, R1-03.
   - **Ergebnis/Definition of Done:** Event-Envelope v1, Outbox mit Zustellung/Backoff/Dead-Letter, Connector-Registry und GrantSourceAdapter nach R0-19 §5; Tests aus R0-19/R0-21.
 
-- [ ] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — *Aufgenommen (E-183).*
+- [x] **R1-44 · Basisnachweis-Domäne (Zertifikat Free)** — erledigt 16.11.2026: Nachweis `docs/r1/R1-44-nachweis.md`; CertificateService (Ausstellung über Outbox, Korrektur als Revision, Widerruf, Verifikation mit gehashtem Token, Snapshot-Hash), Seiten/Block/REST R-40/R-42, Datenschutz/Retention; Vorlagen-Tabelle, Kurs-Override und keep_evidence folgen (R1-33/R1-35); Klärungsfragen im Nachweis. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-02, R1-10.
   - **Ergebnis/Definition of Done:** Ausstellung, Einmaligkeit, Snapshot, Korrektur, Widerruf, Verifikation nach R0-08 §7 und R0-23 §5; R1-35 baut darauf Verwaltung und UI.
 
-- [ ] **R1-45 · Website-Härtungsmodul** — *Aufgenommen (Beschluss E-10, E-239).*
+- [x] **R1-45 · Website-Härtungsmodul** — erledigt 16.11.2026: Nachweis `docs/r1/R1-45-nachweis.md`; Login-/Reset-/Registrierungslimit (fail-closed), Gerätecookie, XML-RPC, Site-Header ohne Dopplung, Erkennung von Security-Plugins (`held:<slug>`), erst nach Bestätigung aktiv, Notausschalter + CLI, Audit; PSD-039…056/065 als Tests; Integration 266, Multisite 276. Tab-Oberfläche mit R1-32. Review durch zweite Person vor Merge ausstehend (AG-05)
   - **Voraussetzung:** R1-03, R1-31, R1-42.
   - **Ergebnis/Definition of Done:** Login-/Reset-/Registrierungslimit, bekanntes Gerät, XML-RPC, 4 Security-Header; Erkennung von Security-Plugins (`auto`), Notausschalter; Spezifikation R0-31 §3.4, R0-30 Tab „Website-Härtung“; Tests PSD-xxx/ADM-xxx.
 
-- [ ] **R1-46 · Text-/Dateiaufgaben mit Bewertung (aus R2-02 vorgezogen)** — *Aufgenommen (Beschluss E-168).*
+- [x] **R1-46 · Text-/Dateiaufgaben mit Bewertung (aus R2-02 vorgezogen)** — erledigt 16.11.2026: Nachweis `docs/r1/R1-46-nachweis.md`; `AssignmentService` (Abgabekette je Lernendem/Lektion, Bewertung, Rückgabe, Warteschlange, Export/Eraser, Retention RT-45), `AssignmentFiles` (Allowlist, finfo/MIME, Limits, geschützte Ablage, Auslieferung nur als Download), REST R-46/R-54…R-58, Benachrichtigungen N-14…N-16, Schema Δ-8-Spalten; Integration 328, Multisite 340. Offen: Lernenden-/Trainer-UI, Publish-Regeln VAL-037…039, Importformat `assignment`. Review durch zweite Person vor Merge ausstehend (AG-05) — *Aufgenommen (Beschluss E-168).*
   - **Voraussetzung:** R1-07, R1-09, R1-14.
   - **Ergebnis/Definition of Done:** Abgabe-Workflow draft/submitted/returned/graded, sichere Uploads (R0-10), Bewertung durch Trainer, Benachrichtigung; Tests und Nutzertest-Referenzkurs mit Aufgabe (R0-26).
 

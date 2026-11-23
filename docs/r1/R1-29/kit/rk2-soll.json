@@ -1,0 +1,122 @@
+{
+    "package": "cc-fx-rk-v1",
+    "id": "RK-2",
+    "title": "Grundlagen der Tabellenkalkulation – Prüfungstraining",
+    "status": "publish",
+    "modules": [
+        {
+            "title": "Zellen und Bezüge",
+            "lessons": 3,
+            "activity_types": [
+                "lesson",
+                "video",
+                "quiz"
+            ],
+            "questions": 13,
+            "question_types": {
+                "cloze": 1,
+                "matching": 1,
+                "multi_choice": 3,
+                "numeric_tolerance": 1,
+                "ordering": 1,
+                "single_choice": 5,
+                "true_false": 1
+            }
+        },
+        {
+            "title": "Formeln und Funktionen",
+            "lessons": 3,
+            "activity_types": [
+                "lesson",
+                "video",
+                "lesson"
+            ],
+            "questions": 13,
+            "question_types": {
+                "cloze": 1,
+                "multi_choice": 3,
+                "numeric_tolerance": 1,
+                "open_text": 1,
+                "single_choice": 6,
+                "true_false": 1
+            }
+        },
+        {
+            "title": "Daten ordnen",
+            "lessons": 2,
+            "activity_types": [
+                "lesson",
+                "file"
+            ],
+            "questions": 12,
+            "question_types": {
+                "matching": 1,
+                "multi_choice": 3,
+                "numeric_tolerance": 1,
+                "ordering": 1,
+                "single_choice": 5,
+                "true_false": 1
+            }
+        },
+        {
+            "title": "Auswerten",
+            "lessons": 2,
+            "activity_types": [
+                "lesson",
+                "assignment"
+            ],
+            "questions": 12,
+            "question_types": {
+                "multi_choice": 3,
+                "numeric_tolerance": 1,
+                "open_text": 1,
+                "single_choice": 6,
+                "true_false": 1
+            }
+        }
+    ],
+    "lessons_total": 10,
+    "questions": 50,
+    "question_types": {
+        "cloze": 2,
+        "matching": 2,
+        "multi_choice": 12,
+        "numeric_tolerance": 4,
+        "open_text": 2,
+        "ordering": 2,
+        "single_choice": 22,
+        "true_false": 4
+    },
+    "images": {
+        "count": 3,
+        "alt_or_decorative_ratio": 1
+    },
+    "internal_videos_with_vtt": true,
+    "exam": {
+        "version": "Prüfung 2026",
+        "blueprint": [
+            8,
+            8,
+            7,
+            7
+        ],
+        "fixed": null,
+        "time_limit": 2700,
+        "pass": "3/4",
+        "parts": "3/5",
+        "max_attempts": 3,
+        "timer_mode": "strict"
+    },
+    "assignment": {
+        "submission_type": "file",
+        "max_points": 20,
+        "passing_points": 12,
+        "completion": "passed",
+        "allowlist": [
+            "pdf"
+        ]
+    },
+    "access": {
+        "mode": "manual"
+    }
+}

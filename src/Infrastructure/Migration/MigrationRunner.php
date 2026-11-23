@@ -42,4 +42,26 @@ interface MigrationRunner {
 	 * @return void
 	 */
 	public function maybe_run_in_admin(): void;
+
+	/**
+	 * Trigger T-5: the `ccap_migrate` cron event.
+	 *
+	 * @return void
+	 */
+	public function run_cron(): void;
+
+	/**
+	 * Trigger T-4: frontend/REST/Ajax requests (cheap check, schedule only).
+	 *
+	 * @return void
+	 */
+	public function on_request(): void;
+
+	/**
+	 * Own-name tables without the Course Captain ownership marker (KOMP-131).
+	 * Activation aborts before any write when this is not empty.
+	 *
+	 * @return list<string>
+	 */
+	public function conflicting_tables(): array;
 }
