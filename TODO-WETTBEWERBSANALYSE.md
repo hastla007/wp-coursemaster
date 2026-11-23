@@ -655,7 +655,7 @@ Dateiweise geprüft: Plugin-Bootstrap und Composer, `Plugin.php`, `AccessService
 - [ ] **LearnBoating-Paritätsmatrix abschließen:** alle fachneutralen Funktionen, Quellkomponenten, Übernahmestrategien, Regressionstests und Abnahmekriterien inventarisieren. Fachmodule ausdrücklich ausschließen.
 - [ ] **Kurs-/Quiz-Builder im Admin prüfen und vervollständigen:** Fragen direkt in Lektionen erstellen, Vorschau, Duplizieren, Revisionen, barrierearme Bedienung.
 - [ ] **Persönliche Lernnotizen evaluieren:** private Notizen je Lektion, Suche, Export und optionales Umwandeln in Lernkarten; Datenschutz und Speicherlast prüfen.
-- [ ] **Aufgabenabgaben als universelle Aktivität spezifizieren:** Text- und Datei-Einreichungen, sichere Uploads, Status und Feedback; Abgrenzung zur vorhandenen Praxisaufgabenlogik prüfen.
+- [x] **Aufgabenabgaben als universelle Aktivität spezifizieren:** Text- und Datei-Einreichungen, sichere Uploads, Status und Feedback; Abgrenzung zur vorhandenen Praxisaufgabenlogik prüfen. — **Erledigt (23.11.2026):** mit R1-46 umgesetzt (E-168): `AssignmentService`/`AssignmentFiles`, Automat und Fehlercodes in R0-08 §2.4/§2.5, Praxisaufgaben-Abgrenzung INV-A-059 (exclude) und E-22; Nachweis `docs/r1/R1-46-nachweis.md`, `tests/integration/AssignmentTest.php` (GM-195, GM-196, MED-033/034, REV-047/048, RT-45) grün in CI J-12 auf `main` 89fe9ef. Führend für Z. 712 und Z. 750 (R0-24).
 - [ ] **Kursvorlagen und Demokurse:** Duplizieren, neutrale Vorlagen (Onboarding, Sprachen, IT, Weiterbildung), sicherer Import/Export und keine Fach-Altinhalte.
 
 ## P1 – Professioneller LMS-Betrieb
@@ -699,18 +699,18 @@ Dateiweise geprüft: Plugin-Bootstrap und Composer, `Plugin.php`, `AccessService
 ### Architektur und Datenintegrität – Gate A/B
 
 - [ ] **ADR-001 bis ADR-008 verfassen:** Inhaltsspeicherung, Lern-/Prüfungsdaten, Inhaltsrevisionen, Activity-Provider, Smarttrainer-Portierung, Queue/Outbox, Lizenz vs. Lernzugang, Rollen/Datenschutz.
-- [ ] **Unveränderliche Prüfungs-Snapshots nachweisen:** Fragen, Antwortoptionen, Reihenfolge, Zeitlimits, Regeln und Seed bei Versuchsbeginn fixieren; spätere Änderungen dürfen Ergebnisse nicht verändern.
+- [x] **Unveränderliche Prüfungs-Snapshots nachweisen:** Fragen, Antwortoptionen, Reihenfolge, Zeitlimits, Regeln und Seed bei Versuchsbeginn fixieren; spätere Änderungen dürfen Ergebnisse nicht verändern. — **Erledigt (23.11.2026):** `tests/integration/ExamSnapshotImmutabilityTest.php` (@group K28-702): nach Start werden alle gezogenen Fragen geändert (Text, Option entfernt/neu, andere richtige Option), eine archiviert und die Pools erweitert → Lernansicht, Fragen/Revisionen/Antwortreihenfolge, Snapshot und Hash unverändert, Bewertung gegen die eingefrorene Revision; neue Regelversion (60 s, 5/5) lässt den laufenden Versuch auf 600 s und 3/5; Seed in Zeile und Snapshot, gleicher Seed + Pool = gleiche Ziehung. Ergänzt `ExamTest` (GM-027…029, GM-034, R0-08 §7.1, REV-021).
 - [ ] **Zustandsmaschinen spezifizieren:** Content, Prüfungsversuch, Aufgabenabgabe und Einschreibung mit erlaubten Übergängen und serverseitiger Validierung.
-- [ ] **Idempotenz- und Wiederanlauftests:** Antwortspeicherung, Prüfungseinreichung, Enrollment, Eventzustellung, Queue-Retry, Backoff und Dead-Letter-Fälle.
+- [x] **Idempotenz- und Wiederanlauftests:** Antwortspeicherung, Prüfungseinreichung, Enrollment, Eventzustellung, Queue-Retry, Backoff und Dead-Letter-Fälle. — **Erledigt (23.11.2026):** Antwortspeicherung `ExamTest::test_GM_018_learning_answer_idempotent`, Prüfungseinreichung GM-039 und `ConcurrencyTest` CON-005/016, Enrollment `AccessTest` GRANT-004…006/018, Eventzustellung und Wiederanlauf `OutboxTest` (Zustellung, Lease-Übernahme, REC-016 Replay), Import/Migration BIG-023, MIG-006/008; neu `tests/integration/OutboxBackoffLadderTest.php` (@group K28-704): volle Backoff-Leiter 1 min…24 h über 7 Fehlversuche, nichts vor Fälligkeit, Dead-Letter beim 8. Versuch genau einmal und ohne Auto-Retry, Erholung liefert genau einmal.
 - [ ] **Golden-Master-Tests für Smarttrainer:** Lernstufen, Fälligkeit, Zeitregeln, Fehlertraining und Algorithmusversionierung vor Portierung sichern.
 - [ ] **Datenmodell-/Upgrade-Probe:** Schlüssel, Indizes, Migration, Rollback und Backup-Restore mit realistischen Datenmengen testen.
 
 ### Lernwissenschaft und Autoren-UX – Gate B/C
 
 - [ ] **Drei getrennte Fortschrittsdimensionen:** Bearbeitung, Beherrschung und Kompetenznachweis samt erklärbaren Regeln, API und UI spezifizieren.
-- [ ] **Abschluss- und Bewertungsregeln je Activity:** Ansichtsabschluss, Quizgrenzen, Teilpunkte, manuelle Korrekturen, Mehrfachversuche und Auditierbarkeit testen.
-- [ ] **Aufgaben-Workflow und sichere Uploads:** draft/submitted/returned/graded, Dateityp-/MIME-/Größenprüfung, private Ablage und Wiedereinreichung.
-- [ ] **Kompetenzzuordnung:** Lernziele mit Aktivitäten/Fragen verbinden; Nachweisquelle, Datum, Version und Gültigkeit speichern.
+- [x] **Abschluss- und Bewertungsregeln je Activity:** Ansichtsabschluss, Quizgrenzen, Teilpunkte, manuelle Korrekturen, Mehrfachversuche und Auditierbarkeit testen. — **Erledigt (23.11.2026, Nachweis aus R1-07/R1-09/R1-10):** Ansichtsabschluss `ActivityTest` GM-008/012…014, GM-011/209; Quizgrenzen `ExamTest` (`min_ratio`, Teile) und `AssignmentTest::test_completion_rules`; Teilpunkte `tests/unit/QuestionTypesTest.php` GM-192…194 (proportional mit Abzug); manuelle Korrektur mit `evaluation_no` und Audit `ExamTest::test_E74_regrade`; Mehrfachversuche GM-210; alle grün in CI J-12/J-11 auf `main` 89fe9ef.
+- [x] **Aufgaben-Workflow und sichere Uploads:** draft/submitted/returned/graded, Dateityp-/MIME-/Größenprüfung, private Ablage und Wiedereinreichung. — **Erledigt (23.11.2026):** Duplikat von Z. 658 (R0-24) – `draft/submitted/returned/graded` GM-195, Typ-/MIME-/Größenprüfung und geschützte Ablage GM-196/MED-033/034, Wiedereinreichung (Fassung n+1) GM-195; `tests/integration/AssignmentTest.php`.
+- [x] **Kompetenzzuordnung:** Lernziele mit Aktivitäten/Fragen verbinden; Nachweisquelle, Datum, Version und Gültigkeit speichern. — **Erledigt (23.11.2026):** Lernziele hängen an der Prüfungsregel (`certifies_objectives`, `competency_validity_days`; abgeleitet ohne eigene Tabelle, E-73, R0-08 §5.3) und werden im Snapshot eingefroren; `Competency::states()` liefert Quelle (Versuchs-UID bzw. Zertifikat), Datum, Regelversion und Gültigkeit. Neu `ExamSnapshotImmutabilityTest::test_competency_evidence_frozen_with_the_snapshot` (@group K28-713, echter Versuch statt handgebauter Zeile; neue Regelversion ändert die Nachweise nicht; Ablauf nach 30 Tagen); ergänzt `ProgressTest::test_competency`.
 - [ ] **Drei neutrale Autorentests:** Selbstlernkurs, Prüfungsvorbereitung, Onboarding; jeweils Referenzkurs mit 10 Lektionen, 50 Fragen, Aufgabe und Prüfung.
 - [ ] **Lernenden-E2E und Accessibility:** Desktop/Mobil, Tastatur, Screenreader, Wiederaufnahme, Smarttrainer, Prüfung, Export.
 
@@ -747,7 +747,7 @@ Dateiweise geprüft: Plugin-Bootstrap und Composer, `Plugin.php`, `AccessService
 ### R2 – Zusätzliche P0-Wettbewerbsfunktionen (erst nach R1)
 
 - [ ] Persönliche Lernnotizen, Suche/Export und optional Lernkarten aus Notizen.
-- [ ] Text-/Datei-Aufgabenabgaben mit sicherem Upload und Basisfeedback.
+- [x] Text-/Datei-Aufgabenabgaben mit sicherem Upload und Basisfeedback. — **Erledigt (23.11.2026):** nach R1-46 vorgezogen (E-168), Nachweis siehe Z. 658.
 - [ ] Neutrale Kursvorlagen, Demokurse und Duplizierungs-Komfortfunktionen.
 - [ ] Zusätzliche Kurs-/Quiz-Builder-UX, soweit **nicht** bereits für R1-Parität erforderlich.
 - [ ] Jedes R2-Feature einzeln auf Nutzen, Free-/Pro-Grenzen, UX, Sicherheit und Regression abnehmen.
