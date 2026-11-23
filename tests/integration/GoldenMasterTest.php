@@ -164,7 +164,7 @@ final class GoldenMasterTest extends SchemaTestCase {
 			),
 			$plan['questions']
 		);
-		self::assertSame( array( 'unchanged' => 11 ), $plan['lessons'] );
+		self::assertSame( array( 'unchanged' => 12 ), $plan['lessons'], '12 lessons incl. the archived L-A-10 (R0-05 §2.2)' );
 		self::assertSame(
 			array(
 				'unchanged' => 12,
@@ -1003,7 +1003,7 @@ final class GoldenMasterTest extends SchemaTestCase {
 		$plan = $service->preview( $admin, $batch )['plan'];
 		self::assertSame( array( 'unchanged' => 71 ), $plan['questions'] );
 		self::assertSame( array( 'unchanged' => 13 ), $plan['flashcards'] );
-		self::assertSame( array( 'unchanged' => 11 ), $plan['lessons'] );
+		self::assertSame( array( 'unchanged' => 12 ), $plan['lessons'], '12 lessons incl. the archived L-A-10 (R0-05 §2.2)' );
 		$service->approve( $admin, $batch );
 		$service->run( $admin, $batch );
 		self::assertSame( $before, $count(), '0 new revisions' );

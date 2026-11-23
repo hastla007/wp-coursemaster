@@ -19,7 +19,9 @@ defined( 'ABSPATH' ) || exit;
  * - V3 paths: no absolute/backslash/`..`/NUL/drive/hidden segments, no symlinks,
  *   only `manifest.json`, `data/<entity>/<6 digits>.json`, `media/…`;
  * - V4 media: extension allowlist, no dangerous inner extension, declared and
- *   detected MIME match;
+ *   detected MIME match (reported here; the import treats a V4 finding as
+ *   an object error of the medium, R0-38 §2.3 class O, see
+ *   {@see ImportService::validate()});
  * - V5 integrity: manifest fields, major 1, every listed file present with size
  *   and SHA-256, no unlisted files, `content_sha256`.
  */
@@ -199,6 +201,35 @@ final class PackageValidator {
 	 * @return string|null
 	 */
 	private static function media_error( string $name, string $declared, string $data ): ?string {
+		$finfo = finfo_open( FILEINFO_MIME_TYPE );
+		return self::media_rule( $name, $declared, false === $finfo ? '' : (string) finfo_buffer( $finfo, $data ) );
+	}
+
+	/**
+	 * V4 rule of a stored file (legacy quarantine): the declared type is
+	 * the type of its extension.
+	 *
+	 * @param string $name File name.
+	 * @param string $file Absolute path.
+	 * @return string|null Rule or null when allowed.
+	 */
+	public static function file_error( string $name, string $file ): ?string {
+		$parts = explode( '.', strtolower( wp_basename( $name ) ) );
+		$ext   = (string) end( $parts );
+		$finfo = finfo_open( FILEINFO_MIME_TYPE );
+		return self::media_rule( $name, self::MEDIA_TYPES[ $ext ] ?? '', false === $finfo || ! is_file( $file ) ? '' : (string) finfo_file( $finfo, $file ) );
+	}
+
+	/**
+	 * V4: extension allowlist, no dangerous inner extension, declared and
+	 * detected MIME match the extension.
+	 *
+	 * @param string $name     Path or name.
+	 * @param string $declared Declared MIME.
+	 * @param string $detected Detected MIME (`finfo`).
+	 * @return string|null
+	 */
+	private static function media_rule( string $name, string $declared, string $detected ): ?string {
 		$parts = explode( '.', strtolower( wp_basename( $name ) ) );
 		$ext   = (string) array_pop( $parts );
 		if ( array() !== array_intersect( $parts, self::DANGEROUS ) || in_array( $ext, self::DANGEROUS, true ) ) {
@@ -210,10 +241,8 @@ final class PackageValidator {
 		if ( self::MEDIA_TYPES[ $ext ] !== $declared ) {
 			return 'V4_mime_declared';
 		}
-		$finfo    = finfo_open( FILEINFO_MIME_TYPE );
-		$detected = false === $finfo ? '' : (string) finfo_buffer( $finfo, $data );
-		$text     = 'vtt' === $ext && in_array( $detected, array( 'text/plain', 'text/vtt' ), true );
-		$audio    = 'm4a' === $ext && in_array( $detected, array( 'audio/mp4', 'audio/x-m4a', 'video/mp4' ), true );
+		$text  = 'vtt' === $ext && in_array( $detected, array( 'text/plain', 'text/vtt' ), true );
+		$audio = 'm4a' === $ext && in_array( $detected, array( 'audio/mp4', 'audio/x-m4a', 'video/mp4' ), true );
 		return $text || $audio || $detected === $declared ? null : 'V4_mime_detected';
 	}
 

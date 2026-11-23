@@ -48,6 +48,10 @@ final class ImportReport {
 		'duplicate_source_id' => 'IMP-V6.02',
 		'missing_reference'   => 'IMP-V6.03',
 		'hash_mismatch'       => 'IMP-V6.06',
+		'V4_extension'        => 'IMP-V4.01',
+		'V4_dangerous'        => 'IMP-V4.02',
+		'V4_mime_declared'    => 'IMP-V4.03',
+		'V4_mime_detected'    => 'IMP-V4.03',
 		'lease_lost'          => 'IMP-B1.02',
 		'stale'               => 'IMP-B1.02',
 		'transient'           => 'IMP-B1.03',
@@ -342,6 +346,11 @@ final class ImportReport {
 				return array( __( 'The object refers to another object that is neither in the package nor on this site.', 'course-captain' ), __( 'Add the referenced object to the package or remove the reference.', 'course-captain' ) );
 			case 'cc.imp.hash_mismatch':
 				return array( __( 'The record was changed after the package was created (checksum differs).', 'course-captain' ), __( 'Export the package again from the source system.', 'course-captain' ) );
+			case 'cc.imp.V4_extension':
+			case 'cc.imp.V4_dangerous':
+			case 'cc.imp.V4_mime_declared':
+			case 'cc.imp.V4_mime_detected':
+				return array( __( 'The media file is not allowed: its type is not on the allowlist or its content does not match the file type.', 'course-captain' ), __( 'Replace the file with an allowed image, audio, video, PDF or subtitle file and export the package again.', 'course-captain' ) );
 			case 'cc.imp.dependency_failed':
 				return array( __( 'The object depends on another object that could not be imported.', 'course-captain' ), __( 'Fix the object it depends on; this object is imported with it.', 'course-captain' ) );
 			case 'cc.imp.write_failed':

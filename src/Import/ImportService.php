@@ -22,6 +22,8 @@ use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\Lease;
+use CourseCaptain\Storage\MigrationBudget;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -44,13 +46,25 @@ defined( 'ABSPATH' ) || exit;
  */
 final class ImportService {
 
+	/**
+	 * Entities in scan and commit order (R0-10 §3.5): media first (other
+	 * records refer to them), blueprints last (they refer to courses,
+	 * modules and questions).
+	 */
 	public const ENTITY_TYPES = array(
+		'media'      => 'media',
 		'questions'  => 'question',
 		'flashcards' => 'flashcard',
 		'lessons'    => 'lesson',
 		'modules'    => 'module',
 		'courses'    => 'course',
+		'blueprints' => 'blueprint',
 	);
+
+	/**
+	 * Entities stored as posts.
+	 */
+	public const POST_TYPES = array( 'course', 'module', 'lesson' );
 
 	/**
 	 * Entities stored as questions (`ccap_question`); flashcards use the
@@ -88,6 +102,13 @@ final class ImportService {
 	 * @var array<string, array<string, mixed>>
 	 */
 	private array $manifests = array();
+
+	/**
+	 * Package copies per batch (media files of the current run).
+	 *
+	 * @var array<int, string>
+	 */
+	private array $packages = array();
 
 	/**
 	 * Constructor.
@@ -187,17 +208,28 @@ final class ImportService {
 	}
 
 	/**
-	 * V1–V5 and `requires`.
+	 * V1–V5 and `requires`. Media files rejected by V4 do not fail the
+	 * package: they are kept in `stats.rejected_media` and become object
+	 * errors of their media records in the dry run (R0-38 §5.3).
 	 *
 	 * @param Actor $actor Importer.
 	 * @param int   $batch Batch.
-	 * @return array{status: string, errors: list<array{rule: string, path: string}>}
+	 * @return array{status: string, errors: list<array{rule: string, path: string}>, rejected: array<string, string>}
 	 */
 	public function validate( Actor $actor, int $batch ): array {
-		$row    = $this->authorize( $actor, $batch, 'validate', array( 'uploaded' ) );
-		$result = PackageValidator::validate( (string) $row['storage_path'] );
-		$errors = $result['errors'];
-		$m      = $result['manifest'] ?? array();
+		$row      = $this->authorize( $actor, $batch, 'validate', array( 'uploaded' ) );
+		$result   = PackageValidator::validate( (string) $row['storage_path'] );
+		$errors   = array();
+		$rejected = array();
+		foreach ( $result['errors'] as $error ) {
+			// V4 is an object error of the medium (R0-38 §2.3 IMP-V4.0x, class O); V1–V3, V5 fail the package.
+			if ( str_starts_with( $error['rule'], 'V4_' ) && str_starts_with( $error['path'], 'media/' ) ) {
+				$rejected[ $error['path'] ] = $error['rule'];
+			} else {
+				$errors[] = $error;
+			}
+		}
+		$m = $result['manifest'] ?? array();
 		foreach ( (array) ( $m['requires']['question_types'] ?? array() ) as $type ) {
 			if ( ! in_array( $type, QuestionTypes::ALL, true ) ) {
 				$errors[] = array(
@@ -225,19 +257,21 @@ final class ImportService {
 				'source_revision' => isset( $m['source']['revision'] ) ? substr( (string) $m['source']['revision'], 0, 64 ) : null,
 				'manifest'        => (string) wp_json_encode( (object) $m ),
 				'error'           => array() === $errors ? null : (string) wp_json_encode( $errors ),
+				'stats'           => (string) wp_json_encode( array_merge( (array) json_decode( (string) $row['stats'], true ), array( 'rejected_media' => (object) $rejected ) ) ),
 			)
 		);
 		return array(
-			'status' => $status,
-			'errors' => $errors,
+			'status'   => $status,
+			'errors'   => $errors,
+			'rejected' => $rejected,
 		);
 	}
 
 	/**
 	 * Dry run: plan, object issues and statistics; nothing written to content.
 	 *
-	 * The package is streamed file by file (R0-38 §4.2): memory depends on
-	 * the largest data file and the ID sets, not on the record contents.
+	 * The same work as {@see preview_step()} without a time budget, so a dry
+	 * run in partial steps gives the same result as one at once (GM-125).
 	 *
 	 * @param Actor $actor   Importer.
 	 * @param int   $batch   Batch.
@@ -245,51 +279,163 @@ final class ImportService {
 	 * @return array{status: string, plan: array<string, array<string, int>>, items: list<array{entity: string, source_id: string, action: string, rule: string|null}>, stats: array<string, mixed>}
 	 */
 	public function preview( Actor $actor, int $batch, bool $partial = false ): array {
-		$row      = $this->authorize( $actor, $batch, 'preview', array( 'validated', 'previewed' ) );
-		$manifest = (array) json_decode( (string) $row['manifest'], true );
-		$started  = microtime( true );
-		$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_import_issue' ) . '` WHERE batch_id = %d', $batch ) );
-		$summary = array();
-		$items   = array();
-		$rules   = array();
-		$buffer  = array();
-		$errors  = 0;
-		$scan    = $this->scan(
-			$row,
-			$manifest,
-			$partial,
-			function ( array $item ) use ( $batch, &$summary, &$items, &$rules, &$buffer, &$errors ): void {
-				$summary[ $item['entity'] ][ $item['action'] ] = ( $summary[ $item['entity'] ][ $item['action'] ] ?? 0 ) + 1;
-				$items[]                                       = array(
-					'entity'    => $item['entity'],
-					'source_id' => $item['source_id'],
-					'action'    => $item['action'],
-					'rule'      => $item['rule'],
-				);
-				if ( null === $item['rule'] ) {
-					return;
-				}
-				++$errors;
-				$code           = ImportReport::code( $item['rule'] );
-				$rules[ $code ] = ( $rules[ $code ] ?? 0 ) + 1;
-				if ( $errors <= ImportReport::MAX_ISSUES ) {
-					$buffer[] = ImportReport::issue( $this->db, $batch, 'preview', $item['entity'], $item['source_id'], $item['rule'], 'error', 'O', 'rejected', array(), $item['file'] );
-				}
-				if ( count( $buffer ) >= ImportReport::INSERT_BLOCK ) {
-					ImportReport::insert_many( $this->db, 'ccap_import_issue', $buffer );
-					$buffer = array();
-				}
-			}
+		$out = $this->preview_step( $actor, $batch, null, $partial );
+		/**
+		 * Planned actions per entity.
+		 *
+		 * @var array<string, array<string, int>> $plan
+		 */
+		$plan = (array) ( $out['plan'] ?? array() );
+		/**
+		 * Items of the dry run.
+		 *
+		 * @var list<array{entity: string, source_id: string, action: string, rule: string|null}> $items
+		 */
+		$items = array_values( (array) ( $out['items'] ?? array() ) );
+		return array(
+			'status' => (string) $out['status'],
+			'plan'   => $plan,
+			'items'  => $items,
+			'stats'  => (array) ( $out['stats'] ?? array() ),
 		);
+	}
+
+	/**
+	 * One budgeted step of the dry run (R0-10 §3.3 time slices, R0-38 §4.1).
+	 *
+	 * The package is streamed in units (one data file, or the archive plan
+	 * of one entity); a step works on units until its budget is used, at
+	 * least one. Between steps the state (seen and failed IDs, counters,
+	 * items) lies in a private file and `stats.preview_progress` points to
+	 * it; the batch stays `validated` (a new dry run on a `previewed` batch
+	 * resets it to `validated`, so it cannot be approved meanwhile). Memory
+	 * depends on the largest data file and the ID sets (R0-38 §4.2). The
+	 * last step stores the plan and ends in `previewed` or `failed`.
+	 *
+	 * @param Actor      $actor   Importer.
+	 * @param int        $batch   Batch.
+	 * @param float|null $seconds Budget; null = until done.
+	 * @param bool       $partial Partial package (used when the dry run starts).
+	 * @return array<string, mixed> `status`, `done`, `units_done`, `units_total`; when done also `plan`, `items`, `stats`.
+	 * @throws CourseException 409 while another step of this dry run runs.
+	 */
+	public function preview_step( Actor $actor, int $batch, ?float $seconds, bool $partial = false ): array {
+		$row   = $this->authorize( $actor, $batch, 'preview', array( 'validated', 'previewed' ) );
+		$lease = Lease::acquire( $this->db, 'import-preview:' . $batch, ImportRunner::LEASE_TTL, false );
+		if ( null === $lease ) {
+			throw new CourseException( 'ccap_import_busy', 'The dry run of this import is running.', 409 );
+		}
+		try {
+			return $this->preview_units( $batch, (array) $this->get( $batch ), $seconds, $partial );
+		} finally {
+			$lease->release();
+		}
+	}
+
+	/**
+	 * Dry-run units of one step (under the preview lease).
+	 *
+	 * @param int                  $batch   Batch.
+	 * @param array<string, mixed> $row     Batch row (re-read after the lease).
+	 * @param float|null           $seconds Budget.
+	 * @param bool                 $partial Partial package.
+	 * @return array<string, mixed>
+	 */
+	private function preview_units( int $batch, array $row, ?float $seconds, bool $partial ): array {
+		$manifest = (array) json_decode( (string) $row['manifest'], true );
+		$stats    = (array) json_decode( (string) $row['stats'], true );
+		$progress = is_array( $stats['preview_progress'] ?? null ) ? $stats['preview_progress'] : null;
+		$file     = null === $progress ? '' : ProtectedStorage::dir( 'packages' ) . '/' . basename( (string) ( $progress['state'] ?? '' ) );
+		$state    = '' !== $file && is_file( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Private state file.
+		if ( ! is_array( $state ) ) {
+			// Fresh dry run: previous findings go, a previewed batch is reset (R0-10 §3.3).
+			if ( 'previewed' === (string) $row['status'] ) {
+				$this->move( $batch, array( 'previewed' ), 'validated', array() );
+			}
+			$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_import_issue' ) . '` WHERE batch_id = %d', $batch ) );
+			$state = self::scan_state( $partial ) + array(
+				'summary' => array(),
+				'items'   => array(),
+				'rules'   => array(),
+				'errors'  => 0,
+				'elapsed' => 0.0,
+			);
+			$file  = ProtectedStorage::dir( 'packages' ) . '/preview-' . $batch . '-' . wp_generate_password( 12, false, false ) . '.json';
+		}
+		$partial = ! empty( $state['partial'] );
+		$units   = $this->scan_units( $row, $manifest );
+		$context = $this->scan_context( $row, $manifest );
+		$budget  = new MigrationBudget( $seconds );
+		$started = microtime( true );
+		$buffer  = array();
+		$emit    = function ( array $item ) use ( $batch, &$state, &$buffer ): void {
+			$state['summary'][ $item['entity'] ][ $item['action'] ] = ( $state['summary'][ $item['entity'] ][ $item['action'] ] ?? 0 ) + 1;
+			$state['items'][]                                       = array(
+				'entity'    => $item['entity'],
+				'source_id' => $item['source_id'],
+				'action'    => $item['action'],
+				'rule'      => $item['rule'],
+			);
+			if ( null === $item['rule'] ) {
+				return;
+			}
+			++$state['errors'];
+			$code                    = ImportReport::code( $item['rule'] );
+			$state['rules'][ $code ] = ( $state['rules'][ $code ] ?? 0 ) + 1;
+			if ( $state['errors'] <= ImportReport::MAX_ISSUES ) {
+				$buffer[] = ImportReport::issue( $this->db, $batch, 'preview', $item['entity'], $item['source_id'], $item['rule'], 'error', 'O', 'rejected', array(), $item['file'] );
+			}
+			if ( count( $buffer ) >= ImportReport::INSERT_BLOCK ) {
+				ImportReport::insert_many( $this->db, 'ccap_import_issue', $buffer );
+				$buffer = array();
+			}
+		};
+		$zip     = new \ZipArchive();
+		$opened  = true === $zip->open( (string) $row['storage_path'], \ZipArchive::RDONLY );
+		$total   = count( $units );
+		do {
+			$unit = $units[ (int) $state['unit'] ] ?? null;
+			if ( null !== $unit ) {
+				$this->scan_unit( $opened ? $zip : null, $manifest, $partial, $unit, $state, $context, $emit );
+				++$state['unit'];
+			}
+		} while ( (int) $state['unit'] < $total && ! $budget->expired() );
+		if ( $opened ) {
+			$zip->close();
+		}
 		ImportReport::insert_many( $this->db, 'ccap_import_issue', $buffer );
-		$records  = max( 1, count( $items ) );
+		$state['elapsed'] = (float) $state['elapsed'] + ( microtime( true ) - $started );
+		if ( (int) $state['unit'] < $total ) {
+			// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Private state file in the packages folder.
+			file_put_contents( $file, (string) wp_json_encode( $state ) );
+			$stats['preview_progress'] = array(
+				'state'   => basename( $file ),
+				'unit'    => (int) $state['unit'],
+				'units'   => $total,
+				'partial' => $partial,
+			);
+			$this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_import_batch' ) . "` SET stats = %s WHERE id = %d AND status = 'validated'", (string) wp_json_encode( $stats ), $batch ) );
+			return array(
+				'status'      => 'validated',
+				'done'        => false,
+				'units_done'  => (int) $state['unit'],
+				'units_total' => $total,
+			);
+		}
+		if ( is_file( $file ) ) {
+			wp_delete_file( $file );
+		}
+		$errors   = (int) $state['errors'];
+		$records  = max( 1, count( $state['items'] ) );
 		$status   = $errors > max( 100, (int) ceil( 0.02 * $records ) ) || $errors > ImportReport::MAX_ISSUES ? 'failed' : 'previewed';
-		$duration = max( 0.001, microtime( true ) - $started );
+		$duration = max( 0.001, (float) $state['elapsed'] );
+		$rules    = (array) $state['rules'];
 		arsort( $rules );
-		$stats = array(
-			'records'         => $scan['records'],
-			'items'           => count( $items ),
-			'files'           => $scan['files'],
+		$summary = (array) $state['summary'];
+		$result  = array(
+			'records'         => (int) $state['records'],
+			'items'           => count( $state['items'] ),
+			'files'           => (int) $state['files'],
 			'package_bytes'   => is_file( (string) $row['storage_path'] ) ? (int) filesize( (string) $row['storage_path'] ) : 0,
 			'object_errors'   => $errors,
 			'issues_stored'   => min( $errors, ImportReport::MAX_ISSUES ),
@@ -297,32 +443,37 @@ final class ImportService {
 			'threshold'       => max( 100, (int) ceil( 0.02 * $records ) ),
 			'duration_ms'     => (int) round( $duration * 1000 ),
 			'peak_memory'     => memory_get_peak_usage( true ),
-			'records_per_s'   => (int) round( $scan['records'] / $duration ),
+			'records_per_s'   => (int) round( (int) $state['records'] / $duration ),
 			// Writing costs about ten times the dry run per record (R0-38 §6.2 M-02/M-03 start values).
 			'estimate_commit' => (int) ceil( 10 * $duration ),
+			'units'           => $total,
 		);
+		unset( $stats['preview_progress'] );
 		$this->move(
 			$batch,
-			array( 'validated', 'previewed' ),
+			array( 'validated' ),
 			$status,
 			array(
 				'stats' => (string) wp_json_encode(
 					array_merge(
-						(array) json_decode( (string) $row['stats'], true ),
+						$stats,
 						array(
 							'plan'    => $summary,
 							'partial' => $partial,
-							'dry_run' => $stats,
+							'dry_run' => $result,
 						)
 					)
 				),
 			)
 		);
 		return array(
-			'status' => $status,
-			'plan'   => $summary,
-			'items'  => $items,
-			'stats'  => $stats,
+			'status'      => $status,
+			'done'        => true,
+			'units_done'  => $total,
+			'units_total' => $total,
+			'plan'        => $summary,
+			'items'       => $state['items'],
+			'stats'       => $result,
 		);
 	}
 
@@ -431,12 +582,12 @@ final class ImportService {
 	/**
 	 * Stream the package: V6 checks and the planned action per record.
 	 *
-	 * Entities run in dependency order (questions → lessons → modules →
-	 * courses), data files in name order, one file in memory at a time. Only
-	 * the ID sets of seen and failed records are kept. A record gets the
-	 * first object error (`schema`, `duplicate_source_id`, `hash_mismatch`,
-	 * `unknown_type`, `dependency_failed`, `missing_reference`); then the
-	 * action create/update/unchanged/conflict/error. Archive items follow
+	 * Entities run in dependency order ({@see ENTITY_TYPES}), data files in
+	 * name order, one file in memory at a time. Only the ID sets of seen
+	 * and failed records are kept. A record gets the first object error
+	 * (`schema`, `duplicate_source_id`, `hash_mismatch`, `unknown_type`,
+	 * V4 of its media file, `dependency_failed`, `missing_reference`); then
+	 * the action create/update/unchanged/conflict/error. Archive items follow
 	 * each entity for full packages.
 	 *
 	 * @internal Used by the dry run and the runner's plan phase.
@@ -447,8 +598,49 @@ final class ImportService {
 	 * @return array{records: int, files: int}
 	 */
 	public function scan( array $row, array $manifest, bool $partial, callable $emit ): array {
-		$system = (string) ( $manifest['source']['system'] ?? '' );
-		$map    = $this->source_map( $system );
+		$state   = self::scan_state( $partial );
+		$context = $this->scan_context( $row, $manifest );
+		$zip     = new \ZipArchive();
+		$opened  = true === $zip->open( (string) $row['storage_path'], \ZipArchive::RDONLY );
+		foreach ( $this->scan_units( $row, $manifest ) as $unit ) {
+			$this->scan_unit( $opened ? $zip : null, $manifest, $partial, $unit, $state, $context, $emit );
+		}
+		if ( $opened ) {
+			$zip->close();
+		}
+		return array(
+			'records' => (int) $state['records'],
+			'files'   => (int) $state['files'],
+		);
+	}
+
+	/**
+	 * Empty scan state.
+	 *
+	 * @param bool $partial Partial package.
+	 * @return array<string, mixed>
+	 */
+	private static function scan_state( bool $partial ): array {
+		return array(
+			'partial' => $partial,
+			'unit'    => 0,
+			'seen'    => array(),
+			'failed'  => array(),
+			'paths'   => array(),
+			'invalid' => 0,
+			'records' => 0,
+			'files'   => 0,
+		);
+	}
+
+	/**
+	 * Units of a package: each data file, then the archive plan per entity.
+	 *
+	 * @param array<string, mixed> $row      Batch row.
+	 * @param array<string, mixed> $manifest Manifest.
+	 * @return list<array{entity: string, file: string|null, present: bool}>
+	 */
+	private function scan_units( array $row, array $manifest ): array {
 		$files  = array_fill_keys( array_keys( self::ENTITY_TYPES ), array() );
 		$zip    = new \ZipArchive();
 		$opened = true === $zip->open( (string) $row['storage_path'], \ZipArchive::RDONLY );
@@ -459,103 +651,195 @@ final class ImportService {
 				$files[ $m[1] ][] = $name;
 			}
 		}
-		$seen    = array();
-		$failed  = array();
-		$invalid = 0;
-		$records = 0;
-		$total   = 0;
-		foreach ( self::ENTITY_TYPES as $entity => $type ) {
+		if ( $opened ) {
+			$zip->close();
+		}
+		$units = array();
+		foreach ( array_keys( self::ENTITY_TYPES ) as $entity ) {
 			sort( $files[ $entity ], SORT_STRING );
 			foreach ( $files[ $entity ] as $name ) {
-				++$total;
-				$list = json_decode( (string) $zip->getFromName( $name ), true );
-				foreach ( is_array( $list ) ? $list : array() as $index => $record ) {
-					++$records;
-					$file   = $name . '#' . $index;
-					$record = is_array( $record ) ? $record : array();
-					$source = (string) ( $record['source_id'] ?? '' );
-					$rule   = null;
-					if ( '' === $source || strlen( $source ) > 191 ) {
-						$source = 'invalid-' . ( ++$invalid );
-						$rule   = 'schema';
-					} elseif ( isset( $seen[ $type ][ $source ] ) ) {
-						$source = $source . '#dup' . ( ++$invalid );
-						$rule   = 'duplicate_source_id';
-					} else {
-						$seen[ $type ][ $source ] = true;
-					}
-					if ( null === $rule && Canonical::hash( $record ) !== ( $record['hash'] ?? '' ) ) {
-						$rule = 'hash_mismatch';
-					}
-					if ( null === $rule && 'questions' === $entity && ! in_array( (string) ( $record['revision']['question_type'] ?? '' ), QuestionTypes::ALL, true ) ) {
-						$rule = 'unknown_type';
-					}
-					if ( null === $rule && 'flashcards' === $entity ) {
-						$rule = self::card_error( $record );
-					}
-					if ( null === $rule ) {
-						foreach ( self::references( $entity, $record ) as $ref_type => $refs ) {
-							foreach ( $refs as $ref ) {
-								if ( isset( $failed[ $ref_type . ':' . $ref ] ) ) {
-									$rule = 'dependency_failed';
-								} elseif ( ! isset( $seen[ $ref_type ][ $ref ] ) && ! isset( $map[ $ref_type ][ $ref ] ) ) {
-									$rule = 'missing_reference';
-								}
-							}
-						}
-					}
-					$known = $map[ $type ][ $source ] ?? null;
-					if ( null !== $rule ) {
-						$action                          = 'error';
-						$failed[ $type . ':' . $source ] = true;
-					} elseif ( null === $known ) {
-						$action = 'create';
-					} elseif ( 'archived' === $known['state'] ) {
-						// Present again (e.g. rollback): restore, never stay archived.
-						$action = 'update';
-					} elseif ( $known['last_hash'] === $record['hash'] ) {
-						$action = 'unchanged';
-					} else {
-						$action = '1' === (string) $known['locally_modified'] ? 'conflict' : 'update';
-					}
-					$emit(
-						array(
-							'entity'    => $entity,
-							'source_id' => $source,
-							'action'    => $action,
-							'rule'      => $rule,
-							'file'      => $file,
-							'record'    => in_array( $action, array( 'create', 'update' ), true ) ? $record : null,
-						)
-					);
-				}
-				unset( $list );
+				$units[] = array(
+					'entity'  => $entity,
+					'file'    => $name,
+					'present' => true,
+				);
 			}
 			// An entity the package does not carry at all counts as empty, not as "archive everything" (R0-10 §1.4).
-			if ( ! $partial && ( array() !== $files[ $entity ] || array_key_exists( $entity, (array) ( $manifest['counts'] ?? array() ) ) ) ) {
-				foreach ( $map[ $type ] ?? array() as $source => $known ) {
-					if ( ! isset( $seen[ $type ][ (string) $source ] ) && 'archived' !== $known['state'] ) {
+			$units[] = array(
+				'entity'  => $entity,
+				'file'    => null,
+				'present' => array() !== $files[ $entity ] || array_key_exists( $entity, (array) ( $manifest['counts'] ?? array() ) ),
+			);
+		}
+		return $units;
+	}
+
+	/**
+	 * Read-only context of a scan step: source map, manifest files, media
+	 * files rejected by the validator.
+	 *
+	 * @param array<string, mixed> $row      Batch row.
+	 * @param array<string, mixed> $manifest Manifest.
+	 * @return array{map: array<string, array<string, array<string, mixed>>>, files: array<string, array<string, mixed>>, rejected: array<string, string>}
+	 */
+	private function scan_context( array $row, array $manifest ): array {
+		$files = array();
+		foreach ( (array) ( $manifest['files'] ?? array() ) as $file ) {
+			if ( is_array( $file ) && isset( $file['path'] ) ) {
+				$files[ (string) $file['path'] ] = $file;
+			}
+		}
+		$stats = (array) json_decode( (string) ( $row['stats'] ?? '' ), true );
+		return array(
+			'map'      => $this->source_map( (string) ( $manifest['source']['system'] ?? '' ) ),
+			'files'    => $files,
+			'rejected' => array_map( 'strval', (array) ( $stats['rejected_media'] ?? array() ) ),
+		);
+	}
+
+	/**
+	 * Scan one unit.
+	 *
+	 * @param \ZipArchive|null                                                                                                                            $zip      Open package.
+	 * @param array<string, mixed>                                                                                                                        $manifest Manifest.
+	 * @param bool                                                                                                                                        $partial  Partial package.
+	 * @param array{entity: string, file: string|null, present: bool}                                                                                     $unit Unit.
+	 * @param array<string, mixed>                                                                                                                        $state    Scan state (updated).
+	 * @param array{map: array<string, array<string, array<string, mixed>>>, files: array<string, array<string, mixed>>, rejected: array<string, string>} $context Context.
+	 * @param callable                                                                                                                                    $emit     Receives each item.
+	 * @return void
+	 */
+	private function scan_unit( ?\ZipArchive $zip, array $manifest, bool $partial, array $unit, array &$state, array $context, callable $emit ): void {
+		unset( $manifest );
+		$entity = $unit['entity'];
+		$type   = self::ENTITY_TYPES[ $entity ];
+		$map    = $context['map'];
+		if ( null === $unit['file'] ) {
+			if ( 'media' === $entity ) {
+				// A rejected file without a record is logged once as well (R0-10 §3.2).
+				foreach ( $context['rejected'] as $path => $rule ) {
+					if ( ! isset( $state['paths'][ $path ] ) ) {
 						$emit(
 							array(
-								'entity'    => $entity,
-								'source_id' => (string) $source,
-								'action'    => 'archive',
-								'rule'      => null,
-								'file'      => '',
+								'entity'    => 'media',
+								'source_id' => $path,
+								'action'    => 'error',
+								'rule'      => $rule,
+								'file'      => $path,
 								'record'    => null,
 							)
 						);
 					}
 				}
 			}
+			if ( $partial || ! $unit['present'] ) {
+				return;
+			}
+			foreach ( $map[ $type ] ?? array() as $source => $known ) {
+				if ( ! isset( $state['seen'][ $type ][ (string) $source ] ) && 'archived' !== $known['state'] ) {
+					$emit(
+						array(
+							'entity'    => $entity,
+							'source_id' => (string) $source,
+							'action'    => 'archive',
+							'rule'      => null,
+							'file'      => '',
+							'record'    => null,
+						)
+					);
+				}
+			}
+			return;
 		}
-		if ( $opened ) {
-			$zip->close();
+		++$state['files'];
+		$list = null === $zip ? null : json_decode( (string) $zip->getFromName( $unit['file'] ), true );
+		foreach ( is_array( $list ) ? $list : array() as $index => $record ) {
+			++$state['records'];
+			$file   = $unit['file'] . '#' . $index;
+			$record = is_array( $record ) ? $record : array();
+			$source = (string) ( $record['source_id'] ?? '' );
+			$rule   = null;
+			if ( '' === $source || strlen( $source ) > 191 ) {
+				$source = 'invalid-' . ( ++$state['invalid'] );
+				$rule   = 'schema';
+			} elseif ( isset( $state['seen'][ $type ][ $source ] ) ) {
+				$source = $source . '#dup' . ( ++$state['invalid'] );
+				$rule   = 'duplicate_source_id';
+			} else {
+				$state['seen'][ $type ][ $source ] = true;
+			}
+			if ( 'media' === $entity && isset( $record['path'] ) ) {
+				$state['paths'][ (string) $record['path'] ] = true;
+			}
+			if ( null === $rule && Canonical::hash( $record ) !== ( $record['hash'] ?? '' ) ) {
+				$rule = 'hash_mismatch';
+			}
+			if ( null === $rule && 'questions' === $entity && ! in_array( (string) ( $record['revision']['question_type'] ?? '' ), QuestionTypes::ALL, true ) ) {
+				$rule = 'unknown_type';
+			}
+			if ( null === $rule && 'flashcards' === $entity ) {
+				$rule = self::card_error( $record );
+			}
+			if ( null === $rule && 'media' === $entity ) {
+				$rule = ImportMedia::record_error( $record, $context['files'], $context['rejected'] );
+			}
+			if ( null === $rule && 'blueprints' === $entity ) {
+				$rule = ImportBlueprints::record_error( $record );
+			}
+			if ( null === $rule ) {
+				foreach ( self::references( $entity, $record ) as $ref_type => $refs ) {
+					foreach ( $refs as $ref ) {
+						if ( isset( $state['failed'][ $ref_type . ':' . $ref ] ) ) {
+							$rule = 'dependency_failed';
+						} elseif ( ! isset( $state['seen'][ $ref_type ][ $ref ] ) && ! isset( $map[ $ref_type ][ $ref ] ) ) {
+							$rule = 'missing_reference';
+						}
+					}
+				}
+				// Media references must resolve; a rejected optional medium only drops the reference (R0-38 §5.3).
+				foreach ( ImportMedia::references( $record ) as $ref ) {
+					if ( ! isset( $state['seen']['media'][ $ref ] ) && ! isset( $map['media'][ $ref ] ) ) {
+						$rule = $rule ?? 'missing_reference';
+					}
+				}
+			}
+			$known = $map[ $type ][ $source ] ?? null;
+			if ( null !== $rule ) {
+				$action                                   = 'error';
+				$state['failed'][ $type . ':' . $source ] = true;
+			} elseif ( null === $known ) {
+				$action = 'create';
+			} elseif ( 'archived' === $known['state'] && ( ! self::retired( $type, $record ) || $known['last_hash'] !== $record['hash'] ) ) {
+				// Present again (e.g. rollback): restore, never stay archived.
+				$action = 'update';
+			} elseif ( $known['last_hash'] === $record['hash'] ) {
+				$action = 'unchanged';
+			} else {
+				$action = '1' === (string) $known['locally_modified'] ? 'conflict' : 'update';
+			}
+			$emit(
+				array(
+					'entity'    => $entity,
+					'source_id' => $source,
+					'action'    => $action,
+					'rule'      => $rule,
+					'file'      => $file,
+					'record'    => in_array( $action, array( 'create', 'update' ), true ) ? $record : null,
+				)
+			);
 		}
-		return array(
-			'records' => $records,
-			'files'   => $total,
-		);
+	}
+
+	/**
+	 * Whether a record of a post entity is retired (`editorial_status =
+	 * deprecated`): imported and kept archived (R0-05 §2.2 L-A-10).
+	 *
+	 * @param string               $type   Object type.
+	 * @param array<string, mixed> $record Record.
+	 * @return bool
+	 */
+	private static function retired( string $type, array $record ): bool {
+		return in_array( $type, self::POST_TYPES, true ) && 'deprecated' === ( $record['editorial_status'] ?? '' );
 	}
 
 	/**
@@ -570,7 +854,7 @@ final class ImportService {
 	 * @param string                                                                               $system  Source system.
 	 * @param string                                                                               $package Package ID.
 	 * @param array{entity: string, source_id: string, action: string, record?: array<mixed>|null} $item    Spool item.
-	 * @return array{object: int|null, revision: int|null, draft: bool}
+	 * @return array{object: int|null, revision: int|null, draft: bool, payload: array<string, mixed>|null}
 	 * @throws CourseException On write errors.
 	 */
 	public function apply_item( Actor $actor, int $batch, string $system, string $package, array $item ): array {
@@ -579,14 +863,27 @@ final class ImportService {
 		$object   = $this->mapped( $system, $type, $source );
 		$revision = null;
 		$draft    = false;
+		$payload  = null;
 		if ( in_array( $item['action'], array( 'create', 'update' ), true ) ) {
 			$record = (array) ( $item['record'] ?? array() );
 			$draft  = in_array( (string) ( $record['editorial_status'] ?? 'published' ), self::UNPUBLISHED, true );
 			unset( $this->saved[ (int) $object ] );
-			$object = $this->write_object( $actor, $system, $type, $record, $object );
+			if ( 'media' === $type ) {
+				$rights = $this->resolve_rights( isset( $record['rights'] ) && is_array( $record['rights'] ) ? $record['rights'] : null, $package );
+				$object = ImportMedia::current()->write( $this->package_file( $batch ), $system, $package, $record, $object, $rights );
+			} elseif ( 'blueprint' === $type ) {
+				$written = ImportBlueprints::current()->write( $actor, $system, $package, $record, $object, fn( string $ref_type, string $ref ): ?int => $this->mapped( $system, $ref_type, $ref ) );
+				$object  = $written['object'];
+				$payload = $written['payload'];
+			} else {
+				$object = $this->write_object( $actor, $system, $type, $record, $object );
+			}
 			if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 				$revision = $this->saved[ $object ] ?? (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $object ) );
 				$this->write_rights( $revision, $record, $package );
+				if ( array_key_exists( 'media', $record ) && $revision > 0 ) {
+					ImportMedia::current()->link( $system, 'question_revision', $revision, array_values( (array) $record['media'] ) );
+				}
 			}
 			$this->map( $system, $type, $source, $object, (string) ( $record['hash'] ?? '' ), $package, $batch );
 		}
@@ -594,7 +891,56 @@ final class ImportService {
 			'object'   => $object,
 			'revision' => $revision,
 			'draft'    => $draft,
+			'payload'  => $payload,
 		);
+	}
+
+	/**
+	 * Activate the blueprints this batch wrote (R0-10 §3.4 activation):
+	 * those of one course (inside its activation), or all remaining ones
+	 * except those of held courses (null).
+	 *
+	 * @internal Runner use inside the activation transaction.
+	 * @param Actor    $actor  Importer.
+	 * @param int      $batch  Batch.
+	 * @param int|null $course Course, or null for the rest.
+	 * @param array    $held   Held courses (rest only).
+	 * @phpstan-param list<int> $held
+	 * @return int Blueprints activated.
+	 */
+	public function activate_blueprints( Actor $actor, int $batch, ?int $course, array $held = array() ): int {
+		$log   = $this->db->table( 'ccap_import_item_log' );
+		$done  = 0;
+		$rules = ImportBlueprints::current();
+		foreach ( $this->db->rows( $this->db->prepare( "SELECT id, object_id, message FROM `{$log}` WHERE batch_id = %d AND entity = 'blueprints' AND outcome = 'pending' AND object_id IS NOT NULL ORDER BY id", $batch ) ) as $row ) {
+			$payload = (array) json_decode( (string) $row['message'], true );
+			$owner   = (int) ( $payload['course'] ?? 0 );
+			if ( null !== $course && $owner !== $course ) {
+				continue;
+			}
+			if ( null === $course && in_array( $owner, $held, true ) ) {
+				// The course was held (validator blocker, E-179): the rule stays a draft.
+				$this->db->execute( $this->db->prepare( "UPDATE `{$log}` SET outcome = 'held' WHERE id = %d", (int) $row['id'] ) );
+				continue;
+			}
+			$rules->activate( $actor, (int) $row['object_id'], $payload );
+			$this->db->execute( $this->db->prepare( "UPDATE `{$log}` SET outcome = 'ok' WHERE id = %d", (int) $row['id'] ) );
+			++$done;
+		}
+		return $done;
+	}
+
+	/**
+	 * Package copy of a batch (cached per run).
+	 *
+	 * @param int $batch Batch.
+	 * @return string
+	 */
+	private function package_file( int $batch ): string {
+		if ( ! isset( $this->packages[ $batch ] ) ) {
+			$this->packages[ $batch ] = (string) $this->db->scalar( $this->db->prepare( 'SELECT storage_path FROM `' . $this->db->table( 'ccap_import_batch' ) . '` WHERE id = %d', $batch ) );
+		}
+		return $this->packages[ $batch ];
 	}
 
 	/**
@@ -607,6 +953,14 @@ final class ImportService {
 	 * @return void
 	 */
 	public function archive_object( Actor $actor, string $type, int $object_id ): void {
+		if ( 'media' === $type ) {
+			ImportMedia::current()->archive( $object_id );
+			return;
+		}
+		if ( 'blueprint' === $type ) {
+			ImportBlueprints::current()->archive( $object_id );
+			return;
+		}
 		if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 			QuestionRepository::current()->archive( $actor, $object_id );
 			return;
@@ -641,6 +995,9 @@ final class ImportService {
 				'answers'       => self::answers( (string) $record['revision']['question_type'], array_values( (array) ( $record['answers'] ?? array() ) ) ),
 				'tags'          => array_values( (array) ( $record['tags'] ?? array() ) ),
 			);
+			if ( 'flashcard' !== $type && ! empty( $record['revision']['image_required'] ) ) {
+				$data['image_required'] = true;
+			}
 			// Explanation texts are imported and kept in Free; delivery needs Pro (E-20).
 			foreach ( array( 'feedback_correct', 'feedback_incorrect' ) as $field ) {
 				if ( isset( $record['revision'][ $field ] ) && '' !== (string) $record['revision'][ $field ] ) {
@@ -665,8 +1022,9 @@ final class ImportService {
 			'post_excerpt' => sanitize_textarea_field( (string) ( $record['summary'] ?? '' ) ),
 			'post_author'  => $actor->user_id,
 		);
+		$retired   = self::retired( $type, $record );
 		if ( null === $object ) {
-			$postarr['post_status'] = 'course' === $type ? 'draft' : 'publish';
+			$postarr['post_status'] = $retired ? PostTypes::STATUS_ARCHIVED : ( 'course' === $type ? 'draft' : 'publish' );
 			if ( 'course' === $type && ! empty( $record['slug'] ) ) {
 				$postarr['post_name'] = sanitize_title( (string) $record['slug'] );
 			}
@@ -674,7 +1032,9 @@ final class ImportService {
 			$object  = is_wp_error( $created ) ? 0 : (int) $created;
 		} else {
 			$postarr['ID'] = $object;
-			if ( 'course' !== $type ) {
+			if ( $retired ) {
+				$postarr['post_status'] = PostTypes::STATUS_ARCHIVED;
+			} elseif ( 'course' !== $type ) {
 				$postarr['post_status'] = 'publish';
 			}
 			wp_update_post( $postarr );
@@ -686,6 +1046,9 @@ final class ImportService {
 			ActivityService::current()->define( $actor, $object, (string) ( $record['activity_type'] ?? 'lesson' ), (array) ( $record['settings'] ?? array() ) );
 			if ( array_key_exists( 'quiz', $record ) ) {
 				$this->link_quiz( $system, $object, array_values( (array) $record['quiz'] ) );
+			}
+			if ( array_key_exists( 'media', $record ) ) {
+				ImportMedia::current()->link( $system, 'lesson', $object, array_values( (array) $record['media'] ) );
 			}
 		} elseif ( 'module' === $type ) {
 			foreach ( (array) ( $record['lessons'] ?? array() ) as $link ) {
@@ -753,6 +1116,11 @@ final class ImportService {
 	public static function references( string $entity, array $record ): array {
 		$col = static fn( string $key, string $field ): array => array_values( array_map( static fn( $l ): string => (string) ( is_array( $l ) ? ( $l[ $field ] ?? '' ) : '' ), (array) ( $record[ $key ] ?? array() ) ) );
 		switch ( $entity ) {
+			case 'questions':
+				// Only a required image makes the question depend on its medium (R0-38 §5.3).
+				return empty( $record['revision']['image_required'] ) ? array() : array( 'media' => ImportMedia::references( $record ) );
+			case 'blueprints':
+				return ImportBlueprints::references( $record );
 			case 'courses':
 				return array( 'module' => $col( 'modules', 'module' ) );
 			case 'modules':
@@ -784,11 +1152,13 @@ final class ImportService {
 		// Two joined reads instead of one status query per row (large re-imports, R0-38 M-05).
 		$rows = array_merge(
 			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, q.status AS state FROM `{$map}` m LEFT JOIN `" . $this->db->table( 'ccap_question' ) . "` q ON q.id = m.object_id WHERE m.source_system = %s AND m.object_type IN ('question', 'flashcard')", $system ) ),
-			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, p.post_status AS state FROM `{$map}` m LEFT JOIN `{$posts}` p ON p.ID = m.object_id WHERE m.source_system = %s AND m.object_type NOT IN ('question', 'flashcard')", $system ) )
+			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, p.post_status AS state FROM `{$map}` m LEFT JOIN `{$posts}` p ON p.ID = m.object_id WHERE m.source_system = %s AND m.object_type IN ('course', 'module', 'lesson')", $system ) ),
+			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, x.status AS state FROM `{$map}` m LEFT JOIN `" . $this->db->table( 'ccap_media' ) . "` x ON x.id = m.object_id WHERE m.source_system = %s AND m.object_type = 'media'", $system ) ),
+			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, x.status AS state FROM `{$map}` m LEFT JOIN `" . $this->db->table( 'ccap_exam_rule' ) . "` x ON x.id = m.object_id WHERE m.source_system = %s AND m.object_type = 'blueprint'", $system ) )
 		);
 		foreach ( $rows as $row ) {
 			$state        = (string) ( $row['state'] ?? '' );
-			$row['state'] = in_array( $state, array( 'archived', PostTypes::STATUS_ARCHIVED, '', 'trash' ), true ) ? 'archived' : 'active';
+			$row['state'] = in_array( $state, array( 'archived', 'retired', PostTypes::STATUS_ARCHIVED, '', 'trash' ), true ) ? 'archived' : 'active';
 			$out[ (string) $row['object_type'] ][ (string) $row['source_id'] ] = $row;
 		}
 		return $out;
@@ -899,23 +1269,39 @@ final class ImportService {
 			return;
 		}
 		$rights = isset( $record['revision'] ) ? ( $record['revision']['rights'] ?? null ) : ( $record['rights'] ?? null );
-		$rights = is_array( $rights ) ? $rights : array( 'status' => 'own' );
-		$status = in_array( (string) ( $rights['status'] ?? '' ), Rights::STATUSES, true ) ? (string) $rights['status'] : 'unknown';
-		$owner  = isset( $rights['owner'] ) ? (string) $rights['owner'] : null;
-		$own    = $this->own_package( $package );
-		if ( 'own' === $status && ! $own ) {
-			$status = 'licensed';
-			$owner  = $owner ?? $this->publisher( $package );
-		}
-		$license = array_intersect_key( $rights, array_flip( array( 'license', 'license_url', 'attribution', 'source_url', 'valid_until', 'note' ) ) );
+		$rights = $this->resolve_rights( is_array( $rights ) ? $rights : null, $package );
 		$this->db->execute(
 			$this->db->prepare(
 				'UPDATE `' . $this->db->table( 'ccap_question_revision' ) . '` SET rights_status = %s, rights_owner = %s, license_reference = %s WHERE id = %d',
-				$status,
-				null === $owner ? '' : substr( sanitize_text_field( $owner ), 0, 255 ),
-				array() === $license ? '' : (string) wp_json_encode( $license ),
+				$rights['status'],
+				null === $rights['owner'] ? '' : substr( sanitize_text_field( $rights['owner'] ), 0, 255 ),
+				array() === $rights['license'] ? '' : (string) wp_json_encode( $rights['license'] ),
 				$revision
 			)
+		);
+	}
+
+	/**
+	 * Rights of a record (R0-10 §2.1): without rights the record is `own`
+	 * of the source; foreign `own` becomes `licensed` with the publisher as
+	 * owner (E-62); an unknown status counts as `unknown`.
+	 *
+	 * @param array<string, mixed>|null $rights  Rights object of the record.
+	 * @param string                    $package Package ID.
+	 * @return array{status: string, owner: string|null, license: array<string, mixed>}
+	 */
+	private function resolve_rights( ?array $rights, string $package ): array {
+		$rights = $rights ?? array( 'status' => 'own' );
+		$status = in_array( (string) ( $rights['status'] ?? '' ), Rights::STATUSES, true ) ? (string) $rights['status'] : 'unknown';
+		$owner  = isset( $rights['owner'] ) ? (string) $rights['owner'] : null;
+		if ( 'own' === $status && ! $this->own_package( $package ) ) {
+			$status = 'licensed';
+			$owner  = $owner ?? $this->publisher( $package );
+		}
+		return array(
+			'status'  => $status,
+			'owner'   => $owner,
+			'license' => array_intersect_key( $rights, array_flip( array( 'license', 'license_url', 'attribution', 'source_url', 'valid_until', 'note' ) ) ),
 		);
 	}
 

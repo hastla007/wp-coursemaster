@@ -99,6 +99,8 @@ final class CronHooks {
 				'notifications'     => static fn() => \CourseCaptain\Notification\NotificationService::current()->hourly(),
 				// Stale imports: automatic resume up to three times, then aborted (R1-41, E-181).
 				'import_watchdog'   => static fn() => \CourseCaptain\Import\ImportRunner::current()->watchdog(),
+				// Legacy media outside the allowlist: moved once into the quarantine (R0-10 §3.2 V4, GM-128).
+				'media_quarantine'  => static fn() => \CourseCaptain\Import\MediaQuarantine::run_once(),
 			)
 		);
 	}

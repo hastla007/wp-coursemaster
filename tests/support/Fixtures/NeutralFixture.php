@@ -73,20 +73,29 @@ final class NeutralFixture {
 						// §2.3: rights unclear (GM-123, GM-127).
 						$revision['rights'] = array( 'status' => 'unknown' );
 					}
-					$questions[ $key ]  = PackageExporter::sealed(
-						array(
-							'source_id' => 'cc-fx-q-' . strtolower( $key ),
-							'revision'  => $revision,
-							'answers'   => self::answers( $key, $type ),
-							'tags'      => 'A1' === $module ? array(
-								array(
-									'type'  => 'topic',
-									'key'   => $n <= 12 ? 'T-A1-a' : 'T-A1-b',
-									'label' => $n <= 12 ? 'T-A1-a' : 'T-A1-b',
-								),
-							) : array(),
-						)
+					$record = array(
+						'source_id' => 'cc-fx-q-' . strtolower( $key ),
+						'revision'  => $revision,
+						'answers'   => self::answers( $key, $type ),
+						'tags'      => 'A1' === $module ? array(
+							array(
+								'type'  => 'topic',
+								'key'   => $n <= 12 ? 'T-A1-a' : 'T-A1-b',
+								'label' => $n <= 12 ? 'T-A1-a' : 'T-A1-b',
+							),
+						) : array(),
 					);
+					if ( 'A1-003' === $key ) {
+						// §2.3: Q-A1-003 with the image MED-001.
+						$record['media'] = array(
+							array(
+								'media' => 'cc-fx-med-001',
+								'role'  => 'primary',
+								'sort'  => 1,
+							),
+						);
+					}
+					$questions[ $key ]  = PackageExporter::sealed( $record );
 					$pools[ $module ][] = $key;
 				}
 			}
@@ -135,7 +144,7 @@ final class NeutralFixture {
 		}
 
 		$lessons = array();
-		$lesson  = static function ( string $id, string $type, array $settings = array() ) use ( &$lessons ): void {
+		$lesson  = static function ( string $id, string $type, array $settings = array(), array $extra = array() ) use ( &$lessons ): void {
 			$lessons[ $id ] = PackageExporter::sealed(
 				array(
 					'source_id'     => 'cc-fx-' . strtolower( $id ),
@@ -143,7 +152,7 @@ final class NeutralFixture {
 					'body_html'     => '<p>Platzhaltertext für ' . $id . '.</p>',
 					'activity_type' => $type,
 					'settings'      => $settings,
-				)
+				) + $extra
 			);
 		};
 		foreach ( array( 'L-A-01', 'L-A-02', 'L-A-03', 'L-A-08', 'L-A-09', 'L-B-01', 'L-B-02' ) as $id ) {
@@ -159,6 +168,20 @@ final class NeutralFixture {
 				'subtitles'        => 'vtt',
 				'subtitle_url'     => 'https://media.fixture.test/cc/alpha-04.vtt',
 				'duration_seconds' => 2,
+			),
+			array(
+				'media' => array(
+					array(
+						'media' => 'cc-fx-med-002',
+						'role'  => 'primary',
+						'sort'  => 1,
+					),
+					array(
+						'media' => 'cc-fx-med-003',
+						'role'  => 'caption',
+						'sort'  => 2,
+					),
+				),
 			)
 		);
 		$lesson( 'L-A-05', 'video', array( 'duration_seconds' => 2 ) );
@@ -172,6 +195,8 @@ final class NeutralFixture {
 				'duration_seconds' => 2,
 			)
 		);
+		// §2.2: L-A-10 is archived (in the package as `deprecated`, imported archived).
+		$lesson( 'L-A-10', 'lesson', array(), array( 'editorial_status' => 'deprecated' ) );
 
 		$module  = static function ( string $id, array $lesson_ids, array $question_keys ): array {
 			return PackageExporter::sealed(
@@ -204,7 +229,7 @@ final class NeutralFixture {
 			'M-A3'  => $module( 'M-A3', array(), $pools['A3'] ),
 			'LM-A1' => $module( 'LM-A1', array( 'L-A-01', 'L-A-02', 'L-A-03', 'L-A-04' ), array() ),
 			'LM-A2' => $module( 'LM-A2', array( 'L-A-05', 'L-A-06', 'L-A-07' ), array() ),
-			'LM-A3' => $module( 'LM-A3', array( 'L-A-08', 'L-A-09' ), array() ),
+			'LM-A3' => $module( 'LM-A3', array( 'L-A-08', 'L-A-09', 'L-A-10' ), array() ),
 			'M-B1'  => $module( 'M-B1', array( 'L-B-01', 'L-B-02' ), $pools['B1'] ),
 			'M-B2'  => $module( 'M-B2', array(), $pools['B2'] ),
 		);
@@ -229,6 +254,7 @@ final class NeutralFixture {
 			);
 		};
 		return array(
+			'media'      => self::media_records(),
 			'questions'  => array_values( $questions ),
 			'flashcards' => $cards,
 			'lessons'    => array_values( $lessons ),
@@ -236,6 +262,160 @@ final class NeutralFixture {
 			'courses'    => array(
 				$course( 'a', 'cc-a', 'Kurs Alpha', array( 'M-A1', 'M-A2', 'M-A3', 'LM-A1', 'LM-A2', 'LM-A3' ) ),
 				$course( 'b', 'cc-b', 'Kurs Beta', array( 'M-B1', 'M-B2' ) ),
+			),
+			'blueprints' => self::blueprints(),
+		);
+	}
+
+	/**
+	 * Media records MED-001…004 (§2.6). MED-001 is public (question image),
+	 * the others protected (E-65); all CC0, own rights of the source.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private static function media_records(): array {
+		$files = self::media_files();
+		$out   = array();
+		foreach ( array(
+			'MED-001' => array( 'a1-003.png', 'image', 'image/png', 'A1-003: Farbfläche mit Text', 'public' ),
+			'MED-002' => array( 'alpha-04.mp4', 'video', 'video/mp4', '', 'protected' ),
+			'MED-003' => array( 'alpha-04.vtt', 'captions', 'text/vtt', '', 'protected' ),
+			'MED-004' => array( 'fixture.pdf', 'document', 'application/pdf', '', 'protected' ),
+		) as $key => $def ) {
+			$data  = $files[ $def[0] ];
+			$out[] = PackageExporter::sealed(
+				array(
+					'source_id'  => 'cc-fx-' . strtolower( $key ),
+					'path'       => 'media/' . $def[0],
+					'media_type' => $def[1],
+					'mime_type'  => $def[2],
+					'size'       => strlen( $data ),
+					'sha256'     => hash( 'sha256', $data ),
+					'alt_text'   => $def[3],
+					'caption'    => '',
+					'access'     => $def[4],
+					'rights'     => array(
+						'status'  => 'own',
+						'license' => 'CC0-1.0',
+					),
+				)
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Media files of the package (`media/<name>`).
+	 *
+	 * @return array<string, string>
+	 */
+	public static function package_media(): array {
+		$out = array();
+		foreach ( self::media_files() as $name => $data ) {
+			$out[ 'media/' . $name ] = $data;
+		}
+		return $out;
+	}
+
+	/**
+	 * Blueprints ER-A (EP-A-1…3) and ER-B (EP-B-1) per §2.4.
+	 *
+	 * ER-A: M-A1 7, M-A2 13, M-A3 10 = 30; 3 600 s; pass ≥ 23/30 and part P1
+	 * (M-A1) ≥ 5/7 and part P2 (M-A2 + M-A3, a module group, E-331) ≥ 18/23.
+	 * ER-B: M-B1 6, M-B2 4, no time limit, ≥ 7/10, `purpose=practice`.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private static function blueprints(): array {
+		$range = static fn( string $module, int $from, int $to ): array => array_map( static fn( int $n ): string => sprintf( 'cc-fx-q-%s-%03d', strtolower( $module ), $n ), range( $from, $to ) );
+		$draws = static fn( array $counts ): array => array_map(
+			static fn( string $module, int $count ): array => array(
+				'module' => 'cc-fx-' . strtolower( $module ),
+				'count'  => $count,
+			),
+			array_keys( $counts ),
+			array_values( $counts )
+		);
+		return array(
+			PackageExporter::sealed(
+				array(
+					'source_id'      => 'cc-fx-er-a',
+					'course'         => 'cc-fx-course-a',
+					'version'        => 'cc-fx-er-a',
+					'title'          => 'Prüfung Alpha',
+					'status'         => 'published',
+					'time_limit_s'   => 3600,
+					'passing_rule'   => array(
+						'min_ratio' => array(
+							'num' => 23,
+							'den' => 30,
+						),
+						'parts'     => array(
+							array(
+								'key'         => 'P1',
+								'modules'     => array( 'cc-fx-m-a1' ),
+								'min_correct' => 5,
+								'of'          => 7,
+							),
+							array(
+								'key'         => 'P2',
+								'modules'     => array( 'cc-fx-m-a2', 'cc-fx-m-a3' ),
+								'min_correct' => 18,
+								'of'          => 23,
+							),
+						),
+					),
+					'draws'          => $draws(
+						array(
+							'M-A1' => 7,
+							'M-A2' => 13,
+							'M-A3' => 10,
+						)
+					),
+					'fixed_variants' => array(
+						array(
+							'key'       => 'EP-A-1',
+							'questions' => array_merge( $range( 'A1', 1, 7 ), $range( 'A2', 1, 13 ), $range( 'A3', 1, 10 ) ),
+						),
+						array(
+							'key'       => 'EP-A-2',
+							'questions' => array_merge( $range( 'A1', 8, 14 ), $range( 'A2', 4, 16 ), $range( 'A3', 1, 10 ) ),
+						),
+						array(
+							'key'       => 'EP-A-3',
+							'questions' => array_merge( $range( 'A1', 15, 21 ), array_reverse( $range( 'A2', 2, 14 ) ), array_reverse( $range( 'A3', 1, 10 ) ) ),
+						),
+					),
+				)
+			),
+			PackageExporter::sealed(
+				array(
+					'source_id'      => 'cc-fx-er-b',
+					'course'         => 'cc-fx-course-b',
+					'version'        => 'cc-fx-er-b',
+					'title'          => 'Übung Beta',
+					'status'         => 'published',
+					'time_limit_s'   => null,
+					'passing_rule'   => array(
+						'min_ratio' => array(
+							'num' => 7,
+							'den' => 10,
+						),
+					),
+					'draws'          => $draws(
+						array(
+							'M-B1' => 6,
+							'M-B2' => 4,
+						)
+					),
+					'fixed_variants' => array(
+						array(
+							'key'       => 'EP-B-1',
+							'questions' => array_merge( array( 'cc-fx-q-b1-010' ), $range( 'B1', 1, 5 ), $range( 'B2', 1, 4 ) ),
+						),
+					),
+					'settings'       => array( 'purpose' => 'practice' ),
+				)
 			),
 		);
 	}
@@ -277,17 +457,18 @@ final class NeutralFixture {
 	 *
 	 * @param int    $version Version.
 	 * @param string $file    Target.
+	 * @param string $system  `source.system` (default the fixture; other values import everything anew).
 	 * @return string
 	 */
-	public static function package( int $version, string $file ): string {
-		return PackageExporter::write( self::records( $version ), self::SYSTEM, 'cc-fixture-neutral-v1 PKG-v' . $version, $file );
+	public static function package( int $version, string $file, string $system = self::SYSTEM ): string {
+		return PackageExporter::write( self::records( $version ), $system, 'cc-fixture-neutral-v1 PKG-v' . $version, $file, PackageExporter::RECORDS_PER_FILE, self::package_media() );
 	}
 
 	/**
-	 * Idempotent loader (§2.2–§2.8): users and roles, PKG-v1, C-C (with the
-	 * deliberately broken M-C1/ER-C) and C-D, exam rules ER-A/ER-B with the
-	 * fixed variants EP-A-1…3/EP-B-1, media MED-001…004 and downloads
-	 * DL-A-1…3, pages PAGE-1/PAGE-2, grants G-1/G-2/G-7/G-10, groups
+	 * Idempotent loader (§2.2–§2.8): users and roles, PKG-v1 (with media
+	 * MED-001…004, exam rules ER-A/ER-B and the fixed variants
+	 * EP-A-1…3/EP-B-1, the archived lesson L-A-10), C-C (with the
+	 * deliberately broken M-C1/ER-C) and C-D, downloads DL-A-1…3, pages PAGE-1/PAGE-2, grants G-1/G-2/G-7/G-10, groups
 	 * GRP-1/GRP-2, partial access AR-01. Rules that change the access of the
 	 * base users (AR-02…AR-08, G-3) and the flashcard decks FC-A/FC-B are
 	 * separate on-demand steps (`rule()`, `grant()`, `flashcards()`), so the
@@ -411,7 +592,7 @@ final class NeutralFixture {
 		}
 		PolicyService::flush();
 		$modules['M-C1'] = self::broken_course( $admin, $courses['C-C'] );
-		$exams           = self::exams( $admin, $courses, $modules );
+		$exams           = self::exams();
 		$media           = self::media( $admin, $courses['C-A'] );
 		// G-10: U-S1, C-A question bank, until T0 + 60 d.
 		GrantService::current()->grant_manual(
@@ -530,113 +711,38 @@ final class NeutralFixture {
 	}
 
 	/**
-	 * ER-A, EP-A-1…3 (C-A), ER-B, EP-B-1 (C-B) per §2.4; ER-C is a draft of C-C.
+	 * ER-A, EP-A-1…3 (C-A), ER-B, EP-B-1 (C-B) per §2.4: imported with
+	 * PKG-v1 (blueprints, GM-118); ER-C is a draft of C-C (`broken_course()`).
 	 *
-	 * ER-A: M-A1 7, M-A2 13, M-A3 10 = 30; 3 600 s; pass ≥ 23/30 and part P1
-	 * (M-A1) ≥ 5/7 and part P2 (M-A2 + M-A3, a module group, E-331) ≥ 18/23.
-	 * P1 uses the single-module form `section` (before E-331, still valid),
-	 * P2 the group form `sections`. ER-B: M-B1 6, M-B2 4, no time limit,
-	 * ≥ 7/10, `purpose=practice`.
-	 *
-	 * @param Actor              $admin   Admin.
-	 * @param array<string, int> $courses Courses.
-	 * @param array<string, int> $modules Modules.
 	 * @return array{rules: array<string, int>, variants: array<string, int>}
 	 */
-	private static function exams( Actor $admin, array $courses, array $modules ): array {
+	private static function exams(): array {
 		$db    = Database::current();
-		$rules = ExamRules::current();
-		$table = $db->table( 'ccap_exam_rule' );
-		$out   = array();
+		$table = $db->table( 'ccap_exam_variant' );
+		$ids   = array();
 		foreach ( array(
-			'ER-A' => array(
-				'C-A',
-				array(
-					'M-A1' => 7,
-					'M-A2' => 13,
-					'M-A3' => 10,
-				),
-				array( 23, 30 ),
-				3600,
-				array(),
-				array( 'M-A1', 5, 7 ),
-			),
-			'ER-B' => array(
-				'C-B',
-				array(
-					'M-B1' => 6,
-					'M-B2' => 4,
-				),
-				array( 7, 10 ),
-				null,
-				array( 'purpose' => 'practice' ),
-				null,
-			),
-		) as $key => $def ) {
-			$version = 'cc-fx-' . strtolower( $key );
-			$found   = $db->scalar( $db->prepare( "SELECT id FROM `{$table}` WHERE course_id = %d AND version = %s", $courses[ $def[0] ], $version ) );
-			if ( null === $found ) {
-				$passing = array(
-					'min_ratio' => array(
-						'num' => $def[2][0],
-						'den' => $def[2][1],
-					),
-				);
-				if ( null !== $def[5] ) {
-					$passing['parts'] = array(
-						array(
-							'key'       => 'P1',
-							'section'   => $modules[ $def[5][0] ],
-							'min_ratio' => array(
-								'num' => $def[5][1],
-								'den' => $def[5][2],
-							),
-						),
-						array(
-							'key'       => 'P2',
-							'sections'  => array( $modules['M-A2'], $modules['M-A3'] ),
-							'min_ratio' => array(
-								'num' => 18,
-								'den' => 23,
-							),
-						),
-					);
-				}
-				$found = $rules->create( $admin, $courses[ $def[0] ], $version, $passing, $def[3], $def[4] );
-				foreach ( $def[1] as $module => $count ) {
-					$rules->set_blueprint( $admin, (int) $found, $modules[ $module ], $count );
-				}
-				$rules->publish( $admin, (int) $found );
-			}
-			$out[ $key ] = (int) $found;
-		}
-		$range    = static fn( string $module, int $from, int $to ): array => array_map( static fn( int $n ): string => sprintf( '%s-%03d', $module, $n ), range( $from, $to ) );
-		$variants = array(
-			'EP-A-1' => array( 'C-A', 1, array_merge( $range( 'A1', 1, 7 ), $range( 'A2', 1, 13 ), $range( 'A3', 1, 10 ) ) ),
-			'EP-A-2' => array( 'C-A', 2, array_merge( $range( 'A1', 8, 14 ), $range( 'A2', 4, 16 ), $range( 'A3', 1, 10 ) ) ),
-			'EP-A-3' => array( 'C-A', 3, array_merge( $range( 'A1', 15, 21 ), array_reverse( $range( 'A2', 2, 14 ) ), array_reverse( $range( 'A3', 1, 10 ) ) ) ),
-			'EP-B-1' => array( 'C-B', 1, array_merge( array( 'B1-010' ), $range( 'B1', 1, 5 ), $range( 'B2', 1, 4 ) ) ),
-		);
-		$vtable   = $db->table( 'ccap_exam_variant' );
-		$ids      = array();
-		foreach ( $variants as $key => $def ) {
-			$found = $db->scalar( $db->prepare( "SELECT id FROM `{$vtable}` WHERE course_id = %d AND variant_no = %d", $courses[ $def[0] ], $def[1] ) );
-			if ( null === $found ) {
-				$found = $rules->create_variant( $admin, $courses[ $def[0] ], $def[1], array_map( array( self::class, 'question' ), $def[2] ) );
-			}
-			$ids[ $key ] = (int) $found;
+			'EP-A-1' => 'cc-fx-er-a',
+			'EP-A-2' => 'cc-fx-er-a',
+			'EP-A-3' => 'cc-fx-er-a',
+			'EP-B-1' => 'cc-fx-er-b',
+		) as $key => $rule ) {
+			$ids[ $key ] = (int) $db->scalar( $db->prepare( "SELECT id FROM `{$table}` WHERE source_system = %s AND source_id = %s", self::SYSTEM, $rule . '#' . $key ) );
 		}
 		return array(
-			'rules'    => $out,
+			'rules'    => array(
+				'ER-A' => (int) self::object( 'blueprint', 'cc-fx-er-a' ),
+				'ER-B' => (int) self::object( 'blueprint', 'cc-fx-er-b' ),
+			),
 			'variants' => $ids,
 		);
 	}
 
 	/**
-	 * Synthetic CC0 media (§2.6) in the upload folder `cc-fixture-neutral-v1`:
-	 * MED-001 PNG, MED-002 MP4 (built by `tools/fixtures/build-media.sh`),
-	 * MED-003 WebVTT, MED-004 PDF; downloads DL-A-1…3 are MED-004 copies
-	 * attached to C-A in this order. MED-005 is only a URL (lesson L-A-07).
+	 * Synthetic CC0 media (§2.6): MED-001 PNG, MED-002 MP4 (built by
+	 * `tools/fixtures/build-media.sh`), MED-003 WebVTT, MED-004 PDF come
+	 * with PKG-v1 (media import, GM-118); the downloads DL-A-1…3 are local
+	 * MED-004 copies in the upload folder `cc-fixture-neutral-v1`, attached
+	 * to C-A in this order. MED-005 is only a URL (lesson L-A-07).
 	 *
 	 * @param Actor $admin  Admin.
 	 * @param int   $course C-A.
@@ -649,14 +755,13 @@ final class NeutralFixture {
 		$files   = self::media_files();
 		$library = MediaLibrary::current();
 		$out     = array();
+		foreach ( array( 'MED-001', 'MED-002', 'MED-003', 'MED-004' ) as $key ) {
+			$out[ $key ] = (int) self::object( 'media', 'cc-fx-' . strtolower( $key ) );
+		}
 		foreach ( array(
-			'MED-001' => array( 'a1-003.png', 'image/png', 'A1-003', null, 'public' ),
-			'MED-002' => array( 'alpha-04.mp4', 'video/mp4', 'alpha-04', null, 'protected' ),
-			'MED-003' => array( 'alpha-04.vtt', 'text/vtt', 'alpha-04 Untertitel', null, 'protected' ),
-			'MED-004' => array( 'fixture.pdf', 'application/pdf', 'Fixture-Dokument', null, 'protected' ),
-			'DL-A-1'  => array( 'uebersicht.pdf', 'application/pdf', 'uebersicht', 'fixture.pdf', 'protected' ),
-			'DL-A-2'  => array( 'arbeitsblatt.pdf', 'application/pdf', 'arbeitsblatt', 'fixture.pdf', 'protected' ),
-			'DL-A-3'  => array( 'uebersicht-a.pdf', 'application/pdf', 'Übersicht "A"', 'fixture.pdf', 'protected' ),
+			'DL-A-1' => array( 'uebersicht.pdf', 'application/pdf', 'uebersicht', 'fixture.pdf', 'protected' ),
+			'DL-A-2' => array( 'arbeitsblatt.pdf', 'application/pdf', 'arbeitsblatt', 'fixture.pdf', 'protected' ),
+			'DL-A-3' => array( 'uebersicht-a.pdf', 'application/pdf', 'Übersicht "A"', 'fixture.pdf', 'protected' ),
 		) as $key => $def ) {
 			$path = $folder . '/' . $def[0];
 			$data = $files[ $def[3] ?? $def[0] ];
@@ -948,8 +1053,20 @@ final class NeutralFixture {
 	 * @return int|null
 	 */
 	public static function object( string $type, string $source ): ?int {
+		return self::object_in( self::SYSTEM, $type, $source );
+	}
+
+	/**
+	 * Object ID of a source ID of another source system (packages imported anew).
+	 *
+	 * @param string $system Source system.
+	 * @param string $type   Object type.
+	 * @param string $source Source ID.
+	 * @return int|null
+	 */
+	public static function object_in( string $system, string $type, string $source ): ?int {
 		$db = Database::current();
-		$id = $db->scalar( $db->prepare( 'SELECT object_id FROM `' . $db->table( 'ccap_source_map' ) . '` WHERE source_system = %s AND object_type = %s AND source_id = %s', self::SYSTEM, $type, $source ) );
+		$id = $db->scalar( $db->prepare( 'SELECT object_id FROM `' . $db->table( 'ccap_source_map' ) . '` WHERE source_system = %s AND object_type = %s AND source_id = %s', $system, $type, $source ) );
 		return null === $id ? null : (int) $id;
 	}
 }

@@ -31,10 +31,13 @@ defined( 'ABSPATH' ) || exit;
  * {@see ImportService::run()}; a run may switch between them.
  *
  * - Phases: `plan` (stream the package once into a private NDJSON spool,
- *   SHA-256 kept) → `apply` (chunks from the spool) → status `activating`
- *   → `questions` (switch revisions) → `archive` → `courses` (validator,
- *   one transaction per course, blockers hold the course, E-179) →
- *   `finalize` (`published`, supersede, audit).
+ *   SHA-256 kept) → `apply` (chunks from the spool; media first, chunked
+ *   by bytes with at least one file per chunk) → status `activating` →
+ *   `questions` (switch revisions) → `archive` → `courses` (validator,
+ *   one transaction per course, blockers hold the course, E-179; the
+ *   course's imported exam rules are published with it) → `blueprints`
+ *   (rules of courses outside the package) → `finalize` (`published`,
+ *   supersede, audit).
  * - A chunk is one transaction: lease heartbeat (fencing), objects (each
  *   in a savepoint: a failing object is isolated, E-176), item log,
  *   issues, cursor. "Written" ⇔ "cursor behind it"; a crash repeats at
@@ -68,6 +71,14 @@ final class ImportRunner {
 	public const MAX_SECONDS        = 20;
 
 	/**
+	 * Media bytes per chunk: start 16 MB, at most 64 MB, at least one file
+	 * (R0-38 §4.3, LB `limitBytes`).
+	 */
+	public const MEDIA_CHUNK_START = 16777216;
+	public const MEDIA_CHUNK_MAX   = 67108864;
+	public const MEDIA_CHUNK_MIN   = 1048576;
+
+	/**
 	 * Validator blockers that only exist because media import is not part
 	 * of R1 (video lessons reference external media); reported, not held.
 	 *
@@ -81,6 +92,13 @@ final class ImportRunner {
 	 * @var (\Closure(string, int): void)|null
 	 */
 	private static ?\Closure $fault = null;
+
+	/**
+	 * Media byte limit per chunk for tests (COURSE_CAPTAIN_TESTING only).
+	 *
+	 * @var int|null
+	 */
+	private static ?int $media_limit = null;
 
 	/**
 	 * Chunk size chosen after the last chunk (AIMD).
@@ -138,6 +156,16 @@ final class ImportRunner {
 	 */
 	public static function inject_fault( ?\Closure $fault ): void {
 		self::$fault = $fault;
+	}
+
+	/**
+	 * Fix the media bytes per chunk (tests only; ignored in production).
+	 *
+	 * @param int|null $bytes Bytes, null = adaptive default.
+	 * @return void
+	 */
+	public static function media_chunk_bytes( ?int $bytes ): void {
+		self::$media_limit = $bytes;
 	}
 
 	/**
@@ -460,7 +488,7 @@ final class ImportRunner {
 							throw new LeaseLostException( 'Lease lost.' );
 						}
 						$log  = $this->db->table( 'ccap_import_item_log' );
-						$rows = $this->db->rows( $this->db->prepare( "SELECT id, entity, object_id FROM `{$log}` WHERE batch_id = %d AND action = 'create' AND outcome = 'ok' AND object_id IS NOT NULL ORDER BY id LIMIT %d", $batch, self::CHUNK_MAX ) );
+						$rows = $this->db->rows( $this->db->prepare( "SELECT id, entity, object_id FROM `{$log}` WHERE batch_id = %d AND action = 'create' AND outcome IN ('ok', 'pending') AND object_id IS NOT NULL ORDER BY id LIMIT %d", $batch, self::CHUNK_MAX ) );
 						foreach ( $rows as $row ) {
 							$type = ImportService::ENTITY_TYPES[ (string) $row['entity'] ] ?? '';
 							$this->db->execute( 'SAVEPOINT ccap_import_item' );
@@ -552,6 +580,8 @@ final class ImportRunner {
 				return $this->archive_chunk( $actor, $batch, $lease );
 			case 'courses':
 				return $this->course_chunk( $actor, $batch, $row, $lease );
+			case 'blueprints':
+				return $this->blueprint_chunk( $actor, $batch, $lease );
 			default:
 				return $this->finalize( $actor, $batch, $row, $lease );
 		}
@@ -657,12 +687,16 @@ final class ImportRunner {
 					throw new ImportStopException( 'package_missing' );
 				}
 				fseek( $handle, (int) ( $run['offset'] ?? 0 ) );
-				$logs   = array();
-				$issues = array();
-				$failed = null;
-				$read   = 0;
+				$logs    = array();
+				$issues  = array();
+				$failed  = null;
+				$read    = 0;
+				$limit   = self::media_limit( $run );
+				$bytes   = 0;
+				$started = microtime( true );
 				while ( $read < $size ) {
-					$line = fgets( $handle );
+					$position = (int) ftell( $handle );
+					$line     = fgets( $handle );
 					if ( false === $line ) {
 						break;
 					}
@@ -670,6 +704,15 @@ final class ImportRunner {
 					if ( ! is_array( $item ) ) {
 						fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Private spool file.
 						throw new ImportStopException( 'package_missing' );
+					}
+					if ( 'media' === ( $item['entity'] ?? '' ) && is_array( $item['record'] ?? null ) ) {
+						// Media by bytes (R0-38 §4.3): stop before the limit, but write at least one file per chunk.
+						$file_bytes = max( 1, (int) ( $item['record']['size'] ?? 0 ) );
+						if ( $bytes > 0 && $bytes + $file_bytes > $limit ) {
+							fseek( $handle, $position );
+							break;
+						}
+						$bytes += $file_bytes;
 					}
 					self::fault( 'apply', (int) ( $run['line'] ?? 0 ) + $read );
 					++$read;
@@ -729,7 +772,12 @@ final class ImportRunner {
 										)
 									)
 								);
-								if ( ! in_array( $type, ImportService::QUESTION_TYPES, true ) && null !== $object ) {
+								if ( null !== $result['payload'] ) {
+									// Exam rule written as draft; published with its course in the activation.
+									$message = (string) wp_json_encode( $result['payload'] );
+									$outcome = 'pending';
+								}
+								if ( in_array( $type, ImportService::POST_TYPES, true ) && null !== $object ) {
 									$this->touched[] = $object;
 								}
 								$this->db->execute( 'RELEASE SAVEPOINT ccap_import_item' );
@@ -767,7 +815,12 @@ final class ImportRunner {
 				$run['offset'] = $offset;
 				$run['done']   = (int) ( $run['done'] ?? 0 ) + $read;
 				$run['chunk']  = $size;
-				$status        = null;
+				if ( $bytes > 0 ) {
+					// AIMD on the media bytes as on the record count (R0-38 §4.3).
+					$took               = microtime( true ) - $started;
+					$run['media_chunk'] = $took < 0.5 ? min( self::MEDIA_CHUNK_MAX, 2 * $limit ) : ( $took > 1.5 ? max( self::MEDIA_CHUNK_MIN, intdiv( $limit, 2 ) ) : $limit );
+				}
+				$status = null;
 				if ( $end ) {
 					$run['phase']     = 'questions';
 					$run['after']     = 0;
@@ -914,7 +967,7 @@ final class ImportRunner {
 			return $this->db->transaction(
 				function () use ( $batch, $lease ): string {
 					$stats                 = $this->lock_stats( $batch, $lease );
-					$stats['run']['phase'] = 'finalize';
+					$stats['run']['phase'] = 'blueprints';
 					$this->save( $batch, $stats );
 					return 'courses_done';
 				}
@@ -976,6 +1029,8 @@ final class ImportRunner {
 						$note = sprintf( __( 'Import %s', 'course-captain' ), (string) ( $manifest['package_id'] ?? '' ) );
 						$this->db->execute( 'SAVEPOINT ccap_import_item' );
 						try {
+							// Imported exam rules of the course go live with it (part of its revision).
+							$this->service->activate_blueprints( $actor, $batch, $course );
 							CoursePublisher::current()->publish( $actor, $course, 'minor', $note );
 							$this->db->execute( 'RELEASE SAVEPOINT ccap_import_item' );
 						} catch ( CourseException $e ) {
@@ -1005,6 +1060,28 @@ final class ImportRunner {
 		} finally {
 			$lock->release();
 		}
+	}
+
+	/**
+	 * Phase `blueprints`: exam rules of courses outside this package (the
+	 * course exists on the site) go live; those of held courses stay drafts.
+	 *
+	 * @param Actor $actor Importer.
+	 * @param int   $batch Batch.
+	 * @param Lease $lease Held lease.
+	 * @return string
+	 */
+	private function blueprint_chunk( Actor $actor, int $batch, Lease $lease ): string {
+		return $this->db->transaction(
+			function () use ( $actor, $batch, $lease ): string {
+				$stats = $this->lock_stats( $batch, $lease );
+				$run   = (array) $stats['run'];
+				$this->service->activate_blueprints( $actor, $batch, null, array_values( array_map( 'intval', (array) ( $run['held'] ?? array() ) ) ) );
+				$stats['run']['phase'] = 'finalize';
+				$this->save( $batch, $stats );
+				return 'blueprints_activated';
+			}
+		);
 	}
 
 	/**
@@ -1191,7 +1268,11 @@ final class ImportRunner {
 	 * @throws CourseException When WordPress refuses the deletion.
 	 */
 	private function delete_object( string $type, int $object_id ): void {
-		if ( in_array( $type, ImportService::QUESTION_TYPES, true ) ) {
+		if ( 'media' === $type ) {
+			ImportMedia::current()->delete( $object_id );
+		} elseif ( 'blueprint' === $type ) {
+			ImportBlueprints::current()->delete( $object_id );
+		} elseif ( in_array( $type, ImportService::QUESTION_TYPES, true ) ) {
 			$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_question_revision' ) . '` WHERE question_id = %d', $object_id ) );
 			$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $object_id ) );
 		} else {
@@ -1358,6 +1439,19 @@ final class ImportRunner {
 		if ( is_file( $path ) ) {
 			wp_delete_file( $path );
 		}
+	}
+
+	/**
+	 * Media bytes per chunk of a cursor (test override only with COURSE_CAPTAIN_TESTING).
+	 *
+	 * @param array<string, mixed> $run Cursor.
+	 * @return int
+	 */
+	private static function media_limit( array $run ): int {
+		if ( null !== self::$media_limit && defined( 'COURSE_CAPTAIN_TESTING' ) && true === constant( 'COURSE_CAPTAIN_TESTING' ) ) {
+			return max( 1, self::$media_limit );
+		}
+		return max( self::MEDIA_CHUNK_MIN, min( self::MEDIA_CHUNK_MAX, (int) ( $run['media_chunk'] ?? self::MEDIA_CHUNK_START ) ) );
 	}
 
 	/**

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-23T11:06:55+00:00\n"
+"POT-Creation-Date: 2026-11-23T12:59:44+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -3783,132 +3783,140 @@ msgstr ""
 msgid "applies when the exam is published"
 msgstr ""
 
-#: src/Import/ImportReport.php:332
+#: src/Import/ImportReport.php:336
 msgid "Correct the course after the import and publish it in the editor, or fix the package and import it again."
 msgstr ""
 
-#: src/Import/ImportReport.php:336
+#: src/Import/ImportReport.php:340
 msgid "The record does not match the package format."
 msgstr ""
 
-#: src/Import/ImportReport.php:336
+#: src/Import/ImportReport.php:340
 msgid "Correct the record in the source system and export the package again."
 msgstr ""
 
-#: src/Import/ImportReport.php:338
+#: src/Import/ImportReport.php:342
 msgid "The question type is not available on this site."
 msgstr ""
 
-#: src/Import/ImportReport.php:338
+#: src/Import/ImportReport.php:342
 msgid "Activate the extension that provides the question type, then import again."
 msgstr ""
 
-#: src/Import/ImportReport.php:340
+#: src/Import/ImportReport.php:344
 msgid "The object ID occurs more than once in the package."
 msgstr ""
 
-#: src/Import/ImportReport.php:340
+#: src/Import/ImportReport.php:344
 msgid "Give every object a unique ID in the source system."
 msgstr ""
 
-#: src/Import/ImportReport.php:342
+#: src/Import/ImportReport.php:346
 msgid "The object refers to another object that is neither in the package nor on this site."
 msgstr ""
 
-#: src/Import/ImportReport.php:342
+#: src/Import/ImportReport.php:346
 msgid "Add the referenced object to the package or remove the reference."
 msgstr ""
 
-#: src/Import/ImportReport.php:344
+#: src/Import/ImportReport.php:348
 msgid "The record was changed after the package was created (checksum differs)."
 msgstr ""
 
-#: src/Import/ImportReport.php:344
+#: src/Import/ImportReport.php:348
 msgid "Export the package again from the source system."
 msgstr ""
 
-#: src/Import/ImportReport.php:346
+#: src/Import/ImportReport.php:353
+msgid "The media file is not allowed: its type is not on the allowlist or its content does not match the file type."
+msgstr ""
+
+#: src/Import/ImportReport.php:353
+msgid "Replace the file with an allowed image, audio, video, PDF or subtitle file and export the package again."
+msgstr ""
+
+#: src/Import/ImportReport.php:355
 msgid "The object depends on another object that could not be imported."
 msgstr ""
 
-#: src/Import/ImportReport.php:346
+#: src/Import/ImportReport.php:355
 msgid "Fix the object it depends on; this object is imported with it."
 msgstr ""
 
-#: src/Import/ImportReport.php:348
+#: src/Import/ImportReport.php:357
 msgid "The object could not be saved."
 msgstr ""
 
-#: src/Import/ImportReport.php:348
+#: src/Import/ImportReport.php:357
 msgid "Check the object in the source system and import the package again."
 msgstr ""
 
-#: src/Import/ImportReport.php:350
+#: src/Import/ImportReport.php:359
 msgid "Too many objects failed, so the import was stopped."
 msgstr ""
 
-#: src/Import/ImportReport.php:350
+#: src/Import/ImportReport.php:359
 msgid "Look for a common cause in the report, fix it and import again."
 msgstr ""
 
-#: src/Import/ImportReport.php:352
+#: src/Import/ImportReport.php:361
 msgid "The import was cancelled."
 msgstr ""
 
-#: src/Import/ImportReport.php:352
+#: src/Import/ImportReport.php:361
 msgid "Discard the import or resume it."
 msgstr ""
 
-#: src/Import/ImportReport.php:355
+#: src/Import/ImportReport.php:364
 msgid "The import stopped responding."
 msgstr ""
 
-#: src/Import/ImportReport.php:355
+#: src/Import/ImportReport.php:364
 msgid "Resume the import."
 msgstr ""
 
-#: src/Import/ImportReport.php:357
+#: src/Import/ImportReport.php:366
 msgid "The database was temporarily unavailable."
 msgstr ""
 
-#: src/Import/ImportReport.php:357
+#: src/Import/ImportReport.php:366
 msgid "The import resumes automatically; otherwise resume it."
 msgstr ""
 
-#: src/Import/ImportReport.php:359
+#: src/Import/ImportReport.php:368
 msgid "A newer import of the same source was activated in the meantime."
 msgstr ""
 
-#: src/Import/ImportReport.php:359
+#: src/Import/ImportReport.php:368
 msgid "Discard this import."
 msgstr ""
 
-#: src/Import/ImportReport.php:361
+#: src/Import/ImportReport.php:370
 msgid "The stored package copy is missing or was changed."
 msgstr ""
 
-#: src/Import/ImportReport.php:361
+#: src/Import/ImportReport.php:370
 msgid "Upload and validate the package again."
 msgstr ""
 
-#: src/Import/ImportReport.php:363
+#: src/Import/ImportReport.php:372
 msgid "The person who approved the import no longer has the required rights."
 msgstr ""
 
-#: src/Import/ImportReport.php:363
+#: src/Import/ImportReport.php:372
 msgid "Approve and start the import again with an account that may publish courses."
 msgstr ""
 
-#: src/Import/ImportReport.php:365
+#: src/Import/ImportReport.php:374
 msgid "The import stopped because of an unexpected error."
 msgstr ""
 
-#: src/Import/ImportReport.php:365
+#: src/Import/ImportReport.php:374
 msgid "Resume the import; if it stops again, contact support with the report."
 msgstr ""
 
 #. translators: %s: package ID
-#: src/Import/ImportRunner.php:976
+#: src/Import/ImportRunner.php:1029
 #, php-format
 msgid "Import %s"
 msgstr ""
@@ -5144,114 +5152,118 @@ msgid "Unclear rights of an import released"
 msgstr ""
 
 #: src/Ops/AuditView.php:79
-msgid "Website hardening state changed"
+msgid "Disallowed legacy media files moved to the quarantine"
 msgstr ""
 
 #: src/Ops/AuditView.php:80
-msgid "Website hardening switched off by constant"
+msgid "Website hardening state changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:81
-msgid "Maintenance action"
+msgid "Website hardening switched off by constant"
 msgstr ""
 
 #: src/Ops/AuditView.php:82
-msgid "Personal data erased"
+msgid "Maintenance action"
 msgstr ""
 
 #: src/Ops/AuditView.php:83
-msgid "Retention applied"
+msgid "Personal data erased"
 msgstr ""
 
 #: src/Ops/AuditView.php:84
-msgid "Old audit entries removed"
+msgid "Retention applied"
 msgstr ""
 
 #: src/Ops/AuditView.php:85
-msgid "Maintenance task failed"
+msgid "Old audit entries removed"
 msgstr ""
 
 #: src/Ops/AuditView.php:86
-msgid "Mail template saved"
+msgid "Maintenance task failed"
 msgstr ""
 
 #: src/Ops/AuditView.php:87
-msgid "Notification opt-out changed"
+msgid "Mail template saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:88
-msgid "Notification sent again"
+msgid "Notification opt-out changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:89
-msgid "Group invitation sent again"
+msgid "Notification sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:90
-msgid "Held notifications released"
+msgid "Group invitation sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:91
-msgid "Held notifications discarded"
+msgid "Held notifications released"
 msgstr ""
 
 #: src/Ops/AuditView.php:92
-msgid "Course revision published"
+msgid "Held notifications discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:93
-msgid "Certificate issued manually"
+msgid "Course revision published"
 msgstr ""
 
 #: src/Ops/AuditView.php:94
-msgid "Certificate corrected"
+msgid "Certificate issued manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:95
-msgid "Certificate revoked"
+msgid "Certificate corrected"
 msgstr ""
 
 #: src/Ops/AuditView.php:96
-msgid "Certificate list exported"
+msgid "Certificate revoked"
 msgstr ""
 
 #: src/Ops/AuditView.php:97
-msgid "Certificate needs review after re-evaluation"
+msgid "Certificate list exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:98
-msgid "Job retried"
+msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
 #: src/Ops/AuditView.php:99
-msgid "Dead letters discarded"
+msgid "Job retried"
 msgstr ""
 
 #: src/Ops/AuditView.php:100
-msgid "Cache emptied"
+msgid "Dead letters discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:101
-msgid "Diagnostics package exported"
+msgid "Cache emptied"
 msgstr ""
 
 #: src/Ops/AuditView.php:102
-msgid "Site identity confirmed after restore, move or copy"
+msgid "Diagnostics package exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:103
-msgid "Protected folders moved"
+msgid "Site identity confirmed after restore, move or copy"
 msgstr ""
 
 #: src/Ops/AuditView.php:104
+msgid "Protected folders moved"
+msgstr ""
+
+#: src/Ops/AuditView.php:105
 msgid "Moving the protected folders failed"
 msgstr ""
 
-#: src/Ops/AuditView.php:161
+#: src/Ops/AuditView.php:162
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:161
+#: src/Ops/AuditView.php:162
 msgid "System"
 msgstr ""
 
