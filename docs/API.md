@@ -21,7 +21,7 @@
 
 | Methode | Pfad | Zugriff | Schema-Parameter (* Pflicht) |
 |---|---|---|---|
-| `POST` | `/answers` | angemeldet (Cookie + `X-WP-Nonce`) | – (Header `Idempotency-Key` oder Feld `idempotency_key` Pflicht, UUID; fehlt/ungültig → `428 ccap_idempotency_key_required`) |
+| `POST` | `/answers` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `DELETE` | `/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files/(?P<media>[0-9a-f-]+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
@@ -32,11 +32,13 @@
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\d+)/draft` | angemeldet (Cookie + `X-WP-Nonce`) | `submission_uid`, `text` |
 | `POST` | `/courses/(?P<course>[0-9a-f-]+)/exam-sessions` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/courses/(?P<course>[0-9a-f-]+)/faqs` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `DELETE` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/lessons` | angemeldet (Cookie + `X-WP-Nonce`) | – |
-| `PUT` | `/courses/(?P<course>[0-9a-f-]+)/lessons/(?P<lesson>\d+)/progress` | angemeldet (Cookie + `X-WP-Nonce`) | – (`kind`: `position`\|`confirm`\|`unconfirm`\|`view`\|`download`\|`cards`; `unconfirm` nur bei `manual_confirm`, sonst `422 ccap_validation_failed`, `reason: evidence_completion`) |
+| `PUT` | `/courses/(?P<course>[0-9a-f-]+)/lessons/(?P<lesson>\d+)/progress` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/next-question` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/courses/(?P<course>[0-9a-f-]+)/practice` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/courses/(?P<id>\d+)/publish` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<id>\d+)/structure` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<id>\d+)/structure` | angemeldet (Cookie + `X-WP-Nonce`) | `modules`* |
@@ -47,9 +49,10 @@
 | `PUT` | `/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/flag` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/reveal` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/exam-sessions/(?P<session>\d+)/submit` | angemeldet (Cookie + `X-WP-Nonce`) | – |
-| `GET` | `/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})` | angemeldet (Cookie + `X-WP-Nonce`) | – (R-31: `{group{name}, course_titles[], seats_free, bound_to_other_address}`; `422 ccap_invalid_token`, `410 ccap_invite_expired`, `409 ccap_group_not_active`, `429 ccap_rate_limited` Bucket `group_join_preview`) |
-| `POST` | `/groups/join` | angemeldet (Cookie + `X-WP-Nonce`) | – (R-32: `token`; `{seat_id, group_uid, status: active}`, Mitglied → 200 gleiche Antwort; `422 ccap_invalid_token`, `410 ccap_invite_expired`, `403 ccap_invite_other_account`, `409 ccap_group_not_active`/`ccap_group_full`/`ccap_group_busy`, `429 ccap_rate_limited` Bucket `group_join`) |
 | `GET` | `/grading/queue` | angemeldet (Cookie + `X-WP-Nonce`) | `course`, `page`, `per_page` |
+| `POST` | `/groups/join` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/health` | öffentlich | – |
 | `GET` | `/imports/(?P<id>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/imports/(?P<id>\d+)/cancel` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/imports/(?P<id>\d+)/report` | angemeldet (Cookie + `X-WP-Nonce`) | `after`, `class`, `entity`, `format`, `per_page`, `phase`, `rule`, `severity` |
@@ -60,12 +63,17 @@
 | `GET` | `/me/certificates` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/me/certificates/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/visibility` | angemeldet (Cookie + `X-WP-Nonce`) | `holder_name_public`* |
 | `GET` | `/me/courses` | angemeldet (Cookie + `X-WP-Nonce`) | – |
-| `POST` | `/me/privacy-requests` | angemeldet (Cookie + `X-WP-Nonce`) | – (`type`: `export`\|`erase`; 202 `{status: created\|resent\|confirmed}`, 5/Tag, Bucket `privacy`) |
-| `POST` | `/me/data-exports` | angemeldet (Cookie + `X-WP-Nonce`) | – (202 `{uid, status: pending, created_at, expires_at}`) |
-| `GET` | `/me/data-exports/(?P<uid>[0-9a-f-]{36})` | angemeldet, nur Eigentümer (Cookie + `X-WP-Nonce`) | – (200 mit `data`; `409 ccap_export_not_ready`, `410 ccap_export_expired`/`ccap_export_failed`) |
-| `GET` | `/courses/(?P<course>[0-9a-f-]+)/faqs` | angemeldet, Zugang zum Kurs (Cookie + `X-WP-Nonce`) | – (Liste `{uid, question, answer_html, category}`, nur veröffentlichte Einträge) |
-| `GET` | `/status` | angemeldet, `ccap_view_system_status` | – |
-| `GET` | `/health`, `/monitor` | öffentlich (Klasse K); Einzelprüfungen nur mit Header `X-CC-Monitor-Key` oder `ccap_view_system_status` | – |
+| `POST` | `/me/data-exports` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/me/data-exports/(?P<uid>[0-9a-f-]{36})` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/me/groups` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `PUT` | `/me/groups/(?P<uid>[0-9a-f-]{36})` | angemeldet (Cookie + `X-WP-Nonce`) | `name`* |
+| `POST` | `/me/groups/(?P<uid>[0-9a-f-]{36})/invite` | angemeldet (Cookie + `X-WP-Nonce`) | `bind_to_address`, `emails`* |
+| `DELETE` | `/me/groups/(?P<uid>[0-9a-f-]{36})/members/(?P<member>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | `reason` |
+| `POST` | `/me/groups/(?P<uid>[0-9a-f-]{36})/token` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `POST` | `/me/privacy-requests` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/monitor` | öffentlich | – |
+| `GET` | `/reports/courses/(?P<course>[0-9a-f-]+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/status` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 
 Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `acknowledged[]`) prüft der jeweilige Dienst. Details stehen in den Nachweisen `docs/r1/R1-*-nachweis.md`.
 
@@ -110,6 +118,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_external_access_sources` | filter |
 | `course_captain_hardening_conflicts` | filter |
 | `course_captain_hardening_limits` | filter |
+| `course_captain_import_package_limit` | filter |
 | `course_captain_internal_subscriber_handlers` | filter |
 | `course_captain_internal_subscribers` | filter |
 | `course_captain_loaded_v1` | action |
@@ -137,10 +146,6 @@ Wichtige Verträge:
 - `course_captain_loaded_v1` (Action, stabil; Argument `CourseCaptain\Contract\Api`). Erweiterungen registrieren sich erst danach.
 - `course_captain_cache_purge` (Action; `{scope, ids, urls}` nach Veröffentlichung oder Archivierung eines Kurses).
 - `course_captain_internal_subscribers` (interne Outbox-Abonnenten; intern).
-- `course_captain_can_access` (Filter bei jeder Lernzugriffsentscheidung M-02; `bool $allowed, int $user_id, string $course_uid, string $scope, Decision $decision`; darf nur einschränken, E-84).
-- `course_captain_csp_frame_hosts` (Filter, experimentell; `list<string> $hosts` ohne Schema: weitere Hosts für `frame-src` der Content-Security-Policy des Lernbereichs, SET-CC-10; ungültige Hostnamen werden verworfen).
-
-Einstellungen dieses Standes (Register `SettingsSchema`, SET-CC-04/-09/-10/-16/-18/-22/-23): `display.logo_id` (int, nicht exportiert), `display.accent_color` (`#rrggbb` oder leer; Kontrast zu Weiß ≥ 4,5:1, sonst Feldfehler `contrast`), `display.button_labels` (`enroll`, `complete`, `start_exam`, `submit_exam`, je ≤ 40 Zeichen, leer = übersetzter Standard), `display.require_transcripts` (bool, Standard aus; VAL-144 Hinweis bzw. Blocker), `display.accessibility_page_id` (Seite, Link im Fuß des Lernbereichs), `advanced.log_level` (`error|warning|info|debug`, Standard `warning`, `info`/`debug` fallen nach 7 Tagen zurück, nie exportiert), `advanced.error_log_days` (1–365, 30), `advanced.debug_file_days` (1–30, 7). `privacy.csp_mode` (`enforce|report_only`) wirkt jetzt als Header `Content-Security-Policy` bzw. `Content-Security-Policy-Report-Only` auf allen Seiten des Lernbereichs. Videoaktivität: neue Einstellungen `transcript` (Text ≤ 100 000 Zeichen) und `transcript_url` (https). Mailtexte: Admin-Seite `admin.php?page=course-captain-mail-texts` (admin-post `ccap_mail_text`, `ccap_mail_text_export`), Exportformat `{format: "course-captain-mail-templates", format_version: 1, templates: {<typ>: {<locale>: {subject, body_html, body_text}}}}`.
 
 ## 5. Shortcodes und Blöcke
 
@@ -149,14 +154,14 @@ Einstellungen dieses Standes (Register `SettingsSchema`, SET-CC-04/-09/-10/-16/-
 | `[ccap_protected course="ID"]…[/ccap_protected]` | Shortcode | geschützter Abschnitt; `[course_captain_protected]` ist ein veralteter Alias |
 | `[ccap_learning_link]` | Shortcode | Link in den Lernbereich |
 | `[ccap_access]` | Shortcode | Zugangsstatus |
-| `[ccap_privacy_request]` | Shortcode | Self-Service-Formular für Export-/Löschantrag (angemeldet; Bestätigung per Mail, GET zeigt nur den Bestätigungsknopf) |
 | `course-captain/course-catalog` | Block (`apiVersion` 3, `version` 1.0.0) | dynamisch |
 | `course-captain/learning-link` | Block (`apiVersion` 3, `version` 1.0.0) | dynamisch |
 | `course-captain/certificate-verify` | Block (`apiVersion` 3, `version` 1.0.0) | Verifikationsformular |
 
 ## 6. Geplant (nicht Teil des aktuellen Vertrags)
 
-- `Idempotency-Key`-Header (CT-04)
+- `Idempotency-Key`-Header (CT-04) und `GET /status`
+- Filter `course_captain_can_access` mit Kern-Vorrang (CT-10)
 - JSON-Schema je Route mit `x-cc-stability`
 - UUID-Pfadparameter für Autorenrouten (derzeit numerische IDs)
 - WP-CLI `wp course-captain …`

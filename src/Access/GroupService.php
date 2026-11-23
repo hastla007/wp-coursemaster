@@ -697,6 +697,30 @@ final class GroupService {
 	}
 
 	/**
+	 * Whether an address is already in a group: an active member with this
+	 * account or invitation address, or an open invitation to it (R0-19
+	 * R-35 `already_member`).
+	 *
+	 * @param int    $group_id Group.
+	 * @param string $email    Address.
+	 * @return bool
+	 */
+	public function has_address( int $group_id, string $email ): bool {
+		$seats = $this->db->table( 'ccap_seat' );
+		$users = $this->db->wpdb()->users;
+		return null !== $this->db->scalar(
+			$this->db->prepare(
+				"SELECT 1 FROM `{$seats}` s LEFT JOIN `{$users}` u ON u.ID = s.user_id WHERE s.group_id = %d AND ((s.status = 'active' AND (s.invite_email = %s OR u.user_email = %s)) OR (s.status = 'invited' AND s.invite_email = %s AND s.claim_expires_at > %s)) LIMIT 1",
+				$group_id,
+				$email,
+				$email,
+				$email,
+				$this->db->now()
+			)
+		);
+	}
+
+	/**
 	 * Masked address (E-81): first character and domain.
 	 *
 	 * @param string $email Address.

@@ -1,6 +1,6 @@
 <?php
 /**
- * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32).
+ * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32; R-33…R-37 in GroupOwnerRoutes).
  *
  * @package CourseCaptain
  */
@@ -66,6 +66,13 @@ final class LearnerRoutes {
 				'/courses/' . $course . '/next-question',
 				'GET',
 				static function ( Actor $a, \WP_REST_Request $r ) {
+					$mode = (string) ( $r->get_param( 'mode' ) ?? 'smart' );
+					if ( in_array( $mode, array( 'due', 'exam_mistakes' ), true ) ) {
+						// UI-F3: own entries "Due" and "Practise exam mistakes".
+						$entry = SmartTrainer::current()->entry( $a, self::course( $r ), $mode, array( 'exam_session' => $r->get_param( 'exam_session' ) ) );
+						$extra = array_diff_key( $entry, array( 'question' => true ) );
+						return null === $entry['question'] ? array( 'question' => null ) + $extra : $entry['question'] + $extra;
+					}
 					$options = array_filter(
 						array(
 							'topic'      => $r->get_param( 'topic' ),
@@ -73,7 +80,7 @@ final class LearnerRoutes {
 						),
 						static fn( $v ): bool => null !== $v && '' !== $v
 					);
-					$next    = SmartTrainer::current()->next( $a, self::course( $r ), (string) ( $r->get_param( 'mode' ) ?? 'smart' ), $options );
+					$next    = SmartTrainer::current()->next( $a, self::course( $r ), $mode, $options );
 					return null === $next ? array( 'question' => null ) : $next;
 				},
 			),
@@ -170,6 +177,8 @@ final class LearnerRoutes {
 			// R-32: accept an invitation or the group link.
 			array( '/groups/join', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => self::join( $a, $r->get_param( 'token' ) ) ),
 		);
+		// R-33…R-37: owner routes of the group area (UI-F1).
+		GroupOwnerRoutes::routes();
 		foreach ( $routes as $route ) {
 			list( $path, $method, $callback ) = $route;
 			register_rest_route(

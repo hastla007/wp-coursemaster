@@ -266,9 +266,9 @@ final class TrainerView {
 	private static function next( Actor $actor, int $course_id, string $mode ): array {
 		$trainer = SmartTrainer::current();
 		if ( 'faellig' === $mode ) {
-			$due = $trainer->due( $actor, $course_id );
+			$due = $trainer->entry( $actor, $course_id, 'due' );
 			return array(
-				'question' => array() === $due['ids'] ? null : $trainer->next( $actor, $course_id, 'smart', array( 'only_ids' => $due['ids'] ) ),
+				'question' => $due['question'],
 				'next_due' => $due['next_due'],
 			);
 		}
