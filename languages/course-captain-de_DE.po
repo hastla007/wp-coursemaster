@@ -6287,3 +6287,11 @@ msgstr "Teil %s verweist auf ein Modul, aus dem die Prüfung keine Fragen zieht.
 #: src/Publish/CourseValidator.php
 msgid "Some questions of this exam belong to no part and count only for the total."
 msgstr "Einige Fragen dieser Prüfung gehören zu keinem Teil und zählen nur zur Gesamtquote."
+
+#: src/Rest/RestContract.php
+msgid "Request key missing"
+msgstr "Anfrageschlüssel fehlt"
+
+#: src/Rest/RestContract.php
+msgid "The request key is missing or invalid. Please reload the page and try again."
+msgstr "Der Anfrageschlüssel fehlt oder ist ungültig. Bitte lade die Seite neu und versuche es noch einmal."

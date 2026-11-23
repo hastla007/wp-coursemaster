@@ -118,7 +118,7 @@ final class PackageExporter {
 								'question_type' => (string) $revision['question_type'],
 								'text_html'     => (string) $revision['question_text'],
 								'settings'      => (object) ( $revision['settings'] ?? array() ),
-							),
+							) + self::explanations( $revision ),
 							'answers'   => array_map(
 								static fn( array $a ): array => array(
 									'key'       => (string) $a['key'],
@@ -236,6 +236,24 @@ final class PackageExporter {
 	public static function sealed( array $record ): array {
 		$record['hash'] = Canonical::hash( $record );
 		return $record;
+	}
+
+	/**
+	 * Explanation texts of a revision (R0-10 §1.3, E-20): part of the format
+	 * and exported in Free, even though only Pro delivers them (GM-197).
+	 * Empty texts are left out so packages without explanations keep their hash.
+	 *
+	 * @param array<string, mixed> $revision Revision.
+	 * @return array<string, string>
+	 */
+	private static function explanations( array $revision ): array {
+		$out = array();
+		foreach ( array( 'feedback_correct', 'feedback_incorrect' ) as $field ) {
+			if ( '' !== trim( (string) ( $revision[ $field ] ?? '' ) ) ) {
+				$out[ $field ] = (string) $revision[ $field ];
+			}
+		}
+		return $out;
 	}
 
 	/**

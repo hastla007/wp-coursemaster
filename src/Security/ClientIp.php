@@ -86,6 +86,30 @@ final class ClientIp {
 	}
 
 	/**
+	 * Rate-limit key of the client (R0-05 GM-152): IPv6 addresses count per
+	 * /64 prefix (one subscriber network), IPv4 addresses as they are.
+	 *
+	 * @return string
+	 */
+	public static function rate_key(): string {
+		return self::rate_key_of( self::get() );
+	}
+
+	/**
+	 * Rate-limit key of an address: `v6:<first 64 bits hex>` for IPv6, the
+	 * address itself otherwise.
+	 *
+	 * @param string $ip Address.
+	 * @return string
+	 */
+	public static function rate_key_of( string $ip ): string {
+		if ( false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+			return 'v6:' . bin2hex( substr( (string) inet_pton( $ip ), 0, 8 ) );
+		}
+		return $ip;
+	}
+
+	/**
 	 * Whether a trusted proxy reports HTTPS.
 	 *
 	 * @return bool

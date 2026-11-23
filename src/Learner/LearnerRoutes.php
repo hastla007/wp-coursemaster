@@ -94,7 +94,7 @@ final class LearnerRoutes {
 				'GET',
 				static fn( Actor $a, \WP_REST_Request $r ) => array( 'learners' => CourseReport::current()->rows( $a, self::course( $r ) ) ),
 			),
-			array( '/answers', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => AnswerService::current()->answer( $a, (string) $r->get_param( 'token' ), $r->get_param( 'answer' ), (string) $r->get_param( 'idempotency_key' ) ) ),
+			array( '/answers', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => AnswerService::current()->answer( $a, (string) $r->get_param( 'token' ), $r->get_param( 'answer' ), self::idempotency_key( $r ) ) ),
 			array( '/courses/' . $course . '/lessons/(?P<lesson>\d+)/progress', 'PUT', static fn( Actor $a, \WP_REST_Request $r ) => ActivityProgress::current()->interact( $a, self::course( $r ), (int) $r['lesson'], (string) $r->get_param( 'kind' ), (array) ( $r->get_param( 'payload' ) ?? array() ) ) ),
 			array(
 				'/courses/' . $course . '/favorites/(?P<question>\d+)',
@@ -184,6 +184,18 @@ final class LearnerRoutes {
 	 */
 	public static function logged_in() {
 		return is_user_logged_in() ? true : new \WP_Error( 'ccap_auth_required', __( 'Please log in.', 'course-captain' ), array( 'status' => 401 ) );
+	}
+
+	/**
+	 * Idempotency key: header `Idempotency-Key` (R0-19 §2.1), otherwise the
+	 * body parameter `idempotency_key`.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return string
+	 */
+	private static function idempotency_key( \WP_REST_Request $request ): string {
+		$header = trim( (string) $request->get_header( 'idempotency_key' ) );
+		return '' !== $header ? $header : (string) $request->get_param( 'idempotency_key' );
 	}
 
 	/**

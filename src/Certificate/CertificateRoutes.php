@@ -92,7 +92,7 @@ final class CertificateRoutes {
 	public static function verify( \WP_REST_Request $request ) {
 		try {
 			$service = CertificateService::current();
-			$service->rate_limit( \CourseCaptain\Security\ClientIp::get() );
+			$service->rate_limit( \CourseCaptain\Security\ClientIp::rate_key() );
 			$response = new \WP_REST_Response( $service->verify( (string) $request['token'] ) );
 			$response->header( 'Cache-Control', 'no-store' );
 			$response->header( 'X-Robots-Tag', 'noindex' );

@@ -378,6 +378,48 @@ final class ImportBatchTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-136 (scaled PKG-LARGE): 600 instead of 20 000 synthetic questions,
+	 * 3 of them defective; the run is aborted at 50 % and resumed: 597
+	 * imported, the report has exactly the 3 defective entries, no duplicates.
+	 *
+	 * @group R1-18
+	 * @group GM-136
+	 */
+	public function test_GM_136_defects_abort_at_half_and_resume(): void {
+		$bad    = array( 'BQ-00100', 'BQ-00250', 'BQ-00480' );
+		$batch  = $this->approved( $this->package( self::records( 600, 1, array( 'bad_hash' => $bad ) ), 'large' ) );
+		$admin  = Actor::user( $this->admin );
+		$issues = static fn(): array => Database::current()->wpdb()->get_col( Database::current()->prepare( 'SELECT source_id FROM `' . Database::current()->table( 'ccap_import_issue' ) . "` WHERE batch_id = %d AND severity = 'error' ORDER BY source_id", $batch ) );
+		self::assertSame( $bad, $issues(), 'report lists the 3 defective records' );
+
+		ImportRunner::current()->start( $admin, $batch, false );
+		ImportRunner::inject_fault(
+			static function ( string $point, int $position ): void {
+				if ( 'apply' === $point && 300 === $position ) {
+					throw new \RuntimeException( 'simulated abort at 50 %' );
+				}
+			}
+		);
+		$this->steps( $batch );
+		self::assertSame( 'aborted', ImportService::current()->get( $batch )['status'] );
+		$half = self::num( "SELECT COUNT(*) FROM {t} WHERE object_type = 'question'", 'ccap_source_map' );
+		self::assertGreaterThan( 0, $half );
+		self::assertLessThan( 597, $half );
+
+		ImportRunner::inject_fault( null );
+		ImportRunner::current()->resume( $admin, $batch, false );
+		$steps = $this->steps( $batch );
+		self::assertSame( 'published', end( $steps )['status'] );
+		self::assertSame( 597, self::num( 'SELECT COUNT(*) FROM {t}', 'ccap_question' ), '19 997 analog: defective records skipped' );
+		self::assertSame( 597, self::num( "SELECT COUNT(*) FROM {t} WHERE object_type = 'question'", 'ccap_source_map' ) );
+		self::assertSame( 597, self::num( "SELECT COUNT(DISTINCT source_id) FROM {t} WHERE object_type = 'question'", 'ccap_source_map' ), 'no duplicates' );
+		foreach ( $bad as $source ) {
+			self::assertSame( 0, self::object( 'question', $source ), $source );
+		}
+		self::assertSame( $bad, $issues(), 'report still has exactly 3 entries' );
+	}
+
+	/**
 	 * BIG-026: deadlock in a chunk is retried, no object error.
 	 *
 	 * @group BIG-026
