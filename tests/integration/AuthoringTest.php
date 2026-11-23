@@ -304,6 +304,214 @@ final class AuthoringTest extends SchemaTestCase {
 	}
 
 	/**
+	 * R1-18 B-4 (Flow 1 in the browser): a lesson is put into a module in the
+	 * lesson editor (labelled select, saved with the panel nonce); the module
+	 * list counts it; unknown modules and missing rights are rejected; the
+	 * validation panel links blockers to the editor of the module/lesson.
+	 *
+	 * @group R1-18
+	 */
+	public function test_lesson_module_and_validation_jump_links(): void {
+		wp_set_current_user( $this->admin );
+		$lesson = $this->post( 'ccap_lesson', 'draft', 'Loose lesson' );
+		update_post_meta( $lesson, '_ccap_activity_type', 'lesson' );
+		ob_start();
+		EditorScreens::render_activity( get_post( $lesson ) );
+		$html = (string) ob_get_clean();
+		self::assertStringContainsString( '<label for="ccap-lesson-module">Module</label>', $html );
+		self::assertStringContainsString( '<option value="' . $this->modules[1] . '">M-B</option>', $html );
+		self::assertSame( array(), self::unlabelled( $html ) );
+
+		$_POST = array(
+			'ccap_activity_nonce'    => wp_create_nonce( 'ccap_lesson_activity_' . $lesson ),
+			'ccap_lesson_module'     => (string) $this->modules[1],
+			'ccap_activity_type'     => 'lesson',
+			'ccap_activity_settings' => '{}',
+			'ccap_activity_rule'     => '',
+		);
+		EditorScreens::save_lesson( $lesson, get_post( $lesson ) );
+		self::assertSame( $this->modules[1], (int) get_post( $lesson )->post_parent );
+		self::assertContains( $lesson, array_map( static fn( \WP_Post $p ): int => (int) $p->ID, CourseStructure::current()->lessons( $this->modules[1] ) ) );
+		ob_start();
+		EditorScreens::render_activity( get_post( $lesson ) );
+		self::assertStringContainsString( '<option value="' . $this->modules[1] . '" selected=\'selected\'>M-B</option>', (string) ob_get_clean() );
+
+		self::assertFalse( get_transient( 'ccap_editor_error_' . $this->admin ), 'first save without error' );
+		$_POST['ccap_lesson_module'] = '999999';
+		EditorScreens::save_lesson( $lesson, get_post( $lesson ) );
+		self::assertSame( $this->modules[1], (int) get_post( $lesson )->post_parent, 'unknown module ignored' );
+		self::assertIsString( get_transient( 'ccap_editor_error_' . $this->admin ) );
+		$_POST = array(
+			'ccap_activity_nonce' => 'forged',
+			'ccap_lesson_module'  => (string) $this->modules[2],
+		);
+		EditorScreens::save_lesson( $lesson, get_post( $lesson ) );
+		self::assertSame( $this->modules[1], (int) get_post( $lesson )->post_parent, 'forged nonce ignored' );
+		$_POST = array();
+
+		$subscriber = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$this->assertRejected( fn() => AuthoringService::current()->move_lesson( Actor::user( $subscriber ), $lesson, $this->modules[2] ), 'ccap_forbidden' );
+		$this->assertRejected( fn() => AuthoringService::current()->move_lesson( Actor::user( $this->admin ), $this->modules[0], $this->modules[2] ), 'ccap_not_found' );
+		AuthoringService::current()->move_lesson( Actor::user( $this->admin ), $lesson, $this->modules[2] );
+		self::assertSame( $this->modules[2], (int) get_post( $lesson )->post_parent );
+
+		// Empty module → blocker VAL-020 with a link to the module editor (F1.1).
+		$empty = $this->post( 'ccap_module', 'publish', 'Empty module' );
+		AuthoringService::current()->update_structure( Actor::user( $this->admin ), $this->course, array( array( 'module_id' => $this->modules[0] ), array( 'module_id' => $empty ) ) );
+		$panel = EditorScreens::validation_panel( $this->course );
+		self::assertStringContainsString( '(VAL-020)', $panel );
+		self::assertStringContainsString( 'href="' . esc_url( (string) get_edit_post_link( $empty, 'raw' ) ) . '" class="ccap-validation-jump">Edit &quot;Empty module&quot;</a>', $panel );
+		wp_set_current_user( $subscriber );
+		self::assertStringNotContainsString( 'ccap-validation-jump', EditorScreens::validation_panel( $this->course ), 'no link without the edit right' );
+	}
+
+	/**
+	 * R1-18 B-4 (found by the Flow 1 browser run): the block editor posts the
+	 * module form of the first page load again on every save. A stale form
+	 * must not drop a module added by an earlier save (F1.4 "kein stiller
+	 * Verlust"); only its "Add module" is applied, with a hint.
+	 *
+	 * @group R1-18
+	 */
+	public function test_stale_module_form_keeps_added_modules(): void {
+		wp_set_current_user( $this->admin );
+		ob_start();
+		EditorScreens::render_structure( get_post( $this->course ) );
+		$html = (string) ob_get_clean();
+		self::assertSame( 1, preg_match( '/name="ccap_structure_rev" value="([0-9a-f]{32})"/', $html, $m ) );
+		$stale = array(
+			'ccap_structure_nonce' => wp_create_nonce( 'ccap_course_structure_' . $this->course ),
+			'ccap_structure_rev'   => $m[1],
+		);
+		$_POST = $stale + array( 'ccap_add_module' => (string) $this->modules[0] );
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		self::assertSame( array( $this->modules[0] ), array_column( CourseStructure::current()->modules( $this->course ), 'module_id' ) );
+		self::assertFalse( get_transient( 'ccap_editor_error_' . $this->admin ), 'first save is current' );
+
+		// Second save from the same page load: no rows posted, still the first add selected plus a new one.
+		$_POST = $stale + array( 'ccap_add_module' => (string) $this->modules[1] );
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		self::assertSame( array( $this->modules[0], $this->modules[1] ), array_column( CourseStructure::current()->modules( $this->course ), 'module_id' ), 'module of the first save kept' );
+		self::assertStringContainsString( 'reload the page', (string) get_transient( 'ccap_editor_error_' . $this->admin ) );
+
+		// Stale rows (remove) are not applied; the add already present is not doubled.
+		$_POST = $stale + array(
+			'ccap_add_module' => (string) $this->modules[0],
+			'ccap_modules'    => array(
+				array(
+					'module_id' => (string) $this->modules[0],
+					'remove'    => '1',
+				),
+			),
+		);
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		self::assertSame( array( $this->modules[0], $this->modules[1] ), array_column( CourseStructure::current()->modules( $this->course ), 'module_id' ) );
+
+		// A fresh form applies its rows again.
+		ob_start();
+		EditorScreens::render_structure( get_post( $this->course ) );
+		preg_match( '/name="ccap_structure_rev" value="([0-9a-f]{32})"/', (string) ob_get_clean(), $m );
+		$_POST = array(
+			'ccap_structure_nonce' => $stale['ccap_structure_nonce'],
+			'ccap_structure_rev'   => $m[1],
+			'ccap_modules'         => array(
+				array( 'module_id' => (string) $this->modules[0] ),
+				array(
+					'module_id' => (string) $this->modules[1],
+					'remove'    => '1',
+				),
+			),
+		);
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		self::assertSame( array( $this->modules[0] ), array_column( CourseStructure::current()->modules( $this->course ), 'module_id' ) );
+		$_POST = array();
+	}
+
+	/**
+	 * R1-18 B-4 (found by the Flow 1 browser run): the block editor follows the
+	 * redirect of its meta box save in the background (fetch); that page must
+	 * not consume the "Not saved" message, the next real page view shows it.
+	 *
+	 * @group R1-18
+	 */
+	public function test_save_error_survives_the_background_meta_box_page(): void {
+		wp_set_current_user( $this->admin );
+		$key = 'ccap_editor_error_' . $this->admin;
+		set_transient( $key, 'Not saved: x', 600 );
+		$_SERVER['HTTP_SEC_FETCH_MODE'] = 'cors';
+		EditorScreens::flash();
+		self::assertSame( 'Not saved: x', get_transient( $key ), 'kept for the next page view' );
+		self::assertArrayNotHasKey( 'editor_save', Notices::visible( $this->admin ) );
+		$_SERVER['HTTP_SEC_FETCH_MODE'] = 'navigate';
+		EditorScreens::flash();
+		self::assertFalse( get_transient( $key ) );
+		self::assertArrayHasKey( 'editor_save', Notices::visible( $this->admin ) );
+		unset( $_SERVER['HTTP_SEC_FETCH_MODE'] );
+		set_transient( $key, 'Not saved: y', 600 );
+		EditorScreens::flash();
+		self::assertFalse( get_transient( $key ), 'without the header (older clients) as before' );
+
+		// Block editor: the message becomes an editor notice (classic notices are hidden there).
+		set_current_screen( 'ccap_lesson' );
+		set_transient( $key, 'Not saved: z', 600 );
+		$_SERVER['HTTP_SEC_FETCH_MODE'] = 'cors';
+		EditorScreens::editor_notices();
+		self::assertTrue( wp_script_is( 'ccap-editor-notices', 'enqueued' ) );
+		self::assertStringContainsString( '"message":""', (string) wp_scripts()->get_data( 'ccap-editor-notices', 'data' ), 'background page: nothing taken' );
+		self::assertSame( 'Not saved: z', get_transient( $key ) );
+		wp_dequeue_script( 'ccap-editor-notices' );
+		wp_deregister_script( 'ccap-editor-notices' );
+		$_SERVER['HTTP_SEC_FETCH_MODE'] = 'navigate';
+		EditorScreens::editor_notices();
+		self::assertStringContainsString( '"message":"Not saved: z"', (string) wp_scripts()->get_data( 'ccap-editor-notices', 'data' ) );
+		self::assertFalse( get_transient( $key ) );
+		set_transient( $key, 'Not saved: after save', 600 );
+		self::assertSame( 'Not saved: after save', EditorScreens::pull_flash(), 'what the AJAX pull returns after a meta box save' );
+		self::assertSame( '', EditorScreens::pull_flash() );
+		wp_dequeue_script( 'ccap-editor-notices' );
+		wp_deregister_script( 'ccap-editor-notices' );
+		unset( $_SERVER['HTTP_SEC_FETCH_MODE'] );
+		set_current_screen( 'front' );
+	}
+
+	/**
+	 * R1-18 B-4 (found by the Flow 1 browser run): a Course Manager without
+	 * the core `edit_posts` may open "Add course/module/lesson"
+	 * (post-new.php); WordPress resolves the page through the plugin menu.
+	 *
+	 * @group R1-18
+	 */
+	public function test_course_manager_may_open_the_add_screens(): void {
+		global $menu, $submenu, $_wp_menu_nopriv, $_wp_submenu_nopriv, $pagenow, $typenow, $plugin_page, $_wp_real_parent_file, $_registered_pages, $_parent_pages, $admin_page_hooks, $parent_file;
+		require_once ABSPATH . 'wp-admin/includes/admin.php';
+		$manager = (int) self::factory()->user->create( array( 'role' => 'ccap_course_manager' ) );
+		wp_set_current_user( $manager );
+		set_current_screen( 'dashboard' );
+		$menu                 = array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Admin menu globals of the request under test.
+		$submenu              = array(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$_wp_menu_nopriv      = array();
+		$_wp_submenu_nopriv   = array();
+		$_wp_real_parent_file = array();
+		$_registered_pages    = array();
+		$_parent_pages        = array();
+		$admin_page_hooks     = array();
+		$plugin_page          = null; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$parent_file          = null; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$pagenow              = 'post-new.php'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		$typenow              = 'ccap_course'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		require ABSPATH . 'wp-admin/menu.php';
+		foreach ( array( 'ccap_course', 'ccap_module', 'ccap_lesson' ) as $type ) {
+			$typenow = $type; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			self::assertTrue( user_can_access_admin_page(), 'post-new.php?post_type=' . $type );
+		}
+		$typenow = 'post'; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+		self::assertFalse( user_can_access_admin_page(), 'core posts stay closed (the check itself works)' );
+		$titles = array_column( (array) ( $submenu[ $_wp_real_parent_file[ EditorScreens::MENU ] ?? EditorScreens::MENU ] ?? array() ), 0 );
+		self::assertContains( 'Add course', $titles );
+		set_current_screen( 'front' );
+	}
+
+	/**
 	 * GM-140: bundled notices, errors first, errors only snoozable, per user, ≤ 50 entries.
 	 *
 	 * @group GM-140

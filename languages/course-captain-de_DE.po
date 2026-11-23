@@ -6789,3 +6789,25 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+#: src/Course/PostTypes.php
+msgid "Add course"
+msgstr "Kurs hinzufügen"
+
+#: src/Course/PostTypes.php
+msgid "Add lesson"
+msgstr "Lektion hinzufügen"
+
+#: src/Admin/EditorScreens.php
+#, php-format
+msgid "Module without title (#%d)"
+msgstr "Modul ohne Titel (#%d)"
+
+#: src/Admin/EditorScreens.php
+#, php-format
+msgid "Edit \"%s\""
+msgstr "„%s“ bearbeiten"
+
+#: src/Admin/EditorScreens.php
+msgid "The module list was changed by an earlier save. Only an added module was saved; reload the page to change positions or remove modules."
+msgstr "Die Modulliste wurde durch ein früheres Speichern geändert. Gespeichert wurde nur ein hinzugefügtes Modul; lade die Seite neu, um Positionen zu ändern oder Module zu entfernen."

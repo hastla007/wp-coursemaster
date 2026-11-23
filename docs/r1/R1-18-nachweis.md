@@ -124,7 +124,8 @@ PHP 8.5, WP 7.1, lokale MariaDB: Unit **130** (2 übersprungen) · Integration *
 | C-3 Import/Medien | alle mit Test; GM-118/125/128/136 teilweise (kein Medien-/Blueprint-Import, Lastprofil skaliert). **Teilweise** |
 | C-7 API-Verträge | 11 von 11 mit Test (GM-150/152/154 teilweise). **Technisch erfüllt** |
 | C-8 Betrieb | alle mit Test außer GM-180 (Abweichung freigegeben, E-334) und GM-160 (R3). **Technisch erfüllt** |
-| B-4, C-6, C-10, C-11, C-13…C-16 | unverändert wie §6 (manuelle Läufe, Browser-Matrix, Usability R1-29, Freigaben) |
+| B-4 Referenz-E2E | Flows 1–3 live in Chromium Desktop, Flow 2 zusätzlich mobil (Emulation), Referenzkurs mit Aufgabe, automatisierter Benchmark und A11Y-Prüfung: `tools/qa/e2e/live-flows.sh`, siehe `R1-18-gm-nachtrag-h5.md`. Offen: Firefox/WebKit, Fragen-/Prüfungseditor (Flow 1 nutzt dafür Dienste), UX-090. **Teilweise** |
+| C-6, C-10, C-11, C-13…C-16 | unverändert wie §6 (manuelle Läufe, Browser-Matrix, Usability R1-29, Freigaben) |
 
 Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Medien-/Blueprint-Import oder dessen Freigabe als Teilumfang (GM-118/125/128), den manuellen Gate-Teilen und AG-05/AG-07.
 
