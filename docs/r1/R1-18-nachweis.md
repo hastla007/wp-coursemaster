@@ -112,7 +112,7 @@ Integration auf `claude/blissful-curie-tuuf7q` (Merges g1 `535c911`, g6 `5b112bb
 
 ### 9.1 Ergebnisse (Integrationsstand `bfc51c4`)
 
-Lokaler Gesamtlauf auf `bfc51c4` läuft; Zahlen werden nachgetragen. Vorstand `a5409c4` (g1, g2, g4, g5, g6): Unit 130 · Integration 456 (31 übersprungen, pcntl) · Multisite 469 (31 übersprungen) · phpcs 0 · PHPStan L8 0 · Free-Guard 0 · Textdomain-Lint 0 · CI PR #3 grün.
+PHP 8.5, WP 7.1, lokale MariaDB: Unit **130** (2 übersprungen) · Integration **464** (31 übersprungen, pcntl) · Multisite **477** (31 übersprungen) · phpcs 0 · PHPStan L8 0 · Free-Guard 0 (205 Dateien) · Textdomain-Lint 0 (198 Dateien) · `gm-coverage`: 210 IDs, 207 mit Test, 3 Ausnahmen (r2 1, r3 1, deviation 1), missing/stale/invalid/unknown 0. Die pcntl-Fälle (Parallelität MIG-/CON-) laufen nur in der CI.
 
 ### 9.2 Gates B/C – Stand 23.11.2026
 
@@ -144,7 +144,7 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen |
 
 
-## Anhang · GM-Matrix (`php tools/qa/gm-coverage.php --matrix`)
+## Anhang · GM-Matrix (`php tools/qa/gm-coverage.php --matrix`) – Stand 23.11.2026
 
 | GM-ID | Status | Test / Grund |
 |---|---|---|
@@ -153,11 +153,11 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-003 | Test | `CourseModelTest.php::test_GM_001_GM_003_catalog_and_status` |
 | GM-004 | Test | `GoldenMasterTest.php::test_GM_022_and_GM_004`, `SmartTrainerTest.php::test_GM_072_scope_and_GM_004_topics` |
 | GM-005 | Test | `GoldenMasterTest.php::test_GM_005` |
-| GM-006 | open | R1-25: No test for "≤ 2 queries for all courses and modules" and reload after invalidate(); the cache layer itself is covered by CacheTest (K1/K2). |
+| GM-006 | Test | `GoldenMasterLearningTest.php::test_GM_006_structure_cache` |
 | GM-007 | Test | `ActivityTest.php::test_GM_007_lesson_quiz` |
 | GM-008 | Test | `ActivityTest.php::test_GM_008_012_013_014_video_view` |
 | GM-009 | Test | `ProgressTest.php::test_GM_009_completion`, `GoldenMasterTest.php::test_GM_009` |
-| GM-010 | open | R1-07/R1-10: Finding: answers of a lesson quiz do not feed the QuizProvider progress (`answered`), so a lesson is not completed by its quiz; only the completion rule is unit-tested (ActivityUnitTest). |
+| GM-010 | Test | `GoldenMasterLearningTest.php::test_GM_010_lesson_quiz_completes_lesson` |
 | GM-011 | Test | `ActivityTest.php::test_GM_011_progress` |
 | GM-012 | Test | `ActivityTest.php::test_GM_008_012_013_014_video_view` |
 | GM-013 | Test | `ActivityTest.php::test_GM_008_012_013_014_video_view` |
@@ -187,7 +187,7 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-037 | Test | `ExamTest.php::test_R120_offline_buffer_and_tabs` |
 | GM-038 | Test (teilweise) | `ExamTest.php::test_R120_rest` – REST save with age_ms; 422 reason `ccap_exam_expired` over REST not asserted. |
 | GM-039 | Test | `ExamTest.php::test_GM_039_submit_and_evaluation` |
-| GM-040 | Test | `ExamTest.php::test_GM_040_041_cancel` |
+| GM-040 | Test | `GoldenMasterGapsTest.php::test_GM_051_cancel_dialog`, `ExamTest.php::test_GM_040_041_cancel` |
 | GM-041 | Test | `ExamTest.php::test_GM_040_041_cancel` |
 | GM-042 | Test | `ExamTest.php::test_GRANT_027_revoked_during_exam` |
 | GM-043 | Test | `ExamTest.php::test_GM_043_044_learning_lock` |
@@ -197,8 +197,8 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-047 | Test | `ExamTest.php::test_GM_021_047_open_question_and_flags` |
 | GM-048 | Test | `GoldenMasterTest.php::test_GM_048_083_drip` |
 | GM-049 | Test | `GoldenMasterTest.php::test_GM_049_151_idor` |
-| GM-050 | open | R1-16/R1-20: Browser case (offline buffer in localStorage, notice, re-send); the server side is GM-036/GM-037 (ExamTest::test_R120_offline_buffer_and_tabs). Needs a JS exam client E2E. |
-| GM-051 | open | R1-16: Browser case (abort dialog, single flash message); the server side is GM-040 (ExamTest::test_GM_040_041_cancel). |
+| GM-050 | Test | `exam-room.js::GM-050 offline answer buffered, notice shown, re-sent` |
+| GM-051 | Test | `GoldenMasterGapsTest.php::test_GM_051_cancel_dialog`, `exam-room.js::GM-051 abort dialog, back to the course room, one message` |
 | GM-052 | Test | `GoldenMasterTest.php::test_GM_052` |
 | GM-053 | Test | `ConcurrencyTest.php::test_CON_016_parallel_submit` |
 | GM-054 | Test | `ExamTest.php::test_R120_offline_buffer_and_tabs` |
@@ -208,25 +208,25 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-058 | Test | `LearningListsTest.php::test_GM_055_060_favorites_and_collections` |
 | GM-059 | Test | `LearningListsTest.php::test_GM_055_060_favorites_and_collections` |
 | GM-060 | Test | `LearningListsTest.php::test_GM_055_060_favorites_and_collections` |
-| GM-061 | open | R1-28: 409 `ccap_request_in_progress` / `ccap_idempotency_key_reused` exist only for assignments and certificates, not for learning answers; orphaned entries after 5 min untested. |
+| GM-061 | Test | `GoldenMasterGapsTest.php::test_GM_061_learning_answer_idempotency` |
 | GM-062 | Test | `GoldenMasterTest.php::test_E332_GM_082_015_062_kind_limits_at_once`, `GoldenMasterTest.php::test_GM_062_063_flashcards`, `LearningListsTest.php::test_GM_062_self_assessment` |
 | GM-063 | Test | `GoldenMasterTest.php::test_GM_062_063_flashcards`, `LearningListsTest.php::test_GM_063_streak` |
-| GM-064 | open | R1-15/R1-41: No flashcard import (the runner imports courses, modules, lessons, questions), so a card removed from a package cannot become `source_archived`. |
+| GM-064 | Test | `GoldenMasterImportTest.php::test_GM_064_card_archived_and_restored` |
 | GM-065 | Test | `SmartTrainerTest.php::test_GM_065_order` |
 | GM-066 | Test | `SmartTrainerTest.php::test_GM_066_067_stages_and_intervals` |
 | GM-067 | Test | `SmartTrainerTest.php::test_GM_066_067_stages_and_intervals` |
-| GM-068 | open | R1-12/R1-40: Legacy rows without `due_at` (mastered stays mastered, due = last + 7 d) untested. |
+| GM-068 | Test | `LearningStagesTest.php::test_GM_068_legacy_rows_without_due_at` |
 | GM-069 | Test | `SmartTrainerTest.php::test_GM_069_tabs_and_recent` |
 | GM-070 | Test | `LearningListsTest.php::test_GM_070_071_error_training` |
 | GM-071 | Test | `LearningListsTest.php::test_GM_070_071_error_training` |
 | GM-072 | Test | `SmartTrainerTest.php::test_GM_072_scope_and_GM_004_topics` |
 | GM-073 | Test | `SmartTrainerTest.php::test_GM_073_rate_limit` |
-| GM-074 | open | R1-12: Targeted practice of one question with 422/404/403 variants untested. |
-| GM-075 | open | R1-10: Stage counts summing up to the total (secure/due/completed) untested. |
+| GM-074 | Test | `GoldenMasterLearningTest.php::test_GM_074_targeted_practice` |
+| GM-075 | Test | `LearningStagesTest.php::test_GM_075_stage_counts` |
 | GM-076 | Test | `GoldenMasterTest.php::test_partial_access_and_GM_086` |
 | GM-077 | r2 | E-05: Second channel is the app API (no app API in R1). |
-| GM-078 | open | R1-10: Course progress reset with kept exam history and audit untested. |
-| GM-079 | open | R1-10/R1-03: Progress report per course for authorised roles (U-TUT only C-A) untested. |
+| GM-078 | Test | `GoldenMasterLearningTest.php::test_GM_078_progress_reset` |
+| GM-079 | Test | `GoldenMasterLearningTest.php::test_GM_079_course_report` |
 | GM-080 | Test (teilweise) | `SchemaTest.php::test_GM_163_activation_creates_complete_schema` – Generic schema completeness check (includes `due_at`). |
 | GM-081 | Test | `GoldenMasterTest.php::test_GM_081` |
 | GM-082 | Test | `GoldenMasterTest.php::test_GM_082`, `GoldenMasterTest.php::test_E332_GM_082_015_062_kind_limits_at_once`, `GoldenMasterTest.php::test_E332_legacy_single_limit_migration` |
@@ -236,11 +236,11 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-086 | Test | `GoldenMasterTest.php::test_partial_access_and_GM_086` |
 | GM-087 | Test | `AccessTest.php::test_GRANT_002_003_manual` |
 | GM-088 | Test | `AccessTest.php::test_GRANT_004_006_source_idempotency` |
-| GM-089 | open | R1-13: Grant API rules `ccap_access_exists` / `ccap_user_required` do not exist; extend/parallel chains are GM-084. |
-| GM-090 | open | R1-13/R1-17: Grant audit search by reference untested. |
+| GM-089 | Test | `GoldenMasterG3Test.php::test_GM_089_grant_api_rules` |
+| GM-090 | Test | `GoldenMasterG3Test.php::test_GM_090_grant_audit_search_by_reference` |
 | GM-091 | Test | `LearnerTest.php::test_GM_091_access_states` |
-| GM-092 | open | R1-13: Manual + group + free rule at the same time (union of scopes, latest end) untested. |
-| GM-093 | open | R1-28: No public filter "owns course" in the hook snapshot. |
+| GM-092 | Test | `GoldenMasterG3Test.php::test_GM_092_manual_group_and_free_rule_combined` |
+| GM-093 | Test | `GoldenMasterGapsTest.php::test_GM_093_can_access_filter` |
 | GM-094 | Test | `AccessTest.php::test_SEAT_001_021_create` |
 | GM-095 | Test | `AccessTest.php::test_group_link_full_rotation_and_status` |
 | GM-096 | Test | `ConcurrencyTest.php::test_CON_001_002_last_seat` |
@@ -251,7 +251,7 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-101 | Test | `AccessTest.php::test_SEAT_009_010_remove_and_reduce` |
 | GM-102 | Test | `PrivacyOpsTest.php::test_GM_102_103_seats_and_invitations` |
 | GM-103 | Test | `PrivacyOpsTest.php::test_GM_102_103_seats_and_invitations` |
-| GM-104 | open | R1-13/R1-16: Return to the invitation after login/registration untested. |
+| GM-104 | Test | `GoldenMasterG3Test.php::test_GM_104_return_to_invitation` |
 | GM-105 | Test | `GroupCertificateAdminTest.php::test_GRP_008_009_010_018_owner_policy_members` |
 | GM-106 | Test | `GroupCertificateAdminTest.php::test_GRP_001_002_003_create` |
 | GM-107 | Test | `ContentGateTest.php::test_protected_pages` |
@@ -260,31 +260,31 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-110 | Test | `ContentGateTest.php::test_protected_pages` |
 | GM-111 | Test | `ContentGateTest.php::test_protected_files` |
 | GM-112 | Test | `ContentGateTest.php::test_protected_files` |
-| GM-113 | open | R1-14/R1-40: Moving the legacy protected folder with fallback untested. |
-| GM-114 | open | R1-14: Private folder outside the web root (self test "private", way back) untested. |
-| GM-115 | open | R1-14/R1-38: HTTP self test of the protected folders (200 critical, 403 green, no answer yellow) untested. |
+| GM-113 | Test | `GoldenMasterG3Test.php::test_GM_113_move_legacy_folder_with_fallback` |
+| GM-114 | Test | `GoldenMasterG3Test.php::test_GM_114_private_folder_outside_web_root` |
+| GM-115 | Test | `GoldenMasterG3Test.php::test_GM_115_http_self_test` |
 | GM-116 | Test | `CompatibilityTest.php::test_KOMP_03x_page_cache_signals` |
-| GM-117 | open | R1-23: Read-only restore check of protected files untested. |
-| GM-118 | Test (teilweise) | `GoldenMasterTest.php::test_GM_118` – Path and state machine on PKG-v2; manifest counts differ from R0-05 (no media/blueprint/flashcard import, no draft Q-A3-011 in PKG-v1). |
+| GM-117 | Test | `GoldenMasterG3Test.php::test_GM_117_read_only_restore_check` |
+| GM-118 | Test (teilweise) | `GoldenMasterTest.php::test_GM_118` – Path and state machine on PKG-v2; PKG-v1 carries 71 questions incl. draft Q-A3-011 and 13 flashcards, but no media and blueprints (no media/blueprint import). |
 | GM-119 | Test | `GoldenMasterTest.php::test_GM_119` |
-| GM-120 | Test (teilweise) | `GoldenMasterTest.php::test_pkg_v2` – Question part only; card archive (FC-A-08) needs flashcard import (GM-064). |
+| GM-120 | Test | `GoldenMasterTest.php::test_pkg_v2` |
 | GM-121 | Test | `ImportTest.php::test_import_lifecycle` |
 | GM-122 | Test | `ImportTest.php::test_validation` |
-| GM-123 | open | R1-15: Rights override with reason and audit untested. |
+| GM-123 | Test | `GoldenMasterImportTest.php::test_GM_123_rights_override` |
 | GM-124 | Test | `ImportBatchTest.php::test_BIG_037_resume_prechecks` |
 | GM-125 | Test (teilweise) | `ImportBatchTest.php::test_BIG_020_chunked_commit_and_idempotent_reimport` – Chunked steps; no media step (no media import). |
 | GM-126 | Test | `ImportBatchTest.php::test_BIG_030_cancel_and_discard` |
-| GM-127 | open | R1-15/R1-05: Bulk rights release with confirmation untested. |
+| GM-127 | Test | `GoldenMasterImportTest.php::test_GM_127_bulk_release` |
 | GM-128 | Test (teilweise) | `GoldenMasterTest.php::test_GM_128_bad_media` – Upload validator with MED-BAD-1…6; no media import, no legacy quarantine. |
-| GM-129 | open | R1-15: Upload limit = smallest value and system files (PKG-SYS) untested. |
-| GM-130 | open | R1-15: Link import (https, ≤ 3 redirects, SHA-256) not implemented. |
+| GM-129 | Test | `GoldenMasterImportTest.php::test_GM_129_upload_limit_and_drop_folder` |
+| GM-130 | Test | `GoldenMasterImportTest.php::test_GM_130_link_import` |
 | GM-131 | Test | `PrivacyOpsTest.php::test_retention` |
 | GM-132 | Test | `GoldenMasterTest.php::test_GM_132` |
 | GM-133 | Test | `ImportTest.php::test_export` |
 | GM-134 | Test | `ImportBatchTest.php::test_cli_run_status_and_report` |
-| GM-135 | open | R1-15: JSON schema subset validator unit cases ($ref over files, if/then, contains) untested. |
+| GM-135 | Test | `SchemaValidatorTest.php::manifest` |
 | GM-136 | Test (teilweise) | `ImportBatchTest.php::test_BIG_023_crash_resume_and_lease`, `ImportBatchTest.php::test_BIG_035_object_isolation_and_threshold` – Scaled to 5 000/1 500 questions (R1-41). |
-| GM-137 | open | R1-05/R1-26: Hand-built C-A with the structure hash of the imported C-A untested. |
+| GM-137 | Test | `GoldenMasterImportTest.php::test_GM_137_hand_built_course` |
 | GM-138 | Test | `PrivacyOpsTest.php::test_GM_138_139_audit_view` |
 | GM-139 | Test | `PrivacyOpsTest.php::test_GM_138_139_audit_view` |
 | GM-140 | Test | `AuthoringTest.php::test_GM_140_notices` |
@@ -293,11 +293,11 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-143 | Test | `LearnerTest.php::test_pages` |
 | GM-144 | Test | `GoldenMasterTest.php::test_GM_144` |
 | GM-145 | Test | `ApiContractTest.php::test_CT_02_03_anonymous_and_error_format`, `ApiContractTest.php::test_rate_limit_problem` |
-| GM-146 | open | R1-28/R1-38: No REST status route; R1-38 provides CLI status and Site Health (deviation candidate for §5.1). |
-| GM-147 | open | R1-38: No REST health route without version (deviation candidate for §5.1). |
-| GM-148 | open | R1-38: No anonymous monitor route / cron stall 503 (deviation candidate for §5.1). |
+| GM-146 | Test | `GoldenMasterGapsTest.php::test_GM_146_status_route` |
+| GM-147 | Test | `GoldenMasterGapsTest.php::test_GM_147_health_without_version` |
+| GM-148 | Test | `GoldenMasterGapsTest.php::test_GM_148_monitor_and_cron_stall` |
 | GM-149 | Test | `SchemaTest.php::test_GM_149_writes_get_503_while_migration_is_due` |
-| GM-150 | Test (teilweise) | `ExamTest.php::test_GM_018_learning_answer_idempotent` – Learning answers; HTTP 422 without key not asserted. |
+| GM-150 | Test (teilweise) | `GoldenMasterGapsTest.php::test_GM_061_learning_answer_idempotency`, `ExamTest.php::test_GM_018_learning_answer_idempotent` – Learning answers; HTTP 422 without key not asserted. |
 | GM-151 | Test | `GoldenMasterTest.php::test_GM_049_151_idor` |
 | GM-152 | Test (teilweise) | `CompatibilityTest.php::test_KOMP_015_045_trusted_proxies` – Trusted proxies; IPv6 /64 bucket not asserted. |
 | GM-153 | Test | `PolicyTest.php::test_RBAC_095_roles_on_deactivate_and_uninstall`, `LifecycleTest.php::test_GM_158_activation_deactivation_reactivation` |
@@ -309,21 +309,21 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-159 | Test | `NotificationTest.php::test_NTF_026_batches` |
 | GM-160 | r3 | E-24, R0-12 C-8: Signed one-click unsubscribe is Pro (R3-15); N-01 unsubscribe headers are tested in NotificationTest. |
 | GM-161 | Test | `PrivacyOpsTest.php::test_retention` |
-| GM-162 | open | R1-17: Audit retention in batches (5 000 then 1 000, young 10 stay) untested. |
+| GM-162 | Test | `GmOpsPrivacyFaqTest.php::test_GM_162_audit_retention_in_batches` |
 | GM-163 | Test | `SchemaTest.php::test_GM_163_activation_creates_complete_schema` |
 | GM-164 | Test | `UpgradeProbeTest.php::test_REC_023_upgrade_from_previous_release_keeps_data`, `SchemaTest.php::test_GM_164_reactivation_and_rerun_are_idempotent` |
 | GM-165 | Test | `SchemaTest.php::test_second_runner_skips_while_locked`, `SchemaTest.php::test_lease_fencing` |
 | GM-166 | Test | `MigrationResumeTest.php::test_MIG_010_fatal_in_step_marks_failed_and_keeps_w1`, `MigrationResumeTest.php::test_MIG_026_ajax_and_admin_post_only_schedule` |
-| GM-167 | open | R1-40: Exactly one masked admin notice for migration errors untested. |
+| GM-167 | Test | `GmOpsPrivacyFaqTest.php::test_GM_167_one_masked_notice_for_admins` |
 | GM-168 | Test | `SchemaTest.php::test_GM_168_missing_index_is_restored_by_migration` |
 | GM-169 | Test | `MigrationResumeTest.php::test_MIG_024_newer_schema_is_never_touched`, `SchemaTest.php::test_newer_schema_is_left_alone` |
 | GM-170 | Test | `UpgradeProbeTest.php::test_REC_023_upgrade_from_previous_release_keeps_data` |
 | GM-171 | Test | `MigrationResumeTest.php::test_MIG_008_kill_inside_backfill_batch_resumes_at_cursor` |
 | GM-172 | Test | `PrivacyOpsTest.php::test_GM_172_export_and_erase` |
 | GM-173 | Test | `PrivacyOpsTest.php::test_GM_173_classification` |
-| GM-174 | open | R1-17: Self-service export/erasure requests (GET never erases) untested. |
-| GM-175 | open | R1-17: Asynchronous export (pending → ready, 409, owner only, expiry) untested. |
-| GM-176 | open | R1-17/R1-34: Privacy policy text (section, periods, 0 external links) untested. |
+| GM-174 | Test | `GmOpsPrivacyFaqTest.php::test_GM_174_self_service_requests` |
+| GM-175 | Test | `GmOpsPrivacyFaqTest.php::test_GM_175_async_export` |
+| GM-176 | Test | `GmOpsPrivacyFaqTest.php::test_GM_176_privacy_policy_text` |
 | GM-177 | Test | `PrivacyOpsTest.php::test_GM_102_103_seats_and_invitations` |
 | GM-178 | Test | `SettingsTest.php::test_GM_178_defaults_and_limits` |
 | GM-179 | Test | `SettingsRegressionTest.php::test_SET_002_005_partial_save`, `AdminSettingsTest.php::test_ADM_070_tabs_and_navigation` |
@@ -336,8 +336,8 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-186 | Test | `RecoveryMultisiteTest.php::test_REC_019_multisite_deletes_only_on_agreeing_sites` |
 | GM-187 | Test (teilweise) | `PerformanceTest.php::test_OP_05_06_07_exam_constancy` – Query constancy; p95 measurement protocol (NFR-018) is a manual run. |
 | GM-188 | Test | `ConcurrencyTest.php::test_CON_008_first_progress_row`, `SmartTrainerTest.php::test_GM_069_tabs_and_recent` |
-| GM-189 | open | R1-24 (E-16): Starter content/FAQ seeder mechanics not implemented. |
-| GM-190 | open | R1-24 (E-16): FAQ cache/REST/gate block not implemented. |
+| GM-189 | Test | `GmOpsPrivacyFaqTest.php::test_GM_189_starter_content_seeder` |
+| GM-190 | Test | `GmOpsPrivacyFaqTest.php::test_GM_190_faq_cache_rest_gate` |
 | GM-191 | Test | `QuestionTypesTest.php::test_GM_191_numeric_tolerance` |
 | GM-192 | Test | `QuestionTypesTest.php::test_GM_192_matching` |
 | GM-193 | Test | `QuestionTypesTest.php::test_GM_193_ordering` |
@@ -358,3 +358,4 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180,
 | GM-208 | Test | `CompatibilityTest.php::test_KOMP_057_security_plugins_auto_retreat`, `HardeningTest.php::test_PSD_065_inactive_until_confirmed`, `HardeningTest.php::test_PSD_047_048_conflicts` |
 | GM-209 | Test (teilweise) | `ActivityTest.php::test_GM_011_progress` – Monotonic completion; PUT with an older progress state not asserted. |
 | GM-210 | Test | `ExamTest.php::test_GM_210_attempts_and_cooldown` |
+GM catalogue: 210 IDs; tested 207; exceptions 3 (r2 1, r3 1, deviation 1); missing 0; stale 0; invalid 0; unknown 0
