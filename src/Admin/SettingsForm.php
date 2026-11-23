@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Admin;
 
 use CourseCaptain\Settings\SettingsRules;
+use CourseCaptain\Settings\SettingsSchema;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -146,12 +147,55 @@ final class SettingsForm {
 				$result = self::decode_lines( is_string( $posted ) ? $posted : '', (int) ( $def['max'] ?? 50 ) );
 				$error  = $result['error'];
 				return $result['value'];
+			case 'hosts':
+				$result = self::decode_hosts( is_string( $posted ) ? $posted : '', (int) ( $def['max'] ?? 50 ) );
+				$error  = $result['error'];
+				return $result['value'];
 			case 'percent':
 				$result = self::decode_percent( is_string( $posted ) ? $posted : '', $current );
 				$error  = $result['error'];
 				return $result['value'];
 		}
 		return is_string( $posted ) ? $posted : '';
+	}
+
+	/**
+	 * One host name per line with the line number of the first error (SET-CC-13).
+	 *
+	 * @param string $text Text.
+	 * @param int    $max  Max entries.
+	 * @return array{value: list<string>, error: array{rule: string, params: array<string, mixed>}|null}
+	 */
+	private static function decode_hosts( string $text, int $max ): array {
+		$error = null;
+		$hosts = array();
+		$split = preg_split( '/\r\n|\r|\n/', $text );
+		foreach ( false === $split ? array() : $split as $i => $line ) {
+			$line = strtolower( trim( $line ) );
+			if ( '' === $line ) {
+				continue;
+			}
+			$hosts[] = $line;
+			if ( null === $error && ! SettingsSchema::is_host( $line ) ) {
+				$error = array(
+					'rule'   => 'host',
+					'params' => array(
+						'line'  => $i + 1,
+						'value' => $line,
+					),
+				);
+			}
+		}
+		if ( null === $error && count( $hosts ) > $max ) {
+			$error = array(
+				'rule'   => 'count',
+				'params' => array( 'count' => count( $hosts ) ),
+			);
+		}
+		return array(
+			'value' => $hosts,
+			'error' => $error,
+		);
 	}
 
 	/**
@@ -521,6 +565,7 @@ final class SettingsForm {
 			case 'textarea':
 				return '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" rows="4" class="large-text"' . $aria . '>' . esc_textarea( is_scalar( $value ) ? (string) $value : '' ) . '</textarea>';
 			case 'lines':
+			case 'hosts':
 				return '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" rows="4" class="large-text code"' . $aria . '>' . esc_textarea( is_array( $value ) ? implode( "\n", array_map( 'strval', $value ) ) : ( is_scalar( $value ) ? (string) $value : '' ) ) . '</textarea>';
 			case 'email':
 				return '<input type="email" autocomplete="off" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( is_scalar( $value ) ? (string) $value : '' ) . '" class="regular-text"' . $aria . '>';

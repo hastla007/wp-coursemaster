@@ -221,6 +221,10 @@ final class CourseValidator {
 					$this->add( 'VAL-024', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.activity.provider', array( 'type' => $type ), __( 'The activity type of this lesson is not available. Choose another type or activate the extension.', 'course-captain' ), 'activity_type' );
 					continue;
 				}
+				// SET-CC-24: activities of a switched-off module are ignored by the check.
+				if ( ! \CourseCaptain\Settings\Modules::activity_enabled( $type ) ) {
+					continue;
+				}
 				$errors = $registry->validate_settings( $type, $definition['settings'] );
 				if ( array() !== $errors ) {
 					$this->add( 'VAL-025', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.activity.settings', array( 'errors' => implode( ',', $errors ) ), __( 'The activity settings of this lesson are invalid. Correct them in the lesson editor.', 'course-captain' ), 'settings' );
@@ -266,6 +270,9 @@ final class CourseValidator {
 				$row               = (array) $db->row( $db->prepare( 'SELECT status, current_revision_id FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $question ) );
 				$revision          = (array) $repo->revision( (int) ( $row['current_revision_id'] ?? 0 ) );
 				$title             = mb_substr( wp_strip_all_tags( (string) ( $revision['question_text'] ?? '' ) ), 0, 60 );
+				if ( QuestionTypes::FLASHCARD === ( $revision['question_type'] ?? '' ) && ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::FLASHCARDS ) ) {
+					continue;
+				}
 				if ( 'published' !== ( $row['status'] ?? '' ) ) {
 					$this->add( 'VAL-058', 'warning', 'question', $question, $title, 'cc.val.question.unpublished', array(), __( 'A question in the pool has no published revision and will not be delivered.', 'course-captain' ) );
 					continue;

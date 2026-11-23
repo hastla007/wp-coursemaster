@@ -44,6 +44,10 @@ final class AssignmentRoutes {
 	 * @return void
 	 */
 	public static function routes(): void {
+		// SET-CC-24: no assignment routes while the module is switched off.
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::ASSIGNMENTS ) ) {
+			return;
+		}
 		$service = static fn(): AssignmentService => AssignmentService::current();
 		$routes  = array(
 			// R-54.

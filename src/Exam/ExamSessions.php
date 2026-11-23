@@ -38,7 +38,8 @@ final class ExamSessions {
 	public const EVALUATOR_VERSION = '1.0.0';
 	public const UNLIMITED_LOCK    = 86400;
 	private const START_LOCK_WAIT  = 10;
-	public const START_LIMIT_HOUR  = 40;
+	/** Default of `exams.starts_per_hour` (SET-CC-13); the effective value comes from BusinessRules. */
+	public const START_LIMIT_HOUR = 40;
 
 	/**
 	 * Clock override (tests).
@@ -121,7 +122,7 @@ final class ExamSessions {
 				return $known;
 			}
 			$this->assert_attempts_left( $actor->user_id, $rule );
-			RateLimiter::hit( $this->db, 'exam_start', $actor->user_id, 3600, self::START_LIMIT_HOUR, $this->now() );
+			RateLimiter::hit( $this->db, 'exam_start', $actor->user_id, 3600, \CourseCaptain\Settings\BusinessRules::exam_starts_per_hour(), $this->now() );
 
 			$randomizer = $randomizer ?? Randomizer::fresh();
 			$plan       = null === $variant_id ? $this->draw( $actor, $rule, $randomizer ) : $this->variant( $actor, $rule, $variant_id );

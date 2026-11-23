@@ -108,6 +108,10 @@ final class CertificateService {
 	 * @return void
 	 */
 	public static function handle_event( array $envelope ): void {
+		// SET-CC-24: no automatic issuance while the module is off (events are acknowledged, nothing is deleted).
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) ) {
+			return;
+		}
 		$service = self::current();
 		$type    = (string) ( $envelope['event_type'] ?? '' );
 		$payload = (array) ( $envelope['payload'] ?? array() );

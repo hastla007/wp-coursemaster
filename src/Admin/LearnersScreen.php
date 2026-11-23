@@ -34,7 +34,10 @@ final class LearnersScreen {
 	public const SLUG   = 'course-captain-learners';
 	public const ACTION = 'ccap_learner_admin';
 	public const CAP    = 'ccap_view_learner_details';
-	public const OPS    = array( 'grant', 'revoke' );
+	public const OPS    = array( 'grant', 'revoke', 'enrollment' );
+
+	/** Admin-post action of the report CSV download (SET-CC-26). */
+	public const EXPORT_ACTION = 'ccap_report_export';
 
 	/**
 	 * Hooks.
@@ -50,6 +53,62 @@ final class LearnersScreen {
 			20
 		);
 		add_action( 'admin_post_' . self::ACTION, array( self::class, 'handle' ) );
+		add_action( 'admin_post_' . self::EXPORT_ACTION, array( self::class, 'handle_export' ) );
+	}
+
+	/**
+	 * Admin-post: progress report CSV (SET-CC-26).
+	 *
+	 * @return void
+	 */
+	public static function handle_export(): void {
+		$out = self::export( wp_unslash( $_POST ), get_current_user_id() ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in export().
+		if ( '' !== $out['error'] ) {
+			wp_safe_redirect(
+				add_query_arg(
+					array(
+						'page'        => self::SLUG,
+						'course'      => $out['course'],
+						'ccap_result' => $out['error'],
+					),
+					admin_url( 'admin.php' )
+				)
+			);
+			exit;
+		}
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="progress-' . (int) $out['course'] . '-' . gmdate( 'Ymd-His' ) . '.csv"' );
+		header( 'X-Content-Type-Options: nosniff' );
+		echo $out['csv']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- CSV download, cells quoted and neutralized.
+		exit;
+	}
+
+	/**
+	 * Testable core of the CSV download.
+	 *
+	 * @param array<string, mixed> $post    Unslashed POST data (`course`, `columns[]`, `pseudonymize`).
+	 * @param int                  $user_id Viewer.
+	 * @return array{course: int, csv: string, error: string}
+	 */
+	public static function export( array $post, int $user_id ): array {
+		$course = absint( $post['course'] ?? 0 );
+		$out    = array(
+			'course' => $course,
+			'csv'    => '',
+			'error'  => '',
+		);
+		if ( false === wp_verify_nonce( (string) ( $post['_wpnonce'] ?? '' ), self::EXPORT_ACTION . ':' . $course ) ) {
+			$out['error'] = 'ccap_invalid_nonce';
+			return $out;
+		}
+		$columns = is_array( $post['columns'] ?? null ) ? array_values( array_filter( $post['columns'], 'is_string' ) ) : array();
+		try {
+			$out['csv'] = \CourseCaptain\Progress\CourseReport::current()->csv( Actor::user( $user_id ), $course, $columns, ! empty( $post['pseudonymize'] ) );
+		} catch ( CourseException $e ) {
+			$out['error'] = 'ccap_validation_failed' === $e->error_code ? 'ccap_columns_required' : $e->error_code;
+		}
+		return $out;
 	}
 
 	/**
@@ -111,6 +170,10 @@ final class LearnersScreen {
 		try {
 			if ( 'grant' === $op ) {
 				$out['count'] = self::grant( $actor, $course, $post );
+			} elseif ( 'enrollment' === $op ) {
+				// UI-F2 / E-108: close or reopen the enrollment of a course.
+				$closed       = 'closed' === (string) ( $post['state'] ?? '' );
+				$out['count'] = (int) \CourseCaptain\Access\SelfEnrollment::current()->set_closed( $actor, $course, $closed );
 			} else {
 				$grant = absint( $post['object'] ?? 0 );
 				if ( empty( $post['confirm'] ) ) {
@@ -229,6 +292,7 @@ final class LearnersScreen {
 				'ccap_confirmation_required' => __( 'Please confirm the action (tick the confirmation box).', 'course-captain' ),
 				'ccap_access_exists'         => __( 'This learner already has this access.', 'course-captain' ),
 				'ccap_conflict'              => __( 'The access was changed in the meantime. Reload the page.', 'course-captain' ),
+				'ccap_columns_required'      => __( 'Choose at least one column for the download.', 'course-captain' ),
 			),
 			/* translators: %d: number of grants */
 			sprintf( _n( 'Saved. %d access changed.', 'Saved. %d accesses changed.', $count, 'course-captain' ), $count )
@@ -242,7 +306,53 @@ final class LearnersScreen {
 		if ( $learner > 0 ) {
 			return $html . self::learner_detail( $user_id, $course, $learner ) . '</div>';
 		}
-		return $html . self::access_list( $user_id, $course ) . self::grant_form( $user_id, $course ) . '</div>';
+		return $html . self::enrollment_form( $user_id, $course ) . self::access_list( $user_id, $course ) . self::grant_form( $user_id, $course ) . self::report_form( $user_id, $course ) . '</div>';
+	}
+
+	/**
+	 * Enrollment state of the course (UI-F2, E-108): open or closed for new
+	 * enrollments; existing learners keep learning until their access ends.
+	 *
+	 * @param int $user_id Viewer.
+	 * @param int $course  Course.
+	 * @return string
+	 */
+	private static function enrollment_form( int $user_id, int $course ): string {
+		$closed = \CourseCaptain\Access\SelfEnrollment::closed( $course );
+		$html   = '<h2>' . esc_html__( 'Enrollment', 'course-captain' ) . '</h2><p>' . esc_html( $closed ? __( 'Enrollment is closed: nobody can enroll themselves. Existing learners keep learning until their access ends.', 'course-captain' ) : __( 'Enrollment is open.', 'course-captain' ) ) . '</p>';
+		if ( ! user_can( $user_id, 'edit_post', $course ) ) {
+			return $html;
+		}
+		$fields = '<fieldset><legend>' . esc_html__( 'New enrollments', 'course-captain' ) . '</legend>'
+			. '<label for="ccap-enr-open" class="ccap-choice"><input type="radio" id="ccap-enr-open" name="state" value="open"' . checked( $closed, false, false ) . '> ' . esc_html__( 'Open', 'course-captain' ) . '</label> '
+			. '<label for="ccap-enr-closed" class="ccap-choice"><input type="radio" id="ccap-enr-closed" name="state" value="closed"' . checked( $closed, true, false ) . '> ' . esc_html__( 'Closed (existing access stays)', 'course-captain' ) . '</label></fieldset>'
+			. '<input type="hidden" name="course" value="' . (int) $course . '">';
+		return $html . AdminUi::form( self::ACTION, 'enrollment', $course, $fields, __( 'Save enrollment state', 'course-captain' ) );
+	}
+
+	/**
+	 * CSV download of the progress report (SET-CC-26).
+	 *
+	 * @param int $user_id Viewer.
+	 * @param int $course  Course.
+	 * @return string
+	 */
+	private static function report_form( int $user_id, int $course ): string {
+		if ( ! user_can( $user_id, 'ccap_view_reports' ) ) {
+			return '';
+		}
+		$chosen = (array) \CourseCaptain\Settings\Settings::get( 'advanced.report_csv_columns' );
+		$forced = \CourseCaptain\Privacy\Pseudonym::exports_enabled();
+		$boxes  = '';
+		foreach ( \CourseCaptain\Progress\CourseReport::column_labels() as $key => $label ) {
+			$id     = 'ccap-rc-' . $key;
+			$boxes .= '<label for="' . esc_attr( $id ) . '" class="ccap-choice"><input type="checkbox" id="' . esc_attr( $id ) . '" name="columns[]" value="' . esc_attr( $key ) . '"' . checked( in_array( $key, $chosen, true ), true, false ) . '> ' . esc_html( $label ) . '</label> ';
+		}
+		$html  = '<h2>' . esc_html__( 'Download progress report', 'course-captain' ) . '</h2>';
+		$html .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="' . esc_attr( self::EXPORT_ACTION ) . '"><input type="hidden" name="course" value="' . (int) $course . '">' . wp_nonce_field( self::EXPORT_ACTION . ':' . $course, '_wpnonce', true, false );
+		$html .= '<fieldset><legend>' . esc_html__( 'Columns', 'course-captain' ) . '</legend>' . $boxes . '</fieldset>';
+		$html .= '<p><label for="ccap-rc-pseudo"><input type="checkbox" id="ccap-rc-pseudo" name="pseudonymize" value="1"' . checked( $forced, true, false ) . ( $forced ? ' disabled aria-describedby="ccap-rc-pseudo-hint"' : '' ) . '> ' . esc_html__( 'Pseudonymise (pseudonym instead of name and user ID)', 'course-captain' ) . '</label>' . ( $forced ? ' <span id="ccap-rc-pseudo-hint" class="description">' . esc_html__( 'Always on: the website setting pseudonymises every export.', 'course-captain' ) . '</span>' : '' ) . '</p>';
+		return $html . '<p><button type="submit" class="button">' . esc_html__( 'Download CSV', 'course-captain' ) . '</button></p></form>';
 	}
 
 	/**

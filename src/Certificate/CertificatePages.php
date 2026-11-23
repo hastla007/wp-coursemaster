@@ -81,7 +81,7 @@ final class CertificatePages {
 		$path = trim( $path, '/' );
 		if ( 1 === preg_match( '#^' . self::VERIFY_PATH . '/([0-9a-zA-Z]{1,64})$#', $path, $m ) ) {
 			$page = self::verification_page( $m[1], self::client() );
-		} elseif ( 1 === preg_match( '#^' . self::LIST_PATH . '(?:/([0-9a-f-]{36}))?$#', $path, $m ) ) {
+		} elseif ( \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) && 1 === preg_match( '#^' . self::LIST_PATH . '(?:/([0-9a-f-]{36}))?$#', $path, $m ) ) {
 			if ( ! is_user_logged_in() ) {
 				wp_safe_redirect( wp_login_url( LearningArea::url( $path ) ) );
 				exit;

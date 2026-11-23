@@ -30,10 +30,16 @@ defined( 'ABSPATH' ) || exit;
  * A learner who already has full access gets no second grant; a
  * repeated request returns the existing grant (idempotent). Duration
  * from `enrollment.default_access_days` (empty = permanent).
+ *
+ * "Enrollment closed" (E-108 stage 1, R0-23 Δ-23-6, UI-F2): course meta
+ * `_ccap_enrollment = closed` stops new self-enrollments at once
+ * (`ccap_enrollment_closed`, 403); existing grants keep running until
+ * they end. Live value, not frozen into the course revision.
  */
 final class SelfEnrollment {
 
-	public const SOURCE = 'free_enrollment';
+	public const SOURCE          = 'free_enrollment';
+	public const ENROLLMENT_META = '_ccap_enrollment';
 
 	/**
 	 * Constructor.
@@ -56,14 +62,55 @@ final class SelfEnrollment {
 	}
 
 	/**
-	 * Whether self-enrollment is switched on for a published course.
+	 * Whether self-enrollment is switched on for a published course whose
+	 * enrollment is not closed.
 	 *
 	 * @param int $course_id Course.
 	 * @return bool
 	 */
 	public function open( int $course_id ): bool {
 		$post = $this->relations->post( $course_id, Relations::COURSE_TYPE );
-		return null !== $post && Relations::STATUS_PUBLISHED === Relations::course_status( $post ) && true === EffectiveSettings::for_course( 'enrollment.self_enrollment', $course_id );
+		return null !== $post && Relations::STATUS_PUBLISHED === Relations::course_status( $post ) && ! self::closed( $course_id ) && true === EffectiveSettings::for_course( 'enrollment.self_enrollment', $course_id );
+	}
+
+	/**
+	 * Whether the enrollment of a course is closed (E-108).
+	 *
+	 * @param int $course_id Course.
+	 * @return bool
+	 */
+	public static function closed( int $course_id ): bool {
+		return 'closed' === get_post_meta( $course_id, self::ENROLLMENT_META, true );
+	}
+
+	/**
+	 * Close or reopen the enrollment of a course (course editors, audited).
+	 *
+	 * @param Actor $actor     Editor of the course.
+	 * @param int   $course_id Course.
+	 * @param bool  $closed    Closed.
+	 * @return bool Changed.
+	 * @throws CourseException `ccap_not_found`, `ccap_forbidden`.
+	 */
+	public function set_closed( Actor $actor, int $course_id, bool $closed ): bool {
+		if ( null === $this->relations->post( $course_id, Relations::COURSE_TYPE ) ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown course.', 404 );
+		}
+		if ( ! $actor->is_system() && ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'edit_post', $course_id ) ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to change the enrollment of this course.', 403 );
+		}
+		if ( self::closed( $course_id ) === $closed ) {
+			return false;
+		}
+		if ( $closed ) {
+			update_post_meta( $course_id, self::ENROLLMENT_META, 'closed' );
+		} else {
+			delete_post_meta( $course_id, self::ENROLLMENT_META );
+		}
+		AuditLog::write( $this->db, $actor, $closed ? 'course_enrollment_closed' : 'course_enrollment_opened', 'course', (string) $course_id, null, array( 'course_id' => $course_id ) );
+		\CourseCaptain\Cache\CacheStore::bump_content();
+		PolicyService::flush();
+		return true;
 	}
 
 	/**
@@ -83,7 +130,7 @@ final class SelfEnrollment {
 	 * @param Actor $actor     Learner (self).
 	 * @param int   $course_id Course.
 	 * @return array{grant_id: int, created: bool}
-	 * @throws CourseException `ccap_auth_required`, `ccap_account_locked`, `ccap_not_found`, `ccap_forbidden` (`reason: self_enrollment_off`).
+	 * @throws CourseException `ccap_auth_required`, `ccap_account_locked`, `ccap_not_found`, `ccap_enrollment_closed`, `ccap_forbidden` (`reason: self_enrollment_off`).
 	 */
 	public function enroll( Actor $actor, int $course_id ): array {
 		if ( $actor->user_id <= 0 ) {
@@ -111,6 +158,9 @@ final class SelfEnrollment {
 				'grant_id' => 0,
 				'created'  => false,
 			);
+		}
+		if ( self::closed( $course_id ) ) {
+			throw new CourseException( 'ccap_enrollment_closed', 'Enrollment for this course is closed.', 403, array( 'reason' => 'enrollment_closed' ) );
 		}
 		if ( ! $this->open( $course_id ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Self-enrollment is not available for this course.', 403, array( 'reason' => 'self_enrollment_off' ) );

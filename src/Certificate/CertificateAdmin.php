@@ -108,6 +108,7 @@ final class CertificateAdmin {
 				'revision_no'      => (int) $row['revision_no'],
 				'status'           => $derived,
 				'holder'           => (string) ( $snapshot['holder']['display_name'] ?? '' ),
+				'user_id'          => (int) $row['user_id'],
 				'course_id'        => (int) $row['course_id'],
 				'course_title'     => (string) ( $snapshot['course']['title'] ?? '' ),
 				'issued_at'        => (string) $row['issued_at'],
@@ -140,15 +141,19 @@ final class CertificateAdmin {
 		if ( ! self::can_read( $actor ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to export certificates.', 403 );
 		}
+		\CourseCaptain\Settings\Modules::assert_enabled( \CourseCaptain\Settings\Modules::CERTIFICATES );
 		$reason = sanitize_textarea_field( $reason );
 		if ( '' === trim( $reason ) ) {
 			throw new CourseException( 'ccap_reason_required', 'A reason is required.', 422 );
 		}
-		$result  = self::query( $actor, $filters, 0 );
-		$columns = array( 'display_id', 'certificate_uid', 'revision_no', 'status', 'holder', 'course_title', 'issued_at', 'valid_until', 'template_kind', 'template_version' );
+		$result = self::query( $actor, $filters, 0 );
+		// SET-CC-26: a pseudonymised export carries a stable pseudonym instead of the holder name.
+		$pseudo  = \CourseCaptain\Privacy\Pseudonym::exports_enabled();
+		$columns = array( 'display_id', 'certificate_uid', 'revision_no', 'status', $pseudo ? 'pseudonym' : 'holder', 'course_title', 'issued_at', 'valid_until', 'template_kind', 'template_version' );
 		$lines   = array( implode( ',', $columns ) );
 		foreach ( $result['items'] as $item ) {
-			$lines[] = implode( ',', array_map( static fn( string $c ): string => self::csv_cell( (string) $item[ $c ] ), $columns ) );
+			$item['pseudonym'] = \CourseCaptain\Privacy\Pseudonym::of( (int) $item['user_id'] );
+			$lines[]           = implode( ',', array_map( static fn( string $c ): string => self::csv_cell( (string) $item[ $c ] ), $columns ) );
 		}
 		AuditLog::write(
 			Database::current(),
@@ -158,8 +163,9 @@ final class CertificateAdmin {
 			'list',
 			$reason,
 			array(
-				'count'   => $result['total'],
-				'filters' => array_intersect_key( $filters, array_flip( array( 'course', 'status', 'from', 'to', 'kind' ) ) ),
+				'count'        => $result['total'],
+				'pseudonymous' => $pseudo,
+				'filters'      => array_intersect_key( $filters, array_flip( array( 'course', 'status', 'from', 'to', 'kind' ) ) ),
 			)
 		);
 		return "\xEF\xBB\xBF" . implode( "\r\n", $lines ) . "\r\n";

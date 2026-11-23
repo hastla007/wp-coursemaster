@@ -32,6 +32,21 @@ defined( 'ABSPATH' ) || exit;
 final class CourseReport {
 
 	/**
+	 * Columns of the CSV export (SET-CC-26); `user_id` and `display_name`
+	 * are replaced by `pseudonym` in a pseudonymised export.
+	 *
+	 * @var list<string>
+	 */
+	public const CSV_COLUMNS = array( 'user_id', 'display_name', 'status', 'completion_percent', 'last_activity_at', 'total', 'new', 'unsure', 'learning', 'secure', 'mastered', 'due', 'percent', 'secure_percent' );
+
+	/**
+	 * Columns that identify a person directly.
+	 *
+	 * @var list<string>
+	 */
+	public const IDENTIFYING = array( 'user_id', 'display_name' );
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Database     $db        Database access.
@@ -88,6 +103,88 @@ final class CourseReport {
 			);
 		}
 		return $out;
+	}
+
+	/**
+	 * Translated column labels (settings field and download form).
+	 *
+	 * @return array<string, string>
+	 */
+	public static function column_labels(): array {
+		return array(
+			'user_id'            => __( 'User ID', 'course-captain' ),
+			'display_name'       => __( 'Name', 'course-captain' ),
+			'status'             => __( 'Course status', 'course-captain' ),
+			'completion_percent' => __( 'Completion in percent', 'course-captain' ),
+			'last_activity_at'   => __( 'Last activity', 'course-captain' ),
+			'total'              => __( 'Questions in total', 'course-captain' ),
+			'new'                => __( 'Stage: new', 'course-captain' ),
+			'unsure'             => __( 'Stage: unsure', 'course-captain' ),
+			'learning'           => __( 'Stage: learning', 'course-captain' ),
+			'secure'             => __( 'Stage: secure', 'course-captain' ),
+			'mastered'           => __( 'Stage: mastered', 'course-captain' ),
+			'due'                => __( 'Due reviews', 'course-captain' ),
+			'percent'            => __( 'Questions answered in percent', 'course-captain' ),
+			'secure_percent'     => __( 'Secure or mastered in percent', 'course-captain' ),
+		);
+	}
+
+	/**
+	 * CSV export of the report (SET-CC-26): columns from the request or
+	 * `advanced.report_csv_columns`; with `advanced.report_pseudonymize`
+	 * (or `$pseudonymize`, which can only add it) the name and user ID are
+	 * replaced by a stable pseudonym. Email addresses are never exported.
+	 * Audited (`report_exported`), formula-safe cells.
+	 *
+	 * @param Actor             $viewer       Viewer (same rights as {@see self::rows()}).
+	 * @param int               $course_id    Course.
+	 * @param list<string>|null $columns      Columns, null = setting.
+	 * @param bool              $pseudonymize Pseudonymise this export even when the setting is off.
+	 * @return string CSV with BOM and CRLF.
+	 * @throws CourseException `ccap_validation_failed` (`reason: no_columns`), plus those of {@see self::rows()}.
+	 */
+	public function csv( Actor $viewer, int $course_id, ?array $columns = null, bool $pseudonymize = false ): string {
+		$columns = array_values( array_intersect( self::CSV_COLUMNS, null === $columns ? (array) \CourseCaptain\Settings\Settings::get( 'advanced.report_csv_columns' ) : $columns ) );
+		$pseudo  = $pseudonymize || \CourseCaptain\Privacy\Pseudonym::exports_enabled();
+		if ( $pseudo ) {
+			$columns = array_merge( array( 'pseudonym' ), array_values( array_diff( $columns, self::IDENTIFYING ) ) );
+		}
+		if ( array() === $columns ) {
+			throw new CourseException( 'ccap_validation_failed', 'Choose at least one column.', 422, array( 'reason' => 'no_columns' ) );
+		}
+		$rows  = $this->rows( $viewer, $course_id );
+		$lines = array( implode( ',', $columns ) );
+		foreach ( $rows as $row ) {
+			$flat    = array(
+				'pseudonym'          => \CourseCaptain\Privacy\Pseudonym::of( (int) $row['user_id'] ),
+				'user_id'            => (string) $row['user_id'],
+				'display_name'       => $row['display_name'],
+				'status'             => $row['progress']['status'],
+				'completion_percent' => (string) $row['progress']['completion_percent'],
+				'last_activity_at'   => (string) $row['progress']['last_activity_at'],
+			);
+			$lines[] = implode(
+				',',
+				array_map(
+					static fn( string $c ): string => \CourseCaptain\Certificate\CertificateAdmin::csv_cell( (string) ( $flat[ $c ] ?? ( null === ( $row['stages'][ $c ] ?? null ) ? '' : $row['stages'][ $c ] ) ) ),
+					$columns
+				)
+			);
+		}
+		\CourseCaptain\Event\AuditLog::write(
+			$this->db,
+			$viewer,
+			'report_exported',
+			'course',
+			(string) $course_id,
+			null,
+			array(
+				'count'        => count( $rows ),
+				'columns'      => $columns,
+				'pseudonymous' => $pseudo,
+			)
+		);
+		return "\xEF\xBB\xBF" . implode( "\r\n", $lines ) . "\r\n";
 	}
 
 	/**

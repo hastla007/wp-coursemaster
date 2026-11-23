@@ -459,6 +459,10 @@ final class LearningArea {
 			return '';
 		}
 		$html = '<section class="ccap-enroll" aria-labelledby="ccap-enroll-heading"><h2 id="ccap-enroll-heading">' . esc_html__( 'Access to this course', 'course-captain' ) . '</h2>';
+		if ( SelfEnrollment::closed( $course ) ) {
+			// UI-F2 / E-108: no enroll button while the enrollment is closed.
+			return $html . '<p class="ccap-enroll-closed">' . esc_html__( 'Enrollment for this course is closed. New learners cannot enroll at the moment; people who are already enrolled keep their access.', 'course-captain' ) . '</p></section>';
+		}
 		if ( ! $service->open( $course ) ) {
 			return $html . '<p>' . esc_html__( 'Access to this course is granted by the course administration. Please contact them if you want to take part.', 'course-captain' ) . '</p></section>';
 		}

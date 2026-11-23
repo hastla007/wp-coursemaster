@@ -43,8 +43,18 @@ final class Settings {
 	public const UNDO_TTL       = 2592000;
 	public const CAP            = 'ccap_manage_settings';
 
-	/** Input key carrying the typed site name when data deletion is switched on (E-89). */
-	public const CONFIRM_SITE_FIELD = '_confirm_site_name';
+	/**
+	 * Input key carrying the typed confirmation word when data deletion is
+	 * switched on (SET-CC-30, suite standard S10; replaces the site name of E-89).
+	 */
+	public const CONFIRM_WORD_FIELD = '_confirm_delete';
+
+	/**
+	 * Accepted confirmation words (compared case-insensitively).
+	 *
+	 * @var list<string>
+	 */
+	public const CONFIRM_WORDS      = array( 'LÖSCHEN', 'LOESCHEN', 'DELETE' );
 	public const CONFIRM_SLUG_FIELD = '_confirm_slug_conflict';
 
 	/**
@@ -147,9 +157,9 @@ final class Settings {
 				$errors[ $field ] = SettingsRules::invalid_rule( $schema[ $field ], $input[ $field ] );
 				continue;
 			}
-			// E-89: switching data deletion on needs the typed site name (R0-27 §1.3, R0-16 §2.5).
-			if ( 'general' === $tab && UninstallManifest::DELETE_DATA_KEY === $field && true === $check['value'] && true !== $before[ $field ] && ! self::site_name_confirmed( $input ) ) {
-				$errors[ $field ] = 'site_name';
+			// SET-CC-30 (S10): switching data deletion on needs a typed word; switching off needs nothing.
+			if ( 'general' === $tab && UninstallManifest::DELETE_DATA_KEY === $field && true === $check['value'] && true !== $before[ $field ] && ! self::deletion_confirmed( $input ) ) {
+				$errors[ $field ] = 'confirm_word';
 				continue;
 			}
 			$candidate[ $field ] = $check['value'];
@@ -274,21 +284,30 @@ final class Settings {
 	}
 
 	/**
-	 * Whether the input carries the exact site name (E-89 confirmation).
+	 * Whether the input carries a confirmation word for the data deletion:
+	 * LÖSCHEN, LOESCHEN or DELETE in any letter case (SET-CC-30, server side).
 	 *
 	 * @param array<string, mixed> $input Submitted values.
 	 * @return bool
 	 */
-	public static function site_name_confirmed( array $input ): bool {
-		$typed = $input[ self::CONFIRM_SITE_FIELD ] ?? null;
-		if ( ! is_string( $typed ) ) {
-			return false;
+	public static function deletion_confirmed( array $input ): bool {
+		$typed = $input[ self::CONFIRM_WORD_FIELD ] ?? null;
+		return is_string( $typed ) && self::is_confirm_word( $typed );
+	}
+
+	/**
+	 * Whether a text is one of the confirmation words (case-insensitive,
+	 * surrounding spaces ignored, composed and decomposed umlauts alike).
+	 *
+	 * @param string $typed Typed text.
+	 * @return bool
+	 */
+	public static function is_confirm_word( string $typed ): bool {
+		$typed = trim( $typed );
+		if ( class_exists( '\Normalizer' ) ) {
+			$typed = (string) \Normalizer::normalize( $typed, \Normalizer::FORM_C );
 		}
-		$name = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
-		if ( '' === $name ) {
-			$name = (string) wp_parse_url( (string) get_option( 'home' ), PHP_URL_HOST );
-		}
-		return '' !== $name && trim( $typed ) === $name;
+		return in_array( mb_strtoupper( $typed, 'UTF-8' ), self::CONFIRM_WORDS, true );
 	}
 
 	/**
@@ -351,6 +370,22 @@ final class Settings {
 		self::side_effects( $schema, $changed );
 		self::audit( $actor, 'settings_saved', $tab, $schema, $changed, $before, $after );
 		return true;
+	}
+
+	/**
+	 * Migrate after a plugin update (admin request): only when stored tabs
+	 * carry an older register version (SET-CC-13: v1 → v2 keeps every
+	 * stored value; new keys read their defaults, which equal the former
+	 * constants).
+	 *
+	 * @return list<string> Migrated tabs.
+	 */
+	public static function maybe_migrate(): array {
+		$version = get_option( self::VERSION_OPTION );
+		if ( false === $version || (int) $version >= SettingsSchema::VERSION ) {
+			return array();
+		}
+		return self::migrate();
 	}
 
 	/**

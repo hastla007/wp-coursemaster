@@ -64,9 +64,13 @@ final class ActivityProgress {
 		}
 		\CourseCaptain\Access\ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
 		$definition = ActivityService::definition( $lesson_id );
-		$row        = $this->ensure_row( $actor->user_id, $course_id, $lesson_id, $definition['type'] );
-		$data       = self::data_of( $row );
-		$pos        = (int) $row['position_seconds'];
+		// SET-CC-24: activities of a switched-off module take no interactions (stored progress stays).
+		if ( ! \CourseCaptain\Settings\Modules::activity_enabled( (string) $definition['type'] ) ) {
+			throw new CourseException( 'ccap_module_disabled', 'This function is switched off.', 404 );
+		}
+		$row  = $this->ensure_row( $actor->user_id, $course_id, $lesson_id, $definition['type'] );
+		$data = self::data_of( $row );
+		$pos  = (int) $row['position_seconds'];
 		switch ( $kind ) {
 			case 'position':
 				// GM-011: an update without position keeps the stored position.

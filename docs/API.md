@@ -31,6 +31,7 @@
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\d+)/draft` | angemeldet (Cookie + `X-WP-Nonce`) | `submission_uid`, `text` |
+| `POST` | `/courses/(?P<course>[0-9a-f-]+)/enrollment` | angemeldet (Cookie + `X-WP-Nonce`) | – (Selbstanmeldung, UI-F2: `{grant_id, created}`, bestehender Zugang → 200 mit `created: false`; `403 ccap_enrollment_closed` bei geschlossener Einschreibung (E-108), `403 ccap_forbidden` `reason: self_enrollment_off`, `404 ccap_not_found` für unveröffentlichte Kurse) |
 | `POST` | `/courses/(?P<course>[0-9a-f-]+)/exam-sessions` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `DELETE` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
@@ -67,6 +68,8 @@
 | `GET` | `/status` | angemeldet, `ccap_view_system_status` | – |
 | `GET` | `/health`, `/monitor` | öffentlich (Klasse K); Einzelprüfungen nur mit Header `X-CC-Monitor-Key` oder `ccap_view_system_status` | – |
 
+**Modulschalter (SET-CC-24):** Ist `certificates.enabled` aus, fehlen `GET /me/certificates` und `PUT /me/certificates/{uid}/visibility` (`404 rest_no_route`); `GET /certificates/verify/{token}` bleibt. Ist `learning.assignments_enabled` aus, fehlen die Abgaberouten (`/courses/{course}/assignments/…`, `/assignment-submissions/…`, `/grading/queue`). Fortschritt einer Lektion eines ausgeschalteten Moduls → `404 ccap_module_disabled`. Gespeicherte Daten bleiben unverändert.
+
 Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `acknowledged[]`) prüft der jeweilige Dienst. Details stehen in den Nachweisen `docs/r1/R1-*-nachweis.md`.
 
 ## 3. Fehlerformat (R0-19 §3.1)
@@ -101,6 +104,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_activity_progress_changed` | action |
 | `course_captain_allow_unmoved_protected_file` | filter |
 | `course_captain_assignment_file_scan` | filter |
+| `course_captain_business_rule` | filter |
 | `course_captain_cache_purge` | action |
 | `course_captain_can_access` | filter |
 | `course_captain_certificate_fallback_rendered` | action |

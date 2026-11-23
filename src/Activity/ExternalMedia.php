@@ -31,7 +31,7 @@ final class ExternalMedia {
 	 */
 	public static function foreign_hosts( array $urls ): array {
 		$site    = strtolower( (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
-		$trusted = array_map( 'strtolower', (array) apply_filters( 'course_captain_trusted_media_hosts', array() ) );
+		$trusted = \CourseCaptain\Settings\BusinessRules::trusted_media_hosts();
 		$hosts   = array();
 		foreach ( $urls as $url ) {
 			$host = strtolower( (string) wp_parse_url( $url, PHP_URL_HOST ) );

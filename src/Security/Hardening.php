@@ -34,12 +34,14 @@ final class Hardening {
 	public const FEATURES       = array( 'login_limit', 'reset_limit', 'registration_limit', 'xmlrpc', 'site_headers' );
 	public const STATE_OPTION   = 'course_captain_hardening_state';
 	public const DEVICE_COOKIE  = 'ccap_device';
-	public const DEVICE_DAYS    = 180;
+	public const DEVICE_DAYS    = 180; // Default of `hardening.known_device_days` (SET-CC-13).
 	public const ERROR_CODE     = 'ccap_rate_limited';
 	public const LOGIN_FEATURES = array( 'login_limit', 'reset_limit', 'registration_limit' );
 
 	/**
-	 * Default limits (behaviour as LB, E-01): [hits, window seconds].
+	 * Default limits (behaviour as LB, E-01): [hits, window seconds]. The
+	 * hits are the defaults of `hardening.limits` (SET-CC-13); the windows
+	 * are technical constants. Effective values: {@see self::limits()}.
 	 *
 	 * @var array<string, array{0: int, 1: int}>
 	 */
@@ -370,7 +372,7 @@ final class Hardening {
 			throw new \RuntimeException( 'counter store unavailable' );
 		}
 		$db     = Database::current();
-		$window = self::LIMITS[ $limit ][1];
+		$window = self::limits()[ $limit ][1];
 		$start  = self::now() - self::now() % $window;
 		$row    = $db->row( $db->prepare( 'SELECT window_start, hits FROM `' . $db->table( 'ccap_rate_limit' ) . '` WHERE bucket_hash = %s', self::bucket( $limit, $value ) ) );
 		return null !== $row && (int) $row['window_start'] === $start ? (int) $row['hits'] : 0;
@@ -389,7 +391,7 @@ final class Hardening {
 			throw new \RuntimeException( 'counter store unavailable' );
 		}
 		$db     = Database::current();
-		$window = self::LIMITS[ $limit ][1];
+		$window = self::limits()[ $limit ][1];
 		$start  = self::now() - self::now() % $window;
 		$table  = $db->table( 'ccap_rate_limit' );
 		$key    = self::bucket( $limit, $value );
@@ -398,17 +400,13 @@ final class Hardening {
 	}
 
 	/**
-	 * Configured limits (filter for operators, Δ-7).
+	 * Effective limits: `hardening.limits` with the technical windows; the
+	 * filter `course_captain_hardening_limits` wins (Δ-7, SET-CC-13).
 	 *
 	 * @return array<string, array{0: int, 1: int}>
 	 */
-	private static function limits(): array {
-		/**
-		 * Hardening limits: key => [hits, window seconds].
-		 *
-		 * @param array<string, array{0: int, 1: int}> $limits Limits.
-		 */
-		return (array) apply_filters( 'course_captain_hardening_limits', self::LIMITS );
+	public static function limits(): array {
+		return \CourseCaptain\Settings\BusinessRules::hardening_limits();
 	}
 
 	/**
@@ -485,12 +483,12 @@ final class Hardening {
 		if ( ! $user instanceof \WP_User || ! (bool) Settings::get( 'hardening.known_device' ) || headers_sent() ) {
 			return;
 		}
-		$value = self::device_token( (int) $user->ID, self::now() + self::DEVICE_DAYS * DAY_IN_SECONDS );
+		$value = self::device_token( (int) $user->ID, self::now() + \CourseCaptain\Settings\BusinessRules::known_device_days() * DAY_IN_SECONDS );
 		setcookie(
 			self::DEVICE_COOKIE,
 			$value,
 			array(
-				'expires'  => self::now() + self::DEVICE_DAYS * DAY_IN_SECONDS,
+				'expires'  => self::now() + \CourseCaptain\Settings\BusinessRules::known_device_days() * DAY_IN_SECONDS,
 				'path'     => defined( 'COOKIEPATH' ) && is_string( constant( 'COOKIEPATH' ) ) && '' !== constant( 'COOKIEPATH' ) ? constant( 'COOKIEPATH' ) : '/',
 				'domain'   => defined( 'COOKIE_DOMAIN' ) && is_string( constant( 'COOKIE_DOMAIN' ) ) ? constant( 'COOKIE_DOMAIN' ) : '',
 				'secure'   => is_ssl(),

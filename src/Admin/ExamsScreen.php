@@ -89,7 +89,7 @@ final class ExamsScreen {
 		if ( user_can( $user_id, self::CAP ) ) {
 			$out['exams'] = __( 'Exams', 'course-captain' );
 		}
-		if ( user_can( $user_id, GradingArea::CAP ) || user_can( $user_id, self::CAP ) ) {
+		if ( \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::ASSIGNMENTS ) && ( user_can( $user_id, GradingArea::CAP ) || user_can( $user_id, self::CAP ) ) ) {
 			$out['grading'] = __( 'Grading', 'course-captain' );
 		}
 		return $out;

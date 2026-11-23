@@ -206,8 +206,8 @@ final class SettingsScreen {
 			$input   = $decoded['input'];
 			$fields  = $decoded['fields'];
 			$rev     = (int) ( $post['_rev'] ?? -1 );
-			if ( 'general' === $tab && isset( $post[ Settings::CONFIRM_SITE_FIELD ] ) ) {
-				$input[ Settings::CONFIRM_SITE_FIELD ] = sanitize_text_field( (string) $post[ Settings::CONFIRM_SITE_FIELD ] );
+			if ( 'general' === $tab && isset( $post[ Settings::CONFIRM_WORD_FIELD ] ) ) {
+				$input[ Settings::CONFIRM_WORD_FIELD ] = sanitize_text_field( (string) $post[ Settings::CONFIRM_WORD_FIELD ] );
 			}
 			if ( array() !== $decoded['errors'] ) {
 				self::keep_form( $user_id, $tab, $input, $decoded['errors'] );
@@ -547,7 +547,7 @@ final class SettingsScreen {
 				}
 				$rows .= '<input type="hidden" name="_fields[]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, $errors[ $f ] ?? null, $opts );
 				if ( 'general' === $tab && 'delete_data_on_uninstall' === $key && true !== $values[ $f ] ) {
-					$rows .= self::site_name_field( $tab, isset( $errors[ $f ] ) );
+					$rows .= self::confirm_word_field( $tab, isset( $errors[ $f ] ) );
 				}
 			}
 			if ( '' !== $rows ) {
@@ -749,18 +749,15 @@ final class SettingsScreen {
 	}
 
 	/**
-	 * E-89 site-name confirmation input.
+	 * SET-CC-30 confirmation input (typed word, checked on the server).
 	 *
 	 * @param string $tab     Tab.
 	 * @param bool   $invalid Invalid.
 	 * @return string
 	 */
-	private static function site_name_field( string $tab, bool $invalid ): string {
-		$id   = SettingsForm::id( $tab, 'confirm-site-name' );
-		$name = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
-		/* translators: %s: website name */
-		$label = sprintf( __( 'To switch it on, type the name of the website: %s', 'course-captain' ), $name );
-		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label> <input type="text" id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::CONFIRM_SITE_FIELD ) . '" autocomplete="off" class="regular-text"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '></div>';
+	private static function confirm_word_field( string $tab, bool $invalid ): string {
+		$id = SettingsForm::id( $tab, 'confirm-delete' );
+		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html( sprintf( /* translators: 1: German confirmation word, 2: English confirmation word (both typed literally) */ __( 'To switch it on, type %1$s or %2$s:', 'course-captain' ), 'LÖSCHEN', 'DELETE' ) ) . '</label> <input type="text" id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::CONFIRM_WORD_FIELD ) . '" autocomplete="off" spellcheck="false" class="regular-text" aria-describedby="' . esc_attr( SettingsForm::id( $tab, 'delete_data_on_uninstall' ) ) . '-help"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '></div>';
 	}
 
 	/**
@@ -787,11 +784,11 @@ final class SettingsScreen {
 			'reset_account'    => __( 'Lost password per account', 'course-captain' ),
 			'registration_ip'  => __( 'Registrations per address', 'course-captain' ),
 		);
-		foreach ( Hardening::LIMITS as $key => $limit ) {
+		foreach ( Hardening::limits() as $key => $limit ) {
 			/* translators: 1: number of attempts, 2: minutes */
 			$rows .= '<tr><th scope="row">' . esc_html( $labels[ $key ] ?? $key ) . '</th><td>' . esc_html( sprintf( __( '%1$d in %2$d min', 'course-captain' ), $limit[0], intdiv( $limit[1], 60 ) ) ) . '</td></tr>';
 		}
-		$html .= '<table class="widefat striped ccap-limits"><caption>' . esc_html__( 'Effective limits (changeable by filter only)', 'course-captain' ) . '</caption><tbody>' . $rows . '</tbody></table>';
+		$html .= '<table class="widefat striped ccap-limits"><caption>' . esc_html__( 'Effective limits (the filter course_captain_hardening_limits overrides the values above)', 'course-captain' ) . '</caption><tbody>' . $rows . '</tbody></table>';
 		$html .= '<h3>' . esc_html__( 'Emergency', 'course-captain' ) . '</h3><p>' . esc_html__( 'If you lock yourself out: add define( \'COURSE_CAPTAIN_HARDENING\', \'off\' ); to wp-config.php or run wp course-captain hardening disable.', 'course-captain' ) . '</p>';
 		return $html;
 	}
@@ -857,7 +854,7 @@ final class SettingsScreen {
 	 * @return void
 	 */
 	private static function keep_form( int $user_id, string $tab, array $input, array $errors, bool $conflict = false ): void {
-		unset( $input[ Settings::CONFIRM_SITE_FIELD ] );
+		unset( $input[ Settings::CONFIRM_WORD_FIELD ] );
 		set_transient(
 			self::FORM_PREFIX . $user_id,
 			array(

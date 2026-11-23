@@ -106,6 +106,14 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/enrollment",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/exam-sessions",
         "methods": [
             "POST"

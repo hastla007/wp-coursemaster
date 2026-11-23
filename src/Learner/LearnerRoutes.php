@@ -169,6 +169,8 @@ final class LearnerRoutes {
 			array( '/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => self::join_preview( $a, (string) $r['token'] ) ),
 			// R-32: accept an invitation or the group link.
 			array( '/groups/join', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => self::join( $a, $r->get_param( 'token' ) ) ),
+			// Self-enrollment (L-02, UI-F2): `ccap_enrollment_closed` while the course enrollment is closed (E-108).
+			array( '/courses/' . $course . '/enrollment', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => \CourseCaptain\Access\SelfEnrollment::current()->enroll( $a, self::course( $r ) ) ),
 		);
 		foreach ( $routes as $route ) {
 			list( $path, $method, $callback ) = $route;

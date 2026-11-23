@@ -35,7 +35,7 @@ final class SettingsRules {
 	 *
 	 * @param array<string, mixed> $field Field definition.
 	 * @param mixed                $value Raw value.
-	 * @return string `format`, `range`, `length`, `email`, `ip`, `choice` or `invalid`.
+	 * @return string `format`, `range`, `length`, `email`, `ip`, `host`, `choice` or `invalid`.
 	 */
 	public static function invalid_rule( array $field, $value ): string {
 		switch ( $field['type'] ) {
@@ -51,6 +51,8 @@ final class SettingsRules {
 				return 'email';
 			case 'ip_list':
 				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'ip';
+			case 'host_list':
+				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'host';
 			case 'enum':
 			case 'set':
 			case 'bool':
@@ -95,6 +97,13 @@ final class SettingsRules {
 						$errors[ $field ] = $rule;
 					}
 				}
+			}
+		}
+		// SET-CC-13: review intervals never shrink from one stage to the next.
+		if ( 'learning' === $tab && $check( 'review_intervals' ) ) {
+			$intervals = (array) $candidate['review_intervals'];
+			if ( (int) $intervals['second'] < (int) $intervals['first'] || (int) $intervals['third'] < (int) $intervals['second'] ) {
+				$errors['review_intervals'] = 'interval_order';
 			}
 		}
 		/**

@@ -44,6 +44,20 @@ final class CertificateRoutes {
 	 * @return void
 	 */
 	public static function routes(): void {
+		// Public verification of issued certificates stays available when the module is off (SET-CC-24).
+		register_rest_route(
+			LearnerRoutes::NAMESPACE,
+			'/certificates/verify/(?P<token>[0-9a-zA-Z]{1,64})',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( self::class, 'verify' ),
+				// Public route (R-42, "Ö"): token-based, rate limited, minimal fields.
+				'permission_callback' => '__return_true',
+			)
+		);
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) ) {
+			return;
+		}
 		register_rest_route(
 			LearnerRoutes::NAMESPACE,
 			'/me/certificates',
@@ -69,16 +83,6 @@ final class CertificateRoutes {
 						'required' => true,
 					),
 				),
-			)
-		);
-		register_rest_route(
-			LearnerRoutes::NAMESPACE,
-			'/certificates/verify/(?P<token>[0-9a-zA-Z]{1,64})',
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( self::class, 'verify' ),
-				// Public route (R-42, "Ö"): token-based, rate limited, minimal fields.
-				'permission_callback' => '__return_true',
 			)
 		);
 	}
@@ -164,6 +168,7 @@ final class CertificateRoutes {
 	 */
 	private static function admin( callable $action ): void {
 		try {
+			\CourseCaptain\Settings\Modules::assert_enabled( \CourseCaptain\Settings\Modules::CERTIFICATES );
 			$args = array(
 				'ccap_certificate'        => (string) $action( Actor::user( get_current_user_id() ) ),
 				'ccap_certificate_result' => 'ok',

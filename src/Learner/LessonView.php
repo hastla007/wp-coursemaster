@@ -98,9 +98,14 @@ final class LessonView {
 		) : ActivityRegistry::normalize_rule( $provider, $definition['rule'] );
 		$state      = (array) ActivityProgress::current()->state( $actor->user_id, $lesson_id );
 
-		$html  = $back . self::status_message( $status );
-		$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : self::activity( $type, $definition['settings'], $course_id ) ) . '</article>';
-		$html .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'] );
+		$html = $back . self::status_message( $status );
+		if ( ! \CourseCaptain\Settings\Modules::activity_enabled( $type ) ) {
+			// SET-CC-24: the module is switched off; the lesson text stays readable, the activity is hidden.
+			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Activity', 'course-captain' ) . '</h2><p>' . esc_html__( 'This activity is not available on this website at the moment. Your previous work is kept.', 'course-captain' ) . '</p></section></article>';
+		} else {
+			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : self::activity( $type, $definition['settings'], $course_id ) ) . '</article>';
+			$html .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'] );
+		}
 		$html .= self::navigation( $room, $lesson_id, $lang );
 		return array(
 			'status'     => 200,
@@ -156,6 +161,9 @@ final class LessonView {
 				case 'assignment_submit':
 					if ( 'assignment' !== $type ) {
 						return $result( 'ccap_invalid_param' );
+					}
+					if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::ASSIGNMENTS ) ) {
+						return $result( 'ccap_module_disabled' );
 					}
 					return $result( AssignmentView::handle( $actor, $course_id, $lesson_id, (string) $post['ccap_do'], $post, $files ) );
 				case 'download':

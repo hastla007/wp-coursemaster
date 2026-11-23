@@ -213,7 +213,7 @@ final class UninstallProbeTest extends SchemaTestCase {
 	public function test_REC_019_confirmed_deletion_removes_exactly_the_manifest(): void {
 		$revisions = wp_get_post_revisions( $this->course );
 		self::assertNotSame( array(), $revisions );
-		Settings::save( Actor::user( $this->admin ), 'general', array( 'delete_data_on_uninstall' => true, Settings::CONFIRM_SITE_FIELD => 'Akademie Nord' ), array( 'delete_data_on_uninstall' ), Settings::rev( 'general' ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
+		Settings::save( Actor::user( $this->admin ), 'general', array( 'delete_data_on_uninstall' => true, Settings::CONFIRM_WORD_FIELD => 'LÖSCHEN' ), array( 'delete_data_on_uninstall' ), Settings::rev( 'general' ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 
 		self::assertSame( array( get_current_blog_id() => true ), Uninstaller::run() );
 
@@ -243,18 +243,21 @@ final class UninstallProbeTest extends SchemaTestCase {
 	}
 
 	/**
-	 * E-89 / SET-035: switching the deletion on needs the typed site name;
-	 * the audit records the change; switching off needs nothing.
+	 * SET-CC-30 / SET-035 (replaces E-89): switching the deletion on needs
+	 * the typed word LÖSCHEN/LOESCHEN/DELETE in any letter case, checked on
+	 * the server; the site name no longer counts; the audit records the
+	 * change; switching off needs nothing.
 	 *
 	 * @group SET-035
+	 * @group SET-CC-30
 	 * @group REC-019
 	 */
-	public function test_E_89_deletion_setting_needs_site_name(): void {
+	public function test_SET_CC_30_deletion_setting_needs_typed_word(): void {
 		$admin = Actor::user( $this->admin );
-		foreach ( array( null, '', 'akademie nord', 'Akademie Süd' ) as $typed ) {
+		foreach ( array( null, '', 'Akademie Nord', 'LOSCHEN', 'DELET', 'ja', 'LÖSCHEN!' ) as $typed ) {
 			$input = array( 'delete_data_on_uninstall' => true );
 			if ( null !== $typed ) {
-				$input[ Settings::CONFIRM_SITE_FIELD ] = $typed;
+				$input[ Settings::CONFIRM_WORD_FIELD ] = $typed;
 			}
 			try {
 				Settings::save( $admin, 'general', $input, array( 'delete_data_on_uninstall' ), Settings::rev( 'general' ) );
@@ -267,7 +270,10 @@ final class UninstallProbeTest extends SchemaTestCase {
 		self::assertFalse( Settings::get( 'general.delete_data_on_uninstall' ) );
 		self::assertFalse( Uninstaller::is_data_deletion_confirmed( get_option( UninstallManifest::GENERAL_SETTINGS_OPTION ) ) );
 
-		$result = Settings::save( $admin, 'general', array( 'delete_data_on_uninstall' => true, Settings::CONFIRM_SITE_FIELD => ' Akademie Nord ' ), array( 'delete_data_on_uninstall' ), Settings::rev( 'general' ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
+		foreach ( array( 'löschen', 'Loeschen', 'delete', ' DELETE ', "lo\u{0308}schen" ) as $word ) {
+			self::assertTrue( Settings::is_confirm_word( $word ), $word );
+		}
+		$result = Settings::save( $admin, 'general', array( 'delete_data_on_uninstall' => true, Settings::CONFIRM_WORD_FIELD => ' löschen ' ), array( 'delete_data_on_uninstall' ), Settings::rev( 'general' ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound
 		self::assertSame( array( 'delete_data_on_uninstall' ), $result['changed'] );
 		self::assertTrue( Uninstaller::is_data_deletion_confirmed( get_option( UninstallManifest::GENERAL_SETTINGS_OPTION ) ) );
 		$db    = Database::current();
