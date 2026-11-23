@@ -451,6 +451,7 @@ final class GoldenMasterG3Test extends SchemaTestCase {
 				++$requests;
 				self::assertSame( 0, $args['redirection'] );
 				self::assertSame( 3, $args['timeout'] );
+				self::assertTrue( $args['reject_unsafe_urls'], 'C-13: safe HTTP API (SSRF)' );
 			if ( 'none' === $answer ) {
 				return new \WP_Error( 'http_request_failed', 'timeout' );
 			}

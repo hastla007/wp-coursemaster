@@ -276,6 +276,7 @@ final class ImportRunner {
 		$budget  = new MigrationBudget( $seconds );
 		$outcome = 'progress';
 		$chunks  = 0;
+		$last    = 0.0;
 		ImportService::importing( true );
 		try {
 			while ( true ) {
@@ -292,14 +293,17 @@ final class ImportRunner {
 					$outcome = 'aborted';
 					break;
 				}
-				if ( $chunks > 0 && ( $budget->expired() || self::memory_ratio() > 0.75 ) ) {
+				// R0-38 §4.3: stop before the next chunk when the rest of the budget is
+				// below 1.5 × the last chunk's duration (keeps the step within its budget).
+				if ( $chunks > 0 && ( $budget->remaining() < 1.5 * $last || self::memory_ratio() > 0.75 ) ) {
 					break;
 				}
 				$started = microtime( true );
 				$result  = $this->chunk_with_retries( $actor, $batch, $row, $lease );
 				++$chunks;
 				$this->flush_audits( $actor, $batch );
-				$this->tune( (int) ( $run['chunk'] ?? self::CHUNK_START ), microtime( true ) - $started );
+				$last = microtime( true ) - $started;
+				$this->tune( (int) ( $run['chunk'] ?? self::CHUNK_START ), $last );
 				if ( 'threshold' === $result ) {
 					$this->abort( $batch, 'threshold' );
 					AuditLog::write( $this->db, $actor, 'import_threshold_exceeded', 'import_batch', (string) $batch, null, array( 'failed' => (int) ( self::run_state( (array) $this->service->get( $batch ) )['failed'] ?? 0 ) ) );

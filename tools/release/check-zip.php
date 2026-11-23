@@ -109,6 +109,19 @@ if ( '' !== $version && false === strpos( $readme, '= ' . $version ) ) {
 if ( false === strpos( $read( 'LICENSE' ), 'GNU GENERAL PUBLIC LICENSE' ) ) {
 	$fail( 'RC-011', 'LICENSE is not the GPL text' );
 }
+// SEC-045 (R0-17 §4.3): no forbidden claims in readme.txt and translation files.
+$words = require dirname( __DIR__ ) . '/qa/sec-045-wordlist.php';
+foreach ( $names as $name ) {
+	if ( 1 !== preg_match( '#^course-captain/(readme\.txt|languages/[^/]+\.(pot|po|json))$#', $name ) ) {
+		continue;
+	}
+	$text = (string) $zip->getFromName( $name );
+	foreach ( $words as $word => $pattern ) {
+		if ( 1 === preg_match( $pattern, $text ) ) {
+			$fail( 'SEC-045', 'forbidden claim "' . $word . '" in ' . substr( $name, strlen( 'course-captain/' ) ) );
+		}
+	}
+}
 // block.json contract per block in the package.
 foreach ( $names as $name ) {
 	if ( 1 === preg_match( '#^course-captain/blocks/[^/]+/block\.json$#', $name ) ) {

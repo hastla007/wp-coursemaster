@@ -420,6 +420,145 @@ final class ImportBatchTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-136 full volume (PKG-LARGE, R0-05 §1.11): 20 000 synthetic
+	 * questions, 3 defective; abort at 50 % (position 10 000), resume with
+	 * the default step budget: 19 997 imported, report with exactly 3
+	 * entries, no duplicates. Load run, not part of the suite: runs only
+	 * with `CCAP_GM136_FULL=1` (Gate C-6 protocol, docs/r1/R1-18-gate-c-nachweise.md);
+	 * duration, peak memory and step times go to `CCAP_PERF_REPORT`.
+	 *
+	 * @group R1-18
+	 * @group GM-136
+	 * @group load
+	 */
+	public function test_GM_136_pkg_large_full_volume(): void {
+		if ( '1' !== (string) getenv( 'CCAP_GM136_FULL' ) ) {
+			self::markTestSkipped( 'Load run: set CCAP_GM136_FULL=1 (scaled variant: test_GM_136_defects_abort_at_half_and_resume).' );
+		}
+		$total = 20000;
+		$bad   = array( 'BQ-04711', 'BQ-12345', 'BQ-19999' );
+		$t0    = microtime( true );
+		$file  = $this->package( self::records( $total, 1, array( 'bad_hash' => $bad ) ), 'pkg-large' );
+		$t1    = microtime( true );
+		$batch = $this->approved( $file );
+		$t2    = microtime( true );
+		$admin = Actor::user( $this->admin );
+		$issue = static fn(): array => Database::current()->wpdb()->get_col( Database::current()->prepare( 'SELECT source_id FROM `' . Database::current()->table( 'ccap_import_issue' ) . "` WHERE batch_id = %d AND severity = 'error' ORDER BY source_id", $batch ) );
+		self::assertSame( $bad, $issue(), 'report lists the 3 defective records' );
+
+		$runner = ImportRunner::current();
+		$times  = array();
+		$run    = static function () use ( $runner, $admin, $batch, &$times ): array {
+			$last = array();
+			for ( $i = 0; $i < 2000; $i++ ) {
+				$s       = microtime( true );
+				$last    = $runner->step( $admin, $batch, ImportRunner::budget( 30 ) );
+				$times[] = microtime( true ) - $s;
+				if ( 'progress' !== $last['outcome'] ) {
+					break;
+				}
+			}
+			return $last;
+		};
+		$runner->start( $admin, $batch, false );
+		ImportRunner::inject_fault(
+			static function ( string $point, int $position ) use ( $total ): void {
+				if ( 'apply' === $point && intdiv( $total, 2 ) === $position ) {
+					throw new \RuntimeException( 'simulated abort at 50 %' );
+				}
+			}
+		);
+		$run();
+		self::assertSame( 'aborted', ImportService::current()->get( $batch )['status'] );
+		$half = self::num( "SELECT COUNT(*) FROM {t} WHERE object_type = 'question'", 'ccap_source_map' );
+		self::assertGreaterThan( 0, $half );
+		self::assertLessThan( $total - 3, $half );
+		$t3 = microtime( true );
+
+		ImportRunner::inject_fault( null );
+		$runner->resume( $admin, $batch, false );
+		$last = $run();
+		$t4   = microtime( true );
+		self::assertSame( 'published', $last['status'] );
+		self::assertSame( $total - 3, self::num( 'SELECT COUNT(*) FROM {t}', 'ccap_question' ), '19 997 imported' );
+		self::assertSame( $total - 3, self::num( "SELECT COUNT(DISTINCT source_id) FROM {t} WHERE object_type = 'question'", 'ccap_source_map' ), 'no duplicates' );
+		self::assertSame( $total - 3, self::num( "SELECT COUNT(*) FROM {t} WHERE object_type = 'question'", 'ccap_source_map' ) );
+		foreach ( $bad as $source ) {
+			self::assertSame( 0, self::object( 'question', $source ), $source );
+		}
+		self::assertSame( $bad, $issue(), 'report still has exactly 3 entries' );
+		$sorted = $times;
+		sort( $sorted );
+		self::assertLessThanOrEqual( ImportRunner::budget( 30 ), $sorted[ (int) floor( 0.95 * ( count( $sorted ) - 1 ) ) ], 'step p95 ≤ max_execution_time / 2 for max_execution_time 30 (OP-11, R0-38 M-08)' );
+		self::assertLessThanOrEqual( 20.0, max( $times ), 'no step over 20 s (RB-02)' );
+
+		$report = (string) getenv( 'CCAP_PERF_REPORT' );
+		if ( '' !== $report ) {
+			sort( $times );
+			$data = array(
+				'op'               => 'GM-136/OP-11',
+				'questions'        => $total,
+				'defective'        => count( $bad ),
+				'imported'         => $total - 3,
+				'report_errors'    => count( $issue() ),
+				'half_imported'    => $half,
+				'package_s'        => round( $t1 - $t0, 1 ),
+				'validate_s'       => round( $t2 - $t1, 1 ),
+				'apply_to_abort_s' => round( $t3 - $t2, 1 ),
+				'resume_s'         => round( $t4 - $t3, 1 ),
+				'total_s'          => round( $t4 - $t0, 1 ),
+				'steps'            => count( $times ),
+				'step_p50_s'       => round( $times[ (int) floor( 0.5 * ( count( $times ) - 1 ) ) ], 2 ),
+				'step_p95_s'       => round( $times[ (int) floor( 0.95 * ( count( $times ) - 1 ) ) ], 2 ),
+				'step_max_s'       => round( max( $times ), 2 ),
+				'peak_mb'          => round( memory_get_peak_usage( true ) / 1048576, 1 ),
+				'package_mb'       => round( (int) filesize( $file ) / 1048576, 1 ),
+			);
+			file_put_contents( $report, (string) wp_json_encode( $data ) . "\n", FILE_APPEND );
+		}
+	}
+
+	/**
+	 * Gate C-6 finding (OP-11, R0-38 §4.3): a step stops before the next
+	 * chunk when the rest of its budget is below 1.5 × the last chunk's
+	 * duration, so it stays within the budget (before: up to one chunk over).
+	 *
+	 * @group R1-18
+	 * @group GM-136
+	 * @group NFR-007
+	 */
+	public function test_step_stays_within_budget(): void {
+		$batch  = $this->approved( $this->package( self::records( 200 ), 'budget' ) );
+		$admin  = Actor::user( $this->admin );
+		$runner = ImportRunner::current();
+		$runner->start( $admin, $batch, false );
+		// About 1 s per chunk of 50 records.
+		$applied = 0;
+		ImportRunner::inject_fault(
+			static function ( string $point ) use ( &$applied ): void {
+				if ( 'apply' === $point ) {
+					++$applied;
+					usleep( 15000 );
+				}
+			}
+		);
+		// Warm-up: plan chunk, then one slow apply chunk (AIMD halves the size to 50).
+		$runner->step( $admin, $batch, 0.0 );
+		$runner->step( $admin, $batch, 0.0 );
+		$before   = $applied;
+		$t0       = microtime( true );
+		$progress = $runner->step( $admin, $batch, 2.0 );
+		$elapsed  = microtime( true ) - $t0;
+		self::assertSame( 'progress', $progress['outcome'] );
+		self::assertSame( 50, $applied - $before, 'one chunk of 50: the rest of the budget is below 1.5 × the last chunk' );
+		self::assertLessThan( 2.0, $elapsed, 'step within its 2 s budget' );
+		ImportRunner::inject_fault( null );
+		$steps = $this->steps( $batch );
+		self::assertSame( 'published', end( $steps )['status'] );
+		self::assertSame( 200, self::num( 'SELECT COUNT(*) FROM {t}', 'ccap_question' ) );
+	}
+
+	/**
 	 * BIG-026: deadlock in a chunk is retried, no object error.
 	 *
 	 * @group BIG-026

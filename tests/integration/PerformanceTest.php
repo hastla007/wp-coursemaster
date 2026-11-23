@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Access\GrantService;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
@@ -415,5 +416,169 @@ final class PerformanceTest extends SchemaTestCase {
 		);
 		self::assertSame( 0, (int) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_outbox_delivery' ) . "` WHERE status IN ('pending','dispatching')" ), 'backlog drained' );
 		self::assertLessThan( 20.0, max( $times ), 'each run within its 20 s budget (RB-02)' );
+	}
+
+	/**
+	 * Gate C-6 time protocol (R0-14 §2.3 Nr. 2 analog, NFR-001/NFR-018):
+	 * OP-01, OP-03…OP-08 repeated 60 times each in-process (no HTTP, empty
+	 * runtime cache per call, no persistent object cache) on the `ci` data
+	 * volume (20 000 progress rows, 5 000 grants); p50/p95 per OP against
+	 * the R0-14 §1.1 budgets. Load run, not part of the suite: runs only
+	 * with `CCAP_PERF_P95=1`; results go to `CCAP_PERF_REPORT`. Time budgets
+	 * are a release gate on R-M only (E-60); this local run is indicative.
+	 *
+	 * @group NFR-001
+	 * @group NFR-018
+	 * @group GM-187
+	 * @group load
+	 */
+	public function test_NFR_001_local_p95_protocol(): void {
+		if ( '1' !== (string) getenv( 'CCAP_PERF_P95' ) ) {
+			self::markTestSkipped( 'Load run: set CCAP_PERF_P95=1.' );
+		}
+		$runs    = 60;
+		$budget  = array(
+			'OP-01' => array( 150, 700 ),
+			'OP-03' => array( 80, 300 ),
+			'OP-04' => array( 80, 300 ),
+			'OP-05' => array( 250, 800 ),
+			'OP-06' => array( 60, 250 ),
+			'OP-07' => array( 300, 1000 ),
+			'OP-08' => array( 100, 400 ),
+		);
+		$db      = Database::current();
+		$courses = array();
+		for ( $i = 0; $i < 20; $i++ ) {
+			$courses[] = $this->course( 0 === $i ? 60 : 0 );
+		}
+		$c    = $courses[0];
+		$rule = $this->rule( $c, 30 );
+		// Volume (profile ci): 20 000 question progress rows, 5 000 grants of other users.
+		$rows = array();
+		for ( $u = 1; $u <= 400; $u++ ) {
+			foreach ( array_slice( $c['questions'], 0, 50 ) as $q ) {
+				$rows[] = $db->prepare( '(%d, %d, 1, %s, %s)', 100000 + $u, $q, 'secure', $db->now( 86400 ) );
+			}
+		}
+		foreach ( array_chunk( $rows, 1000 ) as $chunk ) {
+			$db->execute( 'INSERT IGNORE INTO `' . $db->table( 'ccap_question_progress' ) . '` (user_id, question_id, algorithm_version, learn_status, due_at) VALUES ' . implode( ',', $chunk ) );
+		}
+		$grants = array();
+		for ( $u = 1; $u <= 5000; $u++ ) {
+			$grants[] = $db->prepare( '(%s, %d, %d, %s, %s, %s, %s, %s)', $db->uuid(), 200000 + $u, $c['course'], 'active', 'manual', $db->uuid(), $db->now(), $db->now() );
+		}
+		foreach ( array_chunk( $grants, 1000 ) as $chunk ) {
+			$db->execute( 'INSERT INTO `' . $db->table( 'ccap_grant' ) . '` (uid, user_id, course_id, status, source_type, source_id, created_at, updated_at) VALUES ' . implode( ',', $chunk ) );
+		}
+		$db->execute( 'ANALYZE TABLE `' . $db->table( 'ccap_question_progress' ) . '`, `' . $db->table( 'ccap_grant' ) . '`' );
+
+		// One learner per run (one running exam session per learner and form).
+		$learners = array();
+		for ( $i = 0; $i < $runs; $i++ ) {
+			$learner = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
+			foreach ( $courses as $course ) {
+				self::grant( $learner, $course['course'] );
+			}
+			$learners[] = $learner;
+		}
+		$times = array_fill_keys( array_keys( $budget ), array() );
+		$clock = static function ( string $op, callable $call ) use ( &$times ) {
+			PolicyService::flush();
+			wp_cache_flush();
+			$t0             = hrtime( true );
+			$result         = $call();
+			$times[ $op ][] = ( hrtime( true ) - $t0 ) / 1e6;
+			return $result;
+		};
+		foreach ( $learners as $learner ) {
+			$actor = Actor::user( $learner );
+			$clock( 'OP-01', static fn() => LearnerQueries::current()->my_courses( $actor ) );
+			$next = $clock( 'OP-03', static fn() => SmartTrainer::current()->next( $actor, $c['course'] ) );
+			self::assertIsArray( $next );
+			$clock( 'OP-04', static fn() => AnswerService::current()->answer( $actor, (string) $next['token'], array( 'A' ), wp_generate_uuid4() ) );
+			$session = (int) $clock( 'OP-05', static fn() => ExamSessions::current()->start( $actor, $rule, null, wp_generate_uuid4(), new Randomizer( 'p' . $learner ) ) );
+			$clock( 'OP-06', static fn() => ExamSessions::current()->save_answer( $actor, $session, 1, array( 'A' ) ) );
+			$clock( 'OP-07', static fn() => ExamSessions::current()->submit( $actor, $session ) );
+			$clock( 'OP-08', static fn() => SmartTrainer::current()->summary( $actor, $c['course'] ) );
+		}
+		$over = array();
+		foreach ( $times as $op => $list ) {
+			sort( $list );
+			$p50 = $list[ (int) floor( 0.50 * ( count( $list ) - 1 ) ) ];
+			$p95 = $list[ (int) floor( 0.95 * ( count( $list ) - 1 ) ) ];
+			self::report(
+				$op . '/time',
+				array(
+					'runs'       => count( $list ),
+					'p50_ms'     => round( $p50, 1 ),
+					'p95_ms'     => round( $p95, 1 ),
+					'max_ms'     => round( (float) end( $list ), 1 ),
+					'budget_p50' => $budget[ $op ][0],
+					'budget_p95' => $budget[ $op ][1],
+				)
+			);
+			if ( $p95 > $budget[ $op ][1] ) {
+				$over[] = $op . ' p95 ' . round( $p95 ) . ' ms > ' . $budget[ $op ][1] . ' ms';
+			}
+		}
+		self::assertSame( array(), $over, 'p95 within the R0-14 §1.1 budgets (indicative locally, E-60)' );
+	}
+
+	/**
+	 * NFR-019 local load run (R0-14 §5): 1 000 manual grants for one course
+	 * (admin path), then the outbox backlog is drained in bounded runs.
+	 * Records p50/p95 per grant, total time and drain runs. Load run, not
+	 * part of the suite: runs only with `CCAP_PERF_P95=1`. The group with
+	 * 1 000 seats and parallel L1 learning requests need R-M (E-192).
+	 *
+	 * @group NFR-019
+	 * @group load
+	 */
+	public function test_NFR_019_bulk_grants_local(): void {
+		if ( '1' !== (string) getenv( 'CCAP_PERF_P95' ) ) {
+			self::markTestSkipped( 'Load run: set CCAP_PERF_P95=1.' );
+		}
+		$c     = $this->course( 5 );
+		$users = array();
+		for ( $i = 0; $i < 1000; $i++ ) {
+			$users[] = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		}
+		$admin = Actor::user( $this->admin );
+		$times = array();
+		$t0    = microtime( true );
+		foreach ( $users as $user ) {
+			$s       = hrtime( true );
+			$id      = GrantService::current()->grant_manual( $admin, $user, $c['course'], wp_generate_uuid4(), 'Bulk enrolment load run' );
+			$times[] = ( hrtime( true ) - $s ) / 1e6;
+			self::assertGreaterThan( 0, $id );
+		}
+		$total = microtime( true ) - $t0;
+		$db    = Database::current();
+		$open  = static fn(): int => (int) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_outbox_delivery' ) . "` WHERE status IN ('pending','dispatching')" );
+		$queue = $open();
+		$runs  = 0;
+		$max   = 0.0;
+		while ( $open() > 0 && $runs < 200 ) {
+			++$runs;
+			$s = microtime( true );
+			OutboxDispatcher::current()->dispatch();
+			$max = max( $max, microtime( true ) - $s );
+		}
+		sort( $times );
+		self::report(
+			'NFR-019',
+			array(
+				'grants'      => count( $times ),
+				'p50_ms'      => round( $times[ (int) floor( 0.5 * ( count( $times ) - 1 ) ) ], 1 ),
+				'p95_ms'      => round( $times[ (int) floor( 0.95 * ( count( $times ) - 1 ) ) ], 1 ),
+				'total_s'     => round( $total, 1 ),
+				'outbox_open' => $queue,
+				'drain_runs'  => $runs,
+				'drain_max_s' => round( $max, 2 ),
+			)
+		);
+		self::assertSame( 1000, (int) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_grant' ) . "` WHERE course_id = %d AND status = 'active'", $c['course'] ) ) );
+		self::assertSame( 0, $open(), 'outbox backlog drained' );
+		self::assertLessThan( 20.0, $max, 'each drain run within its budget' );
 	}
 }

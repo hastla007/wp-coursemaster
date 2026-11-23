@@ -131,6 +131,10 @@ final class DistributionTest extends TestCase {
 			'LINT'     => static fn( \ZipArchive $z ) => $z->addFromString( 'course-captain/src/Broken.php', '<?php function (' ),
 			'POSITIVE' => static fn( \ZipArchive $z ) => $z->deleteName( 'course-captain/LICENSE' ),
 			'ROOT'     => static fn( \ZipArchive $z ) => $z->addFromString( 'other/file.txt', 'x' ),
+			'SEC-045'  => static function ( \ZipArchive $z ): void {
+				$readme = (string) $z->getFromName( 'course-captain/readme.txt' );
+				$z->addFromString( 'course-captain/readme.txt', str_replace( '== Description ==', "== Description ==\nTamper-proof online exams.\n", $readme ) );
+			},
 		);
 		foreach ( $cases as $expected => $change ) {
 			$result = self::check( self::variant( $change ) );

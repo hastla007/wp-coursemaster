@@ -94,6 +94,8 @@ final class CertificatePages {
 		nocache_headers();
 		header( 'Cache-Control: no-store' );
 		header( 'X-Robots-Tag: noindex, nofollow' );
+		// No referrer: the verification token is part of the URL (R0-17 T-33).
+		header( 'Referrer-Policy: no-referrer' );
 		status_header( $page['status'] );
 		echo $page['html']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
 		exit;
