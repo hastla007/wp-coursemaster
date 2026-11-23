@@ -1,6 +1,6 @@
 # R1-18 · Golden-Master- und E2E-Abnahme – Nachweis (technischer Teil)
 
-**Stand:** 17.11.2026 · **Branch:** `r1-par-c` · **Status: technischer Teil umgesetzt, Aufgabe nicht abgehakt** (offen: Referenzlauf durch die getrennte Prüfrolle, offene GM-Lücken §5, Review AG-05)
+**Stand:** 23.11.2026 (Nachtrag §9) · erster Stand 17.11.2026 · **Branch:** `claude/blissful-curie-tuuf7q` · **Status: technischer Teil umgesetzt, Aufgabe nicht abgehakt** (offen: Referenzlauf durch die getrennte Prüfrolle, Freigaben/Klärungen §7, Review AG-05). Seit dem Nachtrag ist kein GM-Fall mehr `open`.
 **Eingangskriterium (E-328):** `cc-fixture-neutral-v1` gebaut **und** Referenzlauf des Originals für Rechenlogik-Fälle (E-56) durch eine getrennte Prüfrolle protokolliert. Der erste Teil ist erfüllt, der zweite **nicht** (§6).
 **Quellen:** R0-05 §1 (GM-Katalog GM-001…GM-210), §2 (Fixture), §3 (D-03: keine Testreihenfolge), §5.1; R0-12 §3.2/§3.3 (Gates B/C). Clean Room (E-01/E-02): alle Inhalte, Medien und Skripte sind synthetisch und neu; kein LearnBoating-Code, keine LearnBoating-Inhalte.
 
@@ -29,7 +29,8 @@ Neu: Fixture-Erweiterung; GM-002 (Gast 401 `ccap_auth_required`); GM-005; GM-015
 - Das Skript liest alle GM-IDs aus den Katalogtabellen R0-05 §1 (**210 IDs, GM-001…GM-210**; der Katalog reicht über GM-196 hinaus bis GM-210) und sammelt `@group GM-xxx` aus `tests/` und `tools/qa/e2e/`.
 - Jede ID ohne Test braucht einen Eintrag in der versionierten Ausnahmeliste `tools/qa/gm-coverage-exceptions.php` mit Kategorie (`open`, `deviation`, `r2`, `r3`, `human`), Bezug und Begründung. Der Unit-Test schlägt fehl bei fehlenden IDs, veralteten Einträgen (Ausnahme trotz Test, `partial` ohne Test), ungültigen Einträgen und unbekannten IDs.
 - Bestehende Tests, die eine GM-Aussage nachweislich prüfen, tragen jetzt die passende `@group` (u. a. ExamTest, ConcurrencyTest, AccessTest, GroupCertificateAdminTest, ImportTest, ImportBatchTest, HardeningTest, PolicyTest, MigrationResumeTest, SchemaTest, Uninstall-/Upgrade-Proben). Wo ein Test die Aussage nur teilweise prüft, steht das unter `partial` und in der Matrix (Anhang).
-- Stand: **171 mit Test** (davon 17 teilweise), **39 Ausnahmen**: 36 `open`, 1 `deviation` (GM-180), 1 `r2` (GM-077, App-API E-05), 1 `r3` (GM-160, Pro E-24). `missing 0, stale 0, invalid 0, unknown 0`.
+- Stand 23.11.2026: **207 mit Test** (davon 13 teilweise), **3 Ausnahmen**: 0 `open`, 1 `deviation` (GM-180), 1 `r2` (GM-077), 1 `r3` (GM-160); siehe §9.
+- Stand 17.11.2026: **171 mit Test** (davon 17 teilweise), **39 Ausnahmen**: 36 `open`, 1 `deviation` (GM-180), 1 `r2` (GM-077, App-API E-05), 1 `r3` (GM-160, Pro E-24). `missing 0, stale 0, invalid 0, unknown 0`.
 - Ausführen: `php tools/qa/gm-coverage.php` (Exit 1 bei Lücken), Matrix: `php tools/qa/gm-coverage.php --matrix`, einzelne GM: `vendor/bin/phpunit -c phpunit-integration.xml.dist --group GM-030`.
 
 ## 4. E2E gegen eine laufende Site (`tools/qa/e2e/live-smoke.sh`)
@@ -53,12 +54,12 @@ Ergebnis 17.11.2026: dreimal hintereinander `live-smoke: OK` (Tabellen danach en
 |---|---|---|
 | F-1 | Prüfungsteile entstehen je Blueprint-Modul (`section` = Modul). Teil P2 aus R0-05 §2.4 (M-A2 + M-A3 ≥ 18/23) ist nicht abbildbar; ER-A prüft deshalb Gesamtquote und P1 | Abweichung nach §5.1 freigeben oder Teile über mehrere Module ermöglichen (R1-08/R1-09); Referenzlauf GM-029…GM-031 berücksichtigen. **Behoben** nach Beschluss E-331 (Teile über Modulgruppen, ER-A mit P2), siehe `R1-18-gm-nachtrag-g6.md` |
 | F-2 | `free_limited` kennt **eine** Grenze je Kurs/Modul für Fragen, Lektionen, Bögen und Dateien; AR-02/03/06/07 mit unterschiedlichen Zahlen schließen sich aus (die größte gilt) | Fixture setzt die Regeln einzeln je Test; Abweichung freigeben oder Bereichsgrenzen einführen (R1-13/R1-14). **Behoben** nach Beschluss E-332 (eigene Grenze je Art, Migration der Einzelgrenze), siehe `R1-18-gm-nachtrag-g6.md` |
-| F-3 | Antworten eines Lektionsquiz speisen den Fortschritt des Quiz-Providers (`answered`) nicht; ein Quiz schließt die Lektion nicht ab (GM-010) | Lücke R1-07/R1-10 |
-| F-4 | Offene Fragen sind im Prüfungsraum ohne JavaScript nicht beantwortbar (kein Aufdecken/Selbsteinschätzung im Formular); sie zählen sonst als unbeantwortet | Lücke R1-16 (auch A11Y-Flows); E2E nutzt die Prüfungs-API |
-| F-5 | Kein Import für Medien, Blueprints und Karteikarten; PKG-v1 enthält Q-A3-011 (Entwurf) nicht; `package_id` wird aus dem Inhalt gebildet (`cc-fx-neutral-v1-<sha12>`), nicht `…-000000000001` | GM-064, GM-118 (Zählungen), GM-120 (Kartenteil), GM-125/GM-128 (Medien) bleiben teilweise/offen |
-| F-6 | Join-Token JT-1 `cc-fx-join-0001` ist nicht setzbar (Token werden erzeugt und nur gehasht gespeichert) | bewusst; Tests erzeugen den Link über `rotate_link()` |
-| F-7 | GM-045: paralleler Start liefert 409 `ccap_exam_start_busy` statt 422 `ccap_busy_retry`; GM-154: fremder Kurs 404 statt 403 (CT-02) | Codes in §5.1 bzw. im R1-GATE klären |
-| F-8 | Keine REST-Routen für Status/Health/Monitor (GM-146…GM-148); R1-38 liefert CLI-Status und Site Health | Abweichungskandidat §5.1 |
+| F-3 | Antworten eines Lektionsquiz speisen den Fortschritt des Quiz-Providers (`answered`) nicht; ein Quiz schließt die Lektion nicht ab (GM-010) | Lücke R1-07/R1-10. **Behoben** (g1, `R1-18-gm-nachtrag-g1.md`) |
+| F-4 | Offene Fragen sind im Prüfungsraum ohne JavaScript nicht beantwortbar (kein Aufdecken/Selbsteinschätzung im Formular); sie zählen sonst als unbeantwortet | Lücke R1-16 (auch A11Y-Flows). **Behoben** (g2: Aufdecken und Selbsteinschätzung im Formular ohne JS; E2E nutzt jetzt das Formular) |
+| F-5 | Kein Import für Medien, Blueprints und Karteikarten; PKG-v1 enthält Q-A3-011 (Entwurf) nicht; `package_id` wird aus dem Inhalt gebildet (`cc-fx-neutral-v1-<sha12>`), nicht `…-000000000001` | **Teilweise behoben** (g4): Karteikarten-Import, Q-A3-011 als Entwurf; `package_id` bleibt inhaltsbasiert (R0-10 §1.2, redaktionelle Korrektur R0-05 §2.6 empfohlen). Medien-/Blueprint-Import fehlt weiter: GM-118/125/128 teilweise |
+| F-6 | Join-Token JT-1 `cc-fx-join-0001` ist nicht setzbar (Token werden erzeugt und nur gehasht gespeichert) | bewusst; Tests erzeugen den Link über `rotate_link()`. **Freigegeben** (E-333) |
+| F-7 | GM-045: paralleler Start liefert 409 `ccap_exam_start_busy` statt 422 `ccap_busy_retry`; GM-154: fremder Kurs 404 statt 403 (CT-02) | **Freigegeben** (E-333); GM-045/GM-154 bleiben als `partial` dokumentiert |
+| F-8 | Keine REST-Routen für Status/Health/Monitor (GM-146…GM-148); R1-38 liefert CLI-Status und Site Health | **Behoben** (g2): `GET /status` (Recht), `GET /health` und `GET /monitor` (öffentlich, nur `{status}`, Einzelprüfungen mit `X-CC-Monitor-Key`), Cron-Stillstand → 503 |
 
 ## 6. Gates B/C (R0-12 §3.2/§3.3) – technischer Stand
 
@@ -77,7 +78,7 @@ Ergebnis 17.11.2026: dreimal hintereinander `live-smoke: OK` (Tabellen danach en
 | C-1, C-4, C-5, C-9, C-12, C-17 | Suiten der R1-Aufgaben grün (RBAC, CON, REC, PRIV, NTF, PSD/Härtung; GM-201…208 mit Test) |
 | C-10, C-11, C-13, C-14, C-15, C-16 | brauchen manuelle Sitzungen, Usability-Abnahme (R1-29), SAST-/Kompatibilitätsläufe bzw. Freigaben; nicht Gegenstand dieses Laufs |
 
-R1-GATE verlangt 100 % grüne Pflichttests oder freigegebene Abweichungen (E-184). Mit 36 offenen GM-Fällen und den Befunden F-1…F-8 sind Gate B und Gate C **technisch nicht bestanden**.
+R1-GATE verlangt 100 % grüne Pflichttests oder freigegebene Abweichungen (E-184). Stand 17.11.2026: mit 36 offenen GM-Fällen und den Befunden F-1…F-8 **technisch nicht bestanden**. Stand 23.11.2026 siehe §9.2.
 
 ## 7. Offen bis zum Abhaken (nicht durch die Umsetzung zu erledigen)
 
@@ -85,13 +86,63 @@ R1-GATE verlangt 100 % grüne Pflichttests oder freigegebene Abweichungen (E-184
 |---|---|
 | **Referenzlauf des Originals für die Rechenlogik-Fälle (E-56, E-328)**: GM-029…GM-031, GM-065…GM-068, GM-084, GM-131 mit LB-Format-Zwilling, nur durch Ausführen (E-01); Protokoll der Ergebnisse gegen die Erwartungswerte. Dieser Lauf ist **nicht** erfolgt und wird hier nicht ersetzt oder nachgebildet | getrennte Prüfrolle |
 | Klärung Antwort-IDs `<frage>-a…e` (R0-05 §2.3) gegen Schlüssel `^([A-Z]|MODEL)$` (R0-08 §3.1); umgesetzt ist die positionsweise Abbildung beim Import | Auftraggeber |
-| Freigabe oder Behebung der Abweichungen F-1, F-2, F-7, F-8 und GM-180 über §5.1 (E-55) | Auftraggeber |
-| Schließen der 36 `open`-Fälle der Ausnahmeliste (Ziel-Tasks dort angegeben) | jeweilige R1-Aufgabe |
+| Freigabe der Abweichung GM-180 über §5.1 (E-55); F-1/F-2/F-4/F-8 behoben, F-6/F-7 freigegeben (E-331…E-333) | Auftraggeber |
+| ~~Schließen der 36 `open`-Fälle~~ – erledigt 23.11.2026 (§9) | – |
+| Klärungen aus den Nachträgen g1…g6 (§9.3) | Auftraggeber / R1-GATE |
 | Review durch zweite Person vor Merge | AG-05 |
 
 ## 8. Ergebnisse 17.11.2026
 
 phpcs 0 Fehler (1 bekannte Warnung `ImportTest.php`, durch zwei Docblock-Zeilen jetzt Zeile 320) · PHPStan L8 0 · Unit 109 / 2 892 · Integration **417 / 14 823** · Multisite **430 / 13 612** · Textdomain-Lint 0 · Free-Guard 0 · `gm-coverage` 0 Lücken · `live-smoke.sh` OK. Neue Nutzertexte: keine. Neue REST-Routen, Hooks oder Audit-Aktionen: keine.
+
+## 9. Nachtrag 23.11.2026 – GM-Lücken geschlossen (Gruppen g1…g6)
+
+Die 36 offenen GM-Fälle und die Befunde F-1, F-2, F-3, F-4, F-8 wurden in sechs Gruppen bearbeitet; je Gruppe gibt es einen eigenen Nachtrag mit GM-Details, Dateien, Kommandos und Abweichungen. Alle Gruppen haben nur `docs/r0`, `docs/r1`, `konzept.md`, die TODO und den bestehenden Code genutzt (Spec-Barriere E-327); kein LearnBoating-Code, keine LearnBoating-Inhalte.
+
+| Gruppe | GM-IDs / Befunde | Nachtrag |
+|---|---|---|
+| g1 Lernkern | GM-006, 010 (F-3), 068, 074, 075, 078, 079 | `R1-18-gm-nachtrag-g1.md` |
+| g2 Prüfung/API/Status | GM-050, 051, 061, 093, 146, 147, 148 (F-8), F-4 | `R1-18-gm-nachtrag-g2.md` |
+| g3 Grants/Zugriff/Dateien | GM-089, 090, 092, 104, 113, 114, 115, 117 | `R1-18-gm-nachtrag-g3.md` |
+| g4 Import | GM-064, 123, 127, 129, 130, 135, 137 (F-5 teilweise) | `R1-18-gm-nachtrag-g4.md` |
+| g5 Datenschutz/Betrieb/FAQ | GM-162, 167, 174, 175, 176, 189, 190 | `R1-18-gm-nachtrag-g5.md` |
+| g6 Beschlüsse | E-331 (F-1, GM-029 vollständig), E-332 (F-2, GM-015/GM-082 vollständig) | `R1-18-gm-nachtrag-g6.md` |
+
+Integration auf `claude/blissful-curie-tuuf7q` (Merges g1 `535c911`, g6 `5b112bb`, g4 `cae5c44`, g5 `06155c4`, g2 `a5409c4`, g3 `bfc51c4`). Konflikte betrafen nur POT, Ausnahmeliste, API-Doku/-Snapshots, `AuditView` und `AnswerService` (g2-Idempotenzablauf beibehalten, g1-Quiz-Fortschritt nach `complete()` eingehängt). Zwei Tests wurden bei der Integration korrigiert, ohne die Prüfung abzuschwächen: MIG-001/MIG-013 (ein abgeschlossener Backfill läuft beim Upgrade nicht erneut, R0-37 §4.4) und NTF-035…037 (Punktzahl nur als eigenständige Zahl, statt als Teilzeichenkette, die zufällig in Signaturen/UUIDs vorkommen kann).
+
+### 9.1 Ergebnisse (Integrationsstand `bfc51c4`)
+
+Lokaler Gesamtlauf auf `bfc51c4` läuft; Zahlen werden nachgetragen. Vorstand `a5409c4` (g1, g2, g4, g5, g6): Unit 130 · Integration 456 (31 übersprungen, pcntl) · Multisite 469 (31 übersprungen) · phpcs 0 · PHPStan L8 0 · Free-Guard 0 · Textdomain-Lint 0 · CI PR #3 grün.
+
+### 9.2 Gates B/C – Stand 23.11.2026
+
+| Kriterium | Stand |
+|---|---|
+| B-1 Golden Master Lernkern | alle GM-IDs mit Test; GM-077 R2 (E-05). **Technisch erfüllt** |
+| B-5 Kurs ohne Import (GM-137) | mit Test (Struktur-Fingerabdruck ohne IDs). **Technisch erfüllt** |
+| C-2 Grants/Seats/Gate | 24 von 24 mit Test. **Technisch erfüllt** |
+| C-3 Import/Medien | alle mit Test; GM-118/125/128/136 teilweise (kein Medien-/Blueprint-Import, Lastprofil skaliert). **Teilweise** |
+| C-7 API-Verträge | 11 von 11 mit Test (GM-150/152/154 teilweise). **Technisch erfüllt** |
+| C-8 Betrieb | alle mit Test außer GM-180 (Abweichung R1-31 A-2, Freigabe offen) und GM-160 (R3). **Erfüllt bis auf Freigabe GM-180** |
+| B-4, C-6, C-10, C-11, C-13…C-16 | unverändert wie §6 (manuelle Läufe, Browser-Matrix, Usability R1-29, Freigaben) |
+
+Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180, Medien-/Blueprint-Import oder dessen Freigabe als Teilumfang (GM-118/125/128), den manuellen Gate-Teilen und AG-05/AG-07.
+
+### 9.3 Klärungen für den Auftraggeber / R1-GATE (aus den Nachträgen)
+
+| Herkunft | Punkt |
+|---|---|
+| g1 A-1 | GM-068: Backfill für Altzeilen ohne `due_at` existiert und ist getestet, ist aber **nicht** im Core registriert (nur für das Migrationswerkzeug E-03). Entscheidung: so lassen (empfohlen) oder Core-Registrierung |
+| g2 A-2 | Monitor heißt in R0-13 `GET /health` + `X-Monitor-Key`, in R0-19 `GET /monitor` + `X-CC-Monitor-Key`; umgesetzt beide Pfade, Header nach R0-19. Dokumente angleichen |
+| g2 A-5 | Abmelden leert den Prüfungspuffer (localStorage) nicht aktiv (PRIV-018); Puffer enthält keine Lösungen |
+| g2 A-6 | Deutsche Übersetzungen der neuen Texte aus g2…g5 fehlen in `de_DE.po` |
+| g3 H-2 | `ccap_access_exists`/`ccap_user_required` fehlen im Fehlercode-Katalog R0-19 §3 |
+| g3 H-3/H-4/H-5 | `backup-check` deckt nur Teile von R0-16 §1.4 ab; Einladungsseite ist minimal (REST R-31/R-32 fehlen) |
+| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); redaktionelle Korrektur R0-05 §2.6 empfohlen. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`) |
+| g5 A-1…A-3 | GM-190 Gäste 401 (R-38); Routennamen des Datenexports selbst gewählt (R0-19 nennt nur Codes); Löschung nach Bestätigung nur mit Opt-in E-43 |
+| g6 | Karteikarten zählen bei E-332 als „Fragen“; eigene Grenze für Karten wäre ein neuer Beschluss |
+| Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen |
+
 
 ## Anhang · GM-Matrix (`php tools/qa/gm-coverage.php --matrix`)
 
