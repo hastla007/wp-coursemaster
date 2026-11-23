@@ -922,7 +922,44 @@ Dateiweise geprüft: Plugin-Bootstrap und Composer, `Plugin.php`, `AccessService
 
 Auftrag des Inhabers über die Lizenz-Sitzung (23.11.2026). Analyse: captain-pro `docs/settings/README.md` und `SETTINGS-course.md` (Stand Branch `claude/blissful-curie-tuuf7q` @ 1b662d1). Bereits entschieden: S1 Pro-Hinweis als graue, ausblendbare Hinweiszeile `{id, reiter, titel, text, link}` ohne Funktionscode im Kern; S2 Geschäftspolitik als Einstellung mit sicherer Vorgabe plus Filter (Filter gewinnt), technische Werte bleiben Konstanten; Länderprofile DE, AT, CH, EU, OTHER als Vorschlag mit Vorher/Nachher, nie still überschreiben, rechtlich gewichtige Werte „ungeprüft“ bis zur Freigabe; de_DE = „du“, de_DE_formal = „Sie“.
 
-- [ ] **SET-CC-01…29** – Aufgabenliste wird nach Eingang der Analyse-Datei hier vollständig übernommen (wartet auf Zusendung der Datei durch die Lizenz-Sitzung; Zugriff auf captain-pro besteht in dieser Sitzung nicht). Bereits in Arbeit und später gegen die Liste abzuhaken: Aufbewahrungsfristen als änderbare Vorgaben (Gruppe h8), Klick-zum-Laden für externe Videos (h9).
+Quelle: captain-pro `docs/settings/SETTINGS-course.md` (Analyse-Stand 1b662d1; Volltext mit Fundstellen dort). „Erledigt“ heißt immer: Test, Hilfetext, Übersetzung `de_DE` (du) und `de_DE_formal` (Sie), Eintrag in `docs/API.md`. Inhaber-Entscheidungen E1…E7 siehe unten.
+
+**Kritisch**
+- [ ] **SET-CC-01** Pro-Hinweiszeilen (graue, ausblendbare Zeile am Tab-Ende, kein Feld, kein Funktionscode; S1 entschieden) und Andockpunkt `course_captain_settings_register_fields_v1` für Add-on-Felder (`pro.`-Präfix); Wächtertest, Export/Import erhält unbekannte `pro.`-Felder. Add-on-Seite: captain-pro (andere Sitzung).
+- [ ] **SET-CC-02** Aufbewahrungsfristen einstellbar (`privacy.retention`, 21 Unterschlüssel nach R0-27 §1.4, Filter `course_captain_retention_days`, Vorschau der Löschmengen; Markierung „Rechtsprüfung“) – in Arbeit (Gruppe h8).
+- [ ] **SET-CC-03** Zustimmung bei Einschreibung (sofortiger Beginn/Widerruf) – **wartet auf Inhaber (E1)** und Rechtsprüfung des Vorschlagstexts.
+- [ ] **SET-CC-04** Editor für Mailtexte je Mailart und Sprache (Betreff, HTML, Text, Platzhalter, Vorschau, Testversand, Zurücksetzen; Export/Import).
+- [ ] **SET-CC-05** Rechte im Lizenzkatalog und Präfix `course.` – **anderes Repository (wp-license/captain-pro, Lizenz-Sitzung)**, **wartet auf Inhaber (E5)**.
+- [ ] **SET-CC-06** Rechtstext-Verweise (`general.legal_links`: Impressum, AGB, Widerruf, Datenschutz; Platzhalter `imprint_url`, `terms_url`, `withdrawal_url`; Fuß Lernbereich und Mails) – Markierung „Rechtsprüfung“ (welche Pflicht sind, entscheidet der Betreiber).
+
+**Wichtig**
+- [ ] **SET-CC-07** Länderprofile DE/AT/CH/EU/OTHER im Assistenten (Vorschlag mit Vorher/Nachher, nie still überschreiben, rechtliche Werte „ungeprüft“, `assets/data/country-profiles.json`, Filter) – EU-Videowert **wartet auf Inhaber (E4)**, Altersgrenze (E7).
+- [ ] **SET-CC-08** Zertifikat: Standard-Gültigkeit, Hinweisfrist, Papierformat, Sprache; Nummernschema **wartet auf Inhaber (E3)**.
+- [ ] **SET-CC-09** Abgabe-Felder (`assignment_file_types/_max_file_mb/_max_files`) im Tab Lernen anzeigen.
+- [ ] **SET-CC-10** `privacy.csp_mode` wirksam machen oder entfernen.
+- [ ] **SET-CC-11** Oberfläche für Sperren und Übersicht der Übersteuerungen (Sammel-Zurücksetzen).
+- [ ] **SET-CC-12** WP-CLI `wp course-captain settings list|get|set|export|import|reset` (gleiche Prüfung, Risikofelder mit `--confirm`, Akteur `system:cli`).
+- [ ] **SET-CC-13** Geschäftsregeln aus Konstanten lösen (Prüfungsstarts/h, bekanntes Gerät, Anmeldegrenzen, Wiederholungsabstände, Video-Hosts; `GroupService::INVITE_DAYS` → `invite_valid_days`).
+- [ ] **SET-CC-14** `de_DE_formal` („Sie“) vollständig, `de_DE` durchgehend „du“ (Prüfskript).
+- [ ] **SET-CC-15** Export/Import auf alle Einstellflächen (Rollen, Mailtexte, Zertifikatsvorlagen, Sperren), Vorschau der Unterschiede.
+- [ ] **SET-CC-16** Grund-Marke Lernbereich (`display.logo_id`, `display.accent_color` mit Kontrast ≥ 4,5:1, Knopfbeschriftungen).
+- [ ] **SET-CC-17** Altersgrenze/Einwilligung der Eltern – **wartet auf Inhaber (E7)**, Rechtsprüfung.
+- [ ] **SET-CC-18** Barrierefreiheit der Inhalte (`display.require_transcripts`, Verweis Erklärung zur Barrierefreiheit, Publish-Validator meldet fehlende Abschrift).
+- [ ] **SET-CC-19** Pro: Verkaufseinstellungen `pro.commerce.*` – **anderes Repository (Add-on)**, braucht SET-CC-01/05, Rechtsprüfung.
+- [ ] **SET-CC-20** Pro: Erinnerungen `pro.reminders.*` – **anderes Repository (Add-on)**, braucht SET-CC-01.
+- [ ] **SET-CC-21** A11Y-Abnahme der Einstellungsseite (10 Tabs, Kurs-Kasten, Assistent; Prüflauf in `tools/qa/e2e/`).
+
+**Optimierung**
+- [ ] **SET-CC-22** Protokollstufe (`advanced.log_level`, automatisch zurück nach 7 Tagen), Fristen `error_log_days`/`debug_file_days`.
+- [ ] **SET-CC-23** Testbetrieb (`COURSE_CAPTAIN_OUTBOUND`/`_MAIL_CATCH_ADDRESS`) im Tab E-Mails sichtbar.
+- [ ] **SET-CC-24** Schalter je Modul (Zertifikate, Abgaben, Karteikarten) ohne Datenverlust.
+- [ ] **SET-CC-25** Globaler Standard für den Freischaltplan (`enrollment.default_drip_days`).
+- [ ] **SET-CC-26** Berichte: CSV-Spalten und Pseudonymisierung; Hinweiszeile `course.analytics`.
+- [ ] **SET-CC-27** Änderungsprotokoll: Filter „Einstellungen“ mit Vorher/Nachher und Export.
+- [ ] **SET-CC-28** Netzwerk-Standards – **zurückgestellt**, solange Multisite-Netzwerkaktivierung blockiert ist (R0-11).
+- [ ] **SET-CC-29** Einstellungs-Handbuch `docs/EINSTELLUNGEN.md` aus dem Register, per Skript geprüft.
+
+**Inhaber-Entscheidungen (gesammelt über die Lizenz-Sitzung):** E1 Zustimmung zum sofortigen Beginn – wo (Empfehlung: neutrales Kästchen im Kern + Kasse im Add-on) · E2 Analyse gilt für diesen Branch – **ja (faktisch, Code liegt nur hier)** · E3 Zertifikatsnummer frei einstellbar (Empfehlung) · E4 EU-Profil setzt `click_to_load` (Empfehlung) · E5 Rechte einzeln reservieren (Empfehlung) · E6 Pro-Hinweise als ausgegraute Zeilen – **entschieden (S1)** · E7 Altersgrenze ohne Standard (Empfehlung).
 
 ## Prüfphase Einstellungen und neue Funktionen
 
