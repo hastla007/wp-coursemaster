@@ -191,6 +191,83 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-150: `POST /answers` with the idempotency key over REST (Q-A1-001,
+	 * key `fx-150-1`): without a key no attempt is stored and the catalog code
+	 * `ccap_idempotency_key_required` comes back (428 per R0-19 R-08/§8; R0-05
+	 * names 422, see gm-coverage-exceptions); the same key (header
+	 * `Idempotency-Key` or body field) returns the same result without a second
+	 * attempt; the same key with another payload is 409; the token counts once.
+	 *
+	 * @group GM-150
+	 */
+	public function test_GM_150_answer_idempotency_key_over_rest(): void {
+		$lea   = $this->fx['users']['lea'];
+		$token = $this->token();
+		$db    = Database::current();
+		$count = static fn(): int => (int) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_attempt' ) . '` WHERE user_id = %d', $lea ) );
+		$base  = $count();
+		wp_set_current_user( $lea );
+
+		foreach ( array( array(), array( 'idempotency_key' => 'fx-150-1' ) ) as $extra ) {
+			$missing = self::rest(
+				'POST',
+				'/answers',
+				array(
+					'token'  => $token,
+					'answer' => array( 'A' ),
+				) + $extra
+			);
+			self::assertSame( 428, $missing->get_status() );
+			self::assertSame( 'ccap_idempotency_key_required', $missing->get_data()['code'] );
+			self::assertSame( $base, $count(), 'nothing stored without a valid key' );
+		}
+
+		$key   = NeutralFixture::uuid( 'fx-150-1' );
+		$first = self::rest(
+			'POST',
+			'/answers',
+			array(
+				'token'  => $token,
+				'answer' => array( 'A' ),
+			),
+			array( 'Idempotency-Key' => $key )
+		);
+		self::assertSame( 200, $first->get_status() );
+		self::assertFalse( $first->get_data()['repeated'] );
+		self::assertTrue( $first->get_data()['correct'] );
+		self::assertSame( $base + 1, $count() );
+
+		$again = self::rest(
+			'POST',
+			'/answers',
+			array(
+				'token'           => $token,
+				'answer'          => array( 'A' ),
+				'idempotency_key' => $key,
+			)
+		);
+		self::assertSame( 200, $again->get_status() );
+		self::assertTrue( $again->get_data()['repeated'] );
+		$result = array_flip( array( 'correct', 'points_milli', 'attempts', 'correct_ids' ) );
+		self::assertSame( array_intersect_key( $first->get_data(), $result ), array_intersect_key( $again->get_data(), $result ), 'same evaluation result' );
+		self::assertCount( 4, array_intersect_key( $again->get_data(), $result ) );
+		self::assertSame( $base + 1, $count(), 'no second attempt: the token counts once' );
+
+		$conflict = self::rest(
+			'POST',
+			'/answers',
+			array(
+				'token'  => $token,
+				'answer' => array( 'B' ),
+			),
+			array( 'Idempotency-Key' => $key )
+		);
+		self::assertSame( 409, $conflict->get_status() );
+		self::assertSame( 'ccap_idempotency_conflict', $conflict->get_data()['code'] );
+		self::assertSame( $base + 1, $count() );
+	}
+
+	/**
 	 * GM-093: public filter "owns course" = `course_captain_can_access` (R0-19 §4.3):
 	 * U-L1 true, U-L3 false, guest false; an extension keeping the value
 	 * leaves U-L1 allowed; it can only restrict (E-84).

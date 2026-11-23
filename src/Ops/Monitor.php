@@ -297,7 +297,7 @@ final class Monitor {
 		$db     = Database::current();
 		$now    = self::now();
 		$window = $now - $now % 60;
-		$bucket = hash( 'sha256', 'health:' . \CourseCaptain\Security\ClientIp::get() );
+		$bucket = hash( 'sha256', 'health:' . \CourseCaptain\Security\ClientIp::rate_key() );
 		$table  = $db->table( 'ccap_rate_limit' );
 		try {
 			$db->execute(

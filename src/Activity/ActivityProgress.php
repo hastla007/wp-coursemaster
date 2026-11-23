@@ -19,7 +19,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Interactions write only the actor's own progress, after a learning
  * access check *now*. Completion is monotonic: once `completed`, later
- * interactions never reset it (R0-08 §5.1).
+ * interactions never reset it (R0-08 §5.1). The only way back for the
+ * learner is `unconfirm` of a `manual_confirm` completion; evidence-based
+ * completions are never taken back by the learner (E-70, GM-209).
  */
 final class ActivityProgress {
 
@@ -45,7 +47,7 @@ final class ActivityProgress {
 
 	/**
 	 * Record an interaction: `position` (seconds, optional), `confirm`,
-	 * `view` (seconds), `download`.
+	 * `unconfirm`, `view` (seconds), `download`.
 	 *
 	 * @param Actor                $actor     Learner.
 	 * @param int                  $course_id Course.
@@ -74,6 +76,15 @@ final class ActivityProgress {
 				break;
 			case 'confirm':
 				$data['confirmed'] = true;
+				break;
+			case 'unconfirm':
+				// E-70 / R0-19 R-28: only a learner's own `manual_confirm` completion can be taken back.
+				if ( 'completed' === $row['status'] && 'manual_confirm' !== (string) $row['reason_code'] ) {
+					throw new CourseException( 'ccap_validation_failed', 'An evidence-based completion cannot be taken back.', 422, array( 'reason' => 'evidence_completion' ) );
+				}
+				$data['confirmed']  = false;
+				$row['status']      = 'started';
+				$row['reason_code'] = null;
 				break;
 			case 'view':
 				$data['view_seconds'] = max( (int) ( $data['view_seconds'] ?? 0 ), (int) ( $payload['seconds'] ?? 0 ) );
@@ -189,7 +200,7 @@ final class ActivityProgress {
 		}
 		$this->db->execute(
 			$this->db->prepare(
-				"UPDATE `{$table}` SET position_seconds = %d, data = %s, status = %s, reason_code = %s, rule_version = %d, completed_at = IF(%s = 'completed' AND completed_at IS NULL, %s, completed_at), content_hash = IF(%s = 'completed' AND content_hash IS NULL, %s, content_hash), last_access_at = %s WHERE id = %d",
+				"UPDATE `{$table}` SET position_seconds = %d, data = %s, status = %s, reason_code = %s, rule_version = %d, completed_at = IF(%s = 'completed', COALESCE(completed_at, %s), NULL), content_hash = IF(%s = 'completed', COALESCE(content_hash, %s), NULL), last_access_at = %s WHERE id = %d",
 				$pos,
 				(string) wp_json_encode( $data ),
 				$status,

@@ -472,6 +472,10 @@ final class PolicyService {
 
 	/**
 	 * M-08: own running attempt within its deadline and learning access now.
+	 * The deadline of a write is deadline + frozen late tolerance (R0-08
+	 * §6.4, GM-037/GM-038): buffered offline answers and the submit are
+	 * accepted until then; ExamSessions checks the bounded answer time
+	 * against deadline + grace and answers `ccap_exam_expired` (catalog).
 	 *
 	 * @param int $user    User.
 	 * @param int $session Exam session.
@@ -489,8 +493,12 @@ final class PolicyService {
 		if ( 'in_progress' !== $row['status'] ) {
 			return Decision::deny( Decision::FORBIDDEN, 'not_running' );
 		}
-		if ( null !== $row['deadline_at'] && (string) $row['deadline_at'] <= Database::current()->now() ) {
-			return Decision::deny( Decision::FORBIDDEN, 'deadline_passed' );
+		if ( null !== $row['deadline_at'] ) {
+			$snapshot  = json_decode( (string) ( $row['snapshot'] ?? '' ), true );
+			$tolerance = is_array( $snapshot ) ? (int) ( $snapshot['timing']['late_tolerance_seconds'] ?? 120 ) : 120;
+			if ( (int) strtotime( (string) $row['deadline_at'] . ' UTC' ) + max( 0, $tolerance ) <= Database::current()->time() ) {
+				return Decision::deny( Decision::FORBIDDEN, 'deadline_passed' );
+			}
 		}
 		return $this->learn( $user, (int) $row['course_id'], 0, 'exam' );
 	}

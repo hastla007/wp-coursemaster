@@ -343,12 +343,7 @@ final class Hardening {
 	 * @return string
 	 */
 	private static function ip(): string {
-		$ip = ClientIp::get();
-		if ( false !== filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
-			$packed = (string) inet_pton( $ip );
-			return 'v6:' . bin2hex( substr( $packed, 0, 8 ) );
-		}
-		return $ip;
+		return ClientIp::rate_key();
 	}
 
 	/**
