@@ -1,6 +1,6 @@
 <?php
 /**
- * Learner REST routes (R0-19 R-05…R-13, R-26…R-28).
+ * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32).
  *
  * @package CourseCaptain
  */
@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Learner;
 
+use CourseCaptain\Access\GroupService;
 use CourseCaptain\Activity\ActivityProgress;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Exam\ExamSessions;
@@ -17,6 +18,8 @@ use CourseCaptain\Learning\Favorites;
 use CourseCaptain\Learning\SmartTrainer;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Progress\CourseReport;
+use CourseCaptain\Security\ClientIp;
+use CourseCaptain\Storage\RateLimiter;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -162,6 +165,10 @@ final class LearnerRoutes {
 			array( '/me/data-exports/(?P<uid>[0-9a-f-]{36})', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => \CourseCaptain\Privacy\DataExport::get( $a, (string) $r['uid'] ) ),
 			array( '/courses/' . $course . '/faqs', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => \CourseCaptain\Course\FaqService::for_course( $a, self::course( $r ) ) ),
 			array( '/exam-sessions/(?P<session>\d+)/abort', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => array( 'status' => ExamSessions::current()->cancel( $a, (int) $r['session'] ) ) ),
+			// R-31: invitation preview (changes nothing).
+			array( '/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => self::join_preview( $a, (string) $r['token'] ) ),
+			// R-32: accept an invitation or the group link.
+			array( '/groups/join', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => self::join( $a, $r->get_param( 'token' ) ) ),
 		);
 		foreach ( $routes as $route ) {
 			list( $path, $method, $callback ) = $route;
@@ -184,6 +191,85 @@ final class LearnerRoutes {
 	 */
 	public static function logged_in() {
 		return is_user_logged_in() ? true : new \WP_Error( 'ccap_auth_required', __( 'Please log in.', 'course-captain' ), array( 'status' => 401 ) );
+	}
+
+	/**
+	 * R-31: preview with masked data only (R0-09 §1.2).
+	 *
+	 * @param Actor  $actor Viewer.
+	 * @param string $token Raw token.
+	 * @return array{group: array{name: string}, course_titles: list<string>, seats_free: bool, bound_to_other_address: bool}
+	 * @throws CourseException `ccap_invalid_token` 422, `ccap_invite_expired` 410, `ccap_group_not_active` 409, `ccap_rate_limited` 429.
+	 */
+	private static function join_preview( Actor $actor, string $token ): array {
+		self::join_rate_limit( $actor, 'group_join_preview', 60, 120 );
+		if ( null === Invitation::token( $token ) ) {
+			throw new CourseException( 'ccap_invalid_token', 'Invalid invitation.', 422 );
+		}
+		$preview = GroupService::current()->preview( $actor, $token );
+		if ( ! $preview['active'] ) {
+			throw new CourseException( 'ccap_group_not_active', 'Group not active.', 409 );
+		}
+		return array(
+			'group'                  => array( 'name' => $preview['group']['name'] ),
+			'course_titles'          => $preview['course_titles'],
+			'seats_free'             => $preview['seats_free'],
+			'bound_to_other_address' => $preview['bound_to_other_address'],
+		);
+	}
+
+	/**
+	 * R-32: claim a seat; an existing membership returns the same answer (200).
+	 *
+	 * @param Actor $actor Learner.
+	 * @param mixed $token Raw token.
+	 * @return array{seat_id: int, group_uid: string, status: string}
+	 * @throws CourseException Codes of R0-19 R-32.
+	 */
+	private static function join( Actor $actor, $token ): array {
+		self::join_rate_limit( $actor, 'group_join', 10, 30 );
+		$token = Invitation::token( $token );
+		if ( null === $token ) {
+			throw new CourseException( 'ccap_invalid_token', 'Invalid invitation.', 422 );
+		}
+		try {
+			$seat = GroupService::current()->claim( $actor, $token );
+		} catch ( CourseException $e ) {
+			$map = array(
+				'ccap_invalid_token'        => array( 'ccap_invalid_token', 422 ),
+				'ccap_claim_used'           => array( 'ccap_invalid_token', 422 ),
+				'ccap_claim_expired'        => array( 'ccap_invite_expired', 410 ),
+				'ccap_invite_other_account' => array( 'ccap_invite_other_account', 403 ),
+				'ccap_group_not_active'     => array( 'ccap_group_not_active', 409 ),
+				'ccap_group_full'           => array( 'ccap_group_full', 409 ),
+			);
+			if ( ! isset( $map[ $e->error_code ] ) ) {
+				throw $e;
+			}
+			throw new CourseException( $map[ $e->error_code ][0], 'Claim refused.', $map[ $e->error_code ][1] ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Machine code for the entry point.
+		}
+		$db = \CourseCaptain\Storage\Database::current();
+		return array(
+			'seat_id'   => $seat,
+			'group_uid' => (string) $db->scalar( $db->prepare( 'SELECT g.uid FROM `' . $db->table( 'ccap_group' ) . '` g JOIN `' . $db->table( 'ccap_seat' ) . '` s ON s.group_id = g.id WHERE s.id = %d', $seat ) ),
+			'status'    => 'active',
+		);
+	}
+
+	/**
+	 * Rate limit per account and per IP (R0-09 §1.2 brute force; LB 10/account, 30/IP per hour for claims).
+	 *
+	 * @param Actor  $actor    Viewer.
+	 * @param string $bucket   Bucket.
+	 * @param int    $per_user Limit per account and hour.
+	 * @param int    $per_ip   Limit per IP and hour.
+	 * @return void
+	 * @throws CourseException `ccap_rate_limited` 429.
+	 */
+	private static function join_rate_limit( Actor $actor, string $bucket, int $per_user, int $per_ip ): void {
+		$db = \CourseCaptain\Storage\Database::current();
+		RateLimiter::hit( $db, $bucket, $actor->user_id, HOUR_IN_SECONDS, $per_user, time() );
+		RateLimiter::hit( $db, $bucket . '_ip', (int) sprintf( '%u', crc32( ClientIp::rate_key() ) ), HOUR_IN_SECONDS, $per_ip, time() );
 	}
 
 	/**

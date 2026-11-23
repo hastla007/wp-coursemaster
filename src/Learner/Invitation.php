@@ -12,9 +12,7 @@ namespace CourseCaptain\Learner;
 use CourseCaptain\Access\GroupService;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
-use CourseCaptain\Policy\Relations;
 use CourseCaptain\Rest\RestContract;
-use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -27,6 +25,13 @@ defined( 'ABSPATH' ) || exit;
  * learner returns to the invitation. A return target that names an
  * invitation but is not one of this site (other host, other path,
  * malformed token) is ignored. Guests never see group data.
+ *
+ * E-342 (R0-11 L-17, Flow 3): logged-in viewers get the preview of
+ * {@see GroupService::preview()} (owner, courses, free place, deadline,
+ * masked address of a bound invitation, "already member" with course
+ * links, access from another source) and the messages of F3.1–F3.5 with
+ * the next step. Unknown, replaced, used and expired invitations share
+ * one neutral text (F3.3, no existence hint).
  */
 final class Invitation {
 
@@ -149,15 +154,67 @@ final class Invitation {
 			}
 			return $notice . $html . '</p>';
 		}
-		$group = ( new Relations( Database::current() ) )->claim_target( $token )['group'];
-		if ( null === $group ) {
-			return $notice . '<p role="alert">' . esc_html( RestContract::user_message( 'ccap_invalid_token' ) ) . '</p>';
+		try {
+			$preview = GroupService::current()->preview( $actor, $token );
+		} catch ( CourseException $e ) {
+			// F3.2/F3.3: unknown, replaced, used and expired invitations get the same neutral text (no existence hint).
+			return '<p role="alert">' . esc_html( RestContract::user_message( 'ccap_invite_expired' ) ) . '</p><p><a href="' . esc_url( LearningArea::url() ) . '">' . esc_html__( 'Go to my learning', 'course-captain' ) . '</a></p>';
+		}
+		$group = $preview['group'];
+		if ( $preview['already_member'] ) {
+			$html = '<p role="status">' . esc_html( sprintf( /* translators: %s: group name */ __( 'You are already a member of the group "%s".', 'course-captain' ), (string) $group['name'] ) ) . '</p>';
+			return $notice . $html . self::course_links( $preview['course_ids'] );
 		}
 		$html  = '<p>' . esc_html( sprintf( /* translators: %s: group name */ __( 'You have been invited to the group "%s".', 'course-captain' ), (string) $group['name'] ) ) . '</p>';
+		$html .= '<ul class="ccap-invitation">';
+		if ( '' !== $preview['owner_name'] ) {
+			$html .= '<li>' . esc_html( sprintf( /* translators: %s: display name */ __( 'Managed by: %s', 'course-captain' ), $preview['owner_name'] ) ) . '</li>';
+		}
+		if ( array() !== $preview['course_titles'] ) {
+			$html .= '<li>' . esc_html( sprintf( /* translators: %s: list of course titles */ __( 'Courses: %s', 'course-captain' ), implode( ', ', $preview['course_titles'] ) ) ) . '</li>';
+		}
+		$html .= '<li>' . esc_html( $preview['seats_free'] ? __( 'A place in the group is free for you.', 'course-captain' ) : __( 'There is no free place in the group at the moment.', 'course-captain' ) ) . '</li>';
+		if ( null !== $preview['expires_at'] ) {
+			$html .= '<li>' . esc_html( sprintf( /* translators: %s: date */ __( 'Valid until: %s', 'course-captain' ), wp_date( (string) get_option( 'date_format' ), (int) strtotime( $preview['expires_at'] . ' UTC' ) ) ) ) . '</li>';
+		}
+		$html .= '</ul>';
+		if ( ! $preview['active'] ) {
+			return $notice . $html . '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( 'ccap_group_not_active' ) ) . '</p>';
+		}
+		if ( $preview['bound_to_other_address'] ) {
+			return $notice . $html . '<p class="ccap-error" role="alert">' . esc_html( sprintf( /* translators: %s: masked email address */ __( 'This invitation was sent to %s and can only be accepted with that account. Log in with that account or ask the person who manages the group for a new invitation.', 'course-captain' ), (string) $preview['invite_email_masked'] ) ) . '</p>';
+		}
+		if ( ! $preview['seats_free'] ) {
+			return $notice . $html . '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( 'ccap_group_full' ) ) . '</p>';
+		}
+		if ( null !== $preview['invite_email_masked'] ) {
+			$html .= '<p>' . esc_html( sprintf( /* translators: %s: masked email address */ __( 'This invitation was sent to %s. You can accept it with your account.', 'course-captain' ), (string) $preview['invite_email_masked'] ) ) . '</p>';
+		}
+		if ( $preview['access_elsewhere'] ) {
+			$html .= '<p>' . esc_html__( 'You already have access to these courses. If you accept, you still take one place in the group.', 'course-captain' ) . '</p>';
+		}
 		$html .= '<form method="post" action="' . esc_url( LearningArea::url() ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false );
 		$html .= '<input type="hidden" name="ccap_do" value="claim"><input type="hidden" name="' . esc_attr( self::PARAM ) . '" value="' . esc_attr( $token ) . '">';
 		$html .= '<button type="submit" class="ccap-button">' . esc_html__( 'Accept invitation', 'course-captain' ) . '</button></form>';
 		return $notice . $html;
+	}
+
+	/**
+	 * Links to the course rooms of the group courses ("open course").
+	 *
+	 * @param array $course_ids Courses.
+	 * @phpstan-param list<int> $course_ids
+	 * @return string
+	 */
+	private static function course_links( array $course_ids ): string {
+		$html = '<ul>';
+		foreach ( $course_ids as $course ) {
+			$post = get_post( $course );
+			if ( $post instanceof \WP_Post && 'publish' === $post->post_status ) {
+				$html .= '<li><a href="' . esc_url( LearningArea::url( 'kurs/' . LearningArea::course_uid( $course ) ) ) . '">' . esc_html( sprintf( /* translators: %s: course title */ __( 'Open the course %s', 'course-captain' ), $post->post_title ) ) . '</a></li>';
+			}
+		}
+		return $html . '</ul>';
 	}
 
 	/**
@@ -180,6 +237,7 @@ final class Invitation {
 		} catch ( CourseException $e ) {
 			return add_query_arg( 'ccap_status', $e->error_code, self::url( $token ) );
 		}
+		LearningArea::flash( $actor->user_id, 'joined' );
 		return LearningArea::url();
 	}
 }

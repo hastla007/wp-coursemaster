@@ -8,7 +8,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
-"PO-Revision-Date: 2026-11-23T14:30:40+00:00\n"
+"PO-Revision-Date: 2026-11-23T14:51:26+00:00\n"
 "Language: de_DE\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
@@ -58,9 +58,9 @@ msgid "This content is available to course participants."
 msgstr "Dieser Inhalt steht Kursteilnehmenden zur Verfügung."
 
 #: src/Admin/AuthoringRoutes.php:123
-#: src/Learner/LearnerRoutes.php:186
+#: src/Learner/LearnerRoutes.php:193
 #: src/Ops/Monitor.php:144
-#: src/Rest/RestContract.php:233
+#: src/Rest/RestContract.php:240
 msgid "Please log in."
 msgstr "Bitte melde dich an."
 
@@ -107,6 +107,8 @@ msgstr "alle"
 #: src/Admin/GroupsScreen.php:344
 #: src/Admin/GroupsScreen.php:356
 #: src/Admin/GroupsScreen.php:378
+#: src/Learner/AssignmentView.php:58
+#: src/Learner/GroupsView.php:272
 #: src/Ops/OpsScreen.php:217
 #: src/Ops/OpsScreen.php:287
 #: src/Ops/OpsScreen.php:370
@@ -843,6 +845,7 @@ msgid "New group link (shown only now, copy it):"
 msgstr "Neuer Gruppenlink (wird nur jetzt angezeigt, bitte kopieren):"
 
 #: src/Admin/GroupsScreen.php:356
+#: src/Learner/GroupsView.php:268
 msgid "Members and invitations"
 msgstr "Mitglieder und Einladungen"
 
@@ -851,10 +854,12 @@ msgid "Address"
 msgstr "Adresse"
 
 #: src/Admin/GroupsScreen.php:356
+#: src/Learner/GroupsView.php:272
 msgid "Since"
 msgstr "Seit"
 
 #: src/Admin/GroupsScreen.php:356
+#: src/Learner/GroupsView.php:272
 msgid "Actions"
 msgstr "Aktionen"
 
@@ -955,11 +960,13 @@ msgid "only the invited address (disables the group link)"
 msgstr "nur die eingeladene Adresse (deaktiviert den Gruppenlink)"
 
 #: src/Admin/GroupsScreen.php:380
+#: src/Learner/GroupsView.php:368
 #: src/Notification/NotificationPrefs.php:225
 msgid "Save"
 msgstr "Speichern"
 
 #: src/Admin/GroupsScreen.php:381
+#: src/Learner/GroupsView.php:381
 msgid "Rename"
 msgstr "Umbenennen"
 
@@ -1103,7 +1110,7 @@ msgstr "Ausblenden"
 
 #: src/Admin/Notices.php:148
 #: src/Ops/OpsStatus.php:151
-#: src/Rest/RestContract.php:223
+#: src/Rest/RestContract.php:230
 msgid "Error"
 msgstr "Fehler"
 
@@ -1838,7 +1845,7 @@ msgid "Learning"
 msgstr "Lernen"
 
 #: src/Admin/SettingsFields.php:47
-#: src/Learner/ExamRoom.php:576
+#: src/Learner/ExamRoom.php:516
 msgid "Exams"
 msgstr "Prüfungen"
 
@@ -2466,7 +2473,9 @@ msgid "Strict"
 msgstr "Streng"
 
 #: src/Admin/SettingsFields.php:495
-#: src/Learner/LessonView.php:240
+#: src/Learner/LearningArea.php:511
+#: src/Learner/LessonView.php:244
+#: src/Learner/TrainerView.php:416
 msgid "Practice"
 msgstr "Übung"
 
@@ -3360,7 +3369,7 @@ msgid "skipped"
 msgstr "übersprungen"
 
 #: src/Admin/SetupWizard.php:672
-#: src/Learner/ExamRoom.php:131
+#: src/Learner/ExamRoom.php:135
 msgid "open"
 msgstr "offen"
 
@@ -3738,7 +3747,7 @@ msgid "has successfully completed the course"
 msgstr "hat den Kurs erfolgreich abgeschlossen"
 
 #: src/Course/PostTypes.php:80
-#: src/Learner/LessonView.php:529
+#: src/Learner/LessonView.php:533
 msgid "Lessons"
 msgstr "Lektionen"
 
@@ -4036,6 +4045,234 @@ msgstr "Umgebungstyp"
 msgid "database restored from an older state"
 msgstr "Datenbank aus einem älteren Stand wiederhergestellt"
 
+#: src/Learner/AssignmentView.php:45
+msgid "Assignment"
+msgstr "Aufgabe"
+
+#: src/Learner/AssignmentView.php:63
+msgid "This assignment is no longer part of the course. You can still read your submissions."
+msgstr "Diese Aufgabe gehört nicht mehr zum Kurs. Deine Abgaben kannst du weiterhin lesen."
+
+#: src/Learner/AssignmentView.php:68
+msgid "Earlier versions"
+msgstr "Frühere Fassungen"
+
+#. translators: 1: version number, 2: status text
+#: src/Learner/AssignmentView.php:74
+#, php-format
+msgid "Version %1$s: %2$s"
+msgstr "Fassung %1$s: %2$s"
+
+#: src/Learner/AssignmentView.php:142
+msgid "Your draft has been saved. It is not submitted yet."
+msgstr "Dein Entwurf ist gespeichert. Er ist noch nicht abgegeben."
+
+#: src/Learner/AssignmentView.php:143
+msgid "The file has been removed from your draft."
+msgstr "Die Datei wurde aus deinem Entwurf entfernt."
+
+#: src/Learner/AssignmentView.php:144
+msgid "Your assignment has been submitted. You cannot change it any more."
+msgstr "Deine Aufgabe ist abgegeben. Du kannst sie nicht mehr ändern."
+
+#: src/Learner/AssignmentView.php:153
+msgid "Your draft has been saved. To submit it, please confirm that you are finished."
+msgstr "Dein Entwurf ist gespeichert. Bestätige zum Abgeben bitte, dass du fertig bist."
+
+#: src/Learner/AssignmentView.php:154
+msgid "Your text is too short. Please check the minimum number of characters."
+msgstr "Dein Text ist zu kurz. Bitte beachte die Mindestzahl an Zeichen."
+
+#: src/Learner/AssignmentView.php:155
+msgid "Your text is too long. Please check the maximum number of characters."
+msgstr "Dein Text ist zu lang. Bitte beachte die Höchstzahl an Zeichen."
+
+#: src/Learner/AssignmentView.php:156
+#: src/Rest/RestContract.php:266
+msgid "Please add the required text or file before submitting."
+msgstr "Bitte füge vor dem Einreichen den erforderlichen Text oder die Datei hinzu."
+
+#: src/Learner/AssignmentView.php:157
+msgid "This file type is not allowed for this assignment."
+msgstr "Dieser Dateityp ist für diese Aufgabe nicht erlaubt."
+
+#: src/Learner/AssignmentView.php:158
+msgid "The content of the file does not match its type."
+msgstr "Der Inhalt der Datei passt nicht zu ihrem Typ."
+
+#: src/Learner/AssignmentView.php:159
+msgid "The file is too large."
+msgstr "Die Datei ist zu groß."
+
+#: src/Learner/AssignmentView.php:160
+msgid "You have already added the maximum number of files."
+msgstr "Du hast bereits die höchstmögliche Zahl an Dateien hinzugefügt."
+
+#: src/Learner/AssignmentView.php:161
+msgid "This file type is not allowed for security reasons."
+msgstr "Dieser Dateityp ist aus Sicherheitsgründen nicht erlaubt."
+
+#: src/Learner/AssignmentView.php:162
+msgid "The file was rejected by the security check."
+msgstr "Die Datei wurde von der Sicherheitsprüfung abgelehnt."
+
+#: src/Learner/AssignmentView.php:163
+msgid "This assignment does not take files."
+msgstr "Bei dieser Aufgabe kannst du keine Dateien abgeben."
+
+#: src/Learner/AssignmentView.php:164
+msgid "Your files do not fit the assignment any more. Please remove them and add suitable files."
+msgstr "Deine Dateien passen nicht mehr zur Aufgabe. Bitte entferne sie und füge passende Dateien hinzu."
+
+#: src/Learner/AssignmentView.php:165
+msgid "The file could not be uploaded. Please try again."
+msgstr "Die Datei konnte nicht hochgeladen werden. Bitte versuche es noch einmal."
+
+#. translators: 1: minimum, 2: maximum number of characters
+#: src/Learner/AssignmentView.php:186
+#, php-format
+msgid "Text: %1$s to %2$s characters"
+msgstr "Text: %1$s bis %2$s Zeichen"
+
+#. translators: %s: maximum number of characters
+#: src/Learner/AssignmentView.php:192
+#, php-format
+msgid "Text: up to %s characters"
+msgstr "Text: bis zu %s Zeichen"
+
+#. translators: %s: points
+#: src/Learner/AssignmentView.php:203
+#, php-format
+msgid "Maximum points: %s"
+msgstr "Höchstpunktzahl: %s"
+
+#. translators: 1: maximum points, 2: points needed to pass
+#: src/Learner/AssignmentView.php:208
+#, php-format
+msgid "Maximum points: %1$s, passed from %2$s points"
+msgstr "Höchstpunktzahl: %1$s, bestanden ab %2$s Punkten"
+
+#: src/Learner/AssignmentView.php:213
+msgid "What to hand in"
+msgstr "Was du abgibst"
+
+#. translators: 1: number of files, 2: file types, 3: size, e.g. "10 MB"
+#: src/Learner/AssignmentView.php:229
+#, php-format
+msgid "Files: up to %1$s, types %2$s, each at most %3$s"
+msgstr "Dateien: bis zu %1$s, Typen %2$s, je höchstens %3$s"
+
+#: src/Learner/AssignmentView.php:244
+msgid "Not started yet."
+msgstr "Noch nicht begonnen."
+
+#: src/Learner/AssignmentView.php:248
+msgid "Draft – not submitted yet."
+msgstr "Entwurf – noch nicht abgegeben."
+
+#. translators: %s: date
+#: src/Learner/AssignmentView.php:252
+#, php-format
+msgid "Submitted on %s. You cannot change it any more; it is waiting for grading."
+msgstr "Abgegeben am %s. Du kannst die Abgabe nicht mehr ändern; sie wartet auf die Bewertung."
+
+#. translators: %s: date
+#: src/Learner/AssignmentView.php:258
+#, php-format
+msgid "Returned on %s with a comment. Please revise it and submit it again."
+msgstr "Am %s mit einem Kommentar zurückgegeben. Bitte überarbeite sie und gib sie erneut ab."
+
+#. translators: %s: date
+#: src/Learner/AssignmentView.php:264
+#, php-format
+msgid "Graded on %s."
+msgstr "Bewertet am %s."
+
+#: src/Learner/AssignmentView.php:282
+msgid "Comment from the grader:"
+msgstr "Kommentar der bewertenden Person:"
+
+#. translators: 1: points reached, 2: maximum points
+#: src/Learner/AssignmentView.php:290
+#: src/Learner/ExamRoom.php:358
+#, php-format
+msgid "Points: %1$s of %2$s"
+msgstr "Punkte: %1$s von %2$s"
+
+#: src/Learner/AssignmentView.php:297
+#: src/Learner/ExamRoom.php:345
+msgid "Passed"
+msgstr "Bestanden"
+
+#: src/Learner/AssignmentView.php:297
+#: src/Learner/ExamRoom.php:345
+msgid "Not passed"
+msgstr "Nicht bestanden"
+
+#: src/Learner/AssignmentView.php:300
+msgid "Feedback:"
+msgstr "Rückmeldung:"
+
+#: src/Learner/AssignmentView.php:304
+msgid "Your text"
+msgstr "Dein Text"
+
+#: src/Learner/AssignmentView.php:327
+msgid "Revise your submission"
+msgstr "Abgabe überarbeiten"
+
+#: src/Learner/AssignmentView.php:327
+msgid "Your submission"
+msgstr "Deine Abgabe"
+
+#: src/Learner/AssignmentView.php:331
+#: src/Learner/AssignmentView.php:365
+msgid "Save draft"
+msgstr "Entwurf speichern"
+
+#. translators: 1: minimum, 2: maximum number of characters
+#: src/Learner/AssignmentView.php:337
+#, php-format
+msgid "Between %1$s and %2$s characters."
+msgstr "Zwischen %1$s und %2$s Zeichen."
+
+#. translators: %s: maximum number of characters
+#: src/Learner/AssignmentView.php:343
+#, php-format
+msgid "Up to %s characters."
+msgstr "Bis zu %s Zeichen."
+
+#: src/Learner/AssignmentView.php:346
+#: src/Learner/QuestionForm.php:103
+msgid "Your answer"
+msgstr "Deine Antwort"
+
+#: src/Learner/AssignmentView.php:351
+msgid "Files in this version:"
+msgstr "Dateien in dieser Fassung:"
+
+#. translators: %s: file name
+#: src/Learner/AssignmentView.php:356
+#, php-format
+msgid "Remove %s"
+msgstr "%s entfernen"
+
+#: src/Learner/AssignmentView.php:363
+msgid "Add a file"
+msgstr "Datei hinzufügen"
+
+#: src/Learner/AssignmentView.php:366
+msgid "Submit"
+msgstr "Abgeben"
+
+#: src/Learner/AssignmentView.php:366
+msgid "I am finished. I know that I cannot change my submission afterwards."
+msgstr "Ich bin fertig. Mir ist klar, dass ich meine Abgabe danach nicht mehr ändern kann."
+
+#: src/Learner/AssignmentView.php:367
+msgid "Submit assignment"
+msgstr "Aufgabe abgeben"
+
 #: src/Learner/ExamRoom.php:81
 msgid "Exam result"
 msgstr "Prüfungsergebnis"
@@ -4083,143 +4320,117 @@ msgstr "Die Musterantwort wird angezeigt. Bitte schätze deine Antwort ein."
 msgid "No connection. Your answers are kept on this device and sent as soon as the connection is back."
 msgstr "Keine Verbindung. Deine Antworten bleiben auf diesem Gerät gespeichert und werden gesendet, sobald die Verbindung wieder da ist."
 
-#: src/Learner/ExamRoom.php:121
+#: src/Learner/ExamRoom.php:122
 msgid "Please confirm that you want to submit the exam."
 msgstr "Bitte bestätige, dass du die Prüfung abgeben möchtest."
 
-#: src/Learner/ExamRoom.php:126
+#: src/Learner/ExamRoom.php:123
+msgid "Please give every item of the ordering question its own position. Your other answers have been saved."
+msgstr "Bitte gib bei der Reihenfolge-Frage jedem Eintrag eine eigene Position. Deine übrigen Antworten sind gespeichert."
+
+#: src/Learner/ExamRoom.php:130
 msgid "Questions"
 msgstr "Fragen"
 
-#: src/Learner/ExamRoom.php:131
+#: src/Learner/ExamRoom.php:135
 msgid "answered"
 msgstr "beantwortet"
 
 #. translators: %s: answer state ("answered" or "open")
-#: src/Learner/ExamRoom.php:134
+#: src/Learner/ExamRoom.php:138
 #, php-format
 msgid "%s, marked for review"
 msgstr "%s, zur Überprüfung markiert"
 
 #. translators: %s: question number
-#: src/Learner/ExamRoom.php:139
+#: src/Learner/ExamRoom.php:143
 #, php-format
 msgid "Question %s"
 msgstr "Frage %s"
 
-#: src/Learner/ExamRoom.php:146
+#: src/Learner/ExamRoom.php:150
 msgid "Connection is back. All answers have been sent."
 msgstr "Die Verbindung ist wieder da. Alle Antworten wurden gesendet."
 
-#: src/Learner/ExamRoom.php:148
 #: src/Learner/ExamRoom.php:152
+#: src/Learner/ExamRoom.php:156
 msgid "Save answers"
 msgstr "Antworten speichern"
 
-#: src/Learner/ExamRoom.php:153
+#: src/Learner/ExamRoom.php:157
 msgid "Submit the exam"
 msgstr "Prüfung abgeben"
 
-#: src/Learner/ExamRoom.php:154
+#: src/Learner/ExamRoom.php:158
 msgid "I want to submit my answers now. I cannot change them afterwards."
 msgstr "Ich möchte meine Antworten jetzt abgeben. Danach kann ich sie nicht mehr ändern."
 
-#: src/Learner/ExamRoom.php:155
+#: src/Learner/ExamRoom.php:159
 msgid "Submit exam"
 msgstr "Prüfung abgeben"
 
-#: src/Learner/ExamRoom.php:156
+#: src/Learner/ExamRoom.php:160
 msgid "Cancel the exam"
 msgstr "Prüfung abbrechen"
 
-#: src/Learner/ExamRoom.php:156
+#: src/Learner/ExamRoom.php:160
 msgid "A cancelled attempt is not evaluated. You will be asked to confirm."
 msgstr "Ein abgebrochener Versuch wird nicht gewertet. Du wirst um Bestätigung gebeten."
 
-#: src/Learner/ExamRoom.php:157
+#: src/Learner/ExamRoom.php:161
 msgid "Cancel exam"
 msgstr "Prüfung abbrechen"
 
-#: src/Learner/ExamRoom.php:163
-#: src/Learner/LessonView.php:237
+#: src/Learner/ExamRoom.php:167
+#: src/Learner/LessonView.php:241
 msgid "Exam"
 msgstr "Prüfung"
 
-#: src/Learner/ExamRoom.php:281
-#: src/Learner/ExamRoom.php:282
-msgid "Choose one answer."
-msgstr "Wähle eine Antwort."
-
-#: src/Learner/ExamRoom.php:283
-msgid "Choose one or more answers."
-msgstr "Wähle eine oder mehrere Antworten."
-
-#: src/Learner/ExamRoom.php:284
-msgid "Enter a number."
-msgstr "Gib eine Zahl ein."
-
-#: src/Learner/ExamRoom.php:285
-msgid "Match each item."
-msgstr "Ordne jeden Eintrag zu."
-
-#: src/Learner/ExamRoom.php:286
-msgid "Answer in your mind, then compare with the model answer."
-msgstr "Beantworte die Frage im Kopf und vergleiche dann mit der Musterantwort."
-
 #. translators: 1: question number, 2: number of questions
-#: src/Learner/ExamRoom.php:292
+#: src/Learner/ExamRoom.php:263
 #, php-format
 msgid "Question %1$s of %2$s"
 msgstr "Frage %1$s von %2$s"
 
-#: src/Learner/ExamRoom.php:317
-msgid "Your answer"
-msgstr "Deine Antwort"
-
-#. translators: %s: unit, e.g. "km"
-#: src/Learner/ExamRoom.php:319
-#, php-format
-msgid "Your answer (in %s)"
-msgstr "Deine Antwort (in %s)"
-
-#: src/Learner/ExamRoom.php:330
-msgid "— choose —"
-msgstr "— auswählen —"
-
-#: src/Learner/ExamRoom.php:340
+#: src/Learner/ExamRoom.php:276
+#: src/Learner/TrainerView.php:301
 msgid "Show model answer"
 msgstr "Musterantwort zeigen"
 
-#: src/Learner/ExamRoom.php:344
+#: src/Learner/ExamRoom.php:280
+#: src/Learner/TrainerView.php:303
 msgid "Model answer:"
 msgstr "Musterantwort:"
 
-#: src/Learner/ExamRoom.php:345
+#: src/Learner/ExamRoom.php:281
+#: src/Learner/TrainerView.php:304
 msgid "Did you know the answer?"
 msgstr "Wusstest du die Antwort?"
 
-#: src/Learner/ExamRoom.php:347
+#: src/Learner/ExamRoom.php:283
+#: src/Learner/TrainerView.php:305
 msgid "Yes, I knew it"
 msgstr "Ja, ich wusste es"
 
-#: src/Learner/ExamRoom.php:348
+#: src/Learner/ExamRoom.php:284
+#: src/Learner/TrainerView.php:306
 msgid "No, I did not know it"
 msgstr "Nein, ich wusste es nicht"
 
-#: src/Learner/ExamRoom.php:357
+#: src/Learner/ExamRoom.php:297
 msgid "This question type cannot be answered in this view yet. You can still submit the exam; the question counts as unanswered."
 msgstr "Dieser Fragetyp kann in dieser Ansicht noch nicht beantwortet werden. Du kannst die Prüfung trotzdem abgeben; die Frage zählt als unbeantwortet."
 
-#: src/Learner/ExamRoom.php:359
+#: src/Learner/ExamRoom.php:299
 msgid "Mark for review"
 msgstr "Zur Überprüfung markieren"
 
-#: src/Learner/ExamRoom.php:372
+#: src/Learner/ExamRoom.php:312
 msgid "All questions are answered."
 msgstr "Alle Fragen sind beantwortet."
 
 #. translators: %s: number of unanswered questions
-#: src/Learner/ExamRoom.php:377
+#: src/Learner/ExamRoom.php:317
 #, php-format
 msgid "%s question is unanswered."
 msgid_plural "%s questions are unanswered."
@@ -4227,460 +4438,983 @@ msgstr[0] "%s Frage ist unbeantwortet."
 msgstr[1] "%s Fragen sind unbeantwortet."
 
 #. translators: %s: number of questions marked for review
-#: src/Learner/ExamRoom.php:381
+#: src/Learner/ExamRoom.php:321
 #, php-format
 msgid "%s question is marked for review."
 msgid_plural "%s questions are marked for review."
 msgstr[0] "%s Frage ist zur Überprüfung markiert."
 msgstr[1] "%s Fragen sind zur Überprüfung markiert."
 
-#: src/Learner/ExamRoom.php:396
+#: src/Learner/ExamRoom.php:336
 msgid "The time is up. Your answers have been submitted."
 msgstr "Die Zeit ist abgelaufen. Deine Antworten wurden abgegeben."
 
-#: src/Learner/ExamRoom.php:399
-#: src/Rest/RestContract.php:254
+#: src/Learner/ExamRoom.php:339
+#: src/Rest/RestContract.php:261
 msgid "This attempt was cancelled."
 msgstr "Dieser Versuch wurde abgebrochen."
 
-#: src/Learner/ExamRoom.php:403
+#: src/Learner/ExamRoom.php:343
 msgid "Your answers have been submitted. The result is not available yet."
 msgstr "Deine Antworten wurden abgegeben. Das Ergebnis liegt noch nicht vor."
 
-#: src/Learner/ExamRoom.php:405
-msgid "Passed"
-msgstr "Bestanden"
-
-#: src/Learner/ExamRoom.php:405
-msgid "Not passed"
-msgstr "Nicht bestanden"
-
 #. translators: 1: correct answers, 2: number of questions
-#: src/Learner/ExamRoom.php:409
+#: src/Learner/ExamRoom.php:349
 #, php-format
 msgid "%1$s of %2$s question answered correctly."
 msgid_plural "%1$s of %2$s questions answered correctly."
 msgstr[0] "%1$s von %2$s Frage richtig beantwortet."
 msgstr[1] "%1$s von %2$s Fragen richtig beantwortet."
 
-#. translators: 1: points reached, 2: maximum points
-#: src/Learner/ExamRoom.php:418
-#, php-format
-msgid "Points: %1$s of %2$s"
-msgstr "Punkte: %1$s von %2$s"
-
-#: src/Learner/ExamRoom.php:427
+#: src/Learner/ExamRoom.php:367
 msgid "Exam parts"
 msgstr "Prüfungsteile"
 
 #. translators: %s: part name
-#: src/Learner/ExamRoom.php:435
+#: src/Learner/ExamRoom.php:375
 #, php-format
 msgid "%s: no questions in this attempt"
 msgstr "%s: keine Fragen in diesem Versuch"
 
 #. translators: 1: part name, 2: correct answers, 3: number of questions, 4: "passed" or "not passed"
-#: src/Learner/ExamRoom.php:440
+#: src/Learner/ExamRoom.php:380
 #, php-format
 msgid "%1$s: %2$s of %3$s correct, %4$s"
 msgstr "%1$s: %2$s von %3$s richtig, %4$s"
 
-#: src/Learner/ExamRoom.php:444
+#: src/Learner/ExamRoom.php:384
 msgid "passed"
 msgstr "bestanden"
 
-#: src/Learner/ExamRoom.php:444
+#: src/Learner/ExamRoom.php:384
 msgid "not passed"
 msgstr "nicht bestanden"
 
 #. translators: 1: question number, 2: "correct" or "incorrect"
-#: src/Learner/ExamRoom.php:455
+#: src/Learner/ExamRoom.php:395
 #, php-format
 msgid "Question %1$s: %2$s"
 msgstr "Frage %1$s: %2$s"
 
-#: src/Learner/ExamRoom.php:457
+#: src/Learner/ExamRoom.php:397
 msgid "correct"
 msgstr "richtig"
 
-#: src/Learner/ExamRoom.php:457
+#: src/Learner/ExamRoom.php:397
 msgid "incorrect"
 msgstr "falsch"
 
-#: src/Learner/ExamRoom.php:461
+#: src/Learner/ExamRoom.php:401
 msgid "Back to my learning"
 msgstr "Zurück zu meinem Lernbereich"
 
-#: src/Learner/ExamRoom.php:487
+#: src/Learner/ExamRoom.php:427
 msgid "Do you really want to cancel the exam? The attempt is not evaluated and cannot be continued. Your answers so far are kept."
 msgstr "Willst du die Prüfung wirklich abbrechen? Der Versuch wird nicht gewertet und kann nicht fortgesetzt werden. Deine bisherigen Antworten bleiben gespeichert."
 
-#: src/Learner/ExamRoom.php:488
+#: src/Learner/ExamRoom.php:428
 msgid "Yes, cancel the exam"
 msgstr "Ja, Prüfung abbrechen"
 
-#: src/Learner/ExamRoom.php:489
+#: src/Learner/ExamRoom.php:429
 msgid "No, continue the exam"
 msgstr "Nein, Prüfung fortsetzen"
 
-#: src/Learner/ExamRoom.php:513
+#: src/Learner/ExamRoom.php:453
 msgid "The exam was cancelled. The attempt was not evaluated."
 msgstr "Die Prüfung wurde abgebrochen. Der Versuch wurde nicht gewertet."
 
 #. translators: %s: exam version label
-#: src/Learner/ExamRoom.php:579
+#: src/Learner/ExamRoom.php:519
 #, php-format
 msgid "Exam %s"
 msgstr "Prüfung %s"
 
 #. translators: %s: number of minutes
-#: src/Learner/ExamRoom.php:586
+#: src/Learner/ExamRoom.php:526
 #, php-format
 msgid "Time limit: %s minute"
 msgid_plural "Time limit: %s minutes"
 msgstr[0] "Zeitlimit: %s Minute"
 msgstr[1] "Zeitlimit: %s Minuten"
 
-#: src/Learner/ExamRoom.php:592
+#: src/Learner/ExamRoom.php:532
 msgid "Continue exam"
 msgstr "Prüfung fortsetzen"
 
-#: src/Learner/ExamRoom.php:594
+#: src/Learner/ExamRoom.php:534
 msgid "Start exam"
 msgstr "Prüfung starten"
 
-#: src/Learner/Invitation.php:143
+#: src/Learner/GroupsView.php:81
+msgid "You do not manage any group."
+msgstr "Du verwaltest keine Gruppe."
+
+#. translators: %s: list of course titles
+#: src/Learner/GroupsView.php:90
+#: src/Learner/GroupsView.php:133
+#: src/Learner/Invitation.php:174
+#, php-format
+msgid "Courses: %s"
+msgstr "Kurse: %s"
+
+#: src/Learner/GroupsView.php:98
+#: src/Learner/LearningArea.php:386
+msgid "My groups"
+msgstr "Meine Gruppen"
+
+#: src/Learner/GroupsView.php:127
+msgid "Back to my groups"
+msgstr "Zurück zu meinen Gruppen"
+
+#: src/Learner/GroupsView.php:129
+msgid "Places"
+msgstr "Plätze"
+
+#. translators: %s: date
+#: src/Learner/GroupsView.php:137
+#: src/Learner/Invitation.php:178
+#, php-format
+msgid "Valid until: %s"
+msgstr "Gültig bis: %s"
+
+#: src/Learner/GroupsView.php:141
+msgid "This group is not active. You can view it, but you cannot invite anyone or change it."
+msgstr "Diese Gruppe ist nicht aktiv. Du kannst sie ansehen, aber niemanden einladen und nichts ändern."
+
+#: src/Learner/GroupsView.php:270
+msgid "Nobody has been invited yet."
+msgstr "Noch niemand eingeladen."
+
+#: src/Learner/GroupsView.php:272
+msgid "Person"
+msgstr "Person"
+
+#. translators: %s: person
+#: src/Learner/GroupsView.php:279
+#, php-format
+msgid "Free the place of %s"
+msgstr "Platz von %s freigeben"
+
+#. translators: %s: person
+#: src/Learner/GroupsView.php:282
+#, php-format
+msgid "Send the invitation to %s again"
+msgstr "Einladung an %s erneut senden"
+
+#. translators: %s: person
+#: src/Learner/GroupsView.php:284
+#, php-format
+msgid "Withdraw the invitation of %s"
+msgstr "Einladung an %s zurückziehen"
+
+#. translators: %s: person
+#: src/Learner/GroupsView.php:322
+#, php-format
+msgid "Free the place of %s? The person loses access to the group courses at once. Their learning progress is kept, and the place is free for someone else."
+msgstr "Platz von %s freigeben? Die Person verliert sofort den Zugang zu den Gruppenkursen. Ihr Lernfortschritt bleibt erhalten, und der Platz ist für jemand anderen frei."
+
+#: src/Learner/GroupsView.php:324
+msgid "Yes, free the place"
+msgstr "Ja, Platz freigeben"
+
+#: src/Learner/GroupsView.php:324
+msgid "No, keep the member"
+msgstr "Nein, Mitglied behalten"
+
+#: src/Learner/GroupsView.php:337
+msgid "Invite by email"
+msgstr "Per E-Mail einladen"
+
+#: src/Learner/GroupsView.php:339
+msgid "Email addresses"
+msgstr "E-Mail-Adressen"
+
+#: src/Learner/GroupsView.php:339
+msgid "One address per line or separated by commas, at most 200. Every invitation takes one place until it is accepted or expires. The address is only used for the invitation."
+msgstr "Eine Adresse je Zeile oder durch Kommas getrennt, höchstens 200. Jede Einladung belegt einen Platz, bis sie angenommen wird oder abläuft. Die Adresse wird nur für die Einladung verwendet."
+
+#: src/Learner/GroupsView.php:340
+msgid "Send invitations"
+msgstr "Einladungen senden"
+
+#: src/Learner/GroupsView.php:355
+msgid "Group link"
+msgstr "Gruppenlink"
+
+#: src/Learner/GroupsView.php:357
+msgid "New group link (shown only now – copy it and keep it safe):"
+msgstr "Neuer Gruppenlink (wird nur jetzt angezeigt – kopiere ihn und bewahre ihn sicher auf):"
+
+#: src/Learner/GroupsView.php:360
+msgid "The group link is switched off: only people you invite by email can join, and only with the invited address."
+msgstr "Der Gruppenlink ist ausgeschaltet: Beitreten können nur Personen, die du per E-Mail einlädst, und nur mit der eingeladenen Adresse."
+
+#: src/Learner/GroupsView.php:362
+msgid "A group link exists. Anyone with the link can take a free place. For security the link is only shown once, when it is created. If the link got into the wrong hands, create a new one: the old link stops working at once."
+msgstr "Es gibt einen Gruppenlink. Wer den Link hat, kann einen freien Platz belegen. Aus Sicherheitsgründen wird der Link nur einmal angezeigt, wenn er erstellt wird. Ist der Link in falsche Hände geraten, erstelle einen neuen: Der alte Link funktioniert dann sofort nicht mehr."
+
+#: src/Learner/GroupsView.php:362
+msgid "There is no group link yet. Anyone with the link can take a free place."
+msgstr "Es gibt noch keinen Gruppenlink. Wer den Link hat, kann einen freien Platz belegen."
+
+#: src/Learner/GroupsView.php:363
+msgid "Create a new group link"
+msgstr "Neuen Gruppenlink erstellen"
+
+#: src/Learner/GroupsView.php:363
+msgid "Create a group link"
+msgstr "Gruppenlink erstellen"
+
+#: src/Learner/GroupsView.php:365
+msgid "Who may join?"
+msgstr "Wer darf beitreten?"
+
+#: src/Learner/GroupsView.php:366
+msgid "Anyone with an invitation or the group link"
+msgstr "Alle mit einer Einladung oder dem Gruppenlink"
+
+#: src/Learner/GroupsView.php:367
+msgid "Only the invited email address"
+msgstr "Nur die eingeladene E-Mail-Adresse"
+
+#: src/Learner/GroupsView.php:367
+msgid "An invitation can then only be accepted with an account that uses the invited address. The group link is switched off."
+msgstr "Eine Einladung kann dann nur mit einem Konto angenommen werden, das die eingeladene Adresse verwendet. Der Gruppenlink ist ausgeschaltet."
+
+#: src/Learner/GroupsView.php:380
+msgid "Rename the group"
+msgstr "Gruppe umbenennen"
+
+#: src/Learner/GroupsView.php:381
+msgid "Group name"
+msgstr "Gruppenname"
+
+#: src/Learner/GroupsView.php:396
+msgid "A new group link has been created. The old link no longer works."
+msgstr "Ein neuer Gruppenlink wurde erstellt. Der alte Link funktioniert nicht mehr."
+
+#: src/Learner/GroupsView.php:397
+msgid "The setting has been saved."
+msgstr "Die Einstellung ist gespeichert."
+
+#: src/Learner/GroupsView.php:398
+msgid "The group has been renamed."
+msgstr "Die Gruppe wurde umbenannt."
+
+#: src/Learner/GroupsView.php:399
+msgid "The invitation will be sent again."
+msgstr "Die Einladung wird erneut gesendet."
+
+#: src/Learner/GroupsView.php:400
+msgid "The invitation has been withdrawn. The place is free again."
+msgstr "Die Einladung wurde zurückgezogen. Der Platz ist wieder frei."
+
+#: src/Learner/GroupsView.php:401
+msgid "The place has been freed. The person no longer has access through this group; their learning progress is kept."
+msgstr "Der Platz wurde freigegeben. Die Person hat über diese Gruppe keinen Zugang mehr; ihr Lernfortschritt bleibt erhalten."
+
+#. translators: %s: number of addresses
+#: src/Learner/GroupsView.php:415
+#, php-format
+msgid "%s address is not valid."
+msgid_plural "%s addresses are not valid."
+msgstr[0] "%s Adresse ist ungültig."
+msgstr[1] "%s Adressen sind ungültig."
+
+#. translators: %s: number of addresses
+#: src/Learner/GroupsView.php:422
+#, php-format
+msgid "%s address was not invited because no place is free."
+msgid_plural "%s addresses were not invited because no place is free."
+msgstr[0] "%s Adresse wurde nicht eingeladen, weil kein Platz frei ist."
+msgstr[1] "%s Adressen wurden nicht eingeladen, weil kein Platz frei ist."
+
+#: src/Learner/GroupsView.php:433
+msgid "Please check your input: enter at least one and at most 200 email addresses or a valid name."
+msgstr "Bitte prüfe deine Eingabe: Gib mindestens eine und höchstens 200 E-Mail-Adressen oder einen gültigen Namen ein."
+
+#: src/Learner/GroupsView.php:434
+msgid "This is no longer possible. Please reload the page."
+msgstr "Das ist nicht mehr möglich. Bitte lade die Seite neu."
+
+#. translators: 1: free places, 2: all places, 3: open invitations
+#: src/Learner/GroupsView.php:449
+#, php-format
+msgid "%1$s of %2$s places free (%3$s open invitation)."
+msgid_plural "%1$s of %2$s places free (%3$s open invitations)."
+msgstr[0] "%1$s von %2$s Plätzen frei (%3$s offene Einladung)."
+msgstr[1] "%1$s von %2$s Plätzen frei (%3$s offene Einladungen)."
+
+#: src/Learner/GroupsView.php:464
+msgid "Group active"
+msgstr "Gruppe aktiv"
+
+#: src/Learner/GroupsView.php:465
+msgid "Group suspended"
+msgstr "Gruppe ausgesetzt"
+
+#: src/Learner/GroupsView.php:466
+msgid "Group ended"
+msgstr "Gruppe beendet"
+
+#: src/Learner/GroupsView.php:479
+msgid "Member (active)"
+msgstr "Mitglied (aktiv)"
+
+#: src/Learner/GroupsView.php:480
+msgid "Invited, not accepted yet"
+msgstr "Eingeladen, noch nicht angenommen"
+
+#: src/Learner/GroupsView.php:481
+msgid "Invitation expired"
+msgstr "Einladung abgelaufen"
+
+#: src/Learner/Invitation.php:148
 msgid "You have been invited to a group. Log in or create an account to accept the invitation; you will come back here afterwards."
 msgstr "Du wurdest in eine Gruppe eingeladen. Melde dich an oder erstelle ein Konto, um die Einladung anzunehmen; danach kommst du hierher zurück."
 
-#: src/Learner/Invitation.php:144
+#: src/Learner/Invitation.php:149
 msgid "Log in"
 msgstr "Anmelden"
 
-#: src/Learner/Invitation.php:148
+#: src/Learner/Invitation.php:153
 msgid "Create an account"
 msgstr "Konto erstellen"
 
+#: src/Learner/Invitation.php:161
+msgid "Go to my learning"
+msgstr "Zu „Mein Lernen“"
+
 #. translators: %s: group name
-#: src/Learner/Invitation.php:156
+#: src/Learner/Invitation.php:165
+#, php-format
+msgid "You are already a member of the group \"%s\"."
+msgstr "Du bist bereits Mitglied der Gruppe „%s“."
+
+#. translators: %s: group name
+#: src/Learner/Invitation.php:168
 #, php-format
 msgid "You have been invited to the group \"%s\"."
 msgstr "Du wurdest in die Gruppe „%s“ eingeladen."
 
-#: src/Learner/Invitation.php:159
+#. translators: %s: display name
+#: src/Learner/Invitation.php:171
+#, php-format
+msgid "Managed by: %s"
+msgstr "Verwaltet von: %s"
+
+#: src/Learner/Invitation.php:176
+msgid "A place in the group is free for you."
+msgstr "In der Gruppe ist ein Platz für dich frei."
+
+#: src/Learner/Invitation.php:176
+msgid "There is no free place in the group at the moment."
+msgstr "In der Gruppe ist derzeit kein Platz frei."
+
+#. translators: %s: masked email address
+#: src/Learner/Invitation.php:185
+#, php-format
+msgid "This invitation was sent to %s and can only be accepted with that account. Log in with that account or ask the person who manages the group for a new invitation."
+msgstr "Diese Einladung wurde an %s gesendet und kann nur mit diesem Konto angenommen werden. Melde dich mit diesem Konto an oder bitte die Person, die die Gruppe verwaltet, um eine neue Einladung."
+
+#. translators: %s: masked email address
+#: src/Learner/Invitation.php:191
+#, php-format
+msgid "This invitation was sent to %s. You can accept it with your account."
+msgstr "Diese Einladung wurde an %s gesendet. Du kannst sie mit deinem Konto annehmen."
+
+#: src/Learner/Invitation.php:194
+msgid "You already have access to these courses. If you accept, you still take one place in the group."
+msgstr "Du hast bereits Zugang zu diesen Kursen. Wenn du annimmst, belegst du trotzdem einen Platz in der Gruppe."
+
+#: src/Learner/Invitation.php:198
 msgid "Accept invitation"
 msgstr "Einladung annehmen"
 
-#: src/Learner/LearningArea.php:232
-#: src/Learner/LearningArea.php:261
-#: src/Learner/LearningArea.php:297
+#. translators: %s: course title
+#: src/Learner/Invitation.php:214
+#, php-format
+msgid "Open the course %s"
+msgstr "Kurs %s öffnen"
+
+#: src/Learner/LearningArea.php:309
+#: src/Learner/LearningArea.php:349
+#: src/Learner/LearningArea.php:386
 msgid "My learning"
 msgstr "Mein Lernbereich"
 
-#: src/Learner/LearningArea.php:253
+#: src/Learner/LearningArea.php:335
 msgid "Group invitation"
 msgstr "Gruppeneinladung"
 
-#: src/Learner/LearningArea.php:263
+#: src/Learner/LearningArea.php:341
 msgid "This lesson is not available."
 msgstr "Diese Lektion ist nicht verfügbar."
 
-#: src/Learner/LearningArea.php:263
+#: src/Learner/LearningArea.php:341
 msgid "This course is not available."
 msgstr "Dieser Kurs ist nicht verfügbar."
 
-#: src/Learner/LearningArea.php:297
+#: src/Learner/LearningArea.php:343
+msgid "This group is not available."
+msgstr "Diese Gruppe ist nicht verfügbar."
+
+#: src/Learner/LearningArea.php:386
 msgid "Skip to content"
 msgstr "Zum Inhalt springen"
 
-#: src/Learner/LearningArea.php:309
+#: src/Learner/LearningArea.php:398
 msgid "You are not enrolled in any course yet."
 msgstr "Du bist noch in keinem Kurs eingeschrieben."
 
-#: src/Learner/LearningArea.php:315
+#: src/Learner/LearningArea.php:404
 msgid "Progress:"
 msgstr "Fortschritt:"
 
-#: src/Learner/LearningArea.php:315
+#: src/Learner/LearningArea.php:404
 msgid "Course progress"
 msgstr "Kursfortschritt"
 
 #. translators: %s: percentage, e.g. "75 %"
-#: src/Learner/LearningArea.php:315
-#: src/Learner/LearningArea.php:385
+#: src/Learner/LearningArea.php:404
+#: src/Learner/LearningArea.php:581
 #, php-format
 msgid "%s completed"
 msgstr "%s abgeschlossen"
 
 #. translators: %s: lesson title
-#: src/Learner/LearningArea.php:317
+#: src/Learner/LearningArea.php:406
 #, php-format
 msgid "Continue: %s"
 msgstr "Weiter: %s"
 
-#: src/Learner/LearningArea.php:335
+#: src/Learner/LearningArea.php:424
+msgid "You have joined the group. The group courses are listed below."
+msgstr "Du bist der Gruppe beigetreten. Die Kurse der Gruppe stehen unten."
+
+#: src/Learner/LearningArea.php:438
+msgid "You are enrolled. You can start learning now."
+msgstr "Du bist eingeschrieben. Du kannst jetzt mit dem Lernen beginnen."
+
+#: src/Learner/LearningArea.php:461
+msgid "Access to this course"
+msgstr "Zugang zu diesem Kurs"
+
+#: src/Learner/LearningArea.php:463
+msgid "Access to this course is granted by the course administration. Please contact them if you want to take part."
+msgstr "Den Zugang zu diesem Kurs vergibt die Kursverwaltung. Wende dich bitte an sie, wenn du teilnehmen möchtest."
+
+#. translators: %s: number of days
+#: src/Learner/LearningArea.php:470
+#, php-format
+msgid "You can enroll yourself for free and get access at once. The access is valid for %s day."
+msgid_plural "You can enroll yourself for free and get access at once. The access is valid for %s days."
+msgstr[0] "Du kannst dich kostenlos selbst einschreiben und erhältst sofort Zugang. Der Zugang gilt %s Tag."
+msgstr[1] "Du kannst dich kostenlos selbst einschreiben und erhältst sofort Zugang. Der Zugang gilt %s Tage."
+
+#: src/Learner/LearningArea.php:473
+msgid "You can enroll yourself for free and get access at once."
+msgstr "Du kannst dich kostenlos selbst einschreiben und erhältst sofort Zugang."
+
+#: src/Learner/LearningArea.php:476
+msgid "Enroll for free"
+msgstr "Kostenlos einschreiben"
+
+#: src/Learner/LearningArea.php:512
+msgid "Practice overview and learning stages"
+msgstr "Übungsübersicht und Lernstufen"
+
+#: src/Learner/LearningArea.php:513
+#: src/Learner/TrainerView.php:127
+#: src/Learner/TrainerView.php:412
+msgid "Smart practice"
+msgstr "Smart lernen"
+
+#: src/Learner/LearningArea.php:514
+#: src/Learner/TrainerView.php:128
+#: src/Learner/TrainerView.php:413
+msgid "Practise mistakes"
+msgstr "Fehler üben"
+
+#: src/Learner/LearningArea.php:515
+#: src/Learner/TrainerView.php:130
+#: src/Learner/TrainerView.php:414
+msgid "Due reviews"
+msgstr "Fällige Wiederholungen"
+
+#: src/Learner/LearningArea.php:530
 msgid "Course contents"
 msgstr "Kursinhalt"
 
 #. translators: %s: course
-#: src/Learner/LearningArea.php:387
+#: src/Learner/LearningArea.php:587
+#, php-format
+msgid "Enroll in %s for free"
+msgstr "Kostenlos in %s einschreiben"
+
+#. translators: %s: course
+#: src/Learner/LearningArea.php:590
 #, php-format
 msgid "Open %s in the learning area"
 msgstr "%s im Lernbereich öffnen"
 
-#: src/Learner/LearningArea.php:403
+#: src/Learner/LearningArea.php:606
 msgid "Go to the learning area"
 msgstr "Zum Lernbereich"
 
-#: src/Learner/LearningArea.php:454
+#: src/Learner/LearningArea.php:657
 msgid "Access active"
 msgstr "Zugang aktiv"
 
-#: src/Learner/LearningArea.php:455
+#: src/Learner/LearningArea.php:658
 msgid "Partial access"
 msgstr "Teilzugang"
 
-#: src/Learner/LearningArea.php:456
+#: src/Learner/LearningArea.php:659
 msgid "Access pending"
 msgstr "Zugang ausstehend"
 
-#: src/Learner/LearningArea.php:457
+#: src/Learner/LearningArea.php:660
 msgid "Access suspended"
 msgstr "Zugang ausgesetzt"
 
-#: src/Learner/LearningArea.php:458
+#: src/Learner/LearningArea.php:661
 msgid "Access expired"
 msgstr "Zugang abgelaufen"
 
-#: src/Learner/LearningArea.php:459
+#: src/Learner/LearningArea.php:662
 msgid "No access"
 msgstr "Kein Zugang"
 
 #. translators: %s: date
-#: src/Learner/LearningArea.php:474
+#: src/Learner/LearningArea.php:677
 #, php-format
 msgid "Available from %s"
 msgstr "Verfügbar ab %s"
 
-#: src/Learner/LearningArea.php:477
+#: src/Learner/LearningArea.php:680
 msgid "Locked: no access"
 msgstr "Gesperrt: kein Zugang"
 
-#: src/Learner/LearningArea.php:478
+#: src/Learner/LearningArea.php:681
 msgid "Locked: not part of the preview"
 msgstr "Gesperrt: nicht Teil der Vorschau"
 
-#: src/Learner/LearningArea.php:479
+#: src/Learner/LearningArea.php:682
 msgid "Locked: not yet released"
 msgstr "Gesperrt: noch nicht freigegeben"
 
-#: src/Learner/LearningArea.php:480
+#: src/Learner/LearningArea.php:683
 msgid "Locked: complete the previous steps first"
 msgstr "Gesperrt: schließe zuerst die vorherigen Schritte ab"
 
-#: src/Learner/LearningArea.php:481
+#: src/Learner/LearningArea.php:684
 msgid "Locked during your running exam"
 msgstr "Während deiner laufenden Prüfung gesperrt"
 
-#: src/Learner/LearningArea.php:483
+#: src/Learner/LearningArea.php:686
 msgid "Locked"
 msgstr "Gesperrt"
 
-#: src/Learner/LearningArea.php:493
+#: src/Learner/LearningArea.php:696
 msgid "completed"
 msgstr "abgeschlossen"
 
-#: src/Learner/LearningArea.php:493
+#: src/Learner/LearningArea.php:696
 msgid "in progress"
 msgstr "in Bearbeitung"
 
-#: src/Learner/LearningArea.php:493
+#: src/Learner/LearningArea.php:696
 msgid "not started"
 msgstr "nicht begonnen"
 
 #. translators: %s: course title
 #: src/Learner/LessonView.php:67
+#: src/Learner/TrainerView.php:429
 #, php-format
 msgid "Back to the course: %s"
 msgstr "Zurück zum Kurs: %s"
 
-#: src/Learner/LessonView.php:235
-msgid "Assignment"
-msgstr "Aufgabe"
-
-#: src/Learner/LessonView.php:235
-msgid "Submitting the assignment is not available in the learning area yet."
-msgstr "Die Abgabe der Aufgabe ist im Lernbereich noch nicht verfügbar."
-
-#: src/Learner/LessonView.php:237
+#: src/Learner/LessonView.php:241
 msgid "Start the exam on the course page."
 msgstr "Starte die Prüfung auf der Kursseite."
 
-#: src/Learner/LessonView.php:240
+#: src/Learner/LessonView.php:244
 msgid "This practice activity cannot be used on this page yet."
 msgstr "Diese Übung kann auf dieser Seite noch nicht genutzt werden."
 
-#: src/Learner/LessonView.php:257
+#: src/Learner/LessonView.php:261
 msgid "Video"
 msgstr "Video"
 
-#: src/Learner/LessonView.php:280
+#: src/Learner/LessonView.php:284
 msgid "The video is not available yet."
 msgstr "Das Video ist noch nicht verfügbar."
 
-#: src/Learner/LessonView.php:287
-#: src/Learner/LessonView.php:374
+#: src/Learner/LessonView.php:291
+#: src/Learner/LessonView.php:378
 msgid "Subtitles"
 msgstr "Untertitel"
 
-#: src/Learner/LessonView.php:289
-#: src/Learner/LessonView.php:371
+#: src/Learner/LessonView.php:293
+#: src/Learner/LessonView.php:375
 msgid "Download the video"
 msgstr "Video herunterladen"
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:303
+#: src/Learner/LessonView.php:307
 #, php-format
 msgid "Watch the video on %s (opens in a new tab)"
 msgstr "Video auf %s ansehen (öffnet in einem neuen Tab)"
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:318
+#: src/Learner/LessonView.php:322
 #, php-format
 msgid "Video on %s"
 msgstr "Video auf %s"
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:356
+#: src/Learner/LessonView.php:360
 #, php-format
 msgid "The video from %s has been loaded."
 msgstr "Das Video von %s wurde geladen."
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:361
+#: src/Learner/LessonView.php:365
 #, php-format
 msgid "Stop loading external media from %s automatically"
 msgstr "Externe Medien von %s nicht mehr automatisch laden"
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:366
+#: src/Learner/LessonView.php:370
 #, php-format
 msgid "Saved choice removed. Media from %s will only load after a click again."
 msgstr "Gespeicherte Freigabe entfernt. Medien von %s werden wieder erst nach einem Klick geladen."
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:384
+#: src/Learner/LessonView.php:388
 #, php-format
 msgid "This video is hosted by %s and is only loaded after your consent."
 msgstr "Dieses Video wird von %s bereitgestellt und erst nach deiner Zustimmung geladen."
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:390
+#: src/Learner/LessonView.php:394
 #, php-format
 msgid "When the video is loaded, data such as your IP address is transferred to %s."
 msgstr "Beim Laden des Videos werden Daten wie deine IP-Adresse an %s übertragen."
 
 #. translators: %s: name of the video service
-#: src/Learner/LessonView.php:398
+#: src/Learner/LessonView.php:402
 #, php-format
 msgid "Privacy policy of %s (opens in a new tab)"
 msgstr "Datenschutzerklärung von %s (öffnet in einem neuen Tab)"
 
 #. translators: %s: duration as minutes:seconds, e.g. 4:05
-#: src/Learner/LessonView.php:408
+#: src/Learner/LessonView.php:412
 #, php-format
 msgid "Length: %s"
 msgstr "Länge: %s"
 
-#: src/Learner/LessonView.php:414
+#: src/Learner/LessonView.php:418
 msgid "Load video"
 msgstr "Video laden"
 
 #. translators: %s: name of the video service or host name
-#: src/Learner/LessonView.php:420
+#: src/Learner/LessonView.php:424
 #, php-format
 msgid "Always load external media from %s"
 msgstr "Externe Medien von %s immer laden"
 
-#: src/Learner/LessonView.php:445
+#: src/Learner/LessonView.php:449
 msgid "Your progress"
 msgstr "Dein Fortschritt"
 
-#: src/Learner/LessonView.php:446
+#: src/Learner/LessonView.php:450
 msgid "Status: completed"
 msgstr "Status: abgeschlossen"
 
-#: src/Learner/LessonView.php:446
+#: src/Learner/LessonView.php:450
 msgid "Status: not completed yet"
 msgstr "Status: noch nicht abgeschlossen"
 
-#: src/Learner/LessonView.php:450
+#: src/Learner/LessonView.php:454
 msgid "Download the file"
 msgstr "Datei herunterladen"
 
-#: src/Learner/LessonView.php:457
+#: src/Learner/LessonView.php:461
 msgid "Mark as completed"
 msgstr "Als abgeschlossen markieren"
 
 #. translators: %s: number of minutes
-#: src/Learner/LessonView.php:467
+#: src/Learner/LessonView.php:471
 #, php-format
 msgid "You can mark this lesson as read after %s minute."
 msgid_plural "You can mark this lesson as read after %s minutes."
 msgstr[0] "Du kannst diese Lektion nach %s Minute als gelesen markieren."
 msgstr[1] "Du kannst diese Lektion nach %s Minuten als gelesen markieren."
 
-#: src/Learner/LessonView.php:472
+#: src/Learner/LessonView.php:476
 msgid "Mark as read"
 msgstr "Als gelesen markieren"
 
-#: src/Learner/LessonView.php:475
+#: src/Learner/LessonView.php:479
 msgid "This step is completed when you download the file."
 msgstr "Dieser Schritt ist abgeschlossen, sobald du die Datei herunterlädst."
 
-#: src/Learner/LessonView.php:478
+#: src/Learner/LessonView.php:482
 msgid "This step is completed when you have watched the video."
 msgstr "Dieser Schritt ist abgeschlossen, sobald du das Video angesehen hast."
 
-#: src/Learner/LessonView.php:482
+#: src/Learner/LessonView.php:486
 msgid "This step is completed with the exam."
 msgstr "Dieser Schritt wird mit der Prüfung abgeschlossen."
 
-#: src/Learner/LessonView.php:482
+#: src/Learner/LessonView.php:486
 msgid "This step is completed when your assignment has been graded."
 msgstr "Dieser Schritt ist abgeschlossen, sobald deine Aufgabe bewertet wurde."
 
-#: src/Learner/LessonView.php:485
+#: src/Learner/LessonView.php:489
 msgid "This step is completed automatically."
 msgstr "Dieser Schritt wird automatisch abgeschlossen."
 
 #. translators: %s: lesson title
-#: src/Learner/LessonView.php:517
+#: src/Learner/LessonView.php:521
 #, php-format
 msgid "Previous: %s"
 msgstr "Zurück: %s"
 
 #. translators: %s: lesson title
-#: src/Learner/LessonView.php:519
+#: src/Learner/LessonView.php:523
 #, php-format
 msgid "Next: %s"
 msgstr "Weiter: %s"
 
-#: src/Learner/LessonView.php:540
+#: src/Learner/LessonView.php:544
 msgid "Lesson completed."
 msgstr "Lektion abgeschlossen."
 
-#: src/Learner/LessonView.php:541
+#: src/Learner/LessonView.php:545
 msgid "Your progress has been saved."
 msgstr "Dein Fortschritt wurde gespeichert."
 
-#: src/Learner/LessonView.php:542
+#: src/Learner/LessonView.php:546
 msgid "The download has been recorded."
 msgstr "Der Download wurde erfasst."
 
-#: src/Learner/LessonView.php:548
+#: src/Learner/LessonView.php:556
 msgid "Please take a little more time with this lesson before you mark it as read."
 msgstr "Bitte nimm dir etwas mehr Zeit für diese Lektion, bevor du sie als gelesen markierst."
+
+#: src/Learner/QuestionForm.php:46
+#: src/Learner/QuestionForm.php:47
+msgid "Choose one answer."
+msgstr "Wähle eine Antwort."
+
+#: src/Learner/QuestionForm.php:48
+msgid "Choose one or more answers."
+msgstr "Wähle eine oder mehrere Antworten."
+
+#: src/Learner/QuestionForm.php:49
+msgid "Enter a number."
+msgstr "Gib eine Zahl ein."
+
+#: src/Learner/QuestionForm.php:50
+msgid "Match each item."
+msgstr "Ordne jeden Eintrag zu."
+
+#: src/Learner/QuestionForm.php:51
+msgid "Give every item its position in the correct order."
+msgstr "Gib jedem Eintrag seine Position in der richtigen Reihenfolge."
+
+#: src/Learner/QuestionForm.php:52
+msgid "Fill in the gaps."
+msgstr "Fülle die Lücken aus."
+
+#: src/Learner/QuestionForm.php:53
+msgid "Answer in your mind, then compare with the model answer."
+msgstr "Beantworte die Frage im Kopf und vergleiche dann mit der Musterantwort."
+
+#. translators: %s: unit, e.g. "km"
+#: src/Learner/QuestionForm.php:105
+#, php-format
+msgid "Your answer (in %s)"
+msgstr "Deine Antwort (in %s)"
+
+#: src/Learner/QuestionForm.php:115
+msgid "— choose —"
+msgstr "— auswählen —"
+
+#: src/Learner/QuestionForm.php:133
+msgid "— position —"
+msgstr "— Position —"
+
+#. translators: 1: position, 2: number of items
+#: src/Learner/QuestionForm.php:138
+#, php-format
+msgid "Position %1$s of %2$s"
+msgstr "Position %1$s von %2$s"
+
+#. translators: %s: number of the gap
+#: src/Learner/QuestionForm.php:261
+#, php-format
+msgid "Gap %s"
+msgstr "Lücke %s"
+
+#: src/Learner/TrainerView.php:106
+#: src/Learner/TrainerView.php:383
+msgid "There are no practice questions in this course that you can use right now."
+msgstr "In diesem Kurs gibt es gerade keine Übungsfragen, die du nutzen kannst."
+
+#: src/Learner/TrainerView.php:109
+msgid "Your learning stages"
+msgstr "Deine Lernstufen"
+
+#. translators: %s: number of questions
+#: src/Learner/TrainerView.php:112
+#, php-format
+msgid "Not practised yet: %s"
+msgstr "Noch nicht geübt: %s"
+
+#. translators: %s: number of questions
+#: src/Learner/TrainerView.php:114
+#, php-format
+msgid "Unsure: %s"
+msgstr "Unsicher: %s"
+
+#. translators: %s: number of questions
+#: src/Learner/TrainerView.php:116
+#, php-format
+msgid "Learning: %s"
+msgstr "Im Lernen: %s"
+
+#. translators: %s: number of questions
+#: src/Learner/TrainerView.php:118
+#, php-format
+msgid "Secure: %s"
+msgstr "Sicher: %s"
+
+#. translators: %s: number of questions
+#: src/Learner/TrainerView.php:120
+#, php-format
+msgid "Consolidated: %s"
+msgstr "Gefestigt: %s"
+
+#: src/Learner/TrainerView.php:126
+msgid "Choose how you want to practise"
+msgstr "Wähle, wie du üben möchtest"
+
+#: src/Learner/TrainerView.php:127
+msgid "The trainer picks the question that helps you most right now: new questions, mistakes and reviews."
+msgstr "Der Trainer wählt die Frage, die dir gerade am meisten hilft: neue Fragen, Fehler und Wiederholungen."
+
+#: src/Learner/TrainerView.php:128
+msgid "Only questions you answered incorrectly last time."
+msgstr "Nur Fragen, die du zuletzt falsch beantwortet hast."
+
+#: src/Learner/TrainerView.php:132
+msgid "No reviews are due today."
+msgstr "Heute sind keine Wiederholungen fällig."
+
+#. translators: %s: number of questions
+#: src/Learner/TrainerView.php:135
+#, php-format
+msgid "%s question is due for review today."
+msgid_plural "%s questions are due for review today."
+msgstr[0] "%s Frage ist heute zur Wiederholung fällig."
+msgstr[1] "%s Fragen sind heute zur Wiederholung fällig."
+
+#: src/Learner/TrainerView.php:160
+msgid "Back to the practice overview"
+msgstr "Zurück zur Übungsübersicht"
+
+#: src/Learner/TrainerView.php:164
+msgid "Next question"
+msgstr "Nächste Frage"
+
+#: src/Learner/TrainerView.php:297
+msgid "Question"
+msgstr "Frage"
+
+#: src/Learner/TrainerView.php:307
+msgid "Save self-assessment"
+msgstr "Selbsteinschätzung speichern"
+
+#: src/Learner/TrainerView.php:310
+msgid "This question type cannot be answered here."
+msgstr "Dieser Fragetyp kann hier nicht beantwortet werden."
+
+#: src/Learner/TrainerView.php:311
+msgid "Check answer"
+msgstr "Antwort prüfen"
+
+#: src/Learner/TrainerView.php:325
+msgid "Saved: you knew the answer."
+msgstr "Gespeichert: Du wusstest die Antwort."
+
+#: src/Learner/TrainerView.php:325
+msgid "Saved: you did not know the answer yet."
+msgstr "Gespeichert: Du wusstest die Antwort noch nicht."
+
+#: src/Learner/TrainerView.php:327
+msgid "Correct!"
+msgstr "Richtig!"
+
+#: src/Learner/TrainerView.php:327
+msgid "Not correct."
+msgstr "Nicht richtig."
+
+#: src/Learner/TrainerView.php:332
+msgid "Correct answer:"
+msgid_plural "Correct answers:"
+msgstr[0] "Richtige Antwort:"
+msgstr[1] "Richtige Antworten:"
+
+#. translators: %s: date
+#: src/Learner/TrainerView.php:353
+#, php-format
+msgid "You know this question well. It comes up again for review on %s."
+msgstr "Du kannst diese Frage gut. Sie kommt am %s wieder zur Wiederholung."
+
+#: src/Learner/TrainerView.php:358
+msgid "This question comes up again soon so that you can practise it."
+msgstr "Diese Frage kommt bald wieder, damit du sie üben kannst."
+
+#: src/Learner/TrainerView.php:360
+msgid "This question comes up again until you have answered it correctly several times."
+msgstr "Diese Frage kommt wieder, bis du sie mehrmals richtig beantwortet hast."
+
+#: src/Learner/TrainerView.php:372
+msgid "There are no open mistakes. Well done!"
+msgstr "Es gibt keine offenen Fehler. Gut gemacht!"
+
+#: src/Learner/TrainerView.php:376
+msgid "All done – no reviews are due."
+msgstr "Alles erledigt – keine Wiederholungen fällig."
+
+#. translators: %s: date
+#: src/Learner/TrainerView.php:379
+#, php-format
+msgid "All done – the next review is due on %s."
+msgstr "Alles erledigt – die nächste Wiederholung ist am %s fällig."
+
+#: src/Learner/TrainerView.php:397
+msgid "Please answer the question first."
+msgstr "Bitte beantworte zuerst die Frage."
+
+#: src/Learner/TrainerView.php:398
+msgid "Please give every item its own position."
+msgstr "Bitte gib jedem Eintrag eine eigene Position."
+
+#: src/Learner/TrainerView.php:399
+msgid "Please check your answer: it is not complete or not valid."
+msgstr "Bitte prüfe deine Antwort: Sie ist unvollständig oder ungültig."
+
+#. translators: %s: course title
+#: src/Learner/TrainerView.php:448
+#, php-format
+msgid "Practice: %s"
+msgstr "Üben: %s"
 
 #: src/Notification/MailTemplates.php:195
 msgid "Hello {{recipient_display_name}},"
@@ -4945,7 +5679,7 @@ msgid "Assignment returned"
 msgstr "Aufgabe zurückgegeben"
 
 #: src/Notification/NotificationPrefs.php:247
-#: src/Ops/AuditView.php:51
+#: src/Ops/AuditView.php:52
 msgid "Assignment graded"
 msgstr "Aufgabe bewertet"
 
@@ -5047,278 +5781,282 @@ msgid "Access granted manually"
 msgstr "Zugang manuell gewährt"
 
 #: src/Ops/AuditView.php:38
+msgid "Self-enrolled in a course"
+msgstr "Selbst in einen Kurs eingeschrieben"
+
+#: src/Ops/AuditView.php:39
 msgid "Access extended"
 msgstr "Zugang verlängert"
 
-#: src/Ops/AuditView.php:39
+#: src/Ops/AuditView.php:40
 msgid "An extension tried to grant access (ignored)"
 msgstr "Eine Erweiterung wollte Zugang gewähren (ignoriert)"
 
-#: src/Ops/AuditView.php:40
+#: src/Ops/AuditView.php:41
 msgid "Access granted by a source"
 msgstr "Zugang durch eine Quelle gewährt"
 
-#: src/Ops/AuditView.php:41
+#: src/Ops/AuditView.php:42
 msgid "Access revoked by a source"
 msgstr "Zugang durch eine Quelle entzogen"
 
-#: src/Ops/AuditView.php:42
+#: src/Ops/AuditView.php:43
 msgid "Access kept after a source revocation (rule \"keep\")"
 msgstr "Zugang nach Widerruf der Quelle behalten (Regel „keep“)"
 
-#: src/Ops/AuditView.php:43
+#: src/Ops/AuditView.php:44
 msgid "Group created"
 msgstr "Gruppe erstellt"
 
-#: src/Ops/AuditView.php:44
+#: src/Ops/AuditView.php:45
 msgid "Group invitation link renewed"
 msgstr "Gruppen-Einladungslink erneuert"
 
-#: src/Ops/AuditView.php:45
+#: src/Ops/AuditView.php:46
 msgid "Group validity changed"
 msgstr "Gültigkeit der Gruppe geändert"
 
-#: src/Ops/AuditView.php:46
+#: src/Ops/AuditView.php:47
 msgid "Group owner changed"
 msgstr "Verantwortliche Person der Gruppe geändert"
 
-#: src/Ops/AuditView.php:47
+#: src/Ops/AuditView.php:48
 msgid "Group invitation rule changed"
 msgstr "Einladungsregel der Gruppe geändert"
 
-#: src/Ops/AuditView.php:48
+#: src/Ops/AuditView.php:49
 msgid "Group renamed"
 msgstr "Gruppe umbenannt"
 
-#: src/Ops/AuditView.php:49
+#: src/Ops/AuditView.php:50
 msgid "Learning progress reset"
 msgstr "Lernfortschritt zurückgesetzt"
 
-#: src/Ops/AuditView.php:50
+#: src/Ops/AuditView.php:51
 msgid "Exam attempt re-evaluated"
 msgstr "Prüfungsversuch neu bewertet"
 
-#: src/Ops/AuditView.php:52
+#: src/Ops/AuditView.php:53
 msgid "Assignment re-graded"
 msgstr "Aufgabe neu bewertet"
 
-#: src/Ops/AuditView.php:53
+#: src/Ops/AuditView.php:54
 msgid "Assignment returned for revision"
 msgstr "Aufgabe zur Überarbeitung zurückgegeben"
 
-#: src/Ops/AuditView.php:54
+#: src/Ops/AuditView.php:55
 msgid "Assignment file opened by a grader"
 msgstr "Aufgabendatei von einer bewertenden Person geöffnet"
 
-#: src/Ops/AuditView.php:55
+#: src/Ops/AuditView.php:56
 msgid "Settings saved"
 msgstr "Einstellungen gespeichert"
 
-#: src/Ops/AuditView.php:56
+#: src/Ops/AuditView.php:57
 msgid "Settings reset"
 msgstr "Einstellungen zurückgesetzt"
 
-#: src/Ops/AuditView.php:57
+#: src/Ops/AuditView.php:58
 msgid "Setting locked for all courses"
 msgstr "Einstellung für alle Kurse gesperrt"
 
-#: src/Ops/AuditView.php:58
+#: src/Ops/AuditView.php:59
 msgid "Setting lock removed"
 msgstr "Sperre der Einstellung entfernt"
 
-#: src/Ops/AuditView.php:59
+#: src/Ops/AuditView.php:60
 msgid "Course settings saved"
 msgstr "Kurseinstellungen gespeichert"
 
-#: src/Ops/AuditView.php:60
+#: src/Ops/AuditView.php:61
 msgid "Course settings reset to the defaults"
 msgstr "Kurseinstellungen auf die Standards zurückgesetzt"
 
-#: src/Ops/AuditView.php:61
+#: src/Ops/AuditView.php:62
 msgid "Settings imported"
 msgstr "Einstellungen importiert"
 
-#: src/Ops/AuditView.php:62
+#: src/Ops/AuditView.php:63
 msgid "Role permissions changed"
 msgstr "Rollenrechte geändert"
 
-#: src/Ops/AuditView.php:63
+#: src/Ops/AuditView.php:64
 msgid "Data request processed automatically"
 msgstr "Datenanfrage automatisch bearbeitet"
 
-#: src/Ops/AuditView.php:64
+#: src/Ops/AuditView.php:65
 msgid "Data request filed by the person"
 msgstr "Datenanfrage von der Person gestellt"
 
-#: src/Ops/AuditView.php:65
+#: src/Ops/AuditView.php:66
 msgid "Event delivery replayed"
 msgstr "Ereigniszustellung wiederholt"
 
-#: src/Ops/AuditView.php:66
+#: src/Ops/AuditView.php:67
 msgid "Import approved"
 msgstr "Import freigegeben"
 
-#: src/Ops/AuditView.php:67
+#: src/Ops/AuditView.php:68
 msgid "Import published"
 msgstr "Import veröffentlicht"
 
-#: src/Ops/AuditView.php:68
+#: src/Ops/AuditView.php:69
 msgid "Import rollback started"
 msgstr "Rücknahme des Imports gestartet"
 
-#: src/Ops/AuditView.php:69
+#: src/Ops/AuditView.php:70
 msgid "Import resumed"
 msgstr "Import fortgesetzt"
 
-#: src/Ops/AuditView.php:70
+#: src/Ops/AuditView.php:71
 msgid "Import resumed automatically"
 msgstr "Import automatisch fortgesetzt"
 
-#: src/Ops/AuditView.php:71
+#: src/Ops/AuditView.php:72
 msgid "Import cancellation requested"
 msgstr "Abbruch des Imports angefordert"
 
-#: src/Ops/AuditView.php:72
+#: src/Ops/AuditView.php:73
 msgid "Import stopped: too many failed objects"
 msgstr "Import angehalten: zu viele fehlgeschlagene Objekte"
 
-#: src/Ops/AuditView.php:73
+#: src/Ops/AuditView.php:74
 msgid "Imported course held back by the course check"
 msgstr "Importierter Kurs von der Kursprüfung zurückgehalten"
 
-#: src/Ops/AuditView.php:74
+#: src/Ops/AuditView.php:75
 msgid "Import discarded"
 msgstr "Import verworfen"
 
-#: src/Ops/AuditView.php:75
+#: src/Ops/AuditView.php:76
 msgid "Import report exported"
 msgstr "Importbericht exportiert"
 
-#: src/Ops/AuditView.php:76
+#: src/Ops/AuditView.php:77
 msgid "Import package downloaded from a link"
 msgstr "Importpaket über einen Link heruntergeladen"
 
-#: src/Ops/AuditView.php:77
+#: src/Ops/AuditView.php:78
 msgid "Rights status of a content item changed"
 msgstr "Rechtestatus eines Inhalts geändert"
 
-#: src/Ops/AuditView.php:78
+#: src/Ops/AuditView.php:79
 msgid "Unclear rights of an import released"
 msgstr "Ungeklärte Rechte eines Imports freigegeben"
 
-#: src/Ops/AuditView.php:79
+#: src/Ops/AuditView.php:80
 msgid "Disallowed legacy media files moved to the quarantine"
 msgstr "Unzulässige Alt-Mediendateien in die Quarantäne verschoben"
 
-#: src/Ops/AuditView.php:80
+#: src/Ops/AuditView.php:81
 msgid "Website hardening state changed"
 msgstr "Härtungsstatus der Website geändert"
 
-#: src/Ops/AuditView.php:81
+#: src/Ops/AuditView.php:82
 msgid "Website hardening switched off by constant"
 msgstr "Härtung der Website per Konstante ausgeschaltet"
 
-#: src/Ops/AuditView.php:82
+#: src/Ops/AuditView.php:83
 msgid "Maintenance action"
 msgstr "Wartungsaktion"
 
-#: src/Ops/AuditView.php:83
+#: src/Ops/AuditView.php:84
 msgid "Personal data erased"
 msgstr "Personenbezogene Daten gelöscht"
 
-#: src/Ops/AuditView.php:84
+#: src/Ops/AuditView.php:85
 msgid "Retention applied"
 msgstr "Aufbewahrungsregel angewendet"
 
-#: src/Ops/AuditView.php:85
+#: src/Ops/AuditView.php:86
 msgid "Old audit entries removed"
 msgstr "Alte Protokolleinträge entfernt"
 
-#: src/Ops/AuditView.php:86
+#: src/Ops/AuditView.php:87
 msgid "Maintenance task failed"
 msgstr "Wartungsaufgabe fehlgeschlagen"
 
-#: src/Ops/AuditView.php:87
+#: src/Ops/AuditView.php:88
 msgid "Mail template saved"
 msgstr "Mailvorlage gespeichert"
 
-#: src/Ops/AuditView.php:88
+#: src/Ops/AuditView.php:89
 msgid "Notification opt-out changed"
 msgstr "Abmeldung von Benachrichtigungen geändert"
 
-#: src/Ops/AuditView.php:89
+#: src/Ops/AuditView.php:90
 msgid "Notification sent again"
 msgstr "Benachrichtigung erneut gesendet"
 
-#: src/Ops/AuditView.php:90
+#: src/Ops/AuditView.php:91
 msgid "Group invitation sent again"
 msgstr "Gruppeneinladung erneut gesendet"
 
-#: src/Ops/AuditView.php:91
+#: src/Ops/AuditView.php:92
 msgid "Held notifications released"
 msgstr "Zurückgehaltene Benachrichtigungen freigegeben"
 
-#: src/Ops/AuditView.php:92
+#: src/Ops/AuditView.php:93
 msgid "Held notifications discarded"
 msgstr "Zurückgehaltene Benachrichtigungen verworfen"
 
-#: src/Ops/AuditView.php:93
+#: src/Ops/AuditView.php:94
 msgid "Course revision published"
 msgstr "Kursrevision veröffentlicht"
 
-#: src/Ops/AuditView.php:94
+#: src/Ops/AuditView.php:95
 msgid "Certificate issued manually"
 msgstr "Zertifikat manuell ausgestellt"
 
-#: src/Ops/AuditView.php:95
+#: src/Ops/AuditView.php:96
 msgid "Certificate corrected"
 msgstr "Zertifikat korrigiert"
 
-#: src/Ops/AuditView.php:96
+#: src/Ops/AuditView.php:97
 msgid "Certificate revoked"
 msgstr "Zertifikat widerrufen"
 
-#: src/Ops/AuditView.php:97
+#: src/Ops/AuditView.php:98
 msgid "Certificate list exported"
 msgstr "Zertifikatsliste exportiert"
 
-#: src/Ops/AuditView.php:98
+#: src/Ops/AuditView.php:99
 msgid "Certificate needs review after re-evaluation"
 msgstr "Zertifikat muss nach Neubewertung geprüft werden"
 
-#: src/Ops/AuditView.php:99
+#: src/Ops/AuditView.php:100
 msgid "Job retried"
 msgstr "Aufgabe erneut versucht"
 
-#: src/Ops/AuditView.php:100
+#: src/Ops/AuditView.php:101
 msgid "Dead letters discarded"
 msgstr "Unzustellbare Ereignisse verworfen"
 
-#: src/Ops/AuditView.php:101
+#: src/Ops/AuditView.php:102
 msgid "Cache emptied"
 msgstr "Cache geleert"
 
-#: src/Ops/AuditView.php:102
+#: src/Ops/AuditView.php:103
 msgid "Diagnostics package exported"
 msgstr "Diagnosepaket exportiert"
 
-#: src/Ops/AuditView.php:103
+#: src/Ops/AuditView.php:104
 msgid "Site identity confirmed after restore, move or copy"
 msgstr "Website-Identität nach Wiederherstellung, Umzug oder Kopie bestätigt"
 
-#: src/Ops/AuditView.php:104
+#: src/Ops/AuditView.php:105
 msgid "Protected folders moved"
 msgstr "Geschützte Ordner verschoben"
 
-#: src/Ops/AuditView.php:105
+#: src/Ops/AuditView.php:106
 msgid "Moving the protected folders failed"
 msgstr "Verschieben der geschützten Ordner fehlgeschlagen"
 
-#: src/Ops/AuditView.php:162
+#: src/Ops/AuditView.php:163
 msgid "Deleted user"
 msgstr "Gelöschter Benutzer"
 
-#: src/Ops/AuditView.php:162
+#: src/Ops/AuditView.php:163
 msgid "System"
 msgstr "System"
 
@@ -5681,12 +6419,12 @@ msgid "%1$s %2$s is active and compatible. A connector is needed for a data exch
 msgstr "%1$s %2$s ist aktiv und kompatibel. Für einen Datenaustausch wird ein Connector benötigt; es ist keiner installiert."
 
 #: src/Ops/Monitor.php:146
-#: src/Rest/RestContract.php:234
+#: src/Rest/RestContract.php:241
 msgid "You are not allowed to do this."
 msgstr "Du darfst das nicht tun."
 
 #: src/Ops/Monitor.php:193
-#: src/Rest/RestContract.php:246
+#: src/Rest/RestContract.php:253
 msgid "Too many requests. Please wait a moment."
 msgstr "Zu viele Anfragen. Bitte warte einen Moment."
 
@@ -6766,117 +7504,157 @@ msgstr "Download abgelaufen"
 msgid "Export failed"
 msgstr "Export fehlgeschlagen"
 
-#: src/Rest/RestContract.php:235
+#: src/Rest/RestContract.php:222
+msgid "Group full"
+msgstr "Gruppe voll"
+
+#: src/Rest/RestContract.php:223
+msgid "Group not active"
+msgstr "Gruppe nicht aktiv"
+
+#: src/Rest/RestContract.php:224
+msgid "Group busy"
+msgstr "Gruppe ausgelastet"
+
+#: src/Rest/RestContract.php:225
+#: src/Rest/RestContract.php:226
+#: src/Rest/RestContract.php:227
+msgid "Invitation no longer valid"
+msgstr "Einladung nicht mehr gültig"
+
+#: src/Rest/RestContract.php:228
+msgid "Invitation for another address"
+msgstr "Einladung für eine andere Adresse"
+
+#: src/Rest/RestContract.php:242
 msgid "Your learning access on this site is locked."
 msgstr "Dein Lernzugang auf dieser Website ist gesperrt."
 
-#: src/Rest/RestContract.php:236
+#: src/Rest/RestContract.php:243
 msgid "This content is not available to you right now."
 msgstr "Dieser Inhalt steht dir gerade nicht zur Verfügung."
 
-#: src/Rest/RestContract.php:237
+#: src/Rest/RestContract.php:244
 msgid "The requested item was not found."
 msgstr "Das angeforderte Element wurde nicht gefunden."
 
-#: src/Rest/RestContract.php:238
+#: src/Rest/RestContract.php:245
 msgid "Some data is not valid. Please check it."
 msgstr "Einige Daten sind ungültig. Bitte prüfe sie."
 
-#: src/Rest/RestContract.php:239
+#: src/Rest/RestContract.php:246
 msgid "Please confirm the warnings first."
 msgstr "Bitte bestätige zuerst die Warnungen."
 
-#: src/Rest/RestContract.php:240
+#: src/Rest/RestContract.php:247
 msgid "A parameter is missing or invalid."
 msgstr "Ein Parameter fehlt oder ist ungültig."
 
-#: src/Rest/RestContract.php:241
+#: src/Rest/RestContract.php:248
 msgid "This link or token is not valid."
 msgstr "Dieser Link oder Token ist ungültig."
 
-#: src/Rest/RestContract.php:242
+#: src/Rest/RestContract.php:249
 msgid "The request key is missing or invalid. Please reload the page and try again."
 msgstr "Der Anfrageschlüssel fehlt oder ist ungültig. Bitte lade die Seite neu und versuche es noch einmal."
 
-#: src/Rest/RestContract.php:243
+#: src/Rest/RestContract.php:250
 msgid "This request key was already used for a different request."
 msgstr "Dieser Anfrageschlüssel wurde bereits für eine andere Anfrage verwendet."
 
-#: src/Rest/RestContract.php:244
+#: src/Rest/RestContract.php:251
 msgid "The same request is still being processed. Please try again shortly."
 msgstr "Dieselbe Anfrage wird noch bearbeitet. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:245
+#: src/Rest/RestContract.php:252
 msgid "Someone changed this in the meantime. Please reload."
 msgstr "Jemand hat das inzwischen geändert. Bitte lade neu."
 
-#: src/Rest/RestContract.php:247
+#: src/Rest/RestContract.php:254
 msgid "Maintenance is running. Please try again shortly."
 msgstr "Es läuft eine Wartung. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:248
+#: src/Rest/RestContract.php:255
 msgid "This is temporarily unavailable. Please try again later."
 msgstr "Das ist vorübergehend nicht verfügbar. Bitte versuche es später noch einmal."
 
-#: src/Rest/RestContract.php:249
+#: src/Rest/RestContract.php:256
 msgid "This exam cannot be started right now."
 msgstr "Diese Prüfung kann gerade nicht gestartet werden."
 
-#: src/Rest/RestContract.php:250
+#: src/Rest/RestContract.php:257
 msgid "The exam is already starting. Please wait a moment."
 msgstr "Die Prüfung wird bereits gestartet. Bitte warte einen Moment."
 
-#: src/Rest/RestContract.php:251
+#: src/Rest/RestContract.php:258
 msgid "You have no attempts left for this exam right now."
 msgstr "Du hast für diese Prüfung gerade keine Versuche mehr."
 
-#: src/Rest/RestContract.php:252
+#: src/Rest/RestContract.php:259
 msgid "The time for this exam is over."
 msgstr "Die Zeit für diese Prüfung ist abgelaufen."
 
-#: src/Rest/RestContract.php:253
+#: src/Rest/RestContract.php:260
 msgid "This attempt has already been submitted."
 msgstr "Dieser Versuch wurde bereits abgegeben."
 
-#: src/Rest/RestContract.php:255
+#: src/Rest/RestContract.php:262
 msgid "This answer can no longer be changed."
 msgstr "Diese Antwort kann nicht mehr geändert werden."
 
-#: src/Rest/RestContract.php:256
+#: src/Rest/RestContract.php:263
 msgid "Please choose a valid answer."
 msgstr "Bitte wähle eine gültige Antwort."
 
-#: src/Rest/RestContract.php:257
+#: src/Rest/RestContract.php:264
 msgid "The attempt changed in the meantime. Please try again."
 msgstr "Der Versuch wurde inzwischen geändert. Bitte versuche es noch einmal."
 
-#: src/Rest/RestContract.php:258
+#: src/Rest/RestContract.php:265
 msgid "This submission can no longer be changed."
 msgstr "Diese Einreichung kann nicht mehr geändert werden."
 
-#: src/Rest/RestContract.php:259
-msgid "Please add the required text or file before submitting."
-msgstr "Bitte füge vor dem Einreichen den erforderlichen Text oder die Datei hinzu."
-
-#: src/Rest/RestContract.php:260
+#: src/Rest/RestContract.php:267
 msgid "This file was not accepted. Please check its type and size."
 msgstr "Diese Datei wurde nicht akzeptiert. Bitte prüfe Typ und Größe."
 
-#: src/Rest/RestContract.php:261
+#: src/Rest/RestContract.php:268
 msgid "Please check the points and add the required comment or reason."
 msgstr "Bitte prüfe die Punkte und füge den erforderlichen Kommentar oder Grund hinzu."
 
-#: src/Rest/RestContract.php:262
+#: src/Rest/RestContract.php:269
 msgid "Your export is still being created. Please try again shortly."
 msgstr "Dein Export wird noch erstellt. Bitte versuche es gleich noch einmal."
 
-#: src/Rest/RestContract.php:263
+#: src/Rest/RestContract.php:270
 msgid "This download has expired. Please request a new export."
 msgstr "Dieser Download ist abgelaufen. Bitte fordere einen neuen Export an."
 
-#: src/Rest/RestContract.php:264
+#: src/Rest/RestContract.php:271
 msgid "The export could not be created. Please request a new export."
 msgstr "Der Export konnte nicht erstellt werden. Bitte fordere einen neuen Export an."
+
+#: src/Rest/RestContract.php:272
+msgid "There is no free place in this group right now. Please ask the person who manages the group."
+msgstr "In dieser Gruppe ist gerade kein Platz frei. Bitte wende dich an die Person, die die Gruppe verwaltet."
+
+#: src/Rest/RestContract.php:273
+msgid "This group is not active at the moment. Please contact the person who manages the group."
+msgstr "Diese Gruppe ist derzeit nicht aktiv. Bitte wende dich an die Person, die die Gruppe verwaltet."
+
+#: src/Rest/RestContract.php:274
+msgid "Many people are joining at the same time. Please try again in a moment."
+msgstr "Gerade treten viele Personen gleichzeitig bei. Bitte versuche es gleich noch einmal."
+
+#: src/Rest/RestContract.php:275
+#: src/Rest/RestContract.php:276
+#: src/Rest/RestContract.php:277
+msgid "This invitation is no longer valid. Please ask the person who manages the group for a new invitation."
+msgstr "Diese Einladung ist nicht mehr gültig. Bitte die Person, die die Gruppe verwaltet, um eine neue Einladung."
+
+#: src/Rest/RestContract.php:278
+msgid "This invitation is for a different email address. Log in with the invited account or ask the person who manages the group for a new invitation."
+msgstr "Diese Einladung gilt für eine andere E-Mail-Adresse. Melde dich mit dem eingeladenen Konto an oder bitte die Person, die die Gruppe verwaltet, um eine neue Einladung."
 
 #: src/Security/Hardening.php:420
 msgid "Too many attempts. Please wait a few minutes and try again."

@@ -959,6 +959,12 @@ Quelle: captain-pro `docs/settings/SETTINGS-course.md` (Analyse-Stand 1b662d1; V
 - [ ] **SET-CC-28** Netzwerk-Standards – **zurückgestellt**, solange Multisite-Netzwerkaktivierung blockiert ist (R0-11).
 - [ ] **SET-CC-29** Einstellungs-Handbuch `docs/EINSTELLUNGEN.md` aus dem Register, per Skript geprüft.
 
+**Folgeaufgaben aus R1-Oberflächen (E-348):**
+- [ ] **UI-F1** Besitzer-REST R-33…R-37 und Wartezeit-Anzeige für das Einladungsbudget (F3.7).
+- [ ] **UI-F2** „Einschreibung geschlossen“ (E-108) bei Selbstanmeldung berücksichtigen.
+- [ ] **UI-F3** Eigener Einstieg „Prüfungsfehler üben“ und „fällig“ per REST.
+- [ ] **UI-F4** R0-27 SET-070 redaktionell auf `free_enrollment` angleichen.
+
 **Suite-Entscheidungen S1–S11 (23.11.2026, E-346):** S5 Hinweiszeilen erst bei verkaufter Funktion (SET-CC-01 baut Mechanismus, Liste leer); S6 Logo/Absender frei (SET-CC-16 frei); S8 Länderprofile DE/AT/CH/EU/OTHER (SET-CC-07); S9 neue Installationen ohne Löschfrist, Profil schlägt vor, Website-Zustand mahnt (SET-CC-02, Gruppe h8); S10 Deinstallation behalten (vorhanden).
 
 **Inhaber-Entscheidungen (gesammelt über die Lizenz-Sitzung):** E1 Zustimmung zum sofortigen Beginn – wo (Empfehlung: neutrales Kästchen im Kern + Kasse im Add-on) · E2 Analyse gilt für diesen Branch – **ja (faktisch, Code liegt nur hier)** · E3 Zertifikatsnummer frei einstellbar (Empfehlung) · E4 EU-Profil setzt `click_to_load` (Empfehlung) · E5 Rechte einzeln reservieren (Empfehlung) · E6 Pro-Hinweise als ausgegraute Zeilen – **entschieden (S1)** · E7 Altersgrenze ohne Standard (Empfehlung).

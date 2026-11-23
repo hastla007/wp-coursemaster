@@ -99,7 +99,7 @@ final class LessonView {
 		$state      = (array) ActivityProgress::current()->state( $actor->user_id, $lesson_id );
 
 		$html  = $back . self::status_message( $status );
-		$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . self::activity( $type, $definition['settings'], $course_id ) . '</article>';
+		$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : self::activity( $type, $definition['settings'], $course_id ) ) . '</article>';
 		$html .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'] );
 		$html .= self::navigation( $room, $lesson_id, $lang );
 		return array(
@@ -117,9 +117,10 @@ final class LessonView {
 	 * @param int                  $course_id Course.
 	 * @param int                  $lesson_id Lesson.
 	 * @param array<string, mixed> $post      Unslashed POST data.
+	 * @param array<string, mixed> $files     Uploaded files (assignment form).
 	 * @return array{status: string, location: string|null}
 	 */
-	public static function handle( Actor $actor, int $course_id, int $lesson_id, array $post ): array {
+	public static function handle( Actor $actor, int $course_id, int $lesson_id, array $post, array $files = array() ): array {
 		$result = static fn( string $status, ?string $location = null ): array => array(
 			'status'   => $status,
 			'location' => $location,
@@ -151,6 +152,12 @@ final class LessonView {
 					}
 					$state = $progress->interact( $actor, $course_id, $lesson_id, 'view', array( 'seconds' => max( 0, time() - $opened ) ) );
 					return $result( 'completed' === ( $state['status'] ?? '' ) ? 'completed' : 'view_too_short' );
+				case 'assignment_save':
+				case 'assignment_submit':
+					if ( 'assignment' !== $type ) {
+						return $result( 'ccap_invalid_param' );
+					}
+					return $result( AssignmentView::handle( $actor, $course_id, $lesson_id, (string) $post['ccap_do'], $post, $files ) );
 				case 'download':
 					$uid = (string) ( $definition['settings']['media_uid'] ?? '' );
 					if ( 'file' !== $type || 1 !== preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
@@ -230,9 +237,6 @@ final class LessonView {
 			case 'file':
 				// The download button sits in the completion form (records the download).
 				return '';
-			case 'assignment':
-				$text = '' !== (string) ( $settings['instructions'] ?? '' ) ? wpautop( esc_html( (string) $settings['instructions'] ) ) : '';
-				return '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Assignment', 'course-captain' ) . '</h2>' . $text . '<p>' . esc_html__( 'Submitting the assignment is not available in the learning area yet.', 'course-captain' ) . '</p></section>';
 			case 'exam':
 				return '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Exam', 'course-captain' ) . '</h2><p><a href="' . esc_url( LearningArea::url( 'kurs/' . LearningArea::course_uid( $course_id ) ) . '#ccap-exams-heading' ) . '">' . esc_html__( 'Start the exam on the course page.', 'course-captain' ) . '</a></p></section>';
 			case 'quiz':
@@ -543,6 +547,10 @@ final class LessonView {
 		);
 		if ( isset( $messages[ $status ] ) ) {
 			return '<p class="ccap-status" role="status">' . esc_html( $messages[ $status ] ) . '</p>';
+		}
+		$assignment = AssignmentView::message( $status );
+		if ( null !== $assignment ) {
+			return $assignment['ok'] ? '<p class="ccap-status" role="status">' . esc_html( $assignment['text'] ) . '</p>' : '<p class="ccap-error" role="alert">' . esc_html( $assignment['text'] ) . '</p>';
 		}
 		if ( 'view_too_short' === $status ) {
 			return '<p class="ccap-error" role="alert">' . esc_html__( 'Please take a little more time with this lesson before you mark it as read.', 'course-captain' ) . '</p>';

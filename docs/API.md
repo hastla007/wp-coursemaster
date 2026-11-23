@@ -47,6 +47,8 @@
 | `PUT` | `/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/flag` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/exam-sessions/(?P<session>\d+)/answers/(?P<position>\d+)/reveal` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/exam-sessions/(?P<session>\d+)/submit` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})` | angemeldet (Cookie + `X-WP-Nonce`) | – (R-31: `{group{name}, course_titles[], seats_free, bound_to_other_address}`; `422 ccap_invalid_token`, `410 ccap_invite_expired`, `409 ccap_group_not_active`, `429 ccap_rate_limited` Bucket `group_join_preview`) |
+| `POST` | `/groups/join` | angemeldet (Cookie + `X-WP-Nonce`) | – (R-32: `token`; `{seat_id, group_uid, status: active}`, Mitglied → 200 gleiche Antwort; `422 ccap_invalid_token`, `410 ccap_invite_expired`, `403 ccap_invite_other_account`, `409 ccap_group_not_active`/`ccap_group_full`/`ccap_group_busy`, `429 ccap_rate_limited` Bucket `group_join`) |
 | `GET` | `/grading/queue` | angemeldet (Cookie + `X-WP-Nonce`) | `course`, `page`, `per_page` |
 | `GET` | `/imports/(?P<id>\d+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `POST` | `/imports/(?P<id>\d+)/cancel` | angemeldet (Cookie + `X-WP-Nonce`) | – |

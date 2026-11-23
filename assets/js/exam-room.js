@@ -119,6 +119,39 @@
 					}
 				} );
 				return map;
+			case 'ordering':
+				// Send only a complete order (every position once) or an empty one; the form post reports gaps.
+				var ranks = [];
+				var selects = section.querySelectorAll( 'select' );
+				Array.prototype.forEach.call( selects, function ( select ) {
+					var key = ( select.name.match( /\[([^\]]*)\]$/ ) || [] )[ 1 ];
+					if ( key && select.value ) {
+						ranks.push( { key: key, rank: parseInt( select.value, 10 ) } );
+					}
+				} );
+				if ( ! ranks.length ) {
+					return [];
+				}
+				ranks.sort( function ( a, b ) {
+					return a.rank - b.rank;
+				} );
+				for ( var i = 0; i < ranks.length; i++ ) {
+					if ( ranks[ i ].rank !== i + 1 ) {
+						return null;
+					}
+				}
+				return ranks.length === selects.length ? ranks.map( function ( entry ) {
+					return entry.key;
+				} ) : null;
+			case 'cloze':
+				var gaps = {};
+				Array.prototype.forEach.call( section.querySelectorAll( 'input[type=text]' ), function ( input ) {
+					var gap = ( input.name.match( /\[([^\]]*)\]$/ ) || [] )[ 1 ];
+					if ( gap && input.value.trim() ) {
+						gaps[ gap ] = input.value.trim();
+					}
+				} );
+				return gaps;
 			case 'open_text':
 				radios = checked( section, 'input[type=radio][name="' + name + '[known]"]' );
 				return radios.length ? { known: '1' === radios[ 0 ].value } : null;

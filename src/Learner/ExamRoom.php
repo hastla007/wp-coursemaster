@@ -50,7 +50,7 @@ final class ExamRoom {
 	 *
 	 * @var list<string>
 	 */
-	private const SUPPORTED = array( QuestionTypes::SINGLE, QuestionTypes::TRUE_FALSE, QuestionTypes::MULTI, QuestionTypes::NUMERIC, QuestionTypes::MATCHING, QuestionTypes::OPEN_TEXT );
+	private const SUPPORTED = array( QuestionTypes::SINGLE, QuestionTypes::TRUE_FALSE, QuestionTypes::MULTI, QuestionTypes::NUMERIC, QuestionTypes::MATCHING, QuestionTypes::ORDERING, QuestionTypes::CLOZE, QuestionTypes::OPEN_TEXT );
 
 	/** Transient prefix of the one-time course room message (GM-051). */
 	public const FLASH = 'ccap_flash_';
@@ -118,7 +118,11 @@ final class ExamRoom {
 		$html .= '</div>';
 		$html .= '<p id="ccap-offline" class="ccap-offline" hidden>' . esc_html__( 'No connection. Your answers are kept on this device and sent as soon as the connection is back.', 'course-captain' ) . '</p>';
 		if ( '' !== $status && ! isset( $notes[ $status ] ) ) {
-			$html .= '<p class="ccap-error" role="alert">' . esc_html( 'confirm_required' === $status ? __( 'Please confirm that you want to submit the exam.', 'course-captain' ) : RestContract::user_message( $status ) ) . '</p>';
+			$errors = array(
+				'confirm_required'    => __( 'Please confirm that you want to submit the exam.', 'course-captain' ),
+				'ordering_incomplete' => __( 'Please give every item of the ordering question its own position. Your other answers have been saved.', 'course-captain' ),
+			);
+			$html  .= '<p class="ccap-error" role="alert">' . esc_html( $errors[ $status ] ?? RestContract::user_message( $status ) ) . '</p>';
 		}
 
 		$open    = 0;
@@ -171,7 +175,7 @@ final class ExamRoom {
 	 * @param Actor                $actor   Learner.
 	 * @param int                  $session Session.
 	 * @param array<string, mixed> $post    Unslashed POST data.
-	 * @return string `saved`, `submitted`, `confirm_required`, `revealed:<position>`,
+	 * @return string `saved`, `submitted`, `confirm_required`, `revealed:<position>`, `ordering_incomplete:<position>`,
 	 *                `confirm_cancel`, `cancelled` or an error code.
 	 */
 	public static function handle( Actor $actor, int $session, array $post ): string {
@@ -191,12 +195,18 @@ final class ExamRoom {
 			if ( 'in_progress' !== $view['status'] ) {
 				return 'cancelled' === $view['status'] ? 'ccap_exam_aborted' : 'ccap_exam_already_submitted';
 			}
+			$incomplete = 0;
 			foreach ( (array) $view['questions'] as $item ) {
 				$position = (int) $item['position'];
 				$type     = (string) $item['question']['type'];
 				if ( in_array( $type, self::SUPPORTED, true ) ) {
-					$given  = self::normalize( $type, $answers[ $position ] ?? null );
-					$stored = self::normalize( $type, $item['answer'] );
+					$given  = QuestionForm::normalize( $type, $answers[ $position ] ?? null );
+					$stored = QuestionForm::normalize( $type, $item['answer'] );
+					if ( QuestionTypes::ORDERING === $type && null === $given ) {
+						// Positions missing or repeated: keep the stored answer, ask again (no partial order is saved).
+						$incomplete = 0 === $incomplete ? $position : $incomplete;
+						$given      = $stored;
+					}
 					// Open questions: only after "Show model answer" and with a chosen self-assessment.
 					$skip = QuestionTypes::OPEN_TEXT === $type && ( null === $given || empty( $item['revealed'] ) );
 					if ( ! $skip && $stored !== $given ) {
@@ -207,6 +217,9 @@ final class ExamRoom {
 				if ( $flag !== (bool) $item['flagged'] ) {
 					$sessions->flag( $actor, $session, $position, $flag );
 				}
+			}
+			if ( $incomplete > 0 ) {
+				return 'ordering_incomplete:' . $incomplete;
 			}
 			$reveal = (int) ( $post['ccap_reveal'] ?? 0 );
 			if ( $reveal > 0 ) {
@@ -230,41 +243,6 @@ final class ExamRoom {
 	}
 
 	/**
-	 * Canonical form of a posted or stored answer.
-	 *
-	 * @param string $type   Question type.
-	 * @param mixed  $answer Answer.
-	 * @return mixed
-	 */
-	private static function normalize( string $type, $answer ) {
-		switch ( $type ) {
-			case QuestionTypes::MULTI:
-				$keys = array_values( array_filter( array_map( 'strval', (array) $answer ), static fn( string $k ): bool => '' !== $k ) );
-				sort( $keys );
-				return $keys;
-			case QuestionTypes::MATCHING:
-				$map = array();
-				foreach ( (array) $answer as $left => $right ) {
-					if ( '' !== (string) $right ) {
-						$map[ (string) $left ] = (string) $right;
-					}
-				}
-				ksort( $map );
-				return $map;
-			case QuestionTypes::NUMERIC:
-				return trim( str_replace( ',', '.', is_scalar( $answer ) ? (string) $answer : '' ) );
-			case QuestionTypes::OPEN_TEXT:
-				// Self-assessment {known: bool}; posted as "1"/"0", stored as JSON boolean.
-				if ( ! is_array( $answer ) || ! array_key_exists( 'known', $answer ) || ! in_array( $answer['known'], array( true, false, '1', '0', 1, 0 ), true ) ) {
-					return null;
-				}
-				return array( 'known' => in_array( $answer['known'], array( true, '1', 1 ), true ) );
-			default:
-				return is_scalar( $answer ) ? (string) $answer : '';
-		}
-	}
-
-	/**
 	 * One question as fieldset.
 	 *
 	 * @param array<string, mixed> $item  View item.
@@ -277,14 +255,7 @@ final class ExamRoom {
 		$question = (array) $item['question'];
 		$type     = (string) $question['type'];
 		$id       = 'ccap-q-' . $position;
-		$hints    = array(
-			QuestionTypes::SINGLE     => __( 'Choose one answer.', 'course-captain' ),
-			QuestionTypes::TRUE_FALSE => __( 'Choose one answer.', 'course-captain' ),
-			QuestionTypes::MULTI      => __( 'Choose one or more answers.', 'course-captain' ),
-			QuestionTypes::NUMERIC    => __( 'Enter a number.', 'course-captain' ),
-			QuestionTypes::MATCHING   => __( 'Match each item.', 'course-captain' ),
-			QuestionTypes::OPEN_TEXT  => __( 'Answer in your mind, then compare with the model answer.', 'course-captain' ),
-		);
+		$hint     = QuestionForm::hint( $type );
 		$html     = '<section class="ccap-question" id="' . $id . '" tabindex="-1" data-ccap-position="' . $position . '" data-ccap-type="' . esc_attr( $type ) . '">';
 		$html    .= '<fieldset aria-labelledby="' . $id . '-legend ' . $id . '-text"><legend id="' . $id . '-legend">' . esc_html(
 			sprintf(
@@ -293,48 +264,13 @@ final class ExamRoom {
 				number_format_i18n( $position ),
 				number_format_i18n( $total )
 			)
-		) . ( isset( $hints[ $type ] ) ? ' <span class="ccap-hint">' . esc_html( $hints[ $type ] ) . '</span>' : '' ) . '</legend>';
-		$html   .= '<div class="ccap-qtext" id="' . $id . '-text"' . Locale::content_attributes( $lang ) . '>' . wp_kses_post( (string) $question['text'] ) . '</div>';
+		) . ( '' !== $hint ? ' <span class="ccap-hint">' . esc_html( $hint ) . '</span>' : '' ) . '</legend>';
+		$html   .= '<div class="ccap-qtext" id="' . $id . '-text"' . Locale::content_attributes( $lang ) . '>' . QuestionForm::text( $question ) . '</div>';
 		$answer  = $item['answer'];
 		$name    = 'answer[' . $position . ']';
 		$content = Locale::content_attributes( $lang );
+		$fields  = QuestionForm::fields( $question, $name, $id, $answer, $content );
 		switch ( $type ) {
-			case QuestionTypes::SINGLE:
-			case QuestionTypes::TRUE_FALSE:
-			case QuestionTypes::MULTI:
-				$multi  = QuestionTypes::MULTI === $type;
-				$chosen = array_map( 'strval', (array) $answer );
-				$html  .= '<ul class="ccap-options"' . $content . '>';
-				foreach ( (array) ( $question['options'] ?? array() ) as $option ) {
-					$key   = (string) $option['key'];
-					$oid   = $id . '-' . sanitize_html_class( $key );
-					$html .= '<li><input type="' . ( $multi ? 'checkbox' : 'radio' ) . '" id="' . esc_attr( $oid ) . '" name="' . esc_attr( $name . ( $multi ? '[]' : '' ) ) . '" value="' . esc_attr( $key ) . '"' . checked( in_array( $key, $chosen, true ), true, false ) . '> <label for="' . esc_attr( $oid ) . '">' . esc_html( (string) $option['text'] ) . '</label></li>';
-				}
-				$html .= '</ul>';
-				break;
-			case QuestionTypes::NUMERIC:
-				$unit  = (string) ( $question['unit'] ?? '' );
-				$label = '' === $unit ? __( 'Your answer', 'course-captain' ) : sprintf(
-					/* translators: %s: unit, e.g. "km" */
-					__( 'Your answer (in %s)', 'course-captain' ),
-					$unit
-				);
-				$html .= '<p><label for="' . $id . '-input">' . esc_html( $label ) . '</label> <input type="text" inputmode="decimal" autocomplete="off" id="' . $id . '-input" name="' . esc_attr( $name ) . '" value="' . esc_attr( is_scalar( $answer ) ? (string) $answer : '' ) . '"></p>';
-				break;
-			case QuestionTypes::MATCHING:
-				$given = (array) $answer;
-				$html .= '<ul class="ccap-options"' . $content . '>';
-				foreach ( (array) ( $question['left'] ?? array() ) as $left ) {
-					$lkey  = (string) $left['key'];
-					$sid   = $id . '-' . sanitize_html_class( $lkey );
-					$html .= '<li><label for="' . esc_attr( $sid ) . '">' . esc_html( (string) $left['text'] ) . '</label> <select id="' . esc_attr( $sid ) . '" name="' . esc_attr( $name . '[' . $lkey . ']' ) . '"><option value="">' . esc_html__( '— choose —', 'course-captain' ) . '</option>';
-					foreach ( (array) ( $question['right'] ?? array() ) as $right ) {
-						$html .= '<option value="' . esc_attr( (string) $right['key'] ) . '"' . selected( (string) ( $given[ $lkey ] ?? '' ), (string) $right['key'], false ) . '>' . esc_html( (string) $right['text'] ) . '</option>';
-					}
-					$html .= '</select></li>';
-				}
-				$html .= '</ul>';
-				break;
 			case QuestionTypes::OPEN_TEXT:
 				if ( empty( $item['revealed'] ) ) {
 					$html .= '<p><button type="submit" class="ccap-button" name="ccap_reveal" value="' . $position . '">' . esc_html__( 'Show model answer', 'course-captain' ) . '</button></p>';
@@ -354,6 +290,10 @@ final class ExamRoom {
 				$html .= '</ul></fieldset>';
 				break;
 			default:
+				if ( null !== $fields ) {
+					$html .= $fields;
+					break;
+				}
 				$html .= '<p class="ccap-hint">' . esc_html__( 'This question type cannot be answered in this view yet. You can still submit the exam; the question counts as unanswered.', 'course-captain' ) . '</p>';
 		}
 		$html .= '</fieldset><p><input type="checkbox" id="' . $id . '-flag" name="flag[' . $position . ']" value="1"' . checked( (bool) $item['flagged'], true, false ) . '> <label for="' . $id . '-flag">' . esc_html__( 'Mark for review', 'course-captain' ) . '</label></p></section>';

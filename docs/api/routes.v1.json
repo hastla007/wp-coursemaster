@@ -276,6 +276,22 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/groups/join",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/health",
         "methods": [
             "GET"
