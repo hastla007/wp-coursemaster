@@ -85,7 +85,9 @@ final class StorageSelfTest {
 			return 'unknown';
 		}
 		try {
-			$response = wp_remote_get(
+			// Safe variant (C-13, SSRF rule R0-10): the own uploads URL passes
+			// the same-host check; anything rewritten to another host is refused.
+			$response = wp_safe_remote_get(
 				$url . '/' . $name,
 				array(
 					'timeout'     => 3,

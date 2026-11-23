@@ -1,0 +1,131 @@
+# Course Captain SAST rules (R0-18 §2.1, J-06). Kept in the repository; no
+# registry rules are fetched. Run (pinned CLI version, metrics off):
+#   semgrep scan --metrics=off --disable-version-check --config tools/semgrep/ \
+#     course-captain.php uninstall.php src assets blocks
+# Severity mapping (C-13): ERROR = high (blocks), WARNING = medium (needs an
+# entry in the C-13 protocol / security exceptions), INFO = report.
+rules:
+  - id: cc-wpdb-interpolated-sql
+    languages: [php]
+    severity: WARNING
+    message: >-
+      $wpdb query built from an interpolated or concatenated string without
+      $wpdb->prepare(). Allowed only for internal identifiers (table names
+      from $wpdb->prefix, class constants, int-cast values); every hit is
+      reviewed in the C-13 protocol.
+    patterns:
+      - pattern-either:
+          - pattern: $DB->$M($A . $B, ...)
+          - patterns:
+              - pattern: $DB->$M($S, ...)
+              - metavariable-regex:
+                  metavariable: $S
+                  regex: (?s)^".*\$.*"$
+      - metavariable-regex:
+          metavariable: $M
+          regex: ^(query|get_var|get_row|get_col|get_results|execute|row|rows|scalar)$
+
+  - id: cc-superglobal-unsanitized
+    languages: [php]
+    severity: WARNING
+    message: Superglobal read without wp_unslash()/sanitize_*()/absint().
+    patterns:
+      - pattern-either:
+          - pattern: $_GET[...]
+          - pattern: $_POST[...]
+          - pattern: $_REQUEST[...]
+          - pattern: $_COOKIE[...]
+      - pattern-not-inside: isset(...)
+      - pattern-not-inside: empty(...)
+      - pattern-not-inside: wp_unslash(...)
+      - pattern-not-inside: absint(...)
+
+  - id: cc-rest-route-public
+    languages: [php]
+    severity: INFO
+    message: >-
+      REST route with __return_true; must be on the public-route allowlist
+      (R0-19, SEC-002).
+    pattern: "register_rest_route($NS, $R, [..., 'permission_callback' => '__return_true', ...])"
+
+  - id: cc-remote-request-unsafe
+    languages: [php]
+    severity: ERROR
+    message: wp_remote_* without reject_unsafe_urls; use wp_safe_remote_* (SSRF, R0-10).
+    patterns:
+      - pattern-either:
+          - pattern: wp_remote_get(...)
+          - pattern: wp_remote_post(...)
+          - pattern: wp_remote_request(...)
+          - pattern: wp_remote_head(...)
+      - pattern-not: "$F($U, [..., 'reject_unsafe_urls' => true, ...])"
+
+  - id: cc-zip-extract-to
+    languages: [php]
+    severity: ERROR
+    message: >-
+      ZipArchive::extractTo() extracts unchecked entry names (ZIP traversal);
+      read entries one by one with path validation.
+    pattern: $Z->extractTo(...)
+
+  - id: cc-unserialize
+    languages: [php]
+    severity: ERROR
+    message: unserialize() on data that may be user controlled (object injection).
+    patterns:
+      - pattern: unserialize(...)
+      - pattern-not: "unserialize($X, ['allowed_classes' => false])"
+
+  - id: cc-weak-token-random
+    languages: [php]
+    severity: WARNING
+    message: >-
+      rand()/mt_rand()/uniqid()/md5(uniqid()) are not suitable for tokens;
+      use random_bytes()/random_int()/wp_generate_password().
+    pattern-either:
+      - pattern: rand(...)
+      - pattern: mt_rand(...)
+      - pattern: uniqid(...)
+
+  - id: cc-eval-shell
+    languages: [php]
+    severity: ERROR
+    message: Code or shell execution.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+      - pattern: shell_exec(...)
+      - pattern: system(...)
+      - pattern: passthru(...)
+      - pattern: proc_open(...)
+      - pattern: popen(...)
+
+  - id: cc-echo-unescaped-request
+    languages: [php]
+    severity: ERROR
+    message: Request data echoed without esc_*() (XSS).
+    pattern-either:
+      - pattern: echo $_GET[...];
+      - pattern: echo $_POST[...];
+      - pattern: echo $_REQUEST[...];
+      - pattern: echo $R->get_param(...);
+
+  - id: cc-js-innerhtml
+    languages: [javascript]
+    severity: WARNING
+    message: innerHTML/outerHTML/insertAdjacentHTML/document.write (XSS); use textContent or DOM APIs.
+    pattern-either:
+      - pattern: $E.innerHTML = $X
+      - pattern: $E.outerHTML = $X
+      - pattern: $E.insertAdjacentHTML(...)
+      - pattern: document.write(...)
+
+  - id: cc-js-eval
+    languages: [javascript]
+    severity: ERROR
+    message: eval / new Function / string timers.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+      - pattern: setTimeout("...", ...)
+      - pattern: setInterval("...", ...)

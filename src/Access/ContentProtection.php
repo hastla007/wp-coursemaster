@@ -253,6 +253,34 @@ final class ContentProtection {
 	}
 
 	/**
+	 * Headers of pages that carry a secret token in the URL (claim
+	 * invitation, certificate verification): no cache and no referrer, so
+	 * the token does not leak to linked hosts (R0-17 T-33, §3.5).
+	 *
+	 * @return array<string, string>
+	 */
+	public static function token_page_headers(): array {
+		return self::uncacheable_headers() + array(
+			'Referrer-Policy'        => 'no-referrer',
+			'X-Content-Type-Options' => 'nosniff',
+		);
+	}
+
+	/**
+	 * Send the token page headers (see token_page_headers()).
+	 *
+	 * @return void
+	 */
+	public static function send_token_page_headers(): void {
+		if ( headers_sent() ) {
+			return;
+		}
+		foreach ( self::token_page_headers() as $name => $value ) {
+			header( $name . ': ' . $value );
+		}
+	}
+
+	/**
 	 * `[course_captain_protected course="ID"]…[/course_captain_protected]` (GM-109).
 	 *
 	 * @param mixed $atts    Attributes.

@@ -133,6 +133,9 @@ final class LearningArea {
 		}
 		ContentProtection::mark_uncacheable();
 		$claim = Invitation::token( isset( $_GET[ Invitation::PARAM ] ) ? sanitize_text_field( wp_unslash( $_GET[ Invitation::PARAM ] ) ) : null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Token link, verified by the group service.
+		if ( null !== $claim ) {
+			ContentProtection::send_token_page_headers();
+		}
 		if ( ! is_user_logged_in() ) {
 			if ( null !== $claim && '' === trim( (string) $path, '/' ) ) {
 				// GM-104: guests see the invitation hint with login/registration leading back.
