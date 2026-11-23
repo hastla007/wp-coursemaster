@@ -132,7 +132,9 @@ final class MigrationResumeTest extends SchemaTestCase {
 
 		$after = self::steps();
 		foreach ( $before as $id => $row ) {
-			self::assertSame( (int) $row['attempts'] + 1, (int) $after[ $id ]['attempts'], 'each step ran once: ' . $id );
+			// A finished backfill is a one-time data step (R0-37 §4.4): it is not run again.
+			$expected = ( 'backfill' === $row['kind'] && StepLog::DONE === $row['status'] ) ? 0 : 1;
+			self::assertSame( (int) $row['attempts'] + $expected, (int) $after[ $id ]['attempts'], 'each step ran once: ' . $id );
 			self::assertSame( StepLog::DONE, $after[ $id ]['status'] );
 			self::assertSame( '0', (string) $after[ $id ]['crash_count'] );
 		}
@@ -576,7 +578,8 @@ final class MigrationResumeTest extends SchemaTestCase {
 
 		$after = self::steps();
 		foreach ( $before as $id => $row ) {
-			self::assertSame( (int) $row['attempts'] + 1, (int) $after[ $id ]['attempts'], $id );
+			$expected = ( 'backfill' === $row['kind'] && StepLog::DONE === $row['status'] ) ? 0 : 1;
+			self::assertSame( (int) $row['attempts'] + $expected, (int) $after[ $id ]['attempts'], $id );
 		}
 		$events = self::own_cron_events();
 		self::assertSame( array_values( array_unique( $events ) ), $events, 'no duplicate cron events' );
