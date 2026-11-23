@@ -114,6 +114,14 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/faqs",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\\d+)",
         "methods": [
             "DELETE"
@@ -373,6 +381,30 @@
         "route": "/course-captain/v1/me/courses",
         "methods": [
             "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/data-exports",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/data-exports/(?P<uid>[0-9a-f-]{36})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/privacy-requests",
+        "methods": [
+            "POST"
         ],
         "args": [],
         "public": false

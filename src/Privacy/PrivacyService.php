@@ -356,7 +356,24 @@ final class PrivacyService {
 		if ( ! function_exists( 'wp_add_privacy_policy_content' ) ) {
 			return;
 		}
-		$text = '<p>' . esc_html__( 'Course Captain stores learning progress, answers, exam attempts, course access and group memberships of logged-in learners. Learning answers are kept for 2 years after the end of a course, exam attempts for 10 years, ended access records for 10 years and the audit log for 4 years. Personal data can be exported and erased with the WordPress privacy tools.', 'course-captain' ) . '</p>';
-		wp_add_privacy_policy_content( __( 'Course Captain', 'course-captain' ), wp_kses_post( $text ) );
+		wp_add_privacy_policy_content( __( 'Course Captain', 'course-captain' ), wp_kses_post( self::policy_html() ) );
+	}
+
+	/**
+	 * Policy text (GM-176): the periods come from the retention service, no links.
+	 *
+	 * @return string
+	 */
+	public static function policy_html(): string {
+		$years = static fn( int $days ): int => (int) round( $days / 365.25 );
+		$text  = sprintf(
+			/* translators: 1: years learning answers are kept, 2: years exam attempts and certificates are kept, 3: years of the audit log, 4: days of the notification log */
+			__( 'Course Captain stores learning progress, answers, exam attempts, certificates, course access and group memberships of logged-in learners. Learning answers are kept for %1$d years after the end of a course, exam attempts and certificates for %2$d years, ended access records for %2$d years, the audit log for %3$d years and the notification log for %4$d days. Personal data can be exported and erased with the WordPress privacy tools; logged-in learners can request an export or erasure themselves.', 'course-captain' ),
+			$years( RetentionService::ANSWERS_DAYS ),
+			$years( RetentionService::CERTIFICATES_DAYS ),
+			RetentionService::AUDIT_YEARS,
+			RetentionService::NOTIFICATION_LOG_DAYS
+		);
+		return '<p>' . esc_html( $text ) . '</p>';
 	}
 }

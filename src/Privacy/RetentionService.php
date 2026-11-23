@@ -32,6 +32,8 @@ final class RetentionService {
 	public const KEEP_PACKAGES         = 2;
 	public const NOTIFICATION_LOG_DAYS = 90;
 	public const CERTIFICATES_DAYS     = 3653;
+	public const AUDIT_YEARS           = 4;
+	public const AUDIT_BATCH           = 5000;
 
 	/**
 	 * Run all steps.
@@ -57,6 +59,8 @@ final class RetentionService {
 			'RT-39_idempotency'      => static fn(): int => $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_request_idempotency' ) . '` WHERE expires_at < %s', gmdate( 'Y-m-d H:i:s', $now ) ) ),
 			'RT-40_rate_limits'      => static fn(): int => $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_rate_limit' ) . '` WHERE expires_at < %s', gmdate( 'Y-m-d H:i:s', $now ) ) ),
 			'RT-42_settings_undo'    => static fn(): int => self::settings_undo( $now ),
+			'RT-23_audit'            => static fn(): int => self::prune_audit( $db, $now ),
+			'RT-36_data_exports'     => static fn(): int => DataExport::purge_files( $now ),
 		);
 		$out   = array();
 		foreach ( $steps as $type => $step ) {
@@ -79,6 +83,46 @@ final class RetentionService {
 			false
 		);
 		return $out;
+	}
+
+	/**
+	 * RT-23 / R0-13 §4.4: audit rows older than the retention period, at most
+	 * {@see self::AUDIT_BATCH} per run (oldest first). The run writes one
+	 * summary entry `audit_pruned` (count, oldest and newest date, hash of the
+	 * last removed row as anchor of the remaining chain).
+	 *
+	 * @param Database $db  Database.
+	 * @param int      $now Time.
+	 * @return int Deleted rows.
+	 */
+	public static function prune_audit( Database $db, int $now ): int {
+		$table  = $db->table( 'ccap_audit_log' );
+		$cutoff = gmdate( 'Y-m-d H:i:s', (int) strtotime( '-' . self::AUDIT_YEARS . ' years', $now ) );
+		$last   = $db->scalar( $db->prepare( "SELECT MAX(id) FROM ( SELECT id FROM `{$table}` WHERE created_at < %s ORDER BY id LIMIT %d ) t", $cutoff, self::AUDIT_BATCH ) );
+		if ( null === $last ) {
+			return 0;
+		}
+		$last   = (int) $last;
+		$span   = $db->rows( $db->prepare( "SELECT MIN(created_at) AS oldest, MAX(created_at) AS newest FROM `{$table}` WHERE id <= %d AND created_at < %s", $last, $cutoff ) );
+		$anchor = (string) $db->scalar( $db->prepare( "SELECT row_hash FROM `{$table}` WHERE id = %d", $last ) );
+		$count  = $db->execute( $db->prepare( "DELETE FROM `{$table}` WHERE id <= %d AND created_at < %s ORDER BY id LIMIT %d", $last, $cutoff, self::AUDIT_BATCH ) );
+		if ( $count > 0 ) {
+			AuditLog::write(
+				$db,
+				Actor::cron(),
+				'audit_pruned',
+				'retention',
+				'RT-23_audit',
+				null,
+				array(
+					'count'  => $count,
+					'oldest' => (string) ( $span[0]['oldest'] ?? '' ),
+					'newest' => (string) ( $span[0]['newest'] ?? '' ),
+					'anchor' => $anchor,
+				)
+			);
+		}
+		return $count;
 	}
 
 	/**

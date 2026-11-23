@@ -78,7 +78,8 @@ final class KernelContractTest extends TestCase {
 			foreach ( $hooks[1] as $hook ) {
 				// R1-30: foreign/core hooks probed read-only or fired for page caches (R0-20 KOMP-032/052/058);
 				// B-01: the lesson view fires core `the_content` so content filters and ContentProtection apply.
-				if ( in_array( $hook, array( 'litespeed_control_set_nocache', 'rest_authentication_errors', 'xmlrpc_enabled', 'the_content' ), true ) ) {
+				// GM-174: the self-service confirmation fires core `user_request_action_confirmed` (as wp-login.php does).
+				if ( in_array( $hook, array( 'litespeed_control_set_nocache', 'rest_authentication_errors', 'xmlrpc_enabled', 'the_content', 'user_request_action_confirmed' ), true ) ) {
 					continue;
 				}
 				if ( ! str_starts_with( $hook, 'course_captain_' ) && ! str_starts_with( $hook, 'ccap_' ) ) {
