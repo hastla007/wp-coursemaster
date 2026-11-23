@@ -358,7 +358,7 @@
   - **Ergebnis/Definition of Done:** Versionierung, Permissions, Fehlerformate, Sanitization, Deprecation- und Contract-Tests für freigegebene Einstiegspunkte.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
 
-- [ ] **R1-29 · Echte Autoren- und Lernenden-Usability-Abnahme**
+- [ ] **R1-29 · Echte Autoren- und Lernenden-Usability-Abnahme** — *Stand 23.11.2026: vorbereitet, nicht durchgeführt (`docs/r1/R1-29-vorbereitung.md`, `docs/r1/R1-29/`). **Wartet auf** die Inhaberin (Umfang Runde 1, Budget AG-06, Einwilligung/Speicherort, Moderation und A11Y-Fachperson, Staging, SUS-Fassung, Referenzkurse AG-12, Pilot, Rekrutierung) und auf fehlende Oberflächen der ★-Aufgaben (Entwicklung); Ausführungsmappe mit Bögen und Entscheidungsliste: `docs/r1/gate/R1-29-usability-testkit.md`.*
   - **Voraussetzung:** R1-16,R1-19,R1-26.
   - **Ergebnis/Definition of Done:** Referenzaufgaben durchgespielt; Tastatur, Screenreader, mobile Prüfungen und Fehlerbehebung mit dokumentierten Befunden.
   - **Nachweis:** konkrete Datei/Commit, Testkommando und Ergebnis, Review/Freigabe, Zuordnung zu Konzept/FLOW/CORE/PAR/LB; erst danach abhaken.
@@ -444,7 +444,7 @@
   - **Voraussetzung:** R1-07, R1-09, R1-14.
   - **Ergebnis/Definition of Done:** Abgabe-Workflow draft/submitted/returned/graded, sichere Uploads (R0-10), Bewertung durch Trainer, Benachrichtigung; Tests und Nutzertest-Referenzkurs mit Aufgabe (R0-26).
 
-- [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C.
+- [ ] **R1-GATE · R1-Freigabe:** Alle Pflichtaufgaben dieser Phase abgenommen, offene Blocker dokumentiert und Freigabe protokolliert. Gates B/C. — *Stand 23.11.2026: Protokollentwurf `docs/r1/gate/R1-GATE-protokoll-entwurf.md`. **Wartet auf** AG-05 Reviewer-Benennung (Inhaberin, `docs/r1/gate/AG-05-reviewer-benennung.md`), AG-07 juristische Bestätigung (Inhaberin/Rechtsberatung, `docs/r1/gate/AG-07-rechtspruefung.md`), Referenzlauf E-328 (Deploy-Key AG-13 durch die Inhaberin, Lauf durch die Prüfrolle, `docs/r1/gate/E-328-referenzlauf-protokoll.md`), R1-29 (`docs/r1/gate/R1-29-usability-testkit.md`) sowie die übrigen Punkte W-01…W-21 im Entwurf.*
 
 ### R2 – Zusätzliche universelle P0-Funktionen
 
