@@ -91,6 +91,7 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-335 (GM-068) | Backfill für Altzeilen ohne `due_at` bleibt nur im Migrationswerkzeug (E-03), nicht in `Migrator::core_backfills()` (23.11.2026) | nein |
 | E-336 | Redaktionelle Angleichung der R0-Dokumente an R0-19/R0-10 (23.11.2026): Monitor `GET /monitor` (Alias `/health`) mit Header `X-CC-Monitor-Key` (R0-13); `package_id` der Fixture-Pakete aus dem Inhalt gebildet (R0-05 §2.6); `ccap_access_exists` (409) und `ccap_user_required` (401) im Fehlerkatalog R0-19 §3 | nein |
 | E-337 (E-332) | Karteikarten zählen im kostenlosen Teilumfang als Fragen; keine eigene Kartengrenze (23.11.2026) | nein |
+| E-338 (GM-038/GM-150/GM-136) | R0-19 gilt für Statuscodes: abgelaufene Prüfung `410 ccap_exam_expired`, fehlender Antwortschlüssel `428 ccap_idempotency_key_required`; R0-05 angeglichen. GM-136 wird einmal lokal im Vollumfang (20 000 Fragen) gefahren, sonst gilt der skalierte Nachweis (23.11.2026) | nein |
 
 ### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
 
