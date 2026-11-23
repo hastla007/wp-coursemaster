@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:course-captain:package:v1:media",
+  "type": "object",
+  "required": ["source_id", "media_type", "alt_text", "rights"],
+  "properties": {
+    "source_id": {"$ref": "common.schema.json#/$defs/sourceId"},
+    "media_type": {"enum": ["image", "audio", "video", "document", "captions"]},
+    "alt_text": {"type": "string"},
+    "decorative": {"type": "boolean"},
+    "rights": {"$ref": "common.schema.json#/$defs/rights"}
+  },
+  "if": {"properties": {"media_type": {"const": "image"}}, "required": ["media_type"]},
+  "then": {
+    "if": {"not": {"properties": {"decorative": {"const": true}}, "required": ["decorative"]}},
+    "then": {"properties": {"alt_text": {"minLength": 1}}}
+  },
+  "else": {"not": {"required": ["decorative"]}}
+}

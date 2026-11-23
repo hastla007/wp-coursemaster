@@ -593,7 +593,7 @@ final class ImportRunner {
 				static function ( array $item ) use ( $handle, &$counts ): void {
 					fwrite( $handle, (string) wp_json_encode( $item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . "\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Private spool file.
 					++$counts['lines'];
-					if ( 'questions' === $item['entity'] && null !== $item['record'] ) {
+					if ( in_array( $item['entity'], array( 'questions', 'flashcards' ), true ) && null !== $item['record'] ) {
 						++$counts['questions'];
 					} elseif ( 'archive' === $item['action'] ) {
 						++$counts['archive'];
@@ -721,8 +721,15 @@ final class ImportRunner {
 								self::fault( 'write', (int) ( $run['line'] ?? 0 ) + $read - 1 );
 								$result  = $this->service->apply_item( $actor, $batch, $system, $package, $item );
 								$object  = $result['object'];
-								$message = null === $result['revision'] ? null : (string) wp_json_encode( array( 'revision' => $result['revision'] ) );
-								if ( 'question' !== $type && null !== $object ) {
+								$message = null === $result['revision'] ? null : (string) wp_json_encode(
+									array_filter(
+										array(
+											'revision' => $result['revision'],
+											'draft'    => $result['draft'],
+										)
+									)
+								);
+								if ( ! in_array( $type, ImportService::QUESTION_TYPES, true ) && null !== $object ) {
 									$this->touched[] = $object;
 								}
 								$this->db->execute( 'RELEASE SAVEPOINT ccap_import_item' );
@@ -815,13 +822,17 @@ final class ImportRunner {
 				$run   = (array) $stats['run'];
 				$size  = max( 1, min( self::CHUNK_MAX, $this->next_chunk ?? (int) ( $run['chunk'] ?? self::CHUNK_START ) ) );
 				$log   = $this->db->table( 'ccap_import_item_log' );
-				$rows  = $this->db->rows( $this->db->prepare( "SELECT id, source_id, object_id, message FROM `{$log}` WHERE batch_id = %d AND entity = 'questions' AND action IN ('create', 'update') AND outcome = 'ok' AND id > %d ORDER BY id LIMIT %d", $batch, (int) ( $run['after'] ?? 0 ), $size ) );
+				$rows  = $this->db->rows( $this->db->prepare( "SELECT id, source_id, object_id, message FROM `{$log}` WHERE batch_id = %d AND entity IN ('questions', 'flashcards') AND action IN ('create', 'update') AND outcome = 'ok' AND id > %d ORDER BY id LIMIT %d", $batch, (int) ( $run['after'] ?? 0 ), $size ) );
 				$repo  = QuestionRepository::current();
 				$bad   = array();
 				foreach ( $rows as $row ) {
 					self::fault( 'publish', (int) $row['id'] );
 					$meta     = json_decode( (string) $row['message'], true );
 					$revision = is_array( $meta ) ? (int) ( $meta['revision'] ?? 0 ) : 0;
+					if ( is_array( $meta ) && ! empty( $meta['draft'] ) ) {
+						// Draft/review records are imported but not published (R0-10 §1.3, Q-A3-011).
+						continue;
+					}
 					$this->db->execute( 'SAVEPOINT ccap_import_item' );
 					try {
 						$repo->publish( $actor, (int) $row['object_id'], $revision > 0 ? $revision : null );
@@ -1180,7 +1191,7 @@ final class ImportRunner {
 	 * @throws CourseException When WordPress refuses the deletion.
 	 */
 	private function delete_object( string $type, int $object_id ): void {
-		if ( 'question' === $type ) {
+		if ( in_array( $type, ImportService::QUESTION_TYPES, true ) ) {
 			$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_question_revision' ) . '` WHERE question_id = %d', $object_id ) );
 			$this->db->execute( $this->db->prepare( 'DELETE FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $object_id ) );
 		} else {

@@ -45,11 +45,28 @@ defined( 'ABSPATH' ) || exit;
 final class ImportService {
 
 	public const ENTITY_TYPES = array(
-		'questions' => 'question',
-		'lessons'   => 'lesson',
-		'modules'   => 'module',
-		'courses'   => 'course',
+		'questions'  => 'question',
+		'flashcards' => 'flashcard',
+		'lessons'    => 'lesson',
+		'modules'    => 'module',
+		'courses'    => 'course',
 	);
+
+	/**
+	 * Entities stored as questions (`ccap_question`); flashcards use the
+	 * question type `flashcard` (R0-10 §1.3, E-21).
+	 */
+	public const QUESTION_TYPES = array( 'question', 'flashcard' );
+
+	/**
+	 * Flashcard modes of the package format (R0-10 §1.3).
+	 */
+	public const CARD_MODES = array( 'self_assessment', 'streak_3' );
+
+	/**
+	 * Editorial states that are imported but not published (R0-10 §1.3).
+	 */
+	public const UNPUBLISHED = array( 'draft', 'review', 'approved' );
 
 	/**
 	 * Running import (local edits are not marked as conflicts).
@@ -64,6 +81,13 @@ final class ImportService {
 	 * @var array<int, int>
 	 */
 	private array $saved = array();
+
+	/**
+	 * Manifests per package ID (rights of the current run).
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	private array $manifests = array();
 
 	/**
 	 * Constructor.
@@ -126,6 +150,7 @@ final class ImportService {
 		ImportRunner::register();
 		ImportRoutes::register();
 		ImportCommand::register();
+		RightsReleaseForm::register();
 	}
 
 	/**
@@ -430,7 +455,7 @@ final class ImportService {
 		$count  = $opened ? $zip->count() : 0;
 		for ( $i = 0; $i < $count; $i++ ) {
 			$name = (string) $zip->getNameIndex( $i );
-			if ( 1 === preg_match( '#^data/(courses|modules|lessons|questions)/\d{6}\.json$#', $name, $m ) ) {
+			if ( 1 === preg_match( '#^data/(' . implode( '|', array_keys( self::ENTITY_TYPES ) ) . ')/\d{6}\.json$#', $name, $m ) ) {
 				$files[ $m[1] ][] = $name;
 			}
 		}
@@ -464,6 +489,9 @@ final class ImportService {
 					}
 					if ( null === $rule && 'questions' === $entity && ! in_array( (string) ( $record['revision']['question_type'] ?? '' ), QuestionTypes::ALL, true ) ) {
 						$rule = 'unknown_type';
+					}
+					if ( null === $rule && 'flashcards' === $entity ) {
+						$rule = self::card_error( $record );
 					}
 					if ( null === $rule ) {
 						foreach ( self::references( $entity, $record ) as $ref_type => $refs ) {
@@ -503,7 +531,8 @@ final class ImportService {
 				}
 				unset( $list );
 			}
-			if ( ! $partial ) {
+			// An entity the package does not carry at all counts as empty, not as "archive everything" (R0-10 §1.4).
+			if ( ! $partial && ( array() !== $files[ $entity ] || array_key_exists( $entity, (array) ( $manifest['counts'] ?? array() ) ) ) ) {
 				foreach ( $map[ $type ] ?? array() as $source => $known ) {
 					if ( ! isset( $seen[ $type ][ (string) $source ] ) && 'archived' !== $known['state'] ) {
 						$emit(
@@ -541,7 +570,7 @@ final class ImportService {
 	 * @param string                                                                               $system  Source system.
 	 * @param string                                                                               $package Package ID.
 	 * @param array{entity: string, source_id: string, action: string, record?: array<mixed>|null} $item    Spool item.
-	 * @return array{object: int|null, revision: int|null}
+	 * @return array{object: int|null, revision: int|null, draft: bool}
 	 * @throws CourseException On write errors.
 	 */
 	public function apply_item( Actor $actor, int $batch, string $system, string $package, array $item ): array {
@@ -549,18 +578,22 @@ final class ImportService {
 		$source   = $item['source_id'];
 		$object   = $this->mapped( $system, $type, $source );
 		$revision = null;
+		$draft    = false;
 		if ( in_array( $item['action'], array( 'create', 'update' ), true ) ) {
 			$record = (array) ( $item['record'] ?? array() );
+			$draft  = in_array( (string) ( $record['editorial_status'] ?? 'published' ), self::UNPUBLISHED, true );
 			unset( $this->saved[ (int) $object ] );
 			$object = $this->write_object( $actor, $system, $type, $record, $object );
-			if ( 'question' === $type ) {
+			if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 				$revision = $this->saved[ $object ] ?? (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $object ) );
+				$this->write_rights( $revision, $record, $package );
 			}
 			$this->map( $system, $type, $source, $object, (string) ( $record['hash'] ?? '' ), $package, $batch );
 		}
 		return array(
 			'object'   => $object,
 			'revision' => $revision,
+			'draft'    => $draft,
 		);
 	}
 
@@ -574,7 +607,7 @@ final class ImportService {
 	 * @return void
 	 */
 	public function archive_object( Actor $actor, string $type, int $object_id ): void {
-		if ( 'question' === $type ) {
+		if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 			QuestionRepository::current()->archive( $actor, $object_id );
 			return;
 		}
@@ -599,15 +632,21 @@ final class ImportService {
 	 */
 	private function write_object( Actor $actor, string $system, string $type, array $record, ?int $existing ): int {
 		$object = $existing;
-		if ( 'question' === $type ) {
+		if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 			$repo = QuestionRepository::current();
-			$data = array(
+			$data = 'flashcard' === $type ? self::card_data( $record ) : array(
 				'question_type' => (string) $record['revision']['question_type'],
 				'question_text' => self::html( (string) ( $record['revision']['text_html'] ?? '' ) ),
 				'settings'      => (array) ( $record['revision']['settings'] ?? array() ),
 				'answers'       => self::answers( (string) $record['revision']['question_type'], array_values( (array) ( $record['answers'] ?? array() ) ) ),
 				'tags'          => array_values( (array) ( $record['tags'] ?? array() ) ),
 			);
+			// Explanation texts are imported and kept in Free; delivery needs Pro (E-20).
+			foreach ( array( 'feedback_correct', 'feedback_incorrect' ) as $field ) {
+				if ( isset( $record['revision'][ $field ] ) && '' !== (string) $record['revision'][ $field ] ) {
+					$data[ $field ] = self::html( (string) $record['revision'][ $field ] );
+				}
+			}
 			if ( null === $object ) {
 				return $repo->create( $actor, $data );
 			}
@@ -645,6 +684,9 @@ final class ImportService {
 		}
 		if ( 'lesson' === $type ) {
 			ActivityService::current()->define( $actor, $object, (string) ( $record['activity_type'] ?? 'lesson' ), (array) ( $record['settings'] ?? array() ) );
+			if ( array_key_exists( 'quiz', $record ) ) {
+				$this->link_quiz( $system, $object, array_values( (array) $record['quiz'] ) );
+			}
 		} elseif ( 'module' === $type ) {
 			foreach ( (array) ( $record['lessons'] ?? array() ) as $link ) {
 				$lesson = $this->mapped( $system, 'lesson', (string) $link['lesson'] );
@@ -718,6 +760,13 @@ final class ImportService {
 					'lesson'   => $col( 'lessons', 'lesson' ),
 					'question' => $col( 'question_pool', 'question' ),
 				);
+			case 'lessons':
+				// `quiz[]` entries name a question or a flashcard (R0-10 §1.3).
+				$quiz = array_values( array_filter( (array) ( $record['quiz'] ?? array() ), 'is_array' ) );
+				return array(
+					'question'  => array_values( array_map( 'strval', array_filter( array_column( $quiz, 'question' ), static fn( $v ): bool => '' !== (string) $v ) ) ),
+					'flashcard' => array_values( array_map( 'strval', array_filter( array_column( $quiz, 'flashcard' ), static fn( $v ): bool => '' !== (string) $v ) ) ),
+				);
 		}
 		return array();
 	}
@@ -734,8 +783,8 @@ final class ImportService {
 		$posts = $this->db->wpdb()->posts;
 		// Two joined reads instead of one status query per row (large re-imports, R0-38 M-05).
 		$rows = array_merge(
-			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, q.status AS state FROM `{$map}` m LEFT JOIN `" . $this->db->table( 'ccap_question' ) . "` q ON q.id = m.object_id WHERE m.source_system = %s AND m.object_type = 'question'", $system ) ),
-			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, p.post_status AS state FROM `{$map}` m LEFT JOIN `{$posts}` p ON p.ID = m.object_id WHERE m.source_system = %s AND m.object_type <> 'question'", $system ) )
+			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, q.status AS state FROM `{$map}` m LEFT JOIN `" . $this->db->table( 'ccap_question' ) . "` q ON q.id = m.object_id WHERE m.source_system = %s AND m.object_type IN ('question', 'flashcard')", $system ) ),
+			$this->db->rows( $this->db->prepare( "SELECT m.object_type, m.object_id, m.source_id, m.last_hash, m.locally_modified, p.post_status AS state FROM `{$map}` m LEFT JOIN `{$posts}` p ON p.ID = m.object_id WHERE m.source_system = %s AND m.object_type NOT IN ('question', 'flashcard')", $system ) )
 		);
 		foreach ( $rows as $row ) {
 			$state        = (string) ( $row['state'] ?? '' );
@@ -789,6 +838,147 @@ final class ImportService {
 				$now
 			)
 		);
+	}
+
+	/**
+	 * V6 rule of a flashcard record (R0-10 §1.3): front and back side,
+	 * known mode, valid rights status.
+	 *
+	 * @param array<string, mixed> $record Record.
+	 * @return string|null Rule or null.
+	 */
+	private static function card_error( array $record ): ?string {
+		if ( '' === trim( (string) ( $record['front_html'] ?? '' ) ) || '' === trim( (string) ( $record['back_html'] ?? '' ) ) ) {
+			return 'schema';
+		}
+		if ( isset( $record['mode'] ) && ! in_array( (string) $record['mode'], self::CARD_MODES, true ) ) {
+			return 'schema';
+		}
+		if ( isset( $record['rights'] ) && ! in_array( (string) ( $record['rights']['status'] ?? '' ), Rights::STATUSES, true ) ) {
+			return 'schema';
+		}
+		return null;
+	}
+
+	/**
+	 * Revision data of a flashcard (question type `flashcard`, E-21).
+	 *
+	 * @param array<string, mixed> $record Record.
+	 * @return array<string, mixed>
+	 */
+	private static function card_data( array $record ): array {
+		$data = array(
+			'question_type' => QuestionTypes::FLASHCARD,
+			'question_text' => self::html( (string) ( $record['front_html'] ?? '' ) ),
+			'settings'      => array(
+				'back' => self::html( (string) ( $record['back_html'] ?? '' ) ),
+				'mode' => (string) ( $record['mode'] ?? 'self_assessment' ),
+			),
+			'tags'          => array_values( (array) ( $record['tags'] ?? array() ) ),
+		);
+		if ( '' !== trim( (string) ( $record['explanation_html'] ?? '' ) ) ) {
+			// Explanation of the card: stored in Free, delivered only with Pro (E-20).
+			$data['feedback_correct'] = self::html( (string) $record['explanation_html'] );
+		}
+		return $data;
+	}
+
+	/**
+	 * Store the rights of an imported question or flashcard on its revision
+	 * (R0-10 §2.1). Imported content is foreign unless the package is a
+	 * re-import of this site's own export; foreign `own` becomes `licensed`
+	 * with the publisher as owner (E-62). Overrides stay untouched.
+	 *
+	 * @param int                  $revision Revision holding the content.
+	 * @param array<string, mixed> $record   Record.
+	 * @param string               $package  Package ID.
+	 * @return void
+	 */
+	private function write_rights( int $revision, array $record, string $package ): void {
+		if ( $revision <= 0 ) {
+			return;
+		}
+		$rights = isset( $record['revision'] ) ? ( $record['revision']['rights'] ?? null ) : ( $record['rights'] ?? null );
+		$rights = is_array( $rights ) ? $rights : array( 'status' => 'own' );
+		$status = in_array( (string) ( $rights['status'] ?? '' ), Rights::STATUSES, true ) ? (string) $rights['status'] : 'unknown';
+		$owner  = isset( $rights['owner'] ) ? (string) $rights['owner'] : null;
+		$own    = $this->own_package( $package );
+		if ( 'own' === $status && ! $own ) {
+			$status = 'licensed';
+			$owner  = $owner ?? $this->publisher( $package );
+		}
+		$license = array_intersect_key( $rights, array_flip( array( 'license', 'license_url', 'attribution', 'source_url', 'valid_until', 'note' ) ) );
+		$this->db->execute(
+			$this->db->prepare(
+				'UPDATE `' . $this->db->table( 'ccap_question_revision' ) . '` SET rights_status = %s, rights_owner = %s, license_reference = %s WHERE id = %d',
+				$status,
+				null === $owner ? '' : substr( sanitize_text_field( $owner ), 0, 255 ),
+				array() === $license ? '' : (string) wp_json_encode( $license ),
+				$revision
+			)
+		);
+	}
+
+	/**
+	 * Manifest of the batch that carries a package (cached per run).
+	 *
+	 * @param string $package Package ID.
+	 * @return array<string, mixed>
+	 */
+	private function package_manifest( string $package ): array {
+		if ( ! isset( $this->manifests[ $package ] ) ) {
+			$json                        = $this->db->scalar( $this->db->prepare( 'SELECT manifest FROM `' . $this->db->table( 'ccap_import_batch' ) . '` WHERE package_id = %s ORDER BY id DESC LIMIT 1', $package ) );
+			$this->manifests[ $package ] = (array) json_decode( (string) $json, true );
+		}
+		return $this->manifests[ $package ];
+	}
+
+	/**
+	 * Whether a package is this site's own content (R0-10 §2.2): source
+	 * system `local` or exported from this installation.
+	 *
+	 * @param string $package Package ID.
+	 * @return bool
+	 */
+	private function own_package( string $package ): bool {
+		$manifest = $this->package_manifest( $package );
+		$site     = (string) get_option( 'course_captain_installation_uuid', '' );
+		$from     = (string) ( $manifest['source']['exported_from_site'] ?? '' );
+		return 'local' === ( $manifest['source']['system'] ?? '' ) || ( '' !== $site && $site === $from );
+	}
+
+	/**
+	 * Publisher name of a package (owner of foreign `own` content, E-62).
+	 *
+	 * @param string $package Package ID.
+	 * @return string
+	 */
+	private function publisher( string $package ): string {
+		$manifest = $this->package_manifest( $package );
+		return (string) ( $manifest['publisher']['name'] ?? $manifest['source']['system'] ?? '' );
+	}
+
+	/**
+	 * Replace the inline questions/cards of a lesson (`quiz[]`, R0-10 §1.3).
+	 *
+	 * @param string            $system Source system.
+	 * @param int               $lesson Lesson.
+	 * @param array<int, mixed> $quiz   Entries `{question}` or `{flashcard}` with optional `sort`.
+	 * @return void
+	 */
+	private function link_quiz( string $system, int $lesson, array $quiz ): void {
+		$table = $this->db->table( 'ccap_activity_question' );
+		$this->db->execute( $this->db->prepare( "DELETE FROM `{$table}` WHERE activity_id = %d", $lesson ) );
+		foreach ( $quiz as $i => $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+			$type   = isset( $entry['flashcard'] ) ? 'flashcard' : 'question';
+			$target = $this->mapped( $system, $type, (string) ( $entry[ $type ] ?? '' ) );
+			if ( null !== $target ) {
+				$this->db->execute( $this->db->prepare( "INSERT IGNORE INTO `{$table}` (activity_id, question_id, sort_order) VALUES (%d, %d, %d)", $lesson, $target, (int) ( $entry['sort'] ?? $i + 1 ) ) );
+			}
+		}
 	}
 
 	/**
