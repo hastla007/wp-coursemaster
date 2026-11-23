@@ -1,0 +1,13 @@
+nr;kriterium;schwelle;rolle;aufgabe;ist_wert;n;erfuellt;befund_bei_verfehlung;bemerkung
+S-01;Erfolg je Kernaufgabe (ohne Hilfstechnik);>= 80 % (n=5: 4 von 5, n=6: 5 von 6);je Rolle;je T-Aufgabe;;;;S2;
+S-02;Erfolg je kritischer Aufgabe ★ und 0 kritische Fehler;>= 80 % und 0 kritische Fehler;je Rolle;UX-007/009/012/013/017/020/023/025/026/028/030/033/036/038/051/053/060/061;;;;S1;
+S-03;Gesamterfolg je Rolle;>= 85 %;je Rolle;alle;;;;S2;
+S-04;SUS Mittelwert je Rolle;>= 70 und höchstens 1 Person < 50;je Rolle;–;;;;S2;
+S-05;SEQ Median je Kernaufgabe;>= 5,0 (kritische Lernenden-Aufgaben >= 5,5);je Rolle;je T-Aufgabe;;;;S2;
+S-06;Autor veröffentlicht Referenzkurs (AU-GES);Median <= 90 min, keine Person > 120 min, check-rk grün;Autor;AU-GES;;;;S1;
+S-07;Setup-Assistent (AD-T01);Median <= 10 min;Admin;AD-T01;;;;S2;
+S-08;Wiederaufnahme der Prüfung (LE-T06);Median <= 1 min bis zur nächsten offenen Frage, 0 verlorene Antworten;Lernende;LE-T06;;;;S1;
+S-09;Ende-zu-Ende Lernende (LE-GES);Desktop <= 60 min, mobil <= 70 min (Median, ohne Lesezeit);Lernende;LE-GES;;;;S2;
+S-10;GV-GES / AD-GES;<= 15 min / <= 30 min Median;GV / Admin;GV-GES / AD-GES;;;;S2;
+S-A11Y;Hilfstechnik je Person: jede ★-Aufgabe ohne sehende Hilfe, SEQ-Median Gruppe >= 4,5;jede Person ohne H2;Lernende-AT / Autor-AT;★ des Flows;;;;S1;
+S-EXP;Expertendurchläufe A11Y-102/103 für alle Kombinationen Stufe Z/E;keine offenen S1;Experte;UX-076/077;;;;S1;

@@ -1,0 +1,107 @@
+<?php
+/**
+ * Registry of all Course Captain cron and background hooks.
+ *
+ * @package CourseCaptain
+ */
+
+declare(strict_types=1);
+
+namespace CourseCaptain\Kernel;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Every own cron hook is listed here so that deactivation and uninstall can
+ * remove all events of the current site, including single events
+ * (R0-19 §4.8, GM-158, MS-R-10).
+ */
+final class CronHooks {
+
+	public const HOURLY          = 'ccap_hourly';
+	public const OUTBOX_DISPATCH = 'ccap_outbox_dispatch';
+	public const TASK_CONTINUE   = 'ccap_task_continue';
+	public const MIGRATE         = 'ccap_migrate';
+	public const PRIVACY_EXPORT  = 'ccap_privacy_export_generate';
+
+	/**
+	 * All R1 cron hooks (R0-19 §4.8).
+	 *
+	 * @var list<string>
+	 */
+	public const ALL = array(
+		self::HOURLY,
+		self::OUTBOX_DISPATCH,
+		self::TASK_CONTINUE,
+		self::MIGRATE,
+		self::PRIVACY_EXPORT,
+	);
+
+	/**
+	 * Action Scheduler group used for background actions.
+	 */
+	public const ACTION_SCHEDULER_GROUP = 'course-captain';
+
+	/**
+	 * Schedule the recurring events of a freshly activated site.
+	 *
+	 * @param int $now Current Unix timestamp.
+	 * @return void
+	 */
+	public static function schedule_recurring( int $now ): void {
+		if ( false === wp_next_scheduled( self::HOURLY ) ) {
+			wp_schedule_event( $now + HOUR_IN_SECONDS, 'hourly', self::HOURLY );
+		}
+	}
+
+	/**
+	 * Remove every event of every own hook on the current site.
+	 *
+	 * @return void
+	 */
+	public static function unschedule_all(): void {
+		foreach ( self::ALL as $hook ) {
+			wp_unschedule_hook( $hook );
+		}
+
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			foreach ( self::ALL as $hook ) {
+				as_unschedule_all_actions( $hook, array(), self::ACTION_SCHEDULER_GROUP );
+			}
+		}
+	}
+
+	/**
+	 * Handler of `ccap_hourly`.
+	 *
+	 * The task runner (R0-19 §4.8, registry slot `tasks`) is added by later
+	 * tasks; R1-01 only provides the hook so that the event life cycle is real.
+	 *
+	 * @return void
+	 */
+	public static function run_hourly(): void {
+		// W1 (R0-37 §3.3, MIG-025): housekeeping pauses until the schema is current.
+		if ( ! Plugin::schema_ready() ) {
+			return;
+		}
+		// Access housekeeping (R0-09 G-10, E-201, SEAT-007); access itself never depends on it.
+		// Every step is isolated (GM-156).
+		\CourseCaptain\Ops\HealthChecks::run_isolated(
+			array(
+				// Restore/copy detection first, so the send run below already sees the hold (R1-23, E-85).
+				'site_identity'     => static fn() => SiteIdentity::check(),
+				'grant_expiry'      => static fn() => \CourseCaptain\Access\GrantService::current()->expire_due(),
+				'pending_timeout'   => static fn() => \CourseCaptain\Access\GrantService::current()->fail_stale_pending(),
+				'invitation_expiry' => static fn() => \CourseCaptain\Access\GroupService::current()->expire_invitations(),
+				'outbox_purge'      => static fn() => \CourseCaptain\Event\OutboxDispatcher::current()->purge(),
+				'exam_expiry'       => static fn() => \CourseCaptain\Exam\ExamSessions::current()->expire_due(),
+				'retention'         => static fn() => \CourseCaptain\Privacy\RetentionService::run(),
+				'notifications'     => static fn() => \CourseCaptain\Notification\NotificationService::current()->hourly(),
+				// Stale imports: automatic resume up to three times, then aborted (R1-41, E-181).
+				'import_watchdog'   => static fn() => \CourseCaptain\Import\ImportRunner::current()->watchdog(),
+				// Legacy media outside the allowlist: moved once into the quarantine (R0-10 §3.2 V4, GM-128).
+				'media_quarantine'  => static fn() => \CourseCaptain\Import\MediaQuarantine::run_once(),
+			)
+		);
+	}
+}

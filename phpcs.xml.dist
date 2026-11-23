@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<ruleset name="Course Captain">
+	<description>Full WordPress Coding Standards, blocking, without baseline (R0-18 J-01, T-2).</description>
+
+	<file>course-captain.php</file>
+	<file>uninstall.php</file>
+	<file>src</file>
+	<file>tests</file>
+
+	<exclude-pattern>tests/guards/fixtures/*</exclude-pattern>
+	<exclude-pattern>tests/unit/fixtures/*</exclude-pattern>
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>node_modules/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+	<arg name="cache" value=".phpcs.cache"/>
+
+	<config name="minimum_wp_version" value="7.0"/>
+	<config name="testVersion" value="8.5-"/>
+
+	<rule ref="WordPress">
+		<!-- PSR-4 class files (R0-18 J-01: the only allowed exception). -->
+		<exclude name="WordPress.Files.FileName"/>
+	</rule>
+
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="ccap_edit_courses"/>
+				<element value="ccap_edit_others_courses"/>
+				<element value="ccap_publish_courses"/>
+				<element value="ccap_delete_courses"/>
+				<element value="ccap_manage_question_bank"/>
+				<element value="ccap_import_content"/>
+				<element value="ccap_export_content"/>
+				<element value="ccap_release_rights"/>
+				<element value="ccap_manage_grants"/>
+				<element value="ccap_manage_access_rules"/>
+				<element value="ccap_manage_groups"/>
+				<element value="ccap_view_reports"/>
+				<element value="ccap_view_learner_details"/>
+				<element value="ccap_view_attempt_details"/>
+				<element value="ccap_grade_attempts"/>
+				<element value="ccap_manage_learner_progress"/>
+				<element value="ccap_manage_certificates"/>
+				<element value="ccap_lock_learners"/>
+				<element value="ccap_manage_settings"/>
+				<element value="ccap_manage_integrations"/>
+				<element value="ccap_view_audit_log"/>
+				<element value="ccap_view_system_status"/>
+				<element value="ccap_run_maintenance"/>
+				<element value="ccap_assign_staff"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="course-captain"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="course_captain"/>
+				<element value="ccap"/>
+				<element value="CourseCaptain"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Test code: PHPUnit mandates camelCase method names and test-only globals. -->
+	<rule ref="WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>tests/integration/bootstrap.php</exclude-pattern>
+		<exclude-pattern>tests/integration/wp-tests-config.php</exclude-pattern>
+		<exclude-pattern>tests/unit/bootstrap.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security.EscapeOutput">
+		<exclude-pattern>tests/guards/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+</ruleset>

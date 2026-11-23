@@ -1,0 +1,468 @@
+[
+    {
+        "route": "/course-captain/v1/answers",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/files/(?P<media>[0-9a-f-]+)",
+        "methods": [
+            "DELETE"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/grade",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "action": {
+                "type": "string",
+                "required": true
+            },
+            "feedback": {
+                "type": "string",
+                "required": false
+            },
+            "points_milli": {
+                "type": "integer",
+                "required": false
+            },
+            "reason": {
+                "type": "string",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/assignment-submissions/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/submit",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/certificates/verify/(?P<token>[0-9a-zA-Z]{1,64})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": true
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\\d+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/assignments/(?P<lesson>\\d+)/draft",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "submission_uid": {
+                "type": "string",
+                "required": false
+            },
+            "text": {
+                "type": "string",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/exam-sessions",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/faqs",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\\d+)",
+        "methods": [
+            "DELETE"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/favorites/(?P<question>\\d+)",
+        "methods": [
+            "PUT"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/lessons",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/lessons/(?P<lesson>\\d+)/progress",
+        "methods": [
+            "PUT"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/next-question",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/practice",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<id>\\d+)/publish",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<id>\\d+)/structure",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<id>\\d+)/structure",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "modules": {
+                "type": "array",
+                "required": true
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<id>\\d+)/validation",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/exam-sessions/(?P<session>\\d+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/exam-sessions/(?P<session>\\d+)/abort",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/exam-sessions/(?P<session>\\d+)/answers/(?P<position>\\d+)",
+        "methods": [
+            "PUT"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/exam-sessions/(?P<session>\\d+)/answers/(?P<position>\\d+)/flag",
+        "methods": [
+            "PUT"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/exam-sessions/(?P<session>\\d+)/answers/(?P<position>\\d+)/reveal",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/exam-sessions/(?P<session>\\d+)/submit",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/grading/queue",
+        "methods": [
+            "GET"
+        ],
+        "args": {
+            "course": {
+                "type": "string",
+                "required": false
+            },
+            "page": {
+                "type": "integer",
+                "required": false
+            },
+            "per_page": {
+                "type": "integer",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/groups/join",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/health",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": true
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/cancel",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/report",
+        "methods": [
+            "GET"
+        ],
+        "args": {
+            "after": {
+                "type": "integer",
+                "required": false
+            },
+            "class": {
+                "type": "string",
+                "required": false
+            },
+            "entity": {
+                "type": "string",
+                "required": false
+            },
+            "format": {
+                "type": "string",
+                "required": false
+            },
+            "per_page": {
+                "type": "integer",
+                "required": false
+            },
+            "phase": {
+                "type": "string",
+                "required": false
+            },
+            "rule": {
+                "type": "string",
+                "required": false
+            },
+            "severity": {
+                "type": "string",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/resume",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/imports/(?P<id>\\d+)/step",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/items/(?P<id>\\d+)/duplicate",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/lessons/(?P<id>\\d+)/activity",
+        "methods": [
+            "PUT"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/certificates",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/certificates/(?P<uid>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/visibility",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "holder_name_public": {
+                "type": "boolean",
+                "required": true
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/courses",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/data-exports",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/data-exports/(?P<uid>[0-9a-f-]{36})",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/privacy-requests",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/monitor",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": true
+    },
+    {
+        "route": "/course-captain/v1/reports/courses/(?P<course>[0-9a-f-]+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/status",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    }
+]

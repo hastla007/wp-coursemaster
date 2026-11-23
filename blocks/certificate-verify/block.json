@@ -1,0 +1,14 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "course-captain/certificate-verify",
+	"version": "1.0.0",
+	"title": "Certificate verification",
+	"category": "widgets",
+	"description": "Form to verify a certificate by its verification code.",
+	"textdomain": "course-captain",
+	"attributes": {
+		"showHolderName": { "type": "boolean", "default": true }
+	},
+	"supports": { "align": true, "spacing": { "padding": true }, "html": false }
+}

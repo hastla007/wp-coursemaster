@@ -1,0 +1,19 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 8
+	phpVersion:
+		min: 80500
+		max: 80599
+	paths:
+		- course-captain.php
+		- uninstall.php
+		- src
+		- tests/guards
+	excludePaths:
+		- tests/guards/fixtures
+	bootstrapFiles:
+		- tools/qa/phpstan-bootstrap.php
+	reportUnmatchedIgnoredErrors: true
+	treatPhpDocTypesAsCertain: false

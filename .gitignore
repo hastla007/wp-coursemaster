@@ -1,0 +1,13 @@
+/vendor/
+/node_modules/
+/build/
+/dist/
+/.phpcs.cache
+/.phpunit.cache/
+/.phpunit.result.cache
+/tests/_output/
+*.log
+.DS_Store
+.env
+.env.*
+/.claude/worktrees/

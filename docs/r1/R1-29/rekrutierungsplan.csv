@@ -1,0 +1,6 @@
+pseudonym;rolle;rk;format;termin;dauer_min;matrix_zeilen;geraet;hilfstechnik;profil_merkmal;moderation;site;konto;status
+P-AU-01;Autor;RK-1;moderiert remote;;120;BR-01;eigenes Notebook;keine;Kursautor ohne WP-Kenntnis;;autor-p01;cc_fx_ux_autor;geplant
+P-LE-01;Lernende;RK-1/RK-2;moderiert vor Ort;;75;BR-07;iPhone iOS n;keine;55+, geringe digitale Erfahrung;;referenz;cc_fx_ux_p01;geplant
+P-LA-01;Lernende-AT;RK-2;moderiert vor Ort;;90;AT-01;eigenes Gerät;NVDA (Version);Profil a;extern;referenz;cc_fx_ux_p06;geplant
+P-GV-01;Gruppenverwaltung;RK-3;unmoderiert remote;;30;BR-08;Android;keine;Teamleitung;;referenz (neu je Person);cc_fx_ux_gv;geplant
+P-AD-01;Admin;RK-3;moderiert remote;;60;BR-02;eigenes Notebook;keine;Site-Betreiber;;admin-p01;cc_fx_ux_admin;geplant

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:course-captain:package:v1:course",
+  "type": "object",
+  "required": ["source_id", "modules"],
+  "properties": {
+    "source_id": {"$ref": "common.schema.json#/$defs/sourceId"},
+    "modules": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["module", "sort"],
+        "properties": {
+          "module": {"$ref": "common.schema.json#/$defs/sourceId"},
+          "sort": {"type": "integer"},
+          "required": {"type": "boolean"}
+        }
+      },
+      "contains": {"type": "object", "properties": {"required": {"const": true}}, "required": ["required"]},
+      "maxContains": 2
+    }
+  }
+}
