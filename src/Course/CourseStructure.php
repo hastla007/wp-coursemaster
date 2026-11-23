@@ -83,6 +83,7 @@ final class CourseStructure {
 		if ( null === $rules ) {
 			$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET rules = NULL WHERE course_id = %d AND module_id = %d", $course_id, $module_id ) );
 		}
+		\CourseCaptain\Cache\StructureCache::invalidate();
 	}
 
 	/**
@@ -98,6 +99,7 @@ final class CourseStructure {
 		$this->authorize( $actor, $course_id );
 		$table = $this->db->table( 'ccap_course_module' );
 		$this->db->execute( $this->db->prepare( "DELETE FROM `{$table}` WHERE course_id = %d AND module_id = %d", $course_id, $module_id ) );
+		\CourseCaptain\Cache\StructureCache::invalidate();
 	}
 
 	/**

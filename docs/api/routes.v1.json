@@ -154,6 +154,14 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/practice",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/courses/(?P<id>\\d+)/publish",
         "methods": [
             "POST"
@@ -371,6 +379,14 @@
     },
     {
         "route": "/course-captain/v1/me/courses",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/reports/courses/(?P<course>[0-9a-f-]+)",
         "methods": [
             "GET"
         ],

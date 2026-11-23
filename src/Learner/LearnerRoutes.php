@@ -16,6 +16,7 @@ use CourseCaptain\Learning\AnswerService;
 use CourseCaptain\Learning\Favorites;
 use CourseCaptain\Learning\SmartTrainer;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Progress\CourseReport;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -72,6 +73,26 @@ final class LearnerRoutes {
 					$next    = SmartTrainer::current()->next( $a, self::course( $r ), (string) ( $r->get_param( 'mode' ) ?? 'smart' ), $options );
 					return null === $next ? array( 'question' => null ) : $next;
 				},
+			),
+			array(
+				'/courses/' . $course . '/practice',
+				'GET',
+				static fn( Actor $a, \WP_REST_Request $r ) => SmartTrainer::current()->practice(
+					$a,
+					self::course( $r ),
+					array_filter(
+						array(
+							'question' => $r->get_param( 'question' ),
+							'module'   => $r->get_param( 'module' ),
+						),
+						static fn( $v ): bool => null !== $v
+					)
+				),
+			),
+			array(
+				'/reports/courses/' . $course,
+				'GET',
+				static fn( Actor $a, \WP_REST_Request $r ) => array( 'learners' => CourseReport::current()->rows( $a, self::course( $r ) ) ),
 			),
 			array( '/answers', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => AnswerService::current()->answer( $a, (string) $r->get_param( 'token' ), $r->get_param( 'answer' ), (string) $r->get_param( 'idempotency_key' ) ) ),
 			array( '/courses/' . $course . '/lessons/(?P<lesson>\d+)/progress', 'PUT', static fn( Actor $a, \WP_REST_Request $r ) => ActivityProgress::current()->interact( $a, self::course( $r ), (int) $r['lesson'], (string) $r->get_param( 'kind' ), (array) ( $r->get_param( 'payload' ) ?? array() ) ) ),

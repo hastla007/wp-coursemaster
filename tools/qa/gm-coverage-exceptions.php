@@ -17,18 +17,11 @@
 
 return array(
 	'exceptions' => array(
-		'GM-006' => array( 'open', 'R1-25', 'No test for "≤ 2 queries for all courses and modules" and reload after invalidate(); the cache layer itself is covered by CacheTest (K1/K2).' ),
-		'GM-010' => array( 'open', 'R1-07/R1-10', 'Finding: answers of a lesson quiz do not feed the QuizProvider progress (`answered`), so a lesson is not completed by its quiz; only the completion rule is unit-tested (ActivityUnitTest).' ),
 		'GM-050' => array( 'open', 'R1-16/R1-20', 'Browser case (offline buffer in localStorage, notice, re-send); the server side is GM-036/GM-037 (ExamTest::test_R120_offline_buffer_and_tabs). Needs a JS exam client E2E.' ),
 		'GM-051' => array( 'open', 'R1-16', 'Browser case (abort dialog, single flash message); the server side is GM-040 (ExamTest::test_GM_040_041_cancel).' ),
 		'GM-061' => array( 'open', 'R1-28', '409 `ccap_request_in_progress` / `ccap_idempotency_key_reused` exist only for assignments and certificates, not for learning answers; orphaned entries after 5 min untested.' ),
 		'GM-064' => array( 'open', 'R1-15/R1-41', 'No flashcard import (the runner imports courses, modules, lessons, questions), so a card removed from a package cannot become `source_archived`.' ),
-		'GM-068' => array( 'open', 'R1-12/R1-40', 'Legacy rows without `due_at` (mastered stays mastered, due = last + 7 d) untested.' ),
-		'GM-074' => array( 'open', 'R1-12', 'Targeted practice of one question with 422/404/403 variants untested.' ),
-		'GM-075' => array( 'open', 'R1-10', 'Stage counts summing up to the total (secure/due/completed) untested.' ),
 		'GM-077' => array( 'r2', 'E-05', 'Second channel is the app API (no app API in R1).' ),
-		'GM-078' => array( 'open', 'R1-10', 'Course progress reset with kept exam history and audit untested.' ),
-		'GM-079' => array( 'open', 'R1-10/R1-03', 'Progress report per course for authorised roles (U-TUT only C-A) untested.' ),
 		'GM-089' => array( 'open', 'R1-13', 'Grant API rules `ccap_access_exists` / `ccap_user_required` do not exist; extend/parallel chains are GM-084.' ),
 		'GM-090' => array( 'open', 'R1-13/R1-17', 'Grant audit search by reference untested.' ),
 		'GM-092' => array( 'open', 'R1-13', 'Manual + group + free rule at the same time (union of scopes, latest end) untested.' ),
