@@ -218,6 +218,11 @@ final class Plugin {
 		\CourseCaptain\Admin\IdentityNotice::register();
 		\CourseCaptain\Admin\EditorScreens::register();
 		\CourseCaptain\Admin\CourseSettingsPanel::register();
+		\CourseCaptain\Admin\QuestionsScreen::register();
+		\CourseCaptain\Admin\ExamsScreen::register();
+		\CourseCaptain\Admin\LearnersScreen::register();
+		\CourseCaptain\Admin\ImportScreen::register();
+		\CourseCaptain\Admin\PreviewScreen::register();
 		\CourseCaptain\Admin\GroupsScreen::register();
 		\CourseCaptain\Admin\CertificatesScreen::register();
 		\CourseCaptain\Admin\SettingsScreen::register();

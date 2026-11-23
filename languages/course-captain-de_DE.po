@@ -6797,3 +6797,1204 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+msgid "The item was not found. It may have been removed."
+msgstr "Der Eintrag wurde nicht gefunden. Vielleicht wurde er entfernt."
+
+msgid "Not saved: please correct the marked entries."
+msgstr "Nicht gespeichert: Bitte korrigiere die markierten Angaben."
+
+msgid "Not saved: please check the entries."
+msgstr "Nicht gespeichert: Bitte prüfe die Angaben."
+
+msgid "Preview as learner"
+msgstr "Vorschau als Lernende"
+
+msgid "Quizzes & exams"
+msgstr "Quizze & Prüfungen"
+
+msgctxt "admin menu"
+msgid "Quizzes & exams"
+msgstr "Quizze & Prüfungen"
+
+msgid "Grading"
+msgstr "Bewertung"
+
+msgid "You are not allowed to open this page."
+msgstr "Du darfst diese Seite nicht öffnen."
+
+msgid "Quizzes & exams: areas"
+msgstr "Quizze & Prüfungen: Bereiche"
+
+msgid "Enter the pass mark as a percentage between 1 and 100."
+msgstr "Gib die Bestehensgrenze als Prozentwert zwischen 1 und 100 ein."
+
+msgid "This setting is locked for all courses: %s"
+msgstr "Diese Einstellung ist für alle Kurse gesperrt: %s"
+
+msgid "Module %s: enter whole numbers (questions at least 1, points 1 to 100)."
+msgstr "Modul %s: Gib ganze Zahlen ein (mindestens 1 Frage, 1 bis 100 Punkte)."
+
+msgid "Part %d: choose at least one module and enter a pass mark between 1 and 100 %%."
+msgstr "Teil %d: Wähle mindestens ein Modul und gib eine Bestehensgrenze zwischen 1 und 100 %% ein."
+
+msgid "Enter the time limit in whole minutes (1 to 1440)."
+msgstr "Gib das Zeitlimit in ganzen Minuten ein (1 bis 1440)."
+
+msgid "Enter the number of attempts as a whole number (1 to 100)."
+msgstr "Gib die Zahl der Versuche als ganze Zahl ein (1 bis 100)."
+
+msgid "The exam was not found."
+msgstr "Die Prüfung wurde nicht gefunden."
+
+msgid "The pass mark is missing or invalid."
+msgstr "Die Bestehensgrenze fehlt oder ist ungültig."
+
+msgid "Choose at least one module and the number of questions drawn from it."
+msgstr "Wähle mindestens ein Modul und die Zahl der Fragen, die daraus gezogen werden."
+
+msgid "Part %s uses a module from which the exam draws no questions."
+msgstr "Teil %s nutzt ein Modul, aus dem die Prüfung keine Fragen zieht."
+
+msgid "Module %1$s: pool too small (%2$d of %3$d questions). Publish more questions or draw fewer."
+msgstr "Modul %1$s: Fragenpool zu klein (%2$d von %3$d Fragen). Veröffentliche mehr Fragen oder ziehe weniger."
+
+msgid "%s (new version)"
+msgstr "%s (neue Version)"
+
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d Minute"
+msgstr[1] "%d Minuten"
+
+msgid "%1$s: %2$d questions, pass mark %3$s %%, time limit %4$s, attempts %5$s"
+msgstr "%1$s: %2$d Fragen, Bestehensgrenze %3$s %%, Zeitlimit %4$s, Versuche %5$s"
+
+msgid "A published exam never changes. Create a new version to make changes."
+msgstr "Eine veröffentlichte Prüfung ändert sich nie. Lege für Änderungen eine neue Version an."
+
+msgid "Not published yet:"
+msgstr "Noch nicht veröffentlicht:"
+
+msgid "Not saved: a setting is locked for all courses."
+msgstr "Nicht gespeichert: Eine Einstellung ist für alle Kurse gesperrt."
+
+msgid "Not saved: a setting may only be stricter than the site default."
+msgstr "Nicht gespeichert: Eine Einstellung darf nur strenger sein als die Vorgabe der Website."
+
+msgid "All courses"
+msgstr "Alle Kurse"
+
+msgid "Show"
+msgstr "Anzeigen"
+
+msgid "No exams yet."
+msgstr "Noch keine Prüfungen."
+
+msgid "New exam"
+msgstr "Neue Prüfung"
+
+msgid "Name of the exam"
+msgstr "Name der Prüfung"
+
+msgid "Pass mark in percent"
+msgstr "Bestehensgrenze in Prozent"
+
+msgid "For example 60 for 60 % of the points."
+msgstr "Zum Beispiel 60 für 60 % der Punkte."
+
+msgid "Create exam draft"
+msgstr "Prüfungsentwurf anlegen"
+
+msgid "This exam does not exist or you may not edit it."
+msgstr "Diese Prüfung gibt es nicht oder du darfst sie nicht bearbeiten."
+
+msgid "Back to the exams"
+msgstr "Zurück zu den Prüfungen"
+
+msgid "%1$s (course: %2$s)"
+msgstr "%1$s (Kurs: %2$s)"
+
+msgid "Status: %s"
+msgstr "Status: %s"
+
+msgid "Save exam"
+msgstr "Prüfung speichern"
+
+msgid "Publish"
+msgstr "Veröffentlichen"
+
+msgid "Before publishing:"
+msgstr "Vor dem Veröffentlichen:"
+
+msgid "After publishing, learners can start the exam and the rules no longer change. A previously published version of this course is retired; running attempts keep their rules."
+msgstr "Nach dem Veröffentlichen können Lernende die Prüfung starten, und die Regeln ändern sich nicht mehr. Eine früher veröffentlichte Version dieses Kurses wird außer Dienst gestellt; laufende Versuche behalten ihre Regeln."
+
+msgid "Publish exam"
+msgstr "Prüfung veröffentlichen"
+
+msgid "A published exam never changes. Create a new version as a draft, change it and publish it."
+msgstr "Eine veröffentlichte Prüfung ändert sich nie. Lege eine neue Version als Entwurf an, ändere sie und veröffentliche sie."
+
+msgid "Create new version"
+msgstr "Neue Version anlegen"
+
+msgid "site default"
+msgstr "Vorgabe der Website"
+
+msgid "locked for all courses"
+msgstr "für alle Kurse gesperrt"
+
+msgid "Pass mark for the whole exam in percent"
+msgstr "Bestehensgrenze der ganzen Prüfung in Prozent"
+
+msgid "Share of the points needed to pass, for example 60."
+msgstr "Anteil der Punkte, der zum Bestehen nötig ist, zum Beispiel 60."
+
+msgid "Questions per module"
+msgstr "Fragen je Modul"
+
+msgid "Number of questions drawn at random from each module for every attempt. Leave empty or 0 to skip a module."
+msgstr "Zahl der Fragen, die je Versuch zufällig aus jedem Modul gezogen werden. Leer oder 0 lässt ein Modul aus."
+
+msgid "Questions drawn"
+msgstr "Gezogene Fragen"
+
+msgid "Points per question"
+msgstr "Punkte je Frage"
+
+msgid "Published questions in the module"
+msgstr "Veröffentlichte Fragen im Modul"
+
+msgid "The course has no modules yet."
+msgstr "Der Kurs hat noch keine Module."
+
+msgid "Questions drawn from %s"
+msgstr "Aus %s gezogene Fragen"
+
+msgid "Points per question from %s"
+msgstr "Punkte je Frage aus %s"
+
+msgid "Pool too small (%1$d of %2$d)"
+msgstr "Fragenpool zu klein (%1$d von %2$d)"
+
+msgid "Part pass marks (optional)"
+msgstr "Teilgrenzen (optional)"
+
+msgid "A part groups one or more modules. Learners pass only if they reach the pass mark of the whole exam and of every part."
+msgstr "Ein Teil fasst ein oder mehrere Module zusammen. Lernende bestehen nur, wenn sie die Grenze der ganzen Prüfung und jedes Teils erreichen."
+
+msgid "Part %d"
+msgstr "Teil %d"
+
+msgid "Name (optional)"
+msgstr "Name (optional)"
+
+msgid "Time and attempts"
+msgstr "Zeit und Versuche"
+
+msgid "Time limit"
+msgstr "Zeitlimit"
+
+msgid "no time limit"
+msgstr "kein Zeitlimit"
+
+msgid "Attempts per learner"
+msgstr "Versuche je lernender Person"
+
+msgid "attempts"
+msgstr "Versuche"
+
+msgid "Order of the questions"
+msgstr "Reihenfolge der Fragen"
+
+msgid "fixed order"
+msgstr "feste Reihenfolge"
+
+msgid "shuffled within each module"
+msgstr "innerhalb jedes Moduls gemischt"
+
+msgid "shuffled across all modules"
+msgstr "über alle Module gemischt"
+
+msgid "What learners see after submitting"
+msgstr "Was Lernende nach der Abgabe sehen"
+
+msgid "result, points and the correct answers"
+msgstr "Ergebnis, Punkte und die richtigen Antworten"
+
+msgid "result and points only"
+msgstr "nur Ergebnis und Punkte"
+
+msgid "nothing (result only later)"
+msgstr "nichts (Ergebnis erst später)"
+
+msgid "this value:"
+msgstr "dieser Wert:"
+
+msgid "%1$s: %2$d questions"
+msgstr "%1$s: %2$d Fragen"
+
+msgid "Part pass marks"
+msgstr "Teilgrenzen"
+
+msgid "%1$s (%2$s): %3$s %%"
+msgstr "%1$s (%2$s): %3$s %%"
+
+msgid "retired"
+msgstr "außer Dienst"
+
+msgid "Returned for revision. Status now: returned. The learner sees your comment and can hand in a revised version."
+msgstr "Zur Überarbeitung zurückgegeben. Status jetzt: zurückgegeben. Die lernende Person sieht deinen Kommentar und kann eine überarbeitete Fassung einreichen."
+
+msgid "Graded. Status now: graded. The learner sees the points and your feedback."
+msgstr "Bewertet. Status jetzt: bewertet. Die lernende Person sieht die Punkte und deine Rückmeldung."
+
+msgid "Not graded: enter the points as a whole number."
+msgstr "Nicht bewertet: Gib die Punkte als ganze Zahl ein."
+
+msgid "Not graded: the points must be between 0 and the maximum."
+msgstr "Nicht bewertet: Die Punkte müssen zwischen 0 und dem Höchstwert liegen."
+
+msgid "Not graded: a new evaluation needs a reason."
+msgstr "Nicht bewertet: Eine neue Bewertung braucht eine Begründung."
+
+msgid "Not returned: write a comment that tells the learner what to revise."
+msgstr "Nicht zurückgegeben: Schreib einen Kommentar, was die lernende Person überarbeiten soll."
+
+msgid "Nothing changed: this submission was already graded or returned in the meantime."
+msgstr "Nichts geändert: Diese Abgabe wurde inzwischen schon bewertet oder zurückgegeben."
+
+msgid "You are not allowed to grade submissions."
+msgstr "Du darfst keine Abgaben bewerten."
+
+msgid "Submissions waiting for grading"
+msgstr "Abgaben, die auf Bewertung warten"
+
+msgid "%d submission is waiting."
+msgid_plural "%d submissions are waiting."
+msgstr[0] "%d Abgabe wartet."
+msgstr[1] "%d Abgaben warten."
+
+msgid "Learner"
+msgstr "Lernende Person"
+
+msgid "Handed in (UTC)"
+msgstr "Eingereicht (UTC)"
+
+msgid "Nothing to grade right now."
+msgstr "Gerade gibt es nichts zu bewerten."
+
+msgid "Grade submission of %s"
+msgstr "Abgabe von %s bewerten"
+
+msgid "Submission pages"
+msgstr "Seiten der Abgaben"
+
+msgid "Back to the submissions"
+msgstr "Zurück zu den Abgaben"
+
+msgid "This submission does not exist or you may not grade it."
+msgstr "Diese Abgabe gibt es nicht oder du darfst sie nicht bewerten."
+
+msgid "waiting for grading"
+msgstr "wartet auf Bewertung"
+
+msgid "graded"
+msgstr "bewertet"
+
+msgid "returned for revision"
+msgstr "zur Überarbeitung zurückgegeben"
+
+msgid "draft (not handed in)"
+msgstr "Entwurf (nicht eingereicht)"
+
+msgid "%1$s – submission of %2$s"
+msgstr "%1$s – Abgabe von %2$s"
+
+msgid "Status: %1$s · Version %2$d · handed in %3$s (UTC)"
+msgstr "Status: %1$s · Fassung %2$d · eingereicht %3$s (UTC)"
+
+msgid "Grading guide"
+msgstr "Bewertungshinweis"
+
+msgid "Answer"
+msgstr "Antwort"
+
+msgid "(no text)"
+msgstr "(kein Text)"
+
+msgid "Files"
+msgstr "Dateien"
+
+msgid "%1$s (%2$s KB)"
+msgstr "%1$s (%2$s KB)"
+
+msgid "Evaluation %1$d: %2$s of %3$s points"
+msgstr "Bewertung %1$d: %2$s von %3$s Punkten"
+
+msgid "New evaluation"
+msgstr "Neue Bewertung"
+
+msgid "Your evaluation"
+msgstr "Deine Bewertung"
+
+msgid "Points (0 to %d)"
+msgstr "Punkte (0 bis %d)"
+
+msgid "Passed from %d points."
+msgstr "Bestanden ab %d Punkten."
+
+msgid "Feedback or comment for the learner"
+msgstr "Rückmeldung oder Kommentar für die lernende Person"
+
+msgid "Required when you return the submission: say what to revise."
+msgstr "Pflicht, wenn du die Abgabe zurückgibst: Schreib, was überarbeitet werden soll."
+
+msgid "Reason for the new evaluation (required, recorded)"
+msgstr "Begründung der neuen Bewertung (Pflicht, wird protokolliert)"
+
+msgid "Save grade"
+msgstr "Bewertung speichern"
+
+msgid "Return for revision"
+msgstr "Zur Überarbeitung zurückgeben"
+
+msgctxt "admin menu"
+msgid "Import content"
+msgstr "Inhalte importieren"
+
+msgid "You are not allowed to import packages."
+msgstr "Du darfst keine Pakete importieren."
+
+msgid "Test run finished. Nothing has been imported yet: check the result below, then approve or discard."
+msgstr "Probelauf beendet. Noch wurde nichts importiert: Prüfe das Ergebnis unten und gib dann frei oder verwirf."
+
+msgid "Imported. The new content is in place; courses from the package start as drafts unless they were published before."
+msgstr "Importiert. Die neuen Inhalte sind da; Kurse aus dem Paket beginnen als Entwurf, außer sie waren schon veröffentlicht."
+
+msgid "Approved. Someone who may publish courses must now start the import."
+msgstr "Freigegeben. Jetzt muss jemand, der Kurse veröffentlichen darf, den Import starten."
+
+msgid "The file is not a valid course package. The errors are listed below."
+msgstr "Die Datei ist kein gültiges Kurspaket. Die Fehler stehen unten."
+
+msgid "The test run found too many errors. Nothing was imported. Download the report for details."
+msgstr "Der Probelauf hat zu viele Fehler gefunden. Es wurde nichts importiert. Lade den Bericht für Einzelheiten herunter."
+
+msgid "Choose a package file (ZIP) first."
+msgstr "Wähle zuerst eine Paketdatei (ZIP)."
+
+msgid "The file is larger than this site allows for uploads. Ask the administrator or use the command line import."
+msgstr "Die Datei ist größer, als diese Website für Uploads erlaubt. Frag die Administration oder nutze den Import über die Kommandozeile."
+
+msgid "The file is not a ZIP package."
+msgstr "Die Datei ist kein ZIP-Paket."
+
+msgid "This step is not possible in the current state of the import. Reload the page."
+msgstr "Dieser Schritt ist im aktuellen Zustand des Imports nicht möglich. Lade die Seite neu."
+
+msgid "Another import is running. Try again in a few minutes."
+msgstr "Ein anderer Import läuft. Versuch es in ein paar Minuten noch einmal."
+
+msgid "Please confirm the action (tick the confirmation box)."
+msgstr "Bitte bestätige die Aktion (Bestätigungsfeld ankreuzen)."
+
+msgid "The package could not be stored. Check the protected folders under System status."
+msgstr "Das Paket konnte nicht gespeichert werden. Prüfe die geschützten Ordner unter „Systemstatus“."
+
+msgid "The import did not finish. The batch page shows the state; you can resume or discard it."
+msgstr "Der Import wurde nicht beendet. Die Seite des Imports zeigt den Stand; du kannst ihn fortsetzen oder verwerfen."
+
+msgid "Not done: a reason is required."
+msgstr "Nicht ausgeführt: Eine Begründung ist Pflicht."
+
+msgid "Done."
+msgstr "Erledigt."
+
+msgid "Course package (ZIP file)"
+msgstr "Kurspaket (ZIP-Datei)"
+
+msgid "The package is checked and a test run shows what would change. Nothing is imported before you approve."
+msgstr "Das Paket wird geprüft, und ein Probelauf zeigt, was sich ändern würde. Vor deiner Freigabe wird nichts importiert."
+
+msgid "Largest file this site accepts: %s."
+msgstr "Größte Datei, die diese Website annimmt: %s."
+
+msgid "Partial package: keep content that is missing in the package (do not archive it)"
+msgstr "Teilpaket: Inhalte behalten, die im Paket fehlen (nicht archivieren)"
+
+msgid "Import a package"
+msgstr "Paket importieren"
+
+msgid "Upload and test"
+msgstr "Hochladen und prüfen"
+
+msgid "Imports"
+msgstr "Importe"
+
+msgid "Started (UTC)"
+msgstr "Begonnen (UTC)"
+
+msgid "No imports yet. A course package is a ZIP file with a manifest and data files in the Course Captain package format."
+msgstr "Noch keine Importe. Ein Kurspaket ist eine ZIP-Datei mit Manifest und Datendateien im Paketformat von Course Captain."
+
+msgid "Import %1$d (%2$s)"
+msgstr "Import %1$d (%2$s)"
+
+msgid "Back to the imports"
+msgstr "Zurück zu den Importen"
+
+msgid "This import does not exist."
+msgstr "Diesen Import gibt es nicht."
+
+msgid "Rollback to import %1$d. Reason: %2$s"
+msgstr "Rücksprung auf Import %1$d. Begründung: %2$s"
+
+msgid "Errors in the package"
+msgstr "Fehler im Paket"
+
+msgid "new"
+msgstr "neu"
+
+msgid "changed"
+msgstr "geändert"
+
+msgid "unchanged"
+msgstr "unverändert"
+
+msgid "archived"
+msgstr "archiviert"
+
+msgid "conflict"
+msgstr "Konflikt"
+
+msgid "error"
+msgstr "Fehler"
+
+msgid "Result of the test run (what the import would do)"
+msgstr "Ergebnis des Probelaufs (was der Import tun würde)"
+
+msgid "Content"
+msgstr "Inhalt"
+
+msgid "%1$d of %2$d entries have errors and would be skipped."
+msgstr "%1$d von %2$d Einträgen haben Fehler und würden übersprungen."
+
+msgid "Most frequent problems"
+msgstr "Häufigste Probleme"
+
+msgid "%1$s: %2$d times"
+msgstr "%1$s: %2$d-mal"
+
+msgid "Error report:"
+msgstr "Fehlerbericht:"
+
+msgid "Download as CSV (spreadsheet)"
+msgstr "Als CSV herunterladen (Tabelle)"
+
+msgid "Download as JSON"
+msgstr "Als JSON herunterladen"
+
+msgid "Next step"
+msgstr "Nächster Schritt"
+
+msgid "Confirm: discard this import (nothing of it stays)"
+msgstr "Bestätigen: diesen Import verwerfen (nichts davon bleibt)"
+
+msgid "Discard"
+msgstr "Verwerfen"
+
+msgid "Partial package"
+msgstr "Teilpaket"
+
+msgid "Start test run"
+msgstr "Probelauf starten"
+
+msgid "Approving confirms that you checked the test run and may use the content (rights). The import then runs at once."
+msgstr "Mit der Freigabe bestätigst du, dass du den Probelauf geprüft hast und die Inhalte nutzen darfst (Rechte). Der Import läuft dann sofort."
+
+msgid "Approve and import"
+msgstr "Freigeben und importieren"
+
+msgid "Approve"
+msgstr "Freigeben"
+
+msgid "Import now"
+msgstr "Jetzt importieren"
+
+msgid "Someone who may publish courses must start the import."
+msgstr "Jemand, der Kurse veröffentlichen darf, muss den Import starten."
+
+msgid "Reason (required, recorded)"
+msgstr "Begründung (Pflicht, wird protokolliert)"
+
+msgid "A rollback imports the kept copy of this package again as a new import, with its own test run and approval."
+msgstr "Ein Rücksprung importiert die aufbewahrte Kopie dieses Pakets erneut als neuen Import, mit eigenem Probelauf und eigener Freigabe."
+
+msgid "Roll back to this import"
+msgstr "Auf diesen Import zurückspringen"
+
+msgid "Release unclear rights"
+msgstr "Ungeklärte Rechte freigeben"
+
+msgid "Show what would be released"
+msgstr "Anzeigen, was freigegeben würde"
+
+msgid "The import is running in the background. Reload the page to see the progress."
+msgstr "Der Import läuft im Hintergrund. Lade die Seite neu, um den Fortschritt zu sehen."
+
+msgid "No further step is possible."
+msgstr "Kein weiterer Schritt möglich."
+
+msgid "Flashcards"
+msgstr "Karteikarten"
+
+msgid "Media"
+msgstr "Medien"
+
+msgid "uploaded, not checked"
+msgstr "hochgeladen, nicht geprüft"
+
+msgid "checked, test run missing"
+msgstr "geprüft, Probelauf fehlt"
+
+msgid "failed"
+msgstr "fehlgeschlagen"
+
+msgid "test run done, waiting for approval"
+msgstr "Probelauf erledigt, wartet auf Freigabe"
+
+msgid "approved, waiting for import"
+msgstr "freigegeben, wartet auf Import"
+
+msgid "importing"
+msgstr "wird importiert"
+
+msgid "activating"
+msgstr "wird aktiviert"
+
+msgid "imported"
+msgstr "importiert"
+
+msgid "replaced by a newer import"
+msgstr "durch einen neueren Import ersetzt"
+
+msgid "discarded"
+msgstr "verworfen"
+
+msgid "stopped"
+msgstr "abgebrochen"
+
+msgid "Learners"
+msgstr "Lernende"
+
+msgctxt "admin menu"
+msgid "Learners"
+msgstr "Lernende"
+
+msgid "You are not allowed to see learner details."
+msgstr "Du darfst keine Angaben zu Lernenden sehen."
+
+msgid "No account was found for this name, address or number."
+msgstr "Zu diesem Namen, dieser Adresse oder Nummer wurde kein Konto gefunden."
+
+msgid "Choose at least one module or \"whole course\"."
+msgstr "Wähle mindestens ein Modul oder „den ganzen Kurs“."
+
+msgid "This learner already has this access."
+msgstr "Diese lernende Person hat diesen Zugang schon."
+
+msgid "The access was changed in the meantime. Reload the page."
+msgstr "Der Zugang wurde inzwischen geändert. Lade die Seite neu."
+
+msgid "Saved. %d access changed."
+msgid_plural "Saved. %d accesses changed."
+msgstr[0] "Gespeichert. %d Zugang geändert."
+msgstr[1] "Gespeichert. %d Zugänge geändert."
+
+msgid "— choose a course —"
+msgstr "— Kurs wählen —"
+
+msgid "Choose a course to see its learners and their progress."
+msgstr "Wähle einen Kurs, um seine Lernenden und ihren Fortschritt zu sehen."
+
+msgid "Access to %s"
+msgstr "Zugang zu %s"
+
+msgid "Learners with access"
+msgstr "Lernende mit Zugang"
+
+msgid "Access to"
+msgstr "Zugang zu"
+
+msgid "Valid until (UTC)"
+msgstr "Gültig bis (UTC)"
+
+msgid "whole course"
+msgstr "ganzer Kurs"
+
+msgid "module %s"
+msgstr "Modul %s"
+
+msgid "%1$d %% (%2$s)"
+msgstr "%1$d %% (%2$s)"
+
+msgid "Progress of %s"
+msgstr "Fortschritt von %s"
+
+msgid "Reason"
+msgstr "Begründung"
+
+msgid "Confirm: end this access (the learning history stays)"
+msgstr "Bestätigen: diesen Zugang beenden (der Lernverlauf bleibt)"
+
+msgid "End access"
+msgstr "Zugang beenden"
+
+msgid "Nobody has access to this course yet."
+msgstr "Noch hat niemand Zugang zu diesem Kurs."
+
+msgid "Learner (user name, email address or user ID)"
+msgstr "Lernende Person (Benutzername, E-Mail-Adresse oder Benutzer-ID)"
+
+msgid "the whole course"
+msgstr "den ganzen Kurs"
+
+msgid "only these modules:"
+msgstr "nur diese Module:"
+
+msgid "Give access"
+msgstr "Zugang geben"
+
+msgid "Back to the learner list"
+msgstr "Zurück zur Liste der Lernenden"
+
+msgid "This learner does not exist or you may not see their details."
+msgstr "Diese lernende Person gibt es nicht oder du darfst ihre Angaben nicht sehen."
+
+msgid "Progress of %1$s in %2$s"
+msgstr "Fortschritt von %1$s in %2$s"
+
+msgid "Not started yet."
+msgstr "Noch nicht begonnen."
+
+msgid "%1$d %% done (%2$s), last activity %3$s (UTC)"
+msgstr "%1$d %% erledigt (%2$s), letzte Aktivität %3$s (UTC)"
+
+msgid "Completed (UTC)"
+msgstr "Abgeschlossen (UTC)"
+
+msgid "not opened"
+msgstr "nicht geöffnet"
+
+msgid "expired"
+msgstr "abgelaufen"
+
+msgid "waiting for confirmation"
+msgstr "wartet auf Bestätigung"
+
+msgid "invitation not accepted yet"
+msgstr "Einladung noch nicht angenommen"
+
+msgid "given by hand"
+msgstr "von Hand vergeben"
+
+msgid "self-enrolment"
+msgstr "Selbstanmeldung"
+
+msgid "group"
+msgstr "Gruppe"
+
+msgid "This course does not exist or you may not edit it."
+msgstr "Diesen Kurs gibt es nicht oder du darfst ihn nicht bearbeiten."
+
+msgid "Preview as learner: %s"
+msgstr "Vorschau als Lernende: %s"
+
+msgid "This is the current draft as learners will see it after publishing. Nothing you do here is saved: no progress, no attempts. Answer fields are switched off."
+msgstr "Das ist der aktuelle Entwurf so, wie Lernende ihn nach dem Veröffentlichen sehen. Hier wird nichts gespeichert: kein Fortschritt, keine Versuche. Die Antwortfelder sind ausgeschaltet."
+
+msgid "Back to the course editor"
+msgstr "Zurück zum Kurseditor"
+
+msgid "Module %1$d: %2$s"
+msgstr "Modul %1$d: %2$s"
+
+msgid "optional"
+msgstr "optional"
+
+msgid "This module has no lessons."
+msgstr "Dieses Modul hat keine Lektionen."
+
+msgid "not published"
+msgstr "nicht veröffentlicht"
+
+msgid "%d question for practice and exams"
+msgid_plural "%d questions for practice and exams"
+msgstr[0] "%d Frage für Übung und Prüfung"
+msgstr[1] "%d Fragen für Übung und Prüfung"
+
+msgid "Only the first %d questions are shown."
+msgstr "Nur die ersten %d Fragen werden gezeigt."
+
+msgid "draft, not visible to learners yet"
+msgstr "Entwurf, für Lernende noch nicht sichtbar"
+
+msgid "text lesson"
+msgstr "Textlektion"
+
+msgid "video"
+msgstr "Video"
+
+msgid "file download"
+msgstr "Datei zum Herunterladen"
+
+msgid "practice"
+msgstr "Übung"
+
+msgid "flashcards"
+msgstr "Karteikarten"
+
+msgid "exam"
+msgstr "Prüfung"
+
+msgid "assignment"
+msgstr "Aufgabe"
+
+msgid "one answer"
+msgstr "eine Antwort"
+
+msgid "several answers"
+msgstr "mehrere Antworten"
+
+msgid "Question %d"
+msgstr "Frage %d"
+
+msgid "Blank %s"
+msgstr "Lücke %s"
+
+msgid "Learners turn the card and rate themselves."
+msgstr "Lernende drehen die Karte um und schätzen sich selbst ein."
+
+msgid "One correct answer"
+msgstr "Eine richtige Antwort"
+
+msgid "Several correct answers"
+msgstr "Mehrere richtige Antworten"
+
+msgid "True or false"
+msgstr "Wahr oder falsch"
+
+msgid "Free text with model answer"
+msgstr "Freitext mit Musterantwort"
+
+msgid "Flashcard"
+msgstr "Karteikarte"
+
+msgid "Number with tolerance"
+msgstr "Zahl mit erlaubter Abweichung"
+
+msgid "Matching"
+msgstr "Zuordnung"
+
+msgid "Ordering"
+msgstr "Reihenfolge"
+
+msgid "Fill in the blanks"
+msgstr "Lückentext"
+
+msgid "True"
+msgstr "Wahr"
+
+msgid "False"
+msgstr "Falsch"
+
+msgid "Choose a question type."
+msgstr "Wähle einen Fragetyp."
+
+msgid "The chosen file is not an image."
+msgstr "Die gewählte Datei ist kein Bild."
+
+msgid "Describe the image in the alternative text or mark it as decorative."
+msgstr "Beschreib das Bild im Alternativtext oder markiere es als dekorativ."
+
+msgid "The question cannot be solved without the image: describe it in the alternative text."
+msgstr "Ohne das Bild ist die Frage nicht lösbar: Beschreib es im Alternativtext."
+
+msgid "Enter the question text."
+msgstr "Gib den Fragetext ein."
+
+msgid "Partial points are not possible for this question type."
+msgstr "Teilpunkte sind bei diesem Fragetyp nicht möglich."
+
+msgid "Enter at least two answers (at most 26)."
+msgstr "Gib mindestens zwei Antworten ein (höchstens 26)."
+
+msgid "Mark exactly one answer as correct."
+msgstr "Markiere genau eine Antwort als richtig."
+
+msgid "Mark at least one answer as correct."
+msgstr "Markiere mindestens eine Antwort als richtig."
+
+msgid "The answers could not be numbered. Remove empty rows and save again."
+msgstr "Die Antworten konnten nicht nummeriert werden. Entferne leere Zeilen und speichere erneut."
+
+msgid "Choose whether the statement is true or false."
+msgstr "Wähle, ob die Aussage wahr oder falsch ist."
+
+msgid "Enter a model answer."
+msgstr "Gib eine Musterantwort ein."
+
+msgid "Enter the back of the card."
+msgstr "Gib die Rückseite der Karte ein."
+
+msgid "Enter the correct value as a number, for example 12.5."
+msgstr "Gib den richtigen Wert als Zahl ein, zum Beispiel 12,5."
+
+msgid "Enter the allowed deviation as a number of at least 0 (relative: at most 100 %)."
+msgstr "Gib die erlaubte Abweichung als Zahl ab 0 ein (relativ: höchstens 100 %)."
+
+msgid "Enter at least two pairs (at most 26 entries on the right)."
+msgstr "Gib mindestens zwei Paare ein (höchstens 26 Einträge rechts)."
+
+msgid "Every pair needs a left entry, and left entries must differ."
+msgstr "Jedes Paar braucht einen linken Eintrag, und die linken Einträge müssen sich unterscheiden."
+
+msgid "Enter at least two entries in the correct order (at most 26)."
+msgstr "Gib mindestens zwei Einträge in der richtigen Reihenfolge ein (höchstens 26)."
+
+msgid "The entries must differ from each other."
+msgstr "Die Einträge müssen sich voneinander unterscheiden."
+
+msgid "Enter at least one blank; each blank needs its own label."
+msgstr "Gib mindestens eine Lücke ein; jede Lücke braucht eine eigene Bezeichnung."
+
+msgid "Enter at least one accepted answer for every blank."
+msgstr "Gib für jede Lücke mindestens eine akzeptierte Antwort ein."
+
+msgid "Answers (mark the one correct answer)"
+msgstr "Antworten (markiere die eine richtige Antwort)"
+
+msgid "Answers (mark every correct answer)"
+msgstr "Antworten (markiere jede richtige Antwort)"
+
+msgid "Empty rows are ignored. The order here is the order learners see when answers are not shuffled."
+msgstr "Leere Zeilen werden ignoriert. Diese Reihenfolge sehen Lernende, wenn die Antworten nicht gemischt werden."
+
+msgid "Answer %d"
+msgstr "Antwort %d"
+
+msgid "Answer %d is correct"
+msgstr "Antwort %d ist richtig"
+
+msgid "Shuffle the answers for every learner"
+msgstr "Antworten für jede lernende Person mischen"
+
+msgid "The statement is"
+msgstr "Die Aussage ist"
+
+msgid "true"
+msgstr "wahr"
+
+msgid "false"
+msgstr "falsch"
+
+msgid "Model answer (shown to learners after answering)"
+msgstr "Musterantwort (sehen Lernende nach dem Antworten)"
+
+msgid "Back of the card"
+msgstr "Rückseite der Karte"
+
+msgid "Correct value"
+msgstr "Richtiger Wert"
+
+msgid "Correct value (number, decimal point or comma)"
+msgstr "Richtiger Wert (Zahl, mit Dezimalpunkt oder -komma)"
+
+msgid "Allowed deviation"
+msgstr "Erlaubte Abweichung"
+
+msgid "Kind of deviation"
+msgstr "Art der Abweichung"
+
+msgid "in the unit (absolute)"
+msgstr "in der Einheit (absolut)"
+
+msgid "in percent (relative)"
+msgstr "in Prozent (relativ)"
+
+msgid "Unit (optional, shown next to the input)"
+msgstr "Einheit (optional, steht neben dem Eingabefeld)"
+
+msgid "Pairs (left entry and its match on the right)"
+msgstr "Paare (linker Eintrag und das Passende rechts)"
+
+msgid "Left"
+msgstr "Links"
+
+msgid "Right (match)"
+msgstr "Rechts (passend)"
+
+msgid "Pair %d left"
+msgstr "Paar %d links"
+
+msgid "Pair %d right"
+msgstr "Paar %d rechts"
+
+msgid "Extra wrong entries on the right (optional, one per line)"
+msgstr "Zusätzliche falsche Einträge rechts (optional, einer pro Zeile)"
+
+msgid "Entries in the correct order (one per line; learners get them shuffled)"
+msgstr "Einträge in der richtigen Reihenfolge (einer pro Zeile; Lernende bekommen sie gemischt)"
+
+msgid "Blanks"
+msgstr "Lücken"
+
+msgid "Mark each blank in the question text with its label in square brackets, for example [1]. Separate several accepted answers with a vertical bar |."
+msgstr "Markiere jede Lücke im Fragetext mit ihrer Bezeichnung in eckigen Klammern, zum Beispiel [1]. Trenne mehrere akzeptierte Antworten mit einem senkrechten Strich |."
+
+msgid "Label"
+msgstr "Bezeichnung"
+
+msgid "Accepted answers"
+msgstr "Akzeptierte Antworten"
+
+msgid "Blank %d label"
+msgstr "Lücke %d Bezeichnung"
+
+msgid "Blank %d accepted answers"
+msgstr "Lücke %d akzeptierte Antworten"
+
+msgid "Upper and lower case must match"
+msgstr "Groß- und Kleinschreibung muss stimmen"
+
+msgid "Points"
+msgstr "Punkte"
+
+msgid "Full points only when everything is correct"
+msgstr "Volle Punkte nur, wenn alles richtig ist"
+
+msgid "Partial points (wrong choices are deducted)"
+msgstr "Teilpunkte (falsche Wahl wird abgezogen)"
+
+msgid "Question bank"
+msgstr "Fragenbank"
+
+msgctxt "admin menu"
+msgid "Question bank"
+msgstr "Fragenbank"
+
+msgid "You are not allowed to edit questions."
+msgstr "Du darfst keine Fragen bearbeiten."
+
+msgid "Saved and published. New exam attempts use this version; running attempts keep theirs."
+msgstr "Gespeichert und veröffentlicht. Neue Prüfungsversuche nutzen diese Version; laufende Versuche behalten ihre."
+
+msgid "Saved as draft, not published: the image needs an alternative text."
+msgstr "Als Entwurf gespeichert, nicht veröffentlicht: Das Bild braucht einen Alternativtext."
+
+msgid "Saved as draft, not published: the question is not complete yet."
+msgstr "Als Entwurf gespeichert, nicht veröffentlicht: Die Frage ist noch nicht vollständig."
+
+msgid "This version is published and can no longer take new media. Save again to create a new version."
+msgstr "Diese Version ist veröffentlicht und nimmt keine neuen Medien mehr an. Speichere erneut, um eine neue Version anzulegen."
+
+msgid "This file type cannot be used."
+msgstr "Dieser Dateityp kann nicht verwendet werden."
+
+msgid "Add question"
+msgstr "Frage hinzufügen"
+
+msgid "All modules"
+msgstr "Alle Module"
+
+msgid "Question type"
+msgstr "Fragetyp"
+
+msgid "All types"
+msgstr "Alle Typen"
+
+msgid "Draft and published"
+msgstr "Entwurf und veröffentlicht"
+
+msgid "Text contains"
+msgstr "Text enthält"
+
+msgid "%d question found."
+msgid_plural "%d questions found."
+msgstr[0] "%d Frage gefunden."
+msgstr[1] "%d Fragen gefunden."
+
+msgid "Question"
+msgstr "Frage"
+
+msgid "No questions yet. Add a question or import a package."
+msgstr "Noch keine Fragen. Füge eine Frage hinzu oder importiere ein Paket."
+
+msgid "unpublished changes"
+msgstr "unveröffentlichte Änderungen"
+
+msgid "Question pages"
+msgstr "Seiten der Fragen"
+
+msgid "Step 1 of 2: What kind of question?"
+msgstr "Schritt 1 von 2: Welche Art von Frage?"
+
+msgid "Add to module (optional)"
+msgstr "Zu Modul hinzufügen (optional)"
+
+msgid "— no module —"
+msgstr "— kein Modul —"
+
+msgid "Next: enter the question"
+msgstr "Weiter: Frage eingeben"
+
+msgid "Edit question"
+msgstr "Frage bearbeiten"
+
+msgid "This question does not exist or you may not edit it."
+msgstr "Diese Frage gibt es nicht oder du darfst sie nicht bearbeiten."
+
+msgid "Back to the question bank"
+msgstr "Zurück zur Fragenbank"
+
+msgid "Question type: %s"
+msgstr "Fragetyp: %s"
+
+msgid "This question is published."
+msgstr "Diese Frage ist veröffentlicht."
+
+msgid "Saving creates a new version. Running exam attempts keep the version they started with; new attempts use the new version once you publish it."
+msgstr "Beim Speichern entsteht eine neue Version. Laufende Prüfungsversuche behalten die Version, mit der sie begonnen haben; neue Versuche nutzen die neue Version, sobald du sie veröffentlichst."
+
+msgid "Question text"
+msgstr "Fragetext"
+
+msgid "Example: The capital of France is [1]."
+msgstr "Beispiel: Die Hauptstadt von Frankreich ist [1]."
+
+msgid "Feedback (optional)"
+msgstr "Rückmeldung (optional)"
+
+msgid "Text after a correct answer"
+msgstr "Text nach einer richtigen Antwort"
+
+msgid "Text after a wrong answer"
+msgstr "Text nach einer falschen Antwort"
+
+msgid "Correction (typing error, wording; the meaning stays the same)"
+msgstr "Korrektur (Tippfehler, Formulierung; die Bedeutung bleibt gleich)"
+
+msgid "Change of content (other correct answer or other meaning)"
+msgstr "Inhaltliche Änderung (andere richtige Antwort oder andere Bedeutung)"
+
+msgid "Save draft"
+msgstr "Entwurf speichern"
+
+msgid "Save and publish"
+msgstr "Speichern und veröffentlichen"
+
+msgid "Archive"
+msgstr "Archivieren"
+
+msgid "Confirm: archive the question (it is no longer delivered; results stay)"
+msgstr "Bestätigen: Frage archivieren (sie wird nicht mehr ausgeliefert; Ergebnisse bleiben)"
+
+msgid "Archive question"
+msgstr "Frage archivieren"
+
+msgid "Image (optional)"
+msgstr "Bild (optional)"
+
+msgid "Image from the media library"
+msgstr "Bild aus der Mediathek"
+
+msgid "— no image —"
+msgstr "— kein Bild —"
+
+msgid "Upload new images under Media › Add New first."
+msgstr "Lade neue Bilder zuerst unter „Medien › Neu hinzufügen“ hoch."
+
+msgid "Alternative text (what the image shows, for screen readers)"
+msgstr "Alternativtext (was das Bild zeigt, für Screenreader)"
+
+msgid "Required unless the image is only decoration. Without it the course cannot be published."
+msgstr "Pflicht, außer das Bild ist nur Dekoration. Ohne ihn kann der Kurs nicht veröffentlicht werden."
+
+msgid "The image is only decoration (no alternative text needed)"
+msgstr "Das Bild ist nur Dekoration (kein Alternativtext nötig)"
+
+msgid "The question can only be solved with the image"
+msgstr "Die Frage ist nur mit dem Bild lösbar"
+
+msgid "Modules using this question"
+msgstr "Module mit dieser Frage"
+
+msgid "The question is not in any module yet. Exams and practice only use questions of the course modules."
+msgstr "Die Frage ist noch in keinem Modul. Prüfungen und Übungen nutzen nur Fragen aus den Modulen des Kurses."
+
+msgid "Remove from module %s"
+msgstr "Aus Modul %s entfernen"
+
+msgid "Add to module"
+msgstr "Zu Modul hinzufügen"
+
+msgid "Position (optional)"
+msgstr "Position (optional)"
+
+msgid "Preview for learners"
+msgstr "Vorschau für Lernende"
+
+msgid "The preview is shown once the question is complete."
+msgstr "Die Vorschau erscheint, sobald die Frage vollständig ist."
+
+msgid "Versions"
+msgstr "Versionen"
+
+msgid "Created (UTC)"
+msgstr "Angelegt (UTC)"
+
+msgid "Published (UTC)"
+msgstr "Veröffentlicht (UTC)"
+
+msgid "replaced"
+msgstr "ersetzt"
+
+msgid "change of content"
+msgstr "inhaltliche Änderung"
+
+msgid "correction"
+msgstr "Korrektur"
+
+msgid "Unsaved entries from your last visit were restored. Check them and save."
+msgstr "Nicht gespeicherte Eingaben von deinem letzten Besuch wurden wiederhergestellt. Prüfe sie und speichere."
+
+msgid "Question saved"
+msgstr "Frage gespeichert"
+
+msgid "Question published"
+msgstr "Frage veröffentlicht"
+
+msgid "Question archived"
+msgstr "Frage archiviert"
+
+msgid "Questions of a module changed"
+msgstr "Fragen eines Moduls geändert"
+
+msgid "Exam saved"
+msgstr "Prüfung gespeichert"
+
+msgid "Exam published"
+msgstr "Prüfung veröffentlicht"
+
+msgid "Access ended manually"
+msgstr "Zugang manuell beendet"
+
+msgid "%d image has no alternative text. Screen reader users do not learn what it shows. Add an alternative text or mark the image as decorative."
+msgid_plural "%d images have no alternative text. Screen reader users do not learn what they show. Add an alternative text or mark the images as decorative."
+msgstr[0] "%d Bild hat keinen Alternativtext. Wer einen Screenreader nutzt, erfährt nicht, was es zeigt. Ergänze einen Alternativtext oder markiere das Bild als dekorativ."
+msgstr[1] "%d Bilder haben keinen Alternativtext. Wer einen Screenreader nutzt, erfährt nicht, was sie zeigen. Ergänze Alternativtexte oder markiere die Bilder als dekorativ."
+
+msgid "The question cannot be solved without the image, but the image is not described. Enter an alternative text; \"decorative\" is not enough here."
+msgstr "Ohne das Bild ist die Frage nicht lösbar, das Bild ist aber nicht beschrieben. Gib einen Alternativtext ein; „dekorativ“ reicht hier nicht."

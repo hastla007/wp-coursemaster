@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-23T13:01:31+00:00\n"
+"POT-Creation-Date: 2026-11-23T13:58:36+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -57,6 +57,45 @@ msgstr ""
 msgid "This content is available to course participants."
 msgstr ""
 
+#: src/Admin/AdminUi.php:132
+#: src/Admin/CertificatesScreen.php:385
+#: src/Admin/GroupsScreen.php:474
+#: src/Admin/RoleSettings.php:388
+#: src/Admin/SettingsBackup.php:157
+#: src/Admin/SettingsScreen.php:476
+#: src/Admin/SetupWizard.php:718
+#: src/Admin/TestMail.php:121
+#: src/Ops/OpsScreen.php:245
+msgid "The form has expired. Reload the page and try again."
+msgstr ""
+
+#: src/Admin/AdminUi.php:133
+#: src/Admin/CertificatesScreen.php:386
+#: src/Admin/GroupsScreen.php:475
+#: src/Ops/OpsScreen.php:246
+msgid "You are not allowed to run this action."
+msgstr ""
+
+#: src/Admin/AdminUi.php:134
+msgid "The item was not found. It may have been removed."
+msgstr ""
+
+#: src/Admin/AdminUi.php:135
+msgid "Not saved: please correct the marked entries."
+msgstr ""
+
+#: src/Admin/AdminUi.php:136
+msgid "Not saved: please check the entries."
+msgstr ""
+
+#. translators: %s: error code
+#: src/Admin/AdminUi.php:142
+#: src/Admin/CertificatesScreen.php:394
+#: src/Admin/GroupsScreen.php:496
+#, php-format
+msgid "The action failed (%s)."
+msgstr ""
+
 #: src/Admin/AuthoringRoutes.php:123
 #: src/Learner/LearnerRoutes.php:186
 #: src/Ops/Monitor.php:144
@@ -81,6 +120,7 @@ msgid "You are not allowed to view certificates."
 msgstr ""
 
 #: src/Admin/CertificatesScreen.php:214
+#: src/Admin/QuestionsScreen.php:405
 #: src/Ops/AuditScreen.php:75
 msgid "Filter"
 msgstr ""
@@ -89,6 +129,11 @@ msgstr ""
 #: src/Admin/CertificatesScreen.php:229
 #: src/Admin/CertificatesScreen.php:284
 #: src/Admin/CourseSettingsPanel.php:230
+#: src/Admin/ExamsScreen.php:492
+#: src/Admin/ExamsScreen.php:497
+#: src/Admin/ExamsScreen.php:517
+#: src/Admin/GradingArea.php:164
+#: src/Admin/LearnersScreen.php:237
 #: src/Certificate/CertificatePages.php:291
 #: src/Course/PostTypes.php:57
 msgid "Course"
@@ -100,13 +145,21 @@ msgstr ""
 msgid "all"
 msgstr ""
 
+#. translators: %d: number of questions
 #: src/Admin/CertificatesScreen.php:221
 #: src/Admin/CertificatesScreen.php:229
 #: src/Admin/CertificatesScreen.php:282
+#: src/Admin/ExamsScreen.php:497
 #: src/Admin/GroupsScreen.php:307
 #: src/Admin/GroupsScreen.php:344
 #: src/Admin/GroupsScreen.php:356
 #: src/Admin/GroupsScreen.php:378
+#: src/Admin/ImportScreen.php:264
+#: src/Admin/LearnersScreen.php:263
+#: src/Admin/LearnersScreen.php:361
+#: src/Admin/QuestionsScreen.php:401
+#: src/Admin/QuestionsScreen.php:407
+#: src/Admin/QuestionsScreen.php:603
 #: src/Ops/OpsScreen.php:213
 #: src/Ops/OpsScreen.php:279
 #: src/Ops/OpsScreen.php:313
@@ -166,6 +219,8 @@ msgstr ""
 
 #: src/Admin/CertificatesScreen.php:229
 #: src/Admin/CertificatesScreen.php:336
+#: src/Admin/GradingArea.php:164
+#: src/Admin/QuestionsScreen.php:603
 msgid "Version"
 msgstr ""
 
@@ -174,9 +229,13 @@ msgid "No certificates match the filter."
 msgstr ""
 
 #. translators: 1: used, 2: total, 3: open invitations
+#. translators: %s: module
 #: src/Admin/CertificatesScreen.php:244
+#: src/Admin/ExamsScreen.php:448
+#: src/Admin/ExamsScreen.php:635
 #: src/Admin/GroupsScreen.php:322
 #: src/Admin/GroupsScreen.php:348
+#: src/Admin/LearnersScreen.php:287
 #: src/Certificate/CertificatePages.php:293
 msgid "unlimited"
 msgstr ""
@@ -228,6 +287,7 @@ msgstr ""
 #: src/Admin/CertificatesScreen.php:261
 #: src/Admin/CertificatesScreen.php:303
 #: src/Admin/GroupsScreen.php:379
+#: src/Admin/ImportScreen.php:384
 msgid "Reason (required)"
 msgstr ""
 
@@ -269,6 +329,7 @@ msgid "Open the HTML and print view"
 msgstr ""
 
 #: src/Admin/CertificatesScreen.php:299
+#: src/Admin/QuestionForm.php:311
 msgid "Correct"
 msgstr ""
 
@@ -373,28 +434,14 @@ msgid "Base template"
 msgstr ""
 
 #: src/Admin/CertificatesScreen.php:384
+#: src/Admin/ExamsScreen.php:477
+#: src/Admin/QuestionsScreen.php:350
 msgid "Saved."
-msgstr ""
-
-#: src/Admin/CertificatesScreen.php:385
-#: src/Admin/GroupsScreen.php:474
-#: src/Admin/RoleSettings.php:388
-#: src/Admin/SettingsBackup.php:157
-#: src/Admin/SettingsScreen.php:476
-#: src/Admin/SetupWizard.php:718
-#: src/Admin/TestMail.php:121
-#: src/Ops/OpsScreen.php:245
-msgid "The form has expired. Reload the page and try again."
-msgstr ""
-
-#: src/Admin/CertificatesScreen.php:386
-#: src/Admin/GroupsScreen.php:475
-#: src/Ops/OpsScreen.php:246
-msgid "You are not allowed to run this action."
 msgstr ""
 
 #: src/Admin/CertificatesScreen.php:387
 #: src/Admin/GroupsScreen.php:478
+#: src/Admin/LearnersScreen.php:227
 msgid "Please enter a reason."
 msgstr ""
 
@@ -412,13 +459,6 @@ msgstr ""
 
 #: src/Admin/CertificatesScreen.php:391
 msgid "The certificate or evidence was not found."
-msgstr ""
-
-#. translators: %s: error code
-#: src/Admin/CertificatesScreen.php:394
-#: src/Admin/GroupsScreen.php:496
-#, php-format
-msgid "The action failed (%s)."
 msgstr ""
 
 #: src/Admin/CourseSettingsPanel.php:48
@@ -505,12 +545,14 @@ msgid "Leave empty for no limit."
 msgstr ""
 
 #: src/Admin/CourseSettingsPanel.php:230
+#: src/Admin/ExamsScreen.php:566
 msgid "Effective settings"
 msgstr ""
 
 #. translators: 1: exam version, 2: status
 #: src/Admin/CourseSettingsPanel.php:230
 #: src/Admin/CourseSettingsPanel.php:239
+#: src/Admin/ExamsScreen.php:566
 msgid "Setting"
 msgstr ""
 
@@ -525,6 +567,8 @@ msgstr ""
 #. translators: 1: exam version, 2: status
 #: src/Admin/CourseSettingsPanel.php:230
 #: src/Admin/CourseSettingsPanel.php:239
+#: src/Admin/ExamsScreen.php:566
+#: src/Admin/LearnersScreen.php:263
 msgid "Source"
 msgstr ""
 
@@ -546,16 +590,23 @@ msgstr ""
 
 #. translators: 1: exam version, 2: status
 #: src/Admin/CourseSettingsPanel.php:239
+#: src/Admin/ExamsScreen.php:717
+#: src/Admin/QuestionsScreen.php:605
+#: src/Admin/QuestionsScreen.php:652
 msgid "draft"
 msgstr ""
 
 #. translators: 1: exam version, 2: status
 #: src/Admin/CourseSettingsPanel.php:239
+#: src/Admin/ExamsScreen.php:718
+#: src/Admin/QuestionsScreen.php:606
+#: src/Admin/QuestionsScreen.php:653
 msgid "published"
 msgstr ""
 
 #. translators: 1: exam version, 2: status
 #: src/Admin/CourseSettingsPanel.php:239
+#: src/Admin/ExamsScreen.php:566
 msgid "Value"
 msgstr ""
 
@@ -568,10 +619,12 @@ msgid "none (no limit)"
 msgstr ""
 
 #: src/Admin/CourseSettingsPanel.php:259
+#: src/Admin/ExamsScreen.php:568
 msgid "yes"
 msgstr ""
 
 #: src/Admin/CourseSettingsPanel.php:259
+#: src/Admin/ExamsScreen.php:568
 msgid "no"
 msgstr ""
 
@@ -601,7 +654,10 @@ msgstr ""
 msgid "Logo (media ID)"
 msgstr ""
 
+#. translators: %d: number of questions
 #: src/Admin/EditorScreens.php:69
+#: src/Admin/ImportScreen.php:403
+#: src/Admin/QuestionsScreen.php:407
 #: src/Course/PostTypes.php:73
 msgid "Modules"
 msgstr ""
@@ -619,6 +675,8 @@ msgid "Modules of this course"
 msgstr ""
 
 #: src/Admin/EditorScreens.php:87
+#: src/Admin/ExamsScreen.php:591
+#: src/Admin/QuestionsScreen.php:396
 #: src/Course/PostTypes.php:73
 msgid "Module"
 msgstr ""
@@ -673,84 +731,670 @@ msgstr ""
 msgid "Published revision: %d"
 msgstr ""
 
-#. translators: %d: revision number
-#: src/Admin/EditorScreens.php:125
-msgid "Kind of change"
-msgstr ""
-
 #: src/Admin/EditorScreens.php:126
-msgid "Correction (no effect on progress)"
-msgstr ""
-
-#: src/Admin/EditorScreens.php:127
-msgid "Content change"
+#: src/Admin/PreviewScreen.php:47
+#: src/Admin/PreviewScreen.php:80
+#: src/Admin/PreviewScreen.php:93
+#: src/Admin/PreviewScreen.php:116
+msgid "Preview as learner"
 msgstr ""
 
 #: src/Admin/EditorScreens.php:128
-msgid "Note for learners (optional)"
+#: src/Admin/QuestionsScreen.php:514
+#: src/Admin/QuestionsScreen.php:603
+msgid "Kind of change"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:129
+msgid "Correction (no effect on progress)"
 msgstr ""
 
 #: src/Admin/EditorScreens.php:130
+msgid "Content change"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:131
+msgid "Note for learners (optional)"
+msgstr ""
+
+#: src/Admin/EditorScreens.php:133
 msgid "Publish a new revision when saving"
 msgstr ""
 
 #. translators: 1: blockers, 2: warnings, 3: notices
-#: src/Admin/EditorScreens.php:145
+#: src/Admin/EditorScreens.php:148
 #, php-format
 msgid "Check: %1$d blockers, %2$d warnings, %3$d notes"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:152
+#: src/Admin/EditorScreens.php:155
 msgid "Blocker"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:153
+#: src/Admin/EditorScreens.php:156
 #: src/Admin/Notices.php:148
 #: src/Ops/OpsStatus.php:152
 msgid "Warning"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:154
+#: src/Admin/EditorScreens.php:157
 #: src/Admin/Notices.php:148
 msgid "Note"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:159
+#: src/Admin/EditorScreens.php:162
 msgid "Read:"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:177
+#: src/Admin/EditorScreens.php:180
 msgid "Activity type"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:182
+#: src/Admin/EditorScreens.php:185
 msgid "Settings (JSON)"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:183
+#: src/Admin/EditorScreens.php:186
 msgid "Completion rule"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:183
+#: src/Admin/EditorScreens.php:186
 msgid "Leave empty for the default rule of the type."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:184
+#: src/Admin/EditorScreens.php:187
 msgid "The order of lessons in a module follows the \"Order\" field in the page attributes. Use \"Preview\" to see the lesson as a learner."
 msgstr ""
 
-#: src/Admin/EditorScreens.php:257
+#: src/Admin/EditorScreens.php:260
 msgid "Duplicate"
 msgstr ""
 
-#: src/Admin/EditorScreens.php:274
+#: src/Admin/EditorScreens.php:277
 msgid "The item could not be duplicated."
 msgstr ""
 
 #. translators: %s: error details
-#: src/Admin/EditorScreens.php:304
+#: src/Admin/EditorScreens.php:307
 #, php-format
 msgid "Not saved: %s"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:57
+#: src/Admin/ExamsScreen.php:117
+#: src/Admin/ExamsScreen.php:121
+msgid "Quizzes & exams"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:57
+msgctxt "admin menu"
+msgid "Quizzes & exams"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:90
+#: src/Admin/ExamsScreen.php:497
+#: src/Admin/ImportScreen.php:408
+#: src/Admin/PreviewScreen.php:179
+#: src/Admin/SettingsFields.php:47
+#: src/Learner/ExamRoom.php:575
+msgid "Exams"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:93
+msgid "Grading"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:117
+msgid "You are not allowed to open this page."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:121
+msgid "Quizzes & exams: areas"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:188
+#: src/Admin/ExamsScreen.php:250
+msgid "Enter the pass mark as a percentage between 1 and 100."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:192
+#: src/Admin/ExamsScreen.php:497
+#: src/Learner/ExamRoom.php:162
+#: src/Learner/LessonView.php:237
+msgid "Exam"
+msgstr ""
+
+#. translators: %s: setting key
+#: src/Admin/ExamsScreen.php:220
+#, php-format
+msgid "This setting is locked for all courses: %s"
+msgstr ""
+
+#. translators: %s: module title
+#: src/Admin/ExamsScreen.php:267
+#, php-format
+msgid "Module %s: enter whole numbers (questions at least 1, points 1 to 100)."
+msgstr ""
+
+#. translators: %d: part number
+#: src/Admin/ExamsScreen.php:284
+#, php-format
+msgid "Part %d: choose at least one module and enter a pass mark between 1 and 100 %%."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:333
+msgid "Enter the time limit in whole minutes (1 to 1440)."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:334
+msgid "Enter the number of attempts as a whole number (1 to 100)."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:376
+msgid "The exam was not found."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:380
+msgid "The pass mark is missing or invalid."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:383
+msgid "Choose at least one module and the number of questions drawn from it."
+msgstr ""
+
+#. translators: %s: part name
+#: src/Admin/ExamsScreen.php:389
+#, php-format
+msgid "Part %s uses a module from which the exam draws no questions."
+msgstr ""
+
+#. translators: 1: module title, 2: deliverable questions, 3: questions drawn
+#: src/Admin/ExamsScreen.php:396
+#, php-format
+msgid "Module %1$s: pool too small (%2$d of %3$d questions). Publish more questions or draw fewer."
+msgstr ""
+
+#. translators: %s: version label
+#: src/Admin/ExamsScreen.php:423
+#, php-format
+msgid "%s (new version)"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:443
+#: src/Admin/ExamsScreen.php:568
+#: src/Admin/RoleSettings.php:290
+#: src/Admin/SettingsForm.php:418
+#: src/Admin/SettingsForm.php:444
+msgid "none"
+msgstr ""
+
+#. translators: %d: minutes
+#: src/Admin/ExamsScreen.php:446
+#, php-format
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: 1: version, 2: questions, 3: pass mark, 4: time limit, 5: attempts
+#: src/Admin/ExamsScreen.php:451
+#, php-format
+msgid "%1$s: %2$d questions, pass mark %3$s %%, time limit %4$s, attempts %5$s"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:472
+msgid "A published exam never changes. Create a new version to make changes."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:473
+msgid "Not published yet:"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:474
+msgid "Not saved: a setting is locked for all courses."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:475
+msgid "Not saved: a setting may only be stricter than the site default."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:492
+msgid "All courses"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:492
+#: src/Admin/LearnersScreen.php:237
+msgid "Show"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:499
+msgid "No exams yet."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:516
+msgid "New exam"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:518
+#: src/Admin/ExamsScreen.php:589
+msgid "Name of the exam"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:518
+#: src/Notification/MailTemplates.php:359
+msgid "Final exam"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:519
+#: src/Admin/ExamsScreen.php:625
+msgid "Pass mark in percent"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:519
+msgid "For example 60 for 60 % of the points."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:520
+msgid "Create exam draft"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:534
+msgid "This exam does not exist or you may not edit it."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:544
+msgid "Back to the exams"
+msgstr ""
+
+#. translators: 1: exam name, 2: course
+#: src/Admin/ExamsScreen.php:545
+#, php-format
+msgid "%1$s (course: %2$s)"
+msgstr ""
+
+#. translators: %s: status
+#: src/Admin/ExamsScreen.php:546
+#: src/Admin/ImportScreen.php:298
+#: src/Admin/QuestionsScreen.php:496
+#, php-format
+msgid "Status: %s"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:554
+msgid "Save exam"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:556
+msgid "Publish"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:558
+msgid "Before publishing:"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:560
+msgid "After publishing, learners can start the exam and the rules no longer change. A previously published version of this course is retired; running attempts keep their rules."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:560
+msgid "Publish exam"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:564
+msgid "A published exam never changes. Create a new version as a draft, change it and publish it."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:564
+msgid "Create new version"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:569
+#: src/Settings/EffectiveSettings.php:121
+msgid "this exam"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:569
+#: src/Admin/ExamsScreen.php:640
+#: src/Admin/ExamsScreen.php:654
+#: src/Admin/ExamsScreen.php:680
+msgid "site default"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:569
+msgid "locked for all courses"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:590
+msgid "Pass mark for the whole exam in percent"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:590
+msgid "Share of the points needed to pass, for example 60."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:591
+#: src/Admin/ExamsScreen.php:693
+msgid "Questions per module"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:591
+msgid "Number of questions drawn at random from each module for every attempt. Leave empty or 0 to skip a module."
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:591
+msgid "Questions drawn"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:591
+msgid "Points per question"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:591
+msgid "Published questions in the module"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:593
+#: src/Admin/PreviewScreen.php:163
+msgid "The course has no modules yet."
+msgstr ""
+
+#. translators: %s: module
+#: src/Admin/ExamsScreen.php:602
+#, php-format
+msgid "Questions drawn from %s"
+msgstr ""
+
+#. translators: %s: module
+#: src/Admin/ExamsScreen.php:603
+#, php-format
+msgid "Points per question from %s"
+msgstr ""
+
+#. translators: 1: pool, 2: drawn
+#: src/Admin/ExamsScreen.php:604
+#, php-format
+msgid "Pool too small (%1$d of %2$d)"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:619
+msgid "Part pass marks (optional)"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:619
+msgid "A part groups one or more modules. Learners pass only if they reach the pass mark of the whole exam and of every part."
+msgstr ""
+
+#. translators: %d: part number
+#: src/Admin/ExamsScreen.php:623
+#, php-format
+msgid "Part %d"
+msgstr ""
+
+#. translators: %d: part number
+#: src/Admin/ExamsScreen.php:624
+msgid "Name (optional)"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:633
+msgid "Time and attempts"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:634
+msgid "Time limit"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:634
+#: src/Admin/SettingsFields.php:484
+#: src/Admin/SettingsFields.php:814
+msgid "minutes"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:634
+msgid "no time limit"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:635
+msgid "Attempts per learner"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:635
+msgid "attempts"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:638
+msgid "Order of the questions"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:641
+msgid "fixed order"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:642
+msgid "shuffled within each module"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:643
+msgid "shuffled across all modules"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:652
+msgid "What learners see after submitting"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:655
+msgid "result, points and the correct answers"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:656
+msgid "result and points only"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:657
+msgid "nothing (result only later)"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:682
+msgid "this value:"
+msgstr ""
+
+#. translators: 1: module, 2: questions
+#: src/Admin/ExamsScreen.php:695
+#, php-format
+msgid "%1$s: %2$d questions"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:700
+msgid "Part pass marks"
+msgstr ""
+
+#. translators: 1: part, 2: modules, 3: percent
+#: src/Admin/ExamsScreen.php:702
+#, php-format
+msgid "%1$s (%2$s): %3$s %%"
+msgstr ""
+
+#: src/Admin/ExamsScreen.php:719
+msgid "retired"
+msgstr ""
+
+#: src/Admin/GradingArea.php:125
+msgid "Returned for revision. Status now: returned. The learner sees your comment and can hand in a revised version."
+msgstr ""
+
+#: src/Admin/GradingArea.php:126
+msgid "Graded. Status now: graded. The learner sees the points and your feedback."
+msgstr ""
+
+#: src/Admin/GradingArea.php:130
+msgid "Not graded: enter the points as a whole number."
+msgstr ""
+
+#: src/Admin/GradingArea.php:131
+msgid "Not graded: the points must be between 0 and the maximum."
+msgstr ""
+
+#: src/Admin/GradingArea.php:132
+msgid "Not graded: a new evaluation needs a reason."
+msgstr ""
+
+#: src/Admin/GradingArea.php:133
+msgid "Not returned: write a comment that tells the learner what to revise."
+msgstr ""
+
+#: src/Admin/GradingArea.php:134
+msgid "Nothing changed: this submission was already graded or returned in the meantime."
+msgstr ""
+
+#: src/Admin/GradingArea.php:158
+msgid "You are not allowed to grade submissions."
+msgstr ""
+
+#: src/Admin/GradingArea.php:160
+#: src/Admin/GradingArea.php:164
+msgid "Submissions waiting for grading"
+msgstr ""
+
+#. translators: %d: open submissions
+#: src/Admin/GradingArea.php:162
+#, php-format
+msgid "%d submission is waiting."
+msgid_plural "%d submissions are waiting."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/GradingArea.php:164
+#: src/Admin/LearnersScreen.php:263
+msgid "Learner"
+msgstr ""
+
+#: src/Admin/GradingArea.php:164
+#: src/Learner/LessonView.php:235
+msgid "Assignment"
+msgstr ""
+
+#: src/Admin/GradingArea.php:164
+msgid "Handed in (UTC)"
+msgstr ""
+
+#: src/Admin/GradingArea.php:166
+msgid "Nothing to grade right now."
+msgstr ""
+
+#. translators: %s: learner
+#: src/Admin/GradingArea.php:178
+#, php-format
+msgid "Grade submission of %s"
+msgstr ""
+
+#: src/Admin/GradingArea.php:182
+msgid "Submission pages"
+msgstr ""
+
+#: src/Admin/GradingArea.php:207
+msgid "Back to the submissions"
+msgstr ""
+
+#: src/Admin/GradingArea.php:211
+#: src/Admin/GradingArea.php:215
+msgid "This submission does not exist or you may not grade it."
+msgstr ""
+
+#: src/Admin/GradingArea.php:218
+msgid "waiting for grading"
+msgstr ""
+
+#: src/Admin/GradingArea.php:219
+msgid "graded"
+msgstr ""
+
+#: src/Admin/GradingArea.php:220
+msgid "returned for revision"
+msgstr ""
+
+#: src/Admin/GradingArea.php:221
+msgid "draft (not handed in)"
+msgstr ""
+
+#. translators: 1: assignment, 2: learner
+#: src/Admin/GradingArea.php:224
+#, php-format
+msgid "%1$s – submission of %2$s"
+msgstr ""
+
+#. translators: 1: status, 2: version, 3: date
+#: src/Admin/GradingArea.php:225
+#, php-format
+msgid "Status: %1$s · Version %2$d · handed in %3$s (UTC)"
+msgstr ""
+
+#: src/Admin/GradingArea.php:227
+msgid "Grading guide"
+msgstr ""
+
+#: src/Admin/GradingArea.php:229
+#: src/Admin/QuestionForm.php:311
+msgid "Answer"
+msgstr ""
+
+#: src/Admin/GradingArea.php:229
+#: src/Admin/QuestionsScreen.php:426
+msgid "(no text)"
+msgstr ""
+
+#: src/Admin/GradingArea.php:231
+msgid "Files"
+msgstr ""
+
+#. translators: 1: file name, 2: size in KB
+#: src/Admin/GradingArea.php:233
+#, php-format
+msgid "%1$s (%2$s KB)"
+msgstr ""
+
+#. translators: 1: evaluation number, 2: points, 3: maximum
+#: src/Admin/GradingArea.php:238
+#, php-format
+msgid "Evaluation %1$d: %2$s of %3$s points"
+msgstr ""
+
+#: src/Admin/GradingArea.php:251
+msgid "New evaluation"
+msgstr ""
+
+#: src/Admin/GradingArea.php:251
+msgid "Your evaluation"
+msgstr ""
+
+#. translators: %d: maximum points
+#: src/Admin/GradingArea.php:252
+#, php-format
+msgid "Points (0 to %d)"
+msgstr ""
+
+#. translators: %d: points needed to pass
+#: src/Admin/GradingArea.php:254
+#, php-format
+msgid "Passed from %d points."
+msgstr ""
+
+#: src/Admin/GradingArea.php:256
+msgid "Feedback or comment for the learner"
+msgstr ""
+
+#: src/Admin/GradingArea.php:256
+msgid "Required when you return the submission: say what to revise."
+msgstr ""
+
+#: src/Admin/GradingArea.php:258
+msgid "Reason for the new evaluation (required, recorded)"
+msgstr ""
+
+#: src/Admin/GradingArea.php:260
+msgid "Save grade"
+msgstr ""
+
+#: src/Admin/GradingArea.php:262
+msgid "Return for revision"
 msgstr ""
 
 #: src/Admin/GroupsScreen.php:53
@@ -803,6 +1447,7 @@ msgstr ""
 
 #: src/Admin/GroupsScreen.php:346
 #: src/Admin/GroupsScreen.php:435
+#: src/Admin/ImportScreen.php:402
 #: src/Admin/SettingsFields.php:101
 #: src/Admin/SetupWizard.php:462
 #: src/Course/PostTypes.php:57
@@ -855,6 +1500,7 @@ msgid "Since"
 msgstr ""
 
 #: src/Admin/GroupsScreen.php:356
+#: src/Admin/LearnersScreen.php:263
 msgid "Actions"
 msgstr ""
 
@@ -908,6 +1554,7 @@ msgstr ""
 
 #: src/Admin/GroupsScreen.php:377
 #: src/Admin/GroupsScreen.php:441
+#: src/Admin/LearnersScreen.php:317
 msgid "Valid until (date, empty = unlimited)"
 msgstr ""
 
@@ -922,11 +1569,13 @@ msgstr ""
 
 #: src/Admin/GroupsScreen.php:378
 #: src/Admin/GroupsScreen.php:510
+#: src/Admin/LearnersScreen.php:379
 msgid "active"
 msgstr ""
 
 #: src/Admin/GroupsScreen.php:378
 #: src/Admin/GroupsScreen.php:511
+#: src/Admin/LearnersScreen.php:380
 msgid "suspended"
 msgstr ""
 
@@ -1083,6 +1732,554 @@ msgstr ""
 msgid "The site identity could not be confirmed."
 msgstr ""
 
+#: src/Admin/ImportScreen.php:49
+#: src/Admin/ImportScreen.php:213
+#: src/Admin/RoleSettings.php:74
+msgid "Import content"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:49
+msgctxt "admin menu"
+msgid "Import content"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:215
+msgid "You are not allowed to import packages."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:230
+msgid "Test run finished. Nothing has been imported yet: check the result below, then approve or discard."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:231
+msgid "Imported. The new content is in place; courses from the package start as drafts unless they were published before."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:232
+msgid "Approved. Someone who may publish courses must now start the import."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:233
+msgid "The file is not a valid course package. The errors are listed below."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:234
+msgid "The test run found too many errors. Nothing was imported. Download the report for details."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:235
+msgid "Choose a package file (ZIP) first."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:236
+msgid "The file is larger than this site allows for uploads. Ask the administrator or use the command line import."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:237
+msgid "The file is not a ZIP package."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:238
+msgid "This step is not possible in the current state of the import. Reload the page."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:239
+msgid "Another import is running. Try again in a few minutes."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:240
+#: src/Admin/LearnersScreen.php:229
+#: src/Admin/QuestionsScreen.php:346
+msgid "Please confirm the action (tick the confirmation box)."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:241
+msgid "The package could not be stored. Check the protected folders under System status."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:247
+msgid "The import did not finish. The batch page shows the state; you can resume or discard it."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:249
+msgid "Not done: a reason is required."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:249
+msgid "Done."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:260
+msgid "Course package (ZIP file)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:261
+msgid "The package is checked and a test run shows what would change. Nothing is imported before you approve."
+msgstr ""
+
+#. translators: %s: size
+#: src/Admin/ImportScreen.php:261
+#, php-format
+msgid "Largest file this site accepts: %s."
+msgstr ""
+
+#. translators: %s: size
+#: src/Admin/ImportScreen.php:262
+msgid "Partial package: keep content that is missing in the package (do not archive it)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:263
+msgid "Import a package"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:263
+msgid "Upload and test"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:264
+msgid "Imports"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:264
+#: src/Admin/SettingsBackup.php:172
+msgid "Import"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:264
+msgid "Started (UTC)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:264
+#: src/Ops/AuditScreen.php:76
+msgid "By"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:266
+msgid "No imports yet. A course package is a ZIP file with a manifest and data files in the Course Captain package format."
+msgstr ""
+
+#. translators: 1: import number, 2: package
+#: src/Admin/ImportScreen.php:277
+#: src/Admin/ImportScreen.php:297
+#, php-format
+msgid "Import %1$d (%2$s)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:291
+msgid "Back to the imports"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:293
+msgid "This import does not exist."
+msgstr ""
+
+#. translators: 1: earlier import, 2: reason
+#: src/Admin/ImportScreen.php:300
+#, php-format
+msgid "Rollback to import %1$d. Reason: %2$s"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:304
+msgid "Errors in the package"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:313
+msgid "new"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:314
+msgid "changed"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:315
+msgid "unchanged"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:316
+#: src/Admin/QuestionsScreen.php:654
+msgid "archived"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:317
+msgid "conflict"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:318
+msgid "error"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:320
+msgid "Result of the test run (what the import would do)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:320
+msgid "Content"
+msgstr ""
+
+#. translators: 1: errors, 2: records
+#: src/Admin/ImportScreen.php:335
+#, php-format
+msgid "%1$d of %2$d entries have errors and would be skipped."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:341
+msgid "Most frequent problems"
+msgstr ""
+
+#. translators: 1: rule, 2: count
+#: src/Admin/ImportScreen.php:343
+#, php-format
+msgid "%1$s: %2$d times"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:350
+msgid "Error report:"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:350
+msgid "Download as CSV (spreadsheet)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:350
+msgid "Download as JSON"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:364
+msgid "Next step"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:365
+msgid "Confirm: discard this import (nothing of it stays)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:365
+msgid "Discard"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:368
+msgid "Partial package"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:368
+msgid "Start test run"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:371
+msgid "Approving confirms that you checked the test run and may use the content (rights). The import then runs at once."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:371
+msgid "Approve and import"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:371
+msgid "Approve"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:373
+msgid "Import now"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:373
+msgid "Someone who may publish courses must start the import."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:380
+#: src/Admin/LearnersScreen.php:318
+msgid "Reason (required, recorded)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:381
+msgid "A rollback imports the kept copy of this package again as a new import, with its own test run and approval."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:382
+msgid "Roll back to this import"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:384
+msgid "Release unclear rights"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:384
+msgid "Show what would be released"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:389
+msgid "The import is running in the background. Reload the page to see the progress."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:391
+msgid "No further step is possible."
+msgstr ""
+
+#: src/Admin/ImportScreen.php:404
+#: src/Course/PostTypes.php:80
+#: src/Learner/LessonView.php:390
+msgid "Lessons"
+msgstr ""
+
+#. translators: %d: number of questions
+#: src/Admin/ImportScreen.php:405
+#: src/Admin/QuestionsScreen.php:407
+#: src/Learner/ExamRoom.php:125
+msgid "Questions"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:406
+msgid "Flashcards"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:407
+msgid "Media"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:421
+msgid "uploaded, not checked"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:422
+msgid "checked, test run missing"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:423
+msgid "failed"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:424
+msgid "test run done, waiting for approval"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:425
+msgid "approved, waiting for import"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:426
+msgid "importing"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:427
+msgid "activating"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:428
+msgid "imported"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:429
+msgid "replaced by a newer import"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:430
+msgid "discarded"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:431
+msgid "stopped"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:48
+#: src/Admin/LearnersScreen.php:218
+msgid "Learners"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:48
+msgctxt "admin menu"
+msgid "Learners"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:220
+msgid "You are not allowed to see learner details."
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:226
+msgid "No account was found for this name, address or number."
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:228
+msgid "Choose at least one module or \"whole course\"."
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:230
+msgid "This learner already has this access."
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:231
+msgid "The access was changed in the meantime. Reload the page."
+msgstr ""
+
+#. translators: %d: number of grants
+#: src/Admin/LearnersScreen.php:234
+#, php-format
+msgid "Saved. %d access changed."
+msgid_plural "Saved. %d accesses changed."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Admin/LearnersScreen.php:237
+msgid "— choose a course —"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:239
+msgid "Choose a course to see its learners and their progress."
+msgstr ""
+
+#. translators: %s: course
+#: src/Admin/LearnersScreen.php:261
+#, php-format
+msgid "Access to %s"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:263
+msgid "Learners with access"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:263
+#: src/Admin/LearnersScreen.php:313
+msgid "Access to"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:263
+msgid "Valid until (UTC)"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:263
+#: src/Admin/SettingsFields.php:400
+msgid "Progress"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:286
+msgid "whole course"
+msgstr ""
+
+#. translators: %s: module
+#: src/Admin/LearnersScreen.php:286
+#, php-format
+msgid "module %s"
+msgstr ""
+
+#. translators: 1: percent, 2: status
+#: src/Admin/LearnersScreen.php:288
+#, php-format
+msgid "%1$d %% (%2$s)"
+msgstr ""
+
+#. translators: %s: learner
+#: src/Admin/LearnersScreen.php:288
+#, php-format
+msgid "Progress of %s"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:290
+msgid "Reason"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:290
+msgid "Confirm: end this access (the learning history stays)"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:290
+msgid "End access"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:295
+msgid "Nobody has access to this course yet."
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:312
+msgid "Learner (user name, email address or user ID)"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:313
+msgid "the whole course"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:313
+msgid "only these modules:"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:319
+msgid "Give access"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:339
+msgid "Back to the learner list"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:342
+msgid "This learner does not exist or you may not see their details."
+msgstr ""
+
+#. translators: 1: learner, 2: course
+#: src/Admin/LearnersScreen.php:350
+#, php-format
+msgid "Progress of %1$s in %2$s"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:352
+msgid "Not started yet."
+msgstr ""
+
+#. translators: 1: percent, 2: status, 3: date
+#: src/Admin/LearnersScreen.php:354
+#, php-format
+msgid "%1$d %% done (%2$s), last activity %3$s (UTC)"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:361
+#: src/Course/PostTypes.php:80
+msgid "Lesson"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:361
+msgid "Completed (UTC)"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:364
+msgid "not opened"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:364
+#: src/Admin/LearnersScreen.php:413
+#: src/Learner/LearningArea.php:490
+msgid "completed"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:364
+#: src/Admin/LearnersScreen.php:412
+#: src/Learner/LearningArea.php:490
+msgid "in progress"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:381
+msgid "expired"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:382
+msgid "waiting for confirmation"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:383
+msgid "invitation not accepted yet"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:396
+msgid "given by hand"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:397
+msgid "self-enrolment"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:398
+msgid "group"
+msgstr ""
+
+#: src/Admin/LearnersScreen.php:411
+#: src/Learner/LearningArea.php:490
+msgid "not started"
+msgstr ""
+
 #: src/Admin/MigrationNotice.php:56
 msgid "The database schema is newer than the plugin. Install the matching plugin version or restore database and files together."
 msgstr ""
@@ -1105,6 +2302,688 @@ msgstr ""
 #: src/Ops/OpsStatus.php:151
 #: src/Rest/RestContract.php:223
 msgid "Error"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:116
+msgid "This course does not exist or you may not edit it."
+msgstr ""
+
+#. translators: %s: course title
+#: src/Admin/PreviewScreen.php:119
+#, php-format
+msgid "Preview as learner: %s"
+msgstr ""
+
+#. translators: %s: course title
+#: src/Admin/PreviewScreen.php:120
+msgid "This is the current draft as learners will see it after publishing. Nothing you do here is saved: no progress, no attempts. Answer fields are switched off."
+msgstr ""
+
+#. translators: %s: course title
+#: src/Admin/PreviewScreen.php:120
+msgid "Back to the course editor"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:123
+#: src/Learner/LearningArea.php:332
+msgid "Course contents"
+msgstr ""
+
+#. translators: 1: module number, 2: module title
+#: src/Admin/PreviewScreen.php:132
+#, php-format
+msgid "Module %1$d: %2$s"
+msgstr ""
+
+#. translators: 1: module number, 2: module title
+#: src/Admin/PreviewScreen.php:132
+msgid "optional"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:135
+msgid "This module has no lessons."
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:139
+msgid "not published"
+msgstr ""
+
+#. translators: %d: number of questions
+#: src/Admin/PreviewScreen.php:143
+#, php-format
+msgid "%d question for practice and exams"
+msgid_plural "%d questions for practice and exams"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of shown questions
+#: src/Admin/PreviewScreen.php:157
+#, php-format
+msgid "Only the first %d questions are shown."
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:185
+msgid "draft, not visible to learners yet"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:211
+#: src/Admin/PreviewScreen.php:212
+msgid "text lesson"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:213
+msgid "video"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:214
+msgid "file download"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:215
+msgid "practice"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:216
+msgid "flashcards"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:217
+msgid "exam"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:218
+msgid "assignment"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:235
+#: src/Admin/PreviewScreen.php:236
+msgid "one answer"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:237
+msgid "several answers"
+msgstr ""
+
+#. translators: %d: question number
+#: src/Admin/PreviewScreen.php:239
+#, php-format
+msgid "Question %d"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:253
+#: src/Admin/PreviewScreen.php:280
+#: src/Learner/ExamRoom.php:316
+msgid "Your answer"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:259
+#: src/Learner/ExamRoom.php:329
+msgid "— choose —"
+msgstr ""
+
+#. translators: %s: blank label
+#: src/Admin/PreviewScreen.php:276
+#, php-format
+msgid "Blank %s"
+msgstr ""
+
+#: src/Admin/PreviewScreen.php:283
+msgid "Learners turn the card and rate themselves."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:42
+msgid "One correct answer"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:43
+msgid "Several correct answers"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:44
+msgid "True or false"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:45
+msgid "Free text with model answer"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:46
+msgid "Flashcard"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:47
+msgid "Number with tolerance"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:48
+msgid "Matching"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:49
+msgid "Ordering"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:50
+msgid "Fill in the blanks"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:98
+msgid "True"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:104
+msgid "False"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:201
+#: src/Admin/QuestionForm.php:244
+msgid "Choose a question type."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:207
+msgid "The chosen file is not an image."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:210
+msgid "Describe the image in the alternative text or mark it as decorative."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:211
+msgid "The question cannot be solved without the image: describe it in the alternative text."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:226
+msgid "Enter the question text."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:227
+msgid "Partial points are not possible for this question type."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:228
+msgid "Enter at least two answers (at most 26)."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:229
+msgid "Mark exactly one answer as correct."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:230
+msgid "Mark at least one answer as correct."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:231
+#: src/Admin/QuestionForm.php:232
+msgid "The answers could not be numbered. Remove empty rows and save again."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:233
+msgid "Choose whether the statement is true or false."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:234
+msgid "Enter a model answer."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:235
+msgid "Enter the back of the card."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:236
+msgid "Enter the correct value as a number, for example 12.5."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:237
+msgid "Enter the allowed deviation as a number of at least 0 (relative: at most 100 %)."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:238
+msgid "Enter at least two pairs (at most 26 entries on the right)."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:239
+msgid "Every pair needs a left entry, and left entries must differ."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:240
+msgid "Enter at least two entries in the correct order (at most 26)."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:241
+msgid "The entries must differ from each other."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:242
+msgid "Enter at least one blank; each blank needs its own label."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:243
+msgid "Enter at least one accepted answer for every blank."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:309
+msgid "Answers (mark the one correct answer)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:309
+msgid "Answers (mark every correct answer)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:310
+msgid "Empty rows are ignored. The order here is the order learners see when answers are not shuffled."
+msgstr ""
+
+#. translators: %d: answer number
+#: src/Admin/QuestionForm.php:316
+#, php-format
+msgid "Answer %d"
+msgstr ""
+
+#. translators: %d: answer number
+#: src/Admin/QuestionForm.php:319
+#: src/Admin/QuestionForm.php:321
+#, php-format
+msgid "Answer %d is correct"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:326
+msgid "Shuffle the answers for every learner"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:335
+msgid "The statement is"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:336
+msgid "true"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:337
+msgid "false"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:340
+msgid "Model answer (shown to learners after answering)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:343
+msgid "Back of the card"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:347
+msgid "Correct value"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:348
+msgid "Correct value (number, decimal point or comma)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:349
+msgid "Allowed deviation"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:350
+msgid "Kind of deviation"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:350
+msgid "in the unit (absolute)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:350
+msgid "in percent (relative)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:351
+msgid "Unit (optional, shown next to the input)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:356
+msgid "Pairs (left entry and its match on the right)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:356
+msgid "Left"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:356
+msgid "Right (match)"
+msgstr ""
+
+#. translators: %d: pair number
+#: src/Admin/QuestionForm.php:359
+#, php-format
+msgid "Pair %d left"
+msgstr ""
+
+#. translators: %d: pair number
+#: src/Admin/QuestionForm.php:360
+#, php-format
+msgid "Pair %d right"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:363
+msgid "Extra wrong entries on the right (optional, one per line)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:367
+msgid "Entries in the correct order (one per line; learners get them shuffled)"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:372
+msgid "Blanks"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:372
+msgid "Mark each blank in the question text with its label in square brackets, for example [1]. Separate several accepted answers with a vertical bar |."
+msgstr ""
+
+#: src/Admin/QuestionForm.php:372
+msgid "Label"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:372
+msgid "Accepted answers"
+msgstr ""
+
+#. translators: %d: blank number
+#: src/Admin/QuestionForm.php:375
+#, php-format
+msgid "Blank %d label"
+msgstr ""
+
+#. translators: %d: blank number
+#: src/Admin/QuestionForm.php:376
+#, php-format
+msgid "Blank %d accepted answers"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:378
+msgid "Upper and lower case must match"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:383
+msgid "Points"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:383
+msgid "Full points only when everything is correct"
+msgstr ""
+
+#: src/Admin/QuestionForm.php:383
+msgid "Partial points (wrong choices are deducted)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:55
+#: src/Admin/QuestionsScreen.php:298
+#: src/Admin/QuestionsScreen.php:393
+msgid "Question bank"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:55
+msgctxt "admin menu"
+msgid "Question bank"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:298
+msgid "You are not allowed to edit questions."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:339
+msgid "Saved and published. New exam attempts use this version; running attempts keep theirs."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:344
+msgid "Saved as draft, not published: the image needs an alternative text."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:345
+msgid "Saved as draft, not published: the question is not complete yet."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:347
+msgid "This version is published and can no longer take new media. Save again to create a new version."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:348
+msgid "This file type cannot be used."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:393
+#: src/Admin/QuestionsScreen.php:448
+#: src/Admin/QuestionsScreen.php:494
+msgid "Add question"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:396
+msgid "All modules"
+msgstr ""
+
+#. translators: %d: number of questions
+#: src/Admin/QuestionsScreen.php:397
+#: src/Admin/QuestionsScreen.php:407
+msgid "Question type"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:397
+msgid "All types"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:401
+msgid "Draft and published"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:405
+msgid "Text contains"
+msgstr ""
+
+#. translators: %d: number of questions
+#: src/Admin/QuestionsScreen.php:406
+#, php-format
+msgid "%d question found."
+msgid_plural "%d questions found."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of questions
+#: src/Admin/QuestionsScreen.php:407
+msgid "Question"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:409
+msgid "No questions yet. Add a question or import a package."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:426
+msgid "unpublished changes"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:430
+msgid "Question pages"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:450
+msgid "Step 1 of 2: What kind of question?"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:456
+#: src/Admin/QuestionsScreen.php:511
+msgid "Add to module (optional)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:456
+#: src/Admin/QuestionsScreen.php:511
+msgid "— no module —"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:457
+msgid "Next: enter the question"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:476
+#: src/Admin/QuestionsScreen.php:494
+msgid "Edit question"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:476
+msgid "This question does not exist or you may not edit it."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:495
+msgid "Back to the question bank"
+msgstr ""
+
+#. translators: %s: question type
+#: src/Admin/QuestionsScreen.php:496
+#, php-format
+msgid "Question type: %s"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:498
+msgid "This question is published."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:498
+msgid "Saving creates a new version. Running exam attempts keep the version they started with; new attempts use the new version once you publish it."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:501
+msgid "Question text"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:503
+msgid "Example: The capital of France is [1]."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:507
+msgid "Feedback (optional)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:508
+msgid "Text after a correct answer"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:509
+msgid "Text after a wrong answer"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:514
+msgid "Correction (typing error, wording; the meaning stays the same)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:514
+msgid "Change of content (other correct answer or other meaning)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:516
+msgid "Save draft"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:516
+msgid "Save and publish"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:523
+msgid "Archive"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:523
+msgid "Confirm: archive the question (it is no longer delivered; results stay)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:523
+msgid "Archive question"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:547
+msgid "Image (optional)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:548
+msgid "Image from the media library"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:548
+msgid "— no image —"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:554
+msgid "Upload new images under Media › Add New first."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:555
+msgid "Alternative text (what the image shows, for screen readers)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:555
+msgid "Required unless the image is only decoration. Without it the course cannot be published."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:556
+msgid "The image is only decoration (no alternative text needed)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:557
+msgid "The question can only be solved with the image"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:570
+msgid "Modules using this question"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:571
+msgid "The question is not in any module yet. Exams and practice only use questions of the course modules."
+msgstr ""
+
+#. translators: %s: module title
+#: src/Admin/QuestionsScreen.php:573
+#, php-format
+msgid "Remove from module %s"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:576
+msgid "Add to module"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:576
+msgid "Position (optional)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:588
+#: src/Admin/QuestionsScreen.php:591
+msgid "Preview for learners"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:588
+msgid "The preview is shown once the question is complete."
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:603
+msgid "Versions"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:603
+msgid "Created (UTC)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:603
+msgid "Published (UTC)"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:607
+msgid "replaced"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:610
+msgid "change of content"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:610
+msgid "correction"
+msgstr ""
+
+#: src/Admin/QuestionsScreen.php:667
+msgid "Unsaved entries from your last visit were restored. Check them and save."
 msgstr ""
 
 #: src/Admin/Readiness.php:36
@@ -1529,10 +3408,6 @@ msgstr ""
 msgid "Manage the question bank across courses"
 msgstr ""
 
-#: src/Admin/RoleSettings.php:74
-msgid "Import content"
-msgstr ""
-
 #: src/Admin/RoleSettings.php:75
 msgid "Export courses"
 msgstr ""
@@ -1619,12 +3494,6 @@ msgstr[1] ""
 
 #: src/Admin/RoleSettings.php:197
 msgid "Grant permissions"
-msgstr ""
-
-#: src/Admin/RoleSettings.php:290
-#: src/Admin/SettingsForm.php:418
-#: src/Admin/SettingsForm.php:444
-msgid "none"
 msgstr ""
 
 #: src/Admin/RoleSettings.php:292
@@ -1785,10 +3654,6 @@ msgstr ""
 msgid "Download settings"
 msgstr ""
 
-#: src/Admin/SettingsBackup.php:172
-msgid "Import"
-msgstr ""
-
 #: src/Admin/SettingsBackup.php:173
 msgid "Settings file (JSON, at most 256 KB)"
 msgstr ""
@@ -1835,11 +3700,6 @@ msgstr ""
 
 #: src/Admin/SettingsFields.php:46
 msgid "Learning"
-msgstr ""
-
-#: src/Admin/SettingsFields.php:47
-#: src/Learner/ExamRoom.php:575
-msgid "Exams"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:48
@@ -2318,10 +4178,6 @@ msgstr ""
 msgid "Number of lessons"
 msgstr ""
 
-#: src/Admin/SettingsFields.php:400
-msgid "Progress"
-msgstr ""
-
 #: src/Admin/SettingsFields.php:404
 msgid "Require captions for videos"
 msgstr ""
@@ -2441,11 +4297,6 @@ msgstr ""
 
 #: src/Admin/SettingsFields.php:482
 msgid "The server time is decisive."
-msgstr ""
-
-#: src/Admin/SettingsFields.php:484
-#: src/Admin/SettingsFields.php:814
-msgid "minutes"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:486
@@ -3736,15 +5587,6 @@ msgstr ""
 msgid "has successfully completed the course"
 msgstr ""
 
-#: src/Course/PostTypes.php:80
-#: src/Learner/LessonView.php:390
-msgid "Lessons"
-msgstr ""
-
-#: src/Course/PostTypes.php:80
-msgid "Lesson"
-msgstr ""
-
 #: src/Course/PostTypes.php:84
 msgid "Course FAQs"
 msgstr ""
@@ -3968,7 +5810,7 @@ msgstr ""
 msgid "Course Captain cannot be network activated. Activate it on each site individually instead. Nothing has been changed."
 msgstr ""
 
-#: src/Kernel/Plugin.php:396
+#: src/Kernel/Plugin.php:401
 msgid "Course Captain is inactive because the site does not meet its requirements:"
 msgstr ""
 
@@ -4078,10 +5920,6 @@ msgstr ""
 msgid "Please confirm that you want to submit the exam."
 msgstr ""
 
-#: src/Learner/ExamRoom.php:125
-msgid "Questions"
-msgstr ""
-
 #: src/Learner/ExamRoom.php:130
 msgid "answered"
 msgstr ""
@@ -4131,11 +5969,6 @@ msgstr ""
 msgid "Cancel exam"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:162
-#: src/Learner/LessonView.php:237
-msgid "Exam"
-msgstr ""
-
 #: src/Learner/ExamRoom.php:280
 #: src/Learner/ExamRoom.php:281
 msgid "Choose one answer."
@@ -4163,18 +5996,10 @@ msgstr ""
 msgid "Question %1$s of %2$s"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:316
-msgid "Your answer"
-msgstr ""
-
 #. translators: %s: unit, e.g. "km"
 #: src/Learner/ExamRoom.php:318
 #, php-format
 msgid "Your answer (in %s)"
-msgstr ""
-
-#: src/Learner/ExamRoom.php:329
-msgid "— choose —"
 msgstr ""
 
 #: src/Learner/ExamRoom.php:339
@@ -4409,10 +6234,6 @@ msgstr ""
 msgid "Continue: %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:332
-msgid "Course contents"
-msgstr ""
-
 #. translators: %s: course
 #: src/Learner/LearningArea.php:384
 #, php-format
@@ -4477,26 +6298,10 @@ msgstr ""
 msgid "Locked"
 msgstr ""
 
-#: src/Learner/LearningArea.php:490
-msgid "completed"
-msgstr ""
-
-#: src/Learner/LearningArea.php:490
-msgid "in progress"
-msgstr ""
-
-#: src/Learner/LearningArea.php:490
-msgid "not started"
-msgstr ""
-
 #. translators: %s: course title
 #: src/Learner/LessonView.php:67
 #, php-format
 msgid "Back to the course: %s"
-msgstr ""
-
-#: src/Learner/LessonView.php:235
-msgid "Assignment"
 msgstr ""
 
 #: src/Learner/LessonView.php:235
@@ -4800,10 +6605,6 @@ msgstr ""
 msgid "Correction"
 msgstr ""
 
-#: src/Notification/MailTemplates.php:359
-msgid "Final exam"
-msgstr ""
-
 #: src/Notification/MailTemplates.php:419
 msgid "You no longer want these messages? Unsubscribe: {{unsubscribe_url}}"
 msgstr ""
@@ -4965,10 +6766,6 @@ msgstr ""
 
 #: src/Ops/AuditScreen.php:76
 msgid "Event"
-msgstr ""
-
-#: src/Ops/AuditScreen.php:76
-msgid "By"
 msgstr ""
 
 #: src/Ops/AuditScreen.php:76
@@ -5200,58 +6997,86 @@ msgid "Course revision published"
 msgstr ""
 
 #: src/Ops/AuditView.php:93
-msgid "Certificate issued manually"
+msgid "Question saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:94
-msgid "Certificate corrected"
+msgid "Question published"
 msgstr ""
 
 #: src/Ops/AuditView.php:95
-msgid "Certificate revoked"
+msgid "Question archived"
 msgstr ""
 
 #: src/Ops/AuditView.php:96
-msgid "Certificate list exported"
+msgid "Questions of a module changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:97
-msgid "Certificate needs review after re-evaluation"
+msgid "Exam saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:98
-msgid "Job retried"
+msgid "Exam published"
 msgstr ""
 
 #: src/Ops/AuditView.php:99
-msgid "Dead letters discarded"
+msgid "Access ended manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:100
-msgid "Cache emptied"
+msgid "Certificate issued manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:101
-msgid "Diagnostics package exported"
+msgid "Certificate corrected"
 msgstr ""
 
 #: src/Ops/AuditView.php:102
-msgid "Site identity confirmed after restore, move or copy"
+msgid "Certificate revoked"
 msgstr ""
 
 #: src/Ops/AuditView.php:103
-msgid "Protected folders moved"
+msgid "Certificate list exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:104
+msgid "Certificate needs review after re-evaluation"
+msgstr ""
+
+#: src/Ops/AuditView.php:105
+msgid "Job retried"
+msgstr ""
+
+#: src/Ops/AuditView.php:106
+msgid "Dead letters discarded"
+msgstr ""
+
+#: src/Ops/AuditView.php:107
+msgid "Cache emptied"
+msgstr ""
+
+#: src/Ops/AuditView.php:108
+msgid "Diagnostics package exported"
+msgstr ""
+
+#: src/Ops/AuditView.php:109
+msgid "Site identity confirmed after restore, move or copy"
+msgstr ""
+
+#: src/Ops/AuditView.php:110
+msgid "Protected folders moved"
+msgstr ""
+
+#: src/Ops/AuditView.php:111
 msgid "Moving the protected folders failed"
 msgstr ""
 
-#: src/Ops/AuditView.php:161
+#: src/Ops/AuditView.php:168
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:161
+#: src/Ops/AuditView.php:168
 msgid "System"
 msgstr ""
 
@@ -6190,128 +8015,128 @@ msgstr ""
 msgid "Request erasure of my data"
 msgstr ""
 
-#: src/Publish/CourseValidator.php:102
+#: src/Publish/CourseValidator.php:105
 msgid "The check could not run completely. Please try again or contact support."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:109
+#: src/Publish/CourseValidator.php:112
 msgid "Nothing changed since the published revision."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:164
+#: src/Publish/CourseValidator.php:167
 msgid "The course has no title. Enter a title."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:168
+#: src/Publish/CourseValidator.php:171
 msgid "The course language is missing or invalid. Choose a language."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:171
+#: src/Publish/CourseValidator.php:174
 msgid "The course has no modules. Add at least one module."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:174
+#: src/Publish/CourseValidator.php:177
 msgid "The course has no description. A short description helps learners."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:196
+#: src/Publish/CourseValidator.php:199
 msgid "A module has no title. Enter a title."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:199
+#: src/Publish/CourseValidator.php:202
 msgid "This module has no lessons and no questions. Add content or remove the module."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:210
+#: src/Publish/CourseValidator.php:213
 msgid "Two lessons in this module have the same title."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:214
+#: src/Publish/CourseValidator.php:217
 msgid "This lesson has no activity type. Choose a type in the lesson editor."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:218
+#: src/Publish/CourseValidator.php:221
 msgid "The activity type of this lesson is not available. Choose another type or activate the extension."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:223
+#: src/Publish/CourseValidator.php:226
 msgid "The activity settings of this lesson are invalid. Correct them in the lesson editor."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:227
+#: src/Publish/CourseValidator.php:230
 msgid "This lesson has no content. Write the lesson text."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:230
+#: src/Publish/CourseValidator.php:233
 msgid "This video lesson has no video. Add a video file or address."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:233
+#: src/Publish/CourseValidator.php:236
 msgid "This video lesson is a placeholder and does not count for completion."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:236
+#: src/Publish/CourseValidator.php:239
 msgid "This quiz has no questions. Add questions to the quiz."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:241
+#: src/Publish/CourseValidator.php:244
 msgid "The course has no required activity, so it can never be completed."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:267
+#: src/Publish/CourseValidator.php:270
 msgid "A question in the pool has no published revision and will not be delivered."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:276
+#: src/Publish/CourseValidator.php:279
 msgid "This question is incomplete or contradictory. Correct it in the question editor."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:284
+#: src/Publish/CourseValidator.php:287
 msgid "Two options of this question have the same key."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:291
+#: src/Publish/CourseValidator.php:294
 msgid "Two options have the same text, one right and one wrong."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:291
+#: src/Publish/CourseValidator.php:294
 msgid "Two options of this question have the same text."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:296
+#: src/Publish/CourseValidator.php:299
 msgid "All options of this multiple-choice question are correct."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:318
+#: src/Publish/CourseValidator.php:321
 msgid "A part of the pass rule is invalid. Each part needs at least one module and a pass mark between 0 and 100 %."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:320
+#: src/Publish/CourseValidator.php:323
 msgid "The pass mark of this exam is missing or invalid. Set a pass mark between 0 and 100 %."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:326
+#: src/Publish/CourseValidator.php:329
 msgid "The time limit must be between 1 second and 24 hours."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:331
+#: src/Publish/CourseValidator.php:334
 msgid "Grace and tolerance times must be between 0 and 600 seconds."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:338
+#: src/Publish/CourseValidator.php:341
 msgid "The exam draws from a module that is not part of this course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:342
+#: src/Publish/CourseValidator.php:345
 msgid "The exam must draw at least one question from each module."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:346
+#: src/Publish/CourseValidator.php:349
 msgid "The module has no deliverable questions for the exam."
 msgstr ""
 
 #. translators: 1: available questions, 2: required questions
-#: src/Publish/CourseValidator.php:362
+#: src/Publish/CourseValidator.php:365
 #, php-format
 msgid "Only %1$s of %2$s question is available in this module. Reduce the number or add questions."
 msgid_plural "Only %1$s of %2$s questions are available in this module. Reduce the number or add questions."
@@ -6319,43 +8144,55 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: variant number
-#: src/Publish/CourseValidator.php:373
+#: src/Publish/CourseValidator.php:376
 #, php-format
 msgid "Variant %d"
 msgstr ""
 
-#: src/Publish/CourseValidator.php:375
+#: src/Publish/CourseValidator.php:378
 msgid "The variant is empty or its positions have gaps."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:378
+#: src/Publish/CourseValidator.php:381
 msgid "The variant contains a question that cannot be delivered."
 msgstr ""
 
 #. translators: %s: part key such as P2
-#: src/Publish/CourseValidator.php:418
+#: src/Publish/CourseValidator.php:421
 #, php-format
 msgid "Part %s refers to a module the exam does not draw from."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:436
+#: src/Publish/CourseValidator.php:439
 msgid "Some questions of this exam belong to no part and count only for the total."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:460
+#: src/Publish/CourseValidator.php:463
 msgid "A prerequisite points to a module of another course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:460
+#: src/Publish/CourseValidator.php:463
 msgid "A prerequisite points to a module that no longer exists."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:467
+#: src/Publish/CourseValidator.php:470
 msgid "A prerequisite points to an activity that is missing, archived or outside this course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:485
+#: src/Publish/CourseValidator.php:488
 msgid "The prerequisites form a cycle, so some modules can never be unlocked. Remove one prerequisite."
+msgstr ""
+
+#. translators: %d: number of images
+#: src/Publish/CourseValidator.php:513
+#, php-format
+msgid "%d image has no alternative text. Screen reader users do not learn what it shows. Add an alternative text or mark the image as decorative."
+msgid_plural "%d images have no alternative text. Screen reader users do not learn what they show. Add an alternative text or mark the images as decorative."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Publish/CourseValidator.php:553
+msgid "The question cannot be solved without the image, but the image is not described. Enter an alternative text; \"decorative\" is not enough here."
 msgstr ""
 
 #: src/Publish/PublishGuard.php:52
@@ -6728,10 +8565,6 @@ msgstr ""
 msgid "set by the website"
 msgstr ""
 
-#: src/Settings/EffectiveSettings.php:121
-msgid "this exam"
-msgstr ""
-
 #: src/Settings/EffectiveSettings.php:122
 msgid "this activity"
 msgstr ""
@@ -6767,6 +8600,7 @@ msgstr ""
 #: src/Storage/Migrator.php:272
 msgid "Course Captain is updating its database. Please try again in a few seconds."
 msgstr ""
+
 
 #: blocks/certificate-verify/block.json
 msgctxt "block title"
