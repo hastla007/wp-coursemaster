@@ -241,7 +241,9 @@ final class SmartTrainer {
 		if ( ! in_array( $mode, self::MODES, true ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Unknown mode.', 422 );
 		}
-		$candidates = $this->candidates( $actor, $course_id, isset( $options['topic'] ) ? (string) $options['topic'] : null );
+		// One gate for the whole operation: module decisions, drip/prerequisites and running exams are read once (R0-14 OP-03).
+		$gate       = ContentGate::current();
+		$candidates = $this->candidates( $actor, $course_id, isset( $options['topic'] ) ? (string) $options['topic'] : null, $gate );
 		if ( array() === $candidates && ! $this->any_module_accessible( $actor, $course_id ) ) {
 			CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ) ), 'No learning access.' );
 		}
@@ -284,7 +286,7 @@ final class SmartTrainer {
 			return null;
 		}
 		$row      = $progress[ $winner['question_id'] ] ?? null;
-		$delivery = $this->presenter->deliver( $actor, $course_id, $winner['module_id'], $winner['question_id'] );
+		$delivery = $this->presenter->with_gate( $gate )->deliver( $actor, $course_id, $winner['module_id'], $winner['question_id'] );
 		return array(
 			'question_id' => $winner['question_id'],
 			'module_id'   => $winner['module_id'],
@@ -360,7 +362,7 @@ final class SmartTrainer {
 		$decision->assert();
 		$rows     = $this->progress_rows( $actor->user_id, array( $question ) );
 		$row      = $rows[ $question ] ?? null;
-		$delivery = $this->presenter->deliver( $actor, $course_id, $module, $question );
+		$delivery = $this->presenter->with_gate( $gate )->deliver( $actor, $course_id, $module, $question );
 		return array(
 			'question_id' => $question,
 			'module_id'   => $module,
@@ -464,37 +466,55 @@ final class SmartTrainer {
 	 * Candidates in module and question order: accessible modules, no
 	 * flashcards, no questions of a running exam (G-5), optional topic.
 	 *
-	 * @param Actor       $actor     Learner.
-	 * @param int         $course_id Course.
-	 * @param string|null $topic     Topic.
+	 * @param Actor            $actor     Learner.
+	 * @param int              $course_id Course.
+	 * @param string|null      $topic     Topic.
+	 * @param ContentGate|null $gate     Gate of the operation (fresh when null).
 	 * @return list<array{question_id: int, module_id: int, topic: string}>
 	 */
-	private function candidates( Actor $actor, int $course_id, ?string $topic ): array {
-		$cm      = $this->db->table( 'ccap_course_module' );
-		$pool    = $this->db->table( 'ccap_module_question' );
-		$q       = $this->db->table( 'ccap_question' );
-		$rev     = $this->db->table( 'ccap_question_revision' );
-		$tag     = $this->db->table( 'ccap_question_tag' );
-		$modules = array_map( 'intval', $this->db->wpdb()->get_col( $this->db->prepare( "SELECT module_id FROM `{$cm}` WHERE course_id = %d ORDER BY sort_order, module_id", $course_id ) ) );
-		$locked  = $this->running_exam_questions( $actor->user_id );
-		$seen    = array();
-		$out     = array();
-		$gate    = ContentGate::current();
-		foreach ( $modules as $module ) {
-			$decision = $gate->module( $actor, $course_id, $module );
-			if ( ! $decision->allowed() ) {
-				continue;
+	private function candidates( Actor $actor, int $course_id, ?string $topic, ?ContentGate $gate = null ): array {
+		$pool   = $this->db->table( 'ccap_module_question' );
+		$q      = $this->db->table( 'ccap_question' );
+		$rev    = $this->db->table( 'ccap_question_revision' );
+		$tag    = $this->db->table( 'ccap_question_tag' );
+		$gate   = $gate ?? ContentGate::current();
+		$locked = $gate->running_exam_questions( $actor->user_id );
+		$limits = $this->policy->batch(
+			static function () use ( $gate, $actor, $course_id ): array {
+				$out = array();
+				foreach ( array_keys( $gate->course_modules( $course_id ) ) as $module ) {
+					$decision = $gate->module( $actor, $course_id, $module );
+					if ( $decision->allowed() ) {
+						$out[ $module ] = $decision->limit;
+					}
+				}
+				return $out;
 			}
-			$rows = $this->db->rows(
-				$this->db->prepare(
-					"SELECT p.question_id, COALESCE((SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'smart_category' ORDER BY t.id LIMIT 1), (SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'topic' ORDER BY t.id LIMIT 1), '') AS topic FROM `{$pool}` p JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.module_id = %d AND q.status = 'published' AND r.question_type <> %s ORDER BY (p.sort_order IS NULL), p.sort_order, p.question_id",
-					$module,
-					QuestionTypes::FLASHCARD
-				)
-			);
-			if ( null !== $decision->limit ) {
+		);
+		if ( array() === $limits ) {
+			return array();
+		}
+		// One query for all unlocked modules instead of one per module (R0-14 constancy rule).
+		$in     = implode( ',', array_map( 'intval', array_keys( $limits ) ) );
+		$by     = array();
+		$result = $this->db->rows(
+			$this->db->prepare(
+				"SELECT p.module_id, p.question_id, q.current_revision_id, q.uid, (r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s)) AS deliverable, COALESCE((SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'smart_category' ORDER BY t.id LIMIT 1), (SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'topic' ORDER BY t.id LIMIT 1), '') AS topic FROM `{$pool}` p JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.module_id IN ({$in}) AND q.status = 'published' AND r.question_type <> %s ORDER BY (p.sort_order IS NULL), p.sort_order, p.question_id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				gmdate( 'Y-m-d', $this->db->time() ),
+				gmdate( 'Y-m-d', $this->db->time() ),
+				QuestionTypes::FLASHCARD
+			)
+		);
+		foreach ( $result as $row ) {
+			$by[ (int) $row['module_id'] ][] = $row;
+		}
+		$seen = array();
+		$out  = array();
+		foreach ( $limits as $module => $limit ) {
+			$rows = $by[ $module ] ?? array();
+			if ( null !== $limit ) {
 				// Partial access: only the first n questions of the module (R0-08 §1.4 Nr. 2).
-				$rows = array_slice( $rows, 0, $decision->limit );
+				$rows = array_slice( $rows, 0, $limit );
 			}
 			foreach ( $rows as $row ) {
 				$id = (int) $row['question_id'];
@@ -507,6 +527,10 @@ final class SmartTrainer {
 					'module_id'   => $module,
 					'topic'       => (string) $row['topic'],
 				);
+				if ( '1' === (string) $row['deliverable'] ) {
+					// Same conditions as the pool check of the delivery: no second read for the winner.
+					QuestionPresenter::prime_deliverable( $gate, $module, $id, (int) $row['current_revision_id'], (string) $row['uid'] );
+				}
 			}
 		}
 		return $out;
@@ -628,26 +652,5 @@ final class SmartTrainer {
 			$out[ (int) $row['question_id'] ] = $row;
 		}
 		return $out;
-	}
-
-	/**
-	 * Questions locked by a running exam (deadline + tolerance, without limit 24 h).
-	 *
-	 * @param int $user Learner.
-	 * @return list<int>
-	 */
-	private function running_exam_questions( int $user ): array {
-		$sessions  = $this->db->table( 'ccap_exam_session' );
-		$questions = $this->db->table( 'ccap_exam_session_question' );
-		return array_map(
-			'intval',
-			$this->db->wpdb()->get_col(
-				$this->db->prepare(
-					"SELECT sq.question_id FROM `{$questions}` sq JOIN `{$sessions}` s ON s.id = sq.session_id WHERE s.user_id = %d AND s.status = 'in_progress' AND (s.deadline_at IS NOT NULL OR s.started_at > %s)",
-					$user,
-					self::sql( time() - \CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
-				)
-			)
-		);
 	}
 }

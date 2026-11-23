@@ -508,6 +508,7 @@ final class LearningArea {
 			. '.ccap-button{display:inline-block;padding:.6rem 1rem;border:2px solid currentColor;border-radius:.25rem;text-decoration:none;min-block-size:44px;box-sizing:border-box;font:inherit;background:#fff;color:inherit;cursor:pointer}'
 			. ':focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}'
 			. 'img,video,iframe{max-inline-size:100%;block-size:auto}'
+			. '.ccap-media-frame iframe{inline-size:100%;aspect-ratio:16/9;border:0}.ccap-external-media{border:1px solid #8c8f94;border-radius:.25rem;padding:.75rem 1rem;background:#f6f7f7}.ccap-external-media input[type=checkbox]{inline-size:1.5rem;block-size:1.5rem;vertical-align:middle}'
 			. '.screen-reader-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
 			. 'progress{max-inline-size:100%;vertical-align:middle}'
 			. '.ccap-question{margin-block:1.5rem}fieldset{border:1px solid #8c8f94;padding:.75rem 1rem;min-inline-size:0;margin:0}legend{font-weight:600;padding-inline:.25rem}'

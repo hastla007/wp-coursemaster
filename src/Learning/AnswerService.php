@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Learning;
 
+use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Question\QuestionPresenter;
@@ -39,6 +40,15 @@ final class AnswerService {
 
 	/** Retention of idempotency entries in days (R0-19 §2.1). */
 	public const IDEMPOTENCY_DAYS = 7;
+
+	/** Claim result: the key was already completed. */
+	private const CLAIM_DONE = 0;
+
+	/** Claim result: new key, recorded by this request. */
+	private const CLAIM_NEW = 1;
+
+	/** Claim result: orphaned entry taken over. */
+	private const CLAIM_TAKEN = 2;
 
 	/**
 	 * Constructor.
@@ -78,9 +88,12 @@ final class AnswerService {
 			// R0-19 R-08 / §8: the key is mandatory (P); missing or not a UUID → 428 (GM-150).
 			throw new CourseException( 'ccap_idempotency_key_required', 'Idempotency key required.', 428 );
 		}
-		$claims = $this->presenter->verify( $actor, $token );
-		$hash   = hash( 'sha256', $token . "\n" . wp_json_encode( $answer ) );
-		if ( ! $this->claim( $actor->user_id, $idempotency_key, $hash ) ) {
+		// One gate for verify and evaluate of this answer (R0-14 OP-04: access is checked once per request).
+		$presenter = $this->presenter->with_gate( ContentGate::current() );
+		$claims    = $presenter->verify( $actor, $token );
+		$hash      = hash( 'sha256', $token . "\n" . wp_json_encode( $answer ) );
+		$claim     = $this->claim( $actor->user_id, $idempotency_key, $hash );
+		if ( self::CLAIM_DONE === $claim ) {
 			$stored = $this->existing( $actor->user_id, $idempotency_key );
 			if ( null !== $stored ) {
 				return $this->result( $actor->user_id, $stored, true );
@@ -88,14 +101,17 @@ final class AnswerService {
 		}
 		$progress = null;
 		$points   = null;
+		$inserted = null;
 		try {
-			$stored = $this->existing( $actor->user_id, $idempotency_key );
+			// A freshly recorded key has no attempt yet, except legacy rows: the unique key
+			// (user_id, idempotency_key) of the insert below catches those (duplicate path).
+			$stored = self::CLAIM_NEW === $claim ? null : $this->existing( $actor->user_id, $idempotency_key );
 			if ( null !== $stored ) {
 				// Answer stored before the key was recorded (older rows, crash after commit).
 				$this->complete( $actor->user_id, $idempotency_key, (int) $stored['id'] );
 				return $this->result( $actor->user_id, $stored, true );
 			}
-			$attempt = $this->store( $actor, $token, $answer, $idempotency_key, $context, $claims, $progress, $points );
+			$attempt = $this->store( $presenter, $actor, $token, $answer, $idempotency_key, $context, $claims, $progress, $points, $inserted );
 		} catch ( \Throwable $e ) {
 			$this->release( $actor->user_id, $idempotency_key );
 			throw $e;
@@ -110,8 +126,8 @@ final class AnswerService {
 		if ( $claims['a'] > 0 && $claims['c'] > 0 ) {
 			$this->feed_lesson_quiz( $actor->user_id, $claims['c'], $claims['a'] );
 		}
-		$row    = (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_attempt' ) . '` WHERE id = %d', $attempt ) );
-		$result = $this->result( $actor->user_id, $row, false, $points );
+		$row    = $inserted ?? (array) $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_attempt' ) . '` WHERE id = %d', $attempt ) );
+		$result = $this->result( $actor->user_id, $row, false, $points, null === $progress ? null : (int) $progress['attempts'] );
 		if ( null !== $progress ) {
 			$result['streak_counted'] = $progress['streak_counted'];
 			$result['progress']       = array(
@@ -130,6 +146,7 @@ final class AnswerService {
 	/**
 	 * Evaluate and store one answer in one transaction.
 	 *
+	 * @param QuestionPresenter         $presenter       Presenter sharing the gate of this answer.
 	 * @param Actor                     $actor           Learner.
 	 * @param string                    $token           Question token.
 	 * @param mixed                     $answer          Answer.
@@ -138,12 +155,13 @@ final class AnswerService {
 	 * @param array<string, mixed>      $claims          Verified token claims.
 	 * @param array<string, mixed>|null $progress   Out: question progress.
 	 * @param int|null                  $points          Out: points of this evaluation.
+	 * @param array<string, mixed>|null $inserted        Out: stored attempt columns used by the result.
 	 * @return int|null Attempt ID; null when a parallel request stored the same key.
 	 * @throws CourseException `ccap_invalid_answer`, `ccap_invalid_param`.
 	 * @throws StorageException On non-duplicate storage errors.
 	 */
-	private function store( Actor $actor, string $token, $answer, string $idempotency_key, string $context, array $claims, ?array &$progress, ?int &$points ): ?int {
-		$evaluated = $this->presenter->evaluate( $actor, $token, $answer );
+	private function store( QuestionPresenter $presenter, Actor $actor, string $token, $answer, string $idempotency_key, string $context, array $claims, ?array &$progress, ?int &$points, ?array &$inserted ): ?int {
+		$evaluated = $presenter->evaluate( $actor, $token, $answer );
 		$eval      = $evaluated['evaluation'];
 		if ( ! $eval->valid || ! $eval->answered ) {
 			throw new CourseException( 'ccap_invalid_answer', 'Invalid answer.', 422 );
@@ -159,11 +177,12 @@ final class AnswerService {
 		SmartTrainer::current()->rate_limit( $actor->user_id );
 		SmartTrainer::ensure_row( $this->db, $actor->user_id, (int) $claims['q'] );
 		try {
-			$attempt = $this->db->transaction(
+			$attempt  = $this->db->transaction(
 				function ( Database $db ) use ( $actor, $claims, $answer, $idempotency_key, $context, $correct, $revision, &$progress ): int {
 					$quiet = $db->wpdb()->suppress_errors( true );
 					try {
-						$id = $db->insert(
+						// Fixed formats, no column metadata lookup (R0-14 OP-04).
+						$id = $db->insert_values(
 							'ccap_attempt',
 							array(
 								'user_id'           => $actor->user_id,
@@ -182,20 +201,27 @@ final class AnswerService {
 					} finally {
 						$db->wpdb()->suppress_errors( $quiet );
 					}
+					$values = array();
 					foreach ( self::answer_rows( $answer ) as $i => $row ) {
-						$db->insert(
-							'ccap_attempt_answer',
-							$row + array(
-								'attempt_id' => $id,
-								'position'   => $i,
-							)
-						);
+						$values[] = isset( $row['answer_key'] )
+							? $db->prepare( '(%d, %s, NULL, %d)', $id, (string) $row['answer_key'], $i )
+							: $db->prepare( '(%d, NULL, %s, %d)', $id, wp_check_invalid_utf8( (string) $row['free_text'], true ), $i );
+					}
+					if ( array() !== $values ) {
+						// One multi-row INSERT for all selected options.
+						$db->execute( 'INSERT INTO `' . $db->table( 'ccap_attempt_answer' ) . '` (attempt_id, answer_key, free_text, position) VALUES ' . implode( ', ', $values ) );
 					}
 					if ( null !== $correct ) {
 						$progress = SmartTrainer::apply( $db, $actor->user_id, $claims['q'], $correct );
 					}
 					return $id;
 				}
+			);
+			$inserted = array(
+				'id'          => $attempt,
+				'question_id' => $claims['q'],
+				'revision_id' => $claims['r'],
+				'is_correct'  => null === $correct ? null : ( $correct ? '1' : '0' ),
 			);
 		} catch ( StorageException $e ) {
 			if ( ! $e->is_duplicate() ) {
@@ -215,11 +241,12 @@ final class AnswerService {
 	 * @param array<string, mixed> $attempt  Attempt row.
 	 * @param bool                 $repeated Repeated request.
 	 * @param int|null             $points   Points of this evaluation.
+	 * @param int|null             $attempts Attempts just written by the progress update (null = read).
 	 * @return array{correct: bool, points_milli: int, repeated: bool, attempts: int, correct_ids?: list<string>}
 	 */
-	private function result( int $user, array $attempt, bool $repeated, ?int $points = null ): array {
+	private function result( int $user, array $attempt, bool $repeated, ?int $points = null, ?int $attempts = null ): array {
 		$revision = (array) $this->questions->revision( (int) $attempt['revision_id'] );
-		$attempts = (int) $this->db->scalar( $this->db->prepare( 'SELECT attempts FROM `' . $this->db->table( 'ccap_question_progress' ) . '` WHERE user_id = %d AND question_id = %d', $user, (int) $attempt['question_id'] ) );
+		$attempts = $attempts ?? (int) $this->db->scalar( $this->db->prepare( 'SELECT attempts FROM `' . $this->db->table( 'ccap_question_progress' ) . '` WHERE user_id = %d AND question_id = %d', $user, (int) $attempt['question_id'] ) );
 		$correct  = '1' === (string) $attempt['is_correct'];
 		$result   = array(
 			'correct'      => $correct,
@@ -262,10 +289,10 @@ final class AnswerService {
 	 * @param int    $user Learner.
 	 * @param string $key  Client key.
 	 * @param string $hash Request hash (token + answer).
-	 * @return bool True = this request processes the key; false = already completed.
+	 * @return int CLAIM_NEW / CLAIM_TAKEN = this request processes the key; CLAIM_DONE = already completed.
 	 * @throws CourseException 409 codes above.
 	 */
-	private function claim( int $user, string $key, string $hash ): bool {
+	private function claim( int $user, string $key, string $hash ): int {
 		$table    = $this->db->table( 'ccap_request_idempotency' );
 		$now      = SmartTrainer::now();
 		$inserted = $this->db->execute(
@@ -280,20 +307,20 @@ final class AnswerService {
 			)
 		);
 		if ( 1 === $inserted ) {
-			return true;
+			return self::CLAIM_NEW;
 		}
 		$row = (array) $this->db->row( $this->db->prepare( "SELECT id, request_hash, status_code, created_at FROM `{$table}` WHERE user_id = %d AND scope = %s AND idem_key = %s", $user, self::IDEMPOTENCY_SCOPE, $key ) );
 		if ( ! hash_equals( (string) ( $row['request_hash'] ?? '' ), $hash ) ) {
 			throw new CourseException( 'ccap_idempotency_conflict', 'The request key was used for another request.', 409 );
 		}
 		if ( 0 !== (int) ( $row['status_code'] ?? 0 ) ) {
-			return false;
+			return self::CLAIM_DONE;
 		}
 		$created = (int) strtotime( (string) $row['created_at'] . ' UTC' );
 		if ( $now - $created > self::ORPHANED_AFTER ) {
 			$taken = $this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET created_at = %s WHERE id = %d AND status_code = 0 AND created_at = %s", SmartTrainer::sql( $now ), (int) $row['id'], (string) $row['created_at'] ) );
 			if ( 1 === $taken ) {
-				return true;
+				return self::CLAIM_TAKEN;
 			}
 		}
 		throw new CourseException( 'ccap_request_in_progress', 'The request is still in progress.', 409, array( 'retry_after' => 2 ) );
@@ -380,7 +407,7 @@ final class AnswerService {
 	 */
 	private static function answer_rows( $answer ): array {
 		if ( is_array( $answer ) && array_is_list( $answer ) ) {
-			return array_map( static fn( $key ): array => array( 'answer_key' => substr( (string) $key, 0, 16 ) ), $answer );
+			return array_map( static fn( $key ): array => array( 'answer_key' => wp_check_invalid_utf8( substr( (string) $key, 0, 16 ), true ) ), $answer );
 		}
 		return array( array( 'free_text' => (string) wp_json_encode( $answer ) ) );
 	}

@@ -51,6 +51,17 @@ final class ContentGate {
 	private array $starts = array();
 
 	/**
+	 * Operation memo (R0-14 OP-01…OP-05, R1-22 B-3): module links of a
+	 * course with prerequisites and the strongest drip rule, module
+	 * decisions, running-exam questions, lessons and pools. An instance
+	 * lives for one operation ({@see self::current()} returns a fresh one),
+	 * so the memo never outlives a request step that changes these inputs.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private array $memo = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Database      $db     Database access.
@@ -93,6 +104,24 @@ final class ContentGate {
 	 * @return GateDecision
 	 */
 	public function module( Actor $actor, int $course_id, int $module_id, string $scope = 'view', ?string $kind = TrialLimits::QUESTIONS ): GateDecision {
+		$key = 'module|' . $actor->key() . '|' . $course_id . '|' . $module_id . '|' . $scope . '|' . ( $kind ?? '*' );
+		if ( ! isset( $this->memo[ $key ] ) ) {
+			$this->memo[ $key ] = $this->evaluate_module( $actor, $course_id, $module_id, $scope, $kind );
+		}
+		return $this->memo[ $key ];
+	}
+
+	/**
+	 * Module gate without memo.
+	 *
+	 * @param Actor       $actor     Learner.
+	 * @param int         $course_id Course.
+	 * @param int         $module_id Module.
+	 * @param string      $scope     view|download|exam.
+	 * @param string|null $kind      TrialLimits kind or null (any).
+	 * @return GateDecision
+	 */
+	private function evaluate_module( Actor $actor, int $course_id, int $module_id, string $scope, ?string $kind ): GateDecision {
 		$decision = $this->policy->decide(
 			$actor,
 			PolicyService::LEARN,
@@ -172,7 +201,7 @@ final class ContentGate {
 				return GateDecision::locked( 'trial', $gate->rule_refs );
 			}
 		}
-		if ( in_array( $question, $this->running_exam_questions( $actor->user_id ), true ) ) {
+		if ( $this->in_running_exam( $actor->user_id, $question ) ) {
 			return GateDecision::locked( 'exam_running', array( 'exam_session' ) );
 		}
 		return $gate;
@@ -222,8 +251,16 @@ final class ContentGate {
 	public function exam( Actor $actor, int $course_id, array $modules, ?int $variant_no = null ): GateDecision {
 		$locked = array();
 		$first  = null;
-		foreach ( array_values( array_unique( $modules ) ) as $module ) {
-			$gate = $this->module( $actor, $course_id, (int) $module, 'exam' );
+		$gates  = $this->policy->batch(
+			function () use ( $actor, $course_id, $modules ): array {
+				$out = array();
+				foreach ( array_values( array_unique( $modules ) ) as $module ) {
+					$out[ (int) $module ] = $this->module( $actor, $course_id, (int) $module, 'exam' );
+				}
+				return $out;
+			}
+		);
+		foreach ( $gates as $module => $gate ) {
 			if ( ! $gate->allowed() ) {
 				$locked[] = 'module:' . (int) $module;
 				$first    = $first ?? $gate;
@@ -338,7 +375,8 @@ final class ContentGate {
 	 * @return array{id: int, unlock_at: string}|null
 	 */
 	private function drip( int $user, int $course_id, int $module_id ): ?array {
-		$row = $this->db->row( $this->db->prepare( 'SELECT id, limit_value FROM `' . $this->db->table( 'ccap_access_rule' ) . "` WHERE course_id = %d AND module_id = %d AND access_type = 'drip' ORDER BY limit_value DESC, id LIMIT 1", $course_id, $module_id ) );
+		$links = $this->course_modules( $course_id );
+		$row   = isset( $links[ $module_id ] ) ? $links[ $module_id ]['drip'] : $this->db->row( $this->db->prepare( 'SELECT id, limit_value FROM `' . $this->db->table( 'ccap_access_rule' ) . "` WHERE course_id = %d AND module_id = %d AND access_type = 'drip' ORDER BY limit_value DESC, id LIMIT 1", $course_id, $module_id ) );
 		if ( null === $row ) {
 			return null;
 		}
@@ -377,9 +415,70 @@ final class ContentGate {
 	 * @return list<mixed>
 	 */
 	private function module_rules( int $course_id, int $module_id ): array {
-		$json  = $this->db->scalar( $this->db->prepare( 'SELECT rules FROM `' . $this->db->table( 'ccap_course_module' ) . '` WHERE course_id = %d AND module_id = %d', $course_id, $module_id ) );
+		$links = $this->course_modules( $course_id );
+		$json  = isset( $links[ $module_id ] ) ? $links[ $module_id ]['rules'] : $this->db->scalar( $this->db->prepare( 'SELECT rules FROM `' . $this->db->table( 'ccap_course_module' ) . '` WHERE course_id = %d AND module_id = %d', $course_id, $module_id ) );
 		$rules = null === $json ? null : json_decode( $json, true );
 		return is_array( $rules ) ? array_values( (array) ( $rules['prerequisites'] ?? array() ) ) : array();
+	}
+
+	/**
+	 * Modules of a course in order with their prerequisites (`rules`) and the
+	 * strongest drip rule (highest days, then lowest ID): one query per
+	 * course instead of two per module (R0-14 constancy rule).
+	 *
+	 * @param int $course_id Course.
+	 * @return array<int, array{rules: string|null, drip: array{id: mixed, limit_value: mixed}|null}>
+	 */
+	public function course_modules( int $course_id ): array {
+		$key = 'links|' . $course_id;
+		if ( ! isset( $this->memo[ $key ] ) ) {
+			$cm    = $this->db->table( 'ccap_course_module' );
+			$rule  = $this->db->table( 'ccap_access_rule' );
+			$links = array();
+			$rows  = $this->db->rows(
+				$this->db->prepare(
+					"SELECT cm.module_id, cm.rules, d.id AS drip_id, d.limit_value AS drip_days FROM `{$cm}` cm LEFT JOIN `{$rule}` d ON d.id = (SELECT d2.id FROM `{$rule}` d2 WHERE d2.course_id = cm.course_id AND d2.module_id = cm.module_id AND d2.access_type = 'drip' ORDER BY d2.limit_value DESC, d2.id LIMIT 1) WHERE cm.course_id = %d ORDER BY cm.sort_order, cm.module_id",
+					$course_id
+				)
+			);
+			foreach ( $rows as $row ) {
+				$links[ (int) $row['module_id'] ] = array(
+					'rules' => null === $row['rules'] ? null : (string) $row['rules'],
+					'drip'  => null === $row['drip_id'] ? null : array(
+						'id'          => $row['drip_id'],
+						'limit_value' => $row['drip_days'],
+					),
+				);
+			}
+			$this->memo[ $key ] = $links;
+		}
+		return $this->memo[ $key ];
+	}
+
+	/**
+	 * Whether a question belongs to the learner's running exam (SEC-016, GM-044).
+	 *
+	 * @param int $user     Learner.
+	 * @param int $question Question.
+	 * @return bool
+	 */
+	public function in_running_exam( int $user, int $question ): bool {
+		return in_array( $question, $this->running_exam_questions( $user ), true );
+	}
+
+	/**
+	 * Operation memo for callers that share this gate (one value per key).
+	 *
+	 * @param string   $key     Key.
+	 * @param callable $compute Computes the value once.
+	 * @return mixed
+	 */
+	public function remember( string $key, callable $compute ) {
+		$key = 'ext|' . $key;
+		if ( ! array_key_exists( $key, $this->memo ) ) {
+			$this->memo[ $key ] = $compute();
+		}
+		return $this->memo[ $key ];
 	}
 
 	/**
@@ -465,7 +564,11 @@ final class ContentGate {
 	 * @return list<int>
 	 */
 	private function lessons( int $module ): array {
-		$ids = get_posts(
+		$key = 'lessons|' . $module;
+		if ( isset( $this->memo[ $key ] ) ) {
+			return $this->memo[ $key ];
+		}
+		$ids                = get_posts(
 			array(
 				'post_type'        => Relations::LESSON_TYPE,
 				'post_parent'      => $module,
@@ -479,7 +582,8 @@ final class ContentGate {
 				'suppress_filters' => true,
 			)
 		);
-		return array_values( array_map( 'intval', $ids ) );
+		$this->memo[ $key ] = array_values( array_map( 'intval', $ids ) );
+		return $this->memo[ $key ];
 	}
 
 	/**
@@ -489,7 +593,7 @@ final class ContentGate {
 	 * @return list<int>
 	 */
 	private function pool( int $module ): array {
-		return array_map( 'intval', $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_module_question' ) . '` WHERE module_id = %d ORDER BY (sort_order IS NULL), sort_order, question_id', $module ) ) );
+		return $this->memo[ 'pool|' . $module ] ??= array_map( 'intval', $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_module_question' ) . '` WHERE module_id = %d ORDER BY (sort_order IS NULL), sort_order, question_id', $module ) ) );
 	}
 
 	/**
@@ -498,14 +602,14 @@ final class ContentGate {
 	 * @param int $user Learner.
 	 * @return list<int>
 	 */
-	private function running_exam_questions( int $user ): array {
-		return array_map(
+	public function running_exam_questions( int $user ): array {
+		return $this->memo[ 'running|' . $user ] ??= array_map(
 			'intval',
 			$this->db->wpdb()->get_col(
 				$this->db->prepare(
 					'SELECT sq.question_id FROM `' . $this->db->table( 'ccap_exam_session_question' ) . '` sq JOIN `' . $this->db->table( 'ccap_exam_session' ) . "` s ON s.id = sq.session_id WHERE s.user_id = %d AND s.status = 'in_progress' AND (s.deadline_at IS NOT NULL OR s.started_at > %s)",
 					$user,
-					self::sql( time() - \CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
+					$this->db->now( -\CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
 				)
 			)
 		);

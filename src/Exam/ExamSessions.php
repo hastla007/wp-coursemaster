@@ -96,16 +96,29 @@ final class ExamSessions {
 			throw new CourseException( 'ccap_exam_start_busy', 'Start in progress.', 409 );
 		}
 		try {
-			$this->expire_for_user( $actor->user_id );
 			$form_key = null === $variant_id ? 'random:' . $rule_id : 'variant:' . $variant_id;
 			$table    = $this->db->table( 'ccap_exam_session' );
-			$running  = $this->db->scalar( $this->db->prepare( "SELECT id FROM `{$table}` WHERE user_id = %d AND form_key = %s AND status = 'in_progress'", $actor->user_id, $form_key ) );
-			if ( null !== $running ) {
-				return (int) $running;
+			// One read for: expire due attempts, the running attempt of this form, a repeated start token (R0-14 OP-05).
+			$rows    = $this->db->rows( $this->db->prepare( "SELECT id, status, form_key, start_token, snapshot, deadline_at FROM `{$table}` WHERE user_id = %d AND (status = 'in_progress' OR start_token = %s) ORDER BY id", $actor->user_id, $request_key ) );
+			$running = null;
+			$known   = null;
+			foreach ( $rows as $row ) {
+				if ( 'in_progress' === $row['status'] && null !== $row['deadline_at'] && $this->is_overdue( $row ) ) {
+					$this->finish( (int) $row['id'], 'expired' );
+					$row['status'] = 'expired';
+				}
+				if ( null === $running && 'in_progress' === $row['status'] && $form_key === $row['form_key'] ) {
+					$running = (int) $row['id'];
+				}
+				if ( null === $known && $request_key === $row['start_token'] ) {
+					$known = (int) $row['id'];
+				}
 			}
-			$known = $this->db->scalar( $this->db->prepare( "SELECT id FROM `{$table}` WHERE start_token = %s AND user_id = %d", $request_key, $actor->user_id ) );
+			if ( null !== $running ) {
+				return $running;
+			}
 			if ( null !== $known ) {
-				return (int) $known;
+				return $known;
 			}
 			$this->assert_attempts_left( $actor->user_id, $rule );
 			RateLimiter::hit( $this->db, 'exam_start', $actor->user_id, 3600, self::START_LIMIT_HOUR, $this->now() );
@@ -422,17 +435,20 @@ final class ExamSessions {
 	 * @param Actor                $actor      Learner.
 	 * @param array<string, mixed> $rule       Rule.
 	 * @param Randomizer           $randomizer Randomizer.
-	 * @return array{questions: list<array{question_id: int, section: int, points: int}>, reduced: bool}
+	 * @return array{questions: list<array{question_id: int, section: int, points: int}>, reduced: bool, revisions: array<int, int>}
 	 */
 	private function draw( Actor $actor, array $rule, Randomizer $randomizer ): array {
 		$questions = array();
 		$reduced   = false;
+		$revisions = array();
 		foreach ( $rule['blueprints'] as $blueprint ) {
-			$module = (int) $blueprint['module_id'];
-			$meta   = (array) json_decode( (string) $blueprint['rules'], true );
-			$pool   = $randomizer->shuffle( $this->questions->pool( $module ), 'pool:' . $module );
-			$count  = (int) $blueprint['question_count'];
-			$picked = array_slice( $pool, 0, $count );
+			$module     = (int) $blueprint['module_id'];
+			$meta       = (array) json_decode( (string) $blueprint['rules'], true );
+			$current    = $this->questions->pool_revisions( $module );
+			$revisions += $current;
+			$pool       = $randomizer->shuffle( array_keys( $current ), 'pool:' . $module );
+			$count      = (int) $blueprint['question_count'];
+			$picked     = array_slice( $pool, 0, $count );
 			if ( count( $picked ) < $count ) {
 				$reduced = true;
 			}
@@ -447,6 +463,7 @@ final class ExamSessions {
 		return array(
 			'questions' => $questions,
 			'reduced'   => $reduced,
+			'revisions' => $revisions,
 		);
 	}
 
@@ -539,9 +556,18 @@ final class ExamSessions {
 		$items    = array();
 		// One query for the current revisions, three for their content (R0-14 OP-05: no per-question queries).
 		$qids    = array_map( static fn( array $q ): int => (int) $q['question_id'], $plan['questions'] );
+		$known   = (array) ( $plan['revisions'] ?? array() );
 		$current = array();
-		if ( array() !== $qids ) {
-			foreach ( $this->db->rows( 'SELECT id, current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id IN (' . implode( ',', $qids ) . ')' ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Integer list.
+		$missing = array();
+		foreach ( $qids as $qid ) {
+			if ( isset( $known[ $qid ] ) ) {
+				$current[ $qid ] = (int) $known[ $qid ];
+			} else {
+				$missing[] = $qid;
+			}
+		}
+		if ( array() !== $missing ) {
+			foreach ( $this->db->rows( 'SELECT id, current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id IN (' . implode( ',', $missing ) . ')' ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Integer list.
 				$current[ (int) $row['id'] ] = (int) $row['current_revision_id'];
 			}
 		}
@@ -633,7 +659,7 @@ final class ExamSessions {
 		$json = (string) wp_json_encode( $snapshot );
 		$id   = $this->db->transaction(
 			function ( Database $db ) use ( $actor, $rule, $variant_id, $form_key, $request_key, $randomizer, $items, $json, $limit, $started ): int {
-				$session = $db->insert(
+				$session = $db->insert_values(
 					'ccap_exam_session',
 					array(
 						'uid'                => $db->uuid(),
@@ -884,7 +910,10 @@ final class ExamSessions {
 				'total'   => 0,
 			);
 		}
-		foreach ( $this->session_questions( (int) $row['id'] ) as $sq ) {
+		$questions = $this->session_questions( (int) $row['id'] );
+		// All revisions with one batched read (R0-14 OP-07: no query per question without object cache).
+		$revisions = $this->questions->revisions( array_map( static fn( array $sq ): int => (int) $sq['revision_id'], $questions ) );
+		foreach ( $questions as $sq ) {
 			if ( '1' === (string) $sq['neutralized'] ) {
 				continue;
 			}
@@ -894,7 +923,7 @@ final class ExamSessions {
 				'scoring' => null,
 				'section' => 0,
 			);
-			$revision = (array) $this->questions->revision( (int) $sq['revision_id'] );
+			$revision = (array) ( $revisions[ (int) $sq['revision_id'] ] ?? $this->questions->revision( (int) $sq['revision_id'] ) );
 			if ( QuestionTypes::OPEN_TEXT === $revision['question_type'] && empty( $snapshot['open_text_in_score'] ) ) {
 				continue;
 			}
@@ -1034,12 +1063,28 @@ final class ExamSessions {
 	 * @throws CourseException With `ccap_exam_*` codes.
 	 */
 	private function mutate( Actor $actor, int $session, int $position, callable $change, int $age_ms = 0 ): array {
-		$this->expire_if_due( $session );
-		$this->owned( $actor, $session, true );
+		// One read of the session for the expiry check, ownership and the policy decisions (R0-14 OP-06).
+		$row = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		if ( null !== $row && 'in_progress' === $row['status'] && $this->is_overdue( $row ) ) {
+			$this->finish( $session, 'expired' );
+			$row = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		}
+		$this->owned( $actor, $session, true, $row );
 		return $this->db->transaction(
 			function ( Database $db ) use ( $session, $position, $change, $age_ms ): array {
-				$table = $db->table( 'ccap_exam_session' );
-				$row   = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
+				$table  = $db->table( 'ccap_exam_session' );
+				$qtable = $db->table( 'ccap_exam_session_question' );
+				// Session and position locked by one statement (R0-14 OP-06); session columns carry the prefix `s__`.
+				$locked = (array) $db->row( $db->prepare( "SELECT sq.*, s.status AS s__status, s.end_reason AS s__end_reason, s.snapshot AS s__snapshot, s.deadline_at AS s__deadline_at, s.started_at AS s__started_at, s.row_version AS s__row_version FROM `{$table}` s LEFT JOIN `{$qtable}` sq ON sq.session_id = s.id AND sq.position = %d WHERE s.id = %d FOR UPDATE", $position, $session ) );
+				$row    = array();
+				$sq     = array();
+				foreach ( $locked as $column => $value ) {
+					if ( str_starts_with( (string) $column, 's__' ) ) {
+						$row[ substr( (string) $column, 3 ) ] = $value;
+					} else {
+						$sq[ $column ] = $value;
+					}
+				}
 				self::assert_running( $row );
 				$snapshot = (array) json_decode( (string) $row['snapshot'], true );
 				// Offline buffer (§6.4): the answer time is bounded by the frozen late tolerance; device time is not trusted beyond it.
@@ -1050,9 +1095,7 @@ final class ExamSessions {
 				if ( null !== $row['deadline_at'] && $at > (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) ( $snapshot['timing']['grace_seconds'] ?? 5 ) ) {
 					throw new CourseException( 'ccap_exam_expired', 'The time is over.', 410 );
 				}
-				$qtable = $db->table( 'ccap_exam_session_question' );
-				$sq     = $db->row( $db->prepare( "SELECT * FROM `{$qtable}` WHERE session_id = %d AND position = %d FOR UPDATE", $session, $position ) );
-				if ( null === $sq ) {
+				if ( null === ( $sq['id'] ?? null ) ) {
 					throw new CourseException( 'ccap_not_found', 'Unknown position.', 404 );
 				}
 				$columns = $change( $row, $sq, $at );
@@ -1103,22 +1146,31 @@ final class ExamSessions {
 	/**
 	 * Own session or 404; for writes also M-08 (access now, R-05).
 	 *
-	 * @param Actor $actor   Learner.
-	 * @param int   $session Session.
-	 * @param bool  $write   Write access needed.
+	 * @param Actor                     $actor   Learner.
+	 * @param int                       $session Session.
+	 * @param bool                      $write   Write access needed.
+	 * @param array<string, mixed>|null $row     Session row just read by the caller (null = read here).
 	 * @return array<string, mixed>
 	 * @throws CourseException 404/403.
 	 */
-	private function owned( Actor $actor, int $session, bool $write ): array {
-		$decision = $this->policy->decide( $actor, PolicyService::VIEW_ATTEMPT, array( $session ) );
-		$row      = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
-		if ( null === $row || (int) $row['user_id'] !== $actor->user_id || ! $decision->allowed ) {
-			throw new CourseException( 'ccap_not_found', 'Unknown attempt.', 404 );
-		}
-		if ( $write && 'in_progress' === $row['status'] ) {
-			CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::USE_ATTEMPT, array( $session ) ), 'No access to this attempt.' );
-		}
-		return $row;
+	private function owned( Actor $actor, int $session, bool $write, ?array $row = null ): array {
+		$row = $row ?? $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_session' ) . '` WHERE id = %d', $session ) );
+		// The policy decides on the row read here (one read per operation, R0-14 OP-06/OP-07).
+		return $this->policy->with_row(
+			'ccap_exam_session',
+			$session,
+			$row,
+			function () use ( $actor, $session, $write, $row ): array {
+				$decision = $this->policy->decide( $actor, PolicyService::VIEW_ATTEMPT, array( $session ) );
+				if ( null === $row || (int) $row['user_id'] !== $actor->user_id || ! $decision->allowed ) {
+					throw new CourseException( 'ccap_not_found', 'Unknown attempt.', 404 );
+				}
+				if ( $write && 'in_progress' === $row['status'] ) {
+					CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::USE_ATTEMPT, array( $session ) ), 'No access to this attempt.' );
+				}
+				return $row;
+			}
+		);
 	}
 
 	/**
@@ -1144,21 +1196,6 @@ final class ExamSessions {
 			$last = $this->db->scalar( $this->db->prepare( "SELECT MAX(submitted_at) FROM `{$table}` WHERE user_id = %d AND rule_id = %d AND status = 'evaluated' AND passed = 0", $user, (int) $rule['id'] ) );
 			if ( null !== $last && (int) strtotime( $last . ' UTC' ) + $cooldown > $this->now() ) {
 				throw new CourseException( 'ccap_exam_attempts_exhausted', 'cooldown', 422 );
-			}
-		}
-	}
-
-	/**
-	 * Expire due attempts of one user before starting.
-	 *
-	 * @param int $user Learner.
-	 * @return void
-	 */
-	private function expire_for_user( int $user ): void {
-		$rows = $this->db->rows( $this->db->prepare( 'SELECT id, snapshot, deadline_at FROM `' . $this->db->table( 'ccap_exam_session' ) . "` WHERE user_id = %d AND status = 'in_progress' AND deadline_at IS NOT NULL", $user ) );
-		foreach ( $rows as $row ) {
-			if ( $this->is_overdue( $row ) ) {
-				$this->finish( (int) $row['id'], 'expired' );
 			}
 		}
 	}

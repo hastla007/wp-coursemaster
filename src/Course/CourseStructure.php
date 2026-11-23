@@ -147,6 +147,40 @@ final class CourseStructure {
 	}
 
 	/**
+	 * Lessons of several modules with one query (R0-14 OP-02: one query per
+	 * level, not per node), grouped by module in the order of `lessons()`.
+	 *
+	 * @param array $module_ids Modules.
+	 * @phpstan-param list<int> $module_ids
+	 * @return array<int, list<\WP_Post>>
+	 */
+	public function lessons_of( array $module_ids ): array {
+		$out = array_fill_keys( array_map( 'intval', $module_ids ), array() );
+		if ( array() === $out ) {
+			return array();
+		}
+		$posts = get_posts(
+			array(
+				'post_type'        => Relations::LESSON_TYPE,
+				'post_parent__in'  => array_keys( $out ),
+				'post_status'      => array( 'publish', 'draft', 'pending', 'future', 'private' ),
+				'orderby'          => array(
+					'menu_order' => 'ASC',
+					'ID'         => 'ASC',
+				),
+				'numberposts'      => -1,
+				'suppress_filters' => true,
+			)
+		);
+		foreach ( $posts as $post ) {
+			if ( $post instanceof \WP_Post && isset( $out[ (int) $post->post_parent ] ) ) {
+				$out[ (int) $post->post_parent ][] = $post;
+			}
+		}
+		return $out;
+	}
+
+	/**
 	 * Language of a course (BCP 47), default from the site locale (R0-25, LOC-001).
 	 *
 	 * @param int $course_id Course.

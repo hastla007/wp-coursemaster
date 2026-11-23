@@ -8,7 +8,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
-"PO-Revision-Date: 2026-11-23T14:05:43+00:00\n"
+"PO-Revision-Date: 2026-11-23T14:30:40+00:00\n"
 "Language: de_DE\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: WP-CLI 2.12.0\n"
@@ -3738,7 +3738,7 @@ msgid "has successfully completed the course"
 msgstr "hat den Kurs erfolgreich abgeschlossen"
 
 #: src/Course/PostTypes.php:80
-#: src/Learner/LessonView.php:390
+#: src/Learner/LessonView.php:529
 msgid "Lessons"
 msgstr "Lektionen"
 
@@ -4520,111 +4520,165 @@ msgstr "Starte die Prüfung auf der Kursseite."
 msgid "This practice activity cannot be used on this page yet."
 msgstr "Diese Übung kann auf dieser Seite noch nicht genutzt werden."
 
-#: src/Learner/LessonView.php:253
+#: src/Learner/LessonView.php:257
 msgid "Video"
 msgstr "Video"
-
-#. translators: %s: host name
-#: src/Learner/LessonView.php:264
-#, php-format
-msgid "This video is hosted by %s and is only loaded after your consent."
-msgstr "Dieses Video wird von %s bereitgestellt und erst nach deiner Zustimmung geladen."
-
-#. translators: %s: host name
-#: src/Learner/LessonView.php:274
-#, php-format
-msgid "Watch the video on %s (opens in a new tab)"
-msgstr "Video auf %s ansehen (öffnet in einem neuen Tab)"
 
 #: src/Learner/LessonView.php:280
 msgid "The video is not available yet."
 msgstr "Das Video ist noch nicht verfügbar."
 
 #: src/Learner/LessonView.php:287
+#: src/Learner/LessonView.php:374
 msgid "Subtitles"
 msgstr "Untertitel"
 
 #: src/Learner/LessonView.php:289
+#: src/Learner/LessonView.php:371
 msgid "Download the video"
 msgstr "Video herunterladen"
 
-#: src/Learner/LessonView.php:306
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:303
+#, php-format
+msgid "Watch the video on %s (opens in a new tab)"
+msgstr "Video auf %s ansehen (öffnet in einem neuen Tab)"
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:318
+#, php-format
+msgid "Video on %s"
+msgstr "Video auf %s"
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:356
+#, php-format
+msgid "The video from %s has been loaded."
+msgstr "Das Video von %s wurde geladen."
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:361
+#, php-format
+msgid "Stop loading external media from %s automatically"
+msgstr "Externe Medien von %s nicht mehr automatisch laden"
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:366
+#, php-format
+msgid "Saved choice removed. Media from %s will only load after a click again."
+msgstr "Gespeicherte Freigabe entfernt. Medien von %s werden wieder erst nach einem Klick geladen."
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:384
+#, php-format
+msgid "This video is hosted by %s and is only loaded after your consent."
+msgstr "Dieses Video wird von %s bereitgestellt und erst nach deiner Zustimmung geladen."
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:390
+#, php-format
+msgid "When the video is loaded, data such as your IP address is transferred to %s."
+msgstr "Beim Laden des Videos werden Daten wie deine IP-Adresse an %s übertragen."
+
+#. translators: %s: name of the video service
+#: src/Learner/LessonView.php:398
+#, php-format
+msgid "Privacy policy of %s (opens in a new tab)"
+msgstr "Datenschutzerklärung von %s (öffnet in einem neuen Tab)"
+
+#. translators: %s: duration as minutes:seconds, e.g. 4:05
+#: src/Learner/LessonView.php:408
+#, php-format
+msgid "Length: %s"
+msgstr "Länge: %s"
+
+#: src/Learner/LessonView.php:414
+msgid "Load video"
+msgstr "Video laden"
+
+#. translators: %s: name of the video service or host name
+#: src/Learner/LessonView.php:420
+#, php-format
+msgid "Always load external media from %s"
+msgstr "Externe Medien von %s immer laden"
+
+#: src/Learner/LessonView.php:445
 msgid "Your progress"
 msgstr "Dein Fortschritt"
 
-#: src/Learner/LessonView.php:307
+#: src/Learner/LessonView.php:446
 msgid "Status: completed"
 msgstr "Status: abgeschlossen"
 
-#: src/Learner/LessonView.php:307
+#: src/Learner/LessonView.php:446
 msgid "Status: not completed yet"
 msgstr "Status: noch nicht abgeschlossen"
 
-#: src/Learner/LessonView.php:311
+#: src/Learner/LessonView.php:450
 msgid "Download the file"
 msgstr "Datei herunterladen"
 
-#: src/Learner/LessonView.php:318
+#: src/Learner/LessonView.php:457
 msgid "Mark as completed"
 msgstr "Als abgeschlossen markieren"
 
 #. translators: %s: number of minutes
-#: src/Learner/LessonView.php:328
+#: src/Learner/LessonView.php:467
 #, php-format
 msgid "You can mark this lesson as read after %s minute."
 msgid_plural "You can mark this lesson as read after %s minutes."
 msgstr[0] "Du kannst diese Lektion nach %s Minute als gelesen markieren."
 msgstr[1] "Du kannst diese Lektion nach %s Minuten als gelesen markieren."
 
-#: src/Learner/LessonView.php:333
+#: src/Learner/LessonView.php:472
 msgid "Mark as read"
 msgstr "Als gelesen markieren"
 
-#: src/Learner/LessonView.php:336
+#: src/Learner/LessonView.php:475
 msgid "This step is completed when you download the file."
 msgstr "Dieser Schritt ist abgeschlossen, sobald du die Datei herunterlädst."
 
-#: src/Learner/LessonView.php:339
+#: src/Learner/LessonView.php:478
 msgid "This step is completed when you have watched the video."
 msgstr "Dieser Schritt ist abgeschlossen, sobald du das Video angesehen hast."
 
-#: src/Learner/LessonView.php:343
+#: src/Learner/LessonView.php:482
 msgid "This step is completed with the exam."
 msgstr "Dieser Schritt wird mit der Prüfung abgeschlossen."
 
-#: src/Learner/LessonView.php:343
+#: src/Learner/LessonView.php:482
 msgid "This step is completed when your assignment has been graded."
 msgstr "Dieser Schritt ist abgeschlossen, sobald deine Aufgabe bewertet wurde."
 
-#: src/Learner/LessonView.php:346
+#: src/Learner/LessonView.php:485
 msgid "This step is completed automatically."
 msgstr "Dieser Schritt wird automatisch abgeschlossen."
 
 #. translators: %s: lesson title
-#: src/Learner/LessonView.php:378
+#: src/Learner/LessonView.php:517
 #, php-format
 msgid "Previous: %s"
 msgstr "Zurück: %s"
 
 #. translators: %s: lesson title
-#: src/Learner/LessonView.php:380
+#: src/Learner/LessonView.php:519
 #, php-format
 msgid "Next: %s"
 msgstr "Weiter: %s"
 
-#: src/Learner/LessonView.php:401
+#: src/Learner/LessonView.php:540
 msgid "Lesson completed."
 msgstr "Lektion abgeschlossen."
 
-#: src/Learner/LessonView.php:402
+#: src/Learner/LessonView.php:541
 msgid "Your progress has been saved."
 msgstr "Dein Fortschritt wurde gespeichert."
 
-#: src/Learner/LessonView.php:403
+#: src/Learner/LessonView.php:542
 msgid "The download has been recorded."
 msgstr "Der Download wurde erfasst."
 
-#: src/Learner/LessonView.php:409
+#: src/Learner/LessonView.php:548
 msgid "Please take a little more time with this lesson before you mark it as read."
 msgstr "Bitte nimm dir etwas mehr Zeit für diese Lektion, bevor du sie als gelesen markierst."
 
@@ -6981,7 +7035,7 @@ msgstr "eingebauter Standard"
 msgid "proposal"
 msgstr "Vorschlag"
 
-#: src/Storage/Database.php:423
+#: src/Storage/Database.php:461
 msgid "Invalid identifier."
 msgstr "Ungültige Kennung."
 

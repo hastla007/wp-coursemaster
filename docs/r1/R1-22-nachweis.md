@@ -33,7 +33,7 @@
 |---|---|---|
 | B-1 | OP-01 skalierte linear mit der Kurszahl (≈ 21 Queries je Kurs) | behoben |
 | B-2 | OP-05 ≈ 4 Queries je Prüfungsfrage, Einzel-INSERTs | behoben |
-| B-3 | Absolute Query-Budgets für OP-01/03/04/05/06 überschritten (u. a. Policy-/Gate-Prüfungen je Aufruf, Rate-Limit-Zähler, Fortschritts-Upsert) | als Regressionsgrenze im Test fixiert; Optimierung (Request-Memo für Gate-Entscheidungen, gebündelte Policy-Abfragen) als Folgeaufgabe vor R1-GATE |
+| B-3 | Absolute Query-Budgets für OP-01/03/04/05/06 überschritten (u. a. Policy-/Gate-Prüfungen je Aufruf, Rate-Limit-Zähler, Fortschritts-Upsert) | Nachtrag h9 (23.11.2026, `R1-22-nachtrag-h9.md`): kalt gemessen OP-01 9, OP-03 10, OP-05 15, OP-07 10 im Budget; OP-04 (16) und OP-06 (8 kalt, 6 mit Objekt-Cache) **Freigabe nötig** (F-1/F-2) |
 
 ## 4. Abweichungen und offene Punkte
 

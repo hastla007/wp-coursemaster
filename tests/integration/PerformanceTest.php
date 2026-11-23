@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Access\GrantService;
+use CourseCaptain\Activity\ActivityProgress;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
@@ -39,16 +40,32 @@ use CourseCaptain\Storage\Database;
 final class PerformanceTest extends SchemaTestCase {
 
 	/**
-	 * Regression ceilings (own queries) measured on 16.11.2026; R0-14 §1.1 budgets in comments.
-	 * Lowering them is welcome; raising them needs a reason in docs/r1/R1-22-nachweis.md.
+	 * Ceilings (own queries per request, measured cold: policy memo and
+	 * non-persistent object cache empty, as a new request without persistent
+	 * object cache, R0-14 §1.1). Values equal to the R0-14 budget are the
+	 * budget; OP-04 and OP-06 are above their budget and need a decision
+	 * (docs/r1/R1-22-nachtrag-h9.md, "Freigabe nötig"). Lowering them is
+	 * welcome; raising them needs a reason in docs/r1/R1-22-nachweis.md.
 	 */
 	private const CEILING = array(
-		'OP-01' => 23, // Budget 15; measured 21.
-		'OP-03' => 25, // Budget 10; measured 23.
-		'OP-04' => 30, // Budget 8; measured 26–28.
-		'OP-05' => 25, // Budget 15; measured 22–23.
-		'OP-06' => 13, // Budget 6; measured 12.
-		'OP-07' => 10, // Budget 20; measured 9.
+		'OP-01' => 15, // Budget 15; measured 9 (23.11.2026; 16.11.: 21).
+		'OP-03' => 10, // Budget 10; measured 10 (16.11.: 23).
+		'OP-04' => 16, // Budget 8 – needs a decision (idempotency 2, rate limit 1, attempt + answer rows, progress 3 writes/reads); measured 16 cold (16.11.: 26–28 with warm caches).
+		'OP-05' => 15, // Budget 15; measured 15 (16.11.: 22–23).
+		'OP-06' => 8,  // Budget 6 – needs a decision: 6 with the revision in the object cache, +2 cold (revision for the immediate evaluation); 16.11.: 12 with warm caches.
+		'OP-07' => 10, // Budget 20; measured 8–9.
+	);
+
+	/**
+	 * R0-14 §1.1 budgets (own queries).
+	 */
+	private const BUDGET = array(
+		'OP-01' => 15,
+		'OP-03' => 10,
+		'OP-04' => 8,
+		'OP-05' => 15,
+		'OP-06' => 6,
+		'OP-07' => 20,
 	);
 
 	/**
@@ -72,18 +89,20 @@ final class PerformanceTest extends SchemaTestCase {
 	 * Count queries (all and own tables) of one call.
 	 *
 	 * @param callable $call Call.
-	 * @return array{all: int, own: int, selects: list<string>, ms: float}
+	 * @return array{all: int, own: int, selects: list<string>, sql: list<string>, ms: float}
 	 */
 	private static function measure( callable $call ): array {
 		$stats   = array(
 			'all'     => 0,
 			'own'     => 0,
 			'selects' => array(),
+			'sql'     => array(),
 		);
 		$counter = static function ( $sql ) use ( &$stats ) {
 			++$stats['all'];
 			if ( false !== strpos( (string) $sql, 'ccap_' ) ) {
 				++$stats['own'];
+				$stats['sql'][] = (string) $sql;
 				if ( 0 === stripos( ltrim( (string) $sql ), 'SELECT' ) ) {
 					$stats['selects'][] = (string) $sql;
 				}
@@ -99,6 +118,17 @@ final class PerformanceTest extends SchemaTestCase {
 	}
 
 	/**
+	 * Start of a new request without persistent object cache (R0-14 §1.1):
+	 * no memoized policy decisions, empty object cache.
+	 *
+	 * @return void
+	 */
+	private static function cold(): void {
+		PolicyService::flush();
+		wp_cache_flush();
+	}
+
+	/**
 	 * Append a measurement line.
 	 *
 	 * @param string               $op   Operation.
@@ -108,7 +138,7 @@ final class PerformanceTest extends SchemaTestCase {
 	private static function report( string $op, array $data ): void {
 		$file = (string) getenv( 'CCAP_PERF_REPORT' );
 		if ( '' !== $file ) {
-			unset( $data['selects'] );
+			unset( $data['selects'], $data['sql'] );
 			file_put_contents( $file, wp_json_encode( array( 'op' => $op ) + $data ) . "\n", FILE_APPEND ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		}
 	}
@@ -252,6 +282,48 @@ final class PerformanceTest extends SchemaTestCase {
 		}
 		self::assertLessThanOrEqual( self::CEILING['OP-01'], $counts[1], 'OP-01 ceiling' );
 		self::assertSame( $counts[5], $counts[20], 'no N+1: ' . wp_json_encode( $counts ) );
+		self::assertLessThanOrEqual( self::BUDGET['OP-01'], max( $counts ), 'OP-01 R0-14 budget: ' . wp_json_encode( $counts ) );
+	}
+
+	/**
+	 * NFR-002 constancy rule inside one course (B-4, 23.11.2026): "My learning" builds the course room of the
+	 * last used course; its queries must not grow with modules and lessons (before: one query per lesson and
+	 * three per module).
+	 *
+	 * @group NFR-002
+	 */
+	public function test_OP_01_course_room_constancy(): void {
+		$learner = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$admin   = Actor::user( $this->admin );
+		$counts  = array();
+		foreach ( array( 1, 4 ) as $size ) {
+			$course  = $this->post( 'ccap_course' );
+			$lessons = array();
+			for ( $m = 0; $m < $size; $m++ ) {
+				$module = $this->post( 'ccap_module' );
+				CourseStructure::current()->assign_module( $admin, $course, $module );
+				for ( $l = 0; $l < $size * 3; $l++ ) {
+					$lesson = $this->post( 'ccap_lesson', $module );
+					ActivityService::current()->define( $admin, $lesson, 'lesson', array() );
+					$lessons[] = $lesson;
+				}
+			}
+			CoursePublisher::current()->publish( $admin, $course );
+			self::grant( $learner, $course );
+			PolicyService::flush();
+			foreach ( $lessons as $i => $lesson ) {
+				if ( 0 === $i % 2 ) {
+					ActivityProgress::current()->interact( Actor::user( $learner ), $course, $lesson, 'position' );
+				}
+			}
+			self::cold();
+			$m = self::measure( static fn() => LearnerQueries::current()->course( Actor::user( $learner ), $course ) );
+			self::cold();
+			$r               = self::measure( static fn() => LearnerQueries::current()->resume( Actor::user( $learner ), $course ) );
+			$counts[ $size ] = array( $m['own'], $r['own'] );
+			self::report( 'OP-01-room', array( 'n' => $size ) + $m );
+		}
+		self::assertSame( $counts[1], $counts[4], '1 module / 3 lessons vs. 4 modules / 48 lessons: ' . wp_json_encode( $counts ) );
 	}
 
 	/**
@@ -263,7 +335,7 @@ final class PerformanceTest extends SchemaTestCase {
 		$c       = $this->course( 60 );
 		$learner = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
 		self::grant( $learner, $c['course'] );
-		PolicyService::flush();
+		self::cold();
 		$next = null;
 		$m    = self::measure(
 			static function () use ( $learner, $c, &$next ) {
@@ -273,9 +345,40 @@ final class PerformanceTest extends SchemaTestCase {
 		self::report( 'OP-03', $m );
 		self::assertNotNull( $next );
 		self::assertLessThanOrEqual( self::CEILING['OP-03'], $m['own'], 'OP-03 ceiling' );
+		self::assertLessThanOrEqual( self::BUDGET['OP-03'], $m['own'], 'OP-03 R0-14 budget' );
+		self::cold();
 		$answer = self::measure( static fn() => AnswerService::current()->answer( Actor::user( $learner ), (string) $next['token'], array( 'A' ), wp_generate_uuid4() ) );
 		self::report( 'OP-04', $answer );
-		self::assertLessThanOrEqual( self::CEILING['OP-04'], $answer['own'], 'OP-04 ceiling' );
+		self::assertLessThanOrEqual( self::CEILING['OP-04'], $answer['own'], 'OP-04 ceiling (budget 8 needs a decision)' );
+		$writes = count( array_filter( $answer['sql'], static fn( string $sql ): bool => 1 === preg_match( '/^\s*(INSERT|UPDATE|DELETE|REPLACE)\b/i', $sql ) ) );
+		self::assertLessThanOrEqual( 7, $writes, 'OP-04 writes: idempotency 2, rate limit 1, progress row 2, attempt 2' );
+	}
+
+	/**
+	 * NFR-002 constancy rule for OP-03: the smart trainer reads the pools of all unlocked modules
+	 * with one query (before: gate and candidate query per module).
+	 *
+	 * @group NFR-002
+	 */
+	public function test_OP_03_trainer_constancy_over_modules(): void {
+		$admin   = Actor::user( $this->admin );
+		$learner = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$counts  = array();
+		foreach ( array( 1, 4 ) as $size ) {
+			$c = $this->course( 5 );
+			for ( $m = 1; $m < $size; $m++ ) {
+				$module = $this->post( 'ccap_module' );
+				CourseStructure::current()->assign_module( $admin, $c['course'], $module );
+				foreach ( $c['questions'] as $q ) {
+					QuestionRepository::current()->add_to_pool( $admin, $module, $q );
+				}
+			}
+			CoursePublisher::current()->publish( $admin, $c['course'] );
+			self::grant( $learner, $c['course'] );
+			self::cold();
+			$counts[ $size ] = self::measure( static fn() => SmartTrainer::current()->next( Actor::user( $learner ), $c['course'] ) )['own'];
+		}
+		self::assertSame( $counts[1], $counts[4], '1 vs. 4 modules: ' . wp_json_encode( $counts ) );
 	}
 
 	/**
@@ -291,14 +394,21 @@ final class PerformanceTest extends SchemaTestCase {
 		PolicyService::flush();
 		$counts = array();
 		foreach ( array( 5, 30 ) as $size ) {
-			$rule            = $this->rule( $c, $size );
-			$session         = 0;
-			$start           = self::measure(
+			$rule    = $this->rule( $c, $size );
+			$session = 0;
+			self::cold();
+			$start = self::measure(
 				static function () use ( $learner, $rule, &$session ) {
 					$session = ExamSessions::current()->start( Actor::user( $learner ), $rule, null, wp_generate_uuid4(), new Randomizer( 'p' ) );
 				}
 			);
-			$save            = self::measure( static fn() => ExamSessions::current()->save_answer( Actor::user( $learner ), $session, 1, array( 'A' ) ) );
+			self::cold();
+			$save = self::measure( static fn() => ExamSessions::current()->save_answer( Actor::user( $learner ), $session, 1, array( 'A' ) ) );
+			// Same request type with the revision already in the object cache: within the R0-14 budget.
+			PolicyService::flush();
+			$again = self::measure( static fn() => ExamSessions::current()->save_answer( Actor::user( $learner ), $session, 1, array( 'B' ) ) );
+			self::assertLessThanOrEqual( self::BUDGET['OP-06'], $again['own'], 'OP-06 budget with cached revision' );
+			self::cold();
 			$submit          = self::measure( static fn() => ExamSessions::current()->submit( Actor::user( $learner ), $session ) );
 			$counts[ $size ] = array(
 				'start'  => $start['own'],
@@ -315,6 +425,11 @@ final class PerformanceTest extends SchemaTestCase {
 		self::assertLessThanOrEqual( self::CEILING['OP-07'], $counts[30]['submit'], 'OP-07 ceiling' );
 		self::assertSame( $counts[5]['save'], $counts[30]['save'], 'saveAnswer independent of size' );
 		self::assertLessThanOrEqual( $counts[5]['submit'] + 2, $counts[30]['submit'], 'submit without per-question queries: ' . wp_json_encode( $counts ) );
+		foreach ( array( 5, 30 ) as $size ) {
+			self::assertLessThanOrEqual( self::BUDGET['OP-05'], $counts[ $size ]['start'], 'OP-05 R0-14 budget: ' . wp_json_encode( $counts ) );
+			self::assertLessThanOrEqual( self::BUDGET['OP-07'], $counts[ $size ]['submit'], 'OP-07 R0-14 budget: ' . wp_json_encode( $counts ) );
+		}
+		self::assertSame( $counts[5]['start'], $counts[30]['start'], 'OP-05 constancy (5 vs. 30 questions)' );
 	}
 
 	/**

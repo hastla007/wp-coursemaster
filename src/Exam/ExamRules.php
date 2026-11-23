@@ -329,10 +329,22 @@ final class ExamRules {
 	 * @return array<string, mixed>|null
 	 */
 	public function get( int $rule_id ): ?array {
-		$row = $this->db->row( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_exam_rule' ) . '` WHERE id = %d', $rule_id ) );
-		if ( null === $row ) {
+		// Rule and blueprints in one query (R0-14 OP-05); blueprint columns carry the prefix `blueprint__`.
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT r.*, b.id AS blueprint__id, b.module_id AS blueprint__module_id, b.question_count AS blueprint__question_count, b.rules AS blueprint__rules FROM `' . $this->db->table( 'ccap_exam_rule' ) . '` r LEFT JOIN `' . $this->db->table( 'ccap_exam_blueprint' ) . '` b ON b.rule_id = r.id WHERE r.id = %d ORDER BY b.id', $rule_id ) );
+		if ( array() === $rows ) {
 			return null;
 		}
+		$blueprints = array();
+		foreach ( $rows as $joined ) {
+			if ( null !== $joined['blueprint__id'] ) {
+				$blueprints[] = array(
+					'module_id'      => $joined['blueprint__module_id'],
+					'question_count' => $joined['blueprint__question_count'],
+					'rules'          => $joined['blueprint__rules'],
+				);
+			}
+		}
+		$row                        = array_diff_key( $rows[0], array_flip( array( 'blueprint__id', 'blueprint__module_id', 'blueprint__question_count', 'blueprint__rules' ) ) );
 		$passing                    = json_decode( (string) $row['passing_rule'], true );
 		$settings                   = json_decode( (string) $row['settings'], true );
 		$settings                   = is_array( $settings ) ? $settings : array();
@@ -344,7 +356,7 @@ final class ExamRules {
 		$row['settings']            = $effective['settings'];
 		$row['time_limit_seconds']  = $effective['time_limit_seconds'];
 		$row['settings_provenance'] = $effective['provenance'];
-		$row['blueprints']          = $this->db->rows( $this->db->prepare( 'SELECT module_id, question_count, rules FROM `' . $this->db->table( 'ccap_exam_blueprint' ) . '` WHERE rule_id = %d ORDER BY id', $rule_id ) );
+		$row['blueprints']          = $blueprints;
 		return $row;
 	}
 

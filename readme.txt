@@ -66,4 +66,10 @@ Personal data can be exported and erased with the WordPress privacy tools (Tools
 
 == External services ==
 
-The plugin itself does not call any external services. If authors add a video lesson with an address on another host (for example a video platform), the browser of the learner loads that video from the host. The host then receives the IP address and browser data of the learner. In the privacy mode "click to load" nothing is loaded before the learner clicks. Which hosts are used depends on the content of the site.
+The plugin itself does not call any external services. If authors add a video lesson with an address on another host (for example a video platform), the browser of the learner loads that video from the host. The host then receives the IP address and browser data of the learner. In the privacy mode "click to load" nothing is loaded before the learner clicks "Load video" (or agrees in a consent tool that supports the WP Consent API). Which hosts are used depends on the content of the site.
+
+Video platforms that are embedded:
+
+* YouTube (Google Ireland Limited / Google LLC): embedded from youtube-nocookie.com. Transferred: IP address, browser data, the page that embeds the video. Terms: https://www.youtube.com/t/terms, privacy policy: https://policies.google.com/privacy
+* Vimeo (Vimeo.com, Inc.): embedded from player.vimeo.com with "do not track" (dnt=1). Transferred: IP address, browser data, the page that embeds the video. Terms: https://vimeo.com/terms, privacy policy: https://vimeo.com/privacy
+* Video files on other hosts are played with the browser's video player; the host receives IP address and browser data.

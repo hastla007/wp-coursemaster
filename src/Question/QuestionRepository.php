@@ -188,18 +188,60 @@ final class QuestionRepository {
 	 * @return list<int>
 	 */
 	public function pool( int $module_id ): array {
+		return array_keys( $this->pool_revisions( $module_id ) );
+	}
+
+	/**
+	 * Deliverable pool with the current revision per question, in pool order
+	 * (exam draw: no second read of the current revisions, R0-14 OP-05).
+	 *
+	 * @param int $module_id Module.
+	 * @return array<int, int> Question => current revision.
+	 */
+	public function pool_revisions( int $module_id ): array {
 		$mq   = $this->db->table( 'ccap_module_question' );
 		$q    = $this->db->table( 'ccap_question' );
 		$rev  = $this->db->table( 'ccap_question_revision' );
 		$rows = $this->db->rows(
 			$this->db->prepare(
-				"SELECT q.id FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s) ORDER BY COALESCE(mq.sort_order, 2147483647), q.id",
+				"SELECT q.id, q.current_revision_id FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s) ORDER BY COALESCE(mq.sort_order, 2147483647), q.id",
 				$module_id,
 				gmdate( 'Y-m-d', $this->db->time() ),
 				gmdate( 'Y-m-d', $this->db->time() )
 			)
 		);
-		return array_map( static fn( array $row ): int => (int) $row['id'], $rows );
+		$out  = array();
+		foreach ( $rows as $row ) {
+			$out[ (int) $row['id'] ] = (int) $row['current_revision_id'];
+		}
+		return $out;
+	}
+
+	/**
+	 * One question of the deliverable pool (same conditions as `pool()`) with
+	 * its current revision and UID, or null (one query, R0-14 OP-03/OP-04).
+	 *
+	 * @param int $module_id   Module.
+	 * @param int $question_id Question.
+	 * @return array{current_revision_id: int, uid: string}|null
+	 */
+	public function pool_member( int $module_id, int $question_id ): ?array {
+		$mq  = $this->db->table( 'ccap_module_question' );
+		$q   = $this->db->table( 'ccap_question' );
+		$rev = $this->db->table( 'ccap_question_revision' );
+		$row = $this->db->row(
+			$this->db->prepare(
+				"SELECT q.current_revision_id, q.uid FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND mq.question_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s) LIMIT 1",
+				$module_id,
+				$question_id,
+				gmdate( 'Y-m-d', $this->db->time() ),
+				gmdate( 'Y-m-d', $this->db->time() )
+			)
+		);
+		return null === $row ? null : array(
+			'current_revision_id' => (int) $row['current_revision_id'],
+			'uid'                 => (string) $row['uid'],
+		);
 	}
 
 	/**
@@ -260,7 +302,7 @@ final class QuestionRepository {
 	}
 
 	/**
-	 * Load revisions from the database (three queries).
+	 * Load revisions from the database (two queries: revisions, then answers and tags together).
 	 *
 	 * @param array<int> $ids Revision IDs.
 	 * @return array<int, array<string, mixed>>
@@ -273,20 +315,26 @@ final class QuestionRepository {
 		$in      = implode( ',', $ids );
 		$rows    = $this->db->rows( 'SELECT * FROM `' . $this->db->table( 'ccap_question_revision' ) . "` WHERE id IN ({$in})" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
 		$answers = array();
-		foreach ( $this->db->rows( 'SELECT revision_id, answer_key, answer_text, is_correct, sort_order FROM `' . $this->db->table( 'ccap_answer' ) . "` WHERE revision_id IN ({$in}) ORDER BY revision_id, sort_order, answer_key" ) as $a ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
-			$answers[ (int) $a['revision_id'] ][] = array(
-				'key'     => (string) $a['answer_key'],
-				'text'    => (string) $a['answer_text'],
-				'correct' => '1' === (string) $a['is_correct'],
-				'sort'    => (int) $a['sort_order'],
-			);
-		}
-		$tags = array();
-		foreach ( $this->db->rows( 'SELECT revision_id, tag_type, tag_key, label FROM `' . $this->db->table( 'ccap_question_tag' ) . "` WHERE revision_id IN ({$in}) ORDER BY revision_id, tag_type, tag_key" ) as $t ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
-			$tags[ (int) $t['revision_id'] ][] = array(
-				'type'  => (string) $t['tag_type'],
-				'key'   => (string) $t['tag_key'],
-				'label' => (string) $t['label'],
+		$tags    = array();
+		// Answers and tags in one statement (R0-14 OP-03/OP-05): part 0 = answer (sort order, key, text, correct), part 1 = tag (type, key, label).
+		$parts = $this->db->rows(
+			'SELECT 0 AS part, revision_id, sort_order AS s, answer_key AS k, answer_text AS t, is_correct AS c FROM `' . $this->db->table( 'ccap_answer' ) . "` WHERE revision_id IN ({$in})" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+			. ' UNION ALL SELECT 1, revision_id, 0, tag_type, tag_key, label FROM `' . $this->db->table( 'ccap_question_tag' ) . "` WHERE revision_id IN ({$in}) ORDER BY part, revision_id, s, k, t" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+		);
+		foreach ( $parts as $row ) {
+			if ( '0' === (string) $row['part'] ) {
+				$answers[ (int) $row['revision_id'] ][] = array(
+					'key'     => (string) $row['k'],
+					'text'    => (string) $row['t'],
+					'correct' => '1' === (string) $row['c'],
+					'sort'    => (int) $row['s'],
+				);
+				continue;
+			}
+			$tags[ (int) $row['revision_id'] ][] = array(
+				'type'  => (string) $row['k'],
+				'key'   => (string) $row['t'],
+				'label' => (string) $row['c'],
 			);
 		}
 		$out = array();
