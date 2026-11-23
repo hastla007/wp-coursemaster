@@ -12,6 +12,7 @@ namespace CourseCaptain\Tests\Support\Fixtures;
 use CourseCaptain\Access\ContentProtection;
 use CourseCaptain\Access\GrantService;
 use CourseCaptain\Access\GroupService;
+use CourseCaptain\Access\TrialLimits;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Activity\MediaLibrary;
 use CourseCaptain\Course\CourseStructure;
@@ -338,13 +339,14 @@ final class NeutralFixture {
 					array( 'created_at', 'updated_at' )
 				);
 			}
+			// AR-01: question bank, the first 3 questions per module (E-332 kind).
 			$db->insert(
 				'ccap_access_rule',
 				array(
 					'course_id'   => $courses['C-A'],
 					'scope'       => 'view',
 					'access_type' => 'free_limited',
-					'limit_type'  => 'first_items',
+					'limit_type'  => TrialLimits::QUESTIONS,
 					'limit_value' => 3,
 				)
 			);
@@ -488,9 +490,9 @@ final class NeutralFixture {
 	 * ER-A, EP-A-1…3 (C-A), ER-B, EP-B-1 (C-B) per §2.4; ER-C is a draft of C-C.
 	 *
 	 * ER-A: M-A1 7, M-A2 13, M-A3 10 = 30; 3 600 s; pass ≥ 23/30 and part P1
-	 * (section M-A1) ≥ 5/7. Course Captain forms one section per blueprint
-	 * module, so the R0-05 part P2 (M-A2 + M-A3 ≥ 18/23) has no counterpart
-	 * (finding in R1-18-nachweis §4). ER-B: M-B1 6, M-B2 4, no time limit,
+	 * (M-A1) ≥ 5/7 and part P2 (M-A2 + M-A3, a module group, E-331) ≥ 18/23.
+	 * P1 uses the single-module form `section` (before E-331, still valid),
+	 * P2 the group form `sections`. ER-B: M-B1 6, M-B2 4, no time limit,
 	 * ≥ 7/10, `purpose=practice`.
 	 *
 	 * @param Actor              $admin   Admin.
@@ -540,10 +542,19 @@ final class NeutralFixture {
 				if ( null !== $def[5] ) {
 					$passing['parts'] = array(
 						array(
+							'key'       => 'P1',
 							'section'   => $modules[ $def[5][0] ],
 							'min_ratio' => array(
 								'num' => $def[5][1],
 								'den' => $def[5][2],
+							),
+						),
+						array(
+							'key'       => 'P2',
+							'sections'  => array( $modules['M-A2'], $modules['M-A3'] ),
+							'min_ratio' => array(
+								'num' => 18,
+								'den' => 23,
 							),
 						),
 					);
@@ -753,10 +764,10 @@ final class NeutralFixture {
 
 	/**
 	 * On-demand access rules of §2.8 (not part of `load()`: they change what
-	 * U-L1…U-L4 may see). Course Captain has one `free_limited` limit per
-	 * course/module for every area (questions, lessons, variants, files);
-	 * the area-specific rules AR-02/03/06/07 are therefore limits of the
-	 * same kind with their count (finding in R1-18-nachweis §4).
+	 * U-L1…U-L4 may see). Partial access has one limit per kind (E-332,
+	 * TrialLimits): AR-02 fixed variants 2, AR-03 lessons 2, AR-06
+	 * flashcards 5 (flashcards are questions, kind `first_questions`),
+	 * AR-07 files 1 — they apply at the same time with different numbers.
 	 *
 	 * @param string                            $key AR-02…AR-08.
 	 * @param array<string, array<string, int>> $fx  Loaded fixture (`courses`, `modules`).
@@ -765,13 +776,13 @@ final class NeutralFixture {
 	public static function rule( string $key, array $fx ): int {
 		$course = (int) $fx['courses']['C-A'];
 		$defs   = array(
-			'AR-02' => array( 0, 'exam', 'free_limited', 2 ),
-			'AR-03' => array( 0, 'view', 'free_limited', 2 ),
-			'AR-04' => array( (int) $fx['modules']['M-A2'], 'view', 'drip', 7 ),
-			'AR-05' => array( (int) $fx['modules']['LM-A2'], 'view', 'drip', 30 ),
-			'AR-06' => array( 0, 'view', 'free_limited', 5 ),
-			'AR-07' => array( 0, 'download', 'free_limited', 1 ),
-			'AR-08' => array( 0, 'view', 'free', null ),
+			'AR-02' => array( 0, 'exam', 'free_limited', 2, TrialLimits::VARIANTS ),
+			'AR-03' => array( 0, 'view', 'free_limited', 2, TrialLimits::LESSONS ),
+			'AR-04' => array( (int) $fx['modules']['M-A2'], 'view', 'drip', 7, 'days_after_start' ),
+			'AR-05' => array( (int) $fx['modules']['LM-A2'], 'view', 'drip', 30, 'days_after_start' ),
+			'AR-06' => array( 0, 'view', 'free_limited', 5, TrialLimits::QUESTIONS ),
+			'AR-07' => array( 0, 'download', 'free_limited', 1, TrialLimits::FILES ),
+			'AR-08' => array( 0, 'view', 'free', null, null ),
 		);
 		$def    = $defs[ $key ];
 		$db     = Database::current();
@@ -782,7 +793,7 @@ final class NeutralFixture {
 				'module_id'   => $def[0],
 				'scope'       => $def[1],
 				'access_type' => $def[2],
-				'limit_type'  => 'free_limited' === $def[2] ? 'first_items' : ( 'drip' === $def[2] ? 'days_after_start' : null ),
+				'limit_type'  => $def[4],
 				'limit_value' => $def[3],
 			),
 			array( 'created_at', 'updated_at' )

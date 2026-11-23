@@ -186,7 +186,7 @@ final class LearnerQueries {
 				);
 			}
 		}
-		$trial = $this->gate->module( $actor, $course_id, 0 );
+		$trial = $this->gate->module( $actor, $course_id, 0, 'view', null );
 		return array(
 			'state'       => $trial->allowed() ? ( null === $trial->limit ? 'active' : 'limited' ) : 'not_granted',
 			'valid_until' => null,
@@ -212,7 +212,7 @@ final class LearnerQueries {
 			if ( ! $module instanceof \WP_Post || 'publish' !== $module->post_status ) {
 				continue;
 			}
-			$gate    = $this->gate->module( $actor, $course_id, $link['module_id'] );
+			$gate    = $this->gate->module( $actor, $course_id, $link['module_id'], 'view', null );
 			$lessons = array();
 			foreach ( CourseStructure::current()->lessons( $link['module_id'] ) as $lesson ) {
 				if ( 'publish' !== $lesson->post_status ) {

@@ -311,10 +311,15 @@ final class CourseValidator {
 		$rules     = ExamRules::current();
 		$ids       = $db->wpdb()->get_col( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_exam_rule' ) . "` WHERE course_id = %d AND status IN ('draft', 'published')", $course_id ) );
 		foreach ( $ids as $id ) {
-			$rule  = (array) $rules->get( (int) $id );
-			$title = (string) $rule['version'];
-			if ( array() !== ExamRules::validate_passing_rule( $rule['passing_rule'] ) ) {
+			$rule   = (array) $rules->get( (int) $id );
+			$title  = (string) $rule['version'];
+			$errors = ExamRules::validate_passing_rule( $rule['passing_rule'] );
+			if ( array( 'passing_rule_part' ) === $errors ) {
+				$this->add( 'VAL-075', 'blocker', 'exam_rule', (int) $id, $title, 'cc.val.exam.part', array(), __( 'A part of the pass rule is invalid. Each part needs at least one module and a pass mark between 0 and 100 %.', 'course-captain' ), 'passing_rule.parts' );
+			} elseif ( array() !== $errors ) {
 				$this->add( null === $rule['passing_rule'] ? 'VAL-073' : 'VAL-074', 'blocker', 'exam_rule', (int) $id, $title, 'cc.val.exam.passing_rule', array(), __( 'The pass mark of this exam is missing or invalid. Set a pass mark between 0 and 100 %.', 'course-captain' ), 'passing_rule.min_ratio' );
+			} else {
+				$this->exam_parts( (int) $id, $title, (array) $rule['passing_rule'], array_values( array_map( static fn( array $b ): int => (int) $b['module_id'], (array) $rule['blueprints'] ) ) );
 			}
 			$limit = $rule['time_limit_seconds'];
 			if ( null !== $limit && ( (int) $limit <= 0 || (int) $limit > 86400 ) ) {
@@ -372,6 +377,65 @@ final class CourseValidator {
 			if ( in_array( true, array_map( static fn( array $r ): bool => 'published' !== $r['status'], $rows ), true ) ) {
 				$this->add( 'VAL-089', 'blocker', 'variant', (int) $variant['id'], $name, 'cc.val.variant.undeliverable', array(), __( 'The variant contains a question that cannot be delivered.', 'course-captain' ) );
 			}
+		}
+	}
+
+	/**
+	 * VAL-075 / VAL-092 on the parts of a passing rule (E-331): a part may
+	 * cover several blueprint modules, but only modules the blueprint
+	 * draws from; a blueprint module outside every part counts only for
+	 * the total ratio.
+	 *
+	 * @param int                  $id      Rule.
+	 * @param string               $title   Rule title.
+	 * @param array<string, mixed> $passing Passing rule.
+	 * @param array                $modules Blueprint modules.
+	 * @phpstan-param list<int> $modules
+	 * @return void
+	 */
+	private function exam_parts( int $id, string $title, array $passing, array $modules ): void {
+		$parts = ExamRules::parts( $passing );
+		if ( array() === $parts || array() === $modules ) {
+			return;
+		}
+		$covered = array();
+		foreach ( $parts as $part ) {
+			$foreign = array_values( array_diff( $part['sections'], $modules ) );
+			if ( array() !== $foreign ) {
+				$this->add(
+					'VAL-075',
+					'blocker',
+					'exam_rule',
+					$id,
+					$title,
+					'cc.val.exam.part_section',
+					array(
+						'part'    => $part['key'],
+						'modules' => $foreign,
+					),
+					sprintf(
+						/* translators: %s: part key such as P2 */
+						__( 'Part %s refers to a module the exam does not draw from.', 'course-captain' ),
+						$part['key']
+					),
+					'passing_rule.parts'
+				);
+			}
+			$covered = array_merge( $covered, $part['sections'] );
+		}
+		$outside = array_values( array_diff( $modules, $covered ) );
+		if ( array() !== $outside ) {
+			$this->add(
+				'VAL-092',
+				'warning',
+				'exam_rule',
+				$id,
+				$title,
+				'cc.val.exam.part_missing',
+				array( 'modules' => $outside ),
+				__( 'Some questions of this exam belong to no part and count only for the total.', 'course-captain' ),
+				'passing_rule.parts'
+			);
 		}
 	}
 

@@ -9,9 +9,11 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Access\AccessRuleKindsBackfill;
 use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Access\GrantService;
 use CourseCaptain\Access\ProtectedFiles;
+use CourseCaptain\Access\TrialLimits;
 use CourseCaptain\Activity\ActivityProgress;
 use CourseCaptain\Assignment\AssignmentFiles;
 use CourseCaptain\Course\CourseException;
@@ -25,6 +27,7 @@ use CourseCaptain\Policy\Roles;
 use CourseCaptain\Publish\CourseValidator;
 use CourseCaptain\Question\QuestionPresenter;
 use CourseCaptain\Question\Randomizer;
+use CourseCaptain\Learner\ExamRoom;
 use CourseCaptain\Learner\LearnerQueries;
 use CourseCaptain\Learning\SmartTrainer;
 use CourseCaptain\Policy\Actor;
@@ -32,6 +35,7 @@ use CourseCaptain\Progress\CourseProgress;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\Migrator;
 use CourseCaptain\Tests\Support\Fixtures\NeutralFixture;
 
 /**
@@ -371,6 +375,289 @@ final class GoldenMasterTest extends SchemaTestCase {
 	}
 
 	/**
+	 * GM-029 / E-331: ER-A has part P1 (M-A1) and part P2 over the module
+	 * group M-A2 + M-A3; the snapshot freezes the parts and the question →
+	 * part assignment `question_parts` {P1: 7, P2: 23}.
+	 *
+	 * @group GM-029
+	 * @group R1-18
+	 */
+	public function test_GM_029_parts_over_module_groups(): void {
+		$snapshot = json_decode( (string) self::session( $this->start( 'lea', 'ER-A' ) )['row']['snapshot'], true );
+		$counts   = array_count_values( $snapshot['question_parts'] );
+		ksort( $counts );
+		self::assertSame(
+			array(
+				'P1' => 7,
+				'P2' => 23,
+			),
+			$counts
+		);
+		self::assertSame( array( 'P1', 'P2' ), array_column( $snapshot['parts'], 'key' ) );
+		self::assertSame( array( $this->fx['modules']['M-A1'] ), $snapshot['parts'][0]['sections'], 'single-module part (form before E-331) stays valid' );
+		self::assertSame( array( $this->fx['modules']['M-A2'], $this->fx['modules']['M-A3'] ), $snapshot['parts'][1]['sections'] );
+		self::assertSame(
+			array(
+				'num' => 18,
+				'den' => 23,
+			),
+			$snapshot['parts'][1]['min_ratio']
+		);
+		self::assertSame( $snapshot['section_labels'][ $this->fx['modules']['M-A2'] ] . ' + ' . $snapshot['section_labels'][ $this->fx['modules']['M-A3'] ], $snapshot['parts'][1]['label'], 'label frozen from the module titles' );
+		foreach ( $snapshot['scoring'] as $item ) {
+			self::assertSame( $item['section'] === $this->fx['modules']['M-A1'] ? 'P1' : 'P2', $snapshot['question_parts'][ $item['position'] ] );
+		}
+		self::assertSame( array(), array_values( array_filter( CourseValidator::validate( $this->fx['courses']['C-A'] )['issues'], static fn( array $i ): bool => in_array( $i['code'], array( 'VAL-075', 'VAL-092' ), true ) ) ), 'ER-A parts are valid and cover every blueprint module' );
+	}
+
+	/**
+	 * GM-030 / E-331 on EP-A-1: (a) the first three P1 questions wrong →
+	 * P1 4/7 < 5 failed, P2 23/23 passed, not passed; (b) six P2 questions
+	 * wrong → 24/30 (total reached), P1 7/7, P2 17/23 < 18 → not passed
+	 * because of the module-group part. The learner result and the exam
+	 * room show the parts.
+	 *
+	 * @group GM-030
+	 * @group R1-18
+	 */
+	public function test_GM_030_part_p2_over_module_group(): void {
+		$parts = static fn( array $result ): array => array_map( static fn( array $p ): array => array( $p['key'], $p['correct'], $p['total'], $p['passed'] ), $result['parts'] );
+
+		$a = $this->answer_and_submit( 'lea', $this->start( 'lea', 'ER-A', 'EP-A-1' ), array( 1, 2, 3 ) );
+		self::assertSame( array( array( 'P1', 4, 7, false ), array( 'P2', 23, 23, true ) ), $parts( $a ) );
+		self::assertSame( array( 23000, 23000 ), array( $a['parts'][1]['points'], $a['parts'][1]['max'] ) );
+		self::assertFalse( $a['passed'] );
+
+		$session = $this->start( 'ole', 'ER-A', 'EP-A-1' );
+		$b       = $this->answer_and_submit( 'ole', $session, range( 8, 13 ) );
+		self::assertSame( array( 24000, 30000 ), array( $b['points_milli'], $b['max_points_milli'] ) );
+		self::assertSame( array( array( 'P1', 7, 7, true ), array( 'P2', 17, 23, false ) ), $parts( $b ) );
+		self::assertFalse( $b['passed'], 'total 24/30 ≥ 23/30 but P2 17/23 < 18/23' );
+
+		$ole    = Actor::user( $this->fx['users']['ole'] );
+		$result = ExamSessions::current()->view( $ole, $session )['result'];
+		self::assertSame( array( 'P1', 'P2' ), array_column( $result['parts'], 'key' ) );
+		self::assertSame( array( true, false ), array_column( $result['parts'], 'passed' ) );
+		self::assertSame( 17000, $result['parts'][1]['points_milli'] );
+		$html = ExamRoom::render( $ole, $session )['body'];
+		self::assertStringContainsString( 'P2 (', $html );
+		self::assertStringContainsString( '17 of 23 correct, not passed', $html );
+	}
+
+	/**
+	 * GM-031 / E-331: the frozen `question_parts` decide; the snapshot moves
+	 * every question to P2 → P1 `total=0, empty=true, passed=true`, P2 30/30,
+	 * passed. A snapshot from before E-331 (no `parts`/`question_parts`)
+	 * is evaluated by its sections as before.
+	 *
+	 * @group GM-031
+	 * @group R1-18
+	 */
+	public function test_GM_031_snapshot_parts_take_precedence(): void {
+		$db      = Database::current();
+		$rewrite = function ( int $session, callable $change ) use ( $db ): void {
+			$snapshot = $change( json_decode( (string) self::session( $session )['row']['snapshot'], true ) );
+			$json     = (string) wp_json_encode( $snapshot );
+			$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_session' ) . '` SET snapshot = %s, snapshot_hash = %s WHERE id = %d', $json, 'sha256:' . hash( 'sha256', $json ), $session ) );
+		};
+		$session = $this->start( 'lea', 'ER-A', 'EP-A-1' );
+		$rewrite(
+			$session,
+			static function ( array $s ): array {
+				foreach ( array_keys( $s['question_parts'] ) as $position ) {
+					$s['question_parts'][ $position ] = 'P2';
+				}
+				return $s;
+			}
+		);
+		$result = $this->answer_and_submit( 'lea', $session, array( 1, 2, 3 ) );
+		self::assertSame( array( 0, 0, true, true ), array( $result['parts'][0]['total'], $result['parts'][0]['max'], $result['parts'][0]['empty'], $result['parts'][0]['passed'] ) );
+		self::assertSame( array( 27, 30, true ), array( $result['parts'][1]['correct'], $result['parts'][1]['total'], $result['parts'][1]['passed'] ), 'P2 27/30 ≥ 18/23' );
+		self::assertTrue( $result['passed'], 'P1 empty does not fail, P1 questions count for P2' );
+
+		$legacy = $this->start( 'ole', 'ER-A', 'EP-A-1' );
+		$rewrite(
+			$legacy,
+			static function ( array $s ): array {
+				unset( $s['parts'], $s['question_parts'] );
+				return $s;
+			}
+		);
+		$old = $this->answer_and_submit( 'ole', $legacy, array( 1, 2, 3 ) );
+		self::assertSame( array( array( 'P1', 4, 7 ), array( 'P2', 23, 23 ) ), array_map( static fn( array $p ): array => array( $p['key'], $p['correct'], $p['total'] ), $old['parts'] ), 'parts derived from the frozen passing rule' );
+		self::assertFalse( $old['passed'] );
+	}
+
+	/**
+	 * E-331 data contract and validator: parts with `sections` (group) or
+	 * `section` (single module, unchanged); malformed parts are refused at
+	 * creation and never startable; VAL-075 for a part outside the
+	 * blueprint, VAL-092 for a blueprint module outside every part.
+	 *
+	 * @group GM-029
+	 * @group R1-18
+	 */
+	public function test_E331_part_contract_and_validator(): void {
+		$m     = $this->fx['modules'];
+		$ratio = array(
+			'num' => 1,
+			'den' => 2,
+		);
+		self::assertSame(
+			array(),
+			ExamRules::validate_passing_rule(
+				array(
+					'min_ratio' => $ratio,
+					'parts'     => array(
+						array(
+							'section'   => $m['M-A1'],
+							'min_ratio' => $ratio,
+						),
+					),
+				)
+			)
+		);
+		self::assertSame(
+			array(),
+			ExamRules::validate_passing_rule(
+				array(
+					'min_ratio' => $ratio,
+					'parts'     => array(
+						array(
+							'key'       => 'P2',
+							'label'     => 'Teil 2',
+							'sections'  => array( $m['M-A2'], $m['M-A3'] ),
+							'min_ratio' => $ratio,
+						),
+					),
+				)
+			)
+		);
+		foreach ( array(
+			array(
+				array(
+					'sections'  => array(),
+					'min_ratio' => $ratio,
+				),
+			),
+			array(
+				array(
+					'sections'  => array( $m['M-A2'], $m['M-A2'] ),
+					'min_ratio' => $ratio,
+				),
+			),
+			array(
+				array(
+					'section'   => $m['M-A1'],
+					'sections'  => array( $m['M-A2'] ),
+					'min_ratio' => $ratio,
+				),
+			),
+			array( array( 'sections' => array( $m['M-A2'] ) ) ),
+			array(
+				array(
+					'section'   => $m['M-A1'],
+					'min_ratio' => array(
+						'num' => 3,
+						'den' => 2,
+					),
+				),
+			),
+			array(
+				array(
+					'key'       => 'P1',
+					'section'   => $m['M-A1'],
+					'min_ratio' => $ratio,
+				),
+				array(
+					'key'       => 'P1',
+					'section'   => $m['M-A2'],
+					'min_ratio' => $ratio,
+				),
+			),
+		) as $i => $parts ) {
+			self::assertSame(
+				array( 'passing_rule_part' ),
+				ExamRules::validate_passing_rule(
+					array(
+						'min_ratio' => $ratio,
+						'parts'     => $parts,
+					)
+				),
+				'case ' . $i
+			);
+		}
+		self::assertSame(
+			array( 'P1', 'P2' ),
+			array_column(
+				ExamRules::parts(
+					array(
+						'parts' => array(
+							array(
+								'section'   => $m['M-A1'],
+								'min_ratio' => $ratio,
+							),
+							array(
+								'sections'  => array( $m['M-A2'], $m['M-A3'] ),
+								'min_ratio' => $ratio,
+							),
+						),
+					)
+				),
+				'key'
+			),
+			'default keys P1, P2'
+		);
+
+		$admin  = Actor::user( $this->fx['users']['admin'] );
+		$rules  = ExamRules::current();
+		$course = $this->fx['courses']['C-A'];
+		$this->rejected(
+			fn() => $rules->create(
+				$admin,
+				$course,
+				'cc-fx-bad-part',
+				array(
+					'min_ratio' => $ratio,
+					'parts'     => array(
+						array(
+							'sections'  => array(),
+							'min_ratio' => $ratio,
+						),
+					),
+				)
+			),
+			'ccap_validation_failed'
+		);
+
+		$draft = $rules->create(
+			$admin,
+			$course,
+			'cc-fx-part-check',
+			array(
+				'min_ratio' => $ratio,
+				'parts'     => array(
+					array(
+						'key'       => 'PX',
+						'sections'  => array( $m['M-A1'], $m['M-B1'] ),
+						'min_ratio' => $ratio,
+					),
+				),
+			)
+		);
+		$rules->set_blueprint( $admin, $draft, $m['M-A1'], 2 );
+		$rules->set_blueprint( $admin, $draft, $m['M-A2'], 2 );
+		$issues = array_values( array_filter( CourseValidator::validate( $course )['issues'], static fn( array $i ): bool => 'exam_rule' === $i['object']['type'] && $draft === $i['object']['id'] ) );
+		$codes  = array_column( $issues, 'code' );
+		sort( $codes );
+		self::assertSame( array( 'VAL-075', 'VAL-092' ), $codes );
+		$by = array_column( $issues, null, 'code' );
+		self::assertSame( 'PX', $by['VAL-075']['params']['part'] );
+		self::assertSame( array( $m['M-B1'] ), $by['VAL-075']['params']['modules'] );
+		self::assertSame( array( $m['M-A2'] ), $by['VAL-092']['params']['modules'] );
+	}
+
+	/**
 	 * GM-033 on ER-B: published practice rule, never evidence; a draft version of ER-A is not startable.
 	 *
 	 * @group GM-033
@@ -447,35 +734,182 @@ final class GoldenMasterTest extends SchemaTestCase {
 	}
 
 	/**
-	 * GM-082 with AR-02 (2): questions 2 per module, lessons 2, variants 1–2
-	 * free, variant 3 and the random exam locked; G-3 lifts the limit.
-	 * Course Captain keeps one limit for every area (AR-02 = AR-03 here).
+	 * GM-082 with AR-01 (questions 3), AR-02 (variants 2) and AR-03
+	 * (lessons 2) at the same time (E-332, one limit per kind): without a
+	 * rule of the kind no access; 3 questions per module; variants 1–2
+	 * free, variant 3 and the random exam locked, the locked start refused;
+	 * 2 lessons; G-3 lifts every limit (`limit = null`).
 	 *
 	 * @group GM-082
+	 * @group R1-18
 	 */
 	public function test_GM_082(): void {
-		$this->without_ar_01();
-		NeutralFixture::rule( 'AR-02', $this->fx );
 		$free    = Actor::user( $this->fx['users']['free'] );
 		$gate    = ContentGate::current();
 		$course  = $this->fx['courses']['C-A'];
 		$modules = array( $this->fx['modules']['M-A1'], $this->fx['modules']['M-A2'], $this->fx['modules']['M-A3'] );
-		self::assertTrue( $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-002' ) )->allowed() );
-		self::assertSame( 'trial', $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-003' ) )->reason );
+		$lessons = array_map( static fn( string $l ): int => (int) NeutralFixture::object( 'lesson', $l ), array( 'cc-fx-l-a-01', 'cc-fx-l-a-02', 'cc-fx-l-a-03' ) );
+		// Only AR-01 (questions): no rule for variants and lessons → no access.
+		self::assertSame( 'no_access', $gate->exam( $free, $course, $modules, 1 )->reason );
+		self::assertSame( 'no_access', $gate->lesson( $free, $course, $lessons[0] )->reason );
+
+		NeutralFixture::rule( 'AR-02', $this->fx );
+		NeutralFixture::rule( 'AR-03', $this->fx );
+		$gate = ContentGate::current();
+		self::assertSame( 3, $gate->module( $free, $course, $modules[0] )->limit );
+		self::assertTrue( $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-003' ) )->allowed() );
+		self::assertSame( 'trial', $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-004' ) )->reason );
 		self::assertTrue( $gate->exam( $free, $course, $modules, 1 )->allowed() );
 		self::assertTrue( $gate->exam( $free, $course, $modules, 2 )->allowed() );
 		self::assertSame( 'trial', $gate->exam( $free, $course, $modules, 3 )->reason );
 		self::assertSame( 'trial', $gate->exam( $free, $course, $modules, null )->reason, 'random exam locked' );
 		$this->rejected( fn() => $this->start( 'free', 'ER-A' ), 'ccap_content_locked' );
-		$lessons = array_map( static fn( string $l ): int => (int) NeutralFixture::object( 'lesson', $l ), array( 'cc-fx-l-a-01', 'cc-fx-l-a-02', 'cc-fx-l-a-03' ) );
+		$this->rejected( fn() => $this->start( 'free', 'ER-A', 'EP-A-3' ), 'ccap_content_locked' );
 		self::assertTrue( $gate->lesson( $free, $course, $lessons[1] )->allowed() );
 		self::assertSame( 'trial', $gate->lesson( $free, $course, $lessons[2] )->reason );
+		self::assertSame(
+			array(
+				TrialLimits::QUESTIONS => 3,
+				TrialLimits::LESSONS   => 2,
+				TrialLimits::VARIANTS  => 2,
+			),
+			TrialLimits::current()->limits( $course )
+		);
 
 		NeutralFixture::grant( 'G-3', $this->fx );
 		$gate = ContentGate::current();
 		self::assertNull( $gate->module( $free, $course, $modules[0] )->limit );
+		self::assertTrue( $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-004' ) )->allowed() );
 		self::assertTrue( $gate->exam( $free, $course, $modules, null )->allowed() );
 		self::assertTrue( $gate->lesson( $free, $course, $lessons[2] )->allowed() );
+	}
+
+	/**
+	 * E-332 / F-2: AR-02 (variants 2), AR-03 (lessons 2), AR-06 (flashcards
+	 * = questions 5) and AR-07 (files 1) at the same time with different
+	 * numbers; each kind keeps its own limit (before E-332 the largest, 5,
+	 * applied to all). Flashcards: 5 cards free, the 6th never delivered
+	 * (no back side), state for a card that became locked refused (GM-062).
+	 *
+	 * @group GM-082
+	 * @group GM-015
+	 * @group GM-062
+	 * @group R1-18
+	 */
+	public function test_E332_GM_082_015_062_kind_limits_at_once(): void {
+		$this->without_ar_01();
+		foreach ( array( 'AR-02', 'AR-03', 'AR-06', 'AR-07' ) as $rule ) {
+			NeutralFixture::rule( $rule, $this->fx );
+		}
+		$decks   = NeutralFixture::flashcards( $this->fx );
+		$free    = Actor::user( $this->fx['users']['free'] );
+		$gate    = ContentGate::current();
+		$course  = $this->fx['courses']['C-A'];
+		$modules = array( $this->fx['modules']['M-A1'], $this->fx['modules']['M-A2'], $this->fx['modules']['M-A3'] );
+		self::assertSame(
+			array(
+				TrialLimits::QUESTIONS => 5,
+				TrialLimits::LESSONS   => 2,
+				TrialLimits::VARIANTS  => 2,
+				TrialLimits::FILES     => 1,
+			),
+			TrialLimits::current()->limits( $course )
+		);
+
+		// Questions (AR-06 kind): 5 per module.
+		self::assertTrue( $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-005' ) )->allowed() );
+		self::assertSame( 'trial', $gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-006' ) )->reason );
+		// Lessons (AR-03): 2, not 5.
+		$lessons = array_map( static fn( string $l ): int => (int) NeutralFixture::object( 'lesson', $l ), array( 'cc-fx-l-a-01', 'cc-fx-l-a-02', 'cc-fx-l-a-03' ) );
+		self::assertTrue( $gate->lesson( $free, $course, $lessons[1] )->allowed() );
+		self::assertSame( 'trial', $gate->lesson( $free, $course, $lessons[2] )->reason );
+		// Variants (AR-02): 1–2, not 5.
+		self::assertTrue( $gate->exam( $free, $course, $modules, 2 )->allowed() );
+		self::assertSame( 'trial', $gate->exam( $free, $course, $modules, 3 )->reason );
+		self::assertSame( 'trial', $gate->exam( $free, $course, $modules, null )->reason );
+		// Files (AR-07): 1 of 3, not 5.
+		self::assertSame( array( false, true, true ), array_column( ProtectedFiles::current()->listing( $free, $course ), 'locked' ) );
+
+		// Flashcards (AR-06): cards 1…5 of FC-A free, card 6 locked without back side.
+		$presenter = QuestionPresenter::current();
+		foreach ( range( 1, 5 ) as $i ) {
+			$card = $presenter->deliver_inline( $free, $course, $decks['FC-A'], $decks['cards'][ sprintf( 'FC-A-%02d', $i ) ] );
+			self::assertSame( 'Rückseite FC-A-' . sprintf( '%02d', $i ), $presenter->reveal( $free, $card['token'] ) );
+		}
+		$this->rejected( fn() => $presenter->deliver_inline( $free, $course, $decks['FC-A'], $decks['cards']['FC-A-06'] ), 'ccap_content_locked' );
+		$fc = Flashcards::current();
+		self::assertSame( 'known', $fc->set_state( $free, $presenter->deliver_inline( $free, $course, $decks['FC-A'], $decks['cards']['FC-A-05'] )['token'], 'known', wp_generate_uuid4() )['state'] );
+
+		// A card delivered under a larger limit is refused once the limit drops (re-check on every write).
+		$admin = Actor::user( $this->fx['users']['admin'] );
+		TrialLimits::current()->set( $admin, $course, 0, array( TrialLimits::QUESTIONS => 8 ) );
+		$token = $presenter->deliver_inline( $free, $course, $decks['FC-A'], $decks['cards']['FC-A-06'] )['token'];
+		$after = TrialLimits::current()->set( $admin, $course, 0, array( TrialLimits::QUESTIONS => 5 ) );
+		self::assertSame( 2, $after[ TrialLimits::LESSONS ], 'other kinds unchanged' );
+		$this->rejected( fn() => $fc->set_state( $free, $token, 'known', wp_generate_uuid4() ), 'ccap_content_locked' );
+		$this->rejected( fn() => $presenter->reveal( $free, $token ), 'ccap_content_locked' );
+	}
+
+	/**
+	 * E-332 migration: a single limit from before E-332 (`first_items`)
+	 * still applies to every kind, and the backfill splits it into one row
+	 * per kind with the same value (effective access unchanged, idempotent).
+	 *
+	 * @group GM-082
+	 * @group R1-18
+	 */
+	public function test_E332_legacy_single_limit_migration(): void {
+		$this->without_ar_01();
+		$db     = Database::current();
+		$course = $this->fx['courses']['C-A'];
+		$id     = $db->insert(
+			'ccap_access_rule',
+			array(
+				'course_id'   => $course,
+				'scope'       => 'view',
+				'access_type' => 'free_limited',
+				'limit_type'  => TrialLimits::LEGACY,
+				'limit_value' => 2,
+			),
+			array( 'created_at', 'updated_at' )
+		);
+		PolicyService::flush();
+		$free    = Actor::user( $this->fx['users']['free'] );
+		$modules = array( $this->fx['modules']['M-A1'], $this->fx['modules']['M-A2'], $this->fx['modules']['M-A3'] );
+		$lesson3 = (int) NeutralFixture::object( 'lesson', 'cc-fx-l-a-03' );
+		$probe   = function () use ( $free, $course, $modules, $lesson3 ): array {
+			$gate = ContentGate::current();
+			return array(
+				$gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-002' ) )->allowed(),
+				$gate->question( $free, $course, $modules[0], NeutralFixture::question( 'A1-003' ) )->reason,
+				$gate->lesson( $free, $course, $lesson3 )->reason,
+				$gate->exam( $free, $course, $modules, 2 )->allowed(),
+				$gate->exam( $free, $course, $modules, 3 )->reason,
+				array_column( ProtectedFiles::current()->listing( $free, $course ), 'locked' ),
+			);
+		};
+		$before  = $probe();
+		self::assertSame( array( true, 'trial', 'trial', true, 'trial', array( false, false, true ) ), $before );
+
+		$step  = new AccessRuleKindsBackfill();
+		$table = $db->table( 'ccap_access_rule' );
+		self::assertContains( AccessRuleKindsBackfill::ID, array_map( static fn( $s ): string => $s->id(), Migrator::core_backfills() ) );
+		self::assertSame( '1', (string) $db->scalar( "SELECT COUNT(*) FROM `{$table}` WHERE " . $step->pending_where() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant condition.
+		self::assertSame( 1, $step->apply( $db, array( $id ) ) );
+		self::assertSame( 0, $step->apply( $db, array( $id ) ), 'idempotent' );
+		self::assertSame( '0', (string) $db->scalar( "SELECT COUNT(*) FROM `{$table}` WHERE " . $step->pending_where() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant condition.
+		PolicyService::flush();
+		self::assertSame(
+			array(
+				TrialLimits::QUESTIONS => 2,
+				TrialLimits::LESSONS   => 2,
+				TrialLimits::VARIANTS  => 2,
+				TrialLimits::FILES     => 2,
+			),
+			TrialLimits::current()->limits( $course )
+		);
+		self::assertSame( TrialLimits::QUESTIONS, (string) $db->scalar( $db->prepare( "SELECT limit_type FROM `{$table}` WHERE id = %d", $id ) ), 'the legacy row keeps its ID' );
+		self::assertSame( $before, $probe(), 'effective access unchanged' );
 	}
 
 	/**

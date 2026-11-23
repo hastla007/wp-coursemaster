@@ -573,6 +573,14 @@ final class ExamSessions {
 				'ref' => in_array( $entry['src'] ?? '', array( 'global', 'global_lock', 'schema_default' ), true ) ? 'site' : 'rule:' . (string) $rule['uid'] . '@' . (string) $rule['version'],
 			);
 		}
+		$parts          = self::frozen_parts( (array) $rule['passing_rule'], $items );
+		$question_parts = array();
+		foreach ( $items as $item ) {
+			$key = ExamRules::part_of_section( $parts, (int) $item['section'] );
+			if ( null !== $key ) {
+				$question_parts[ (string) $item['position'] ] = $key;
+			}
+		}
 		$snapshot = array(
 			'format_version'      => self::FORMAT_VERSION,
 			'rule'                => array(
@@ -607,6 +615,9 @@ final class ExamSessions {
 			'feedback'            => $settings['feedback'],
 			// Section/topic labels are frozen at the start (R0-08 §6.3, R0-23 RV-01 / REV-021).
 			'section_labels'      => self::section_labels( $items ),
+			// Parts over module groups (E-331) and question → part, frozen at the start (R0-08 §4.1, §6.3).
+			'parts'               => $parts,
+			'question_parts'      => $question_parts,
 			'attempt_policy'      => $settings['attempt_policy'],
 			'competency'          => array(
 				'certifies_objectives' => array_values( array_map( 'strval', (array) ( $settings['certifies_objectives'] ?? array() ) ) ),
@@ -853,7 +864,7 @@ final class ExamSessions {
 	 * @param array<string, mixed> $row      Session row.
 	 * @param array<string, mixed> $snapshot  Snapshot.
 	 * @param array<int, int>      $overrides Manual points per position (E-74).
-	 * @return array{points_milli: int, max_points_milli: int, passed: bool, expired: bool, correct: int, total: int, sections: array<int, array{points: int, max: int}>, questions: list<array{position: int, correct: bool, points_milli: int, max_points_milli: int, answered: bool}>}
+	 * @return array{points_milli: int, max_points_milli: int, passed: bool, expired: bool, correct: int, total: int, sections: array<int, array{points: int, max: int}>, parts: list<array<string, mixed>>, questions: list<array{position: int, correct: bool, points_milli: int, max_points_milli: int, answered: bool}>}
 	 */
 	private function evaluate( array $row, array $snapshot, array $overrides = array() ): array {
 		$cutoff   = null === $row['deadline_at'] ? null : gmdate( 'Y-m-d H:i:s', (int) strtotime( $row['deadline_at'] . ' UTC' ) + (int) $snapshot['timing']['grace_seconds'] );
@@ -863,6 +874,16 @@ final class ExamSessions {
 		$correct  = 0;
 		$sections = array();
 		$per      = array();
+		$parts    = self::snapshot_parts( $snapshot );
+		$tally    = array();
+		foreach ( $parts as $part ) {
+			$tally[ $part['key'] ] = array(
+				'points'  => 0,
+				'max'     => 0,
+				'correct' => 0,
+				'total'   => 0,
+			);
+		}
 		foreach ( $this->session_questions( (int) $row['id'] ) as $sq ) {
 			if ( '1' === (string) $sq['neutralized'] ) {
 				continue;
@@ -901,17 +922,38 @@ final class ExamSessions {
 			$section                        = (int) $meta['section'];
 			$sections[ $section ]['points'] = ( $sections[ $section ]['points'] ?? 0 ) + $got;
 			$sections[ $section ]['max']    = ( $sections[ $section ]['max'] ?? 0 ) + $weight;
-		}
-		$ratio  = (array) $snapshot['passing_rule']['min_ratio'];
-		$passed = $max > 0 && $points * (int) $ratio['den'] >= (int) $ratio['num'] * $max;
-		foreach ( (array) ( $snapshot['passing_rule']['parts'] ?? array() ) as $part ) {
-			$section = (int) ( $part['section'] ?? 0 );
-			if ( ! isset( $sections[ $section ] ) ) {
-				$passed = $passed && 'fail' !== ( $snapshot['passing_rule']['empty_part_policy'] ?? 'pass' );
-				continue;
+			// Part of the question: frozen `question_parts` (E-331), else the first part covering the section (snapshots before E-331).
+			$key = isset( $snapshot['question_parts'] ) && is_array( $snapshot['question_parts'] )
+				? ( isset( $snapshot['question_parts'][ $position ] ) ? (string) $snapshot['question_parts'][ $position ] : null )
+				: ExamRules::part_of_section( $parts, $section );
+			if ( null !== $key && isset( $tally[ $key ] ) ) {
+				$tally[ $key ]['points']  += $got;
+				$tally[ $key ]['max']     += $weight;
+				$tally[ $key ]['correct'] += $got === $weight ? 1 : 0;
+				++$tally[ $key ]['total'];
 			}
-			$need   = (array) $part['min_ratio'];
-			$passed = $passed && $sections[ $section ]['points'] * (int) $need['den'] >= (int) $need['num'] * $sections[ $section ]['max'];
+		}
+		$ratio        = (array) $snapshot['passing_rule']['min_ratio'];
+		$passed       = $max > 0 && $points * (int) $ratio['den'] >= (int) $ratio['num'] * $max;
+		$empty        = 'fail' !== ( $snapshot['passing_rule']['empty_part_policy'] ?? 'pass' );
+		$result_parts = array();
+		foreach ( $parts as $part ) {
+			$t              = $tally[ $part['key'] ];
+			$need           = $part['min_ratio'];
+			$ok             = 0 === $t['total'] ? $empty : $t['points'] * $need['den'] >= $need['num'] * $t['max'];
+			$passed         = $passed && $ok;
+			$result_parts[] = array(
+				'key'       => $part['key'],
+				'label'     => $part['label'],
+				'sections'  => $part['sections'],
+				'min_ratio' => $need,
+				'points'    => $t['points'],
+				'max'       => $t['max'],
+				'correct'   => $t['correct'],
+				'total'     => $t['total'],
+				'empty'     => 0 === $t['total'],
+				'passed'    => $ok,
+			);
 		}
 		foreach ( array_keys( $sections ) as $section ) {
 			$sections[ $section ]['title'] = isset( $snapshot['section_labels'][ $section ] ) ? (string) $snapshot['section_labels'][ $section ] : null;
@@ -924,8 +966,60 @@ final class ExamSessions {
 			'correct'          => $correct,
 			'total'            => count( $per ),
 			'sections'         => $sections,
+			'parts'            => $result_parts,
 			'questions'        => $per,
 		);
+	}
+
+	/**
+	 * Parts of the snapshot: the frozen list (E-331) or, for snapshots
+	 * before E-331, the parts of the frozen passing rule.
+	 *
+	 * @param array<string, mixed> $snapshot Snapshot.
+	 * @return list<array{key: string, label: string|null, sections: list<int>, min_ratio: array{num: int, den: int}}>
+	 */
+	private static function snapshot_parts( array $snapshot ): array {
+		if ( isset( $snapshot['parts'] ) && is_array( $snapshot['parts'] ) ) {
+			$out = array();
+			foreach ( $snapshot['parts'] as $part ) {
+				$part  = (array) $part;
+				$out[] = array(
+					'key'       => (string) $part['key'],
+					'label'     => isset( $part['label'] ) ? (string) $part['label'] : null,
+					'sections'  => array_values( array_map( 'intval', (array) ( $part['sections'] ?? array() ) ) ),
+					'min_ratio' => array(
+						'num' => (int) $part['min_ratio']['num'],
+						'den' => (int) $part['min_ratio']['den'],
+					),
+				);
+			}
+			return $out;
+		}
+		return ExamRules::parts( (array) ( $snapshot['passing_rule'] ?? array() ) );
+	}
+
+	/**
+	 * Parts frozen at the start with their labels: the rule label, else the
+	 * module titles of the part joined with " + " (R0-08 §6.3).
+	 *
+	 * @param array<string, mixed>                   $passing Passing rule.
+	 * @param list<array{section: int|string}|array> $items   Questions of the attempt.
+	 * @return list<array{key: string, label: string|null, sections: list<int>, min_ratio: array{num: int, den: int}}>
+	 */
+	private static function frozen_parts( array $passing, array $items ): array {
+		$labels = self::section_labels( $items );
+		$parts  = ExamRules::parts( $passing );
+		foreach ( $parts as $i => $part ) {
+			if ( null !== $part['label'] ) {
+				continue;
+			}
+			$names = array();
+			foreach ( $part['sections'] as $section ) {
+				$names[] = $labels[ $section ] ?? wp_strip_all_tags( get_the_title( $section ) );
+			}
+			$parts[ $i ]['label'] = implode( ' + ', $names );
+		}
+		return $parts;
 	}
 
 	/**

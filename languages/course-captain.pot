@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-23T10:07:29+00:00\n"
+"POT-Creation-Date: 2026-11-23T10:29:47+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -1825,7 +1825,7 @@ msgid "Learning"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:47
-#: src/Learner/ExamRoom.php:419
+#: src/Learner/ExamRoom.php:445
 msgid "Exams"
 msgstr ""
 
@@ -4167,43 +4167,67 @@ msgstr[1] ""
 msgid "Points: %1$s of %2$s"
 msgstr ""
 
+#: src/Learner/ExamRoom.php:356
+msgid "Exam parts"
+msgstr ""
+
+#. translators: %s: part name
+#: src/Learner/ExamRoom.php:364
+#, php-format
+msgid "%s: no questions in this attempt"
+msgstr ""
+
+#. translators: 1: part name, 2: correct answers, 3: number of questions, 4: "passed" or "not passed"
+#: src/Learner/ExamRoom.php:369
+#, php-format
+msgid "%1$s: %2$s of %3$s correct, %4$s"
+msgstr ""
+
+#: src/Learner/ExamRoom.php:373
+msgid "passed"
+msgstr ""
+
+#: src/Learner/ExamRoom.php:373
+msgid "not passed"
+msgstr ""
+
 #. translators: 1: question number, 2: "correct" or "incorrect"
-#: src/Learner/ExamRoom.php:358
+#: src/Learner/ExamRoom.php:384
 #, php-format
 msgid "Question %1$s: %2$s"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:360
+#: src/Learner/ExamRoom.php:386
 msgid "correct"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:360
+#: src/Learner/ExamRoom.php:386
 msgid "incorrect"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:364
+#: src/Learner/ExamRoom.php:390
 msgid "Back to my learning"
 msgstr ""
 
 #. translators: %s: exam version label
-#: src/Learner/ExamRoom.php:422
+#: src/Learner/ExamRoom.php:448
 #, php-format
 msgid "Exam %s"
 msgstr ""
 
 #. translators: %s: number of minutes
-#: src/Learner/ExamRoom.php:429
+#: src/Learner/ExamRoom.php:455
 #, php-format
 msgid "Time limit: %s minute"
 msgid_plural "Time limit: %s minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Learner/ExamRoom.php:435
+#: src/Learner/ExamRoom.php:461
 msgid "Continue exam"
 msgstr ""
 
-#: src/Learner/ExamRoom.php:437
+#: src/Learner/ExamRoom.php:463
 msgid "Start exam"
 msgstr ""
 
@@ -5910,32 +5934,36 @@ msgstr ""
 msgid "All options of this multiple-choice question are correct."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:317
+#: src/Publish/CourseValidator.php:318
+msgid "A part of the pass rule is invalid. Each part needs at least one module and a pass mark between 0 and 100 %."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:320
 msgid "The pass mark of this exam is missing or invalid. Set a pass mark between 0 and 100 %."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:321
+#: src/Publish/CourseValidator.php:326
 msgid "The time limit must be between 1 second and 24 hours."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:326
+#: src/Publish/CourseValidator.php:331
 msgid "Grace and tolerance times must be between 0 and 600 seconds."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:333
+#: src/Publish/CourseValidator.php:338
 msgid "The exam draws from a module that is not part of this course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:337
+#: src/Publish/CourseValidator.php:342
 msgid "The exam must draw at least one question from each module."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:341
+#: src/Publish/CourseValidator.php:346
 msgid "The module has no deliverable questions for the exam."
 msgstr ""
 
 #. translators: 1: available questions, 2: required questions
-#: src/Publish/CourseValidator.php:357
+#: src/Publish/CourseValidator.php:362
 #, php-format
 msgid "Only %1$s of %2$s question is available in this module. Reduce the number or add questions."
 msgid_plural "Only %1$s of %2$s questions are available in this module. Reduce the number or add questions."
@@ -5943,32 +5971,42 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: variant number
-#: src/Publish/CourseValidator.php:368
+#: src/Publish/CourseValidator.php:373
 #, php-format
 msgid "Variant %d"
 msgstr ""
 
-#: src/Publish/CourseValidator.php:370
+#: src/Publish/CourseValidator.php:375
 msgid "The variant is empty or its positions have gaps."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:373
+#: src/Publish/CourseValidator.php:378
 msgid "The variant contains a question that cannot be delivered."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:396
+#. translators: %s: part key such as P2
+#: src/Publish/CourseValidator.php:418
+#, php-format
+msgid "Part %s refers to a module the exam does not draw from."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:436
+msgid "Some questions of this exam belong to no part and count only for the total."
+msgstr ""
+
+#: src/Publish/CourseValidator.php:460
 msgid "A prerequisite points to a module of another course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:396
+#: src/Publish/CourseValidator.php:460
 msgid "A prerequisite points to a module that no longer exists."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:403
+#: src/Publish/CourseValidator.php:467
 msgid "A prerequisite points to an activity that is missing, archived or outside this course."
 msgstr ""
 
-#: src/Publish/CourseValidator.php:421
+#: src/Publish/CourseValidator.php:485
 msgid "The prerequisites form a cycle, so some modules can never be unlocked. Remove one prerequisite."
 msgstr ""
 
@@ -6354,7 +6392,7 @@ msgstr ""
 msgid "Invalid identifier."
 msgstr ""
 
-#: src/Storage/Migrator.php:271
+#: src/Storage/Migrator.php:272
 msgid "Course Captain is updating its database. Please try again in a few seconds."
 msgstr ""
 

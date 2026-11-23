@@ -89,7 +89,7 @@ Die Freischaltung ist **eine** serverseitige Policy-Entscheidung je (Lernender, 
 | # | Prüfung | Quelle des Rechts | Sperrgrund | LB-Beleg |
 |---|---|---|---|---|
 | 1 | Zugang zum **Modul** des Objekts (E-27): aktiver Grant auf genau dieses Modul oder auf den ganzen Kurs (`module_id = 0`, E-286), jeweils mit passendem Scope `view/download/exam` innerhalb des Moduls; Bundle-Grants (E-25a, eine Ebene nach E-297) wirken wie je ein Grant je enthaltenem Kurs; abhängige Zusatz-Grants (E-26) nur, solange effektiver Zugang zum Basiskurs besteht (E-287) | aktiver Grant, Free-Regel `free` mit Gültigkeitsfenster, Einstellung „Zugang für angemeldete Nutzer“ | `no_access` | AS:50-133, :335-357 (LB: je Kurs × Feature; je Modul ist neu) |
-| 2 | Teilumfang (`free_limited`): nur die ersten *n* Elemente je Abschnitt | `ccap_access_rule` (`access_type = free_limited`, `limit_type`, `limit_value`) | `trial` | AS:37-46 (Limit-Typen), LS:405-428 (erste *n* Fragen je Modul), ES:166-171 (erste *n* Bögen, keine Zufallsprüfung) |
+| 2 | Teilumfang (`free_limited`): nur die ersten *n* Elemente je Abschnitt; **eigene Grenze je Art** (E-332): Fragen inkl. Karteikarten je Modul (`first_questions`), Lektionen je Modul (`first_lessons`), feste Prüfungsbögen (`first_variants`), geschützte Dateien des Kurses (`first_files`); Altregel `first_items`/NULL = eine Grenze für alle Arten | `ccap_access_rule` (`access_type = free_limited`, `limit_type`, `limit_value`) | `trial` | AS:37-46 (Limit-Typen), LS:405-428 (erste *n* Fragen je Modul), ES:166-171 (erste *n* Bögen, keine Zufallsprüfung) |
 | 3 | Drip: Modul wird *d* Tage nach Zugangsbeginn frei (E-14) | `ccap_access_rule` (`access_type = drip`, `module_id`, `limit_value` = Tage; bei mehreren Regeln gilt das Maximum) | `drip` + `unlock_at` | AS:263-283 (`MAX(limit_value)`), :315-333 (Zugangsbeginn = frühester `valid_from` eines aktiven Grants, sonst Registrierung) |
 | 4 | Voraussetzungen | `ccap_course_module.rules` bzw. Activity-`settings.prerequisites` | `prerequisite` + `requires[]` | **neu** (LB kennt nur `required` je Modul, `courses.schema.json:27`) |
 | 5 | Laufende Prüfung sperrt ihre Fragen im Lernmodus | `ccap_exam_session` im Zustand `in_progress` | `exam_running` | LS:97-99, :208-210, :791-810 |
@@ -406,7 +406,7 @@ Selbsteinschätzung zählt in LB als richtig/falsch in der Gesamtquote (ES:629-6
 ```
 passing_rule {
   min_ratio:   { num: int, den: int }           // z. B. 3/4; 0 < num/den ≤ 1
-  parts: [ { section_uid, label, min_points_milli | min_correct, of, seconds? } ],
+  parts: [ { key?, label?, section | sections[], min_ratio | min_points_milli | min_correct, of, seconds? } ],   // E-331: ein Teil umfasst ein Modul (`section`) oder eine Modulgruppe (`sections`)
   require_all_parts: true,                      // LB: Gesamtquote UND alle Teile (ES:647)
   empty_part_policy: "pass" | "fail",           // LB: leerer Teil gilt als bestanden (ES:700)
   note: ?string
@@ -615,7 +615,7 @@ Endzustände: `evaluated`, `cancelled`; `broken` ist nur über eine Admin-Repara
 | `evidence_eligible`, `reduced`, `practice` | Nachweisfähigkeit (§4.1) | `live`, `reduced` (ES:267-268) |
 | `timing` | `time_limit_seconds`, `grace_seconds`, `late_tolerance_seconds`, `timer_mode` (E-123), Nachteilsausgleich `{factor_pct \| unlimited, scope}` (E-122) | nur `time_limit_seconds` (ES:269); Grace/Kulanz in LB live |
 | `passing_rule` | wirksame Regel nach Teilauswahl (§4.1) | `passing` (ES:270) |
-| `question_parts` | Frage → Teil | `question_parts` (ES:271) |
+| `question_parts`, `parts` | Frage → Teil (Position → Teilschlüssel) und die Teile mit Modulgruppe und eingefrorener Bezeichnung (E-331) | `question_parts` (ES:271) |
 | `blueprints` / `variant` | Abschnitte mit Anzahl bzw. Variante | `blueprints`, `paper_number` (ES:273-274) |
 | `randomizer` | `seed`, `randomizer_version`, `shuffle_questions`, `shuffle_answers` | – (kein Seed) |
 | `scoring` | je Frage `scoring`, `points` und typspezifische Lösungsdaten der Revision (Toleranz, Paare, Reihenfolge, akzeptierte Lücken über die Revisions-ID); `open_text_in_score` | – |
@@ -789,3 +789,4 @@ Weitere hier umgesetzte Beschlüsse: E-20/E-147/E-229/E-268/E-269 (§4.5), E-22 
 | 16.11.2026 | R0-15 §2.3, E-122/E-123 | Prüfungsregel bekommt `timer_mode` (`strict`/`practice`); Nachteilsausgleich wird beim Versuchsstart in den Snapshot übernommen – **eingearbeitet** (§4.3, §6.3) |
 | 16.11.2026 | R0-28 T28-1, E-229 | §4.5: `learning.feedback` Kurs → Quiz, `exams.feedback` nur global → Prüfungsregel – **eingearbeitet** (§4.5) |
 | 16.11.2026 | Beschlüsse E-20, E-22, E-25a, E-26, E-27, E-69, E-168 u. a. | Beschlussstand §0; Aufgaben-Activity §2.5; neue Fragetypen §3; Modulzugang §1.4; Feedback §4.5; §8 auf E-Nummern umgeschrieben – **eingearbeitet** |
+| 23.11.2026 | E-331, E-332 (R1-18 F-1/F-2, Nachtrag g6) | §1.4 Nr. 2: Teilumfang mit eigener Grenze je Art (`first_questions`, `first_lessons`, `first_variants`, `first_files`; Karteikarten zählen als Fragen), Altregel `first_items` gilt für alle Arten und wird per Backfill `core:0004_access_rule_kind_limits` aufgeteilt; §4.1/§6.3: Teile über Modulgruppen (`sections`), `key`/`label`, Snapshot `parts` + `question_parts`, Ergebnis `parts` – **eingearbeitet** (`docs/r1/R1-18-gm-nachtrag-g6.md`) |

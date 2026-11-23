@@ -6252,3 +6252,38 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+#: src/Learner/ExamRoom.php
+msgid "Exam parts"
+msgstr "Prüfungsteile"
+
+#. translators: %s: part name
+#: src/Learner/ExamRoom.php
+msgid "%s: no questions in this attempt"
+msgstr "%s: keine Fragen in diesem Versuch"
+
+#. translators: 1: part name, 2: correct answers, 3: number of questions, 4: "passed" or "not passed"
+#: src/Learner/ExamRoom.php
+msgid "%1$s: %2$s of %3$s correct, %4$s"
+msgstr "%1$s: %2$s von %3$s richtig, %4$s"
+
+#: src/Learner/ExamRoom.php
+msgid "passed"
+msgstr "bestanden"
+
+#: src/Learner/ExamRoom.php
+msgid "not passed"
+msgstr "nicht bestanden"
+
+#: src/Publish/CourseValidator.php
+msgid "A part of the pass rule is invalid. Each part needs at least one module and a pass mark between 0 and 100 %."
+msgstr "Ein Teil der Bestehensregel ist ungültig. Jeder Teil braucht mindestens ein Modul und eine Bestehensgrenze zwischen 0 und 100 %."
+
+#. translators: %s: part key such as P2
+#: src/Publish/CourseValidator.php
+msgid "Part %s refers to a module the exam does not draw from."
+msgstr "Teil %s verweist auf ein Modul, aus dem die Prüfung keine Fragen zieht."
+
+#: src/Publish/CourseValidator.php
+msgid "Some questions of this exam belong to no part and count only for the total."
+msgstr "Einige Fragen dieser Prüfung gehören zu keinem Teil und zählen nur zur Gesamtquote."

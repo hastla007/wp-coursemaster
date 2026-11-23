@@ -585,10 +585,116 @@ final class ExamRules {
 		}
 		$num = $rule['min_ratio']['num'];
 		$den = $rule['min_ratio']['den'];
-		if ( ! is_int( $num ) || ! is_int( $den ) || $num <= 0 || $den <= 0 || $num > $den ) {
+		if ( ! self::valid_ratio( $rule['min_ratio'] ) ) {
 			return array( 'passing_rule_ratio' );
 		}
+		if ( isset( $rule['empty_part_policy'] ) && ! in_array( $rule['empty_part_policy'], array( 'pass', 'fail' ), true ) ) {
+			return array( 'passing_rule_part' );
+		}
+		if ( ! isset( $rule['parts'] ) ) {
+			return array();
+		}
+		if ( ! is_array( $rule['parts'] ) || ! array_is_list( $rule['parts'] ) ) {
+			return array( 'passing_rule_part' );
+		}
+		$keys = array();
+		foreach ( $rule['parts'] as $i => $part ) {
+			$sections = is_array( $part ) ? self::raw_part_sections( $part ) : null;
+			$key      = is_array( $part ) ? ( $part['key'] ?? 'P' . ( $i + 1 ) ) : null;
+			if ( null === $sections || array() === $sections || ! isset( $part['min_ratio'] ) || ! self::valid_ratio( $part['min_ratio'] ) || ! is_string( $key ) || 1 !== preg_match( '/^[A-Za-z0-9_-]{1,32}$/', $key ) || isset( $keys[ $key ] ) || ( isset( $part['label'] ) && ! is_string( $part['label'] ) ) ) {
+				return array( 'passing_rule_part' );
+			}
+			$keys[ $key ] = true;
+		}
 		return array();
+	}
+
+	/**
+	 * Parts of a passing rule in rule order (E-331, R0-08 §4.1): a part
+	 * covers one blueprint module (`section`, the form before E-331) or a
+	 * group of modules (`sections`); `key` defaults to `P1`, `P2`, … and
+	 * `label` is optional. Invalid parts are skipped (the rule is then not
+	 * startable, see validate_passing_rule()).
+	 *
+	 * @param array<string, mixed> $rule Passing rule.
+	 * @return list<array{key: string, label: string|null, sections: list<int>, min_ratio: array{num: int, den: int}}>
+	 */
+	public static function parts( array $rule ): array {
+		$out = array();
+		foreach ( array_values( (array) ( $rule['parts'] ?? array() ) ) as $i => $part ) {
+			$sections = is_array( $part ) ? self::raw_part_sections( $part ) : null;
+			if ( null === $sections || array() === $sections || ! isset( $part['min_ratio'] ) || ! self::valid_ratio( $part['min_ratio'] ) ) {
+				continue;
+			}
+			$out[] = array(
+				'key'       => (string) ( $part['key'] ?? 'P' . ( $i + 1 ) ),
+				'label'     => isset( $part['label'] ) && is_string( $part['label'] ) && '' !== $part['label'] ? $part['label'] : null,
+				'sections'  => $sections,
+				'min_ratio' => array(
+					'num' => (int) $part['min_ratio']['num'],
+					'den' => (int) $part['min_ratio']['den'],
+				),
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Part key of a section: the first part in rule order that covers it
+	 * (R0-08 §4.1, ES:713-736), null when no part covers it.
+	 *
+	 * @param list<array{key: string, sections: list<int>}> $parts   Normalized parts.
+	 * @param int                                           $section Section (module).
+	 * @return string|null
+	 */
+	public static function part_of_section( array $parts, int $section ): ?string {
+		foreach ( $parts as $part ) {
+			if ( in_array( $section, $part['sections'], true ) ) {
+				return $part['key'];
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Sections of a raw part: `sections` (list of module IDs) or the single `section`.
+	 *
+	 * @param array<mixed> $part Raw part.
+	 * @return list<int>|null Null when malformed.
+	 */
+	private static function raw_part_sections( array $part ): ?array {
+		if ( isset( $part['sections'] ) ) {
+			if ( isset( $part['section'] ) || ! is_array( $part['sections'] ) ) {
+				return null;
+			}
+			$out = array();
+			foreach ( $part['sections'] as $section ) {
+				if ( ! is_int( $section ) || $section <= 0 || in_array( $section, $out, true ) ) {
+					return null;
+				}
+				$out[] = $section;
+			}
+			return $out;
+		}
+		if ( isset( $part['section'] ) ) {
+			return is_int( $part['section'] ) && $part['section'] > 0 ? array( $part['section'] ) : null;
+		}
+		return null;
+	}
+
+	/**
+	 * Ratio `{num, den}` with integers and 0 < num ≤ den.
+	 *
+	 * @param mixed $ratio Ratio.
+	 * @return bool
+	 */
+	private static function valid_ratio( $ratio ): bool {
+		if ( ! is_array( $ratio ) || ! isset( $ratio['num'], $ratio['den'] ) ) {
+			return false;
+		}
+		$num = $ratio['num'];
+		$den = $ratio['den'];
+		return is_int( $num ) && is_int( $den ) && $num > 0 && $den > 0 && $num <= $den;
 	}
 
 	/**
