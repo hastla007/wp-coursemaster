@@ -41,6 +41,11 @@ final class LearningArea {
 	public const QUERY_VAR = 'course_captain_app';
 
 	/**
+	 * Lesson path below the area: `kurs/<course-uid>/lektion/<lesson-id>`.
+	 */
+	private const LESSON_ROUTE = '#^(?:course|kurs)/([0-9a-f-]+)/(?:lesson|lektion)/(\d+)/?$#';
+
+	/**
 	 * Hooks.
 	 *
 	 * @return void
@@ -94,6 +99,28 @@ final class LearningArea {
 	}
 
 	/**
+	 * URL of a lesson in the learning area (the lesson post type is not public).
+	 *
+	 * @param string $course_uid Course UID.
+	 * @param int    $lesson_id  Lesson.
+	 * @return string
+	 */
+	public static function lesson_url( string $course_uid, int $lesson_id ): string {
+		return self::url( 'kurs/' . $course_uid . '/lektion/' . $lesson_id );
+	}
+
+	/**
+	 * UID of a course (created when missing).
+	 *
+	 * @param int $course_id Course.
+	 * @return string
+	 */
+	public static function course_uid( int $course_id ): string {
+		$post = get_post( $course_id );
+		return $post instanceof \WP_Post ? ( new ObjectIdentity( Database::current() ) )->ensure( $post ) : (string) $course_id;
+	}
+
+	/**
 	 * `template_redirect`: render the area.
 	 *
 	 * @return void
@@ -120,7 +147,7 @@ final class LearningArea {
 	}
 
 	/**
-	 * Form posts in the learning area (exam start, exam answers); returns the redirect target (PRG).
+	 * Form posts in the learning area (exam start, exam answers, lesson completion); returns the redirect target (PRG).
 	 *
 	 * @param Actor                $actor Learner.
 	 * @param string               $path  Path.
@@ -136,6 +163,14 @@ final class LearningArea {
 					$status = ExamRoom::handle( $actor, (int) $m[1], $post );
 					return add_query_arg( 'ccap_status', 'submitted' === $status ? false : $status, self::url( 'pruefung/' . (int) $m[1] ) ) . ( 'submitted' === $status ? '#ccap-main' : '' );
 				}
+				if ( 1 === preg_match( self::LESSON_ROUTE, $path, $m ) ) {
+					$course = LearnerQueries::current()->course_id( $m[1] );
+					$result = LessonView::handle( $actor, $course, (int) $m[2], $post );
+					if ( null !== $result['location'] ) {
+						return $result['location'];
+					}
+					return add_query_arg( 'ccap_status', $result['status'], self::lesson_url( $m[1], (int) $m[2] ) ) . '#ccap-main';
+				}
 				if ( 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)$#', $path, $m ) && 'start_exam' === ( $post['ccap_do'] ?? '' ) ) {
 					$session = ExamRoom::start( $actor, LearnerQueries::current()->course_id( $m[1] ), $post );
 					return is_int( $session ) ? self::url( 'pruefung/' . $session ) : add_query_arg( 'ccap_status', $session, self::url( $path ) );
@@ -147,7 +182,8 @@ final class LearningArea {
 
 	/**
 	 * Complete page for a path (`''` = My learning, `kurs/<uid>` = course room,
-	 * `pruefung/<id>` = exam room), in the learning-area locale (E-124).
+	 * `kurs/<uid>/lektion/<id>` = lesson, `pruefung/<id>` = exam room), in the
+	 * learning-area locale (E-124).
 	 *
 	 * @param Actor  $actor  Learner.
 	 * @param string $path   Path.
@@ -159,6 +195,52 @@ final class LearningArea {
 	}
 
 	/**
+	 * Route a path to page parts: HTTP status, title, title attributes, body.
+	 *
+	 * @param Actor  $actor  Learner.
+	 * @param string $path   Path (`''`, `kurs/<uid>`, `kurs/<uid>/lektion/<id>`, `pruefung/<id>`).
+	 * @param string $status Status after a form post.
+	 * @return array{status: int, title: string, title_attr: string, body: string}
+	 */
+	public static function resolve( Actor $actor, string $path, string $status = '' ): array {
+		$path      = trim( $path, '/' );
+		$result    = array(
+			'status'     => 200,
+			'title'      => __( 'My learning', 'course-captain' ),
+			'title_attr' => '',
+			'body'       => '',
+		);
+		$is_lesson = 1 === preg_match( self::LESSON_ROUTE, $path, $lesson );
+		try {
+			if ( $is_lesson ) {
+				$m = $lesson;
+				// Unknown course references resolve to 0 and end as 404 in the read model.
+				$result = LessonView::render( $actor, LearnerQueries::current()->course_id( $m[1] ), (int) $m[2], $status );
+			} elseif ( 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)$#', $path, $m ) ) {
+				$course               = LearnerQueries::current()->course_id( $m[1] );
+				$room                 = LearnerQueries::current()->course( $actor, $course );
+				$result['title']      = $room['title'];
+				$result['title_attr'] = Locale::content_attributes( CourseStructure::course_language( $course ) );
+				$result['body']       = ( '' !== $status ? '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( $status ) ) . '</p>' : '' ) . self::course_room( $room ) . ExamRoom::course_exams( $actor, $course );
+			} elseif ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)$#', $path, $m ) ) {
+				$exam            = ExamRoom::render( $actor, (int) $m[1], $status );
+				$result['title'] = $exam['title'];
+				$result['body']  = $exam['body'];
+			} else {
+				$result['body'] = self::my_learning( $actor );
+			}
+		} catch ( CourseException $e ) {
+			$result = array(
+				'status'     => $e->status,
+				'title'      => __( 'My learning', 'course-captain' ),
+				'title_attr' => '',
+				'body'       => '<p role="alert">' . esc_html( $is_lesson ? __( 'This lesson is not available.', 'course-captain' ) : __( 'This course is not available.', 'course-captain' ) ) . '</p>',
+			);
+		}
+		return $result;
+	}
+
+	/**
 	 * Document in the current locale.
 	 *
 	 * @param Actor  $actor  Learner.
@@ -167,25 +249,12 @@ final class LearningArea {
 	 * @return string
 	 */
 	private static function document( Actor $actor, string $path, string $status ): string {
-		$title      = __( 'My learning', 'course-captain' );
-		$title_attr = '';
-		try {
-			if ( 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)/?$#', trim( $path, '/' ), $m ) ) {
-				$course     = LearnerQueries::current()->course_id( $m[1] );
-				$room       = LearnerQueries::current()->course( $actor, $course );
-				$title      = $room['title'];
-				$title_attr = Locale::content_attributes( CourseStructure::course_language( $course ) );
-				$body       = ( '' !== $status ? '<p class="ccap-error" role="alert">' . esc_html( RestContract::user_message( $status ) ) . '</p>' : '' ) . self::course_room( $room ) . ExamRoom::course_exams( $actor, $course );
-			} elseif ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)/?$#', trim( $path, '/' ), $m ) ) {
-				$exam  = ExamRoom::render( $actor, (int) $m[1], $status );
-				$title = $exam['title'];
-				$body  = $exam['body'];
-			} else {
-				$body = self::my_learning( $actor );
-			}
-		} catch ( CourseException $e ) {
-			status_header( $e->status );
-			$body = '<p role="alert">' . esc_html__( 'This course is not available.', 'course-captain' ) . '</p>';
+		$page       = self::resolve( $actor, $path, $status );
+		$title      = $page['title'];
+		$title_attr = $page['title_attr'];
+		$body       = $page['body'];
+		if ( 200 !== $page['status'] ) {
+			status_header( $page['status'] );
 		}
 		$document_title = $title . ' – ' . get_bloginfo( 'name' );
 		$title_filter   = static fn(): string => $document_title;
@@ -218,7 +287,7 @@ final class LearningArea {
 			$html .= '<p class="ccap-state">' . esc_html( self::state_label( $course['access']['state'] ) ) . '</p>';
 			$html .= '<p><span class="screen-reader-text">' . esc_html__( 'Progress:', 'course-captain' ) . ' </span><progress max="100" value="' . (int) $course['progress']['completion_percent'] . '" aria-label="' . esc_attr__( 'Course progress', 'course-captain' ) . '"></progress> ' . esc_html( sprintf( /* translators: %s: percentage, e.g. "75 %" */ __( '%s completed', 'course-captain' ), Locale::percent( (int) $course['progress']['completion_percent'] ) ) ) . '</p>';
 			if ( null !== $course['resume'] ) {
-				$html .= '<p><a class="ccap-button" href="' . esc_url( self::url( 'kurs/' . $course['course_uid'] ) . '#lesson-' . $course['resume']['lesson_id'] ) . '">' . esc_html( sprintf( /* translators: %s: lesson title */ __( 'Continue: %s', 'course-captain' ), $course['resume']['title'] ) ) . '</a></p>';
+				$html .= '<p><a class="ccap-button" href="' . esc_url( self::lesson_url( $course['course_uid'], (int) $course['resume']['lesson_id'] ) ) . '">' . esc_html( sprintf( /* translators: %s: lesson title */ __( 'Continue: %s', 'course-captain' ), $course['resume']['title'] ) ) . '</a></p>';
 			}
 			$html .= '</li>';
 		}
@@ -234,6 +303,7 @@ final class LearningArea {
 	public static function course_room( array $room ): string {
 		$resume = $room['resume']['lesson_id'] ?? 0;
 		$lang   = Locale::content_attributes( CourseStructure::course_language( (int) $room['course_id'] ) );
+		$uid    = self::course_uid( (int) $room['course_id'] );
 		$html   = '<p class="ccap-state">' . esc_html( self::state_label( (string) $room['access']['state'] ) ) . '</p>';
 		$html  .= '<nav aria-label="' . esc_attr__( 'Course contents', 'course-captain' ) . '"><ol class="ccap-modules">';
 		foreach ( (array) $room['modules'] as $module ) {
@@ -245,7 +315,7 @@ final class LearningArea {
 			foreach ( (array) $module['lessons'] as $lesson ) {
 				$current = (int) $lesson['lesson_id'] === $resume ? ' aria-current="step"' : '';
 				$label   = '<span' . $lang . '>' . esc_html( (string) $lesson['title'] ) . '</span> <span class="ccap-lesson-state">(' . esc_html( null === $lesson['locked_reason'] ? self::lesson_label( (string) $lesson['state'] ) : self::lock_label( (string) $lesson['locked_reason'], null ) ) . ')</span>';
-				$html   .= '<li id="lesson-' . (int) $lesson['lesson_id'] . '">' . ( null === $lesson['locked_reason'] ? '<a href="' . esc_url( (string) get_permalink( (int) $lesson['lesson_id'] ) ) . '"' . $current . '>' . $label . '</a>' : '<span>' . $label . '</span>' ) . '</li>';
+				$html   .= '<li id="lesson-' . (int) $lesson['lesson_id'] . '">' . ( null === $lesson['locked_reason'] ? '<a href="' . esc_url( self::lesson_url( $uid, (int) $lesson['lesson_id'] ) ) . '"' . $current . '>' . $label . '</a>' : '<span>' . $label . '</span>' ) . '</li>';
 			}
 			$html .= '</ol></li>';
 		}
@@ -418,6 +488,7 @@ final class LearningArea {
 			. 'input[type=text],select{font:inherit;min-block-size:44px;max-inline-size:100%;box-sizing:border-box;padding-inline:.5rem}'
 			. '.ccap-exam-bar{position:sticky;inset-block-start:0;background:#fff;border-block-end:1px solid #8c8f94;padding-block:.25rem;z-index:5}.ccap-timer-line{margin:0;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}'
 			. '@media (max-height:32rem){.ccap-exam-bar{position:static}html{scroll-padding-block-start:0}}'
+			. '.ccap-lesson-nav{padding:0;display:flex;flex-wrap:wrap;gap:1rem;list-style:none}.ccap-status{border-inline-start:4px solid #00a32a;padding-inline-start:.75rem}'
 			. '.ccap-error{border-inline-start:4px solid #b32d2e;padding-inline-start:.75rem}[hidden]{display:none!important}'
 			. '@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}'
 			. '@media (forced-colors:active){:focus-visible{outline:3px solid CanvasText}.ccap-button{border-color:ButtonText}}';

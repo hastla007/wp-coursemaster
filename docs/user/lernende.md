@@ -1,14 +1,14 @@
 # Hilfe für Lernende
 
-Diese Seite dient Betreibern als Vorlage für eigene Hilfeseiten. Geprüft gegen: `src/Learner/{LearningArea,LearnerQueries,LearnerRoutes}.php`, `src/Learning/*`, `src/Exam/{ExamSessions,ExamFeedback}.php`, `src/Certificate/CertificatePages.php`, `src/Notification/NotificationPrefs.php`.
+Diese Seite dient Betreibern als Vorlage für eigene Hilfeseiten. Geprüft gegen: `src/Learner/{LearningArea,LessonView,LearnerQueries,LearnerRoutes}.php`, `src/Learning/*`, `src/Exam/{ExamSessions,ExamFeedback}.php`, `src/Certificate/CertificatePages.php`, `src/Notification/NotificationPrefs.php`.
 
-> **Stand:** Der Lernbereich zeigt „Mein Lernen“, den Kursraum, die Nachweise und die Benachrichtigungseinstellungen. Die **interaktive Lektionsansicht** (Video-Player, Fragen beantworten, Karteikarten umdrehen) und die **Prüfungsoberfläche** sind **geplant (R1-19/R1-20)**. Die Regeln unten sind serverseitig umgesetzt und über die REST-API nutzbar. Sie beschreiben, wie sich diese Funktionen verhalten werden.
+> **Stand:** Der Lernbereich zeigt „Mein Lernen“, den Kursraum, die Lektionsansicht (Text, Video, Datei, Abschluss per Knopf), den Prüfungsraum, die Nachweise und die Benachrichtigungseinstellungen. **Fragen beantworten und Karteikarten umdrehen in der Lektion** sowie die **Abgabe von Aufgaben** sind **geplant (R1-19/R1-20, R1-46)**. Die Regeln unten sind serverseitig umgesetzt und über die REST-API nutzbar. Sie beschreiben, wie sich diese Funktionen verhalten werden.
 
 ## 1. Lernbereich
 
 Adresse: `https://<ihre-site>/lernen/` (der Betreiber kann den Pfad ändern). Ohne Anmeldung werden Sie zur Anmeldung und danach zurück geleitet.
 
-**Mein Lernen** zeigt Ihre Kurse mit Status und Fortschritt in Prozent sowie einen Knopf *Continue* zur nächsten offenen Lektion.
+**Mein Lernen** zeigt Ihre Kurse mit Status und Fortschritt in Prozent sowie einen Knopf *Continue*, der direkt die nächste offene Lektion öffnet.
 
 | Status | Bedeutung |
 |---|---|
@@ -20,6 +20,8 @@ Adresse: `https://<ihre-site>/lernen/` (der Betreiber kann den Pfad ändern). Oh
 | kein Zugang | Sie sind für diesen Kurs nicht freigeschaltet |
 
 **Kursraum** (`/lernen/kurs/<kennung>`): Module und Lektionen mit Status. Gesperrte Inhalte nennen den Grund als Text, zum Beispiel „ab <Datum> freigeschaltet“ oder „erst nach Abschluss von Modul X“. Gründe für eine Sperre können sein: kein Zugang zum Modul, nur Probe-Auswahl (die ersten *n* Lektionen bzw. Fragen), zeitliche Freigabe, offene Voraussetzung, laufende Prüfung.
+
+**Lektion** (`/lernen/kurs/<kennung>/lektion/<nummer>`): Titel, Text und je nach Typ Video oder Datei-Download, darunter „Your progress“ mit dem Status als Text und – wenn die Lektion durch Bestätigen abgeschlossen wird – dem Knopf *Mark as completed*. Lektionen mit Mindest-Lesezeit haben den Knopf *Mark as read*; er wirkt erst nach der angegebenen Zeit. Datei-Lektionen zählen den Download über den Knopf *Download the file*. Unten führen *Previous*/*Next* zur vorigen bzw. nächsten freigeschalteten Lektion. Eine gesperrte Lektion zeigt nur den Sperrgrund (HTTP 403). Alles funktioniert ohne JavaScript.
 
 Barrierefreiheit: Sprunglink zum Inhalt, Statusangaben als Text, sichtbarer Fokus, Bedienelemente mindestens 44 px, einspaltig auf dem Smartphone.
 
