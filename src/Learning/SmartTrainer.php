@@ -304,6 +304,61 @@ final class SmartTrainer {
 	}
 
 	/**
+	 * Own entries "Due" and "Practise exam mistakes" (R0-19 R-07 `mode`,
+	 * R0-11 L-08/L-10, UI-F3). Both narrow the smart trainer's candidates
+	 * (accessible scope, no flashcards, no questions of a running exam) and
+	 * pick the winner with the normal score:
+	 * - `due`: consolidated questions whose review is due ({@see self::due()});
+	 *   `next_due` names the next future review when nothing is due.
+	 * - `exam_mistakes`: wrongly answered questions of an own evaluated exam
+	 *   attempt of this course ({@see ErrorTraining::from_exam()}); without
+	 *   `exam_session` the latest evaluated attempt. Exam answers never change
+	 *   the learning state; practising them does (normal learning token).
+	 *
+	 * @param Actor                $actor     Learner.
+	 * @param int                  $course_id Course.
+	 * @param string               $mode      `due`|`exam_mistakes`.
+	 * @param array<string, mixed> $options   `exam_session` (ID) for `exam_mistakes`.
+	 * @return array{question: array<string, mixed>|null, mode: string, remaining: int, next_due: string|null, exam_session: int|null}
+	 * @throws CourseException 422 unknown mode, 404 foreign attempt or attempt of another course, 409 running attempt, access errors.
+	 */
+	public function entry( Actor $actor, int $course_id, string $mode, array $options = array() ): array {
+		$next_due = null;
+		$session  = null;
+		if ( 'due' === $mode ) {
+			$due      = $this->due( $actor, $course_id );
+			$ids      = $due['ids'];
+			$next_due = $due['next_due'];
+		} elseif ( 'exam_mistakes' === $mode ) {
+			$session = self::positive_id( $options['exam_session'] ?? null );
+			if ( null === $session && null !== ( $options['exam_session'] ?? null ) && '' !== $options['exam_session'] ) {
+				throw new CourseException( 'ccap_invalid_param', 'exam_session', 422 );
+			}
+			$sessions = $this->db->table( 'ccap_exam_session' );
+			if ( null === $session ) {
+				$latest  = (int) $this->db->scalar( $this->db->prepare( "SELECT id FROM `{$sessions}` WHERE user_id = %d AND course_id = %d AND status = 'evaluated' ORDER BY id DESC LIMIT 1", $actor->user_id, $course_id ) );
+				$session = $latest > 0 ? $latest : null;
+			} elseif ( $course_id !== (int) $this->db->scalar( $this->db->prepare( "SELECT course_id FROM `{$sessions}` WHERE id = %d AND user_id = %d", $session, $actor->user_id ) ) ) {
+				throw new CourseException( 'ccap_not_found', 'Unknown attempt.', 404 );
+			}
+			$ids = null === $session ? array() : ErrorTraining::current()->from_exam( $actor, $session );
+		} else {
+			throw new CourseException( 'ccap_invalid_param', 'Unknown mode.', 422 );
+		}
+		$question = array() === $ids ? null : $this->next( $actor, $course_id, 'smart', array( 'only_ids' => $ids ) );
+		if ( array() === $ids && ! $this->any_module_accessible( $actor, $course_id ) ) {
+			CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ) ), 'No learning access.' );
+		}
+		return array(
+			'question'     => $question,
+			'mode'         => $mode,
+			'remaining'    => count( $ids ),
+			'next_due'     => $next_due,
+			'exam_session' => $session,
+		);
+	}
+
+	/**
 	 * Targeted practice of one question (GM-074, web path of the source's
 	 * app route): the question is delivered with the normal learning token,
 	 * so the answer updates the same learning state (`ccap_question_progress`).

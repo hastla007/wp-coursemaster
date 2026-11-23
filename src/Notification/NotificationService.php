@@ -809,6 +809,50 @@ final class NotificationService {
 	}
 
 	/**
+	 * Invitation budget of a group for display and pre-checks (R0-11 F3.7,
+	 * INV-D §6.4; UI-F1): the same limit as {@see self::group_invite_budget()},
+	 * max(20, 2 × seats) per 24 h. Counted are the invitation mails of the
+	 * last 24 h that are queued, being sent or sent, plus invitations whose
+	 * mail is not queued yet (outbox not processed). `next_at` (UTC) names
+	 * when the next invitation can be sent if the budget is used up.
+	 *
+	 * @param int $group_id Group.
+	 * @return array{limit: int, used: int, remaining: int, next_at: string|null}
+	 */
+	public function group_invite_status( int $group_id ): array {
+		$seats = $this->db->table( 'ccap_seat' );
+		$notes = $this->db->table( 'ccap_notification' );
+		$since = $this->db->now( -DAY_IN_SECONDS );
+		$limit = max( 20, 2 * (int) $this->db->scalar( $this->db->prepare( 'SELECT seats FROM `' . $this->db->table( 'ccap_group' ) . '` WHERE id = %d', $group_id ) ) );
+		$times = array_map(
+			'strval',
+			$this->db->wpdb()->get_col(
+				$this->db->prepare(
+					"SELECT n.created_at FROM `{$notes}` n JOIN `{$seats}` s ON n.recipient_ref = CONCAT('seat:', s.id) WHERE s.group_id = %d AND n.type = 'seat_invitation' AND n.status IN ('queued', 'retry_wait', 'sending', 'sent', 'caught') AND n.created_at > %s
+					UNION ALL
+					SELECT s.invited_at FROM `{$seats}` s WHERE s.group_id = %d AND s.invited_at > %s AND NOT EXISTS (SELECT 1 FROM `{$notes}` n WHERE n.type = 'seat_invitation' AND n.recipient_ref = CONCAT('seat:', s.id))",
+					$group_id,
+					$since,
+					$group_id,
+					$since
+				)
+			)
+		);
+		sort( $times );
+		$used = count( $times );
+		$next = null;
+		if ( $used >= $limit ) {
+			$next = gmdate( 'Y-m-d H:i:s', (int) strtotime( $times[ $used - $limit ] . ' UTC' ) + DAY_IN_SECONDS );
+		}
+		return array(
+			'limit'     => $limit,
+			'used'      => $used,
+			'remaining' => max( 0, $limit - $used ),
+			'next_at'   => $next,
+		);
+	}
+
+	/**
 	 * Invitations per group: max(20, 2 × seats) per 24 h (§3.8, fail-closed).
 	 *
 	 * @param int $seat_id Seat.

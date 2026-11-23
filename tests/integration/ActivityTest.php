@@ -363,6 +363,147 @@ final class ActivityTest extends SchemaTestCase {
 	}
 
 	/**
+	 * UI-F5 (h5 L-2, R0-08 §2.4/§6): a quiz with `source: module_pool` draws
+	 * `count` questions per attempt from the module pool with a seed per
+	 * attempt (reproducible, stream `pool:<lesson>`), never flashcards; the
+	 * draw is delivered and fed into the quiz progress; a new attempt draws
+	 * again; the validator blocks only an empty pool (VAL-029).
+	 *
+	 * @group UI-F5
+	 */
+	public function test_quiz_from_module_pool(): void {
+		$lesson = $this->post( 'ccap_lesson', $this->module );
+		$admin  = Actor::user( $this->admin );
+		$repo   = QuestionRepository::current();
+		$db     = Database::current();
+		ActivityService::current()->define(
+			$admin,
+			$lesson,
+			'quiz',
+			array(
+				'source' => 'module_pool',
+				'count'  => 3,
+			)
+		);
+		try {
+			ActivityService::current()->define( $admin, $lesson, 'quiz', array( 'count' => 0 ) );
+			self::fail( 'count below 1' );
+		} catch ( CourseException $e ) {
+			self::assertSame( 'ccap_validation_failed', $e->error_code );
+		}
+		$codes = static fn( int $course ): array => array_map( static fn( array $i ): string => $i['severity'] . ':' . $i['message_key'], array_values( array_filter( \CourseCaptain\Publish\CourseValidator::validate( $course, 'live' )['issues'], static fn( array $i ): bool => 'VAL-029' === $i['code'] ) ) );
+		self::assertSame( array( 'blocker:cc.val.quiz.pool_empty' ), $codes( $this->course ) );
+
+		$ids = array();
+		for ( $i = 1; $i <= 6; $i++ ) {
+			$card     = 6 === $i;
+			$question = $repo->create(
+				$admin,
+				$card ? array(
+					'question_type' => QuestionTypes::FLASHCARD,
+					'question_text' => 'Card',
+					'settings'      => array( 'back' => 'Back' ),
+				) : array(
+					'question_type' => QuestionTypes::SINGLE,
+					'question_text' => 'Pool ' . $i,
+					'answers'       => array(
+						array(
+							'key'     => 'A',
+							'text'    => 'right',
+							'correct' => true,
+						),
+						array(
+							'key'  => 'B',
+							'text' => 'wrong',
+						),
+					),
+				)
+			);
+			$repo->publish( $admin, $question );
+			$db->insert(
+				'ccap_module_question',
+				array(
+					'module_id'   => $this->module,
+					'question_id' => $question,
+					'sort_order'  => $i,
+				)
+			);
+			if ( ! $card ) {
+				$ids[] = $question;
+			}
+		}
+		$pool = \CourseCaptain\Question\QuizPool::current();
+		self::assertSame( $ids, $pool->eligible( $lesson ), 'flashcards are never drawn' );
+		self::assertSame( array(), $codes( $this->course ), 'pool large enough' );
+		ActivityService::current()->define(
+			$admin,
+			$lesson,
+			'quiz',
+			array(
+				'source' => 'module_pool',
+				'count'  => 9,
+			)
+		);
+		self::assertSame( array( 'notice:cc.val.quiz.pool_small' ), $codes( $this->course ), 'smaller pool: a note only' );
+		ActivityService::current()->define(
+			$admin,
+			$lesson,
+			'quiz',
+			array(
+				'source' => 'module_pool',
+				'count'  => 3,
+			)
+		);
+
+		// Reproducible from the seed; another seed gives another order.
+		$picked = \CourseCaptain\Question\QuizPool::pick( $ids, '12345', 3, $lesson );
+		self::assertCount( 3, $picked );
+		self::assertSame( $picked, \CourseCaptain\Question\QuizPool::pick( $ids, '12345', 3, $lesson ) );
+		self::assertSame( array(), array_diff( $picked, $ids ) );
+
+		$learner   = Actor::user( $this->learner );
+		$presenter = QuestionPresenter::current();
+		self::assertSame( array(), $presenter->quiz_questions( $lesson, $this->learner ), 'no draw before the first delivery' );
+		$draw = $pool->draw( $learner, $this->course, $lesson, false, new \CourseCaptain\Question\Randomizer( '12345' ) );
+		self::assertSame( array( '12345', 1, $picked ), array( $draw['seed'], $draw['attempt'], $draw['ids'] ) );
+		self::assertSame( $draw, $pool->draw( $learner, $this->course, $lesson ), 'same attempt keeps its draw' );
+		self::assertSame( $picked, $presenter->quiz_questions( $lesson, $this->learner ) );
+
+		$outside = array_values( array_diff( $ids, $picked ) )[0];
+		try {
+			$presenter->deliver_inline( $learner, $this->course, $lesson, $outside );
+			self::fail( 'question outside the draw' );
+		} catch ( CourseException $e ) {
+			self::assertSame( 'ccap_not_found', $e->error_code );
+		}
+		foreach ( $picked as $question ) {
+			$delivery = $presenter->deliver_inline( $learner, $this->course, $lesson, $question );
+			self::assertStringNotContainsString( 'correct', (string) wp_json_encode( $delivery['question'] ) );
+			\CourseCaptain\Learning\AnswerService::current()->answer( $learner, $delivery['token'], array( 'A' ), wp_generate_uuid4() );
+		}
+		$state = ActivityProgress::current()->state( $this->learner, $lesson );
+		$data  = json_decode( (string) $state['data'], true );
+		self::assertSame( array( 3, 3, 3 ), array( $data['answered'], $data['correct'], $data['total'] ) );
+		self::assertSame( 'completed', $state['status'], 'attempted: every drawn question answered' );
+
+		// New attempt: new seed, counters start again, completion stays (monotonic).
+		$again = $pool->draw( $learner, $this->course, $lesson, true, new \CourseCaptain\Question\Randomizer( '999' ) );
+		self::assertSame( array( '999', 2 ), array( $again['seed'], $again['attempt'] ) );
+		self::assertSame( \CourseCaptain\Question\QuizPool::pick( $ids, '999', 3, $lesson ), $again['ids'] );
+		$state = ActivityProgress::current()->state( $this->learner, $lesson );
+		self::assertSame( 0, json_decode( (string) $state['data'], true )['answered'] );
+		self::assertSame( 'completed', $state['status'] );
+
+		// No access, no draw.
+		try {
+			$pool->draw( Actor::user( (int) self::factory()->user->create() ), $this->course, $lesson );
+			self::fail( 'draw without access' );
+		} catch ( CourseException $e ) {
+			self::assertContains( $e->error_code, array( 'ccap_forbidden', 'ccap_content_locked', 'ccap_not_found' ) );
+		}
+	}
+
+	/**
 	 * Media: register attachment idempotently (protected default), attach to a lesson.
 	 */
 	public function test_media_library(): void {

@@ -219,35 +219,105 @@ final class GroupsScreen {
 	}
 
 	/**
-	 * Invite up to 200 addresses (GF-09).
+	 * Invite up to 200 addresses (GF-09). Addresses that are already in the
+	 * group and addresses beyond the invitation budget (F3.7) count as
+	 * `limited` here (no seat taken, no mail).
 	 *
 	 * @param Actor  $actor  Manager.
 	 * @param int    $group  Group.
 	 * @param string $emails One address per line or separated by commas.
-	 * @return array{invited: int, invalid: int, limited: int}
+	 * @return array{invited: int, invalid: int, limited: int, already_member: int, budget: int}
 	 * @throws CourseException `ccap_invalid_param` above 200 addresses.
 	 */
 	public static function invite( Actor $actor, int $group, string $emails ): array {
 		$parts = preg_split( '/[\s,;]+/', $emails );
 		$list  = array_values( array_filter( array_map( 'trim', false === $parts ? array() : $parts ) ) );
-		if ( array() === $list || count( $list ) > 200 ) {
+		$out   = array(
+			'invited'        => 0,
+			'invalid'        => 0,
+			'limited'        => 0,
+			'already_member' => 0,
+			'budget'         => 0,
+		);
+		foreach ( self::invite_list( $actor, $group, $list ) as $row ) {
+			switch ( $row['status'] ) {
+				case 'invited':
+					++$out['invited'];
+					break;
+				case 'invalid':
+					++$out['invalid'];
+					break;
+				case 'already_member':
+					++$out['already_member'];
+					break;
+				case 'budget':
+					++$out['budget'];
+					break;
+				default:
+					++$out['limited'];
+			}
+		}
+		$out['limited'] += $out['already_member'] + $out['budget'];
+		return $out;
+	}
+
+	/**
+	 * Invite addresses one by one (GF-09, R0-19 R-35): `invalid` address,
+	 * `already_member` (an active seat or an open invitation of the group
+	 * with this address), `limited` (no free seat), `budget` (invitation
+	 * budget of the group used up, F3.7: the mail would not be sent), or
+	 * `invited`. Duplicates in the list are handled once.
+	 *
+	 * @param Actor $actor  Owner (M-15) or manager.
+	 * @param int   $group  Group.
+	 * @param array $emails Addresses (1…200).
+	 * @phpstan-param list<string> $emails
+	 * @return list<array{email: string, status: string}>
+	 * @throws CourseException `ccap_invalid_param` for an empty list or more than 200 addresses; rights of {@see GroupService::invite()}.
+	 */
+	public static function invite_list( Actor $actor, int $group, array $emails ): array {
+		if ( array() === $emails || count( $emails ) > 200 ) {
 			throw new CourseException( 'ccap_invalid_param', 'emails', 422 );
 		}
-		$out = array(
-			'invited' => 0,
-			'invalid' => 0,
-			'limited' => 0,
-		);
-		foreach ( array_unique( $list ) as $email ) {
+		$service = GroupService::current();
+		$budget  = null;
+		$out     = array();
+		$unique  = array();
+		foreach ( $emails as $email ) {
+			$email                            = trim( (string) $email );
+			$unique[ strtolower( $email ) ] ??= $email;
+		}
+		foreach ( $unique as $email ) {
 			if ( ! is_email( $email ) ) {
-				++$out['invalid'];
+				$out[] = array(
+					'email'  => $email,
+					'status' => 'invalid',
+				);
 				continue;
 			}
-			if ( null === GroupService::current()->invite( $actor, $group, $email ) ) {
-				++$out['limited'];
-			} else {
-				++$out['invited'];
+			if ( $service->has_address( $group, $email ) ) {
+				$out[] = array(
+					'email'  => $email,
+					'status' => 'already_member',
+				);
+				continue;
 			}
+			$budget ??= NotificationService::current()->group_invite_status( $group )['remaining'];
+			if ( $budget <= 0 ) {
+				$out[] = array(
+					'email'  => $email,
+					'status' => 'budget',
+				);
+				continue;
+			}
+			$seat = $service->invite( $actor, $group, $email );
+			if ( null !== $seat ) {
+				--$budget;
+			}
+			$out[] = array(
+				'email'  => $email,
+				'status' => null === $seat ? 'limited' : 'invited',
+			);
 		}
 		return $out;
 	}

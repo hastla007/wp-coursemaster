@@ -235,7 +235,34 @@ final class CourseValidator {
 				if ( 'video' === $type && $placeholder ) {
 					$this->add( 'VAL-027', 'notice', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.video.placeholder', array(), __( 'This video lesson is a placeholder and does not count for completion.', 'course-captain' ), 'settings.placeholder' );
 				}
-				if ( 'quiz' === $type && array() === \CourseCaptain\Question\QuestionPresenter::current()->inline_questions( (int) $lesson->ID ) ) {
+				if ( 'quiz' === $type && \CourseCaptain\Question\QuizPool::SOURCE === ( $definition['settings']['source'] ?? '' ) ) {
+					// UI-F5: drawn from the module pool; the pool must hold deliverable questions (R0-22 VAL-029).
+					$eligible = count( \CourseCaptain\Question\QuizPool::current()->eligible( (int) $lesson->ID ) );
+					$wanted   = \CourseCaptain\Question\QuizPool::count_setting( $definition['settings'] );
+					if ( 0 === $eligible ) {
+						$this->add( 'VAL-029', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.quiz.pool_empty', array(), __( 'This quiz draws its questions from the module pool, but the pool of its module has no questions that can be delivered. Add published questions to the module pool.', 'course-captain' ), 'settings.source' );
+					} elseif ( $eligible < $wanted ) {
+						$this->add(
+							'VAL-029',
+							'notice',
+							'activity',
+							(int) $lesson->ID,
+							$lesson->post_title,
+							'cc.val.quiz.pool_small',
+							array(
+								'available' => $eligible,
+								'count'     => $wanted,
+							),
+							sprintf(
+								/* translators: 1: questions in the module pool, 2: questions per attempt */
+								_n( 'The module pool has only %1$s question for this quiz; each attempt asks for %2$s. Learners get all available questions.', 'The module pool has only %1$s questions for this quiz; each attempt asks for %2$s. Learners get all available questions.', $eligible, 'course-captain' ),
+								number_format_i18n( $eligible ),
+								number_format_i18n( $wanted )
+							),
+							'settings.count'
+						);
+					}
+				} elseif ( 'quiz' === $type && array() === \CourseCaptain\Question\QuestionPresenter::current()->inline_questions( (int) $lesson->ID ) ) {
 					$this->add( 'VAL-029', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.quiz.empty', array(), __( 'This quiz has no questions. Add questions to the quiz.', 'course-captain' ) );
 				}
 			}

@@ -13,6 +13,7 @@ namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Access\GroupService;
 use CourseCaptain\Access\SelfEnrollment;
+use CourseCaptain\Admin\GroupsScreen;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Assignment\AssignmentService;
 use CourseCaptain\Course\CoursePublisher;
@@ -937,6 +938,129 @@ final class LearnerUiTest extends SchemaTestCase {
 				)
 			)
 		);
+	}
+
+	/**
+	 * UI-F1: owner REST R-33…R-37 (R0-19 RG-12) and the invitation budget
+	 * with the waiting time (F3.7) on the owner page and in R-33/R-35.
+	 *
+	 * @group UI-F1
+	 * @group R-33
+	 * @group RBAC-052
+	 */
+	public function test_owner_rest_and_invitation_budget(): void {
+		$owner   = (int) self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$service = GroupService::current();
+		$group   = $service->create( Actor::user( $this->admin ), $owner, 'Team R', 3, array( array( 'course_id' => $this->course ) ), wp_generate_uuid4() );
+		$db      = Database::current();
+		$uid     = (string) $db->scalar( $db->prepare( 'SELECT uid FROM `' . $db->table( 'ccap_group' ) . '` WHERE id = %d', $group ) );
+		$call    = static function ( string $method, string $path, array $params = array(), array $headers = array() ): \WP_REST_Response {
+			$request = new \WP_REST_Request( $method, '/course-captain/v1' . $path );
+			foreach ( $params as $key => $value ) {
+				$request->set_param( $key, $value );
+			}
+			foreach ( $headers as $key => $value ) {
+				$request->set_header( $key, $value );
+			}
+			return rest_do_request( $request );
+		};
+		$code    = static fn( \WP_REST_Response $r ): array => array( $r->get_status(), (string) ( $r->get_data()['code'] ?? '' ) );
+
+		self::assertSame( 401, $call( 'GET', '/me/groups' )->get_status() );
+		wp_set_current_user( $this->learner );
+		self::assertSame( array(), $call( 'GET', '/me/groups' )->get_data(), 'only own groups' );
+		self::assertSame( array( 404, 'ccap_not_found' ), $code( $call( 'PUT', '/me/groups/' . $uid, array( 'name' => 'Mine' ) ) ), 'foreign group' );
+
+		wp_set_current_user( $owner );
+		$list = $call( 'GET', '/me/groups' );
+		self::assertSame( 200, $list->get_status() );
+		self::assertStringContainsString( 'no-store', (string) $list->get_headers()['Cache-Control'] );
+		$row = $list->get_data()[0];
+		self::assertSame( array( $uid, 'Team R', 'active' ), array( $row['uid'], $row['name'], $row['status'] ) );
+		self::assertSame( 3, $row['seats']['total'] );
+		self::assertSame( 0, $row['seats']['used'] );
+		self::assertFalse( $row['invite_link'] );
+		self::assertNull( $row['invite_link_expires_at'] );
+		self::assertSame( array( 20, 0, 20, null, 0 ), array_values( $row['invite_budget'] ), 'max(20, 2 × seats) per day' );
+
+		// R-34 rename with If-Match.
+		self::assertSame( array( 409, 'ccap_version_conflict' ), $code( $call( 'PUT', '/me/groups/' . $uid, array( 'name' => 'Team X' ), array( 'If-Match' => '"999"' ) ) ) );
+		$renamed = $call( 'PUT', '/me/groups/' . $uid, array( 'name' => 'Team R2' ), array( 'If-Match' => '"' . $row['row_version'] . '"' ) );
+		self::assertSame( 200, $renamed->get_status() );
+		self::assertSame( 'Team R2', $renamed->get_data()['name'] );
+		self::assertSame( '"' . $renamed->get_data()['row_version'] . '"', $renamed->get_headers()['ETag'] );
+
+		// R-35 invite with a required idempotency key.
+		$emails = array( 'Ann@example.org', 'ann@example.org', 'not-an-address' );
+		self::assertSame( array( 428, 'ccap_idempotency_key_required' ), $code( $call( 'POST', '/me/groups/' . $uid . '/invite', array( 'emails' => $emails ) ) ) );
+		$key    = wp_generate_uuid4();
+		$invite = $call( 'POST', '/me/groups/' . $uid . '/invite', array( 'emails' => $emails ), array( 'Idempotency-Key' => $key ) );
+		self::assertSame( 200, $invite->get_status() );
+		self::assertSame(
+			array(
+				array(
+					'email_masked' => 'A***@example.org',
+					'status'       => 'invited',
+				),
+				array(
+					'email_masked' => '***',
+					'status'       => 'invalid',
+				),
+			),
+			$invite->get_data()['results']
+		);
+		self::assertFalse( $invite->get_data()['bound_to_address'] );
+		self::assertSame( $invite->get_data(), $call( 'POST', '/me/groups/' . $uid . '/invite', array( 'emails' => $emails ), array( 'Idempotency-Key' => $key ) )->get_data(), 'repeat: same answer' );
+		self::assertSame( 1, $service->occupied( $group ), 'no second seat on repeat' );
+		self::assertSame( array( 409, 'ccap_idempotency_conflict' ), $code( $call( 'POST', '/me/groups/' . $uid . '/invite', array( 'emails' => array( 'other@example.org' ) ), array( 'Idempotency-Key' => $key ) ) ) );
+		$again = $call( 'POST', '/me/groups/' . $uid . '/invite', array( 'emails' => array( 'ann@example.org' ) ), array( 'Idempotency-Key' => wp_generate_uuid4() ) );
+		self::assertSame( 'already_member', $again->get_data()['results'][0]['status'] );
+
+		$members = $call( 'GET', '/me/groups' )->get_data()[0]['members'];
+		self::assertSame( array( 'A***@example.org', 'invited' ), array( $members[0]['email_masked'], $members[0]['status'] ), 'masked, no learning results' );
+		self::assertSame( array( 'seat_id', 'display_name', 'email_masked', 'status', 'since' ), array_keys( $members[0] ) );
+
+		// R-36 new group link.
+		$token = $call( 'POST', '/me/groups/' . $uid . '/token' );
+		self::assertSame( 200, $token->get_status() );
+		self::assertStringContainsString( Invitation::PARAM . '=', $token->get_data()['invite_url'] );
+		self::assertTrue( $call( 'GET', '/me/groups' )->get_data()[0]['invite_link'] );
+
+		// R-37 withdraw the invitation; unknown seats are 404.
+		self::assertSame( 204, $call( 'DELETE', '/me/groups/' . $uid . '/members/' . $members[0]['seat_id'] )->get_status() );
+		self::assertSame( 0, $service->occupied( $group ) );
+		self::assertSame( array( 404, 'ccap_not_found' ), $code( $call( 'DELETE', '/me/groups/' . $uid . '/members/' . $members[0]['seat_id'] ) ) );
+
+		// F3.7: budget used up (invitations of the last 24 hours) → 429 with waiting time, shown on the page.
+		for ( $i = 0; $i < 20; $i++ ) {
+			$db->insert(
+				'ccap_seat',
+				array(
+					'group_id'     => $group,
+					'invite_email' => 'old' . $i . '@example.org',
+					'status'       => 'expired',
+					'invited_at'   => gmdate( 'Y-m-d H:i:s', time() - 2 * HOUR_IN_SECONDS ),
+				),
+				array( 'created_at', 'updated_at' )
+			);
+		}
+		$budget = $call( 'GET', '/me/groups' )->get_data()[0]['invite_budget'];
+		self::assertSame( 0, $budget['remaining'] );
+		self::assertNotNull( $budget['next_at'] );
+		self::assertGreaterThan( 20 * HOUR_IN_SECONDS, $budget['retry_after'] );
+		$limited = $call( 'POST', '/me/groups/' . $uid . '/invite', array( 'emails' => array( 'late@example.org' ) ), array( 'Idempotency-Key' => wp_generate_uuid4() ) );
+		self::assertSame( array( 429, 'ccap_rate_limited' ), $code( $limited ) );
+		self::assertSame( 'group_invite', $limited->get_data()['data']['bucket'] );
+		self::assertGreaterThan( 20 * HOUR_IN_SECONDS, $limited->get_data()['data']['retry_after'], 'Retry-After of the error format (RestContract)' );
+		$page = LearningArea::page( Actor::user( $owner ), 'gruppen/' . $uid );
+		self::assertSame( array(), A11yDom::document_problems( $page ) );
+		self::assertStringContainsString( 'The invitations for today are used up (at most 20 per day). You can send the next invitation in', $page );
+		self::assertSame( 'budget', GroupsScreen::invite_list( Actor::user( $owner ), $group, array( 'late@example.org' ) )[0]['status'], 'the owner form is limited too' );
+
+		// Suspended groups are read-only (F3.5).
+		$service->set_status( Actor::user( $this->admin ), $group, 'suspended' );
+		self::assertSame( array( 409, 'ccap_group_not_active' ), $code( $call( 'POST', '/me/groups/' . $uid . '/token' ) ) );
+		self::assertSame( 'suspended', $call( 'GET', '/me/groups' )->get_data()[0]['status'] );
 	}
 
 	/**

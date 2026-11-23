@@ -13,7 +13,9 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Completion `attempted` (every question answered once, default),
- * `passed`, `all_correct_once`.
+ * `passed`, `all_correct_once`. Questions: fixed inline questions
+ * (`source: inline`, default) or `count` questions drawn per attempt from
+ * the module pool (`source: module_pool`, {@see \CourseCaptain\Question\QuizPool}).
  */
 final class QuizProvider extends AbstractProvider {
 
@@ -52,6 +54,12 @@ final class QuizProvider extends AbstractProvider {
 				'source'             => array(
 					'type' => 'string',
 					'enum' => array( 'inline', 'module_pool' ),
+				),
+				// UI-F5: questions per attempt for `module_pool` (default 10).
+				'count'              => array(
+					'type'    => 'integer',
+					'minimum' => 1,
+					'maximum' => \CourseCaptain\Question\QuizPool::MAX_COUNT,
 				),
 				'scored'             => array( 'type' => 'boolean' ),
 				'counts_as_evidence' => array( 'type' => 'boolean' ),

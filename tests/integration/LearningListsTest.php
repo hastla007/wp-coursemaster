@@ -443,6 +443,70 @@ final class LearningListsTest extends SchemaTestCase {
 		self::assertSame( array( $q1 ), $training->from_exam( $learner, $evaluated ) );
 		$foreign = $session( 'evaluated', (int) self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
 		$this->assertRejected( fn() => $training->from_exam( $learner, $foreign ), 'ccap_not_found' );
+
+		// UI-F3: own REST entries "Practise exam mistakes" and "Due" (R0-19 R-07 `mode`).
+		wp_set_current_user( $this->learner );
+		$next   = function ( array $params ): \WP_REST_Response {
+			$request = new \WP_REST_Request( 'GET', '/course-captain/v1/courses/' . $this->course . '/next-question' );
+			foreach ( $params as $key => $value ) {
+				$request->set_param( $key, $value );
+			}
+			return rest_do_request( $request );
+		};
+		$latest = $next( array( 'mode' => 'exam_mistakes' ) );
+		self::assertSame( 200, $latest->get_status() );
+		self::assertSame( array( $q1, 'exam_mistakes', 1, $evaluated ), array( $latest->get_data()['question_id'], $latest->get_data()['mode'], $latest->get_data()['remaining'], $latest->get_data()['exam_session'] ), 'latest evaluated attempt' );
+		self::assertIsString( $latest->get_data()['token'] );
+		self::assertStringNotContainsString( '"correct"', (string) wp_json_encode( $latest->get_data()['question'] ), 'no solutions' );
+		self::assertSame(
+			$q1,
+			$next(
+				array(
+					'mode'         => 'exam_mistakes',
+					'exam_session' => (string) $evaluated,
+				)
+			)->get_data()['question_id']
+		);
+		self::assertSame(
+			array( 404, 'ccap_not_found' ),
+			array(
+				$next(
+					array(
+						'mode'         => 'exam_mistakes',
+						'exam_session' => (string) $foreign,
+					)
+				)->get_status(),
+				$next(
+					array(
+						'mode'         => 'exam_mistakes',
+						'exam_session' => (string) $foreign,
+					)
+				)->get_data()['code'],
+			),
+			'foreign attempt'
+		);
+		self::assertSame(
+			422,
+			$next(
+				array(
+					'mode'         => 'exam_mistakes',
+					'exam_session' => 'x1',
+				)
+			)->get_status()
+		);
+		self::assertSame( 422, $next( array( 'mode' => 'nonsense' ) )->get_status() );
+
+		$due = $next( array( 'mode' => 'due' ) )->get_data();
+		self::assertSame( array( null, 'due', 0 ), array( $due['question'], $due['mode'], $due['remaining'] ), 'nothing due yet' );
+		$progress = $db->table( 'ccap_question_progress' );
+		$db->execute( $db->prepare( "UPDATE `{$progress}` SET learn_status = 'secure', due_at = %s WHERE user_id = %d AND question_id = %d", '2020-01-01 00:00:00', $this->learner, $q2 ) );
+		$db->execute( $db->prepare( "UPDATE `{$progress}` SET learn_status = 'mastered', due_at = %s WHERE user_id = %d AND question_id = %d", '2099-01-01 00:00:00', $this->learner, $q1 ) );
+		$due = $next( array( 'mode' => 'due' ) )->get_data();
+		self::assertSame( array( $q2, 1, '2099-01-01 00:00:00' ), array( $due['question_id'], $due['remaining'], $due['next_due'] ) );
+		self::assertSame( 'no-store', substr( (string) $next( array( 'mode' => 'due' ) )->get_headers()['Cache-Control'], -8 ) );
+		wp_set_current_user( 0 );
+		self::assertSame( 401, $next( array( 'mode' => 'due' ) )->get_status() );
+
 		$running = $session( 'in_progress', $this->learner );
 		$this->assertRejected( fn() => $training->from_exam( $learner, $running ), 'ccap_exam_running' );
 	}

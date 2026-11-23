@@ -25,8 +25,8 @@
  *   stands in for it and is timed separately.
  * - `quiz <lesson id> <module id> [n]` attaches the first n (5) questions of
  *   the module pool to a quiz lesson as inline questions (no editor or
- *   service for that yet; a quiz with `source: module_pool` is not delivered
- *   and the validator blocks it with VAL-029).
+ *   service for that yet). A quiz with `source: module_pool` draws its
+ *   questions from the module pool instead (UI-F5, `Question\QuizPool`).
  * - `uid <post id>` prints the object UID of a course.
  *
  * @package CourseCaptain
