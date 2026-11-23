@@ -19,7 +19,7 @@ return array(
 	'exceptions' => array(
 		'GM-077' => array( 'r2', 'E-05', 'Second channel is the app API (no app API in R1).' ),
 		'GM-160' => array( 'r3', 'E-24, R0-12 C-8', 'Signed one-click unsubscribe is Pro (R3-15); N-01 unsubscribe headers are tested in NotificationTest.' ),
-		'GM-180' => array( 'deviation', 'R1-31 A-2', 'No `default_access` key in the R0-27 register; access comes from grants and `free` rules (GM-081). Needs the client decision (§5.1).' ),
+		'GM-180' => array( 'deviation', 'R1-31 A-2', 'No `default_access` key in the R0-27 register; access comes from grants and `free` rules (GM-081). Approved by the client as a deviation (E-334, 23.11.2026).' ),
 	),
 	'partial'    => array(
 		'GM-038' => 'REST save with age_ms; 422 reason `ccap_exam_expired` over REST not asserted.',

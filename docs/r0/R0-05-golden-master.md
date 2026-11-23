@@ -478,7 +478,7 @@ FC-A-01…08 (C-A, Modus „Selbsteinschätzung“ `open/practice/known`; FC-A-0
 | MED-005 | `https://videos.example.test/cc/alpha-07.mp4` | URL ohne Datei | Fremdhost/Consent |
 | MED-BAD-1…6 | `x.php`, `x.php.png`, `x.svg` (mit `<script>`), `.htaccess`, `x.png` (PHP-Inhalt), `y.png` (MIME `text/html`) | erzeugt | GM-128 |
 
-Pakete: **PKG-v1** (Basis mit C-A und C-B; C-C und C-D legt der Fixture-Loader direkt im Status Entwurf bzw. archiviert an; `package_id = cc-fx-neutral-v1-000000000001`); **PKG-v2** (deterministisch aus v1 abgeleitet: Q-A1-007 rev2 mit Textzusatz „(korrigiert)“, FC-A-08 entfernt; `package_id = …-000000000002`; Muster CF:85-103 mit festem Suffix `-00000000c0de`, CF:97); **PKG-BAD-TRAV** (`../evil.txt`), **PKG-BAD-LINK** (Symlink), **PKG-BAD-FOREIGN** (fremde Datei im Wurzelordner), **PKG-SYS** (mit `.DS_Store`, `Thumbs.db`, `__MACOSX/`), **PKG-LARGE** (20 000 generierte Fragen, 3 mit defekter Referenz).
+Pakete: **PKG-v1** (Basis mit C-A und C-B; C-C und C-D legt der Fixture-Loader direkt im Status Entwurf bzw. archiviert an; `package_id` aus dem Inhalt gebildet: `cc-fx-neutral-v1-<sha12>`, R0-10 §1.2, E-336); **PKG-v2** (deterministisch aus v1 abgeleitet: Q-A1-007 rev2 mit Textzusatz „(korrigiert)“, FC-A-08 entfernt; `package_id` ebenfalls aus dem Inhalt gebildet, daher von PKG-v1 verschieden, E-336); **PKG-BAD-TRAV** (`../evil.txt`), **PKG-BAD-LINK** (Symlink), **PKG-BAD-FOREIGN** (fremde Datei im Wurzelordner), **PKG-SYS** (mit `.DS_Store`, `Thumbs.db`, `__MACOSX/`), **PKG-LARGE** (20 000 generierte Fragen, 3 mit defekter Referenz).
 
 ### 2.7 Nutzer und Rollen
 
@@ -531,7 +531,7 @@ Die Bereichsangaben (`question_bank`, `exam`, `lessons` …) der Grants und Rege
 
 ### 2.9 Zusatzpaket PKG-X1 (neue Funktionen ohne LB-Quelle)
 
-PKG-X1 (`package_id = cc-fx-neutral-v1-x00000000001`) wird nur von den Tests in §1.22 geladen (eigener, idempotenter Loader-Schritt nach PKG-v1). Es ändert keine Zählung aus §2.2–§2.8 (GM-001, GM-006, GM-118 bleiben gültig).
+PKG-X1 (`package_id` aus dem Inhalt gebildet, E-336) wird nur von den Tests in §1.22 geladen (eigener, idempotenter Loader-Schritt nach PKG-v1). Es ändert keine Zählung aus §2.2–§2.8 (GM-001, GM-006, GM-118 bleiben gültig).
 
 | ID | Inhalt |
 |---|---|

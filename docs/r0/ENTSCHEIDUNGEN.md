@@ -87,6 +87,10 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-331 (F-1) | Prüfungsteile können mehrere Blueprint-Module umfassen (Teilbestehensregel über Modulgruppen); wird nachgebaut | nein |
 | E-332 (F-2) | Kostenloser Teilumfang mit eigener Grenze je Art (Fragen, Lektionen, Prüfungsbögen, Dateien); wird nachgebaut | nein |
 | E-333 (F-6/F-7) | Freigegebene Abweichungen: Join-Token nicht frei setzbar (nur Hash, E-112); paralleler Prüfungsstart 409 `ccap_exam_start_busy`; fremder Kurs 404 statt 403 | nein |
+| E-334 (GM-180) | Freigegebene Abweichung (23.11.2026): kein Einstellungsschlüssel `default_access`; Zugang entsteht nur über Grants und `free`-Regeln (R1-31 A-2, GM-081) | nein |
+| E-335 (GM-068) | Backfill für Altzeilen ohne `due_at` bleibt nur im Migrationswerkzeug (E-03), nicht in `Migrator::core_backfills()` (23.11.2026) | nein |
+| E-336 | Redaktionelle Angleichung der R0-Dokumente an R0-19/R0-10 (23.11.2026): Monitor `GET /monitor` (Alias `/health`) mit Header `X-CC-Monitor-Key` (R0-13); `package_id` der Fixture-Pakete aus dem Inhalt gebildet (R0-05 §2.6); `ccap_access_exists` (409) und `ccap_user_required` (401) im Fehlerkatalog R0-19 §3 | nein |
+| E-337 (E-332) | Karteikarten zählen im kostenlosen Teilumfang als Fragen; keine eigene Kartengrenze (23.11.2026) | nein |
 
 ### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
 

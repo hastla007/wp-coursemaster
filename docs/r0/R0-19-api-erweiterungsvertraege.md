@@ -291,6 +291,8 @@ LB-App-Format (`src/Mobile/Problem.php`: `type, title, status, detail, code, mes
 | `ccap_invalid_token` | 422 | Frage- oder Einladungstoken manipuliert, fremd oder falsches Format | `signature`, `other_account`, `format` | – | `RuntimeException` (QuestionPresenter.php:157-163) |
 | `ccap_idempotency_key_required` | 428 | Pflicht-Header `Idempotency-Key` fehlt oder ist keine UUID | – | – | Text „Ungültiger Idempotency-Key.“ |
 | `ccap_idempotency_conflict` | 409 | gleicher Key, anderer Inhalt bzw. anderer Nutzer/anderes Ziel | – | – | – / `IDEMPOTENCY_KEY_REUSED`; `lb_idempotency_conflict`; `vcap_idempotency_conflict` |
+| `ccap_access_exists` | 409 | Grant aus einer Quelle angefragt, die Person hat schon dauerhaften Zugang; nichts wird angelegt (R0-05 GM-089, E-336) | – | – | – (neu) |
+| `ccap_user_required` | 401 | Grant aus einer Quelle ohne zugeordnetes Konto (Gastkauf vor Kontozuordnung, E-30; R0-05 GM-089, E-336) | – | – | – (neu) |
 | `ccap_request_in_progress` | 409 | gleiche Anfrage läuft noch | – | R (`retry_after: 2`) | – / `REQUEST_IN_PROGRESS` |
 | `ccap_version_conflict` | 409 | `If-Match` passt nicht mehr | – | – | – / `VERSION_CONFLICT` |
 | `ccap_resource_busy` | 409 | Sperre belegt (Import, Gruppe, Grant) | `lock` | R | `bp_voucher_busy` (Muster) |

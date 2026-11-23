@@ -86,7 +86,7 @@ R1-GATE verlangt 100 % grüne Pflichttests oder freigegebene Abweichungen (E-184
 |---|---|
 | **Referenzlauf des Originals für die Rechenlogik-Fälle (E-56, E-328)**: GM-029…GM-031, GM-065…GM-068, GM-084, GM-131 mit LB-Format-Zwilling, nur durch Ausführen (E-01); Protokoll der Ergebnisse gegen die Erwartungswerte. Dieser Lauf ist **nicht** erfolgt und wird hier nicht ersetzt oder nachgebildet | getrennte Prüfrolle |
 | Klärung Antwort-IDs `<frage>-a…e` (R0-05 §2.3) gegen Schlüssel `^([A-Z]|MODEL)$` (R0-08 §3.1); umgesetzt ist die positionsweise Abbildung beim Import | Auftraggeber |
-| Freigabe der Abweichung GM-180 über §5.1 (E-55); F-1/F-2/F-4/F-8 behoben, F-6/F-7 freigegeben (E-331…E-333) | Auftraggeber |
+| ~~Freigabe der Abweichung GM-180~~ – freigegeben (E-334, 23.11.2026); F-1/F-2/F-4/F-8 behoben, F-6/F-7 freigegeben (E-331…E-333) | – |
 | ~~Schließen der 36 `open`-Fälle~~ – erledigt 23.11.2026 (§9) | – |
 | Klärungen aus den Nachträgen g1…g6 (§9.3) | Auftraggeber / R1-GATE |
 | Review durch zweite Person vor Merge | AG-05 |
@@ -123,24 +123,24 @@ PHP 8.5, WP 7.1, lokale MariaDB: Unit **130** (2 übersprungen) · Integration *
 | C-2 Grants/Seats/Gate | 24 von 24 mit Test. **Technisch erfüllt** |
 | C-3 Import/Medien | alle mit Test; GM-118/125/128/136 teilweise (kein Medien-/Blueprint-Import, Lastprofil skaliert). **Teilweise** |
 | C-7 API-Verträge | 11 von 11 mit Test (GM-150/152/154 teilweise). **Technisch erfüllt** |
-| C-8 Betrieb | alle mit Test außer GM-180 (Abweichung R1-31 A-2, Freigabe offen) und GM-160 (R3). **Erfüllt bis auf Freigabe GM-180** |
+| C-8 Betrieb | alle mit Test außer GM-180 (Abweichung freigegeben, E-334) und GM-160 (R3). **Technisch erfüllt** |
 | B-4, C-6, C-10, C-11, C-13…C-16 | unverändert wie §6 (manuelle Läufe, Browser-Matrix, Usability R1-29, Freigaben) |
 
-Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Freigabe GM-180, Medien-/Blueprint-Import oder dessen Freigabe als Teilumfang (GM-118/125/128), den manuellen Gate-Teilen und AG-05/AG-07.
+Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Medien-/Blueprint-Import oder dessen Freigabe als Teilumfang (GM-118/125/128), den manuellen Gate-Teilen und AG-05/AG-07.
 
 ### 9.3 Klärungen für den Auftraggeber / R1-GATE (aus den Nachträgen)
 
 | Herkunft | Punkt |
 |---|---|
-| g1 A-1 | GM-068: Backfill für Altzeilen ohne `due_at` existiert und ist getestet, ist aber **nicht** im Core registriert (nur für das Migrationswerkzeug E-03). Entscheidung: so lassen (empfohlen) oder Core-Registrierung |
-| g2 A-2 | Monitor heißt in R0-13 `GET /health` + `X-Monitor-Key`, in R0-19 `GET /monitor` + `X-CC-Monitor-Key`; umgesetzt beide Pfade, Header nach R0-19. Dokumente angleichen |
+| g1 A-1 | GM-068: Backfill nur im Migrationswerkzeug, nicht im Core. **Entschieden: so lassen (E-335)** |
+| g2 A-2 | Monitor-Name/Header. **Erledigt: R0-13 an R0-19 angeglichen (E-336)** |
 | g2 A-5 | Abmelden leert den Prüfungspuffer (localStorage) nicht aktiv (PRIV-018); Puffer enthält keine Lösungen |
-| g2 A-6 | Deutsche Übersetzungen der neuen Texte aus g2…g5 fehlen in `de_DE.po` |
-| g3 H-2 | `ccap_access_exists`/`ccap_user_required` fehlen im Fehlercode-Katalog R0-19 §3 |
+| g2 A-6 | Deutsche Übersetzungen. **Erledigt** (113 Texte, 23.11.2026) |
+| g3 H-2 | `ccap_access_exists`/`ccap_user_required`. **Erledigt: in R0-19 §3 aufgenommen (E-336)** |
 | g3 H-3/H-4/H-5 | `backup-check` deckt nur Teile von R0-16 §1.4 ab; Einladungsseite ist minimal (REST R-31/R-32 fehlen) |
-| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); redaktionelle Korrektur R0-05 §2.6 empfohlen. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`) |
+| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); **R0-05 §2.6 angeglichen (E-336)**. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`) |
 | g5 A-1…A-3 | GM-190 Gäste 401 (R-38); Routennamen des Datenexports selbst gewählt (R0-19 nennt nur Codes); Löschung nach Bestätigung nur mit Opt-in E-43 |
-| g6 | Karteikarten zählen bei E-332 als „Fragen“; eigene Grenze für Karten wäre ein neuer Beschluss |
+| g6 | Karteikarten zählen als Fragen. **Entschieden (E-337)** |
 | Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen |
 
 

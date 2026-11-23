@@ -101,7 +101,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 
 ### 2.1 Systemstatus und Site-Health-Prüfungen
 
-**Ort:** Admin-Screen S-22 „Systemstatus“ (Cap #22), WP-Werkzeuge › Website-Zustand (Abschnitt `debug_information` und `site_status_tests`, LB `Admin/SiteHealth.php:35-36`), `GET course-captain/v1/health` (LB `Monitor.php:30`), `wp course-captain status` und `backup-check` (LB `Cli/Commands.php:46`, `:78`). Alle vier lesen **eine** Prüfliste (`HealthRegistry`). Module und Pro registrieren weitere Prüfungen dort (LB INV-C-013 „registrierbare Tasks“). Jede Prüfung liefert `id`, `status` (`ok`/`warn`/`fail`/`info`), Kurztext, Handlungshinweis und optional Objekt-IDs. Sie enthält **nie** Personendaten, Pfade mit dem Ordner-Geheimnis oder Secrets.
+**Ort:** Admin-Screen S-22 „Systemstatus“ (Cap #22), WP-Werkzeuge › Website-Zustand (Abschnitt `debug_information` und `site_status_tests`, LB `Admin/SiteHealth.php:35-36`), `GET course-captain/v1/monitor` (Alias `/health`, E-336; LB `Monitor.php:30`), `wp course-captain status` und `backup-check` (LB `Cli/Commands.php:46`, `:78`). Alle vier lesen **eine** Prüfliste (`HealthRegistry`). Module und Pro registrieren weitere Prüfungen dort (LB INV-C-013 „registrierbare Tasks“). Jede Prüfung liefert `id`, `status` (`ok`/`warn`/`fail`/`info`), Kurztext, Handlungshinweis und optional Objekt-IDs. Sie enthält **nie** Personendaten, Pfade mit dem Ordner-Geheimnis oder Secrets.
 
 **Nach LB-Verhalten neu gebaut** (Klassifikation `reuse`/`abstract` = Verhalten nachbauen, kein Code, E-01; `exclude` = fachlich LB-gebunden):
 
@@ -124,7 +124,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | H-15 | Persistenter Objekt-Cache | `SiteHealth.php:165`, `:200` | reuse (R0-14) | info/warn nach Lastklasse |
 | H-16 | Wartungs- und Fehlerseiten-Drop-ins (`maintenance.php`, `php-error.php`) | `SystemStatus.php:302-306` | reuse (Vorlage R1-24) | warn |
 | H-17 | Client-IP dieser Anfrage, vertrauenswürdige Proxys | `SystemStatus.php:308` | reuse; IP **nur im Screen**, nie im Diagnosepaket | info |
-| H-18 | Überwachungs-Endpunkt und Schlüssel gesetzt | `SystemStatus.php:300`, `Monitor.php:43-63` | reuse; **CC-Delta:** Schlüssel nur im Header `X-Monitor-Key`, nicht als `?key=` (landet in Server-Logs, INV-C-055) | ohne Schlüssel = warn |
+| H-18 | Überwachungs-Endpunkt und Schlüssel gesetzt | `SystemStatus.php:300`, `Monitor.php:43-63` | reuse; **CC-Delta:** Schlüssel nur im Header `X-CC-Monitor-Key` (E-336, wie R0-19 R-50), nicht als `?key=` (landet in Server-Logs, INV-C-055) | ohne Schlüssel = warn |
 | H-19 | PHP- und WP-Version gegen Matrix | `SystemStatus.php:193-194` | reuse (R0-14 Matrix) | außerhalb = warn |
 | H-20 | Update-Prüfung | `SiteHealth.php:114`, INV-C-067 | replace: Free über WordPress.org, Pro über License-Captain-Client | info |
 | H-21 | Backup-Prüfung (Schema, Optionen, Ablage, aktives Paket, Mediendateien, Grants-Stichprobe, laufende Vorgänge, Site-Identität) | `Infrastructure/BackupCheck.php`, INV-C-060…065 | reuse, Zeilen nach R0-16 §1.4 | wie R0-16 §1.4 |
@@ -152,7 +152,7 @@ Verbindlich sind das Beschlussprotokoll und „Von Claude entschieden“ in `ENT
 | H-37 | Pro-Lizenz und `core_version`-Sperre | nur mit Pro | R0-36 L4/L5 |
 | H-38 | Website-Härtung (R1-45): Zustand je Funktion (`off`/`auto`/`force`, noch nicht bestätigt), erkanntes Security-Plugin, Notausschalter `COURSE_CAPTAIN_HARDENING` aktiv, fail-closed-Ereignisse der letzten 24 h | nicht bestätigt = info mit Link in den Tab „Website-Härtung“; Notausschalter aktiv = warn; Zählerspeicher ausgefallen = warn | E-10, E-240, E-242, E-260, E-263, R0-31 |
 
-**Monitor `GET course-captain/v1/health`:** Gesamtstatus 200/503, `Cache-Control: no-store`, Einzelprüfungen nur mit Schlüssel oder für #22 (LB `Monitor.php:88-99`, T175). Ein Ausfall (503) zählt nur bei H-02 (fällig), H-04, H-07, H-10, H-14, H-26, H-32. Alle anderen Prüfungen sind Hinweise.
+**Monitor `GET course-captain/v1/monitor` (Alias `/health`, E-336):** Gesamtstatus 200/503, `Cache-Control: no-store`, Einzelprüfungen nur mit Schlüssel oder für #22 (LB `Monitor.php:88-99`, T175). Ein Ausfall (503) zählt nur bei H-02 (fällig), H-04, H-07, H-10, H-14, H-26, H-32. Alle anderen Prüfungen sind Hinweise.
 
 ### 2.2 Diagnosepaket-Export ohne PII und Secrets
 
@@ -445,7 +445,7 @@ Erwartung je Negativtest wie R0-07 §5.2: 403/404 ohne Datenleck, kein Fachereig
 | SUP-003 | Rollen | `ccap_support` öffnet S-11 Versuchsdetail | 403/404; keine Antworten in Liste, REST oder CSV | R1-38 | R0-07 #14, Konzept 43.3 |
 | SUP-004 | Rollen | `ccap_support` setzt Lernsperre bei einem Lernenden, dann bei einem Admin, dann bei sich selbst | erst ok mit Audit `learner_locked`; Admin und selbst → 403 (M-24) | R1-38 | K-12 |
 | SUP-005 | Rollen | Kursmanager öffnet S-21 | 403; Objekthistorie im Grant-Detail sichtbar | R1-38 | §4.5 |
-| SUP-006 | Rollen | Shop-Manager bzw. Editor ohne `ccap_*`-Caps ruft S-22 und `/health` mit Details auf | 403 bzw. nur Gesamtstatus | R1-38 | E-83 |
+| SUP-006 | Rollen | Shop-Manager bzw. Editor ohne `ccap_*`-Caps ruft S-22 und `/monitor` (bzw. `/health`) mit Details auf | 403 bzw. nur Gesamtstatus | R1-38 | E-83 |
 | SUP-007 | Begründung | K-01, K-03, K-05, K-08, K-11, K-12 ohne `reason_code` oder mit Freitext < 10 Zeichen | abgelehnt (Feldfehler), keine Wirkung | R1-38 | §3 Schritt 3 |
 | SUP-008 | Begründung | Manager öffnet S-11 ohne Begründung, dann mit Begründung | ohne: Formular, keine Daten; mit: Daten + Audit `attempt_details_viewed` mit `subject_user_id` | R1-38 | E-82 |
 | SUP-009 | Grant | K-01 doppelt abgeschickt (gleicher `request_key`) | ein Grant, ein Audit, eine Mail | R1-38 | R0-09 §2.2 |
@@ -462,7 +462,7 @@ Erwartung je Negativtest wie R0-07 §5.2: 403/404 ohne Datenleck, kein Fachereig
 | SUP-020 | Diagnose | Vorschau vor Download | Inhalt identisch zum Download (Hash-Vergleich) | R1-38 | §2.2 Schritt 2 |
 | SUP-021 | Diagnose | zwei Pakete nacheinander | Pseudonyme zwischen den Paketen nicht gleich, innerhalb eines Pakets konsistent | R1-38 | §2.2 Pseudonyme |
 | SUP-022 | Health | Cron-Lauf > 3 h her; frisch installiert und geplant | `fail` und 503; frisch → `ok` | R1-38 | H-07, LB `operations-test.php:686` |
-| SUP-023 | Health | `/health` ohne Schlüssel, mit Schlüssel im Header, mit `?key=` | nur Gesamtstatus; Details; `?key=` wird ignoriert (nur Gesamtstatus) | R1-38 | H-18 |
+| SUP-023 | Health | `/monitor` bzw. `/health` ohne Schlüssel, mit Schlüssel im Header `X-CC-Monitor-Key`, mit `?key=` | nur Gesamtstatus; Details; `?key=` wird ignoriert (nur Gesamtstatus) | R1-38 | H-18 |
 | SUP-024 | Health | `dead_letter`-Job, `failed`-Grant, `broken`-Versuch, Import ohne Heartbeat | H-27/H-29/H-30/H-31 mit IDs; Job-Liste zeigt Job-ID und Fehlercode | R1-38 | DoD R1-38 |
 | SUP-025 | Health | Haltemodus aktiv | H-26 `fail`, Knopf nur für #23; Bestätigung schreibt `site_identity_confirmed` | R1-38 | E-85 |
 | SUP-026 | Debug | Debug für 2 h einschalten, Uhr +2 h 1 min | Logging aus, Audit `debug_enabled` und automatisches `debug_disabled` (`actor_type = system:cron`) | R1-38 | DL-1/DL-2 |
