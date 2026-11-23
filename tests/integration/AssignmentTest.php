@@ -708,9 +708,11 @@ final class AssignmentTest extends SchemaTestCase {
 		self::assertSame( 'opt_out', $n16[1]['reason_code'] );
 		self::assertCount( 4, $rows( 'assignment_submitted' ), 'version 2 notifies both trainers again' );
 		$text = (string) wp_json_encode( $this->mails );
-		foreach ( array( 'Secret answer', 'Hidden comment', 'Hidden feedback', '7000', '7/10' ) as $leak ) {
+		foreach ( array( 'Secret answer', 'Hidden comment', 'Hidden feedback', '7/10' ) as $leak ) {
 			self::assertStringNotContainsString( $leak, $text );
 		}
+		// Points as a standalone number (7000, 7.000, 7,000); random hex in tokens or UUIDs must not count.
+		self::assertDoesNotMatchRegularExpression( '/(?<![0-9A-Za-z-])7[.,]?000(?![0-9A-Za-z-])/', $text );
 	}
 
 	/**
