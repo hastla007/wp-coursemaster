@@ -555,7 +555,7 @@ final class BackupCheckH3Test extends SchemaTestCase {
 			'files'   => $files,
 			'options' => $wpdb->get_results( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE '%course\\_captain%' OR option_name LIKE '%ccap%' ORDER BY option_name", ARRAY_A ), // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			'tables'  => $tables,
-			'meta'    => $wpdb->get_var( "SELECT MD5(GROUP_CONCAT(meta_id, meta_key, meta_value ORDER BY meta_id)) FROM {$wpdb->postmeta}" ), // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			'meta'    => md5( (string) wp_json_encode( $wpdb->get_results( "SELECT meta_id, meta_key, meta_value FROM {$wpdb->postmeta} ORDER BY meta_id", ARRAY_N ) ) ), // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Test snapshot; SQL MD5() does not exist on MySQL 9.7.
 		);
 	}
 
