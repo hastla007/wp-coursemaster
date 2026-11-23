@@ -1,0 +1,19 @@
+msgid ""
+msgstr ""
+"Language: de_DE_formal\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Please log in."
+msgstr "Bitte melden Sie sich an."
+
+msgid "Reload the page."
+msgstr "Laden Sie die Seite neu. Ihre Eingaben sind noch da."
+
+msgid "Choose a course."
+msgstr "Wähle einen Kurs."
+
+msgid "You may not do that."
+msgstr "Du darfst das nicht tun."
+
+msgid "Check your input"
+msgstr "Prüfen Sie deine Eingabe"

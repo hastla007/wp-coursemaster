@@ -46,8 +46,8 @@ if ( array( 'course-captain' ) !== array_values( $roots ) ) {
 	$fail( 'ROOT', 'expected exactly one root folder course-captain/, found: ' . implode( ', ', $roots ) );
 }
 
-// Positive list (§3.1); the bundled German translation stays until the language pack is approved (E-208, R1-19).
-foreach ( array( 'course-captain.php', 'uninstall.php', 'readme.txt', 'LICENSE', 'CREDITS.md', 'CHANGELOG.md', 'languages/course-captain.pot', 'languages/course-captain-de_DE.mo', 'src/autoload.php' ) as $required ) {
+// Positive list (§3.1); the bundled German translations (du and Sie, SET-CC-14) stay until the language pack is approved (E-208, R1-19).
+foreach ( array( 'course-captain.php', 'uninstall.php', 'readme.txt', 'LICENSE', 'CREDITS.md', 'CHANGELOG.md', 'languages/course-captain.pot', 'languages/course-captain-de_DE.mo', 'languages/course-captain-de_DE_formal.mo', 'src/autoload.php' ) as $required ) {
 	if ( ! in_array( 'course-captain/' . $required, $names, true ) ) {
 		$fail( 'POSITIVE', 'missing ' . $required );
 	}
