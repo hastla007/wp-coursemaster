@@ -19,6 +19,7 @@ use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
+use CourseCaptain\Question\TypeChange;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -41,7 +42,7 @@ final class QuestionsScreen {
 	public const SLUG   = 'course-captain-questions';
 	public const ACTION = 'ccap_question_admin';
 	public const CAP    = 'ccap_edit_courses';
-	public const OPS    = array( 'save', 'save_publish', 'publish', 'archive', 'pool_add', 'pool_remove' );
+	public const OPS    = array( 'save', 'save_publish', 'publish', 'archive', 'pool_add', 'pool_remove', 'change_type' );
 
 	/**
 	 * Hooks.
@@ -82,6 +83,9 @@ final class QuestionsScreen {
 		if ( $out['question'] > 0 ) {
 			$args['action']   = 'edit';
 			$args['question'] = $out['question'];
+			if ( 'change_type' === $out['op'] && 'ccap_confirmation_required' === $out['result'] ) {
+				$args['change_to'] = $out['type'];
+			}
 		} elseif ( '' !== $out['type'] ) {
 			$args['action'] = 'new';
 			$args['type']   = $out['type'];
@@ -157,6 +161,9 @@ final class QuestionsScreen {
 					}
 					$repo->add_to_pool( $actor, $module, $question, $sort );
 					AuditLog::write( $db, $actor, 'question_pool_changed', 'question', (string) $question, null, array( 'module_id' => $module ) );
+					break;
+				case 'change_type':
+					$out = self::change_type( $actor, $question, $post, $out );
 					break;
 				case 'pool_remove':
 					$module = absint( $post['module'] ?? 0 );
@@ -276,6 +283,124 @@ final class QuestionsScreen {
 	}
 
 	/**
+	 * Change the type of a question (UI-F8): always a new draft revision,
+	 * possible data loss only after confirmation; published revisions and
+	 * exam snapshots stay as they are.
+	 *
+	 * @param Actor                $actor    Author.
+	 * @param int                  $question Question.
+	 * @param array<string, mixed> $post     POST data (`to`, `confirm_loss`).
+	 * @param array<string, mixed> $out      Result so far.
+	 * @phpstan-param array{op: string, question: int, type: string, result: string, messages: list<string>, fields: array<string, string>} $out
+	 * @return array{op: string, question: int, type: string, result: string, messages: list<string>, fields: array<string, string>}
+	 * @throws CourseException On missing rights or unknown questions.
+	 */
+	private static function change_type( Actor $actor, int $question, array $post, array $out ): array {
+		$repo    = QuestionRepository::current();
+		$db      = Database::current();
+		$latest  = self::latest_revision( $question );
+		$current = $repo->revision( $latest );
+		if ( null === $current ) {
+			throw new CourseException( 'ccap_not_found', 'question', 404 );
+		}
+		CourseException::unless_allowed( PolicyService::instance()->decide( $actor, PolicyService::EDIT_QUESTION, array( $question ) ), 'Not allowed to edit this question.' );
+		$to = sanitize_key( (string) ( $post['to'] ?? '' ) );
+		if ( ! in_array( $to, QuestionTypes::ALL, true ) || $to === $current['question_type'] ) {
+			throw new CourseException( 'ccap_invalid_param', 'to', 422 );
+		}
+		$plan        = TypeChange::plan( $current, $to );
+		$out['type'] = $to;
+		if ( array() !== $plan['lost'] && empty( $post['confirm_loss'] ) ) {
+			$out['result'] = 'ccap_confirmation_required';
+			return $out;
+		}
+		$row                            = (array) $db->row( $db->prepare( 'SELECT image_required, rights_status FROM `' . $db->table( 'ccap_question_revision' ) . '` WHERE id = %d', $latest ) );
+		$plan['data']['image_required'] = ! empty( $row['image_required'] );
+		$plan['data']['rights_status']  = (string) ( $row['rights_status'] ?? 'own' );
+		$revision                       = $repo->add_revision( $actor, $question, $plan['data'], 'substantive' );
+		$out['result']                  = $plan['complete'] ? 'type_changed' : 'type_changed_incomplete';
+		AuditLog::write(
+			$db,
+			$actor,
+			'question_type_changed',
+			'question',
+			(string) $question,
+			null,
+			array(
+				'revision_id' => $revision,
+				'before'      => (string) $current['question_type'],
+				'after'       => $to,
+				'lost'        => $plan['lost'],
+			)
+		);
+		return $out;
+	}
+
+	/**
+	 * Texts of the parts a type change keeps or loses.
+	 *
+	 * @return array<string, string>
+	 */
+	public static function part_labels(): array {
+		return array(
+			'text'     => __( 'question text', 'course-captain' ),
+			'feedback' => __( 'feedback texts', 'course-captain' ),
+			'tags'     => __( 'tags', 'course-captain' ),
+			'options'  => __( 'answer options', 'course-captain' ),
+			'correct'  => __( 'marking of the correct answers', 'course-captain' ),
+			'solution' => __( 'solution (model answer or card back)', 'course-captain' ),
+			'order'    => __( 'correct order', 'course-captain' ),
+			'numeric'  => __( 'number check with tolerance', 'course-captain' ),
+			'pairs'    => __( 'matching pairs', 'course-captain' ),
+			'gaps'     => __( 'gaps and accepted answers', 'course-captain' ),
+			'scoring'  => __( 'partial scoring', 'course-captain' ),
+			'shuffle'  => __( 'shuffle setting of the answers', 'course-captain' ),
+		);
+	}
+
+	/**
+	 * Section "Change question type": check (GET) and change (POST).
+	 *
+	 * @param array<string, mixed> $request  GET.
+	 * @param int                  $question Question.
+	 * @param array<string, mixed> $revision Newest revision.
+	 * @return string
+	 */
+	private static function type_change_section( array $request, int $question, array $revision ): string {
+		$from   = (string) ( $revision['question_type'] ?? '' );
+		$labels = QuestionForm::type_labels();
+		$to     = sanitize_key( (string) ( $request['change_to'] ?? '' ) );
+		$html   = '<h2 id="ccap-type-change">' . esc_html__( 'Change question type', 'course-captain' ) . '</h2>';
+		$html  .= '<p class="description">' . esc_html__( 'A type change creates a new draft version. The published version, running and finished exam attempts are not changed.', 'course-captain' ) . '</p>';
+		$html  .= '<form method="get" action="' . esc_url( admin_url( 'admin.php' ) ) . '#ccap-type-change"><input type="hidden" name="page" value="' . esc_attr( self::SLUG ) . '"><input type="hidden" name="action" value="edit"><input type="hidden" name="question" value="' . (int) $question . '">';
+		$html  .= '<p><label for="ccap-type-to">' . esc_html__( 'New question type', 'course-captain' ) . '</label> <select id="ccap-type-to" name="change_to">';
+		foreach ( $labels as $key => $label ) {
+			if ( $key !== $from ) {
+				$html .= '<option value="' . esc_attr( $key ) . '"' . selected( $to, $key, false ) . '>' . esc_html( $label ) . '</option>';
+			}
+		}
+		$html .= '</select> <button type="submit" class="button">' . esc_html__( 'Check the change', 'course-captain' ) . '</button></p></form>';
+		if ( ! in_array( $to, QuestionTypes::ALL, true ) || $to === $from ) {
+			return $html;
+		}
+		$plan  = TypeChange::plan( $revision, $to );
+		$parts = self::part_labels();
+		$names = static fn( array $codes ): string => implode( ', ', array_map( static fn( string $c ): string => $parts[ $c ] ?? $c, $codes ) );
+		$html .= '<div class="ccap-type-plan" role="status"><p><strong>' . esc_html( sprintf( /* translators: 1: old type, 2: new type */ __( 'Change from "%1$s" to "%2$s":', 'course-captain' ), $labels[ $from ] ?? $from, $labels[ $to ] ) ) . '</strong></p>';
+		$html .= '<p>' . esc_html( sprintf( /* translators: %s: list of parts */ __( 'Taken over: %s.', 'course-captain' ), $names( $plan['kept'] ) ) ) . '</p>';
+		if ( ! $plan['complete'] ) {
+			$html .= '<p>' . esc_html__( 'The new version is not complete yet: add the missing answers in the editor before publishing.', 'course-captain' ) . '</p>';
+		}
+		$html  .= '</div>';
+		$fields = '<input type="hidden" name="to" value="' . esc_attr( $to ) . '">';
+		if ( array() !== $plan['lost'] ) {
+			$html   .= '<div class="notice notice-warning inline" role="alert"><p>' . esc_html( sprintf( /* translators: %s: list of parts */ __( 'Lost in the new version: %s.', 'course-captain' ), $names( $plan['lost'] ) ) ) . '</p></div>';
+			$fields .= '<p><label><input type="checkbox" name="confirm_loss" value="1" required> ' . esc_html__( 'Confirm: create the new version without these parts (older versions keep them)', 'course-captain' ) . '</label></p>';
+		}
+		return $html . AdminUi::form( self::ACTION, 'change_type', $question, $fields, sprintf( /* translators: %s: question type */ __( 'Change type to "%s"', 'course-captain' ), $labels[ $to ] ) );
+	}
+
+	/**
 	 * Newest revision of a question.
 	 *
 	 * @param int $question Question.
@@ -335,6 +460,9 @@ final class QuestionsScreen {
 				$extra .= '</ul>';
 			}
 		}
+		if ( 'type_changed' === $code ) {
+			return '<div class="notice notice-success" role="status"><p>' . esc_html__( 'Type changed. A new draft version was created; publish it to use it in new attempts.', 'course-captain' ) . '</p></div>';
+		}
 		if ( 'published' === $code ) {
 			return '<div class="notice notice-success" role="status"><p>' . esc_html__( 'Saved and published. New exam attempts use this version; running attempts keep theirs.', 'course-captain' ) . '</p></div>';
 		}
@@ -344,6 +472,7 @@ final class QuestionsScreen {
 				'ccap_alt_missing'           => __( 'Saved as draft, not published: the image needs an alternative text.', 'course-captain' ),
 				'ccap_saved_not_published'   => __( 'Saved as draft, not published: the question is not complete yet.', 'course-captain' ),
 				'ccap_confirmation_required' => __( 'Please confirm the action (tick the confirmation box).', 'course-captain' ),
+				'type_changed_incomplete'    => __( 'Type changed. The new draft version still needs answers before it can be published.', 'course-captain' ),
 				'ccap_revision_frozen'       => __( 'This version is published and can no longer take new media. Save again to create a new version.', 'course-captain' ),
 				'ccap_media_type_forbidden'  => __( 'This file type cannot be used.', 'course-captain' ),
 			),
@@ -516,6 +645,9 @@ final class QuestionsScreen {
 		$fields .= '<p class="ccap-q-buttons"><button type="submit" name="op" value="save" class="button">' . esc_html__( 'Save draft', 'course-captain' ) . '</button> <button type="submit" name="op" value="save_publish" class="button button-primary">' . esc_html__( 'Save and publish', 'course-captain' ) . '</button></p>';
 		$html   .= AdminUi::form_multi( self::ACTION, 'editor', $question, $fields, ' id="ccap-question-form" data-ccap-draft="question-' . (int) $question . '"' );
 		if ( $question > 0 ) {
+			if ( 'archived' !== $status ) {
+				$html .= self::type_change_section( $request, $question, (array) $repo->revision( self::latest_revision( $question ) ) );
+			}
 			$html .= self::pool_section( $question );
 			$html .= self::preview( $revision );
 			$html .= self::history( $question );

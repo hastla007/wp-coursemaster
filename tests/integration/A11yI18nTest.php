@@ -569,6 +569,16 @@ final class A11yI18nTest extends SchemaTestCase {
 			'panel'        => CourseSettingsPanel::html( $this->course ),
 			'catalog'      => LearningArea::render_catalog( array() ),
 			'link'         => LearningArea::render_link( array() ),
+			// UI-F8: import page with link/folder forms, course export and rights & release.
+			'import'       => \CourseCaptain\Admin\ImportScreen::html( array(), $this->admin ),
+			'export'       => \CourseCaptain\Admin\ImportScreen::html( array( 'area' => 'export' ), $this->admin ),
+			'rights'       => \CourseCaptain\Admin\ImportScreen::html(
+				array(
+					'area'   => 'rights',
+					'course' => $this->course,
+				),
+				$this->admin
+			),
 		);
 		foreach ( SettingsScreen::tabs_for( $this->admin ) as $tab ) {
 			$screens[ 'settings-' . $tab ] = SettingsScreen::html( array( 'tab' => $tab ), $this->admin );

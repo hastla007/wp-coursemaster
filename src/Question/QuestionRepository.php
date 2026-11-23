@@ -109,6 +109,28 @@ final class QuestionRepository {
 	}
 
 	/**
+	 * Always add a new draft revision (e.g. a type change, UI-F8): no
+	 * existing revision is updated, so attempts and exam snapshots keep
+	 * theirs; the published revision stays current until this one is published.
+	 *
+	 * @param Actor                $actor        Actor (M-07).
+	 * @param int                  $question_id  Question.
+	 * @param array<string, mixed> $data         Revision data.
+	 * @param string               $change_class editorial|substantive.
+	 * @return int New revision ID.
+	 */
+	public function add_revision( Actor $actor, int $question_id, array $data, string $change_class = 'substantive' ): int {
+		$this->authorize( $actor, $question_id );
+		return $this->db->transaction(
+			function () use ( $actor, $question_id, $data, $change_class ): int {
+				$table = $this->db->table( 'ccap_question_revision' );
+				$no    = (int) $this->db->scalar( $this->db->prepare( "SELECT COALESCE(MAX(revision_no), 0) FROM `{$table}` WHERE question_id = %d FOR UPDATE", $question_id ) );
+				return $this->insert_revision( $question_id, $no + 1, $data, $actor->user_id, $change_class );
+			}
+		);
+	}
+
+	/**
 	 * Publish a revision (newest draft by default) after type validation.
 	 *
 	 * @param Actor    $actor       Actor (M-07).

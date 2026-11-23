@@ -191,6 +191,8 @@ final class UninstallManifest {
 		'_ccap_listing',
 		'_ccap_protected_course',
 		'_ccap_protected_origin',
+		// Rights information of a course (R0-10 §2.1, UI-F8).
+		'_ccap_rights',
 		'_ccap_seo_index',
 		'_ccap_settings',
 		'_ccap_settings_undo',

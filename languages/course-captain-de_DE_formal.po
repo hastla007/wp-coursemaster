@@ -11000,3 +11000,500 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+# UI-F8 part 1 (autor-ui-1)
+msgid "The exam uses fixed exam forms: freeze at least one exam form first."
+msgstr "Die Prüfung nutzt feste Prüfungsbögen: Schreiben Sie zuerst mindestens einen Prüfungsbogen fest."
+
+msgid "A frozen exam form never changes. Create a new exam form instead."
+msgstr "Ein festgeschriebener Prüfungsbogen ändert sich nie. Legen Sie stattdessen einen neuen Prüfungsbogen an."
+
+msgid "How questions are chosen: fixed exam forms"
+msgstr "Fragenauswahl: feste Prüfungsbögen"
+
+msgid "How questions are chosen: random draw per attempt"
+msgstr "Fragenauswahl: Zufallsziehung je Versuch"
+
+msgid "Enter the positions as whole numbers from 1 to 1000, or leave the field empty."
+msgstr "Geben Sie die Positionen als ganze Zahlen von 1 bis 1000 ein oder lassen Sie das Feld leer."
+
+msgid "Choose at least one question for the exam form first."
+msgstr "Wählen Sie zuerst mindestens eine Frage für den Prüfungsbogen."
+
+msgid "The exam form contains a question that is not published. Publish it or remove it from the form."
+msgstr "Der Prüfungsbogen enthält eine Frage, die nicht veröffentlicht ist. Veröffentlichen Sie sie oder nehmen Sie sie aus dem Bogen."
+
+msgid "How questions are chosen"
+msgstr "Fragenauswahl"
+
+msgid "Random draw: every attempt draws new questions per module"
+msgstr "Zufallsziehung: Jeder Versuch zieht neue Fragen je Modul"
+
+msgid "Fixed exam forms: learners choose one of the frozen exam forms of the course"
+msgstr "Feste Prüfungsbögen: Lernende wählen einen der festgeschriebenen Prüfungsbögen des Kurses"
+
+msgid "Fixed exam forms are managed below the exam, in the section \"Fixed exam forms\"."
+msgstr "Feste Prüfungsbögen verwalten Sie unter der Prüfung im Abschnitt „Feste Prüfungsbögen“."
+
+msgid "Fixed exam forms"
+msgstr "Feste Prüfungsbögen"
+
+msgid "A fixed exam form is a list of questions in a fixed order. It belongs to the course and is used by exams set to \"fixed exam forms\". A frozen form never changes; retire it to stop new attempts. Attempts keep the questions they started with."
+msgstr "Ein fester Prüfungsbogen ist eine Liste von Fragen in fester Reihenfolge. Er gehört zum Kurs und wird von Prüfungen mit der Einstellung „feste Prüfungsbögen“ genutzt. Ein festgeschriebener Bogen ändert sich nie; stellen Sie ihn außer Dienst, um neue Versuche zu beenden. Versuche behalten die Fragen, mit denen sie begonnen haben."
+
+msgid "This exam draws questions at random; fixed exam forms are not offered to learners."
+msgstr "Diese Prüfung zieht die Fragen zufällig; feste Prüfungsbögen werden Lernenden nicht angeboten."
+
+msgid "No exam forms yet."
+msgstr "Noch keine Prüfungsbögen."
+
+#. translators: 1: exam form number, 2: status
+#, php-format
+msgid "Exam form %1$d (%2$s)"
+msgstr "Prüfungsbogen %1$d (%2$s)"
+
+#. translators: %d: number of questions
+#, php-format
+msgid "%d question"
+msgid_plural "%d questions"
+msgstr[0] "%d Frage"
+msgstr[1] "%d Fragen"
+
+msgid "Confirm: retire this exam form (no new attempts; results stay)"
+msgstr "Bestätigen: diesen Prüfungsbogen außer Dienst stellen (keine neuen Versuche; Ergebnisse bleiben)"
+
+#. translators: %d: exam form number
+#, php-format
+msgid "Retire exam form %d"
+msgstr "Prüfungsbogen %d außer Dienst stellen"
+
+#. translators: %d: exam form number
+#, php-format
+msgid "Questions of exam form %d"
+msgstr "Fragen von Prüfungsbogen %d"
+
+msgid "Position in the form"
+msgstr "Position im Bogen"
+
+msgid "The modules of the course have no published questions yet."
+msgstr "Die Module des Kurses haben noch keine veröffentlichten Fragen."
+
+#. translators: %s: question text
+#, php-format
+msgid "Position of: %s"
+msgstr "Position von: %s"
+
+msgid "Enter 1 for the first question, 2 for the second and so on. Leave the field empty to leave a question out."
+msgstr "Geben Sie 1 für die erste Frage ein, 2 für die zweite und so weiter. Lassen Sie das Feld leer, um eine Frage wegzulassen."
+
+#. translators: %d: exam form number
+#, php-format
+msgid "Save exam form %d"
+msgstr "Prüfungsbogen %d speichern"
+
+#. translators: %d: exam form number
+msgid "Freezing makes the exam form available to learners. It cannot be changed afterwards."
+msgstr "Durch das Festschreiben steht der Prüfungsbogen Lernenden zur Verfügung. Danach lässt er sich nicht mehr ändern."
+
+#. translators: %d: exam form number
+#, php-format
+msgid "Freeze exam form %d"
+msgstr "Prüfungsbogen %d festschreiben"
+
+#. translators: %d: exam form number
+msgid "Confirm: discard this draft exam form"
+msgstr "Bestätigen: diesen Entwurf des Prüfungsbogens verwerfen"
+
+#. translators: %d: exam form number
+#, php-format
+msgid "Discard exam form %d"
+msgstr "Prüfungsbogen %d verwerfen"
+
+msgid "Create exam form"
+msgstr "Prüfungsbogen anlegen"
+
+msgid "frozen"
+msgstr "festgeschrieben"
+
+msgid "Choose at least one course to export."
+msgstr "Wählen Sie mindestens einen Kurs zum Exportieren."
+
+msgid "Enter the records per file as a whole number from 1 to 5000."
+msgstr "Geben Sie die Datensätze je Datei als ganze Zahl von 1 bis 5000 ein."
+
+msgid "The package could not be written. Check the protected folders under System status."
+msgstr "Das Paket konnte nicht geschrieben werden. Prüfen Sie die geschützten Ordner unter Systemstatus."
+
+msgid "Export a course as a package"
+msgstr "Kurs als Paket exportieren"
+
+msgid "The package (ZIP file in the Course Captain package format) contains the course, its modules, published lessons and the questions of the module pools. Learner data, access, results and settings are never part of it. You can import it on another site under Import content."
+msgstr "Das Paket (ZIP-Datei im Course-Captain-Paketformat) enthält den Kurs, seine Module, veröffentlichte Lektionen und die Fragen der Modulpools. Daten von Lernenden, Zugänge, Ergebnisse und Einstellungen sind nie enthalten. Sie können es auf einer anderen Website unter „Inhalte importieren“ einspielen."
+
+msgid "There is no course you may export."
+msgstr "Es gibt keinen Kurs, den Sie exportieren dürfen."
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Package title (optional)"
+msgstr "Titel des Pakets (optional)"
+
+msgid "Empty: the titles of the chosen courses."
+msgstr "Leer: die Titel der gewählten Kurse."
+
+msgid "Source name"
+msgstr "Name der Quelle"
+
+msgid "Identifies where the content comes from. Keep it the same for later exports of the same courses, so that a new import updates the content instead of copying it (lowercase letters, digits and hyphens)."
+msgstr "Kennzeichnet, woher die Inhalte stammen. Behalten Sie ihn für spätere Exporte derselben Kurse bei, damit ein neuer Import die Inhalte aktualisiert statt sie zu kopieren (Kleinbuchstaben, Ziffern und Bindestriche)."
+
+msgid "Records per data file"
+msgstr "Datensätze je Datendatei"
+
+msgid "Large courses are split into several data files; 5000 is the most the format allows."
+msgstr "Große Kurse werden auf mehrere Datendateien verteilt; 5000 ist das Höchste, was das Format erlaubt."
+
+msgid "Export and download"
+msgstr "Exportieren und herunterladen"
+
+msgid "Packages"
+msgstr "Pakete"
+
+msgid "Course export"
+msgstr "Kurs-Export"
+
+msgid "Rights & release"
+msgstr "Rechte & Freigabe"
+
+msgid "Import content: areas"
+msgstr "Inhalte importieren: Bereiche"
+
+msgid "Enter a complete https address (port 443, no user name or password in the address)."
+msgstr "Geben Sie eine vollständige https-Adresse ein (Port 443, kein Benutzername oder Passwort in der Adresse)."
+
+msgid "This address is not allowed: packages can only be loaded from public servers, not from this network or local addresses."
+msgstr "Diese Adresse ist nicht erlaubt: Pakete lassen sich nur von öffentlichen Servern laden, nicht aus diesem Netzwerk oder von lokalen Adressen."
+
+msgid "The address forwards too often. Use the final address of the package."
+msgstr "Die Adresse leitet zu oft weiter. Verwenden Sie die endgültige Adresse des Pakets."
+
+msgid "The downloaded file does not match the expected checksum. Nothing was imported."
+msgstr "Die heruntergeladene Datei passt nicht zur erwarteten Prüfsumme. Es wurde nichts importiert."
+
+msgid "The package could not be downloaded. Check the address and try again later."
+msgstr "Das Paket konnte nicht heruntergeladen werden. Prüfen Sie die Adresse und versuchen Sie es später erneut."
+
+msgid "The package is larger than the package limit. Use the server folder or the command line import."
+msgstr "Das Paket ist größer als die Paketgrenze. Nutzen Sie den Serverordner oder den Import über die Kommandozeile."
+
+msgid "Address of the package (https)"
+msgstr "Adresse des Pakets (https)"
+
+#. translators: %s: size
+#, php-format
+msgid "Only https addresses on public servers; at most 3 forwardings; largest package: %s. The file is checked and test-run like an upload."
+msgstr "Nur https-Adressen auf öffentlichen Servern; höchstens 3 Weiterleitungen; größtes Paket: %s. Die Datei wird wie ein Upload geprüft und im Probelauf getestet."
+
+#. translators: %s: size
+msgid "Expected SHA-256 checksum (optional)"
+msgstr "Erwartete SHA-256-Prüfsumme (optional)"
+
+msgid "Import from a link"
+msgstr "Import über einen Link"
+
+msgid "Download and test"
+msgstr "Herunterladen und prüfen"
+
+msgid "Import from the server folder"
+msgstr "Import aus dem Serverordner"
+
+msgid "The server folder for packages is not available. Check the protected folders under System status."
+msgstr "Der Serverordner für Pakete ist nicht verfügbar. Prüfen Sie die geschützten Ordner unter Systemstatus."
+
+msgid "For large packages: copy the ZIP file by SFTP into the protected import folder of this site (shown under System status). A package that passes the check is removed from the folder."
+msgstr "Für große Pakete: Kopieren Sie die ZIP-Datei per SFTP in den geschützten Importordner dieser Website (angezeigt unter Systemstatus). Ein Paket, das die Prüfung besteht, wird aus dem Ordner entfernt."
+
+msgid "There are no packages in the server folder."
+msgstr "Im Serverordner liegen keine Pakete."
+
+msgid "Package in the server folder"
+msgstr "Paket im Serverordner"
+
+msgid "Take over and test"
+msgstr "Übernehmen und prüfen"
+
+msgid "question text"
+msgstr "Fragetext"
+
+msgid "feedback texts"
+msgstr "Rückmeldetexte"
+
+msgid "tags"
+msgstr "Schlagwörter"
+
+msgid "answer options"
+msgstr "Antwortoptionen"
+
+msgid "marking of the correct answers"
+msgstr "Markierung der richtigen Antworten"
+
+msgid "solution (model answer or card back)"
+msgstr "Lösung (Musterantwort oder Kartenrückseite)"
+
+msgid "correct order"
+msgstr "richtige Reihenfolge"
+
+msgid "number check with tolerance"
+msgstr "Zahlenprüfung mit Toleranz"
+
+msgid "matching pairs"
+msgstr "Zuordnungspaare"
+
+msgid "gaps and accepted answers"
+msgstr "Lücken und akzeptierte Antworten"
+
+msgid "partial scoring"
+msgstr "Teilpunktewertung"
+
+msgid "shuffle setting of the answers"
+msgstr "Mischen der Antworten"
+
+msgid "Change question type"
+msgstr "Fragetyp ändern"
+
+msgid "A type change creates a new draft version. The published version, running and finished exam attempts are not changed."
+msgstr "Ein Typwechsel legt eine neue Entwurfsversion an. Die veröffentlichte Version sowie laufende und beendete Prüfungsversuche ändern sich nicht."
+
+msgid "New question type"
+msgstr "Neuer Fragetyp"
+
+msgid "Check the change"
+msgstr "Änderung prüfen"
+
+#. translators: 1: old type, 2: new type
+#, php-format
+msgid "Change from \"%1$s\" to \"%2$s\":"
+msgstr "Wechsel von „%1$s“ zu „%2$s“:"
+
+#. translators: %s: list of parts
+#, php-format
+msgid "Taken over: %s."
+msgstr "Übernommen: %s."
+
+msgid "The new version is not complete yet: add the missing answers in the editor before publishing."
+msgstr "Die neue Version ist noch nicht vollständig: Ergänzen Sie vor dem Veröffentlichen die fehlenden Antworten im Editor."
+
+#. translators: %s: list of parts
+#, php-format
+msgid "Lost in the new version: %s."
+msgstr "Geht in der neuen Version verloren: %s."
+
+#. translators: %s: list of parts
+msgid "Confirm: create the new version without these parts (older versions keep them)"
+msgstr "Bestätigen: neue Version ohne diese Teile anlegen (ältere Versionen behalten sie)"
+
+#. translators: %s: question type
+#, php-format
+msgid "Change type to \"%s\""
+msgstr "Typ zu „%s“ ändern"
+
+msgid "Type changed. A new draft version was created; publish it to use it in new attempts."
+msgstr "Typ geändert. Eine neue Entwurfsversion wurde angelegt; veröffentlichen Sie sie, damit neue Versuche sie nutzen."
+
+msgid "Type changed. The new draft version still needs answers before it can be published."
+msgstr "Typ geändert. Die neue Entwurfsversion braucht noch Antworten, bevor sie veröffentlicht werden kann."
+
+msgid "own content"
+msgstr "eigener Inhalt"
+
+msgid "licensed"
+msgstr "lizenziert"
+
+msgid "public domain or free licence"
+msgstr "gemeinfrei oder freie Lizenz"
+
+msgid "rights being checked"
+msgstr "Rechte in Prüfung"
+
+msgid "rights unclear"
+msgstr "Rechte ungeklärt"
+
+msgid "must not be shown"
+msgstr "darf nicht gezeigt werden"
+
+#. translators: %d: number of content items
+#, php-format
+msgid "%d item released."
+msgid_plural "%d items released."
+msgstr[0] "%d Inhalt freigegeben."
+msgstr[1] "%d Inhalte freigegeben."
+
+msgid "Not released: the number of items changed or was not confirmed. Check the new number and confirm again."
+msgstr "Nicht freigegeben: Die Zahl der Inhalte hat sich geändert oder wurde nicht bestätigt. Prüfen Sie die neue Zahl und bestätigen Sie erneut."
+
+msgid "Not saved: please correct the marked entries. A reason is always required."
+msgstr "Nicht gespeichert: Bitte korrigieren Sie die markierten Angaben. Ein Grund ist immer Pflicht."
+
+msgid "Choose a course to see and edit its rights and release status."
+msgstr "Wählen Sie einen Kurs, um seine Rechte und seinen Freigabestand zu sehen und zu bearbeiten."
+
+#. translators: %s: course title
+#, php-format
+msgid "Rights of the course \"%s\""
+msgstr "Rechte des Kurses „%s“"
+
+msgid "No rights information is stored for this course yet. Content created on this site counts as own content."
+msgstr "Für diesen Kurs sind noch keine Rechteangaben gespeichert. Auf dieser Website erstellte Inhalte gelten als eigene Inhalte."
+
+#. translators: 1: source name, 2: publisher
+#, php-format
+msgid "Imported course. Source: %1$s; publisher: %2$s. No rights information is stored for the course itself; the values below come from the package defaults where present."
+msgstr "Importierter Kurs. Quelle: %1$s; Herausgeber: %2$s. Für den Kurs selbst sind keine Rechteangaben gespeichert; die Werte unten stammen, soweit vorhanden, aus den Vorgaben des Pakets."
+
+msgid "Choose a rights status from the list."
+msgstr "Wählen Sie einen Rechtestatus aus der Liste."
+
+msgid "Enter a complete address starting with https://."
+msgstr "Geben Sie eine vollständige Adresse ein, die mit https:// beginnt."
+
+msgid "Enter the date as YYYY-MM-DD."
+msgstr "Geben Sie das Datum als JJJJ-MM-TT ein."
+
+msgid "This field is required."
+msgstr "Dieses Feld ist Pflicht."
+
+msgid "Rights status of the course"
+msgstr "Rechtestatus des Kurses"
+
+msgid "— not set —"
+msgstr "— nicht gesetzt —"
+
+msgid "Rights holder"
+msgstr "Rechteinhaber"
+
+msgid "Licence (name)"
+msgstr "Lizenz (Name)"
+
+msgid "Address of the licence text"
+msgstr "Adresse des Lizenztexts"
+
+msgid "Attribution to show"
+msgstr "Anzuzeigender Urhebervermerk"
+
+msgid "Address of the source"
+msgstr "Adresse der Quelle"
+
+msgid "Licence valid until (YYYY-MM-DD, optional)"
+msgstr "Lizenz gültig bis (JJJJ-MM-TT, optional)"
+
+msgid "Note (internal)"
+msgstr "Notiz (intern)"
+
+msgid "Reason for the change (required, recorded)"
+msgstr "Grund der Änderung (Pflicht, wird protokolliert)"
+
+msgid "Save course rights"
+msgstr "Kursrechte speichern"
+
+msgid "Release status of the content"
+msgstr "Freigabestand der Inhalte"
+
+msgid "Questions and flashcards by rights status"
+msgstr "Fragen und Karteikarten nach Rechtestatus"
+
+msgid "Rights status"
+msgstr "Rechtestatus"
+
+msgid "Own content"
+msgstr "Eigene Inhalte"
+
+msgid "Imported content"
+msgstr "Importierte Inhalte"
+
+msgid "Shown to learners"
+msgstr "Für Lernende sichtbar"
+
+msgid "own content only"
+msgstr "nur eigene Inhalte"
+
+#. translators: %d: number of content items
+#, php-format
+msgid "%d imported item has unclear or restricted rights and is not shown to learners."
+msgid_plural "%d imported items have unclear or restricted rights and are not shown to learners."
+msgstr[0] "%d importierter Inhalt hat ungeklärte oder gesperrte Rechte und wird Lernenden nicht gezeigt."
+msgstr[1] "%d importierte Inhalte haben ungeklärte oder gesperrte Rechte und werden Lernenden nicht gezeigt."
+
+msgid "All content of this course can be shown to learners."
+msgstr "Alle Inhalte dieses Kurses können Lernenden gezeigt werden."
+
+#. translators: %d: number of content items
+#, php-format
+msgid "%d item is still being checked for rights."
+msgid_plural "%d items are still being checked for rights."
+msgstr[0] "%d Inhalt ist noch in der Rechteprüfung."
+msgstr[1] "%d Inhalte sind noch in der Rechteprüfung."
+
+msgid "Release unclear rights of this course"
+msgstr "Ungeklärte Rechte dieses Kurses freigeben"
+
+msgid "There are no imported items with unclear rights in this course."
+msgstr "In diesem Kurs gibt es keine importierten Inhalte mit ungeklärten Rechten."
+
+#. translators: 1: number of restricted items, 2: number of archived items
+msgid "Number of items to release (confirm the number above)"
+msgstr "Zahl der freizugebenden Inhalte (bestätigen Sie die Zahl oben)"
+
+msgid "Rights of single items"
+msgstr "Rechte einzelner Inhalte"
+
+msgid "Imported items and items whose rights are not clear. A change stays in place when the package is imported again."
+msgstr "Importierte Inhalte und Inhalte mit unklaren Rechten. Eine Änderung bleibt bestehen, wenn das Paket erneut importiert wird."
+
+msgid "Item"
+msgstr "Inhalt"
+
+msgid "Change"
+msgstr "Ändern"
+
+#. translators: %s: item text
+#, php-format
+msgid "New status of: %s"
+msgstr "Neuer Status von: %s"
+
+msgid "Change status"
+msgstr "Status ändern"
+
+msgid "This exam cannot be started yet: no exam form is available."
+msgstr "Diese Prüfung kann noch nicht gestartet werden: Es ist kein Prüfungsbogen verfügbar."
+
+msgid "Choose an exam form"
+msgstr "Wählen Sie einen Prüfungsbogen"
+
+#. translators: 1: exam form number, 2: number of questions
+#, php-format
+msgid "Exam form %1$d (%2$d question)"
+msgid_plural "Exam form %1$d (%2$d questions)"
+msgstr[0] "Prüfungsbogen %1$d (%2$d Frage)"
+msgstr[1] "Prüfungsbogen %1$d (%2$d Fragen)"
+
+msgid "Fixed exam form saved"
+msgstr "Fester Prüfungsbogen gespeichert"
+
+msgid "Fixed exam form frozen"
+msgstr "Fester Prüfungsbogen festgeschrieben"
+
+msgid "Fixed exam form retired"
+msgstr "Fester Prüfungsbogen außer Dienst gestellt"
+
+msgid "Question type changed (new version)"
+msgstr "Fragetyp geändert (neue Version)"
+
+msgid "Course exported as a package"
+msgstr "Kurs als Paket exportiert"
+
+msgid "Rights information of a course changed"
+msgstr "Rechteangaben eines Kurses geändert"
+
+msgid "Unclear rights of a course released"
+msgstr "Ungeklärte Rechte eines Kurses freigegeben"

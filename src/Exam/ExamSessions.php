@@ -86,6 +86,11 @@ final class ExamSessions {
 			throw new CourseException( 'ccap_not_found', 'Unknown exam.', 404 );
 		}
 		$course = (int) $rule['course_id'];
+		// Form mode of the rule (UI-F8); rules without a choice accept both ways.
+		$mode = ExamRules::form_mode( $rule );
+		if ( ( 'variants' === $mode && null === $variant_id ) || ( 'random' === $mode && null !== $variant_id ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'variants' === $mode ? 'variant_required' : 'variant_not_offered', 422 );
+		}
 		$target = $this->exam_modules( $rule, $variant_id );
 		ContentGate::current()->exam( $actor, $course, $target['modules'], $target['variant_no'] )->assert();
 		if ( 'published' !== $rule['status'] || null === $rule['passing_rule'] || array() !== ExamRules::validate_passing_rule( $rule['passing_rule'] ) ) {
