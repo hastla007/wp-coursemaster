@@ -70,6 +70,8 @@ final class UninstallManifest {
 		'course_captain_storage_secret',
 		'course_captain_storage_layout',
 		'course_captain_import_drop_state',
+		// One-time quarantine of legacy media (R1-18, GM-128).
+		'course_captain_media_quarantine',
 		'course_captain_cache_generation',
 		'course_captain_hardening_state',
 		'course_captain_retention_state',

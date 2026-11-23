@@ -158,22 +158,29 @@ final class PackageExporter {
 	/**
 	 * Write a package from records.
 	 *
-	 * @param array<string, list<array<string, mixed>>> $records Records per entity.
-	 * @param string                                    $system  `source.system`.
-	 * @param string                                    $title   Title.
-	 * @param string|null                               $file    Target path (default: packages folder).
-	 * @param int                                       $per_file Records per data file (R0-10 §1.1: ≤ 5 000).
+	 * @param array<string, list<array<string, mixed>>>               $records Records per entity.
+	 * @param string                                                  $system  `source.system`.
+	 * @param string                                                  $title   Title.
+	 * @param string|null                                             $file    Target path (default: packages folder).
+	 * @param int                                                     $per_file Records per data file (R0-10 §1.1: ≤ 5 000).
+	 * @param array<string, string|array{data: string, mime: string}> $media Media files `media/…` → content (MIME from the extension) or content with declared MIME.
 	 * @return string Path.
 	 * @throws CourseException When the archive cannot be written.
 	 */
-	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE ): string {
+	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE, array $media = array() ): string {
 		$files  = array();
+		$mimes  = array();
 		$counts = array();
 		foreach ( $records as $entity => $list ) {
 			$counts[ $entity ] = count( $list );
 			foreach ( array_chunk( $list, max( 1, min( self::RECORDS_PER_FILE, $per_file ) ) ) as $i => $part ) {
 				$files[ sprintf( 'data/%s/%06d.json', $entity, $i + 1 ) ] = (string) wp_json_encode( $part, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 			}
+		}
+		foreach ( $media as $path => $entry ) {
+			$ext            = strtolower( (string) pathinfo( (string) $path, PATHINFO_EXTENSION ) );
+			$files[ $path ] = is_array( $entry ) ? $entry['data'] : $entry;
+			$mimes[ $path ] = is_array( $entry ) ? $entry['mime'] : ( PackageValidator::MEDIA_TYPES[ $ext ] ?? 'application/octet-stream' );
 		}
 		$content  = PackageValidator::content_sha256( $files );
 		$manifest = array(
@@ -210,7 +217,7 @@ final class PackageExporter {
 			$manifest['files'][] = array(
 				'path'      => $path,
 				'size'      => strlen( $data ),
-				'mime_type' => 'application/json',
+				'mime_type' => $mimes[ $path ] ?? 'application/json',
 				'sha256'    => hash( 'sha256', $data ),
 			);
 		}

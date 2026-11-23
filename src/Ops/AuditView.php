@@ -76,6 +76,7 @@ final class AuditView {
 			'import_link_downloaded'         => array( 'import', __( 'Import package downloaded from a link', 'course-captain' ) ),
 			'rights_override_set'            => array( 'import', __( 'Rights status of a content item changed', 'course-captain' ) ),
 			'rights_bulk_release'            => array( 'import', __( 'Unclear rights of an import released', 'course-captain' ) ),
+			'media_quarantined'              => array( 'import', __( 'Disallowed legacy media files moved to the quarantine', 'course-captain' ) ),
 			'hardening_state_changed'        => array( 'settings', __( 'Website hardening state changed', 'course-captain' ) ),
 			'hardening_kill_switch_detected' => array( 'settings', __( 'Website hardening switched off by constant', 'course-captain' ) ),
 			'maintenance_action'             => array( 'ops', __( 'Maintenance action', 'course-captain' ) ),

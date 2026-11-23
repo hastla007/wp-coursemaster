@@ -587,7 +587,8 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 						'post_content' => $spec_lesson['body_html'],
 						'post_parent'  => $module,
 						'menu_order'   => $l['sort'],
-						'post_status'  => 'publish',
+						// L-A-10 is archived in the package (`deprecated`, R0-05 §2.2).
+						'post_status'  => 'deprecated' === ( $spec_lesson['editorial_status'] ?? '' ) ? 'ccap_archived' : 'publish',
 					)
 				);
 				AuthoringService::current()->define_activity( $admin, $lesson, $spec_lesson['activity_type'], $spec_lesson['settings'] );
