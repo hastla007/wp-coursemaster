@@ -139,6 +139,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_settings_roles_save` | filter |
 | `course_captain_settings_roles_tab` | filter |
 | `course_captain_settings_rules` | filter |
+| `course_captain_settings_transfer_providers` | filter |
 | `course_captain_trusted_media_hosts` | filter |
 | `course_captain_uninstall` | action |
 

@@ -204,6 +204,7 @@ final class Plugin {
 		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
 		\CourseCaptain\Ops\MigrateCommand::register();
 		\CourseCaptain\Ops\OpsCommand::register();
+		\CourseCaptain\Settings\SettingsCommand::register();
 		\CourseCaptain\Ops\IdentityCommand::register();
 		MetaCaps::register();
 		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
@@ -231,6 +232,7 @@ final class Plugin {
 		\CourseCaptain\Admin\TestMail::register();
 		\CourseCaptain\Admin\SettingsBackup::register();
 		\CourseCaptain\Admin\MailTextsScreen::register();
+		\CourseCaptain\Admin\SettingLocksScreen::register();
 		\CourseCaptain\Privacy\PrivacySettings::register();
 		\CourseCaptain\Privacy\SelfService::register();
 		\CourseCaptain\Course\FaqService::register();

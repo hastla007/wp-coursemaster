@@ -28,7 +28,8 @@ defined( 'ABSPATH' ) || exit;
  *   key means "unchanged"; caps per field; all-or-nothing validation;
  *   `_rev` conflict detection; first save materializes all defaults;
  *   side effects; audit `settings_saved` (public/internal with before/after,
- *   personal only "changed", secret never); nothing written without change.
+ *   personal only "changed", secret never; system actors add `actor`, e.g.
+ *   `system:cli`, SR-5); nothing written without change.
  * - Foreign writers (S-9) are rejected when the structure is invalid.
  * - Migration (§2.3): unknown keys of older versions are dropped; newer
  *   schemas pass unknown keys through (downgrade, E-90).
@@ -602,7 +603,7 @@ final class Settings {
 			array(
 				'tab'     => $tab,
 				'changed' => $diff,
-			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks' ) ) )
+			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks' ) ) ) + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() )
 		);
 	}
 
