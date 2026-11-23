@@ -17,7 +17,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Every audit action has a label and an area (GM-139). The view shows plain
- * text, filters by user, area, action, period and object ID, pages the
+ * text, filters by user, area, action, period, object ID and grant
+ * reference (source reference or request key, GM-090), pages the
  * result, is restricted to `ccap_view_audit_log` and masks email
  * addresses (GM-138).
  */
@@ -35,6 +36,9 @@ final class AuditView {
 		return array(
 			'grant.manual_created'           => array( 'access', __( 'Access granted manually', 'course-captain' ) ),
 			'grant.extended'                 => array( 'access', __( 'Access extended', 'course-captain' ) ),
+			'grant.source_created'           => array( 'access', __( 'Access granted by a source', 'course-captain' ) ),
+			'grant.source_revoked'           => array( 'access', __( 'Access revoked by a source', 'course-captain' ) ),
+			'grant.source_kept'              => array( 'access', __( 'Access kept after a source revocation (rule "keep")', 'course-captain' ) ),
 			'group.created'                  => array( 'groups', __( 'Group created', 'course-captain' ) ),
 			'group.token_rotated'            => array( 'groups', __( 'Group invitation link renewed', 'course-captain' ) ),
 			'group.validity_changed'         => array( 'groups', __( 'Group validity changed', 'course-captain' ) ),
@@ -89,6 +93,8 @@ final class AuditView {
 			'cache_flushed'                  => array( 'ops', __( 'Cache emptied', 'course-captain' ) ),
 			'diagnostics_exported'           => array( 'ops', __( 'Diagnostics package exported', 'course-captain' ) ),
 			'site_identity_confirmed'        => array( 'ops', __( 'Site identity confirmed after restore, move or copy', 'course-captain' ) ),
+			'storage_moved'                  => array( 'ops', __( 'Protected folders moved', 'course-captain' ) ),
+			'storage_move_failed'            => array( 'ops', __( 'Moving the protected folders failed', 'course-captain' ) ),
 		);
 	}
 
@@ -96,7 +102,7 @@ final class AuditView {
 	 * Filtered, paged entries.
 	 *
 	 * @param Actor                $actor   Viewer.
-	 * @param array<string, mixed> $filters `user`, `area`, `action`, `from`, `to`, `object_id`.
+	 * @param array<string, mixed> $filters `user`, `area`, `action`, `from`, `to`, `object_id`, `reference`.
 	 * @param int                  $page    Page (1-based).
 	 * @return array{items: list<array{id: int, time: string, area: string, label: string, actor: string, object: string, details: string}>, total: int, pages: int}
 	 * @throws CourseException Without the capability.
@@ -126,6 +132,10 @@ final class AuditView {
 		}
 		if ( ! empty( $filters['object_id'] ) ) {
 			$where[] = $db->prepare( 'object_id = %s', (string) $filters['object_id'] );
+		}
+		if ( ! empty( $filters['reference'] ) ) {
+			// Entries of the grants with this source reference (GM-090).
+			$where[] = $db->prepare( "object_type = 'grant' AND object_id IN (SELECT CAST(id AS CHAR) FROM `" . $db->table( 'ccap_grant' ) . '` WHERE source_id = %s)', (string) $filters['reference'] );
 		}
 		$table = $db->table( 'ccap_audit_log' );
 		$cond  = implode( ' AND ', $where );

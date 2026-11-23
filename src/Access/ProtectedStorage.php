@@ -20,7 +20,8 @@ defined( 'ABSPATH' ) || exit;
  * never replaced (defence in depth, not a replacement for the server rule);
  * every folder gets `index.php`; protected folders get a deny-all
  * `.htaccess` (Apache 2.2/2.4), the public media folder a script block.
- * Foreign `.htaccess` files are never overwritten.
+ * Foreign `.htaccess` files are never overwritten. A changed base moves
+ * the class folders (StorageLayout, GM-113/GM-114).
  */
 final class ProtectedStorage {
 
@@ -31,12 +32,28 @@ final class ProtectedStorage {
 	private const HTACCESS_MEDIA   = "# course-captain\n<FilesMatch \"\\.(php[0-9]?|phtml|phar|html?|svgz?|js|cgi|pl|py|sh)$\">\n\t<IfModule mod_authz_core.c>\n\t\tRequire all denied\n\t</IfModule>\n\t<IfModule !mod_authz_core.c>\n\t\tOrder allow,deny\n\t\tDeny from all\n\t</IfModule>\n</FilesMatch>\nOptions -ExecCGI -Indexes\n";
 
 	/**
-	 * Base directory (no trailing slash).
+	 * Active base directory (no trailing slash). When the configured base
+	 * changed (legacy layout, private folder set or removed), the class
+	 * folders are moved once; if that fails, the previous folder stays
+	 * active (GM-113, StorageLayout).
 	 *
 	 * @return string
 	 * @throws CourseException When a configured private dir is unusable.
 	 */
 	public static function base(): string {
+		return StorageLayout::resolve( self::configured_base(), self::default_base() );
+	}
+
+	/**
+	 * Configured base directory: `COURSE_CAPTAIN_PRIVATE_DIR` / filter, else
+	 * the default below the uploads folder. A configured folder is never
+	 * silently replaced by the default (MED-009).
+	 *
+	 * @param bool $create Create a missing configured folder (false: read only).
+	 * @return string
+	 * @throws CourseException When a configured private dir is unusable.
+	 */
+	public static function configured_base( bool $create = true ): string {
 		$configured = defined( 'COURSE_CAPTAIN_PRIVATE_DIR' ) ? (string) constant( 'COURSE_CAPTAIN_PRIVATE_DIR' ) : '';
 		/**
 		 * Private base directory (absolute, preferably outside the web root).
@@ -46,13 +63,46 @@ final class ProtectedStorage {
 		 */
 		$configured = (string) apply_filters( 'course_captain_private_dir', $configured );
 		if ( '' !== $configured ) {
-			if ( ! path_is_absolute( $configured ) || ( ! is_dir( $configured ) && ! wp_mkdir_p( $configured ) ) ) {
+			if ( ! path_is_absolute( $configured ) || ( ! is_dir( $configured ) && ( ! $create || ! wp_mkdir_p( $configured ) ) ) ) {
 				throw new CourseException( 'ccap_storage_unavailable', 'Private directory is not usable.', 500 );
 			}
 			return untrailingslashit( $configured );
 		}
+		return self::default_base();
+	}
+
+	/**
+	 * Default base below the uploads folder.
+	 *
+	 * @return string
+	 */
+	public static function default_base(): string {
 		$uploads = wp_upload_dir( null, false );
 		return untrailingslashit( (string) $uploads['basedir'] ) . '/course-captain';
+	}
+
+	/**
+	 * Public URL of a directory, or null when it lies outside the uploads
+	 * folder, the content folder and the WordPress root (private, GM-114).
+	 *
+	 * @param string $dir Directory.
+	 * @return string|null
+	 */
+	public static function public_url( string $dir ): ?string {
+		$dir     = untrailingslashit( wp_normalize_path( $dir ) );
+		$uploads = wp_upload_dir( null, false );
+		$roots   = array(
+			array( (string) $uploads['basedir'], (string) $uploads['baseurl'] ),
+			array( WP_CONTENT_DIR, content_url() ),
+			array( ABSPATH, site_url() ),
+		);
+		foreach ( $roots as $root ) {
+			$path = untrailingslashit( wp_normalize_path( $root[0] ) );
+			if ( '' !== $path && ( $dir === $path || str_starts_with( $dir, $path . '/' ) ) ) {
+				return untrailingslashit( $root[1] ) . substr( $dir, strlen( $path ) );
+			}
+		}
+		return null;
 	}
 
 	/**

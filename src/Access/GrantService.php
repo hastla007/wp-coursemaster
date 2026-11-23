@@ -105,6 +105,211 @@ final class GrantService {
 	}
 
 	/**
+	 * Grant from a source request (grant rules, R0-05 GM-089; core of the
+	 * Pro API `grant_access_v1`, R0-19 §4.1): `extend` with a duration
+	 * starts where the running bounded chain of the same target ends,
+	 * `parallel` starts now, no duration means permanent. When the learner
+	 * already holds the target permanently, nothing is created
+	 * (`ccap_access_exists`); without a learner the request is
+	 * `ccap_user_required`. The same source key returns the stored grant
+	 * (`duplicate`). New grants are audited with learner, source and
+	 * reference (GM-090).
+	 *
+	 * @param array<string, mixed> $request `user_id`, `course_id`, `module_id?`, `scopes?`, `source_type`, `source_reference`, `source_line?`, `duration_days?`, `renewal_mode?` (extend|parallel), `reason?`.
+	 * @param Actor                $actor   Connector or system actor.
+	 * @return array{grant_id: int, code: string}
+	 * @throws CourseException `ccap_user_required`, `ccap_invalid_param`, `ccap_not_found`, `ccap_access_exists`, `ccap_idempotency_conflict`.
+	 */
+	public function grant_from_source( array $request, Actor $actor ): array {
+		$user_id   = (int) ( $request['user_id'] ?? 0 );
+		$course_id = (int) ( $request['course_id'] ?? 0 );
+		$module_id = (int) ( $request['module_id'] ?? 0 );
+		$scopes    = (string) ( $request['scopes'] ?? 'all' );
+		$type      = (string) ( $request['source_type'] ?? '' );
+		$reference = (string) ( $request['source_reference'] ?? '' );
+		$line      = (string) ( $request['source_line'] ?? '' );
+		$mode      = (string) ( $request['renewal_mode'] ?? 'extend' );
+		$duration  = isset( $request['duration_days'] ) ? (int) $request['duration_days'] : null;
+		if ( $user_id <= 0 || false === get_userdata( $user_id ) ) {
+			throw new CourseException( 'ccap_user_required', 'A learner account is required.', 401 );
+		}
+		if ( 1 !== preg_match( '/^[a-z0-9_]{1,32}$/', $type ) || '' === $reference || strlen( $reference ) > 191 || ! in_array( $mode, array( 'extend', 'parallel' ), true ) || ( null !== $duration && $duration < 1 ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Invalid grant request.', 400 );
+		}
+		if ( null === $this->relations->post( $course_id, 'ccap_course' ) ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown course.', 404 );
+		}
+		$existing = $this->db->row(
+			$this->db->prepare(
+				'SELECT id, user_id FROM `' . $this->db->table( 'ccap_grant' ) . '` WHERE source_type = %s AND source_id = %s AND source_line = %s AND course_id = %d AND module_id = %d ORDER BY source_revision DESC LIMIT 1',
+				$type,
+				$reference,
+				$line,
+				$course_id,
+				$module_id
+			)
+		);
+		if ( null !== $existing ) {
+			if ( (int) $existing['user_id'] !== $user_id ) {
+				throw new CourseException( 'ccap_idempotency_conflict', 'The source key belongs to another learner.', 409 );
+			}
+			return array(
+				'grant_id' => (int) $existing['id'],
+				'code'     => 'duplicate',
+			);
+		}
+		if ( $this->holds_permanently( $user_id, $course_id, $module_id, $scopes ) ) {
+			throw new CourseException( 'ccap_access_exists', 'The learner already has permanent access.', 409 );
+		}
+		$result = $this->create(
+			array(
+				'user_id'       => $user_id,
+				'course_id'     => $course_id,
+				'module_id'     => $module_id,
+				'scopes'        => $scopes,
+				'source_type'   => $type,
+				'source_id'     => $reference,
+				'source_line'   => $line,
+				'source_plugin' => $type,
+				'status'        => GrantTransitions::ACTIVE,
+				'duration_days' => $duration,
+				'renewal_mode'  => $mode,
+				'reason'        => isset( $request['reason'] ) ? (string) $request['reason'] : null,
+			),
+			$actor,
+			(string) ( $request['reason'] ?? 'source_grant' )
+		);
+		if ( $result['created'] ) {
+			$row = (array) $this->relations->row( 'ccap_grant', $result['grant_id'] );
+			AuditLog::write(
+				$this->db,
+				$actor,
+				'grant.source_created',
+				'grant',
+				(string) $result['grant_id'],
+				null,
+				array(
+					'source_type'      => $type,
+					'source_reference' => $reference,
+					'course_id'        => $course_id,
+					'valid_from'       => $row['valid_from'] ?? null,
+					'valid_until'      => $row['valid_until'] ?? null,
+				),
+				$user_id
+			);
+		}
+		return array(
+			'grant_id' => $result['grant_id'],
+			'code'     => $result['created'] ? 'created' : 'duplicate',
+		);
+	}
+
+	/**
+	 * Revocation by rule for all grants of one source reference (GM-089):
+	 * `revoke` ends them (`revoked`, a following `extend` grant moves
+	 * forward), `keep` leaves them unchanged. Both are audited (GM-090).
+	 *
+	 * @param Actor  $actor       Connector or system actor.
+	 * @param string $source_type Source type.
+	 * @param string $reference   Source reference.
+	 * @param string $rule        revoke|keep.
+	 * @param string $reason_code Reason code of the revocation.
+	 * @return array{code: string, grant_ids: list<int>}
+	 * @throws CourseException `ccap_invalid_param` for unknown rules, `ccap_not_found` without grants.
+	 */
+	public function revoke_source( Actor $actor, string $source_type, string $reference, string $rule, string $reason_code = 'source_revoked' ): array {
+		if ( ! in_array( $rule, array( 'revoke', 'keep' ), true ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Unknown revocation rule.', 400 );
+		}
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT id, user_id, status FROM `' . $this->db->table( 'ccap_grant' ) . '` WHERE source_type = %s AND source_id = %s ORDER BY id', $source_type, $reference ) );
+		if ( array() === $rows ) {
+			throw new CourseException( 'ccap_not_found', 'No grant for this reference.', 404 );
+		}
+		$ids     = array();
+		$changed = false;
+		foreach ( $rows as $row ) {
+			$ids[] = (int) $row['id'];
+			if ( 'revoke' === $rule && ! GrantTransitions::is_final( (string) $row['status'] ) ) {
+				$changed = GrantTransitions::REVOKED === $this->transition( $actor, (int) $row['id'], GrantTransitions::REVOKED, $reason_code ) || $changed;
+			}
+		}
+		$action = array(
+			'revoke' => 'grant.source_revoked',
+			'keep'   => 'grant.source_kept',
+		)[ $rule ];
+		foreach ( $rows as $row ) {
+			AuditLog::write(
+				$this->db,
+				$actor,
+				$action,
+				'grant',
+				(string) $row['id'],
+				null,
+				array(
+					'source_type'      => $source_type,
+					'source_reference' => $reference,
+					'rule'             => $rule,
+				),
+				null === $row['user_id'] ? null : (int) $row['user_id']
+			);
+		}
+		return array(
+			'code'      => $changed ? 'updated' : 'unchanged',
+			'grant_ids' => $ids,
+		);
+	}
+
+	/**
+	 * Grants of a source reference, newest first (grant search, GM-090).
+	 *
+	 * @param string $reference   Source reference (for manual grants the request key).
+	 * @param string $source_type Optional source type.
+	 * @return list<array<string, mixed>>
+	 */
+	public function find_by_reference( string $reference, string $source_type = '' ): array {
+		$table = $this->db->table( 'ccap_grant' );
+		$sql   = '' === $source_type
+			? $this->db->prepare( "SELECT * FROM `{$table}` WHERE source_id = %s ORDER BY id DESC", $reference )
+			: $this->db->prepare( "SELECT * FROM `{$table}` WHERE source_id = %s AND source_type = %s ORDER BY id DESC", $reference, $source_type );
+		return array_values( $this->db->rows( $sql ) );
+	}
+
+	/**
+	 * Whether the learner already holds the target permanently: an active,
+	 * started grant without end on the whole course or the same module whose
+	 * scopes cover the requested ones.
+	 *
+	 * @param int    $user   Learner.
+	 * @param int    $course Course.
+	 * @param int    $module Module (0 = whole course).
+	 * @param string $scopes Requested scopes (`all` or list).
+	 * @return bool
+	 */
+	private function holds_permanently( int $user, int $course, int $module, string $scopes ): bool {
+		$table  = $this->db->table( 'ccap_grant' );
+		$rows   = $this->db->rows(
+			$this->db->prepare(
+				"SELECT scopes, depends_on_course_id FROM `{$table}` WHERE user_id = %d AND course_id = %d AND module_id IN (0, %d) AND status = 'active' AND valid_until IS NULL AND (valid_from IS NULL OR valid_from <= %s)",
+				$user,
+				$course,
+				$module,
+				$this->db->now()
+			)
+		);
+		$wanted = 'all' === $scopes ? null : array_map( 'trim', explode( ',', $scopes ) );
+		foreach ( $rows as $row ) {
+			if ( 0 !== (int) $row['depends_on_course_id'] ) {
+				continue;
+			}
+			$have = (string) $row['scopes'];
+			if ( 'all' === $have || ( null !== $wanted && array() === array_diff( $wanted, array_map( 'trim', explode( ',', $have ) ) ) ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Create a grant idempotently from a source (no policy check: callers
 	 * are the manual path above, seat claims and source adapters).
 	 *

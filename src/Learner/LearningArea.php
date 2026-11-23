@@ -60,6 +60,7 @@ final class LearningArea {
 			}
 		);
 		add_action( 'template_redirect', array( self::class, 'serve' ), 5 );
+		Invitation::register();
 		add_action( 'init', array( self::class, 'blocks' ) );
 		Compatibility::add_shortcode( 'ccap_learning_link', array( self::class, 'shortcode_link' ) );
 		Compatibility::add_shortcode( 'ccap_access', array( self::class, 'shortcode_access' ) );
@@ -131,7 +132,13 @@ final class LearningArea {
 			return;
 		}
 		ContentProtection::mark_uncacheable();
+		$claim = Invitation::token( isset( $_GET[ Invitation::PARAM ] ) ? sanitize_text_field( wp_unslash( $_GET[ Invitation::PARAM ] ) ) : null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Token link, verified by the group service.
 		if ( ! is_user_logged_in() ) {
+			if ( null !== $claim && '' === trim( (string) $path, '/' ) ) {
+				// GM-104: guests see the invitation hint with login/registration leading back.
+				echo self::page( Actor::user( 0 ), '', '', $claim ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
+				exit;
+			}
 			wp_safe_redirect( wp_login_url( self::url( (string) $path ) ) );
 			exit;
 		}
@@ -142,7 +149,7 @@ final class LearningArea {
 			exit;
 		}
 		$status = isset( $_GET['ccap_status'] ) ? sanitize_key( wp_unslash( $_GET['ccap_status'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display only.
-		echo self::page( $actor, (string) $path, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
+		echo self::page( $actor, (string) $path, $status, (string) $claim ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
 		exit;
 	}
 
@@ -171,6 +178,9 @@ final class LearningArea {
 					}
 					return add_query_arg( 'ccap_status', $result['status'], self::lesson_url( $m[1], (int) $m[2] ) ) . '#ccap-main';
 				}
+				if ( '' === $path && 'claim' === ( $post['ccap_do'] ?? '' ) ) {
+					return Invitation::handle( $actor, $post );
+				}
 				if ( 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)$#', $path, $m ) && 'start_exam' === ( $post['ccap_do'] ?? '' ) ) {
 					$session = ExamRoom::start( $actor, LearnerQueries::current()->course_id( $m[1] ), $post );
 					return is_int( $session ) ? self::url( 'pruefung/' . $session ) : add_query_arg( 'ccap_status', $session, self::url( $path ) );
@@ -188,10 +198,11 @@ final class LearningArea {
 	 * @param Actor  $actor  Learner.
 	 * @param string $path   Path.
 	 * @param string $status Status after a form post.
+	 * @param string $claim  Invitation token on the start page (GM-104).
 	 * @return string
 	 */
-	public static function page( Actor $actor, string $path, string $status = '' ): string {
-		return Locale::in_learning_locale( $actor->user_id, static fn(): string => self::document( $actor, $path, $status ) );
+	public static function page( Actor $actor, string $path, string $status = '', string $claim = '' ): string {
+		return Locale::in_learning_locale( $actor->user_id, static fn(): string => self::document( $actor, $path, $status, $claim ) );
 	}
 
 	/**
@@ -200,9 +211,10 @@ final class LearningArea {
 	 * @param Actor  $actor  Learner.
 	 * @param string $path   Path (`''`, `kurs/<uid>`, `kurs/<uid>/lektion/<id>`, `pruefung/<id>`).
 	 * @param string $status Status after a form post.
+	 * @param string $claim  Invitation token on the start page (GM-104).
 	 * @return array{status: int, title: string, title_attr: string, body: string}
 	 */
-	public static function resolve( Actor $actor, string $path, string $status = '' ): array {
+	public static function resolve( Actor $actor, string $path, string $status = '', string $claim = '' ): array {
 		$path      = trim( $path, '/' );
 		$result    = array(
 			'status'     => 200,
@@ -226,6 +238,9 @@ final class LearningArea {
 				$exam            = ExamRoom::render( $actor, (int) $m[1], $status );
 				$result['title'] = $exam['title'];
 				$result['body']  = $exam['body'];
+			} elseif ( '' === $path && null !== Invitation::token( $claim ) ) {
+				$result['title'] = __( 'Group invitation', 'course-captain' );
+				$result['body']  = Invitation::body( $actor, $claim, $status );
 			} else {
 				$result['body'] = self::my_learning( $actor );
 			}
@@ -246,10 +261,11 @@ final class LearningArea {
 	 * @param Actor  $actor  Learner.
 	 * @param string $path   Path.
 	 * @param string $status Status after a form post.
+	 * @param string $claim  Invitation token on the start page.
 	 * @return string
 	 */
-	private static function document( Actor $actor, string $path, string $status ): string {
-		$page       = self::resolve( $actor, $path, $status );
+	private static function document( Actor $actor, string $path, string $status, string $claim = '' ): string {
+		$page       = self::resolve( $actor, $path, $status, $claim );
 		$title      = $page['title'];
 		$title_attr = $page['title_attr'];
 		$body       = $page['body'];

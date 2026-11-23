@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T21:57:14+00:00\n"
+"POT-Creation-Date: 2026-11-23T10:14:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -22,7 +22,8 @@ msgstr ""
 #: src/Admin/Notices.php:120
 #: src/Notification/NotificationService.php:1029
 #: src/Ops/Compatibility.php:570
-#: src/Ops/HealthChecks.php:236
+#: src/Ops/HealthChecks.php:245
+#: src/Ops/StorageSelfTest.php:153
 #: src/Privacy/PrivacyService.php:125
 #: src/Privacy/PrivacyService.php:135
 #: src/Privacy/PrivacyService.php:360
@@ -79,7 +80,7 @@ msgid "You are not allowed to view certificates."
 msgstr ""
 
 #: src/Admin/CertificatesScreen.php:214
-#: src/Ops/AuditScreen.php:74
+#: src/Ops/AuditScreen.php:75
 msgid "Filter"
 msgstr ""
 
@@ -181,7 +182,7 @@ msgstr ""
 
 #. translators: 1: page, 2: pages
 #: src/Admin/CertificatesScreen.php:248
-#: src/Ops/AuditScreen.php:81
+#: src/Ops/AuditScreen.php:82
 #, php-format
 msgid "Page %1$d of %2$d"
 msgstr ""
@@ -2453,6 +2454,7 @@ msgid "Strict"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:495
+#: src/Learner/LessonView.php:240
 msgid "Practice"
 msgstr ""
 
@@ -2505,7 +2507,7 @@ msgid "Within sections"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:527
-#: src/Ops/AuditScreen.php:70
+#: src/Ops/AuditScreen.php:71
 msgid "All"
 msgstr ""
 
@@ -3723,6 +3725,7 @@ msgid "has successfully completed the course"
 msgstr ""
 
 #: src/Course/PostTypes.php:80
+#: src/Learner/LessonView.php:390
 msgid "Lessons"
 msgstr ""
 
@@ -4061,6 +4064,7 @@ msgid "Submit exam"
 msgstr ""
 
 #: src/Learner/ExamRoom.php:133
+#: src/Learner/LessonView.php:237
 msgid "Exam"
 msgstr ""
 
@@ -4204,122 +4208,283 @@ msgstr ""
 msgid "Start exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:170
-#: src/Learner/LearningArea.php:201
+#: src/Learner/Invitation.php:143
+msgid "You have been invited to a group. Log in or create an account to accept the invitation; you will come back here afterwards."
+msgstr ""
+
+#: src/Learner/Invitation.php:144
+msgid "Log in"
+msgstr ""
+
+#: src/Learner/Invitation.php:148
+msgid "Create an account"
+msgstr ""
+
+#. translators: %s: group name
+#: src/Learner/Invitation.php:156
+#, php-format
+msgid "You have been invited to the group \"%s\"."
+msgstr ""
+
+#: src/Learner/Invitation.php:159
+msgid "Accept invitation"
+msgstr ""
+
+#: src/Learner/LearningArea.php:221
+#: src/Learner/LearningArea.php:250
+#: src/Learner/LearningArea.php:286
 msgid "My learning"
 msgstr ""
 
-#: src/Learner/LearningArea.php:188
+#: src/Learner/LearningArea.php:242
+msgid "Group invitation"
+msgstr ""
+
+#: src/Learner/LearningArea.php:252
+msgid "This lesson is not available."
+msgstr ""
+
+#: src/Learner/LearningArea.php:252
 msgid "This course is not available."
 msgstr ""
 
-#: src/Learner/LearningArea.php:201
+#: src/Learner/LearningArea.php:286
 msgid "Skip to content"
 msgstr ""
 
-#: src/Learner/LearningArea.php:213
+#: src/Learner/LearningArea.php:298
 msgid "You are not enrolled in any course yet."
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:304
 msgid "Progress:"
 msgstr ""
 
-#: src/Learner/LearningArea.php:219
+#: src/Learner/LearningArea.php:304
 msgid "Course progress"
 msgstr ""
 
 #. translators: %s: percentage, e.g. "75 %"
-#: src/Learner/LearningArea.php:219
-#: src/Learner/LearningArea.php:288
+#: src/Learner/LearningArea.php:304
+#: src/Learner/LearningArea.php:374
 #, php-format
 msgid "%s completed"
 msgstr ""
 
 #. translators: %s: lesson title
-#: src/Learner/LearningArea.php:221
+#: src/Learner/LearningArea.php:306
 #, php-format
 msgid "Continue: %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:238
+#: src/Learner/LearningArea.php:324
 msgid "Course contents"
 msgstr ""
 
 #. translators: %s: course
-#: src/Learner/LearningArea.php:290
+#: src/Learner/LearningArea.php:376
 #, php-format
 msgid "Open %s in the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:306
+#: src/Learner/LearningArea.php:392
 msgid "Go to the learning area"
 msgstr ""
 
-#: src/Learner/LearningArea.php:357
+#: src/Learner/LearningArea.php:443
 msgid "Access active"
 msgstr ""
 
-#: src/Learner/LearningArea.php:358
+#: src/Learner/LearningArea.php:444
 msgid "Partial access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:359
+#: src/Learner/LearningArea.php:445
 msgid "Access pending"
 msgstr ""
 
-#: src/Learner/LearningArea.php:360
+#: src/Learner/LearningArea.php:446
 msgid "Access suspended"
 msgstr ""
 
-#: src/Learner/LearningArea.php:361
+#: src/Learner/LearningArea.php:447
 msgid "Access expired"
 msgstr ""
 
-#: src/Learner/LearningArea.php:362
+#: src/Learner/LearningArea.php:448
 msgid "No access"
 msgstr ""
 
 #. translators: %s: date
-#: src/Learner/LearningArea.php:377
+#: src/Learner/LearningArea.php:463
 #, php-format
 msgid "Available from %s"
 msgstr ""
 
-#: src/Learner/LearningArea.php:380
+#: src/Learner/LearningArea.php:466
 msgid "Locked: no access"
 msgstr ""
 
-#: src/Learner/LearningArea.php:381
+#: src/Learner/LearningArea.php:467
 msgid "Locked: not part of the preview"
 msgstr ""
 
-#: src/Learner/LearningArea.php:382
+#: src/Learner/LearningArea.php:468
 msgid "Locked: not yet released"
 msgstr ""
 
-#: src/Learner/LearningArea.php:383
+#: src/Learner/LearningArea.php:469
 msgid "Locked: complete the previous steps first"
 msgstr ""
 
-#: src/Learner/LearningArea.php:384
+#: src/Learner/LearningArea.php:470
 msgid "Locked during your running exam"
 msgstr ""
 
-#: src/Learner/LearningArea.php:386
+#: src/Learner/LearningArea.php:472
 msgid "Locked"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:482
 msgid "completed"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:482
 msgid "in progress"
 msgstr ""
 
-#: src/Learner/LearningArea.php:396
+#: src/Learner/LearningArea.php:482
 msgid "not started"
+msgstr ""
+
+#. translators: %s: course title
+#: src/Learner/LessonView.php:67
+#, php-format
+msgid "Back to the course: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Assignment"
+msgstr ""
+
+#: src/Learner/LessonView.php:235
+msgid "Submitting the assignment is not available in the learning area yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:237
+msgid "Start the exam on the course page."
+msgstr ""
+
+#: src/Learner/LessonView.php:240
+msgid "This practice activity cannot be used on this page yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:253
+msgid "Video"
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:264
+#, php-format
+msgid "This video is hosted by %s and is only loaded after your consent."
+msgstr ""
+
+#. translators: %s: host name
+#: src/Learner/LessonView.php:274
+#, php-format
+msgid "Watch the video on %s (opens in a new tab)"
+msgstr ""
+
+#: src/Learner/LessonView.php:280
+msgid "The video is not available yet."
+msgstr ""
+
+#: src/Learner/LessonView.php:287
+msgid "Subtitles"
+msgstr ""
+
+#: src/Learner/LessonView.php:289
+msgid "Download the video"
+msgstr ""
+
+#: src/Learner/LessonView.php:306
+msgid "Your progress"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: completed"
+msgstr ""
+
+#: src/Learner/LessonView.php:307
+msgid "Status: not completed yet"
+msgstr ""
+
+#: src/Learner/LessonView.php:311
+msgid "Download the file"
+msgstr ""
+
+#: src/Learner/LessonView.php:318
+msgid "Mark as completed"
+msgstr ""
+
+#. translators: %s: number of minutes
+#: src/Learner/LessonView.php:328
+#, php-format
+msgid "You can mark this lesson as read after %s minute."
+msgid_plural "You can mark this lesson as read after %s minutes."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Learner/LessonView.php:333
+msgid "Mark as read"
+msgstr ""
+
+#: src/Learner/LessonView.php:336
+msgid "This step is completed when you download the file."
+msgstr ""
+
+#: src/Learner/LessonView.php:339
+msgid "This step is completed when you have watched the video."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed with the exam."
+msgstr ""
+
+#: src/Learner/LessonView.php:343
+msgid "This step is completed when your assignment has been graded."
+msgstr ""
+
+#: src/Learner/LessonView.php:346
+msgid "This step is completed automatically."
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:378
+#, php-format
+msgid "Previous: %s"
+msgstr ""
+
+#. translators: %s: lesson title
+#: src/Learner/LessonView.php:380
+#, php-format
+msgid "Next: %s"
+msgstr ""
+
+#: src/Learner/LessonView.php:401
+msgid "Lesson completed."
+msgstr ""
+
+#: src/Learner/LessonView.php:402
+msgid "Your progress has been saved."
+msgstr ""
+
+#: src/Learner/LessonView.php:403
+msgid "The download has been recorded."
+msgstr ""
+
+#: src/Learner/LessonView.php:409
+msgid "Please take a little more time with this lesson before you mark it as read."
 msgstr ""
 
 #: src/Notification/MailTemplates.php:195
@@ -4585,7 +4750,7 @@ msgid "Assignment returned"
 msgstr ""
 
 #: src/Notification/NotificationPrefs.php:247
-#: src/Ops/AuditView.php:45
+#: src/Ops/AuditView.php:49
 msgid "Assignment graded"
 msgstr ""
 
@@ -4643,266 +4808,290 @@ msgid "Object ID"
 msgstr ""
 
 #: src/Ops/AuditScreen.php:63
-msgid "From (YYYY-MM-DD)"
+msgid "Grant reference"
 msgstr ""
 
 #: src/Ops/AuditScreen.php:64
+msgid "From (YYYY-MM-DD)"
+msgstr ""
+
+#: src/Ops/AuditScreen.php:65
 msgid "To (YYYY-MM-DD)"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:70
+#: src/Ops/AuditScreen.php:71
 msgid "Area"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:75
+#: src/Ops/AuditScreen.php:76
 msgid "Audit entries"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:75
+#: src/Ops/AuditScreen.php:76
 msgid "Time (UTC)"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:75
+#: src/Ops/AuditScreen.php:76
 msgid "Event"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:75
+#: src/Ops/AuditScreen.php:76
 msgid "By"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:75
+#: src/Ops/AuditScreen.php:76
 msgid "Object"
 msgstr ""
 
-#: src/Ops/AuditScreen.php:75
+#: src/Ops/AuditScreen.php:76
 msgid "Details"
 msgstr ""
 
-#: src/Ops/AuditView.php:36
+#: src/Ops/AuditView.php:37
 msgid "Access granted manually"
 msgstr ""
 
-#: src/Ops/AuditView.php:37
+#: src/Ops/AuditView.php:38
 msgid "Access extended"
 msgstr ""
 
-#: src/Ops/AuditView.php:38
-msgid "Group created"
-msgstr ""
-
 #: src/Ops/AuditView.php:39
-msgid "Group invitation link renewed"
+msgid "Access granted by a source"
 msgstr ""
 
 #: src/Ops/AuditView.php:40
-msgid "Group validity changed"
+msgid "Access revoked by a source"
 msgstr ""
 
 #: src/Ops/AuditView.php:41
-msgid "Group owner changed"
+msgid "Access kept after a source revocation (rule \"keep\")"
 msgstr ""
 
 #: src/Ops/AuditView.php:42
-msgid "Group invitation rule changed"
+msgid "Group created"
 msgstr ""
 
 #: src/Ops/AuditView.php:43
-msgid "Group renamed"
+msgid "Group invitation link renewed"
 msgstr ""
 
 #: src/Ops/AuditView.php:44
-msgid "Exam attempt re-evaluated"
+msgid "Group validity changed"
+msgstr ""
+
+#: src/Ops/AuditView.php:45
+msgid "Group owner changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:46
-msgid "Assignment re-graded"
+msgid "Group invitation rule changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:47
-msgid "Assignment returned for revision"
+msgid "Group renamed"
 msgstr ""
 
 #: src/Ops/AuditView.php:48
-msgid "Assignment file opened by a grader"
-msgstr ""
-
-#: src/Ops/AuditView.php:49
-msgid "Settings saved"
+msgid "Exam attempt re-evaluated"
 msgstr ""
 
 #: src/Ops/AuditView.php:50
-msgid "Settings reset"
+msgid "Assignment re-graded"
 msgstr ""
 
 #: src/Ops/AuditView.php:51
-msgid "Setting locked for all courses"
+msgid "Assignment returned for revision"
 msgstr ""
 
 #: src/Ops/AuditView.php:52
-msgid "Setting lock removed"
+msgid "Assignment file opened by a grader"
 msgstr ""
 
 #: src/Ops/AuditView.php:53
-msgid "Course settings saved"
+msgid "Settings saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:54
-msgid "Course settings reset to the defaults"
+msgid "Settings reset"
 msgstr ""
 
 #: src/Ops/AuditView.php:55
-msgid "Settings imported"
+msgid "Setting locked for all courses"
 msgstr ""
 
 #: src/Ops/AuditView.php:56
-msgid "Role permissions changed"
+msgid "Setting lock removed"
 msgstr ""
 
 #: src/Ops/AuditView.php:57
-msgid "Data request processed automatically"
+msgid "Course settings saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:58
-msgid "Event delivery replayed"
+msgid "Course settings reset to the defaults"
 msgstr ""
 
 #: src/Ops/AuditView.php:59
-msgid "Import approved"
+msgid "Settings imported"
 msgstr ""
 
 #: src/Ops/AuditView.php:60
-msgid "Import published"
+msgid "Role permissions changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:61
-msgid "Import rollback started"
+msgid "Data request processed automatically"
 msgstr ""
 
 #: src/Ops/AuditView.php:62
-msgid "Import resumed"
+msgid "Event delivery replayed"
 msgstr ""
 
 #: src/Ops/AuditView.php:63
-msgid "Import resumed automatically"
+msgid "Import approved"
 msgstr ""
 
 #: src/Ops/AuditView.php:64
-msgid "Import cancellation requested"
+msgid "Import published"
 msgstr ""
 
 #: src/Ops/AuditView.php:65
-msgid "Import stopped: too many failed objects"
+msgid "Import rollback started"
 msgstr ""
 
 #: src/Ops/AuditView.php:66
-msgid "Imported course held back by the course check"
+msgid "Import resumed"
 msgstr ""
 
 #: src/Ops/AuditView.php:67
-msgid "Import discarded"
+msgid "Import resumed automatically"
 msgstr ""
 
 #: src/Ops/AuditView.php:68
-msgid "Import report exported"
+msgid "Import cancellation requested"
 msgstr ""
 
 #: src/Ops/AuditView.php:69
-msgid "Website hardening state changed"
+msgid "Import stopped: too many failed objects"
 msgstr ""
 
 #: src/Ops/AuditView.php:70
-msgid "Website hardening switched off by constant"
+msgid "Imported course held back by the course check"
 msgstr ""
 
 #: src/Ops/AuditView.php:71
-msgid "Maintenance action"
+msgid "Import discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:72
-msgid "Personal data erased"
+msgid "Import report exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:73
-msgid "Retention applied"
+msgid "Website hardening state changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:74
-msgid "Maintenance task failed"
+msgid "Website hardening switched off by constant"
 msgstr ""
 
 #: src/Ops/AuditView.php:75
-msgid "Mail template saved"
+msgid "Maintenance action"
 msgstr ""
 
 #: src/Ops/AuditView.php:76
-msgid "Notification opt-out changed"
+msgid "Personal data erased"
 msgstr ""
 
 #: src/Ops/AuditView.php:77
-msgid "Notification sent again"
+msgid "Retention applied"
 msgstr ""
 
 #: src/Ops/AuditView.php:78
-msgid "Group invitation sent again"
+msgid "Maintenance task failed"
 msgstr ""
 
 #: src/Ops/AuditView.php:79
-msgid "Held notifications released"
+msgid "Mail template saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:80
-msgid "Held notifications discarded"
+msgid "Notification opt-out changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:81
-msgid "Course revision published"
+msgid "Notification sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:82
-msgid "Certificate issued manually"
+msgid "Group invitation sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:83
-msgid "Certificate corrected"
+msgid "Held notifications released"
 msgstr ""
 
 #: src/Ops/AuditView.php:84
-msgid "Certificate revoked"
+msgid "Held notifications discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:85
-msgid "Certificate list exported"
+msgid "Course revision published"
 msgstr ""
 
 #: src/Ops/AuditView.php:86
-msgid "Certificate needs review after re-evaluation"
+msgid "Certificate issued manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:87
-msgid "Job retried"
+msgid "Certificate corrected"
 msgstr ""
 
 #: src/Ops/AuditView.php:88
-msgid "Dead letters discarded"
+msgid "Certificate revoked"
 msgstr ""
 
 #: src/Ops/AuditView.php:89
-msgid "Cache emptied"
+msgid "Certificate list exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:90
-msgid "Diagnostics package exported"
+msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
 #: src/Ops/AuditView.php:91
+msgid "Job retried"
+msgstr ""
+
+#: src/Ops/AuditView.php:92
+msgid "Dead letters discarded"
+msgstr ""
+
+#: src/Ops/AuditView.php:93
+msgid "Cache emptied"
+msgstr ""
+
+#: src/Ops/AuditView.php:94
+msgid "Diagnostics package exported"
+msgstr ""
+
+#: src/Ops/AuditView.php:95
 msgid "Site identity confirmed after restore, move or copy"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:96
+msgid "Protected folders moved"
+msgstr ""
+
+#: src/Ops/AuditView.php:97
+msgid "Moving the protected folders failed"
+msgstr ""
+
+#: src/Ops/AuditView.php:154
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:154
 msgid "System"
 msgstr ""
 
@@ -5046,148 +5235,160 @@ msgstr ""
 msgid "Elementor \"Element Caching\" may be active by default."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:96
+#: src/Ops/HealthChecks.php:97
 msgid "Course Captain protected storage"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:100
+#: src/Ops/HealthChecks.php:101
+msgid "Course Captain direct access to protected files"
+msgstr ""
+
+#: src/Ops/HealthChecks.php:105
 msgid "Course Captain maintenance"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:104
+#: src/Ops/HealthChecks.php:109
 msgid "Course Captain event delivery"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:109
+#: src/Ops/HealthChecks.php:114
 msgid "Course Captain database"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:113
+#: src/Ops/HealthChecks.php:118
 msgid "Course Captain site identity"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:127
+#: src/Ops/HealthChecks.php:132
 msgid "This site is marked as a copy: Course Captain never sends messages here."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:127
+#: src/Ops/HealthChecks.php:132
 msgid "If this copy became a site of its own, confirm \"moved\" with \"wp course-captain identity confirm moved\"."
 msgstr ""
 
 #. translators: %s: changed parts, e.g. "site address, database"
-#: src/Ops/HealthChecks.php:132
+#: src/Ops/HealthChecks.php:137
 #, php-format
 msgid "Course Captain holds all outgoing messages because the site changed (%s)."
 msgstr ""
 
 #. translators: %s: changed parts, e.g. "site address, database"
-#: src/Ops/HealthChecks.php:132
+#: src/Ops/HealthChecks.php:137
 msgid "After a restore or move, confirm it in the notice on the dashboard or with \"wp course-captain identity confirm same_place|moved|copy\". Held messages are then listed for release; by default they are discarded."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:134
+#: src/Ops/HealthChecks.php:139
 msgid "The site identity is unchanged."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:145
+#: src/Ops/HealthChecks.php:150
 msgid "Run \"wp course-captain migrate\" or check the database permissions."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:148
+#: src/Ops/HealthChecks.php:153
 #: src/Ops/OpsStatus.php:169
 msgid "The database schema is newer than the plugin."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:148
+#: src/Ops/HealthChecks.php:153
 #: src/Ops/OpsStatus.php:169
 msgid "Install the matching plugin version or restore database and files together."
 msgstr ""
 
 #. translators: %s: step IDs
-#: src/Ops/HealthChecks.php:151
+#: src/Ops/HealthChecks.php:156
 #, php-format
 msgid "The database update stopped after repeated aborts: %s"
 msgstr ""
 
 #. translators: %s: step IDs
-#: src/Ops/HealthChecks.php:154
+#: src/Ops/HealthChecks.php:159
 #, php-format
 msgid "The database update failed: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:156
+#: src/Ops/HealthChecks.php:161
 #: src/Ops/OpsStatus.php:177
 msgid "The database update is running."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:158
+#: src/Ops/HealthChecks.php:163
 #: src/Ops/OpsStatus.php:175
 msgid "A database update is due."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:160
+#: src/Ops/HealthChecks.php:165
 #: src/Ops/OpsStatus.php:179
 msgid "Existing data is being updated in the background."
 msgstr ""
 
 #. translators: %s: step IDs
-#: src/Ops/HealthChecks.php:164
+#: src/Ops/HealthChecks.php:169
 #, php-format
 msgid "Completed update steps were changed afterwards: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:167
+#: src/Ops/HealthChecks.php:172
 msgid "The database does not support named locks; updates are protected by a lease only."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:169
+#: src/Ops/HealthChecks.php:174
 #: src/Ops/OpsStatus.php:181
 msgid "The database schema is up to date."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:184
+#: src/Ops/HealthChecks.php:185
+msgid "Moving the protected folders to the new location failed; the previous folder is still in use."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:185
+msgid "Check that the new folder is writable and has enough space. Course Captain tries again after one hour."
+msgstr ""
+
+#: src/Ops/HealthChecks.php:193
 msgid "Protected files are stored in a guarded folder."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:184
+#: src/Ops/HealthChecks.php:193
 msgid "The protected folder is missing or not writable."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:184
+#: src/Ops/HealthChecks.php:193
 msgid "On nginx add a rule that denies direct access to the course-captain protected and packages folders, or set COURSE_CAPTAIN_PRIVATE_DIR outside the web root."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:198
+#: src/Ops/HealthChecks.php:207
 msgid "The hourly maintenance is not scheduled."
 msgstr ""
 
 #. translators: %s: step names
-#: src/Ops/HealthChecks.php:202
+#: src/Ops/HealthChecks.php:211
 #, php-format
 msgid "Maintenance steps failed: %s"
 msgstr ""
 
-#: src/Ops/HealthChecks.php:205
+#: src/Ops/HealthChecks.php:214
 msgid "The maintenance has not run in the last three hours."
 msgstr ""
 
 #. translators: %s: UTC time
-#: src/Ops/HealthChecks.php:205
+#: src/Ops/HealthChecks.php:214
 #: src/Ops/OpsStatus.php:264
 msgid "Check that WP-Cron or a server cron job runs regularly."
 msgstr ""
 
-#: src/Ops/HealthChecks.php:207
+#: src/Ops/HealthChecks.php:216
 msgid "Maintenance runs regularly."
 msgstr ""
 
 #. translators: %d: number
-#: src/Ops/HealthChecks.php:219
+#: src/Ops/HealthChecks.php:228
 msgid "All internal events were delivered."
 msgstr ""
 
 #. translators: %d: number
-#: src/Ops/HealthChecks.php:219
+#: src/Ops/HealthChecks.php:228
 #, php-format
 msgid "%d event delivery failed permanently."
 msgid_plural "%d event deliveries failed permanently."
@@ -5667,6 +5868,86 @@ msgid "%s partner plugin detected; no data exchange in the free edition."
 msgid_plural "%s partner plugins detected; no data exchange in the free edition."
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/Ops/RestoreCheck.php:73
+msgid "The folder secret is missing: restore the options table together with the files."
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:74
+msgid "The folder secret is present."
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:87
+msgid "The configured private folder is missing or not readable."
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:104
+msgid "The storage folder does not exist yet."
+msgstr ""
+
+#. translators: %s: masked folder names
+#: src/Ops/RestoreCheck.php:123
+#, php-format
+msgid "Folders of another installation found (left in place): %s"
+msgstr ""
+
+#. translators: %s: storage classes, e.g. "protected, packages"
+#: src/Ops/RestoreCheck.php:128
+#, php-format
+msgid "Storage folders missing: %s"
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:132
+msgid "The private folder lies outside the WordPress folder: include it in the backup."
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:134
+msgid "The storage folders are in place."
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:134
+msgid "The storage folders need attention."
+msgstr ""
+
+#: src/Ops/RestoreCheck.php:165
+msgid "All protected files are present."
+msgstr ""
+
+#. translators: %d: number of files
+#: src/Ops/RestoreCheck.php:168
+#, php-format
+msgid "%d protected file is missing."
+msgid_plural "%d protected files are missing."
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/Ops/StorageSelfTest.php:129
+msgid "Protected course files can be downloaded directly from the web server."
+msgstr ""
+
+#. translators: %s: nginx configuration rule
+#: src/Ops/StorageSelfTest.php:131
+#, php-format
+msgid "Block direct access on the web server. For nginx add this rule: %s. Or set COURSE_CAPTAIN_PRIVATE_DIR to a folder outside the web root."
+msgstr ""
+
+#: src/Ops/StorageSelfTest.php:135
+msgid "Course Captain could not check whether the protected folders are blocked on the web server."
+msgstr ""
+
+#. translators: %s: nginx configuration rule
+#: src/Ops/StorageSelfTest.php:137
+#, php-format
+msgid "Check the web server rules manually. For nginx the rule is: %s."
+msgstr ""
+
+#: src/Ops/StorageSelfTest.php:141
+msgid "Protected course files are stored outside the web root (private)."
+msgstr ""
+
+#: src/Ops/StorageSelfTest.php:146
+msgid "Direct access to the protected folders is blocked."
+msgstr ""
 
 #: src/Privacy/PrivacyService.php:222
 msgid "Course Captain keeps the audit log (tamper protection) and course content."
