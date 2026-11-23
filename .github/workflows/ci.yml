@@ -169,9 +169,9 @@ jobs:
       - name: Scan (PR = diff, otherwise full history)
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            ./gitleaks git --no-banner --redact --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" .
+            ./gitleaks git --no-banner --redact --verbose --log-opts="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}" .
           else
-            ./gitleaks git --no-banner --redact .
+            ./gitleaks git --no-banner --redact --verbose .
           fi
 
   free-guard:
