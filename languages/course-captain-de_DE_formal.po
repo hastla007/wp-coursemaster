@@ -11000,3 +11000,412 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+msgid "Access rules saved. They apply at once."
+msgstr "Zugangsregeln gespeichert. Sie gelten sofort."
+
+#. translators: %s: course
+#, php-format
+msgid "Access rules of %s"
+msgstr "Zugangsregeln von %s"
+
+msgid "Rules decide what learners see in addition to their access: free access opens content to every logged-in visitor, a delay (drip) opens a module some days after the start of the access, partial access opens only the first items to visitors without access."
+msgstr "Regeln bestimmen, was Lernende zusätzlich zu ihrem Zugang sehen: Freier Zugang öffnet Inhalte für alle angemeldeten Personen, eine Verzögerung (Drip) öffnet ein Modul einige Tage nach Beginn des Zugangs, Teilzugang öffnet Personen ohne Zugang nur die ersten Elemente."
+
+msgid "You may view these rules but not change them."
+msgstr "Sie dürfen diese Regeln ansehen, aber nicht ändern."
+
+msgid "Access rules"
+msgstr "Zugangsregeln"
+
+msgid "Applies to"
+msgstr "Gilt für"
+
+msgid "Rule"
+msgstr "Regel"
+
+msgid "Valid (UTC)"
+msgstr "Gültig (UTC)"
+
+msgid "No rules: only learners with access see the course, all modules open at the start (unless the site-wide drip plan applies)."
+msgstr "Keine Regeln: Nur Lernende mit Zugang sehen den Kurs, alle Module sind ab Beginn offen (außer der websiteweite Freigabeplan greift)."
+
+msgid "Confirm: remove this rule"
+msgstr "Bestätigen: diese Regel entfernen"
+
+msgid "Remove rule"
+msgstr "Regel entfernen"
+
+msgid "From (date, empty = now)"
+msgstr "Ab (Datum, leer = sofort)"
+
+msgid "Until (date, empty = no end)"
+msgstr "Bis (Datum, leer = ohne Ende)"
+
+msgid "Free access"
+msgstr "Freier Zugang"
+
+msgid "Every logged-in visitor may learn the chosen content, without enrolment."
+msgstr "Jede angemeldete Person darf die gewählten Inhalte ohne Einschreibung lernen."
+
+msgid "Add free access"
+msgstr "Freien Zugang hinzufügen"
+
+msgid "Opens this many days after the start of the access (empty = remove the delay)"
+msgstr "Öffnet so viele Tage nach Beginn des Zugangs (leer = Verzögerung entfernen)"
+
+msgid "Delayed modules (drip)"
+msgstr "Zeitversetzte Module (Drip)"
+
+msgid "Save delay"
+msgstr "Verzögerung speichern"
+
+msgid "First questions per module"
+msgstr "Erste Fragen je Modul"
+
+msgid "First lessons per module"
+msgstr "Erste Lektionen je Modul"
+
+msgid "First fixed exam versions"
+msgstr "Erste feste Prüfungsbögen"
+
+msgid "First files"
+msgstr "Erste Dateien"
+
+msgid "Number of free items (empty = no limit of this kind)"
+msgstr "Anzahl freier Elemente (leer = keine Grenze dieser Art)"
+
+msgid "Partial access (trial)"
+msgstr "Teilzugang (Probe)"
+
+msgid "Visitors without access may use the first items. Saving replaces all four limits of the chosen course or module."
+msgstr "Personen ohne Zugang dürfen die ersten Elemente nutzen. Speichern ersetzt alle vier Grenzen des gewählten Kurses oder Moduls."
+
+msgid "Save partial access"
+msgstr "Teilzugang speichern"
+
+msgid "partial access: questions"
+msgstr "Teilzugang: Fragen"
+
+msgid "partial access: lessons"
+msgstr "Teilzugang: Lektionen"
+
+msgid "partial access: fixed exam versions"
+msgstr "Teilzugang: feste Prüfungsbögen"
+
+msgid "partial access: files"
+msgstr "Teilzugang: Dateien"
+
+msgid "partial access: all kinds"
+msgstr "Teilzugang: alle Arten"
+
+msgid "free access"
+msgstr "freier Zugang"
+
+msgid "delay (drip)"
+msgstr "Verzögerung (Drip)"
+
+#. translators: %d: number of days
+#, php-format
+msgid "opens %d day after the start"
+msgid_plural "opens %d days after the start"
+msgstr[0] "öffnet %d Tag nach Beginn"
+msgstr[1] "öffnet %d Tage nach Beginn"
+
+#. translators: %d: number of items
+#, php-format
+msgid "first %d item"
+msgid_plural "first %d items"
+msgstr[0] "erstes Element (%d)"
+msgstr[1] "erste %d Elemente"
+
+msgid "always"
+msgstr "immer"
+
+#. translators: 1: start, 2: end
+#, php-format
+msgid "%1$s to %2$s"
+msgstr "%1$s bis %2$s"
+
+#. translators: %d: number of stored progress entries
+#, php-format
+msgid "Progress reset. %d entry was moved to the reset journal (kept for 30 days)."
+msgid_plural "Progress reset. %d entries were moved to the reset journal (kept for 30 days)."
+msgstr[0] "Fortschritt zurückgesetzt. %d Eintrag wurde ins Rücksetz-Journal verschoben (30 Tage aufbewahrt)."
+msgstr[1] "Fortschritt zurückgesetzt. %d Einträge wurden ins Rücksetz-Journal verschoben (30 Tage aufbewahrt)."
+
+msgid "Access changed. The change is recorded with your reason."
+msgstr "Zugang geändert. Die Änderung ist mit Ihrer Begründung protokolliert."
+
+msgid "Enter a date in the future. To end an access, use \"End access\"."
+msgstr "Geben Sie ein Datum in der Zukunft ein. Um einen Zugang zu beenden, nutzen Sie „Zugang beenden“."
+
+msgid "Not reset: type the confirmation word exactly as shown."
+msgstr "Nicht zurückgesetzt: Geben Sie das Bestätigungswort genau wie angezeigt ein."
+
+msgid "Access rules of this course (free access, drip, partial access)"
+msgstr "Zugangsregeln dieses Kurses (freier Zugang, zeitversetzte Freigabe, Teilzugang)"
+
+#. translators: %s: learner
+#, php-format
+msgid "Suspend, resume or extend the access of %s"
+msgstr "Zugang von %s aussetzen, fortsetzen oder verlängern"
+
+msgid "The course progress and the lesson progress of this course start again. Exam attempts, answers and certificates stay. The previous state is kept in the reset journal for 30 days."
+msgstr "Kursfortschritt und Lektionsfortschritt dieses Kurses beginnen neu. Prüfungsversuche, Antworten und Zertifikate bleiben. Der bisherige Stand wird 30 Tage im Rücksetz-Journal aufbewahrt."
+
+msgid "Also reset the learning stages of the questions in this course (smart trainer)"
+msgstr "Auch die Lernstufen der Fragen dieses Kurses zurücksetzen (Smarttrainer)"
+
+#. translators: 1: German confirmation word, 2: English confirmation word (both typed literally)
+#, php-format
+msgid "To confirm, type %1$s or %2$s:"
+msgstr "Zur Bestätigung geben Sie %1$s oder %2$s ein:"
+
+msgid "Reset progress"
+msgstr "Fortschritt zurücksetzen"
+
+msgid "Reset progress in this course"
+msgstr "Fortschritt in diesem Kurs zurücksetzen"
+
+msgid "This access does not exist or you may not see it."
+msgstr "Dieser Zugang existiert nicht oder Sie dürfen ihn nicht sehen."
+
+#. translators: 1: learner, 2: course or module
+#, php-format
+msgid "Access of %1$s: %2$s"
+msgstr "Zugang von %1$s: %2$s"
+
+#. translators: 1: status, 2: end date
+#, php-format
+msgid "Status: %1$s · valid until (UTC): %2$s"
+msgstr "Status: %1$s · gültig bis (UTC): %2$s"
+
+msgid "Suspend access"
+msgstr "Zugang aussetzen"
+
+msgid "The learner cannot learn until the access is resumed. Progress and results stay; the end date does not change."
+msgstr "Die lernende Person kann nicht lernen, bis der Zugang fortgesetzt wird. Fortschritt und Ergebnisse bleiben; das Enddatum ändert sich nicht."
+
+msgid "Extend access"
+msgstr "Zugang verlängern"
+
+msgid "New end date (valid until the end of this day, UTC)"
+msgstr "Neues Enddatum (gültig bis zum Ende dieses Tages, UTC)"
+
+msgid "Resume access"
+msgstr "Zugang fortsetzen"
+
+msgid "The access was suspended by hand and stays suspended until you resume it."
+msgstr "Der Zugang wurde von Hand ausgesetzt und bleibt ausgesetzt, bis Sie ihn fortsetzen."
+
+msgid "The access was suspended by its source (for example a payment). Resuming it here overrides the source."
+msgstr "Der Zugang wurde von seiner Quelle ausgesetzt (zum Beispiel einer Zahlung). Das Fortsetzen hier übersteuert die Quelle."
+
+msgid "Transcript (video lessons)"
+msgstr "Transkript (Videolektionen)"
+
+msgid "Enter the spoken text of the video, a link to it, or both. Without a transcript the course check shows a notice (or blocks publishing if the website requires transcripts)."
+msgstr "Tragen Sie den gesprochenen Text des Videos ein, einen Link dazu oder beides. Ohne Transkript zeigt die Kursprüfung einen Hinweis (oder verhindert die Veröffentlichung, wenn die Website Transkripte verlangt)."
+
+msgid "Only used when the activity type is \"video\"."
+msgstr "Wird nur beim Aktivitätstyp „video“ verwendet."
+
+msgid "Transcript text"
+msgstr "Transkripttext"
+
+msgid "Link to the transcript (https)"
+msgstr "Link zum Transkript (https)"
+
+msgid "Nothing changed: select at least one question."
+msgstr "Nichts geändert: Wählen Sie mindestens eine Frage aus."
+
+#. translators: %d: maximum number of questions
+#, php-format
+msgid "Nothing changed: select at most %d questions at once."
+msgstr "Nichts geändert: Wählen Sie höchstens %d Fragen auf einmal aus."
+
+msgid "Tag"
+msgstr "Schlagwort"
+
+msgid "All tags"
+msgstr "Alle Schlagwörter"
+
+#. translators: %d: number of questions
+msgid "Tags"
+msgstr "Schlagwörter"
+
+#. translators: %s: question text
+#, php-format
+msgid "Select: %s"
+msgstr "Auswählen: %s"
+
+msgid "Add tag"
+msgstr "Schlagwort hinzufügen"
+
+msgid "Remove tag"
+msgstr "Schlagwort entfernen"
+
+msgid "Move to module (remove from the other modules)"
+msgstr "In Modul verschieben (aus den anderen Modulen entfernen)"
+
+msgid "Take out of use (archive)"
+msgstr "Außer Gebrauch nehmen (archivieren)"
+
+msgid "Change the selected questions"
+msgstr "Ausgewählte Fragen ändern"
+
+msgid "Action"
+msgstr "Aktion"
+
+msgid "Tag (for adding or removing)"
+msgstr "Schlagwort (zum Hinzufügen oder Entfernen)"
+
+msgid "Module (for adding or moving)"
+msgstr "Modul (zum Hinzufügen oder Verschieben)"
+
+msgid "— choose a module —"
+msgstr "— Modul wählen —"
+
+msgid "Publish tag changes of published questions right away (questions with unpublished changes stay drafts)"
+msgstr "Schlagwortänderungen veröffentlichter Fragen sofort veröffentlichen (Fragen mit unveröffentlichten Änderungen bleiben Entwürfe)"
+
+msgid "Confirm: take the selected questions out of use (they are archived, results stay)"
+msgstr "Bestätigen: ausgewählte Fragen außer Gebrauch nehmen (sie werden archiviert, Ergebnisse bleiben)"
+
+msgid "Apply to selected questions"
+msgstr "Auf ausgewählte Fragen anwenden"
+
+#. translators: %d: number of questions
+#, php-format
+msgid "%d question changed."
+msgid_plural "%d questions changed."
+msgstr[0] "%d Frage geändert."
+msgstr[1] "%d Fragen geändert."
+
+#. translators: %d: number of questions
+#, php-format
+msgid "%d changed question was published right away as a new version."
+msgid_plural "%d changed questions were published right away as new versions."
+msgstr[0] "%d geänderte Frage wurde sofort als neue Version veröffentlicht."
+msgstr[1] "%d geänderte Fragen wurden sofort als neue Versionen veröffentlicht."
+
+#. translators: %d: number of questions
+#, php-format
+msgid "%d changed question is a draft: publish it in the editor."
+msgid_plural "%d changed questions are drafts: publish them in the editor."
+msgstr[0] "%d geänderte Frage ist ein Entwurf: Veröffentlichen Sie sie im Editor."
+msgstr[1] "%d geänderte Fragen sind Entwürfe: Veröffentlichen Sie sie im Editor."
+
+#. translators: %d: number of questions
+#, php-format
+msgid "%d question was already in this state."
+msgid_plural "%d questions were already in this state."
+msgstr[0] "%d Frage war schon in diesem Zustand."
+msgstr[1] "%d Fragen waren schon in diesem Zustand."
+
+#. translators: %d: number of questions
+#, php-format
+msgid "%d question could not be changed (not allowed or no longer there)."
+msgid_plural "%d questions could not be changed (not allowed or no longer there)."
+msgstr[0] "%d Frage konnte nicht geändert werden (nicht erlaubt oder nicht mehr vorhanden)."
+msgstr[1] "%d Fragen konnten nicht geändert werden (nicht erlaubt oder nicht mehr vorhanden)."
+
+msgid "Subtopic"
+msgstr "Unterthema"
+
+msgid "Competency"
+msgstr "Kompetenz"
+
+msgid "Practice category"
+msgstr "Übungskategorie"
+
+msgid "Scope"
+msgstr "Geltungsbereich"
+
+msgid "A tag is a topic, for example \"Knots\". Other kinds start with their name and a colon: subtopic, competency, smart_category (practice category) or scope, for example \"competency: Navigation\"."
+msgstr "Ein Schlagwort ist ein Thema, zum Beispiel „Knoten“. Andere Arten beginnen mit ihrem Namen und einem Doppelpunkt: subtopic (Unterthema), competency (Kompetenz), smart_category (Übungskategorie) oder scope (Geltungsbereich), zum Beispiel „competency: Navigation“."
+
+msgid "Tags (optional, one per line)"
+msgstr "Schlagwörter (optional, eines pro Zeile)"
+
+msgid "Practise exam mistakes"
+msgstr "Prüfungsfehler üben"
+
+msgid "This step is completed when you have answered every question of the quiz."
+msgstr "Dieser Schritt ist abgeschlossen, wenn Sie jede Frage des Quiz beantwortet haben."
+
+msgid "This step is completed when you have answered every question of the quiz correctly once."
+msgstr "Dieser Schritt ist abgeschlossen, wenn Sie jede Frage des Quiz einmal richtig beantwortet haben."
+
+msgid "This step is completed when you pass the quiz."
+msgstr "Dieser Schritt ist abgeschlossen, wenn Sie das Quiz bestehen."
+
+msgid "Quiz"
+msgstr "Quiz"
+
+msgid "This quiz has no questions yet."
+msgstr "Dieses Quiz hat noch keine Fragen."
+
+#. translators: 1: answered questions, 2: all questions, 3: correctly answered questions
+#, php-format
+msgid "Answered: %1$s of %2$s question, correct: %3$s"
+msgid_plural "Answered: %1$s of %2$s questions, correct: %3$s"
+msgstr[0] "Beantwortet: %1$s von %2$s Frage, richtig: %3$s"
+msgstr[1] "Beantwortet: %1$s von %2$s Fragen, richtig: %3$s"
+
+msgid "A new attempt has started with newly drawn questions."
+msgstr "Ein neuer Durchgang mit neu gezogenen Fragen hat begonnen."
+
+#. translators: 1: correctly answered questions, 2: all questions, 3: percent
+#, php-format
+msgid "You answered all questions. Score: %1$s of %2$s question correct (%3$s %%)."
+msgid_plural "You answered all questions. Score: %1$s of %2$s questions correct (%3$s %%)."
+msgstr[0] "Sie haben alle Fragen beantwortet. Ergebnis: %1$s von %2$s Frage richtig (%3$s %%)."
+msgstr[1] "Sie haben alle Fragen beantwortet. Ergebnis: %1$s von %2$s Fragen richtig (%3$s %%)."
+
+msgid "Start a new attempt with new questions"
+msgstr "Neuen Durchgang mit neuen Fragen starten"
+
+msgid "The questions you answered incorrectly in your latest evaluated exam."
+msgstr "Die Fragen, die Sie in Ihrer letzten ausgewerteten Prüfung falsch beantwortet haben."
+
+msgid "You have no evaluated exam in this course yet. After your first exam you can practise its mistakes here."
+msgstr "Sie haben in diesem Kurs noch keine ausgewertete Prüfung. Nach Ihrer ersten Prüfung können Sie hier deren Fehler üben."
+
+#. translators: %s: number of questions
+#, php-format
+msgid "%s question of your latest exam was answered incorrectly. Practising it changes your learning stage, not the exam result."
+msgid_plural "%s questions of your latest exam were answered incorrectly. Practising them changes your learning stage, not the exam result."
+msgstr[0] "%s Frage Ihrer letzten Prüfung war falsch beantwortet. Das Üben ändert Ihre Lernstufe, nicht das Prüfungsergebnis."
+msgstr[1] "%s Fragen Ihrer letzten Prüfung waren falsch beantwortet. Das Üben ändert Ihre Lernstufe, nicht das Prüfungsergebnis."
+
+msgid "Your latest exam has no mistakes you can practise here. Well done!"
+msgstr "Ihre letzte Prüfung hat keine Fehler, die Sie hier üben können. Gut gemacht!"
+
+msgid "Access suspended manually"
+msgstr "Zugang manuell ausgesetzt"
+
+msgid "Access resumed manually"
+msgstr "Zugang manuell fortgesetzt"
+
+msgid "Access rule of a course changed"
+msgstr "Zugangsregel eines Kurses geändert"
+
+msgid "Question tags changed"
+msgstr "Schlagwörter einer Frage geändert"
+
+msgid "This video is shown from a video service. The course check cannot see its captions: make sure captions are switched on there."
+msgstr "Dieses Video wird von einem Videodienst gezeigt. Die Kursprüfung kann seine Untertitel nicht sehen: Stellen Sie sicher, dass sie dort eingeschaltet sind."
+
+msgid "This video has no captions. Add a captions file (WebVTT) in the lesson settings."
+msgstr "Dieses Video hat keine Untertitel. Fügen Sie in den Lektionseinstellungen eine Untertiteldatei (WebVTT) hinzu."
+
+msgid "Accessibility"
+msgstr "Barrierefreiheit"
+
+msgid "Decorative image"
+msgstr "Dekoratives Bild"
+
+msgid "Only for images that carry no information. Screen readers skip them, so the alternative text stays empty. Images a question needs must be described."
+msgstr "Nur für Bilder ohne Informationsgehalt. Screenreader überspringen sie, der Alternativtext bleibt leer. Bilder, die eine Frage braucht, müssen beschrieben werden."

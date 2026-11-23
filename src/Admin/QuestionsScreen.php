@@ -16,6 +16,7 @@ use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
+use CourseCaptain\Question\QuestionBulk;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
@@ -41,7 +42,7 @@ final class QuestionsScreen {
 	public const SLUG   = 'course-captain-questions';
 	public const ACTION = 'ccap_question_admin';
 	public const CAP    = 'ccap_edit_courses';
-	public const OPS    = array( 'save', 'save_publish', 'publish', 'archive', 'pool_add', 'pool_remove' );
+	public const OPS    = array( 'save', 'save_publish', 'publish', 'archive', 'pool_add', 'pool_remove', 'bulk' );
 
 	/**
 	 * Hooks.
@@ -82,6 +83,14 @@ final class QuestionsScreen {
 		if ( $out['question'] > 0 ) {
 			$args['action']   = 'edit';
 			$args['question'] = $out['question'];
+		} elseif ( 'bulk' === $out['op'] ) {
+			// UI-F8: back to the filtered list.
+			foreach ( array( 'module', 'type', 'status', 's', 'tag' ) as $key ) {
+				$value = sanitize_text_field( (string) wp_unslash( $_POST[ 'filter_' . $key ] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in process(); display filters only.
+				if ( '' !== $value ) {
+					$args[ $key ] = $value;
+				}
+			}
 		} elseif ( '' !== $out['type'] ) {
 			$args['action'] = 'new';
 			$args['type']   = $out['type'];
@@ -166,6 +175,9 @@ final class QuestionsScreen {
 					\CourseCaptain\Cache\CacheStore::bump_content();
 					AuditLog::write( $db, $actor, 'question_pool_changed', 'question', (string) $question, null, array( 'removed_from' => $module ) );
 					break;
+				case 'bulk':
+					$out['messages'] = self::bulk( $actor, $post );
+					break;
 			}
 		} catch ( CourseException $e ) {
 			$out['result'] = $e->error_code;
@@ -195,6 +207,8 @@ final class QuestionsScreen {
 		$repo = QuestionRepository::current();
 		$db   = Database::current();
 		$data = QuestionForm::from_post( $post );
+		// UI-F8: tags from the editor field; without the field the tags of the newest revision stay.
+		$data['tags'] = array_key_exists( 'tags', $post ) ? QuestionBulk::parse_tags( (string) $post['tags'] ) : array();
 		if ( $question > 0 ) {
 			// The type of an existing question does not change in the editor.
 			$current = $repo->revision( self::latest_revision( $question ) );
@@ -204,6 +218,9 @@ final class QuestionsScreen {
 			CourseException::unless_allowed( PolicyService::instance()->decide( $actor, PolicyService::EDIT_QUESTION, array( $question ) ), 'Not allowed to edit this question.' );
 			if ( $data['question_type'] !== $current['question_type'] ) {
 				throw new CourseException( 'ccap_invalid_param', 'type', 422 );
+			}
+			if ( ! array_key_exists( 'tags', $post ) ) {
+				$data['tags'] = (array) $current['tags'];
 			}
 		}
 		$fields = QuestionForm::field_errors( $data );
@@ -346,6 +363,9 @@ final class QuestionsScreen {
 				'ccap_confirmation_required' => __( 'Please confirm the action (tick the confirmation box).', 'course-captain' ),
 				'ccap_revision_frozen'       => __( 'This version is published and can no longer take new media. Save again to create a new version.', 'course-captain' ),
 				'ccap_media_type_forbidden'  => __( 'This file type cannot be used.', 'course-captain' ),
+				'ccap_nothing_selected'      => __( 'Nothing changed: select at least one question.', 'course-captain' ),
+				/* translators: %d: maximum number of questions */
+				'ccap_too_many'              => sprintf( __( 'Nothing changed: select at most %d questions at once.', 'course-captain' ), QuestionBulk::MAX ),
 			),
 			__( 'Saved.', 'course-captain' ),
 			$extra
@@ -365,10 +385,12 @@ final class QuestionsScreen {
 		$type   = sanitize_key( (string) ( $request['type'] ?? '' ) );
 		$status = sanitize_key( (string) ( $request['status'] ?? '' ) );
 		$search = sanitize_text_field( (string) ( $request['s'] ?? '' ) );
+		$tag    = sanitize_text_field( (string) ( $request['tag'] ?? '' ) );
 		$page   = max( 1, absint( $request['paged'] ?? 1 ) );
 		$q      = $db->table( 'ccap_question' );
 		$r      = $db->table( 'ccap_question_revision' );
 		$mq     = $db->table( 'ccap_module_question' );
+		$qt     = $db->table( 'ccap_question_tag' );
 		$where  = array( '1=1' );
 		if ( $module > 0 ) {
 			$where[] = $db->prepare( "q.id IN (SELECT question_id FROM `{$mq}` WHERE module_id = %d)", $module ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name.
@@ -384,11 +406,25 @@ final class QuestionsScreen {
 		if ( '' !== $search ) {
 			$where[] = $db->prepare( 'r.question_text LIKE %s', '%' . $db->wpdb()->esc_like( $search ) . '%' );
 		}
-		$sql  = "SELECT q.id, q.status, r.question_type, r.question_text, r.revision_no, r.editorial_status FROM `{$q}` q JOIN `{$r}` r ON r.id = (SELECT id FROM `{$r}` WHERE question_id = q.id ORDER BY revision_no DESC LIMIT 1) WHERE " . implode( ' AND ', $where ) . ' ORDER BY q.id DESC LIMIT 1000';
+		// UI-F8: filter by a tag of the newest revision (`type:key`).
+		$tag_parts = explode( ':', $tag, 2 );
+		if ( 2 === count( $tag_parts ) && in_array( $tag_parts[0], QuestionBulk::TYPES, true ) ) {
+			$where[] = $db->prepare( "EXISTS (SELECT 1 FROM `{$qt}` t WHERE t.revision_id = r.id AND t.tag_type = %s AND t.tag_key = %s)", $tag_parts[0], $tag_parts[1] ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name.
+		}
+		$sql  = "SELECT q.id, q.status, r.id AS revision_id, r.question_type, r.question_text, r.revision_no, r.editorial_status FROM `{$q}` q JOIN `{$r}` r ON r.id = (SELECT id FROM `{$r}` WHERE question_id = q.id ORDER BY revision_no DESC LIMIT 1) WHERE " . implode( ' AND ', $where ) . ' ORDER BY q.id DESC LIMIT 1000';
 		$rows = array_values( array_filter( $db->rows( $sql ), static fn( array $row ): bool => PolicyService::instance()->decide( Actor::user( $user_id ), PolicyService::EDIT_QUESTION, array( (int) $row['id'] ) )->allowed ) );
 		$per  = 50;
 		$all  = count( $rows );
 		$rows = array_slice( $rows, ( $page - 1 ) * $per, $per );
+		$tags = self::row_tags( array_map( static fn( array $row ): int => (int) $row['revision_id'], $rows ) );
+		$args = array(
+			'page'   => self::SLUG,
+			'module' => $module,
+			'type'   => $type,
+			'status' => $status,
+			's'      => $search,
+			'tag'    => $tag,
+		);
 
 		$html  = '<h1 class="wp-heading-inline">' . esc_html__( 'Question bank', 'course-captain' ) . '</h1> <a class="page-title-action" href="' . esc_url( add_query_arg( array( 'page' => self::SLUG, 'action' => 'new', 'module' => $module ), admin_url( 'admin.php' ) ) ) . '">' . esc_html__( 'Add question', 'course-captain' ) . '</a><hr class="wp-header-end">'; // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short URL args.
 		$html .= self::notice( $request, $user_id );
@@ -402,16 +438,21 @@ final class QuestionsScreen {
 		foreach ( array( 'draft', 'published', 'archived' ) as $key ) {
 			$html .= '<option value="' . esc_attr( $key ) . '"' . selected( $status, $key, false ) . '>' . esc_html( self::status_label( $key ) ) . '</option>';
 		}
+		$html .= '</select> <label for="ccap-f-tag">' . esc_html__( 'Tag', 'course-captain' ) . '</label> <select id="ccap-f-tag" name="tag"><option value="">' . esc_html__( 'All tags', 'course-captain' ) . '</option>';
+		foreach ( self::known_tags() as $value => $label ) {
+			$html .= '<option value="' . esc_attr( $value ) . '"' . selected( $tag, $value, false ) . '>' . esc_html( $label ) . '</option>';
+		}
 		$html .= '</select> <label for="ccap-f-search">' . esc_html__( 'Text contains', 'course-captain' ) . '</label> <input id="ccap-f-search" type="search" name="s" value="' . esc_attr( $search ) . '"> <button type="submit" class="button">' . esc_html__( 'Filter', 'course-captain' ) . '</button></p></form>';
 		$html .= '<p role="status">' . esc_html( sprintf( /* translators: %d: number of questions */ _n( '%d question found.', '%d questions found.', $all, 'course-captain' ), $all ) ) . '</p>';
-		$html .= '<table class="widefat striped"><caption class="screen-reader-text">' . esc_html__( 'Questions', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Question', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Question type', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Modules', 'course-captain' ) . '</th></tr></thead><tbody>';
+		$table = '<table class="widefat striped"><caption class="screen-reader-text">' . esc_html__( 'Questions', 'course-captain' ) . '</caption><thead><tr><td class="check-column"></td><th scope="col">' . esc_html__( 'Question', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Question type', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Tags', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Modules', 'course-captain' ) . '</th></tr></thead><tbody>';
 		if ( array() === $rows ) {
-			$html .= '<tr><td colspan="4">' . esc_html__( 'No questions yet. Add a question or import a package.', 'course-captain' ) . '</td></tr>';
+			$table .= '<tr><td colspan="6">' . esc_html__( 'No questions yet. Add a question or import a package.', 'course-captain' ) . '</td></tr>';
 		}
 		$labels = QuestionForm::type_labels();
 		foreach ( $rows as $row ) {
 			$id      = (int) $row['id'];
 			$text    = mb_substr( trim( wp_strip_all_tags( (string) $row['question_text'] ) ), 0, 90 );
+			$text    = '' === $text ? __( '(no text)', 'course-captain' ) : $text;
 			$state   = self::status_label( (string) $row['status'] );
 			$pending = 'published' === $row['status'] && 'draft' === $row['editorial_status'];
 			$modules = array_map( static fn( $m ): string => (string) get_the_title( (int) $m ), $db->wpdb()->get_col( $db->prepare( "SELECT module_id FROM `{$mq}` WHERE question_id = %d ORDER BY module_id", $id ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name.
@@ -423,18 +464,167 @@ final class QuestionsScreen {
 				),
 				admin_url( 'admin.php' )
 			);
-			$html   .= '<tr><th scope="row"><a href="' . esc_url( $url ) . '">' . esc_html( '' === $text ? __( '(no text)', 'course-captain' ) : $text ) . '</a></th><td>' . esc_html( $labels[ (string) $row['question_type'] ] ?? (string) $row['question_type'] ) . '</td><td>' . esc_html( $state . ( $pending ? ' – ' . __( 'unpublished changes', 'course-captain' ) : '' ) ) . '</td><td>' . esc_html( implode( ', ', $modules ) ) . '</td></tr>';
+			$names   = array_map( static fn( array $t ): string => self::tag_label( $t ), $tags[ (int) $row['revision_id'] ] ?? array() );
+			$table  .= '<tr><td class="check-column"><input type="checkbox" id="ccap-bulk-q-' . $id . '" name="questions[]" value="' . $id . '"><label class="screen-reader-text" for="ccap-bulk-q-' . $id . '">' . esc_html( sprintf( /* translators: %s: question text */ __( 'Select: %s', 'course-captain' ), $text ) ) . '</label></td><th scope="row"><a href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a></th><td>' . esc_html( $labels[ (string) $row['question_type'] ] ?? (string) $row['question_type'] ) . '</td><td>' . esc_html( $state . ( $pending ? ' – ' . __( 'unpublished changes', 'course-captain' ) : '' ) ) . '</td><td>' . esc_html( implode( ', ', $names ) ) . '</td><td>' . esc_html( implode( ', ', $modules ) ) . '</td></tr>';
 		}
-		$html .= '</tbody></table>';
+		$table .= '</tbody></table>';
+		$html  .= array() === $rows ? $table : AdminUi::form_multi( self::ACTION, 'bulk', 0, $table . self::bulk_fields( $args ), ' id="ccap-bulk-form"' );
 		if ( $all > $per ) {
 			$html .= '<nav aria-label="' . esc_attr__( 'Question pages', 'course-captain' ) . '"><p>';
 			$last  = (int) ceil( $all / $per );
 			for ( $p = 1; $p <= $last; $p++ ) {
-				$html .= $p === $page ? '<span aria-current="page">' . $p . '</span> ' : '<a href="' . esc_url( add_query_arg( array( 'page' => self::SLUG, 'paged' => $p, 'module' => $module, 'type' => $type, 'status' => $status, 's' => $search ), admin_url( 'admin.php' ) ) ) . '">' . $p . '</a> '; // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short URL args.
+				$html .= $p === $page ? '<span aria-current="page">' . $p . '</span> ' : '<a href="' . esc_url( add_query_arg( $args + array( 'paged' => $p ), admin_url( 'admin.php' ) ) ) . '">' . $p . '</a> ';
 			}
 			$html .= '</p></nav>';
 		}
 		return $html;
+	}
+
+	/**
+	 * Bulk action fields below the question list (UI-F8): one action for the
+	 * ticked questions; the form works without JavaScript.
+	 *
+	 * @param array<string, mixed> $args Current filters (kept after the redirect).
+	 * @return string
+	 */
+	private static function bulk_fields( array $args ): string {
+		$actions = array(
+			'tag_add'    => __( 'Add tag', 'course-captain' ),
+			'tag_remove' => __( 'Remove tag', 'course-captain' ),
+			'pool_add'   => __( 'Add to module', 'course-captain' ),
+			'pool_move'  => __( 'Move to module (remove from the other modules)', 'course-captain' ),
+			'deprecate'  => __( 'Take out of use (archive)', 'course-captain' ),
+		);
+		$html    = '<fieldset class="ccap-bulk"><legend><strong>' . esc_html__( 'Change the selected questions', 'course-captain' ) . '</strong></legend>';
+		$html   .= '<p><label for="ccap-bulk-action">' . esc_html__( 'Action', 'course-captain' ) . '</label> <select id="ccap-bulk-action" name="bulk_action">';
+		foreach ( $actions as $key => $label ) {
+			$html .= '<option value="' . esc_attr( $key ) . '">' . esc_html( $label ) . '</option>';
+		}
+		$html .= '</select></p>';
+		$html .= '<p><label for="ccap-bulk-tag">' . esc_html__( 'Tag (for adding or removing)', 'course-captain' ) . '</label> <input id="ccap-bulk-tag" type="text" name="bulk_tag" class="regular-text" aria-describedby="ccap-bulk-tag-help"><br><span id="ccap-bulk-tag-help" class="description">' . esc_html( self::tag_help() ) . '</span></p>';
+		$html .= '<p><label for="ccap-bulk-module">' . esc_html__( 'Module (for adding or moving)', 'course-captain' ) . '</label> ' . self::module_select( 'ccap-bulk-module', 'bulk_module', 0, __( '— choose a module —', 'course-captain' ) ) . '</p>';
+		$html .= '<p><label><input type="checkbox" name="bulk_publish" value="1" checked> ' . esc_html__( 'Publish tag changes of published questions right away (questions with unpublished changes stay drafts)', 'course-captain' ) . '</label><br>';
+		$html .= '<label><input type="checkbox" name="bulk_confirm" value="1"> ' . esc_html__( 'Confirm: take the selected questions out of use (they are archived, results stay)', 'course-captain' ) . '</label></p>';
+		foreach ( array( 'module', 'type', 'status', 's', 'tag' ) as $key ) {
+			$html .= '<input type="hidden" name="filter_' . esc_attr( $key ) . '" value="' . esc_attr( (string) ( $args[ $key ] ?? '' ) ) . '">';
+		}
+		return $html . '<p><button type="submit" name="op" value="bulk" class="button">' . esc_html__( 'Apply to selected questions', 'course-captain' ) . '</button></p></fieldset>';
+	}
+
+	/**
+	 * Run a bulk action and describe the outcome.
+	 *
+	 * @param Actor                $actor Author.
+	 * @param array<string, mixed> $post  POST data.
+	 * @return list<string>
+	 * @throws CourseException `ccap_nothing_selected`, `ccap_too_many`, `ccap_invalid_param`, `ccap_confirmation_required`, `ccap_forbidden`.
+	 */
+	private static function bulk( Actor $actor, array $post ): array {
+		$result = QuestionBulk::current()->apply(
+			$actor,
+			sanitize_key( (string) ( $post['bulk_action'] ?? '' ) ),
+			array_map( 'absint', (array) ( $post['questions'] ?? array() ) ),
+			array(
+				'tag'     => QuestionBulk::parse_tag( (string) ( $post['bulk_tag'] ?? '' ) ),
+				'module'  => absint( $post['bulk_module'] ?? 0 ),
+				'publish' => ! empty( $post['bulk_publish'] ),
+				'confirm' => ! empty( $post['bulk_confirm'] ),
+			)
+		);
+		$lines  = array(
+			/* translators: %d: number of questions */
+			sprintf( _n( '%d question changed.', '%d questions changed.', $result['changed'], 'course-captain' ), $result['changed'] ),
+		);
+		if ( $result['published'] > 0 ) {
+			/* translators: %d: number of questions */
+			$lines[] = sprintf( _n( '%d changed question was published right away as a new version.', '%d changed questions were published right away as new versions.', $result['published'], 'course-captain' ), $result['published'] );
+		}
+		if ( $result['draft'] > 0 ) {
+			/* translators: %d: number of questions */
+			$lines[] = sprintf( _n( '%d changed question is a draft: publish it in the editor.', '%d changed questions are drafts: publish them in the editor.', $result['draft'], 'course-captain' ), $result['draft'] );
+		}
+		if ( $result['unchanged'] > 0 ) {
+			/* translators: %d: number of questions */
+			$lines[] = sprintf( _n( '%d question was already in this state.', '%d questions were already in this state.', $result['unchanged'], 'course-captain' ), $result['unchanged'] );
+		}
+		if ( $result['failed'] > 0 ) {
+			/* translators: %d: number of questions */
+			$lines[] = sprintf( _n( '%d question could not be changed (not allowed or no longer there).', '%d questions could not be changed (not allowed or no longer there).', $result['failed'], 'course-captain' ), $result['failed'] );
+		}
+		return $lines;
+	}
+
+	/**
+	 * Tags of the listed revisions in one query.
+	 *
+	 * @param array<int> $revisions Revision IDs.
+	 * @return array<int, list<array<string, string>>>
+	 */
+	private static function row_tags( array $revisions ): array {
+		$revisions = array_values( array_filter( array_map( 'intval', $revisions ) ) );
+		if ( array() === $revisions ) {
+			return array();
+		}
+		$db  = Database::current();
+		$out = array();
+		foreach ( $db->rows( 'SELECT revision_id, tag_type, tag_key, label FROM `' . $db->table( 'ccap_question_tag' ) . '` WHERE revision_id IN (' . implode( ',', $revisions ) . ') ORDER BY revision_id, tag_type, label' ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Integer list.
+			$out[ (int) $row['revision_id'] ][] = array(
+				'type'  => (string) $row['tag_type'],
+				'key'   => (string) $row['tag_key'],
+				'label' => (string) $row['label'],
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Tags in use on the newest revisions (filter options), `type:key` → label.
+	 *
+	 * @return array<string, string>
+	 */
+	private static function known_tags(): array {
+		$db   = Database::current();
+		$r    = $db->table( 'ccap_question_revision' );
+		$rows = $db->rows( 'SELECT DISTINCT t.tag_type, t.tag_key, t.label FROM `' . $db->table( 'ccap_question_tag' ) . "` t JOIN `{$r}` r ON r.id = t.revision_id WHERE r.id IN (SELECT MAX(id) FROM `{$r}` GROUP BY question_id) ORDER BY t.tag_type, t.label LIMIT 300" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names.
+		$out  = array();
+		foreach ( $rows as $row ) {
+			$out[ $row['tag_type'] . ':' . $row['tag_key'] ] = self::tag_label(
+				array(
+					'type'  => (string) $row['tag_type'],
+					'key'   => (string) $row['tag_key'],
+					'label' => (string) $row['label'],
+				)
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Visible tag name: "label" for topics, "kind: label" otherwise.
+	 *
+	 * @param array<string, mixed> $tag Tag.
+	 * @return string
+	 */
+	public static function tag_label( array $tag ): string {
+		$kinds = array(
+			'subtopic'       => __( 'Subtopic', 'course-captain' ),
+			'competency'     => __( 'Competency', 'course-captain' ),
+			'smart_category' => __( 'Practice category', 'course-captain' ),
+			'scope'          => __( 'Scope', 'course-captain' ),
+		);
+		$label = '' !== (string) ( $tag['label'] ?? '' ) ? (string) $tag['label'] : (string) ( $tag['key'] ?? '' );
+		$type  = (string) ( $tag['type'] ?? 'topic' );
+		/* translators: 1: kind of tag, 2: tag */
+		return isset( $kinds[ $type ] ) ? sprintf( __( '%1$s: %2$s', 'course-captain' ), $kinds[ $type ], $label ) : $label;
+	}
+
+	/**
+	 * Help text of the tag fields.
+	 *
+	 * @return string
+	 */
+	private static function tag_help(): string {
+		return __( 'A tag is a topic, for example "Knots". Other kinds start with their name and a colon: subtopic, competency, smart_category (practice category) or scope, for example "competency: Navigation".', 'course-captain' );
 	}
 
 	/**
@@ -479,9 +669,11 @@ final class QuestionsScreen {
 			$type     = (string) ( $revision['question_type'] ?? '' );
 			$status   = (string) $db->scalar( $db->prepare( 'SELECT status FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $question ) );
 		}
-		$kept = get_transient( self::keep_key( $user_id ) );
+		$kept      = get_transient( self::keep_key( $user_id ) );
+		$tags_text = QuestionBulk::format_tags( (array) ( $revision['tags'] ?? array() ) );
 		if ( is_array( $kept ) && '' !== (string) ( $request['ccap_result'] ?? '' ) && absint( $kept['object'] ?? 0 ) === $question ) {
 			delete_transient( self::keep_key( $user_id ) );
+			$tags_text           = isset( $kept['tags'] ) ? (string) $kept['tags'] : $tags_text;
 			$restored            = QuestionForm::from_post( $kept );
 			$restored['answers'] = array_values( $restored['answers'] );
 			if ( QuestionForm::type_labels()[ $type ] ?? false ) {
@@ -504,6 +696,7 @@ final class QuestionsScreen {
 		}
 		$fields .= '</p>' . QuestionForm::type_fields( $type, $revision );
 		$fields .= self::image_fields( $image, ! empty( $revision['image_required'] ) );
+		$fields .= '<p><label for="ccap-q-tags">' . esc_html__( 'Tags (optional, one per line)', 'course-captain' ) . '</label><textarea id="ccap-q-tags" name="tags" rows="3" class="large-text" aria-describedby="ccap-q-tags-help">' . esc_textarea( $tags_text ) . '</textarea><span id="ccap-q-tags-help" class="description">' . esc_html( self::tag_help() ) . '</span></p>';
 		$fields .= '<fieldset><legend>' . esc_html__( 'Feedback (optional)', 'course-captain' ) . '</legend>';
 		$fields .= '<p><label for="ccap-q-fb-ok">' . esc_html__( 'Text after a correct answer', 'course-captain' ) . '</label><textarea id="ccap-q-fb-ok" name="feedback_correct" rows="2" class="large-text">' . esc_textarea( (string) ( $revision['feedback_correct'] ?? '' ) ) . '</textarea></p>';
 		$fields .= '<p><label for="ccap-q-fb-no">' . esc_html__( 'Text after a wrong answer', 'course-captain' ) . '</label><textarea id="ccap-q-fb-no" name="feedback_incorrect" rows="2" class="large-text">' . esc_textarea( (string) ( $revision['feedback_incorrect'] ?? '' ) ) . '</textarea></p></fieldset>';

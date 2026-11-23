@@ -51,6 +51,7 @@ final class EditorScreens {
 		add_action( 'admin_notices', array( self::class, 'flash' ), 5 );
 		add_action( 'enqueue_block_editor_assets', array( self::class, 'editor_notices' ) );
 		add_action( 'wp_ajax_ccap_editor_flash', array( self::class, 'ajax_flash' ) );
+		\CourseCaptain\Publish\DecorativeImages::register();
 	}
 
 	/**
@@ -282,7 +283,8 @@ final class EditorScreens {
 			echo '<option value="' . esc_attr( $type ) . '"' . selected( $definition['type'], $type, false ) . '>' . esc_html( $type ) . '</option>';
 		}
 		echo '</select></p>';
-		echo '<p><label for="ccap-activity-settings">' . esc_html__( 'Settings (JSON)', 'course-captain' ) . '</label><textarea id="ccap-activity-settings" name="ccap_activity_settings" rows="4" class="widefat code">' . esc_textarea( (string) wp_json_encode( (object) $definition['settings'], JSON_PRETTY_PRINT ) ) . '</textarea></p>';
+		echo '<p><label for="ccap-activity-settings">' . esc_html__( 'Settings (JSON)', 'course-captain' ) . '</label><textarea id="ccap-activity-settings" name="ccap_activity_settings" rows="4" class="widefat code">' . esc_textarea( (string) wp_json_encode( (object) array_diff_key( $definition['settings'], array_flip( LessonMediaFields::KEYS ) ), JSON_PRETTY_PRINT ) ) . '</textarea></p>';
+		echo LessonMediaFields::html( $definition['type'], $definition['settings'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
 		echo '<p><label for="ccap-activity-rule">' . esc_html__( 'Completion rule', 'course-captain' ) . '</label><br><input id="ccap-activity-rule" type="text" name="ccap_activity_rule" value="' . esc_attr( (string) ( $definition['rule']['type'] ?? '' ) ) . '" class="regular-text"><br><span class="description">' . esc_html__( 'Leave empty for the default rule of the type.', 'course-captain' ) . '</span></p>';
 		echo '<p class="description">' . esc_html__( 'The order of lessons in a module follows the "Order" field in the page attributes. Use "Preview" to see the lesson as a learner.', 'course-captain' ) . '</p>';
 	}
@@ -405,6 +407,7 @@ final class EditorScreens {
 				if ( ! is_array( $settings ) ) {
 					throw new CourseException( 'ccap_validation_failed', 'settings_json', 422 );
 				}
+				$settings = LessonMediaFields::merge( $type, $settings, wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above; fields sanitized in merge().
 				AuthoringService::current()->define_activity( Actor::user( get_current_user_id() ), $post_id, $type, $settings, '' === $rule ? array() : array( 'type' => $rule ) );
 			}
 		);

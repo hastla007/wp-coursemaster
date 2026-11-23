@@ -103,7 +103,7 @@ final class LessonView {
 			// SET-CC-24: the module is switched off; the lesson text stays readable, the activity is hidden.
 			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Activity', 'course-captain' ) . '</h2><p>' . esc_html__( 'This activity is not available on this website at the moment. Your previous work is kept.', 'course-captain' ) . '</p></section></article>';
 		} else {
-			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : self::activity( $type, $definition['settings'], $course_id ) ) . '</article>';
+			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : ( 'quiz' === $type ? QuizView::section( $actor, $course_id, $lesson_id, $lang, $status ) : self::activity( $type, $definition['settings'], $course_id ) ) ) . '</article>';
 			$html .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'] );
 		}
 		$html .= self::navigation( $room, $lesson_id, $lang );
@@ -166,6 +166,11 @@ final class LessonView {
 						return $result( 'ccap_module_disabled' );
 					}
 					return $result( AssignmentView::handle( $actor, $course_id, $lesson_id, (string) $post['ccap_do'], $post, $files ) );
+				case 'quiz_answer':
+				case 'quiz_reveal':
+				case 'quiz_restart':
+					// UI-F8 (h5 L-3): quiz lessons answered without JavaScript.
+					return $result( QuizView::handle( $actor, $course_id, $lesson_id, (string) $post['ccap_do'], $post ) );
 				case 'download':
 					$uid = (string) ( $definition['settings']['media_uid'] ?? '' );
 					if ( 'file' !== $type || 1 !== preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
@@ -247,7 +252,6 @@ final class LessonView {
 				return '';
 			case 'exam':
 				return '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Exam', 'course-captain' ) . '</h2><p><a href="' . esc_url( LearningArea::url( 'kurs/' . LearningArea::course_uid( $course_id ) ) . '#ccap-exams-heading' ) . '">' . esc_html__( 'Start the exam on the course page.', 'course-captain' ) . '</a></p></section>';
-			case 'quiz':
 			case 'flashcard':
 				return '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Practice', 'course-captain' ) . '</h2><p>' . esc_html__( 'This practice activity cannot be used on this page yet.', 'course-captain' ) . '</p></section>';
 			default:
@@ -522,8 +526,18 @@ final class LessonView {
 			case 'position_ratio':
 				$html .= '<p>' . esc_html__( 'This step is completed when you have watched the video.', 'course-captain' ) . '</p>';
 				break;
+			case 'attempted':
+				$html .= '<p>' . esc_html__( 'This step is completed when you have answered every question of the quiz.', 'course-captain' ) . '</p>';
+				break;
+			case 'all_correct_once':
+				$html .= '<p>' . esc_html__( 'This step is completed when you have answered every question of the quiz correctly once.', 'course-captain' ) . '</p>';
+				break;
 			case 'passed':
 			case 'evaluated':
+				if ( 'quiz' === $type ) {
+					$html .= '<p>' . esc_html__( 'This step is completed when you pass the quiz.', 'course-captain' ) . '</p>';
+					break;
+				}
 				$html .= '<p>' . esc_html( 'exam' === $type ? __( 'This step is completed with the exam.', 'course-captain' ) : __( 'This step is completed when your assignment has been graded.', 'course-captain' ) ) . '</p>';
 				break;
 			default:
@@ -588,6 +602,13 @@ final class LessonView {
 		);
 		if ( isset( $messages[ $status ] ) ) {
 			return '<p class="ccap-status" role="status">' . esc_html( $messages[ $status ] ) . '</p>';
+		}
+		$quiz = QuizView::message( $status );
+		if ( null !== $quiz ) {
+			if ( '' === $quiz['text'] ) {
+				return '';
+			}
+			return $quiz['ok'] ? '<p class="ccap-status" role="status">' . esc_html( $quiz['text'] ) . '</p>' : '<p class="ccap-error" role="alert">' . esc_html( $quiz['text'] ) . '</p>';
 		}
 		$assignment = AssignmentView::message( $status );
 		if ( null !== $assignment ) {
