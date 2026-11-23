@@ -55,7 +55,14 @@ final class SettingsBackup {
 	public static function handle_export(): void {
 		check_admin_referer( self::EXPORT );
 		try {
-			$data = Settings::export( Actor::user( get_current_user_id() ), ! empty( $_POST['include_personal'] ) );
+			$include = isset( $_POST['include'] ) && is_array( $_POST['include'] ) ? array_values( array_map( 'sanitize_key', array_map( 'strval', (array) wp_unslash( $_POST['include'] ) ) ) ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each entry passes sanitize_key().
+			$data    = SettingsTransfer::export(
+				Actor::user( get_current_user_id() ),
+				array(
+					'include_personal' => ! empty( $_POST['include_personal'] ),
+					'include'          => $include,
+				)
+			);
 		} catch ( CourseException $e ) {
 			wp_die( esc_html__( 'You are not allowed to export settings.', 'course-captain' ), '', array( 'response' => 403 ) );
 		}
@@ -110,17 +117,20 @@ final class SettingsBackup {
 				return 'ccap_confirmation_expired';
 			}
 			$tabs      = is_array( $post['tabs'] ?? null ) ? array_values( array_map( 'sanitize_key', array_map( 'strval', $post['tabs'] ) ) ) : array();
+			$surfaces  = is_array( $post['surfaces'] ?? null ) ? array_values( array_map( 'sanitize_key', array_map( 'strval', $post['surfaces'] ) ) ) : array();
 			$confirmed = is_array( $post['confirmed'] ?? null ) ? array_values( array_map( 'strval', $post['confirmed'] ) ) : array();
+			$confirmed = array_values( array_filter( $confirmed, static fn( string $c ): bool => ! str_contains( $c, '*' ) ) );
 			$report    = SettingsTransfer::import(
 				$actor,
 				$data,
 				array(
 					'apply'     => true,
 					'tabs'      => $tabs,
+					'surfaces'  => $surfaces,
 					'confirmed' => $confirmed,
 				)
 			);
-			return array() === $report['applied'] ? 'nothing' : 'imported';
+			return array() === $report['applied'] && array() === $report['applied_surfaces'] ? 'nothing' : 'imported';
 		} catch ( CourseException $e ) {
 			return $e->error_code;
 		}
@@ -167,7 +177,8 @@ final class SettingsBackup {
 		$post_url = esc_url( admin_url( 'admin-post.php' ) );
 		$html    .= '<h2>' . esc_html__( 'Export', 'course-captain' ) . '</h2><form method="post" action="' . $post_url . '"><input type="hidden" name="action" value="' . esc_attr( self::EXPORT ) . '">' . wp_nonce_field( self::EXPORT, '_wpnonce', true, false )
 			. '<p><label><input type="checkbox" name="include_personal" value="1" aria-describedby="ccap-export-help"> ' . esc_html__( 'Include personal fields (sender, footers)', 'course-captain' ) . '</label></p>'
-			. '<p id="ccap-export-help" class="description">' . esc_html__( 'Never exported: secrets, trusted proxies, file delivery, data deletion on uninstall, roles. The file contains no URL and no names.', 'course-captain' ) . '</p>'
+			. self::surface_options( $user_id )
+			. '<p id="ccap-export-help" class="description">' . esc_html__( 'Never exported: secrets, trusted proxies, file delivery, data deletion on uninstall, course and exam overrides. The file contains no URL and no names.', 'course-captain' ) . '</p>'
 			. '<p><button type="submit" class="button">' . esc_html__( 'Download settings', 'course-captain' ) . '</button></p></form>';
 		$html    .= '<h2>' . esc_html__( 'Import', 'course-captain' ) . '</h2><form method="post" enctype="multipart/form-data" action="' . $post_url . '"><input type="hidden" name="action" value="' . esc_attr( self::IMPORT ) . '">' . wp_nonce_field( self::IMPORT, '_wpnonce', true, false )
 			. '<p><label for="ccap-import-file">' . esc_html__( 'Settings file (JSON, at most 256 KB)', 'course-captain' ) . '</label> <input type="file" id="ccap-import-file" name="file" accept="application/json,.json"></p>'
@@ -223,6 +234,9 @@ final class SettingsBackup {
 			$html .= '' === $rows ? '<p>' . esc_html__( 'No changes.', 'course-captain' ) . '</p>' : '<ul>' . $rows . '</ul>';
 			$html .= '</fieldset>';
 		}
+		foreach ( $report['surfaces'] as $key => $entry ) {
+			$html .= self::surface_preview( (string) $key, $entry );
+		}
 		return $html . '<p><button type="submit" class="button button-primary">' . esc_html__( 'Import selected tabs', 'course-captain' ) . '</button> <a class="button" href="' . esc_url( admin_url( 'admin.php?page=' . self::SLUG ) ) . '">' . esc_html__( 'Cancel', 'course-captain' ) . '</a></p></form>';
 	}
 
@@ -241,6 +255,62 @@ final class SettingsBackup {
 				$out[] = $tab . '.' . $field;
 			}
 		}
+		foreach ( array_keys( SettingsTransfer::providers() ) as $key ) {
+			$out[] = $key . '.*';
+		}
 		return $out;
+	}
+
+	/**
+	 * Opt-in boxes of the export for opt-in surfaces the user may export (EX-1).
+	 *
+	 * @param int $user_id User.
+	 * @return string
+	 */
+	private static function surface_options( int $user_id ): string {
+		$html = '';
+		foreach ( SettingsTransfer::providers() as $key => $provider ) {
+			if ( ! $provider->opt_in() || ! $provider->can_export( Actor::user( $user_id ) ) ) {
+				continue;
+			}
+			/* translators: %s: name of a settings area, e.g. "Roles & permissions" */
+			$html .= '<p><label><input type="checkbox" name="include[]" value="' . esc_attr( $key ) . '"> ' . esc_html( sprintf( __( 'Include: %s', 'course-captain' ), $provider->label() ) ) . '</label></p>';
+		}
+		return $html;
+	}
+
+	/**
+	 * Preview of one surface (roles, locks, …) with its own selection box.
+	 *
+	 * @param string               $key   Provider key.
+	 * @param array<string, mixed> $entry Plan with label.
+	 * @return string
+	 */
+	private static function surface_preview( string $key, array $entry ): string {
+		$html = '<fieldset class="ccap-field"><legend><label><input type="checkbox" name="surfaces[]" value="' . esc_attr( $key ) . '"' . checked( array() !== $entry['changed'] && array() === $entry['errors'], true, false ) . '> ' . esc_html( (string) $entry['label'] ) . '</label></legend>';
+		$rows = '';
+		foreach ( (array) $entry['changed'] as $change ) {
+			$item  = (string) $change['item'];
+			$text  = isset( $change['summary'] ) ? (string) $change['summary'] : $item . ': ' . (string) wp_json_encode( $change['before'] ) . ' → ' . (string) wp_json_encode( $change['after'] );
+			$rows .= '<li>' . esc_html( $text );
+			if ( array() !== (array) $change['risks'] ) {
+				$id    = 'ccap-confirm-' . $key . '-' . sanitize_key( $item );
+				$risk  = RiskDialog::text( (string) $change['risks'][0], array(), array() );
+				$rows .= '<br><label for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" name="confirmed[]" value="' . esc_attr( $key . '.' . $item ) . '"> ' . esc_html( $risk['action'] ) . '</label> <span class="description">' . esc_html( $risk['text'] ) . '</span>';
+			}
+			$rows .= '</li>';
+		}
+		foreach ( (array) $entry['skipped'] as $skip ) {
+			if ( 'confirmation' !== $skip['reason'] ) {
+				/* translators: 1: field, 2: reason key */
+				$rows .= '<li>' . esc_html( sprintf( __( '%1$s: not imported (%2$s)', 'course-captain' ), (string) $skip['item'], (string) $skip['reason'] ) ) . '</li>';
+			}
+		}
+		foreach ( (array) $entry['errors'] as $item => $rule ) {
+			/* translators: 1: item, 2: rule */
+			$rows .= '<li>' . esc_html( sprintf( __( 'Error: %1$s: invalid value (%2$s); this area is not imported.', 'course-captain' ), (string) $item, (string) $rule ) ) . '</li>';
+		}
+		$html .= '' === $rows ? '<p>' . esc_html__( 'No changes.', 'course-captain' ) . '</p>' : '<ul>' . $rows . '</ul>';
+		return $html . '</fieldset>';
 	}
 }

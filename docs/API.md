@@ -129,6 +129,7 @@ Fachliche Parameter ohne Schema (z. B. `answer`, `age_ms`, `request_key`, `ackno
 | `course_captain_settings_roles_save` | filter |
 | `course_captain_settings_roles_tab` | filter |
 | `course_captain_settings_rules` | filter |
+| `course_captain_settings_transfer_providers` | filter |
 | `course_captain_trusted_media_hosts` | filter |
 | `course_captain_uninstall` | action |
 
@@ -137,6 +138,7 @@ Wichtige Verträge:
 - `course_captain_cache_purge` (Action; `{scope, ids, urls}` nach Veröffentlichung oder Archivierung eines Kurses).
 - `course_captain_internal_subscribers` (interne Outbox-Abonnenten; intern).
 - `course_captain_can_access` (Filter bei jeder Lernzugriffsentscheidung M-02; `bool $allowed, int $user_id, string $course_uid, string $scope, Decision $decision`; darf nur einschränken, E-84).
+- `course_captain_settings_transfer_providers` (Filter, experimentell; `list<CourseCaptain\Settings\TransferProvider>`; zusätzliche Abschnitte der Einstellungsdatei neben `tabs`, z. B. Mailvorlagen; eingebaut `locks` und `roles`). Einstellungs-CLI: `wp course-captain settings list|get|set|export|import|reset` (Handbuch `docs/EINSTELLUNGEN.md`).
 
 ## 5. Shortcodes und Blöcke
 

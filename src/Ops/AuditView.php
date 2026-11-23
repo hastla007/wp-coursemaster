@@ -26,6 +26,10 @@ final class AuditView {
 
 	public const CAP      = 'ccap_view_audit_log';
 	public const PER_PAGE = 50;
+	public const CSV_MAX  = 5000;
+
+	/** Course-level actions shown in the settings view besides the area `settings` (SET-CC-27). */
+	public const SETTINGS_EXTRA = array( 'course_settings_saved', 'course_settings_reset' );
 
 	/**
 	 * Registry: action → [area, label].
@@ -57,6 +61,9 @@ final class AuditView {
 			'settings_reset'                 => array( 'settings', __( 'Settings reset', 'course-captain' ) ),
 			'settings_lock_set'              => array( 'settings', __( 'Setting locked for all courses', 'course-captain' ) ),
 			'settings_lock_removed'          => array( 'settings', __( 'Setting lock removed', 'course-captain' ) ),
+			'settings_overrides_reset'       => array( 'settings', __( 'Course and exam overrides reset to inherit', 'course-captain' ) ),
+			'settings_exported'              => array( 'settings', __( 'Settings exported', 'course-captain' ) ),
+			'audit_exported'                 => array( 'ops', __( 'Audit log exported', 'course-captain' ) ),
 			'course_settings_saved'          => array( 'content', __( 'Course settings saved', 'course-captain' ) ),
 			'course_settings_reset'          => array( 'content', __( 'Course settings reset to the defaults', 'course-captain' ) ),
 			'settings_imported'              => array( 'settings', __( 'Settings imported', 'course-captain' ) ),
@@ -119,7 +126,7 @@ final class AuditView {
 	 *
 	 * @param Actor                $actor   Viewer.
 	 * @param array<string, mixed> $filters `user`, `area`, `action`, `from`, `to`, `object_id`, `reference`.
-	 * @param int                  $page    Page (1-based).
+	 * @param int                  $page    Page (1-based; 0 = all up to CSV_MAX for the export).
 	 * @return array{items: list<array{id: int, time: string, area: string, label: string, actor: string, object: string, details: string}>, total: int, pages: int}
 	 * @throws CourseException Without the capability.
 	 */
@@ -156,8 +163,9 @@ final class AuditView {
 		$table = $db->table( 'ccap_audit_log' );
 		$cond  = implode( ' AND ', $where );
 		$total = (int) $db->scalar( "SELECT COUNT(*) FROM `{$table}` WHERE {$cond}" );
+		$all   = 0 === $page;
 		$page  = max( 1, $page );
-		$rows  = $db->rows( $db->prepare( "SELECT * FROM `{$table}` WHERE {$cond} ORDER BY id DESC LIMIT %d OFFSET %d", self::PER_PAGE, ( $page - 1 ) * self::PER_PAGE ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Conditions prepared above.
+		$rows  = $db->rows( $db->prepare( "SELECT * FROM `{$table}` WHERE {$cond} ORDER BY id DESC LIMIT %d OFFSET %d", $all ? self::CSV_MAX : self::PER_PAGE, $all ? 0 : ( $page - 1 ) * self::PER_PAGE ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Conditions prepared above.
 		$items = array();
 		foreach ( $rows as $row ) {
 			$entry   = $registry[ (string) $row['action'] ] ?? array( 'other', (string) $row['action'] );
@@ -177,6 +185,217 @@ final class AuditView {
 			'total' => $total,
 			'pages' => (int) max( 1, ceil( $total / self::PER_PAGE ) ),
 		);
+	}
+
+	/**
+	 * Actions of the settings view: area `settings` plus course overrides.
+	 *
+	 * @return list<string>
+	 */
+	public static function settings_actions(): array {
+		$actions = array_keys( array_filter( self::registry(), static fn( array $r ): bool => 'settings' === $r[0] ) );
+		return array_values( array_merge( array_map( 'strval', $actions ), self::SETTINGS_EXTRA ) );
+	}
+
+	/**
+	 * Settings view (SET-CC-27): one row per changed key with before and
+	 * after. Values of `personal`/`secret` fields are never shown, also
+	 * not for entries written before a field changed its class (only
+	 * "changed"); emails are masked. Filters as {@see self::query()} plus
+	 * `key` (`tab` or `tab.field`). Paged by audit entries.
+	 *
+	 * @param Actor                $actor   Viewer.
+	 * @param array<string, mixed> $filters Filters.
+	 * @param int                  $page    Page (1-based, 0 = all up to CSV_MAX entries).
+	 * @return array{items: list<array{id: int, time: string, label: string, actor: string, via: string, object: string, key: string, before: string, after: string}>, total: int, pages: int}
+	 * @throws CourseException Without the capability.
+	 */
+	public static function settings_changes( Actor $actor, array $filters = array(), int $page = 1 ): array {
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, self::CAP ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to view the audit log.', 403 );
+		}
+		$db      = Database::current();
+		$actions = self::settings_actions();
+		if ( ! empty( $filters['action'] ) ) {
+			$actions = array_values( array_intersect( $actions, array( (string) $filters['action'] ) ) );
+		}
+		$where = array( array() === $actions ? '1 = 0' : 'action IN (' . implode( ',', array_map( static fn( string $a ): string => $db->prepare( '%s', $a ), $actions ) ) . ')' );
+		if ( ! empty( $filters['user'] ) ) {
+			$where[] = $db->prepare( 'actor_user_id = %d', (int) $filters['user'] );
+		}
+		if ( ! empty( $filters['from'] ) ) {
+			$where[] = $db->prepare( 'created_at >= %s', (string) $filters['from'] );
+		}
+		if ( ! empty( $filters['to'] ) ) {
+			$where[] = $db->prepare( 'created_at <= %s', (string) $filters['to'] );
+		}
+		if ( ! empty( $filters['object_id'] ) ) {
+			$where[] = $db->prepare( 'object_id = %s', (string) $filters['object_id'] );
+		}
+		$key = isset( $filters['key'] ) ? (string) $filters['key'] : '';
+		if ( '' !== $key ) {
+			$needle  = str_contains( $key, '.' ) ? substr( $key, (int) strpos( $key, '.' ) + 1 ) : $key;
+			$where[] = $db->prepare( 'context LIKE %s', '%' . $db->wpdb()->esc_like( $needle ) . '%' );
+		}
+		$table = $db->table( 'ccap_audit_log' );
+		$cond  = implode( ' AND ', $where );
+		$total = (int) $db->scalar( "SELECT COUNT(*) FROM `{$table}` WHERE {$cond}" );
+		$limit = $page > 0 ? self::PER_PAGE : self::CSV_MAX;
+		$rows  = $db->rows( $db->prepare( "SELECT * FROM `{$table}` WHERE {$cond} ORDER BY id DESC LIMIT %d OFFSET %d", $limit, $page > 0 ? ( $page - 1 ) * self::PER_PAGE : 0 ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Conditions prepared above.
+		$items = array();
+		foreach ( $rows as $row ) {
+			foreach ( self::expand( $row ) as $change ) {
+				if ( '' !== $key && $change['key'] !== $key && ! str_starts_with( $change['key'], $key . '.' ) ) {
+					continue;
+				}
+				$items[] = $change;
+			}
+		}
+		return array(
+			'items' => $items,
+			'total' => $total,
+			'pages' => (int) max( 1, ceil( $total / self::PER_PAGE ) ),
+		);
+	}
+
+	/**
+	 * CSV export of the current filter (SET-CC-27): settings view or plain
+	 * entries, at most CSV_MAX entries, formula-safe, UTF-8 with BOM;
+	 * audited as `audit_exported`.
+	 *
+	 * @param Actor                $actor   Viewer.
+	 * @param array<string, mixed> $filters Filters.
+	 * @param bool                 $settings Settings view.
+	 * @return string
+	 * @throws CourseException Without the capability.
+	 */
+	public static function csv( Actor $actor, array $filters, bool $settings ): string {
+		$cell = array( \CourseCaptain\Certificate\CertificateAdmin::class, 'csv_cell' );
+		if ( $settings ) {
+			$result  = self::settings_changes( $actor, $filters, 0 );
+			$columns = array( 'time', 'label', 'actor', 'via', 'object', 'key', 'before', 'after' );
+		} else {
+			$result  = self::query( $actor, $filters, 0 );
+			$columns = array( 'time', 'area', 'label', 'actor', 'object', 'details' );
+		}
+		$lines = array( implode( ',', $columns ) );
+		foreach ( $result['items'] as $item ) {
+			$lines[] = implode( ',', array_map( static fn( string $c ): string => (string) call_user_func( $cell, (string) ( $item[ $c ] ?? '' ) ), $columns ) );
+		}
+		\CourseCaptain\Event\AuditLog::write(
+			Database::current(),
+			$actor,
+			'audit_exported',
+			'audit',
+			$settings ? 'settings' : 'entries',
+			null,
+			array(
+				'count'   => count( $result['items'] ),
+				'filters' => array_intersect_key( $filters, array_flip( array( 'user', 'area', 'action', 'from', 'to', 'object_id', 'key' ) ) ),
+			)
+		);
+		return "\xEF\xBB\xBF" . implode( "\r\n", $lines ) . "\r\n";
+	}
+
+	/**
+	 * Rows of one audit entry in the settings view.
+	 *
+	 * @param array<string, mixed> $row Audit row.
+	 * @return list<array{id: int, time: string, label: string, actor: string, via: string, object: string, key: string, before: string, after: string}>
+	 */
+	private static function expand( array $row ): array {
+		$registry = self::registry();
+		$action   = (string) $row['action'];
+		$context  = json_decode( (string) ( $row['context'] ?? '' ), true );
+		$context  = is_array( $context ) ? $context : array();
+		$user     = null === $row['actor_user_id'] ? null : get_userdata( (int) $row['actor_user_id'] );
+		$base     = array(
+			'id'     => (int) $row['id'],
+			'time'   => (string) $row['created_at'],
+			'label'  => ( $registry[ $action ] ?? array( '', $action ) )[1],
+			'actor'  => $user instanceof \WP_User ? $user->display_name : ( 'user' === $row['actor_type'] ? __( 'Deleted user', 'course-captain' ) : __( 'System', 'course-captain' ) . ' (' . ( isset( $context['actor'] ) && is_string( $context['actor'] ) ? $context['actor'] : (string) $row['actor_type'] ) . ')' ),
+			'via'    => isset( $context['context'] ) && is_string( $context['context'] ) ? $context['context'] : '',
+			'object' => (string) $row['object_type'] . ' ' . (string) $row['object_id'],
+		);
+		$out      = array();
+		$add      = static function ( string $key, string $before, string $after ) use ( &$out, $base ): void {
+			$out[] = $base + array(
+				'key'    => $key,
+				'before' => self::mask( $before ),
+				'after'  => self::mask( $after ),
+			);
+		};
+		switch ( $action ) {
+			case 'settings_saved':
+			case 'settings_reset':
+				$tab = (string) ( $context['tab'] ?? $row['object_id'] );
+				foreach ( (array) ( $context['changed'] ?? array() ) as $field => $diff ) {
+					$key = $tab . '.' . (string) $field;
+					if ( ! is_array( $diff ) || ! self::shows_values( $tab, (string) $field ) ) {
+						$add( $key, __( '(not shown)', 'course-captain' ), __( 'changed', 'course-captain' ) );
+						continue;
+					}
+					$add( $key, self::value( $diff['before'] ?? null ), self::value( $diff['after'] ?? null ) );
+				}
+				break;
+			case 'settings_lock_set':
+				$key   = (string) ( $context['key'] ?? $row['object_id'] );
+				$value = str_contains( $key, '.' ) && self::shows_values( ...explode( '.', $key, 2 ) ) ? self::value( $context['value'] ?? null ) : __( '(not shown)', 'course-captain' );
+				/* translators: 1: locked value, 2: reason */
+				$add( $key, __( 'not locked', 'course-captain' ), sprintf( __( 'locked to %1$s (%2$s)', 'course-captain' ), $value, (string) ( $context['reason'] ?? '' ) ) );
+				break;
+			case 'settings_lock_removed':
+				$add( (string) ( $context['key'] ?? $row['object_id'] ), __( 'locked', 'course-captain' ), __( 'not locked', 'course-captain' ) );
+				break;
+			case 'settings_overrides_reset':
+				$add( (string) ( $context['key'] ?? $row['object_id'] ), implode( ', ', array_map( 'strval', (array) ( $context['reset'] ?? array() ) ) ), __( 'inherit', 'course-captain' ) );
+				break;
+			case 'role_caps_changed':
+				$add( 'roles.' . (string) ( $context['role'] ?? $row['object_id'] ), implode( ', ', array_map( 'strval', (array) ( $context['removed'] ?? array() ) ) ), implode( ', ', array_map( 'strval', (array) ( $context['added'] ?? array() ) ) ) );
+				break;
+			case 'course_settings_saved':
+			case 'course_settings_reset':
+				foreach ( (array) ( $context['keys'] ?? array() ) as $key ) {
+					$add( (string) $key, __( '(own value of the course)', 'course-captain' ), 'course_settings_reset' === $action ? __( 'inherit', 'course-captain' ) : __( 'changed', 'course-captain' ) );
+				}
+				break;
+			case 'settings_imported':
+				foreach ( (array) ( $context['keys'] ?? array() ) as $tab => $fields ) {
+					$add( (string) $tab, '', implode( ', ', array_map( 'strval', (array) $fields ) ) );
+				}
+				foreach ( (array) ( $context['surfaces'] ?? array() ) as $surface => $items ) {
+					$add( (string) $surface, '', implode( ', ', array_map( 'strval', (array) $items ) ) );
+				}
+				break;
+			default:
+				$add( (string) $row['object_id'], '', self::details( (string) ( $row['context'] ?? '' ) ) );
+		}
+		return $out;
+	}
+
+	/**
+	 * Whether the register allows showing values of a field (public/internal only).
+	 *
+	 * @param string $tab   Tab.
+	 * @param string $field Field.
+	 * @return bool
+	 */
+	private static function shows_values( string $tab, string $field = '' ): bool {
+		$def = \CourseCaptain\Settings\SettingsSchema::fields()[ $tab ][ $field ] ?? null;
+		return is_array( $def ) && in_array( $def['privacy'], array( 'public', 'internal' ), true );
+	}
+
+	/**
+	 * A setting value as text.
+	 *
+	 * @param mixed $value Value.
+	 * @return string
+	 */
+	private static function value( $value ): string {
+		if ( is_string( $value ) ) {
+			return $value;
+		}
+		return (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
 	}
 
 	/**

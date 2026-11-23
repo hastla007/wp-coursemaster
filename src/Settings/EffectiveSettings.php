@@ -781,6 +781,122 @@ final class EffectiveSettings {
 	}
 
 	/**
+	 * Stored overrides of a key (SET-CC-11): one row per course (draft
+	 * meta) and per draft/published exam rule. Published rules are frozen
+	 * (`resettable` false); a reset of a course takes effect with its next
+	 * publication for class K.
+	 *
+	 * @param string $key Key.
+	 * @return list<array{scope: string, id: int, title: string, value: mixed, status: string, resettable: bool}>
+	 */
+	public static function list_overrides( string $key ): array {
+		$scopes = SettingsSchema::overridable()[ $key ]['scopes'] ?? array();
+		$rows   = array();
+		if ( in_array( 'course', $scopes, true ) ) {
+			$courses = get_posts(
+				array(
+					'post_type'   => Relations::COURSE_TYPE,
+					'post_status' => 'any',
+					'numberposts' => -1,
+					'orderby'     => 'title',
+					'order'       => 'ASC',
+				)
+			);
+			foreach ( $courses as $course ) {
+				$own = self::course_overrides( (int) $course->ID );
+				if ( array_key_exists( $key, $own ) ) {
+					$rows[] = array(
+						'scope'      => 'course',
+						'id'         => (int) $course->ID,
+						'title'      => '' === $course->post_title ? '#' . (int) $course->ID : $course->post_title,
+						'value'      => $own[ $key ],
+						'status'     => (string) $course->post_status,
+						'resettable' => true,
+					);
+				}
+			}
+		}
+		if ( in_array( 'exam_rule', $scopes, true ) ) {
+			$db = Database::current();
+			foreach ( $db->rows( 'SELECT id, course_id, version, status, settings FROM `' . $db->table( 'ccap_exam_rule' ) . "` WHERE status IN ('draft', 'published') ORDER BY course_id, id" ) as $row ) {
+				$settings = json_decode( (string) $row['settings'], true );
+				$own      = is_array( $settings ) ? (array) ( $settings['overrides'] ?? array() ) : array();
+				if ( array_key_exists( $key, $own ) ) {
+					$rows[] = array(
+						'scope'      => 'exam_rule',
+						'id'         => (int) $row['id'],
+						'title'      => trim( get_the_title( (int) $row['course_id'] ) . ' – ' . (string) $row['version'], ' –' ),
+						'value'      => $own[ $key ],
+						'status'     => (string) $row['status'],
+						'resettable' => 'draft' === (string) $row['status'],
+					);
+				}
+			}
+		}
+		return $rows;
+	}
+
+	/**
+	 * Bulk reset of overrides of one key back to "inherit" (SET-CC-11).
+	 * Courses through {@see self::save_course()} (M-03 per course, audit
+	 * `course_settings_saved`), draft exam rules through
+	 * {@see \CourseCaptain\Exam\ExamRules::set_overrides()} (M-06);
+	 * published rules are frozen and reported. One summary audit
+	 * `settings_overrides_reset`.
+	 *
+	 * @param Actor  $actor Settings manager (#19).
+	 * @param string $key   Key.
+	 * @param array  $refs  `course:<id>` / `exam_rule:<id>`.
+	 * @phpstan-param list<string> $refs
+	 * @return array{reset: list<string>, failed: array<string, string>}
+	 * @throws CourseException `ccap_forbidden`, `ccap_validation_failed`.
+	 */
+	public static function reset_overrides( Actor $actor, string $key, array $refs ): array {
+		self::assert_settings_manager( $actor );
+		if ( ! isset( SettingsSchema::overridable()[ $key ] ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'key', 422 );
+		}
+		$out = array(
+			'reset'  => array(),
+			'failed' => array(),
+		);
+		foreach ( array_values( array_unique( $refs ) ) as $ref ) {
+			list( $scope, $id ) = array_pad( explode( ':', (string) $ref, 2 ), 2, '0' );
+			$id                 = (int) $id;
+			try {
+				if ( 'course' === $scope && $id > 0 ) {
+					if ( ! array_key_exists( $key, self::course_overrides( $id ) ) ) {
+						continue;
+					}
+					self::save_course( $actor, $id, array( $key => self::INHERIT ) );
+				} elseif ( 'exam_rule' === $scope && $id > 0 ) {
+					\CourseCaptain\Exam\ExamRules::current()->set_overrides( $actor, $id, array( $key => self::INHERIT ) );
+				} else {
+					$out['failed'][ (string) $ref ] = 'ccap_invalid_param';
+					continue;
+				}
+				$out['reset'][] = $scope . ':' . $id;
+			} catch ( CourseException $e ) {
+				$out['failed'][ $scope . ':' . $id ] = $e->error_code;
+			}
+		}
+		if ( array() !== $out['reset'] || array() !== $out['failed'] ) {
+			self::audit(
+				$actor,
+				'settings_overrides_reset',
+				'settings',
+				$key,
+				array(
+					'key'    => $key,
+					'reset'  => $out['reset'],
+					'failed' => $out['failed'],
+				)
+			);
+		}
+		return $out;
+	}
+
+	/**
 	 * Published or draft evidence rules (lock preflight for `timer_mode`).
 	 *
 	 * @return list<string> Rule UIDs.
@@ -837,6 +953,6 @@ final class EffectiveSettings {
 	 * @return void
 	 */
 	private static function audit( Actor $actor, string $action, string $type, string $id, array $context ): void {
-		AuditLog::write( Database::current(), $actor, $action, $type, $id, null, $context );
+		AuditLog::write( Database::current(), $actor, $action, $type, $id, null, $context + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() ) );
 	}
 }
