@@ -442,6 +442,38 @@ final class SmartTrainer {
 	}
 
 	/**
+	 * Due reviews (mode "due" of the learning area, R0-11 L-08): consolidated
+	 * questions (`secure`/`mastered`) whose `due_at` has passed, same rule as
+	 * `due` in {@see self::summary()}; plus the next future due date.
+	 *
+	 * @param Actor $actor     Learner.
+	 * @param int   $course_id Course.
+	 * @return array{ids: list<int>, next_due: string|null}
+	 */
+	public function due( Actor $actor, int $course_id ): array {
+		$candidates = $this->candidates( $actor, $course_id, null );
+		$progress   = $this->progress_rows( $actor->user_id, array_column( $candidates, 'question_id' ) );
+		$now        = self::sql( self::now() );
+		$ids        = array();
+		$next       = null;
+		foreach ( $candidates as $candidate ) {
+			$row = $progress[ $candidate['question_id'] ] ?? null;
+			if ( null === $row || 0 === (int) $row['attempts'] || null === $row['due_at'] || ! in_array( (string) $row['learn_status'], array( 'secure', 'mastered' ), true ) ) {
+				continue;
+			}
+			if ( (string) $row['due_at'] <= $now ) {
+				$ids[] = $candidate['question_id'];
+			} elseif ( null === $next || (string) $row['due_at'] < $next ) {
+				$next = (string) $row['due_at'];
+			}
+		}
+		return array(
+			'ids'      => $ids,
+			'next_due' => $next,
+		);
+	}
+
+	/**
 	 * Topics of a module with their question counts (GM-004).
 	 *
 	 * @param Actor $actor     Learner.

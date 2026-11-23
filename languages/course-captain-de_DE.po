@@ -6797,3 +6797,585 @@ msgstr "Link zum Lernbereich"
 msgctxt "block description"
 msgid "Button to the learning area."
 msgstr "Schaltfläche zum Lernbereich."
+
+msgid "This assignment is no longer part of the course. You can still read your submissions."
+msgstr "Diese Aufgabe gehört nicht mehr zum Kurs. Deine Abgaben kannst du weiterhin lesen."
+
+msgid "Earlier versions"
+msgstr "Frühere Fassungen"
+
+#. translators: 1: version number, 2: status text
+#, php-format
+msgid "Version %1$s: %2$s"
+msgstr "Fassung %1$s: %2$s"
+
+msgid "Your draft has been saved. It is not submitted yet."
+msgstr "Dein Entwurf ist gespeichert. Er ist noch nicht abgegeben."
+
+msgid "The file has been removed from your draft."
+msgstr "Die Datei wurde aus deinem Entwurf entfernt."
+
+msgid "Your assignment has been submitted. You cannot change it any more."
+msgstr "Deine Aufgabe ist abgegeben. Du kannst sie nicht mehr ändern."
+
+msgid "Your draft has been saved. To submit it, please confirm that you are finished."
+msgstr "Dein Entwurf ist gespeichert. Bestätige zum Abgeben bitte, dass du fertig bist."
+
+msgid "Your text is too short. Please check the minimum number of characters."
+msgstr "Dein Text ist zu kurz. Bitte beachte die Mindestzahl an Zeichen."
+
+msgid "Your text is too long. Please check the maximum number of characters."
+msgstr "Dein Text ist zu lang. Bitte beachte die Höchstzahl an Zeichen."
+
+msgid "This file type is not allowed for this assignment."
+msgstr "Dieser Dateityp ist für diese Aufgabe nicht erlaubt."
+
+msgid "The content of the file does not match its type."
+msgstr "Der Inhalt der Datei passt nicht zu ihrem Typ."
+
+msgid "The file is too large."
+msgstr "Die Datei ist zu groß."
+
+msgid "You have already added the maximum number of files."
+msgstr "Du hast bereits die höchstmögliche Zahl an Dateien hinzugefügt."
+
+msgid "This file type is not allowed for security reasons."
+msgstr "Dieser Dateityp ist aus Sicherheitsgründen nicht erlaubt."
+
+msgid "The file was rejected by the security check."
+msgstr "Die Datei wurde von der Sicherheitsprüfung abgelehnt."
+
+msgid "This assignment does not take files."
+msgstr "Bei dieser Aufgabe kannst du keine Dateien abgeben."
+
+msgid "Your files do not fit the assignment any more. Please remove them and add suitable files."
+msgstr "Deine Dateien passen nicht mehr zur Aufgabe. Bitte entferne sie und füge passende Dateien hinzu."
+
+msgid "The file could not be uploaded. Please try again."
+msgstr "Die Datei konnte nicht hochgeladen werden. Bitte versuche es noch einmal."
+
+#. translators: 1: minimum, 2: maximum number of characters
+#, php-format
+msgid "Text: %1$s to %2$s characters"
+msgstr "Text: %1$s bis %2$s Zeichen"
+
+#. translators: %s: maximum number of characters
+#, php-format
+msgid "Text: up to %s characters"
+msgstr "Text: bis zu %s Zeichen"
+
+#. translators: %s: points
+#, php-format
+msgid "Maximum points: %s"
+msgstr "Höchstpunktzahl: %s"
+
+#. translators: 1: maximum points, 2: points needed to pass
+#, php-format
+msgid "Maximum points: %1$s, passed from %2$s points"
+msgstr "Höchstpunktzahl: %1$s, bestanden ab %2$s Punkten"
+
+msgid "What to hand in"
+msgstr "Was du abgibst"
+
+#. translators: 1: number of files, 2: file types, 3: size, e.g. "10 MB"
+#, php-format
+msgid "Files: up to %1$s, types %2$s, each at most %3$s"
+msgstr "Dateien: bis zu %1$s, Typen %2$s, je höchstens %3$s"
+
+msgid "Not started yet."
+msgstr "Noch nicht begonnen."
+
+msgid "Draft – not submitted yet."
+msgstr "Entwurf – noch nicht abgegeben."
+
+#. translators: %s: date
+#, php-format
+msgid "Submitted on %s. You cannot change it any more; it is waiting for grading."
+msgstr "Abgegeben am %s. Du kannst die Abgabe nicht mehr ändern; sie wartet auf die Bewertung."
+
+#. translators: %s: date
+#, php-format
+msgid "Returned on %s with a comment. Please revise it and submit it again."
+msgstr "Am %s mit einem Kommentar zurückgegeben. Bitte überarbeite sie und gib sie erneut ab."
+
+#. translators: %s: date
+#, php-format
+msgid "Graded on %s."
+msgstr "Bewertet am %s."
+
+msgid "Comment from the grader:"
+msgstr "Kommentar der bewertenden Person:"
+
+msgid "Feedback:"
+msgstr "Rückmeldung:"
+
+msgid "Your text"
+msgstr "Dein Text"
+
+msgid "Revise your submission"
+msgstr "Abgabe überarbeiten"
+
+msgid "Your submission"
+msgstr "Deine Abgabe"
+
+msgid "Save draft"
+msgstr "Entwurf speichern"
+
+#. translators: 1: minimum, 2: maximum number of characters
+#, php-format
+msgid "Between %1$s and %2$s characters."
+msgstr "Zwischen %1$s und %2$s Zeichen."
+
+#. translators: %s: maximum number of characters
+#, php-format
+msgid "Up to %s characters."
+msgstr "Bis zu %s Zeichen."
+
+msgid "Files in this version:"
+msgstr "Dateien in dieser Fassung:"
+
+#. translators: %s: file name
+#, php-format
+msgid "Remove %s"
+msgstr "%s entfernen"
+
+msgid "Add a file"
+msgstr "Datei hinzufügen"
+
+msgid "Submit"
+msgstr "Abgeben"
+
+msgid "I am finished. I know that I cannot change my submission afterwards."
+msgstr "Ich bin fertig. Mir ist klar, dass ich meine Abgabe danach nicht mehr ändern kann."
+
+msgid "Submit assignment"
+msgstr "Aufgabe abgeben"
+
+msgid "Please give every item of the ordering question its own position. Your other answers have been saved."
+msgstr "Bitte gib bei der Reihenfolge-Frage jedem Eintrag eine eigene Position. Deine übrigen Antworten sind gespeichert."
+
+msgid "You do not manage any group."
+msgstr "Du verwaltest keine Gruppe."
+
+#. translators: %s: list of course titles
+#, php-format
+msgid "Courses: %s"
+msgstr "Kurse: %s"
+
+msgid "My groups"
+msgstr "Meine Gruppen"
+
+msgid "Back to my groups"
+msgstr "Zurück zu meinen Gruppen"
+
+msgid "Places"
+msgstr "Plätze"
+
+#. translators: %s: date
+#, php-format
+msgid "Valid until: %s"
+msgstr "Gültig bis: %s"
+
+msgid "This group is not active. You can view it, but you cannot invite anyone or change it."
+msgstr "Diese Gruppe ist nicht aktiv. Du kannst sie ansehen, aber niemanden einladen und nichts ändern."
+
+msgid "Nobody has been invited yet."
+msgstr "Noch niemand eingeladen."
+
+msgid "Person"
+msgstr "Person"
+
+#. translators: %s: person
+#, php-format
+msgid "Free the place of %s"
+msgstr "Platz von %s freigeben"
+
+#. translators: %s: person
+#, php-format
+msgid "Send the invitation to %s again"
+msgstr "Einladung an %s erneut senden"
+
+#. translators: %s: person
+#, php-format
+msgid "Withdraw the invitation of %s"
+msgstr "Einladung an %s zurückziehen"
+
+#. translators: %s: person
+#, php-format
+msgid "Free the place of %s? The person loses access to the group courses at once. Their learning progress is kept, and the place is free for someone else."
+msgstr "Platz von %s freigeben? Die Person verliert sofort den Zugang zu den Gruppenkursen. Ihr Lernfortschritt bleibt erhalten, und der Platz ist für jemand anderen frei."
+
+msgid "Yes, free the place"
+msgstr "Ja, Platz freigeben"
+
+msgid "No, keep the member"
+msgstr "Nein, Mitglied behalten"
+
+msgid "Invite by email"
+msgstr "Per E-Mail einladen"
+
+msgid "Email addresses"
+msgstr "E-Mail-Adressen"
+
+msgid "One address per line or separated by commas, at most 200. Every invitation takes one place until it is accepted or expires. The address is only used for the invitation."
+msgstr "Eine Adresse je Zeile oder durch Kommas getrennt, höchstens 200. Jede Einladung belegt einen Platz, bis sie angenommen wird oder abläuft. Die Adresse wird nur für die Einladung verwendet."
+
+msgid "Send invitations"
+msgstr "Einladungen senden"
+
+msgid "Group link"
+msgstr "Gruppenlink"
+
+msgid "New group link (shown only now – copy it and keep it safe):"
+msgstr "Neuer Gruppenlink (wird nur jetzt angezeigt – kopiere ihn und bewahre ihn sicher auf):"
+
+msgid "The group link is switched off: only people you invite by email can join, and only with the invited address."
+msgstr "Der Gruppenlink ist ausgeschaltet: Beitreten können nur Personen, die du per E-Mail einlädst, und nur mit der eingeladenen Adresse."
+
+msgid "A group link exists. Anyone with the link can take a free place. For security the link is only shown once, when it is created. If the link got into the wrong hands, create a new one: the old link stops working at once."
+msgstr "Es gibt einen Gruppenlink. Wer den Link hat, kann einen freien Platz belegen. Aus Sicherheitsgründen wird der Link nur einmal angezeigt, wenn er erstellt wird. Ist der Link in falsche Hände geraten, erstelle einen neuen: Der alte Link funktioniert dann sofort nicht mehr."
+
+msgid "There is no group link yet. Anyone with the link can take a free place."
+msgstr "Es gibt noch keinen Gruppenlink. Wer den Link hat, kann einen freien Platz belegen."
+
+msgid "Create a new group link"
+msgstr "Neuen Gruppenlink erstellen"
+
+msgid "Create a group link"
+msgstr "Gruppenlink erstellen"
+
+msgid "Who may join?"
+msgstr "Wer darf beitreten?"
+
+msgid "Anyone with an invitation or the group link"
+msgstr "Alle mit einer Einladung oder dem Gruppenlink"
+
+msgid "Only the invited email address"
+msgstr "Nur die eingeladene E-Mail-Adresse"
+
+msgid "An invitation can then only be accepted with an account that uses the invited address. The group link is switched off."
+msgstr "Eine Einladung kann dann nur mit einem Konto angenommen werden, das die eingeladene Adresse verwendet. Der Gruppenlink ist ausgeschaltet."
+
+msgid "Rename the group"
+msgstr "Gruppe umbenennen"
+
+msgid "Group name"
+msgstr "Gruppenname"
+
+msgid "A new group link has been created. The old link no longer works."
+msgstr "Ein neuer Gruppenlink wurde erstellt. Der alte Link funktioniert nicht mehr."
+
+msgid "The setting has been saved."
+msgstr "Die Einstellung ist gespeichert."
+
+msgid "The group has been renamed."
+msgstr "Die Gruppe wurde umbenannt."
+
+msgid "The invitation will be sent again."
+msgstr "Die Einladung wird erneut gesendet."
+
+msgid "The invitation has been withdrawn. The place is free again."
+msgstr "Die Einladung wurde zurückgezogen. Der Platz ist wieder frei."
+
+msgid "The place has been freed. The person no longer has access through this group; their learning progress is kept."
+msgstr "Der Platz wurde freigegeben. Die Person hat über diese Gruppe keinen Zugang mehr; ihr Lernfortschritt bleibt erhalten."
+
+#. translators: %s: number of addresses
+#, php-format
+msgid "%s address is not valid."
+msgid_plural "%s addresses are not valid."
+msgstr[0] "%s Adresse ist ungültig."
+msgstr[1] "%s Adressen sind ungültig."
+
+#. translators: %s: number of addresses
+#, php-format
+msgid "%s address was not invited because no place is free."
+msgid_plural "%s addresses were not invited because no place is free."
+msgstr[0] "%s Adresse wurde nicht eingeladen, weil kein Platz frei ist."
+msgstr[1] "%s Adressen wurden nicht eingeladen, weil kein Platz frei ist."
+
+msgid "Please check your input: enter at least one and at most 200 email addresses or a valid name."
+msgstr "Bitte prüfe deine Eingabe: Gib mindestens eine und höchstens 200 E-Mail-Adressen oder einen gültigen Namen ein."
+
+msgid "This is no longer possible. Please reload the page."
+msgstr "Das ist nicht mehr möglich. Bitte lade die Seite neu."
+
+#. translators: 1: free places, 2: all places, 3: open invitations
+#, php-format
+msgid "%1$s of %2$s places free (%3$s open invitation)."
+msgid_plural "%1$s of %2$s places free (%3$s open invitations)."
+msgstr[0] "%1$s von %2$s Plätzen frei (%3$s offene Einladung)."
+msgstr[1] "%1$s von %2$s Plätzen frei (%3$s offene Einladungen)."
+
+msgid "Group active"
+msgstr "Gruppe aktiv"
+
+msgid "Group suspended"
+msgstr "Gruppe ausgesetzt"
+
+msgid "Group ended"
+msgstr "Gruppe beendet"
+
+msgid "Member (active)"
+msgstr "Mitglied (aktiv)"
+
+msgid "Invited, not accepted yet"
+msgstr "Eingeladen, noch nicht angenommen"
+
+msgid "Invitation expired"
+msgstr "Einladung abgelaufen"
+
+msgid "Go to my learning"
+msgstr "Zu „Mein Lernen“"
+
+#. translators: %s: group name
+#, php-format
+msgid "You are already a member of the group \"%s\"."
+msgstr "Du bist bereits Mitglied der Gruppe „%s“."
+
+#. translators: %s: display name
+#, php-format
+msgid "Managed by: %s"
+msgstr "Verwaltet von: %s"
+
+msgid "A place in the group is free for you."
+msgstr "In der Gruppe ist ein Platz für dich frei."
+
+msgid "There is no free place in the group at the moment."
+msgstr "In der Gruppe ist derzeit kein Platz frei."
+
+#. translators: %s: masked email address
+#, php-format
+msgid "This invitation was sent to %s and can only be accepted with that account. Log in with that account or ask the person who manages the group for a new invitation."
+msgstr "Diese Einladung wurde an %s gesendet und kann nur mit diesem Konto angenommen werden. Melde dich mit diesem Konto an oder bitte die Person, die die Gruppe verwaltet, um eine neue Einladung."
+
+#. translators: %s: masked email address
+#, php-format
+msgid "This invitation was sent to %s. You can accept it with your account."
+msgstr "Diese Einladung wurde an %s gesendet. Du kannst sie mit deinem Konto annehmen."
+
+msgid "You already have access to these courses. If you accept, you still take one place in the group."
+msgstr "Du hast bereits Zugang zu diesen Kursen. Wenn du annimmst, belegst du trotzdem einen Platz in der Gruppe."
+
+#. translators: %s: course title
+#, php-format
+msgid "Open the course %s"
+msgstr "Kurs %s öffnen"
+
+msgid "This group is not available."
+msgstr "Diese Gruppe ist nicht verfügbar."
+
+msgid "You have joined the group. The group courses are listed below."
+msgstr "Du bist der Gruppe beigetreten. Die Kurse der Gruppe stehen unten."
+
+msgid "You are enrolled. You can start learning now."
+msgstr "Du bist eingeschrieben. Du kannst jetzt mit dem Lernen beginnen."
+
+msgid "Access to this course"
+msgstr "Zugang zu diesem Kurs"
+
+msgid "Access to this course is granted by the course administration. Please contact them if you want to take part."
+msgstr "Den Zugang zu diesem Kurs vergibt die Kursverwaltung. Wende dich bitte an sie, wenn du teilnehmen möchtest."
+
+#. translators: %s: number of days
+#, php-format
+msgid "You can enroll yourself for free and get access at once. The access is valid for %s day."
+msgid_plural "You can enroll yourself for free and get access at once. The access is valid for %s days."
+msgstr[0] "Du kannst dich kostenlos selbst einschreiben und erhältst sofort Zugang. Der Zugang gilt %s Tag."
+msgstr[1] "Du kannst dich kostenlos selbst einschreiben und erhältst sofort Zugang. Der Zugang gilt %s Tage."
+
+msgid "You can enroll yourself for free and get access at once."
+msgstr "Du kannst dich kostenlos selbst einschreiben und erhältst sofort Zugang."
+
+msgid "Enroll for free"
+msgstr "Kostenlos einschreiben"
+
+msgid "Practice overview and learning stages"
+msgstr "Übungsübersicht und Lernstufen"
+
+msgid "Smart practice"
+msgstr "Smart lernen"
+
+msgid "Practise mistakes"
+msgstr "Fehler üben"
+
+msgid "Due reviews"
+msgstr "Fällige Wiederholungen"
+
+#. translators: %s: course
+#, php-format
+msgid "Enroll in %s for free"
+msgstr "Kostenlos in %s einschreiben"
+
+msgid "Give every item its position in the correct order."
+msgstr "Gib jedem Eintrag seine Position in der richtigen Reihenfolge."
+
+msgid "Fill in the gaps."
+msgstr "Fülle die Lücken aus."
+
+msgid "— position —"
+msgstr "— Position —"
+
+#. translators: 1: position, 2: number of items
+#, php-format
+msgid "Position %1$s of %2$s"
+msgstr "Position %1$s von %2$s"
+
+#. translators: %s: number of the gap
+#, php-format
+msgid "Gap %s"
+msgstr "Lücke %s"
+
+msgid "There are no practice questions in this course that you can use right now."
+msgstr "In diesem Kurs gibt es gerade keine Übungsfragen, die du nutzen kannst."
+
+msgid "Your learning stages"
+msgstr "Deine Lernstufen"
+
+#. translators: %s: number of questions
+#, php-format
+msgid "Not practised yet: %s"
+msgstr "Noch nicht geübt: %s"
+
+#. translators: %s: number of questions
+#, php-format
+msgid "Unsure: %s"
+msgstr "Unsicher: %s"
+
+#. translators: %s: number of questions
+#, php-format
+msgid "Learning: %s"
+msgstr "Im Lernen: %s"
+
+#. translators: %s: number of questions
+#, php-format
+msgid "Secure: %s"
+msgstr "Sicher: %s"
+
+#. translators: %s: number of questions
+#, php-format
+msgid "Consolidated: %s"
+msgstr "Gefestigt: %s"
+
+msgid "Choose how you want to practise"
+msgstr "Wähle, wie du üben möchtest"
+
+msgid "The trainer picks the question that helps you most right now: new questions, mistakes and reviews."
+msgstr "Der Trainer wählt die Frage, die dir gerade am meisten hilft: neue Fragen, Fehler und Wiederholungen."
+
+msgid "Only questions you answered incorrectly last time."
+msgstr "Nur Fragen, die du zuletzt falsch beantwortet hast."
+
+msgid "No reviews are due today."
+msgstr "Heute sind keine Wiederholungen fällig."
+
+#. translators: %s: number of questions
+#, php-format
+msgid "%s question is due for review today."
+msgid_plural "%s questions are due for review today."
+msgstr[0] "%s Frage ist heute zur Wiederholung fällig."
+msgstr[1] "%s Fragen sind heute zur Wiederholung fällig."
+
+msgid "Back to the practice overview"
+msgstr "Zurück zur Übungsübersicht"
+
+msgid "Next question"
+msgstr "Nächste Frage"
+
+msgid "Question"
+msgstr "Frage"
+
+msgid "Save self-assessment"
+msgstr "Selbsteinschätzung speichern"
+
+msgid "This question type cannot be answered here."
+msgstr "Dieser Fragetyp kann hier nicht beantwortet werden."
+
+msgid "Check answer"
+msgstr "Antwort prüfen"
+
+msgid "Saved: you knew the answer."
+msgstr "Gespeichert: Du wusstest die Antwort."
+
+msgid "Saved: you did not know the answer yet."
+msgstr "Gespeichert: Du wusstest die Antwort noch nicht."
+
+msgid "Correct!"
+msgstr "Richtig!"
+
+msgid "Not correct."
+msgstr "Nicht richtig."
+
+msgid "Correct answer:"
+msgid_plural "Correct answers:"
+msgstr[0] "Richtige Antwort:"
+msgstr[1] "Richtige Antworten:"
+
+#. translators: %s: date
+#, php-format
+msgid "You know this question well. It comes up again for review on %s."
+msgstr "Du kannst diese Frage gut. Sie kommt am %s wieder zur Wiederholung."
+
+msgid "This question comes up again soon so that you can practise it."
+msgstr "Diese Frage kommt bald wieder, damit du sie üben kannst."
+
+msgid "This question comes up again until you have answered it correctly several times."
+msgstr "Diese Frage kommt wieder, bis du sie mehrmals richtig beantwortet hast."
+
+msgid "There are no open mistakes. Well done!"
+msgstr "Es gibt keine offenen Fehler. Gut gemacht!"
+
+msgid "All done – no reviews are due."
+msgstr "Alles erledigt – keine Wiederholungen fällig."
+
+#. translators: %s: date
+#, php-format
+msgid "All done – the next review is due on %s."
+msgstr "Alles erledigt – die nächste Wiederholung ist am %s fällig."
+
+msgid "Please answer the question first."
+msgstr "Bitte beantworte zuerst die Frage."
+
+msgid "Please give every item its own position."
+msgstr "Bitte gib jedem Eintrag eine eigene Position."
+
+msgid "Please check your answer: it is not complete or not valid."
+msgstr "Bitte prüfe deine Antwort: Sie ist unvollständig oder ungültig."
+
+#. translators: %s: course title
+#, php-format
+msgid "Practice: %s"
+msgstr "Üben: %s"
+
+msgid "Self-enrolled in a course"
+msgstr "Selbst in einen Kurs eingeschrieben"
+
+msgid "Group full"
+msgstr "Gruppe voll"
+
+msgid "Group not active"
+msgstr "Gruppe nicht aktiv"
+
+msgid "Group busy"
+msgstr "Gruppe ausgelastet"
+
+msgid "Invitation no longer valid"
+msgstr "Einladung nicht mehr gültig"
+
+msgid "Invitation for another address"
+msgstr "Einladung für eine andere Adresse"
+
+msgid "There is no free place in this group right now. Please ask the person who manages the group."
+msgstr "In dieser Gruppe ist gerade kein Platz frei. Bitte wende dich an die Person, die die Gruppe verwaltet."
+
+msgid "This group is not active at the moment. Please contact the person who manages the group."
+msgstr "Diese Gruppe ist derzeit nicht aktiv. Bitte wende dich an die Person, die die Gruppe verwaltet."
+
+msgid "Many people are joining at the same time. Please try again in a moment."
+msgstr "Gerade treten viele Personen gleichzeitig bei. Bitte versuche es gleich noch einmal."
+
+msgid "This invitation is no longer valid. Please ask the person who manages the group for a new invitation."
+msgstr "Diese Einladung ist nicht mehr gültig. Bitte die Person, die die Gruppe verwaltet, um eine neue Einladung."
+
+msgid "This invitation is for a different email address. Log in with the invited account or ask the person who manages the group for a new invitation."
+msgstr "Diese Einladung gilt für eine andere E-Mail-Adresse. Melde dich mit dem eingeladenen Konto an oder bitte die Person, die die Gruppe verwaltet, um eine neue Einladung."

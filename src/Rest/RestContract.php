@@ -219,6 +219,13 @@ final class RestContract {
 			'ccap_export_not_ready'          => __( 'Export not ready', 'course-captain' ),
 			'ccap_export_expired'            => __( 'Download expired', 'course-captain' ),
 			'ccap_export_failed'             => __( 'Export failed', 'course-captain' ),
+			'ccap_group_full'                => __( 'Group full', 'course-captain' ),
+			'ccap_group_not_active'          => __( 'Group not active', 'course-captain' ),
+			'ccap_group_busy'                => __( 'Group busy', 'course-captain' ),
+			'ccap_invite_expired'            => __( 'Invitation no longer valid', 'course-captain' ),
+			'ccap_claim_expired'             => __( 'Invitation no longer valid', 'course-captain' ),
+			'ccap_claim_used'                => __( 'Invitation no longer valid', 'course-captain' ),
+			'ccap_invite_other_account'      => __( 'Invitation for another address', 'course-captain' ),
 		);
 		return $titles[ $code ] ?? __( 'Error', 'course-captain' );
 	}
@@ -262,6 +269,13 @@ final class RestContract {
 			'ccap_export_not_ready'          => __( 'Your export is still being created. Please try again shortly.', 'course-captain' ),
 			'ccap_export_expired'            => __( 'This download has expired. Please request a new export.', 'course-captain' ),
 			'ccap_export_failed'             => __( 'The export could not be created. Please request a new export.', 'course-captain' ),
+			'ccap_group_full'                => __( 'There is no free place in this group right now. Please ask the person who manages the group.', 'course-captain' ),
+			'ccap_group_not_active'          => __( 'This group is not active at the moment. Please contact the person who manages the group.', 'course-captain' ),
+			'ccap_group_busy'                => __( 'Many people are joining at the same time. Please try again in a moment.', 'course-captain' ),
+			'ccap_invite_expired'            => __( 'This invitation is no longer valid. Please ask the person who manages the group for a new invitation.', 'course-captain' ),
+			'ccap_claim_expired'             => __( 'This invitation is no longer valid. Please ask the person who manages the group for a new invitation.', 'course-captain' ),
+			'ccap_claim_used'                => __( 'This invitation is no longer valid. Please ask the person who manages the group for a new invitation.', 'course-captain' ),
+			'ccap_invite_other_account'      => __( 'This invitation is for a different email address. Log in with the invited account or ask the person who manages the group for a new invitation.', 'course-captain' ),
 		);
 	}
 }

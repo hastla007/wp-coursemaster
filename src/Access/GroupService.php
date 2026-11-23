@@ -590,6 +590,113 @@ final class GroupService {
 	}
 
 	/**
+	 * Invitation preview (R0-09 §1.2 "Vorschau", R0-19 R-31): changes
+	 * nothing; group name, owner display name, course titles, whether a
+	 * seat is free, the deadline, whether the invitation is bound to
+	 * another address (masked, E-81) and whether the viewer is already a
+	 * member or has the courses from another source (§4.3 Doppelzugang).
+	 *
+	 * @param Actor  $actor Viewer (logged in).
+	 * @param string $token Raw token.
+	 * @return array{group: array{uid: string, name: string, status: string}, owner_name: string, course_titles: list<string>, course_ids: list<int>, seats_free: bool, bound_to_other_address: bool, invite_email_masked: string|null, expires_at: string|null, active: bool, already_member: bool, access_elsewhere: bool, personal: bool}
+	 * @throws CourseException `ccap_invalid_token` (422) unknown/used/replaced, `ccap_invite_expired` (410).
+	 */
+	public function preview( Actor $actor, string $token ): array {
+		$target = $this->relations->claim_target( $token );
+		$group  = $target['group'];
+		$seat   = $target['seat'];
+		if ( null === $group ) {
+			throw new CourseException( 'ccap_invalid_token', 'Unknown invitation.', 422 );
+		}
+		$id     = (int) $group['id'];
+		$now    = $this->db->now();
+		$member = $actor->user_id > 0 && null !== $this->active_seat( $id, $actor->user_id );
+		if ( null !== $seat && ! $member ) {
+			if ( 'invited' !== $seat['status'] ) {
+				throw new CourseException( 'ccap_invalid_token', 'Invitation used.', 422 );
+			}
+			if ( null !== $seat['claim_expires_at'] && (string) $seat['claim_expires_at'] <= $now ) {
+				throw new CourseException( 'ccap_invite_expired', 'Invitation expired.', 410 );
+			}
+		}
+		$active  = 'active' === $group['status'] && ( null === $group['valid_until'] || (string) $group['valid_until'] > $now ) && ( null === $group['valid_from'] || (string) $group['valid_from'] <= $now );
+		$account = $actor->user_id > 0 ? get_userdata( $actor->user_id ) : false;
+		$email   = null === $seat ? '' : (string) ( $seat['invite_email'] ?? '' );
+		$other   = '' !== $email && ( false === $account || 0 !== strcasecmp( (string) $account->user_email, $email ) );
+		$ids     = array_map( 'intval', $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT course_id FROM `' . $this->db->table( 'ccap_group_course' ) . '` WHERE group_id = %d ORDER BY id', $id ) ) );
+		$titles  = array();
+		$access  = false;
+		foreach ( array_unique( $ids ) as $course ) {
+			$post = $this->relations->post( $course, Relations::COURSE_TYPE );
+			if ( null === $post ) {
+				continue;
+			}
+			$titles[] = wp_strip_all_tags( $post->post_title );
+			$access   = $access || ( $actor->user_id > 0 && 'ok' === $this->relations->effective_access( $actor->user_id, $course, 0, 'view' ) );
+		}
+		$owner = get_userdata( (int) $group['owner_user_id'] );
+		return array(
+			'group'                  => array(
+				'uid'    => (string) $group['uid'],
+				'name'   => (string) $group['name'],
+				'status' => (string) $group['status'],
+			),
+			'owner_name'             => $owner instanceof \WP_User ? (string) $owner->display_name : '',
+			'course_titles'          => $titles,
+			'course_ids'             => array_values( array_unique( $ids ) ),
+			// A personal invitation already holds its seat.
+			'seats_free'             => null !== $seat || $this->occupied( $id ) < (int) $group['seats'],
+			'bound_to_other_address' => $other && 'invited_address_only' === $group['claim_policy'],
+			'invite_email_masked'    => $other ? self::mask_email( $email ) : null,
+			'expires_at'             => null !== $seat ? ( null === $seat['claim_expires_at'] ? null : (string) $seat['claim_expires_at'] ) : ( null === $group['valid_until'] ? null : (string) $group['valid_until'] ),
+			'active'                 => $active,
+			'already_member'         => $member,
+			'access_elsewhere'       => ! $member && $access,
+			'personal'               => null !== $seat,
+		);
+	}
+
+	/**
+	 * Groups the actor owns (R0-11 L-18 "Meine Gruppen"), newest first.
+	 *
+	 * @param Actor $actor Owner.
+	 * @return list<array{id: int, uid: string, name: string, status: string, seats_total: int, seats_used: int, invites_open: int, claim_policy: string, valid_until: string|null, has_link: bool, courses: list<string>}>
+	 */
+	public function owned( Actor $actor ): array {
+		if ( $actor->user_id <= 0 ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $this->db->rows( $this->db->prepare( 'SELECT * FROM `' . $this->db->table( 'ccap_group' ) . '` WHERE owner_user_id = %d ORDER BY id DESC LIMIT 200', $actor->user_id ) ) as $row ) {
+			$id = (int) $row['id'];
+			if ( ! $this->policy->decide( $actor, PolicyService::MANAGE_GROUP, array( $id ) )->allowed ) {
+				continue;
+			}
+			$titles = array();
+			foreach ( $this->db->wpdb()->get_col( $this->db->prepare( 'SELECT course_id FROM `' . $this->db->table( 'ccap_group_course' ) . '` WHERE group_id = %d ORDER BY id', $id ) ) as $course ) {
+				$post = $this->relations->post( (int) $course, Relations::COURSE_TYPE );
+				if ( null !== $post ) {
+					$titles[] = wp_strip_all_tags( $post->post_title );
+				}
+			}
+			$out[] = array(
+				'id'           => $id,
+				'uid'          => (string) $row['uid'],
+				'name'         => (string) $row['name'],
+				'status'       => (string) $row['status'],
+				'seats_total'  => (int) $row['seats'],
+				'seats_used'   => $this->occupied( $id ),
+				'invites_open' => (int) $this->db->scalar( $this->db->prepare( 'SELECT COUNT(*) FROM `' . $this->db->table( 'ccap_seat' ) . "` WHERE group_id = %d AND status = 'invited' AND claim_expires_at > %s", $id, $this->db->now() ) ),
+				'claim_policy' => (string) $row['claim_policy'],
+				'valid_until'  => null === $row['valid_until'] ? null : (string) $row['valid_until'],
+				'has_link'     => null !== $row['join_token_hash'],
+				'courses'      => array_values( array_unique( $titles ) ),
+			);
+		}
+		return $out;
+	}
+
+	/**
 	 * Masked address (E-81): first character and domain.
 	 *
 	 * @param string $email Address.

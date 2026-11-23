@@ -35,6 +35,7 @@ final class AuditView {
 	public static function registry(): array {
 		return array(
 			'grant.manual_created'           => array( 'access', __( 'Access granted manually', 'course-captain' ) ),
+			'grant.self_enrolled'            => array( 'access', __( 'Self-enrolled in a course', 'course-captain' ) ),
 			'grant.extended'                 => array( 'access', __( 'Access extended', 'course-captain' ) ),
 			'access_filter_ignored'          => array( 'access', __( 'An extension tried to grant access (ignored)', 'course-captain' ) ),
 			'grant.source_created'           => array( 'access', __( 'Access granted by a source', 'course-captain' ) ),

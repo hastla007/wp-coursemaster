@@ -205,7 +205,7 @@ final class AssignmentRoutes {
 	 * @param string $tmp Temporary path.
 	 * @return bool
 	 */
-	private static function is_upload( string $tmp ): bool {
+	public static function is_upload( string $tmp ): bool {
 		if ( '' === $tmp || ! is_file( $tmp ) ) {
 			return false;
 		}
