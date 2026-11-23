@@ -84,6 +84,9 @@ Quellen: `R0-01-baseline.md`, `R0-02-inventar/A…E`, `R0-32-suite-traceability.
 | E-328 | Fixture-Bau und Referenzlauf als Eingangskriterium von R1-18 statt Gate A | nein |
 | E-329 | Juristische Bestätigung der Fristen und von „externe Medien immer laden“ ist Eingangskriterium von R1-GATE, nicht von Gate A | nein |
 | E-330 | **R0-GATE (Gate A) freigegeben** am 16.11.2026 mit den Auflagen im Gate-Protokoll | – |
+| E-331 (F-1) | Prüfungsteile können mehrere Blueprint-Module umfassen (Teilbestehensregel über Modulgruppen); wird nachgebaut | nein |
+| E-332 (F-2) | Kostenloser Teilumfang mit eigener Grenze je Art (Fragen, Lektionen, Prüfungsbögen, Dateien); wird nachgebaut | nein |
+| E-333 (F-6/F-7) | Freigegebene Abweichungen: Join-Token nicht frei setzbar (nur Hash, E-112); paralleler Prüfungsstart 409 `ccap_exam_start_busy`; fremder Kurs 404 statt 403 | nein |
 
 ### Von Claude entschieden (Auftrag des Auftraggebers vom 16.11.2026: „überlege was am besten ist“)
 
