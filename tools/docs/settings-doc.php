@@ -176,7 +176,7 @@ namespace CourseCaptain\Tools\Docs {
 			}
 			$out[] = '## Aufbewahrungsfristen';
 			$out[] = '';
-			$out[] = 'Unterschlüssel von `privacy.retention` (R0-27 §1.4, SET-CC-02). **Rechtsprüfung:** Alle Werte sind änderbare Vorschläge und keine Rechtsberatung; der Betreiber lässt sie rechtlich prüfen (E-44, E-51). Die Standardwerte entsprechen den bisher fest eingebauten Fristen. Verkürzen (oder Einschalten von `inactive_learning_data_years`) braucht eine Bestätigung, die zeigt, was der nächste stündliche Lauf löscht (RC-23); der Tab zeigt dieselbe Vorschau als Tabelle. Der Filter `course_captain_retention_days( $value, $key )` gewinnt über die Einstellung (Wert in der Einheit des Unterschlüssels; ungültige Werte werden ignoriert). `error_log_days` und `debug_file_days` hießen bis Registerversion 3 `advanced.error_log_days` und `advanced.debug_file_days`; Migration und Import älterer Dateien übernehmen die Werte.';
+			$out[] = 'Unterschlüssel von `privacy.retention` (R0-27 §1.4, SET-CC-02). **Rechtsprüfung:** Alle Werte sind änderbare Vorschläge und keine Rechtsberatung; der Betreiber lässt sie rechtlich prüfen (E-44, E-51). Die Standardwerte entsprechen den bisher fest eingebauten Fristen. Verkürzen (oder Einschalten von `inactive_learning_data_years`) braucht eine Bestätigung, die zeigt, was der nächste stündliche Lauf löscht (RC-23); der Tab zeigt dieselbe Vorschau als Tabelle. Der Filter `course_captain_retention_days( $value, $key )` gewinnt über die Einstellung (Wert in der Einheit des Unterschlüssels; ungültige Werte werden ignoriert). `error_log_days` und `debug_file_days` hießen bis Registerversion 3 `advanced.error_log_days` und `advanced.debug_file_days`; Migration und Import älterer Dateien übernehmen die Werte. **Verlängern** über den Standardwert hinaus braucht eine Begründung (E-245): im Tab das Feld „Begründung für längere Fristen“, beim Import ein Begründungsfeld in der Vorschau bzw. `--reason`, in WP-CLI `--reason=<text>`; sie steht im Änderungsprotokoll (Spalte Begründung, Kontext `retention_extended`). **Fristbeginn:** die Vorschautabelle im Tab nennt ihn je Frist; `raw_answers_years_after_course_end` zählt ab dem Kursende (E-244: späterer Zeitpunkt aus dem Ende des letzten Zugangs und der letzten Aktivität im Kurs; solange ein Zugang läuft, läuft keine Frist) und gilt für Lernantworten (RT-04), Rohantworten von Prüfungen (RT-05; das Ergebnis des Versuchs bleibt) und Aufgaben-Abgaben (RT-45).';
 			$out[] = '';
 			$out[] = '| Unterschlüssel | Bezeichnung | Standard | Bereich | Einheit |';
 			$out[] = '|---|---|---|---|---|';
@@ -213,9 +213,9 @@ namespace CourseCaptain\Tools\Docs {
 			$out[] = '```';
 			$out[] = 'wp course-captain settings list [--tab=<tab>] [--format=json]';
 			$out[] = 'wp course-captain settings get <tab.feld> [--format=json]';
-			$out[] = 'wp course-captain settings set <tab.feld> <wert> [--confirm] [--format=json]';
+			$out[] = 'wp course-captain settings set <tab.feld> <wert> [--confirm] [--reason=<text>] [--format=json]';
 			$out[] = 'wp course-captain settings export [--output=<datei>] [--include-personal] [--include=roles]';
-			$out[] = 'wp course-captain settings import <datei> [--dry-run] [--tabs=<a,b>] [--surfaces=<roles,locks>] [--confirm] [--yes]';
+			$out[] = 'wp course-captain settings import <datei> [--dry-run] [--tabs=<a,b>] [--surfaces=<roles,locks>] [--confirm] [--reason=<text>] [--yes]';
 			$out[] = 'wp course-captain settings reset <tab> --yes | reset <tab.feld> [--confirm]';
 			$out[] = 'wp course-captain settings get|set|reset <tab.feld.unterschlüssel> …   (z. B. privacy.retention.audit_log_years 5)';
 			$out[] = 'wp course-captain settings retention [--format=json]   (Vorschau des nächsten Aufbewahrungslaufs, löscht nichts)';

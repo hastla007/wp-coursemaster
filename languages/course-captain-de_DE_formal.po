@@ -12113,8 +12113,8 @@ msgstr "Zugangshistorie gelöschter Konten"
 msgid "Addresses of expired or withdrawn group invitations are cleared after this time."
 msgstr "Adressen abgelaufener oder zurückgezogener Gruppeneinladungen werden nach dieser Zeit geleert."
 
-msgid "Answers given while practising and assignment submissions with their files. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay."
-msgstr "Antworten beim Üben und Aufgaben-Abgaben mit ihren Dateien. Werden nach dieser Zeit gelöscht; 0 löscht sie, sobald der Kurs beendet ist. Abgaben, die auf eine Bewertung warten, bleiben."
+msgid "Answers given while practising, the raw answers of exams (answers, flags, free text; the result of the attempt stays) and assignment submissions with their files. Counted from the course end: the later of the end of the last access and the last activity in the course. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay."
+msgstr "Antworten beim Üben, die Rohantworten von Prüfungen (Antworten, Markierungen, Freitext; das Ergebnis des Versuchs bleibt) und Aufgaben-Abgaben mit ihren Dateien. Gerechnet ab dem Kursende: dem späteren Zeitpunkt aus dem Ende des letzten Zugangs und der letzten Aktivität im Kurs. Werden nach dieser Zeit gelöscht; 0 löscht sie, sobald der Kurs beendet ist. Abgaben, die auf eine Bewertung warten, bleiben."
 
 msgid "Certificates with all revisions, counted from the newest revision. The verification page then reports them as not available."
 msgstr "Zertifikate mit allen Revisionen, gerechnet ab der neuesten Revision. Die Prüfseite meldet sie danach als nicht verfügbar."
@@ -12176,8 +12176,8 @@ msgstr "Eingeladene E-Mail-Adressen"
 msgid "Kept until the account is deleted or erased; not changeable."
 msgstr "Bleibt bis zur Löschung des Kontos oder einem Löschantrag; nicht änderbar."
 
-msgid "Learning answers and assignment submissions"
-msgstr "Lernantworten und Aufgaben-Abgaben"
+msgid "Learning answers, exam answers and assignment submissions"
+msgstr "Lernantworten, Prüfungsantworten und Aufgaben-Abgaben"
 
 msgid "Learning progress"
 msgstr "Lernstand"
@@ -12595,3 +12595,81 @@ msgstr "Rechtsprüfung:"
 
 msgid "Whether this is required for your website and what it must contain is your decision. Course Captain does not check it."
 msgstr "Ob das für Ihre Website Pflicht ist und was es enthalten muss, entscheiden Sie. Course Captain prüft das nicht."
+
+msgid "Reason for longer periods"
+msgstr "Begründung für längere Fristen"
+
+msgid "Required when you set a period longer than its suggested default. The reason is stored in the change log with the new values (at most 500 characters)."
+msgstr "Pflicht, wenn Sie eine Frist länger als ihren vorgeschlagenen Standardwert einstellen. Die Begründung steht mit den neuen Werten im Änderungsprotokoll (höchstens 500 Zeichen)."
+
+msgid "Error: %s: this period is longer than its suggested default. Enter a reason under “Reason for longer periods” (at most 500 characters)."
+msgstr "Fehler: %s: Diese Frist ist länger als ihr vorgeschlagener Standardwert. Geben Sie unter „Begründung für längere Fristen“ eine Begründung ein (höchstens 500 Zeichen)."
+
+msgid "Error: the file sets retention periods longer than their suggested default. Enter a reason and import again."
+msgstr "Fehler: Die Datei setzt Aufbewahrungsfristen, die länger als ihr vorgeschlagener Standardwert sind. Geben Sie eine Begründung ein und importieren Sie erneut."
+
+msgid "Longer than the suggested default: %s. A reason is required; it is stored in the change log."
+msgstr "Länger als der vorgeschlagene Standardwert: %s. Eine Begründung ist Pflicht; sie steht im Änderungsprotokoll."
+
+msgid "Period starts"
+msgstr "Fristbeginn"
+
+msgid "when the entry was written"
+msgstr "wenn der Eintrag geschrieben wurde"
+
+msgid "when the account was deleted (purchase access is kept pseudonymised until then)"
+msgstr "wenn das Konto gelöscht wurde (Kauf-Zugänge bleiben bis dahin pseudonymisiert erhalten)"
+
+msgid "when the log entry was written"
+msgstr "wenn der Protokolleintrag geschrieben wurde"
+
+msgid "no date: the active copy and the newest copies per source stay"
+msgstr "kein Datum: die aktive Kopie und die neuesten Kopien je Quelle bleiben"
+
+msgid "last activity of the unfinished import"
+msgstr "letzte Aktivität des unfertigen Imports"
+
+msgid "when the event was received or created"
+msgstr "wenn das Ereignis empfangen oder erzeugt wurde"
+
+msgid "when the event was created (deliveries still open)"
+msgstr "wenn das Ereignis erzeugt wurde (noch offene Zustellungen)"
+
+msgid "when the message was created"
+msgstr "wenn die Nachricht erzeugt wurde"
+
+msgid "date of the log file"
+msgstr "Datum der Logdatei"
+
+msgid "submission or evaluation of the attempt"
+msgstr "Abgabe bzw. Auswertung des Versuchs"
+
+msgid "course end: the later of the end of the last access and the last activity in the course; no period runs while the access is active"
+msgstr "Kursende: der spätere Zeitpunkt aus dem Ende des letzten Zugangs und der letzten Aktivität im Kurs; solange der Zugang aktiv ist, läuft keine Frist"
+
+msgid "issue of the latest certificate revision"
+msgstr "Ausstellung der neuesten Zertifikatsrevision"
+
+msgid "last learning activity, only without active access"
+msgstr "letzte Lernaktivität, nur ohne aktiven Zugang"
+
+msgid "when the invitation expired"
+msgstr "wenn die Einladung abgelaufen ist"
+
+msgid "when the held message was created"
+msgstr "wenn die zurückgehaltene Nachricht erzeugt wurde"
+
+msgid "deletion of the account or erasure request"
+msgstr "Löschung des Kontos oder Löschantrag"
+
+msgid "end of the access"
+msgstr "Ende des Zugangs"
+
+msgid "when the seat was removed"
+msgstr "wenn der Platz entfernt wurde"
+
+msgid "closing of the group or end of its validity"
+msgstr "Schließung der Gruppe oder Ende ihrer Gültigkeit"
+
+msgid "when the lock was lifted"
+msgstr "wenn die Sperre aufgehoben wurde"

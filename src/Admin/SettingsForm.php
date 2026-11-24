@@ -339,6 +339,14 @@ final class SettingsForm {
 					$value         = is_array( $value ) ? ( $value[ $part['sub'] ] ?? '' ) : '';
 				}
 			}
+			// E-245: the reason error belongs to the first period above its default.
+			if ( 'retention_reason' === $rule && 'privacy' === $tab && is_array( $value ) ) {
+				$extended = \CourseCaptain\Privacy\RetentionPolicy::extended( (array) ( \CourseCaptain\Settings\Settings::values( 'privacy' )['retention'] ?? array() ), $value );
+				if ( array() !== $extended ) {
+					$params['sub'] = $extended[0];
+					$value         = $value[ $extended[0] ];
+				}
+			}
 			$value         = is_scalar( $value ) ? (string) $value : '';
 			$out[ $field ] = array(
 				'rule'   => $rule,

@@ -93,7 +93,8 @@ final class SettingsRetentionTest extends SchemaTestCase {
 	 */
 	private static function set_retention( array $values ): void {
 		$retention = array_merge( (array) Settings::get( 'privacy.retention' ), $values );
-		Settings::save( Actor::cli(), 'privacy', array( 'retention' => $retention ), array( 'retention' ), Settings::rev( 'privacy' ) );
+		// E-245: periods above their default need a reason (aufbewahrung-2).
+		Settings::save( Actor::cli(), 'privacy', array( 'retention' => $retention, Settings::RETENTION_REASON_FIELD => 'Test fixture' ), array( 'retention' ), Settings::rev( 'privacy' ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short input.
 		RetentionPreview::flush();
 	}
 
@@ -569,8 +570,9 @@ final class SettingsRetentionTest extends SchemaTestCase {
 			$actor,
 			SettingsTransfer::parse( (string) wp_json_encode( $file ) ),
 			array(
-				'apply'     => true,
-				'confirmed' => array( 'privacy.retention' ),
+				'apply'            => true,
+				'confirmed'        => array( 'privacy.retention' ),
+				'retention_reason' => 'Restore of the backup',
 			)
 		);
 		self::assertSame( 7, Settings::get( 'privacy.retention' )['audit_log_years'] );
@@ -591,8 +593,9 @@ final class SettingsRetentionTest extends SchemaTestCase {
 			$actor,
 			SettingsTransfer::parse( (string) wp_json_encode( $old ) ),
 			array(
-				'apply'     => true,
-				'confirmed' => array( '*' ),
+				'apply'            => true,
+				'confirmed'        => array( '*' ),
+				'retention_reason' => 'Longer error logs for support',
 			)
 		);
 		self::assertSame( array(), $report['tabs']['advanced']['skipped'], 'moved keys are not reported as unknown' );
@@ -611,7 +614,8 @@ final class SettingsRetentionTest extends SchemaTestCase {
 		$out   = SettingsCommand::execute( 'get', array( 'privacy.retention.audit_log_years' ), array( 'format' => 'json' ), $actor );
 		self::assertSame( 0, $out['exit'] );
 		self::assertSame( 4, json_decode( $out['lines'][0], true )['value'] );
-		self::assertSame( 0, SettingsCommand::execute( 'set', array( 'privacy.retention.audit_log_years', '6' ), array(), $actor )['exit'], 'longer: no confirmation' );
+		self::assertSame( 1, SettingsCommand::execute( 'set', array( 'privacy.retention.audit_log_years', '6' ), array(), $actor )['exit'], 'longer than the default: reason required (E-245)' );
+		self::assertSame( 0, SettingsCommand::execute( 'set', array( 'privacy.retention.audit_log_years', '6' ), array( 'reason' => 'Tax audit' ), $actor )['exit'], 'longer: no confirmation' );
 		self::assertSame( 6, Settings::get( 'privacy.retention' )['audit_log_years'] );
 		self::assertSame( 180, Settings::get( 'privacy.retention' )['import_log_days'], 'other sub-keys kept' );
 		$refused = SettingsCommand::execute( 'set', array( 'privacy.retention.audit_log_years', '2' ), array( 'format' => 'json' ), $actor );
@@ -692,6 +696,7 @@ final class SettingsRetentionTest extends SchemaTestCase {
 
 		$longer = array_merge( $post, array( '_rev' => Settings::rev( 'privacy' ) ) );
 		$longer['ccap']['retention']['removed_seats_days'] = '400';
+		$longer['_retention_reason']                       = 'Contract with the customer';
 		self::assertSame( 'saved', SettingsScreen::process_save( $longer, $this->admin )['result'], 'longer: no dialog' );
 		$bad = array_merge( $post, array( '_rev' => Settings::rev( 'privacy' ) ) );
 		$bad['ccap']['retention']['removed_seats_days'] = '10';

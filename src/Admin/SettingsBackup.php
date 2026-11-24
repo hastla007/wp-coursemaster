@@ -120,16 +120,19 @@ final class SettingsBackup {
 			$surfaces  = is_array( $post['surfaces'] ?? null ) ? array_values( array_map( 'sanitize_key', array_map( 'strval', $post['surfaces'] ) ) ) : array();
 			$confirmed = is_array( $post['confirmed'] ?? null ) ? array_values( array_map( 'strval', $post['confirmed'] ) ) : array();
 			$confirmed = array_values( array_filter( $confirmed, static fn( string $c ): bool => ! str_contains( $c, '*' ) ) );
-			$report    = SettingsTransfer::import(
-				$actor,
-				$data,
-				array(
-					'apply'     => true,
-					'tabs'      => $tabs,
-					'surfaces'  => $surfaces,
-					'confirmed' => $confirmed,
-				)
+			$options   = array(
+				'tabs'             => $tabs,
+				'surfaces'         => $surfaces,
+				'confirmed'        => $confirmed,
+				'retention_reason' => sanitize_textarea_field( (string) ( $post['retention_reason'] ?? '' ) ),
 			);
+			// E-245: a retention period above its default needs the reason; the preview stays for a second try.
+			$dry = SettingsTransfer::import( $actor, $data, $options );
+			if ( in_array( 'retention_reason', array_column( $dry['tabs']['privacy']['skipped'] ?? array(), 'reason' ), true ) ) {
+				set_transient( self::PENDING . $user_id, $data, \CourseCaptain\Settings\RiskConfirm::TTL );
+				return 'ccap_reason_required';
+			}
+			$report = SettingsTransfer::import( $actor, $data, array( 'apply' => true ) + $options );
 			return array() === $report['applied'] && array() === $report['applied_surfaces'] ? 'nothing' : 'imported';
 		} catch ( CourseException $e ) {
 			return $e->error_code;
@@ -166,13 +169,14 @@ final class SettingsBackup {
 			'ccap_forbidden'               => __( 'You are not allowed to import settings.', 'course-captain' ),
 			'ccap_invalid_nonce'           => __( 'The form has expired. Reload the page and try again.', 'course-captain' ),
 			'ccap_confirmation_expired'    => __( 'The preview has expired. Upload the file again.', 'course-captain' ),
+			'ccap_reason_required'         => __( 'Error: the file sets retention periods longer than their suggested default. Enter a reason and import again.', 'course-captain' ),
 		);
 		$html     = '<div class="wrap"><h1>' . esc_html__( 'Back up settings', 'course-captain' ) . '</h1>';
 		if ( isset( $messages[ $result ] ) ) {
 			$html .= '<div class="notice notice-' . ( str_starts_with( $result, 'ccap_' ) ? 'error' : 'success' ) . '" tabindex="-1" data-ccap-focus="1"><p>' . esc_html( $messages[ $result ] ) . '</p></div>';
 		}
-		if ( 'preview' === $result ) {
-			return $html . self::preview( $user_id ) . '</div>';
+		if ( 'preview' === $result || 'ccap_reason_required' === $result ) {
+			return $html . self::preview( $user_id, 'ccap_reason_required' === $result ) . '</div>';
 		}
 		$post_url = esc_url( admin_url( 'admin-post.php' ) );
 		$html    .= '<h2>' . esc_html__( 'Export', 'course-captain' ) . '</h2><form method="post" action="' . $post_url . '"><input type="hidden" name="action" value="' . esc_attr( self::EXPORT ) . '">' . wp_nonce_field( self::EXPORT, '_wpnonce', true, false )
@@ -189,16 +193,24 @@ final class SettingsBackup {
 	/**
 	 * Preview with diff and confirmations (IM-1, IM-4).
 	 *
-	 * @param int $user_id User.
+	 * @param int  $user_id        User.
+	 * @param bool $reason_invalid The reason for longer retention periods was missing (E-245).
 	 * @return string
 	 */
-	private static function preview( int $user_id ): string {
+	private static function preview( int $user_id, bool $reason_invalid = false ): string {
 		$data = get_transient( self::PENDING . $user_id );
 		if ( ! is_array( $data ) ) {
 			return '';
 		}
 		try {
-			$report = SettingsTransfer::import( Actor::user( $user_id ), $data, array( 'confirmed' => self::all_risk_fields( Actor::user( $user_id ), $data ) ) );
+			$report = SettingsTransfer::import(
+				Actor::user( $user_id ),
+				$data,
+				array(
+					'confirmed'       => self::all_risk_fields( Actor::user( $user_id ), $data ),
+					'list_unreasoned' => true,
+				)
+			);
 		} catch ( CourseException $e ) {
 			return '';
 		}
@@ -224,6 +236,9 @@ final class SettingsBackup {
 					$risk  = RiskDialog::text( (string) $change['risks'][0], array(), array() );
 					$rows .= '<br><label for="' . esc_attr( $id ) . '"><input type="checkbox" id="' . esc_attr( $id ) . '" name="confirmed[]" value="' . esc_attr( $tab . '.' . (string) $change['field'] ) . '"> ' . esc_html( $risk['action'] ) . '</label> <span class="description">' . esc_html( $risk['text'] ) . '</span>';
 				}
+				if ( array() !== (array) ( $change['extended'] ?? array() ) ) {
+					$rows .= self::retention_reason_field( (array) $change['extended'], $reason_invalid );
+				}
 				$rows .= '</li>';
 			}
 			foreach ( $entry['skipped'] as $skip ) {
@@ -243,6 +258,21 @@ final class SettingsBackup {
 			$html .= self::surface_preview( (string) $key, $entry );
 		}
 		return $html . '<p><button type="submit" class="button button-primary">' . esc_html__( 'Import selected tabs', 'course-captain' ) . '</button> <a class="button" href="' . esc_url( admin_url( 'admin.php?page=' . self::SLUG ) ) . '">' . esc_html__( 'Cancel', 'course-captain' ) . '</a></p></form>';
+	}
+
+	/**
+	 * E-245: reason input for retention periods above their default.
+	 *
+	 * @param array $keys    Extended sub-keys.
+	 * @param bool  $invalid Missing on the last try.
+	 * @phpstan-param array<mixed> $keys
+	 * @return string
+	 */
+	private static function retention_reason_field( array $keys, bool $invalid ): string {
+		$labels = array_map( static fn( $key ): string => SettingsFields::ui( 'privacy', 'retention.' . (string) $key )['label'], $keys );
+		/* translators: %s: list of retention periods */
+		$help = sprintf( __( 'Longer than the suggested default: %s. A reason is required; it is stored in the change log.', 'course-captain' ), implode( ', ', $labels ) );
+		return '<br><label for="ccap-import-retention-reason">' . esc_html__( 'Reason for longer periods', 'course-captain' ) . '</label><br><textarea id="ccap-import-retention-reason" name="retention_reason" rows="2" class="large-text" maxlength="500" aria-describedby="ccap-import-retention-reason-help"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '></textarea><span id="ccap-import-retention-reason-help" class="description">' . esc_html( $help ) . '</span>';
 	}
 
 	/**
