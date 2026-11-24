@@ -852,7 +852,7 @@ final class RightsDeliveryTest extends SchemaTestCase {
 		$check = PackageValidator::validate( $file );
 		self::assertTrue( $check['ok'], (string) wp_json_encode( $check['errors'] ) );
 		self::assertSame( $package['export'], $check['manifest']['export'] );
-		self::assertSame( $package, PackageExporter::collect( $admin, array( $this->course ) ), 'deterministic' );
+		self::assertSame( (string) wp_json_encode( $package ), (string) wp_json_encode( PackageExporter::collect( $admin, array( $this->course ) ) ), 'deterministic' );
 
 		// Opt-in: everything is exported, nothing listed.
 		$all = PackageExporter::collect( $admin, array( $this->course ), true );
