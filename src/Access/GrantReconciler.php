@@ -16,8 +16,7 @@ use CourseCaptain\Storage\NamedLock;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Under the source lock `grant-source:<type>:<reference>` (snapshot read
- * included, R0-09 R-04 / CON-010): stale source
+ * Under the source lock `grant-source:<type>:<reference>`: stale source
  * revisions are ignored (`source_seq`), `revoked → active` never happens
  * automatically (E-29), manual decisions are only overridden by
  * revocation (GrantService), revocation only touches this source.
@@ -52,25 +51,23 @@ final class GrantReconciler {
 	 * @return array{created: int, changed: int, ignored: int, stale: bool, no_change: bool}
 	 */
 	public function reconcile( GrantSourceAdapter $adapter, SourceStatusMapper $mapper, string $reference, ?string $source_event_id = null ): array {
-		$result = array(
+		$result   = array(
 			'created'   => 0,
 			'changed'   => 0,
 			'ignored'   => 0,
 			'stale'     => false,
 			'no_change' => false,
 		);
-		$type   = $adapter->source_type();
-		$actor  = Actor::connector( $type );
-		$lock   = NamedLock::for_key( $this->db, 'grant-source:' . $type . ':' . $reference );
+		$type     = $adapter->source_type();
+		$actor    = Actor::connector( $type );
+		$snapshot = $adapter->snapshot( $reference );
+		if ( null === $snapshot ) {
+			$result['no_change'] = true;
+			return $result;
+		}
+		$lock = NamedLock::for_key( $this->db, 'grant-source:' . $type . ':' . $reference );
 		$lock->acquire( 10 );
 		try {
-			// Read the source state under the lock (CON-010): a snapshot taken before
-			// waiting may predate a parallel refund and would re-grant after it.
-			$snapshot = $adapter->snapshot( $reference );
-			if ( null === $snapshot ) {
-				$result['no_change'] = true;
-				return $result;
-			}
 			$revision = (int) ( $snapshot['revision'] ?? 0 );
 			$table    = $this->db->table( 'ccap_grant' );
 			$seen     = $this->db->scalar( $this->db->prepare( "SELECT MAX(source_seq) FROM `{$table}` WHERE source_type = %s AND source_id = %s", $type, $reference ) );
