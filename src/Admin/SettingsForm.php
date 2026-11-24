@@ -443,7 +443,7 @@ final class SettingsForm {
 		list( $f, $sub ) = array_pad( explode( '.', $key, 2 ), 2, '' );
 		$root            = isset( $opts['root'] ) ? (string) $opts['root'] : '';
 		$name            = ( '' === $root ? 'ccap' : $root . '[ccap]' ) . '[' . $f . ']' . ( '' === $sub ? '' : '[' . $sub . ']' );
-		$describe        = array( $id . '-help', $id . '-meta' );
+		$describe        = isset( $opts['status'] ) ? array( $id . '-help', $id . '-meta', $id . '-status' ) : array( $id . '-help', $id . '-meta' );
 		$help            = $ui['help'] . ( isset( $opts['extra_help'] ) ? ' ' . (string) $opts['extra_help'] : '' );
 		$disabled        = ! empty( $opts['disabled_reason'] );
 		if ( $disabled ) {
@@ -461,7 +461,7 @@ final class SettingsForm {
 		$aria    = ' aria-describedby="' . esc_attr( implode( ' ', $describe ) ) . '"' . ( null !== $error ? ' aria-invalid="true"' : '' ) . ( $disabled ? ' aria-disabled="true"' : '' ) . ( ! empty( $opts['readonly'] ) ? ' disabled' : '' ) . ( isset( $opts['form'] ) ? ' form="' . esc_attr( (string) $opts['form'] ) . '"' : '' );
 		$control = self::control( $ui, $def, $id, $name, $key, $value, $aria, '' === $root ? 'ccap_mode' : $root . '[ccap_mode]' );
 		$group   = in_array( $ui['element'], array( 'radio', 'tristate', 'nullable_number', 'set', 'bools', 'xmlrpc' ), true );
-		$status  = isset( $opts['status'] ) ? ' <span class="ccap-field-status">' . esc_html( (string) $opts['status'] ) . '</span>' : '';
+		$status  = isset( $opts['status'] ) ? ' <span id="' . esc_attr( $id . '-status' ) . '" class="ccap-field-status">' . esc_html( (string) $opts['status'] ) . '</span>' : '';
 		$label   = $group
 			? '<legend id="' . esc_attr( $id ) . '-legend" class="ccap-field-label">' . esc_html( $ui['label'] ) . '</legend>'
 			: '<label for="' . esc_attr( $id ) . '" class="ccap-field-label">' . esc_html( $ui['label'] ) . '</label>';

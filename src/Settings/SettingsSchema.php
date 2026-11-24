@@ -18,9 +18,9 @@ defined( 'ABSPATH' ) || exit;
  * (public/internal/personal/secret), `side_effects`, `export`, plus type
  * rules (`min`, `max`, `nullable`, `values`, `fields`). `export` is `true`,
  * `false` or `never_env` (environment-bound, never exported or imported, R0-31 EX-2). Free core fields
- * only; `pro.*` keys are registered by the add-on (SR-8). Roles, mail
- * templates and the retention sub-keys have their own stores (R1-34,
- * R1-21, R1-17); `emails.types` is a strict object (R1-21).
+ * only; `pro.*` keys are registered by the add-on (SR-8). Roles and mail
+ * templates have their own stores (R1-34, R1-21); the retention periods are
+ * the object `privacy.retention` (SET-CC-02); `emails.types` is a strict object (R1-21).
  */
 final class SettingsSchema {
 
@@ -29,8 +29,20 @@ final class SettingsSchema {
 	 * 3: fields without any effect removed (SET-CC-P1): `general.catalog_group_language_versions`,
 	 * `advanced.import_execution`, `advanced.file_delivery`, `advanced.media_delete_grace_days`;
 	 * the migration drops their stored values, every other value stays.
+	 * 4: retention periods `privacy.retention` (SET-CC-02, D1); `advanced.error_log_days` and
+	 * `advanced.debug_file_days` move into it ({@see self::MOVED}) with their stored values.
 	 */
-	public const VERSION = 3;
+	public const VERSION = 4;
+
+	/**
+	 * Keys moved by a register version: old key => new key (`tab.field.sub`) and the version that moved it.
+	 *
+	 * @var array<string, array{0: string, 1: int}>
+	 */
+	public const MOVED = array(
+		'advanced.error_log_days'  => array( 'privacy.retention.error_log_days', 4 ),
+		'advanced.debug_file_days' => array( 'privacy.retention.debug_file_days', 4 ),
+	);
 
 	/**
 	 * Docking point for add-on fields (SET-CC-01, R0-27 SR-1/SR-8): keys
@@ -551,6 +563,12 @@ final class SettingsSchema {
 					'values'  => array( 'enforce', 'report_only' ),
 					'default' => 'enforce',
 				),
+				// SET-CC-02 (R0-27 §1.4, D1): 21 sub-keys plus `import_package_days`; filter `course_captain_retention_days` wins.
+				'retention'               => array(
+					'type'    => 'object',
+					'fields'  => \CourseCaptain\Privacy\RetentionPolicy::fields(),
+					'default' => \CourseCaptain\Privacy\RetentionPolicy::defaults(),
+				),
 			),
 			'hardening'    => array(
 				'login_limit'        => $hardening,
@@ -613,18 +631,6 @@ final class SettingsSchema {
 					'values'  => array( 'error', 'warning', 'info', 'debug' ),
 					'default' => 'warning',
 					'export'  => 'never_env',
-				),
-				'error_log_days'             => array(
-					'type'    => 'int',
-					'min'     => 1,
-					'max'     => 365,
-					'default' => 30,
-				),
-				'debug_file_days'            => array(
-					'type'    => 'int',
-					'min'     => 1,
-					'max'     => 30,
-					'default' => 7,
 				),
 				// Reports (SET-CC-26): default CSV columns and pseudonymised exports.
 				'report_csv_columns'         => array(
@@ -813,6 +819,42 @@ final class SettingsSchema {
 	 */
 	public static function defaults( string $tab ): array {
 		return array_map( static fn( array $f ) => $f['default'], self::fields()[ $tab ] ?? array() );
+	}
+
+	/**
+	 * Upgrade the tabs of a settings file of an older register version
+	 * ({@see self::MOVED}): a moved value is taken out of its old tab and
+	 * merged into the object of its new tab (on top of the object in the
+	 * file, else of `$current`). Newer files are returned unchanged.
+	 *
+	 * @param array<string, mixed> $data    Parsed file.
+	 * @param callable             $current Current value of an object field by `tab.field`.
+	 * @phpstan-param callable(string): array<string, mixed> $current
+	 * @return array<string, mixed>
+	 */
+	public static function upgrade_file( array $data, callable $current ): array {
+		$version = (int) ( $data['settings_version'] ?? 0 );
+		if ( ! is_array( $data['tabs'] ?? null ) ) {
+			return $data;
+		}
+		foreach ( self::MOVED as $from => $move ) {
+			list( $to, $since )    = $move;
+			list( $ftab, $ffield ) = explode( '.', $from, 2 );
+			if ( $version >= $since || ! is_array( $data['tabs'][ $ftab ]['values'] ?? null ) || ! array_key_exists( $ffield, $data['tabs'][ $ftab ]['values'] ) ) {
+				continue;
+			}
+			list( $ttab, $tfield, $tsub ) = explode( '.', $to, 3 );
+			$value                        = $data['tabs'][ $ftab ]['values'][ $ffield ];
+			unset( $data['tabs'][ $ftab ]['values'][ $ffield ] );
+			$target                                     = $data['tabs'][ $ttab ]['values'][ $tfield ] ?? null;
+			$target                                     = is_array( $target ) ? $target : $current( $ttab . '.' . $tfield );
+			$target[ $tsub ]                            = $value;
+			$data['tabs'][ $ttab ]['values'][ $tfield ] = $target;
+			if ( ! isset( $data['tabs'][ $ttab ]['_schema'] ) ) {
+				$data['tabs'][ $ttab ]['_schema'] = $version;
+			}
+		}
+		return $data;
 	}
 
 	/**

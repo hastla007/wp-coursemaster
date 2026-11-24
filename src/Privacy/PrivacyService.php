@@ -367,19 +367,19 @@ final class PrivacyService {
 	}
 
 	/**
-	 * Policy text (GM-176): the periods come from the retention service, no links.
+	 * Policy text (GM-176): the periods come from `privacy.retention` (SET-CC-02), no links.
 	 *
 	 * @return string
 	 */
 	public static function policy_html(): string {
-		$years = static fn( int $days ): int => (int) round( $days / 365.25 );
-		$text  = sprintf(
+		$p    = RetentionPolicy::effective();
+		$text = sprintf(
 			/* translators: 1: years learning answers are kept, 2: years exam attempts and certificates are kept, 3: years of the audit log, 4: days of the notification log */
 			__( 'Course Captain stores learning progress, answers, exam attempts, certificates, course access and group memberships of logged-in learners. Learning answers are kept for %1$d years after the end of a course, exam attempts and certificates for %2$d years, ended access records for %2$d years, the audit log for %3$d years and the notification log for %4$d days. Personal data can be exported and erased with the WordPress privacy tools; logged-in learners can request an export or erasure themselves.', 'course-captain' ),
-			$years( RetentionService::ANSWERS_DAYS ),
-			$years( RetentionService::CERTIFICATES_DAYS ),
-			RetentionService::AUDIT_YEARS,
-			RetentionService::NOTIFICATION_LOG_DAYS
+			(int) $p['raw_answers_years_after_course_end'],
+			(int) $p['certificates_years'],
+			(int) $p['audit_log_years'],
+			(int) $p['notification_log_days']
 		);
 		return '<p>' . esc_html( $text ) . '</p>';
 	}

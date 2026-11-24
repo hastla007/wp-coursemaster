@@ -115,6 +115,7 @@ namespace CourseCaptain\Tools\Docs {
 			foreach ( SettingsFields::TAB_ORDER as $tab ) {
 				$out[] = sprintf( '- [%s (`%s`)](#%s)', SettingsFields::tab_label( $tab ), $tab, self::anchor( $tab ) );
 			}
+			$out[] = '- [Aufbewahrungsfristen](#aufbewahrungsfristen)';
 			$out[] = '- [Sperren und Übersteuerungen](#sperren-und-übersteuerungen)';
 			$out[] = '- [WP-CLI](#wp-cli)';
 			$out[] = '- [Export und Import](#export-und-import)';
@@ -171,6 +172,28 @@ namespace CourseCaptain\Tools\Docs {
 					$out[] = '';
 				}
 			}
+			$out[] = '## Aufbewahrungsfristen';
+			$out[] = '';
+			$out[] = 'Unterschlüssel von `privacy.retention` (R0-27 §1.4, SET-CC-02). **Rechtsprüfung:** Alle Werte sind änderbare Vorschläge und keine Rechtsberatung; der Betreiber lässt sie rechtlich prüfen (E-44, E-51). Die Standardwerte entsprechen den bisher fest eingebauten Fristen. Verkürzen (oder Einschalten von `inactive_learning_data_years`) braucht eine Bestätigung, die zeigt, was der nächste stündliche Lauf löscht (RC-23); der Tab zeigt dieselbe Vorschau als Tabelle. Der Filter `course_captain_retention_days( $value, $key )` gewinnt über die Einstellung (Wert in der Einheit des Unterschlüssels; ungültige Werte werden ignoriert). `error_log_days` und `debug_file_days` hießen bis Registerversion 3 `advanced.error_log_days` und `advanced.debug_file_days`; Migration und Import älterer Dateien übernehmen die Werte.';
+			$out[] = '';
+			$out[] = '| Unterschlüssel | Bezeichnung | Standard | Bereich | Einheit |';
+			$out[] = '|---|---|---|---|---|';
+			foreach ( \CourseCaptain\Privacy\RetentionPolicy::KEYS as $sub => $meta ) {
+				$out[] = sprintf(
+					'| `%s` | %s | %s | %s | %s |',
+					$sub,
+					self::cell( SettingsFields::ui( 'privacy', 'retention.' . $sub )['label'] ),
+					'`' . self::json( $meta['default'] ) . '`',
+					isset( $meta['min'] ) ? $meta['min'] . '–' . $meta['max'] . ( empty( $meta['nullable'] ) ? '' : ', null = aus' ) : 'fest',
+					array(
+						'years' => 'Jahre',
+						'days'  => 'Tage',
+						'count' => 'Anzahl',
+						'fixed' => '–',
+					)[ $meta['unit'] ]
+				);
+			}
+			$out[] = '';
 			$out[] = '## Sperren und Übersteuerungen';
 			$out[] = '';
 			$out[] = 'Rangfolge: Sperre der Website > Prüfung/Aktivität > Kurs (Gruppe, Medium) > Website-Wert > eingebauter Standard. Eine Sperre lässt gespeicherte Kurs- und Prüfungswerte ruhen; nach dem Entsperren gelten sie wieder. Die Seite „Sperren und Kurs-Übersteuerungen“ zeigt je Einstellung die Anzahl eigener Werte, sperrt nach einem Bestätigungsschritt mit der Zahl der betroffenen Kurse und Prüfungen und setzt ausgewählte eigene Werte gesammelt auf „erben“ zurück (veröffentlichte Prüfungen bleiben unverändert).';
@@ -192,6 +215,8 @@ namespace CourseCaptain\Tools\Docs {
 			$out[] = 'wp course-captain settings export [--output=<datei>] [--include-personal] [--include=roles]';
 			$out[] = 'wp course-captain settings import <datei> [--dry-run] [--tabs=<a,b>] [--surfaces=<roles,locks>] [--confirm] [--yes]';
 			$out[] = 'wp course-captain settings reset <tab> --yes | reset <tab.feld> [--confirm]';
+			$out[] = 'wp course-captain settings get|set|reset <tab.feld.unterschlüssel> …   (z. B. privacy.retention.audit_log_years 5)';
+			$out[] = 'wp course-captain settings retention [--format=json]   (Vorschau des nächsten Aufbewahrungslaufs, löscht nichts)';
 			$out[] = '```';
 			$out[] = '';
 			$out[] = '- Werte: Text wie eingegeben, Ja/Nein als `true`/`false`, Listen und Objekte als JSON (`\'{"visibility":"after_submit"}\'`).';

@@ -478,12 +478,16 @@ final class SettingsDockingPointsTest extends SchemaTestCase {
 			$before[ $tab ] = Settings::values( $tab );
 		}
 
+		// Register v4 (SET-CC-02): `advanced.error_log_days` moves into `privacy.retention` with its value.
+		$before['privacy']['retention']['error_log_days'] = 60;
+
 		$migrated = Settings::maybe_migrate();
 		sort( $migrated );
 		self::assertSame( array( 'advanced', 'exams', 'general', 'hardening', 'privacy' ), $migrated );
 		foreach ( array_keys( SettingsSchema::TABS ) as $tab ) {
 			self::assertSame( $before[ $tab ], Settings::values( $tab ), $tab . ': same values after the upgrade' );
 		}
+		self::assertSame( 60, \CourseCaptain\Privacy\RetentionPolicy::int( 'error_log_days' ), 'moved value effective' );
 		self::assertSame( 'kurse', Settings::get( 'general.course_slug' ) );
 		self::assertSame( 3, Settings::get( 'exams.max_attempts' ) );
 		self::assertSame( 120, Settings::get( 'privacy.backup_max_age_days' ) );
