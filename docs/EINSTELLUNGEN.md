@@ -4,7 +4,7 @@
 
 Dieses Handbuch listet jede Einstellung von Course Captain mit Standardwert, erlaubten Werten, Recht, Datenklasse und Exportverhalten. Bezeichnungen und Hilfetexte stehen in der Quellsprache der Oberfläche (Englisch); in der Oberfläche erscheinen sie übersetzt.
 
-Registerversion (`settings_version`): 3.
+Registerversion (`settings_version`): 4.
 
 ## Legende
 
@@ -27,6 +27,7 @@ Registerversion (`settings_version`): 3.
 - [Privacy & security (`privacy`)](#tab-privacy)
 - [Website hardening (`hardening`)](#tab-hardening)
 - [Advanced (`advanced`)](#tab-advanced)
+- [Aufbewahrungsfristen](#aufbewahrungsfristen)
 - [Sperren und Übersteuerungen](#sperren-und-übersteuerungen)
 - [WP-CLI](#wp-cli)
 - [Export und Import](#export-und-import)
@@ -248,6 +249,7 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 | `privacy.trusted_media_hosts` | Own media hosts | host_list | `[]` | settings | internal | ja | – |
 | `privacy.show_avatars` | Show profile pictures (Gravatar) | bool | `false` | settings | internal | ja | – |
 | `privacy.csp_mode` | Content Security Policy for Course Captain pages | enum: `enforce`, `report_only` | `"enforce"` | settings | internal | ja | – |
+| `privacy.retention` | retention | object {audit_log_years, grant_history_deleted_accounts_years, import_log_days, import_unchanged_days, import_keep_packages, import_package_days, inbox_days, outbox_event_days, notification_log_days, error_log_days, debug_file_days, exam_attempts_years, raw_answers_years_after_course_end, certificates_years, inactive_learning_data_years, invite_email_days_after_expiry, held_mail_days, learning_progress, ended_grants_years, removed_seats_days, closed_groups_years, lifted_locks_days} | `{"audit_log_years":4,"grant_history_deleted_accounts_years":10,"import_log_days":180,"import_unchanged_days":14,"import_keep_packages":2,"import_package_days":30,"inbox_days":90,"outbox_event_days":30,"notification_log_days":90,"error_log_days":30,"debug_file_days":7,"exam_attempts_years":10,"raw_answers_years_after_course_end":2,"certificates_years":10,"inactive_learning_data_years":null,"invite_email_days_after_expiry":30,"held_mail_days":30,"learning_progress":"until_account_deletion","ended_grants_years":10,"removed_seats_days":365,"closed_groups_years":3,"lifted_locks_days":30}` | settings | internal | ja | – |
 
 **Hilfetexte**
 
@@ -261,6 +263,7 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 - `privacy.trusted_media_hosts` – One host name per line, for example media.example.org. Videos and files from these hosts count as your own and load without the external media notice. Only enter hosts you operate or have a processing agreement for.
 - `privacy.show_avatars` – Hashed email addresses are transferred to Gravatar.
 - `privacy.csp_mode` – Applies to the learning area including lessons and the exam room. Only scripts that WordPress loads in the regular way may run; frames only from this website and the known video services. Report only should be used only briefly, to find conflicts with the theme or other plugins in the browser console.
+- `privacy.retention` – `audit_log_years`: Audit log – Entries of the change log (who changed what and when). Deleted after this time, at most 5,000 per hourly run; the remaining entries stay verifiable. `grant_history_deleted_accounts_years`: Access history of deleted accounts – Pseudonymised access records of deleted accounts from purchases (for example for tax audits). Deleted after this time. `import_log_days`: Import log – Import log entries and findings. Deleted after this time. `import_unchanged_days`: Import log entries “unchanged” – Log entries of objects an import left unchanged. Deleted after this time. `import_keep_packages`: Package copies kept per source – Copies of published imports are needed for a rollback and contain solutions. The active package counts; older copies are deleted. `import_package_days`: Package copies of unfinished imports – Imports that were uploaded but not published (uploaded, checked, approved or aborted) lose their package copy after this time without activity. Running imports are never touched. `inbox_days`: Processed and delivered events – Processed events of connected systems and delivered entries of the internal outbox. Deleted after this time. `outbox_event_days`: Undelivered internal events – Entries of the internal outbox that could not be delivered are given up after this time. `notification_log_days`: Message log – Metadata of sent messages (type, status, time). Deleted after this time. `error_log_days`: Error log files – Log files with errors and warnings are deleted after this time. `debug_file_days`: Debug log files – Log files with info and debug entries are deleted after this time (at most 30 days). `exam_attempts_years`: Exam attempts – Core data of finished exam attempts (course, date, points, passed), counted from the submission. Attempts with a certificate stay as long as the certificate. `raw_answers_years_after_course_end`: Learning answers and assignment submissions – Answers given while practising and assignment submissions with their files. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay. `certificates_years`: Certificates – Certificates with all revisions, counted from the newest revision. The verification page then reports them as not available. `inactive_learning_data_years`: Learning progress of inactive people – Off by default. With a value, the learning progress of people without active course access and without learning activity for this time is deleted. Check the preview before you save. `invite_email_days_after_expiry`: Invited email addresses – Addresses of expired or withdrawn group invitations are cleared after this time. `held_mail_days`: Held messages – Messages held back while sending was paused are discarded after this time. `learning_progress`: Learning progress – Kept until the account is deleted or erased; not changeable. `ended_grants_years`: Ended course access – Expired, revoked and failed access records of existing accounts with their history, counted from the end. Deleted after this time. `removed_seats_days`: Removed group places – Places removed from a group. Deleted after this time; the access history follows its own period. `closed_groups_years`: Ended groups – Revoked or expired groups without active access, with their places. Deleted after this time. `lifted_locks_days`: Lifted learning locks – Lifted locks are deleted after this time; the audit log keeps their history.
 
 <a id="tab-hardening"></a>
 ## Website hardening (`hardening`)
@@ -298,8 +301,6 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 |---|---|---|---|---|---|---|---|
 | `advanced.cron_stale_warning_minutes` | Warn when background jobs did not run for longer than | int 60–1440 | `180` | settings | internal | ja | – |
 | `advanced.log_level` | Log level | enum: `error`, `warning`, `info`, `debug` | `"warning"` | settings | internal | nein | – |
-| `advanced.error_log_days` | Keep error logs for | int 1–365 | `30` | settings | internal | ja | – |
-| `advanced.debug_file_days` | Keep debug logs for | int 1–30 | `7` | settings | internal | ja | – |
 | `advanced.report_csv_columns` | Columns of the progress report CSV | set: `user_id`, `display_name`, `status`, `completion_percent`, `last_activity_at`, `total`, `new`, `unsure`, `learning`, `secure`, `mastered`, `due`, `percent`, `secure_percent` | `["user_id","display_name","status","completion_percent","last_activity_at","total","new","unsure","learning","secure","mastered","due","percent","secure_percent"]` | settings | internal | ja | – |
 | `advanced.report_pseudonymize` | Pseudonymise exports | bool | `false` | settings | internal | ja | – |
 
@@ -307,10 +308,37 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 
 - `advanced.cron_stale_warning_minutes` – The system status and Site Health warn after this time.
 - `advanced.log_level` – Course Captain writes log files to the protected folder, never into the web root. “Info” and “Debug” write much more and fall back to “Warnings and errors” automatically after 7 days. Logs never contain answers, passwords or tokens.
-- `advanced.error_log_days` – Log files with errors and warnings are deleted after this time.
-- `advanced.debug_file_days` – Log files with info and debug entries are deleted after this time (at most 30 days).
 - `advanced.report_csv_columns` – Preselected columns of the CSV download in Learners. The download form can change them for one export.
 - `advanced.report_pseudonymize` – Report and certificate CSV files then contain a stable pseudonym per person instead of name and user ID; email addresses are never exported. The pseudonym stays the same across exports of this website.
+
+## Aufbewahrungsfristen
+
+Unterschlüssel von `privacy.retention` (R0-27 §1.4, SET-CC-02). **Rechtsprüfung:** Alle Werte sind änderbare Vorschläge und keine Rechtsberatung; der Betreiber lässt sie rechtlich prüfen (E-44, E-51). Die Standardwerte entsprechen den bisher fest eingebauten Fristen. Verkürzen (oder Einschalten von `inactive_learning_data_years`) braucht eine Bestätigung, die zeigt, was der nächste stündliche Lauf löscht (RC-23); der Tab zeigt dieselbe Vorschau als Tabelle. Der Filter `course_captain_retention_days( $value, $key )` gewinnt über die Einstellung (Wert in der Einheit des Unterschlüssels; ungültige Werte werden ignoriert). `error_log_days` und `debug_file_days` hießen bis Registerversion 3 `advanced.error_log_days` und `advanced.debug_file_days`; Migration und Import älterer Dateien übernehmen die Werte.
+
+| Unterschlüssel | Bezeichnung | Standard | Bereich | Einheit |
+|---|---|---|---|---|
+| `audit_log_years` | Audit log | `4` | 1–10 | Jahre |
+| `grant_history_deleted_accounts_years` | Access history of deleted accounts | `10` | 1–30 | Jahre |
+| `import_log_days` | Import log | `180` | 7–3650 | Tage |
+| `import_unchanged_days` | Import log entries “unchanged” | `14` | 1–365 | Tage |
+| `import_keep_packages` | Package copies kept per source | `2` | 1–20 | Anzahl |
+| `import_package_days` | Package copies of unfinished imports | `30` | 1–365 | Tage |
+| `inbox_days` | Processed and delivered events | `90` | 7–3650 | Tage |
+| `outbox_event_days` | Undelivered internal events | `30` | 7–365 | Tage |
+| `notification_log_days` | Message log | `90` | 7–3650 | Tage |
+| `error_log_days` | Error log files | `30` | 1–365 | Tage |
+| `debug_file_days` | Debug log files | `7` | 1–30 | Tage |
+| `exam_attempts_years` | Exam attempts | `10` | 1–30 | Jahre |
+| `raw_answers_years_after_course_end` | Learning answers and assignment submissions | `2` | 0–30 | Jahre |
+| `certificates_years` | Certificates | `10` | 1–50 | Jahre |
+| `inactive_learning_data_years` | Learning progress of inactive people | `null` | 1–20, null = aus | Jahre |
+| `invite_email_days_after_expiry` | Invited email addresses | `30` | 1–365 | Tage |
+| `held_mail_days` | Held messages | `30` | 1–90 | Tage |
+| `learning_progress` | Learning progress | `"until_account_deletion"` | fest | – |
+| `ended_grants_years` | Ended course access | `10` | 1–30 | Jahre |
+| `removed_seats_days` | Removed group places | `365` | 30–3650 | Tage |
+| `closed_groups_years` | Ended groups | `3` | 1–30 | Jahre |
+| `lifted_locks_days` | Lifted learning locks | `30` | 1–365 | Tage |
 
 ## Sperren und Übersteuerungen
 
@@ -356,6 +384,8 @@ wp course-captain settings set <tab.feld> <wert> [--confirm] [--format=json]
 wp course-captain settings export [--output=<datei>] [--include-personal] [--include=roles]
 wp course-captain settings import <datei> [--dry-run] [--tabs=<a,b>] [--surfaces=<roles,locks>] [--confirm] [--yes]
 wp course-captain settings reset <tab> --yes | reset <tab.feld> [--confirm]
+wp course-captain settings get|set|reset <tab.feld.unterschlüssel> …   (z. B. privacy.retention.audit_log_years 5)
+wp course-captain settings retention [--format=json]   (Vorschau des nächsten Aufbewahrungslaufs, löscht nichts)
 ```
 
 - Werte: Text wie eingegeben, Ja/Nein als `true`/`false`, Listen und Objekte als JSON (`'{"visibility":"after_submit"}'`).

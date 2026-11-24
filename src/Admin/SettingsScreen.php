@@ -660,10 +660,26 @@ final class SettingsScreen {
 					$rows .= self::static_row( $tab, $key, SettingsFields::ui( $tab, $key )['options']['smarttrainer.v1'] );
 					continue;
 				}
+				// SET-CC-02: every retention period carries the marker "Legal review needed"; the filter notice is field-near.
+				if ( 'privacy' === $tab && str_starts_with( $key, 'retention.' ) ) {
+					$sub            = substr( $key, 10 );
+					$opts['status'] = RetentionPreview::status();
+					$filter_note    = RetentionPreview::filter_warning( $sub );
+					if ( '' !== $filter_note ) {
+						$opts['warning'] = $filter_note;
+					}
+					if ( 'static' === SettingsFields::ui( $tab, $key )['element'] ) {
+						$rows .= self::static_row( $tab, $key, RetentionPreview::value_text( $sub, null ), $opts['status'] );
+						continue;
+					}
+				}
 				$rows .= '<input type="hidden" name="_fields[]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, SettingsForm::error_for( $errors, $key ), $opts );
 				if ( 'general' === $tab && 'delete_data_on_uninstall' === $key && true !== $values[ $f ] ) {
 					$rows .= self::confirm_word_field( $tab, isset( $errors[ $f ] ) );
 				}
+			}
+			if ( '' !== $rows && 'privacy' === $tab && str_starts_with( (string) ( $section[1][0] ?? '' ), 'retention.' ) ) {
+				$rows = RetentionPreview::intro() . $rows . RetentionPreview::table();
 			}
 			if ( '' !== $rows ) {
 				$html .= '<h3>' . esc_html( $section[0] ) . '</h3>' . $rows;
@@ -853,14 +869,21 @@ final class SettingsScreen {
 	/**
 	 * Read-only row (single registered strategy, ADM-095).
 	 *
-	 * @param string $tab  Tab.
-	 * @param string $key  Key.
-	 * @param string $text Text.
+	 * @param string $tab    Tab.
+	 * @param string $key    Key.
+	 * @param string $text   Text.
+	 * @param string $status Status marker (e.g. "Legal review needed").
 	 * @return string
 	 */
-	private static function static_row( string $tab, string $key, string $text ): string {
-		$ui = SettingsFields::ui( $tab, $key );
-		return '<div class="ccap-field"><p class="ccap-field-label"><strong>' . esc_html( $ui['label'] ) . '</strong></p><p>' . esc_html( $text ) . '</p><p class="description">' . esc_html( $ui['help'] ) . '</p></div>';
+	private static function static_row( string $tab, string $key, string $text, string $status = '' ): string {
+		$ui   = SettingsFields::ui( $tab, $key );
+		$id   = SettingsForm::id( $tab, $key );
+		$meta = '';
+		if ( '' !== $status ) {
+			/* translators: 1: default value, 2: scope */
+			$meta = '<p id="' . esc_attr( $id . '-meta' ) . '" class="description ccap-field-meta">' . esc_html( sprintf( __( 'Default: %1$s · Applies: %2$s', 'course-captain' ), $text, SettingsFields::scope_label( (string) $ui['scope'] ) ) ) . '</p>';
+		}
+		return '<div class="ccap-field"><p class="ccap-field-label"><strong>' . esc_html( $ui['label'] ) . '</strong></p><p>' . esc_html( $text ) . ( '' === $status ? '' : ' <span id="' . esc_attr( $id . '-status' ) . '" class="ccap-field-status">' . esc_html( $status ) . '</span>' ) . '</p><p id="' . esc_attr( $id . '-help' ) . '" class="description">' . esc_html( $ui['help'] ) . '</p>' . $meta . '</div>';
 	}
 
 	/**

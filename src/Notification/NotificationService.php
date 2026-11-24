@@ -54,7 +54,7 @@ final class NotificationService {
 	public const PER_RECIPIENT_24H   = 10;
 	public const TEST_MAILS_PER_HOUR = 5;
 	public const INVITE_RESENDS      = 3;
-	public const HELD_DAYS           = 30;
+	public const HELD_DAYS           = 30; // Default of `privacy.retention.held_mail_days` (SET-CC-02).
 	public const FAILED_CRITICAL     = 10;
 	public const STATE_OPTION        = 'course_captain_mail_state';
 	private const BACKOFF            = array( 300, 1800, 7200, 43200 );
@@ -1123,8 +1123,25 @@ final class NotificationService {
 	 * @return array<string, int>
 	 */
 	public function hourly(): array {
-		$discarded = $this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_notification' ) . "` SET status = 'discarded', reason_code = 'held_expired' WHERE status = 'held' AND created_at < %s", $this->db->now( -self::HELD_DAYS * DAY_IN_SECONDS ) ) );
+		$discarded = self::expire_held( $this->db, \CourseCaptain\Privacy\RetentionPolicy::int( 'held_mail_days' ) );
 		return array( 'discarded' => $discarded ) + $this->process_queue();
+	}
+
+	/**
+	 * RT-31: held mails older than `$days` become `discarded` (`held_expired`).
+	 *
+	 * @param Database $db   Database.
+	 * @param int      $days Period (`privacy.retention.held_mail_days`).
+	 * @param bool     $dry  Only count (retention preview).
+	 * @return int Rows.
+	 */
+	public static function expire_held( Database $db, int $days, bool $dry = false ): int {
+		$table = $db->table( 'ccap_notification' );
+		$cut   = $db->now( -$days * DAY_IN_SECONDS );
+		if ( $dry ) {
+			return (int) $db->scalar( $db->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE status = 'held' AND created_at < %s", $cut ) );
+		}
+		return $db->execute( $db->prepare( "UPDATE `{$table}` SET status = 'discarded', reason_code = 'held_expired' WHERE status = 'held' AND created_at < %s", $cut ) );
 	}
 
 	/**

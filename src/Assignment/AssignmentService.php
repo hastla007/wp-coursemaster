@@ -726,9 +726,10 @@ final class AssignmentService {
 	 *
 	 * @param Database $db  Database.
 	 * @param string   $cut UTC cutoff (`Y-m-d H:i:s`).
-	 * @return int Deleted versions.
+	 * @param bool     $dry Only count (retention preview, SET-CC-02).
+	 * @return int Deleted (or due) versions.
 	 */
-	public static function expire_retention( Database $db, string $cut ): int {
+	public static function expire_retention( Database $db, string $cut, bool $dry = false ): int {
 		$subs     = $db->table( 'ccap_assignment_submission' );
 		$grants   = $db->table( 'ccap_grant' );
 		$progress = $db->table( 'ccap_course_progress' );
@@ -750,7 +751,9 @@ final class AssignmentService {
 			$ids = array_merge( $ids, array_map( 'intval', array_column( $db->rows( $db->prepare( "SELECT id FROM `{$subs}` WHERE user_id = %d AND course_id = %d", $user, $course ) ), 'id' ) ) );
 		}
 		$before = count( $ids );
-		self::delete_submissions( $db, $ids );
+		if ( ! $dry ) {
+			self::delete_submissions( $db, $ids );
+		}
 		return $before;
 	}
 

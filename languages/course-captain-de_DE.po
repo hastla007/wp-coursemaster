@@ -11968,3 +11968,221 @@ msgstr "Fehler: %s: Wähle eine der angebotenen Möglichkeiten."
 #, php-format
 msgid "Error: %1$s: enter a whole number of at least %2$s."
 msgstr "Fehler: %1$s: Gib eine ganze Zahl ab %2$s ein."
+
+#, php-format
+msgid "%s copy per source"
+msgid_plural "%s copies per source"
+msgstr[0] "%s Kopie je Quelle"
+msgstr[1] "%s Kopien je Quelle"
+
+#, php-format
+msgid "%s day"
+msgid_plural "%s days"
+msgstr[0] "%s Tag"
+msgstr[1] "%s Tage"
+
+#, php-format
+msgid "%s entry"
+msgid_plural "%s entries"
+msgstr[0] "%s Eintrag"
+msgstr[1] "%s Einträge"
+
+#, php-format
+msgid "%s file"
+msgid_plural "%s files"
+msgstr[0] "%s Datei"
+msgstr[1] "%s Dateien"
+
+#, php-format
+msgid "%s year"
+msgid_plural "%s years"
+msgstr[0] "%s Jahr"
+msgstr[1] "%s Jahre"
+
+#, php-format
+msgid "A plugin or theme sets %1$d period with the filter %2$s; for it the value shown in the field is not effective."
+msgid_plural "A plugin or theme sets %1$d periods with the filter %2$s; for them the values shown in the fields are not effective."
+msgstr[0] "Ein Plugin oder Theme setzt %1$d Frist über den Filter %2$s; dafür gilt der im Feld angezeigte Wert nicht."
+msgstr[1] "Ein Plugin oder Theme setzt %1$d Fristen über den Filter %2$s; dafür gelten die in den Feldern angezeigten Werte nicht."
+
+#, php-format
+msgid "learning data of %s person"
+msgid_plural "learning data of %s people"
+msgstr[0] "Lerndaten von %s Person"
+msgstr[1] "Lerndaten von %s Personen"
+
+msgid "Access history of deleted accounts"
+msgstr "Zugangshistorie gelöschter Konten"
+
+msgid "Addresses of expired or withdrawn group invitations are cleared after this time."
+msgstr "Adressen abgelaufener oder zurückgezogener Gruppeneinladungen werden nach dieser Zeit geleert."
+
+msgid "Answers given while practising and assignment submissions with their files. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay."
+msgstr "Antworten beim Üben und Aufgaben-Abgaben mit ihren Dateien. Werden nach dieser Zeit gelöscht; 0 löscht sie, sobald der Kurs beendet ist. Abgaben, die auf eine Bewertung warten, bleiben."
+
+msgid "Certificates with all revisions, counted from the newest revision. The verification page then reports them as not available."
+msgstr "Zertifikate mit allen Revisionen, gerechnet ab der neuesten Revision. Die Prüfseite meldet sie danach als nicht verfügbar."
+
+msgid "Copies of published imports are needed for a rollback and contain solutions. The active package counts; older copies are deleted."
+msgstr "Kopien veröffentlichter Importe werden für ein Zurückrollen gebraucht und enthalten Lösungen. Das aktive Paket zählt mit; ältere Kopien werden gelöscht."
+
+msgid "Core data of finished exam attempts (course, date, points, passed), counted from the submission. Attempts with a certificate stay as long as the certificate."
+msgstr "Kerndaten abgeschlossener Prüfungsversuche (Kurs, Datum, Punkte, bestanden), gerechnet ab der Abgabe. Versuche mit Zertifikat bleiben so lange wie das Zertifikat."
+
+msgid "Data"
+msgstr "Daten"
+
+msgid "Debug log files"
+msgstr "Debug-Logdateien"
+
+msgid "Effective period"
+msgstr "Wirksame Frist"
+
+msgid "Ended course access"
+msgstr "Beendete Kurszugänge"
+
+msgid "Ended groups"
+msgstr "Beendete Gruppen"
+
+msgid "Entries of the change log (who changed what and when). Deleted after this time, at most 5,000 per hourly run; the remaining entries stay verifiable."
+msgstr "Einträge des Änderungsprotokolls (wer hat wann was geändert). Werden nach dieser Zeit gelöscht, höchstens 5.000 je stündlichem Lauf; die übrigen Einträge bleiben prüfbar."
+
+msgid "Entries of the internal outbox that could not be delivered are given up after this time."
+msgstr "Einträge des internen Postausgangs, die nicht zugestellt werden konnten, werden nach dieser Zeit aufgegeben."
+
+msgid "Error log files"
+msgstr "Fehler-Logdateien"
+
+msgid "Exam attempts"
+msgstr "Prüfungsversuche"
+
+msgid "Expired, revoked and failed access records of existing accounts with their history, counted from the end. Deleted after this time."
+msgstr "Abgelaufene, widerrufene und fehlgeschlagene Zugänge bestehender Konten mit ihrer Historie, gerechnet ab dem Ende. Werden nach dieser Zeit gelöscht."
+
+msgid "Held messages"
+msgstr "Zurückgehaltene Nachrichten"
+
+msgid "Import log"
+msgstr "Import-Protokoll"
+
+msgid "Import log entries and findings. Deleted after this time."
+msgstr "Einträge und Befunde des Import-Protokolls. Werden nach dieser Zeit gelöscht."
+
+msgid "Import log entries “unchanged”"
+msgstr "Import-Protokoll „unverändert“"
+
+msgid "Imports that were uploaded but not published (uploaded, checked, approved or aborted) lose their package copy after this time without activity. Running imports are never touched."
+msgstr "Importe, die hochgeladen, aber nicht veröffentlicht wurden (hochgeladen, geprüft, freigegeben oder abgebrochen), verlieren ihre Paketkopie nach dieser Zeit ohne Aktivität. Laufende Importe werden nie angefasst."
+
+msgid "Invited email addresses"
+msgstr "Eingeladene E-Mail-Adressen"
+
+msgid "Kept until the account is deleted or erased; not changeable."
+msgstr "Bleibt bis zur Löschung des Kontos oder einem Löschantrag; nicht änderbar."
+
+msgid "Learning answers and assignment submissions"
+msgstr "Lernantworten und Aufgaben-Abgaben"
+
+msgid "Learning progress"
+msgstr "Lernstand"
+
+msgid "Learning progress of inactive people"
+msgstr "Lernstand inaktiver Personen"
+
+msgid "Legal review needed"
+msgstr "Rechtsprüfung erforderlich"
+
+msgid "Lifted learning locks"
+msgstr "Aufgehobene Lernsperren"
+
+msgid "Lifted locks are deleted after this time; the audit log keeps their history."
+msgstr "Aufgehobene Sperren werden nach dieser Zeit gelöscht; das Änderungsprotokoll behält ihre Historie."
+
+msgid "Log entries of objects an import left unchanged. Deleted after this time."
+msgstr "Protokolleinträge zu Objekten, die ein Import unverändert ließ. Werden nach dieser Zeit gelöscht."
+
+msgid "Message log"
+msgstr "Nachrichtenprotokoll"
+
+msgid "Messages held back while sending was paused are discarded after this time."
+msgstr "Nachrichten, die während eines Versandstopps zurückgehalten wurden, werden nach dieser Zeit verworfen."
+
+msgid "Metadata of sent messages (type, status, time). Deleted after this time."
+msgstr "Metadaten gesendeter Nachrichten (Art, Status, Zeit). Werden nach dieser Zeit gelöscht."
+
+msgid "Next run deletes"
+msgstr "Nächster Lauf löscht"
+
+msgid "Off (keep)"
+msgstr "Aus (behalten)"
+
+msgid "Off by default. With a value, the learning progress of people without active course access and without learning activity for this time is deleted. Check the preview before you save."
+msgstr "Standardmäßig aus. Mit einem Wert wird der Lernstand von Personen ohne aktiven Kurszugang und ohne Lernaktivität in dieser Zeit gelöscht. Prüfe die Vorschau, bevor du speicherst."
+
+msgid "Package copies kept per source"
+msgstr "Aufbewahrte Paketkopien je Quelle"
+
+msgid "Package copies of unfinished imports"
+msgstr "Paketkopien nicht abgeschlossener Importe"
+
+msgid "Places removed from a group. Deleted after this time; the access history follows its own period."
+msgstr "Aus einer Gruppe entfernte Plätze. Werden nach dieser Zeit gelöscht; die Zugangshistorie folgt ihrer eigenen Frist."
+
+msgid "Processed and delivered events"
+msgstr "Verarbeitete und zugestellte Ereignisse"
+
+msgid "Processed events of connected systems and delivered entries of the internal outbox. Deleted after this time."
+msgstr "Verarbeitete Ereignisse angebundener Systeme und zugestellte Einträge des internen Postausgangs. Werden nach dieser Zeit gelöscht."
+
+msgid "Pseudonymised access records of deleted accounts from purchases (for example for tax audits). Deleted after this time."
+msgstr "Pseudonymisierte Zugänge gelöschter Konten aus Käufen (zum Beispiel für Steuerprüfungen). Werden nach dieser Zeit gelöscht."
+
+msgid "Removed group places"
+msgstr "Entfernte Gruppenplätze"
+
+msgid "Retention periods"
+msgstr "Aufbewahrungsfristen"
+
+msgid "Revoked or expired groups without active access, with their places. Deleted after this time."
+msgstr "Widerrufene oder abgelaufene Gruppen ohne aktiven Zugang, mit ihren Plätzen. Werden nach dieser Zeit gelöscht."
+
+msgid "Shorten periods"
+msgstr "Fristen verkürzen"
+
+msgid "Shorten retention periods?"
+msgstr "Aufbewahrungsfristen verkürzen?"
+
+#, php-format
+msgid "Shorter periods take effect with the next hourly run; deleted data cannot be restored. With the new values the next run deletes: %s. Have the periods checked legally before you confirm."
+msgstr "Kürzere Fristen wirken ab dem nächsten stündlichen Lauf; gelöschte Daten lassen sich nicht wiederherstellen. Mit den neuen Werten löscht der nächste Lauf: %s. Lass die Fristen rechtlich prüfen, bevor du bestätigst."
+
+msgid "These periods are changeable suggestions, not legal advice. Every value is marked “Legal review needed”: have it checked by your legal advisor before you rely on it. Shorter periods need a confirmation that shows what the next run deletes; the effect starts with the next hourly run."
+msgstr "Diese Fristen sind änderbare Vorschläge, keine Rechtsberatung. Jeder Wert ist mit „Rechtsprüfung erforderlich“ markiert: Lass ihn von deiner Rechtsberatung prüfen, bevor du dich darauf verlässt. Kürzere Fristen brauchen eine Bestätigung, die zeigt, was der nächste Lauf löscht; sie wirken ab dem nächsten stündlichen Lauf."
+
+msgid "Undelivered internal events"
+msgstr "Nicht zugestellte interne Ereignisse"
+
+#, php-format
+msgid "Warning: the filter %1$s overrides this value; effective is %2$s."
+msgstr "Warnung: Der Filter %1$s übersteuert diesen Wert; wirksam ist %2$s."
+
+msgid "What the next run would delete with the saved periods (preview; nothing is deleted here)"
+msgstr "Was der nächste Lauf mit den gespeicherten Fristen löschen würde (Vorschau; hier wird nichts gelöscht)"
+
+msgid "copies"
+msgstr "Kopien"
+
+msgid "never (off)"
+msgstr "nie (aus)"
+
+msgid "not available (check the system status)"
+msgstr "nicht verfügbar (prüfe den Systemstatus)"
+
+msgid "nothing (no automatic deletion)"
+msgstr "nichts (keine automatische Löschung)"
+
+msgid "until the account is deleted"
+msgstr "bis zur Löschung des Kontos"
+
+msgid "years"
+msgstr "Jahre"

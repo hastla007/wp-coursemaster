@@ -395,7 +395,7 @@ final class Settings {
 	 * @return list<string> Migrated tabs.
 	 */
 	public static function migrate(): array {
-		$migrated = array();
+		$migrated = self::move_keys();
 		foreach ( array_keys( SettingsSchema::TABS ) as $tab ) {
 			$raw = get_option( self::OPTION_PREFIX . $tab );
 			if ( ! is_array( $raw ) ) {
@@ -431,6 +431,7 @@ final class Settings {
 			}
 			$migrated[] = $tab;
 		}
+		$migrated = array_values( array_unique( $migrated ) );
 		// SET-009: correct autoload flags of existing tab options from the register (§2.1 rule 3).
 		$flags = array();
 		foreach ( SettingsSchema::TABS as $tab => $autoload ) {
@@ -446,6 +447,72 @@ final class Settings {
 			update_option( self::VERSION_OPTION, SettingsSchema::VERSION, true );
 		}
 		return $migrated;
+	}
+
+	/**
+	 * Moved keys (register v4, {@see SettingsSchema::MOVED}): the stored,
+	 * valid value of a tab older than the moving version goes into the
+	 * object of its new tab before the old tab drops the key. Idempotent:
+	 * a tab at the moving version or newer is never read again.
+	 *
+	 * @return list<string> Tabs written.
+	 */
+	private static function move_keys(): array {
+		$fields = SettingsSchema::fields();
+		$carry  = array();
+		foreach ( SettingsSchema::MOVED as $from => $move ) {
+			list( $to, $since )    = $move;
+			list( $ftab, $ffield ) = explode( '.', $from, 2 );
+			$raw                   = get_option( self::OPTION_PREFIX . $ftab );
+			if ( ! is_array( $raw ) || (int) ( $raw['_schema'] ?? 0 ) >= $since ) {
+				continue;
+			}
+			$values = is_array( $raw['values'] ?? null ) ? $raw['values'] : $raw;
+			if ( ! array_key_exists( $ffield, $values ) ) {
+				continue;
+			}
+			list( $ttab, $tfield, $tsub ) = explode( '.', $to, 3 );
+			$def                          = $fields[ $ttab ][ $tfield ]['fields'][ $tsub ] ?? null;
+			$check                        = null === $def ? array(
+				'ok'    => false,
+				'value' => null,
+			) : SettingsSchema::validate( $def, $values[ $ffield ] );
+			if ( $check['ok'] ) {
+				$carry[ $ttab ][ $tfield ][ $tsub ] = $check['value'];
+			}
+		}
+		$written = array();
+		foreach ( $carry as $tab => $objects ) {
+			$raw    = get_option( self::OPTION_PREFIX . $tab );
+			$raw    = is_array( $raw ) ? $raw : array(
+				'_schema' => SettingsSchema::VERSION,
+				'_rev'    => 0,
+				'values'  => array(),
+			);
+			$values = is_array( $raw['values'] ?? null ) ? $raw['values'] : array_diff_key( $raw, array_flip( array( '_schema', '_rev', '_updated_at', '_updated_by' ) ) );
+			foreach ( $objects as $field => $subs ) {
+				$base             = is_array( $values[ $field ] ?? null ) ? $values[ $field ] : (array) $fields[ $tab ][ $field ]['default'];
+				$values[ $field ] = array_merge( $base, $subs );
+			}
+			self::$writing = true;
+			try {
+				update_option(
+					self::OPTION_PREFIX . $tab,
+					array(
+						'_schema'     => (int) ( $raw['_schema'] ?? 0 ),
+						'_rev'        => (int) ( $raw['_rev'] ?? 0 ),
+						'_updated_at' => gmdate( 'c' ),
+						'_updated_by' => 0,
+						'values'      => $values,
+					),
+					SettingsSchema::TABS[ $tab ]
+				);
+			} finally {
+				self::$writing = false;
+			}
+			$written[] = $tab;
+		}
+		return $written;
 	}
 
 	/**

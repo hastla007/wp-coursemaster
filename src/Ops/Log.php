@@ -20,8 +20,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * `advanced.log_level` (`error` < `warning` < `info` < `debug`, default
  * `warning`) decides which lines are written. `error`/`warning` go to
- * `cc-error-YYYYMMDD.log` (kept `advanced.error_log_days`), `info`/`debug`
- * to `cc-debug-YYYYMMDD.log` (kept `advanced.debug_file_days`), both in
+ * `cc-error-YYYYMMDD.log` (kept `privacy.retention.error_log_days`), `info`/`debug`
+ * to `cc-debug-YYYYMMDD.log` (kept `privacy.retention.debug_file_days`), both in
  * `<protected>/logs/` (deny-all folder, never a public URL). A level above
  * the default falls back after {@see self::RESET_DAYS} days in the hourly
  * run (audit `settings_saved`, context `auto_reset`). Lines are JSON with
@@ -238,28 +238,35 @@ final class Log {
 	}
 
 	/**
-	 * Delete log files after their retention (`error_log_days`, `debug_file_days`).
+	 * Delete log files after their retention (`privacy.retention.error_log_days`,
+	 * `privacy.retention.debug_file_days`; SET-CC-02, register v4).
 	 *
-	 * @param int $now Unix time.
-	 * @return int Deleted files.
+	 * @param int                $now  Unix time.
+	 * @param array<string, int> $only Periods per kind (`error`, `debug`) to use instead of the
+	 *                                 setting; other kinds are skipped (retention preview).
+	 * @param bool               $dry  Only count the due files.
+	 * @return int Deleted (or due) files.
 	 */
-	public static function prune( int $now ): int {
+	public static function prune( int $now, array $only = array(), bool $dry = false ): int {
 		$dir = ProtectedStorage::dir( 'protected' ) . '/logs';
 		if ( ! is_dir( $dir ) ) {
 			return 0;
 		}
-		$days    = array(
-			'error' => (int) Settings::get( 'advanced.error_log_days' ),
-			'debug' => (int) Settings::get( 'advanced.debug_file_days' ),
+		$days    = array() !== $only ? $only : array(
+			'error' => \CourseCaptain\Privacy\RetentionPolicy::int( 'error_log_days' ),
+			'debug' => \CourseCaptain\Privacy\RetentionPolicy::int( 'debug_file_days' ),
 		);
 		$deleted = 0;
 		foreach ( (array) glob( $dir . '/cc-*.log' ) as $file ) {
 			if ( ! is_string( $file ) || 1 !== preg_match( '/cc-(error|debug)-(\d{8})(?:-\d+)?\.log$/', $file, $m ) ) {
 				continue;
 			}
+			if ( ! isset( $days[ $m[1] ] ) ) {
+				continue;
+			}
 			$day = strtotime( $m[2] . ' 00:00:00 UTC' );
 			// A file of day D holds lines up to D 23:59; it is due when its last line is older than the retention.
-			if ( false !== $day && $day + DAY_IN_SECONDS + $days[ $m[1] ] * DAY_IN_SECONDS <= $now && wp_delete_file_from_directory( $file, $dir ) ) {
+			if ( false !== $day && $day + DAY_IN_SECONDS + $days[ $m[1] ] * DAY_IN_SECONDS <= $now && ( $dry || wp_delete_file_from_directory( $file, $dir ) ) ) {
 				++$deleted;
 			}
 		}

@@ -135,6 +135,8 @@ final class SettingsFields {
 					array( __( 'Data requests', 'course-captain' ), array( 'auto_export_on_confirm', 'auto_erase_on_confirm', 'backup_max_age_days' ) ),
 					array( __( 'External media', 'course-captain' ), array( 'external_media_mode', 'external_media_remember', 'consent_category', 'trusted_media_hosts', 'show_avatars' ) ),
 					array( __( 'Network and browser protection', 'course-captain' ), array( 'trusted_proxies', 'csp_mode' ) ),
+					// SET-CC-02: every period is marked "Legal review needed"; preview table below the fields.
+					array( __( 'Retention periods', 'course-captain' ), array_map( static fn( string $key ): string => 'retention.' . $key, array_keys( \CourseCaptain\Privacy\RetentionPolicy::KEYS ) ) ),
 				);
 			case 'hardening':
 				return array(
@@ -146,7 +148,7 @@ final class SettingsFields {
 			case 'advanced':
 				return array(
 					array( __( 'Advanced', 'course-captain' ), array( 'cron_stale_warning_minutes' ) ),
-					array( __( 'Logging', 'course-captain' ), array( 'log_level', 'error_log_days', 'debug_file_days' ) ),
+					array( __( 'Logging', 'course-captain' ), array( 'log_level' ) ),
 					array( __( 'Reports', 'course-captain' ), array( 'report_csv_columns', 'report_pseudonymize' ) ),
 				);
 		}
@@ -906,7 +908,7 @@ final class SettingsFields {
 						'report_only' => __( 'Report only (for troubleshooting)', 'course-captain' ),
 					),
 				),
-			),
+			) + self::retention_catalog(),
 			'hardening'    => array(
 				'login_limit'             => $hardening_toggle( __( 'Login limit', 'course-captain' ), __( 'Blocks further login attempts after too many failures. Pauses automatically while a security plugin has its own login lockout.', 'course-captain' ) ),
 				'known_device'            => array(
@@ -976,20 +978,6 @@ final class SettingsFields {
 						'debug'   => __( 'Debug (for troubleshooting, 7 days)', 'course-captain' ),
 					),
 				),
-				'error_log_days'             => array(
-					'label'   => __( 'Keep error logs for', 'course-captain' ),
-					'help'    => __( 'Log files with errors and warnings are deleted after this time.', 'course-captain' ),
-					'element' => 'number',
-					'unit'    => __( 'days', 'course-captain' ),
-					'scope'   => 'system',
-				),
-				'debug_file_days'            => array(
-					'label'   => __( 'Keep debug logs for', 'course-captain' ),
-					'help'    => __( 'Log files with info and debug entries are deleted after this time (at most 30 days).', 'course-captain' ),
-					'element' => 'number',
-					'unit'    => __( 'days', 'course-captain' ),
-					'scope'   => 'system',
-				),
 				'report_csv_columns'         => array(
 					'label'   => __( 'Columns of the progress report CSV', 'course-captain' ),
 					'help'    => __( 'Preselected columns of the CSV download in Learners. The download form can change them for one export.', 'course-captain' ),
@@ -1004,5 +992,53 @@ final class SettingsFields {
 				),
 			),
 		);
+	}
+
+	/**
+	 * UI of the retention periods `privacy.retention.*` (SET-CC-02, R0-27 §1.4).
+	 *
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function retention_catalog(): array {
+		$years = __( 'years', 'course-captain' );
+		$days  = __( 'days', 'course-captain' );
+		$items = array(
+			'audit_log_years'                      => array( __( 'Audit log', 'course-captain' ), __( 'Entries of the change log (who changed what and when). Deleted after this time, at most 5,000 per hourly run; the remaining entries stay verifiable.', 'course-captain' ), $years ),
+			'grant_history_deleted_accounts_years' => array( __( 'Access history of deleted accounts', 'course-captain' ), __( 'Pseudonymised access records of deleted accounts from purchases (for example for tax audits). Deleted after this time.', 'course-captain' ), $years ),
+			'import_log_days'                      => array( __( 'Import log', 'course-captain' ), __( 'Import log entries and findings. Deleted after this time.', 'course-captain' ), $days ),
+			'import_unchanged_days'                => array( __( 'Import log entries “unchanged”', 'course-captain' ), __( 'Log entries of objects an import left unchanged. Deleted after this time.', 'course-captain' ), $days ),
+			'import_keep_packages'                 => array( __( 'Package copies kept per source', 'course-captain' ), __( 'Copies of published imports are needed for a rollback and contain solutions. The active package counts; older copies are deleted.', 'course-captain' ), __( 'copies', 'course-captain' ) ),
+			'import_package_days'                  => array( __( 'Package copies of unfinished imports', 'course-captain' ), __( 'Imports that were uploaded but not published (uploaded, checked, approved or aborted) lose their package copy after this time without activity. Running imports are never touched.', 'course-captain' ), $days ),
+			'inbox_days'                           => array( __( 'Processed and delivered events', 'course-captain' ), __( 'Processed events of connected systems and delivered entries of the internal outbox. Deleted after this time.', 'course-captain' ), $days ),
+			'outbox_event_days'                    => array( __( 'Undelivered internal events', 'course-captain' ), __( 'Entries of the internal outbox that could not be delivered are given up after this time.', 'course-captain' ), $days ),
+			'notification_log_days'                => array( __( 'Message log', 'course-captain' ), __( 'Metadata of sent messages (type, status, time). Deleted after this time.', 'course-captain' ), $days ),
+			'error_log_days'                       => array( __( 'Error log files', 'course-captain' ), __( 'Log files with errors and warnings are deleted after this time.', 'course-captain' ), $days ),
+			'debug_file_days'                      => array( __( 'Debug log files', 'course-captain' ), __( 'Log files with info and debug entries are deleted after this time (at most 30 days).', 'course-captain' ), $days ),
+			'exam_attempts_years'                  => array( __( 'Exam attempts', 'course-captain' ), __( 'Core data of finished exam attempts (course, date, points, passed), counted from the submission. Attempts with a certificate stay as long as the certificate.', 'course-captain' ), $years ),
+			'raw_answers_years_after_course_end'   => array( __( 'Learning answers and assignment submissions', 'course-captain' ), __( 'Answers given while practising and assignment submissions with their files. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay.', 'course-captain' ), $years ),
+			'certificates_years'                   => array( __( 'Certificates', 'course-captain' ), __( 'Certificates with all revisions, counted from the newest revision. The verification page then reports them as not available.', 'course-captain' ), $years ),
+			'inactive_learning_data_years'         => array( __( 'Learning progress of inactive people', 'course-captain' ), __( 'Off by default. With a value, the learning progress of people without active course access and without learning activity for this time is deleted. Check the preview before you save.', 'course-captain' ), $years ),
+			'invite_email_days_after_expiry'       => array( __( 'Invited email addresses', 'course-captain' ), __( 'Addresses of expired or withdrawn group invitations are cleared after this time.', 'course-captain' ), $days ),
+			'held_mail_days'                       => array( __( 'Held messages', 'course-captain' ), __( 'Messages held back while sending was paused are discarded after this time.', 'course-captain' ), $days ),
+			'learning_progress'                    => array( __( 'Learning progress', 'course-captain' ), __( 'Kept until the account is deleted or erased; not changeable.', 'course-captain' ), '' ),
+			'ended_grants_years'                   => array( __( 'Ended course access', 'course-captain' ), __( 'Expired, revoked and failed access records of existing accounts with their history, counted from the end. Deleted after this time.', 'course-captain' ), $years ),
+			'removed_seats_days'                   => array( __( 'Removed group places', 'course-captain' ), __( 'Places removed from a group. Deleted after this time; the access history follows its own period.', 'course-captain' ), $days ),
+			'closed_groups_years'                  => array( __( 'Ended groups', 'course-captain' ), __( 'Revoked or expired groups without active access, with their places. Deleted after this time.', 'course-captain' ), $years ),
+			'lifted_locks_days'                    => array( __( 'Lifted learning locks', 'course-captain' ), __( 'Lifted locks are deleted after this time; the audit log keeps their history.', 'course-captain' ), $days ),
+		);
+		$out   = array();
+		foreach ( $items as $key => $item ) {
+			$unit                       = \CourseCaptain\Privacy\RetentionPolicy::KEYS[ $key ]['unit'];
+			$out[ 'retention.' . $key ] = array(
+				'label'   => $item[0],
+				'help'    => $item[1],
+				'element' => 'fixed' === $unit ? 'static' : ( empty( \CourseCaptain\Privacy\RetentionPolicy::KEYS[ $key ]['nullable'] ) ? 'number' : 'nullable_number' ),
+				'unit'    => $item[2],
+				'scope'   => 'system',
+				'none'    => 'inactive_learning_data_years' === $key ? __( 'Off (keep)', 'course-captain' ) : '',
+				'options' => 'fixed' === $unit ? array( 'until_account_deletion' => __( 'until the account is deleted', 'course-captain' ) ) : array(),
+			);
+		}
+		return $out;
 	}
 }

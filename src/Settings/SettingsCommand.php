@@ -35,6 +35,11 @@ defined( 'ABSPATH' ) || exit;
  *   RC-07 roles only with `--confirm` (else skipped and reported).
  * - `reset <tab> --yes` (roles: {@see RoleCaps::reset()}), `reset <tab.field>`
  *   = `set` to the default (risk rules apply).
+ * - Object fields also take a sub-key: `get|set|reset <tab.field.sub>`
+ *   (e.g. `privacy.retention.audit_log_years 5`); the other sub-keys keep
+ *   their values (SET-CC-02).
+ * - `retention [--format=json]`: read-only preview of what the next
+ *   retention run deletes per `privacy.retention` sub-key (SET-CC-02).
  *
  * Exit code 0 = ok, 1 = error or refused.
  */
@@ -49,7 +54,7 @@ final class SettingsCommand {
 		if ( ! ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\WP_CLI' ) ) ) {
 			return;
 		}
-		foreach ( array( 'list', 'get', 'set', 'export', 'import', 'reset' ) as $command ) {
+		foreach ( array( 'list', 'get', 'set', 'export', 'import', 'reset', 'retention' ) as $command ) {
 			\WP_CLI::add_command(
 				'course-captain settings ' . $command,
 				static function ( array $args, array $assoc ) use ( $command ): void {
@@ -106,9 +111,12 @@ final class SettingsCommand {
 				case 'list':
 					return self::list_values( (string) ( $assoc['tab'] ?? '' ), $json );
 				case 'get':
-					list( $tab, $field, $def ) = self::key( (string) ( $args[0] ?? '' ) );
-					$value                     = self::readable( $def, Settings::values( $tab )[ $field ] );
-					return self::out( 0, $json, array( 'key' => $tab . '.' . $field, 'value' => $value ), array( is_string( $value ) ? $value : (string) wp_json_encode( $value ) ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short JSON payload.
+					list( $tab, $field, $def, $sub ) = self::key( (string) ( $args[0] ?? '' ) );
+					$value                           = Settings::values( $tab )[ $field ];
+					$value                           = self::readable( $def, '' === $sub ? $value : ( (array) $value )[ $sub ] ?? null );
+					return self::out( 0, $json, array( 'key' => $tab . '.' . $field . ( '' === $sub ? '' : '.' . $sub ), 'value' => $value ), array( is_string( $value ) ? $value : (string) wp_json_encode( $value ) ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short JSON payload.
+				case 'retention':
+					return self::retention( $json );
 				case 'set':
 					if ( ! array_key_exists( 1, $args ) ) {
 						return self::out( 1, $json, array( 'error' => 'ccap_invalid_param' ), array( 'Error: usage: settings set <tab.field> <value>' ) );
@@ -176,8 +184,13 @@ final class SettingsCommand {
 	 * @throws CourseException `ccap_invalid_param`, `ccap_forbidden`, `ccap_settings_conflict`.
 	 */
 	private static function set( Actor $actor, string $key, $value, array $assoc, bool $json ): array {
-		list( $tab, $field ) = self::key( $key );
-		$input               = array( $field => $value );
+		list( $tab, $field, , $sub ) = self::key( $key );
+		if ( '' !== $sub ) {
+			$object         = (array) Settings::values( $tab )[ $field ];
+			$object[ $sub ] = $value;
+			$value          = $object;
+		}
+		$input = array( $field => $value );
 		if ( isset( $assoc['confirm'] ) && '' !== (string) $assoc['confirm'] ) {
 			// SET-CC-30: the typed word (LÖSCHEN/LOESCHEN/DELETE) confirms switching data deletion on.
 			$input[ Settings::CONFIRM_WORD_FIELD ] = (string) $assoc['confirm'];
@@ -229,7 +242,7 @@ final class SettingsCommand {
 	private static function reset( Actor $actor, string $target, array $assoc, bool $json ): array {
 		if ( str_contains( $target, '.' ) ) {
 			list( , , $def ) = self::key( $target );
-			return self::set( $actor, $target, $def['default'], $assoc, $json );
+			return self::set( $actor, $target, $def['default'] ?? null, $assoc, $json );
 		}
 		if ( ! isset( $assoc['yes'] ) ) {
 			return self::out( 1, $json, array( 'error' => 'ccap_confirmation_required' ), array( 'Error: add --yes to reset the tab.' ) );
@@ -331,19 +344,44 @@ final class SettingsCommand {
 	}
 
 	/**
-	 * Split a key into tab, field and definition.
+	 * Split a key into tab, field, definition and sub-key (`tab.field.sub`
+	 * of an object field: definition of the sub-key with its default).
 	 *
-	 * @param string $key `tab.field`.
-	 * @return array{0: string, 1: string, 2: array<string, mixed>}
+	 * @param string $key `tab.field` or `tab.field.sub`.
+	 * @return array{0: string, 1: string, 2: array<string, mixed>, 3: string}
 	 * @throws CourseException `ccap_invalid_param` for unknown keys.
 	 */
 	private static function key( string $key ): array {
-		list( $tab, $field ) = array_pad( explode( '.', $key, 2 ), 2, '' );
-		$def                 = SettingsSchema::fields()[ $tab ][ $field ] ?? null;
+		list( $tab, $field, $sub ) = array_pad( explode( '.', $key, 3 ), 3, '' );
+		$def                       = SettingsSchema::fields()[ $tab ][ $field ] ?? null;
+		if ( null !== $def && '' !== $sub ) {
+			$part = 'object' === $def['type'] ? ( $def['fields'][ $sub ] ?? null ) : null;
+			$def  = null === $part ? null : $part + array(
+				'default' => $def['default'][ $sub ] ?? null,
+				'privacy' => $def['privacy'],
+			);
+		}
 		if ( null === $def ) {
 			throw new CourseException( 'ccap_invalid_param', 'Unknown setting. Use `wp course-captain settings list`.', 400 );
 		}
-		return array( $tab, $field, $def );
+		return array( $tab, $field, $def, $sub );
+	}
+
+	/**
+	 * `retention`: read-only preview of the next retention run (SET-CC-02).
+	 *
+	 * @param bool $json JSON output.
+	 * @return array{exit: int, lines: list<string>}
+	 */
+	private static function retention( bool $json ): array {
+		$rows  = array();
+		$lines = array();
+		foreach ( \CourseCaptain\Privacy\RetentionService::preview() as $key => $entry ) {
+			$rows[]  = array( 'key' => 'privacy.retention.' . $key ) + $entry;
+			$lines[] = sprintf( '%-56s %-24s %s', 'privacy.retention.' . $key, null === $entry['value'] ? 'off' : $entry['value'] . ' ' . $entry['unit'], $entry['error'] ? 'error' : ( null === $entry['count'] ? '-' : $entry['count'] . ' ' . $entry['kind'] ) );
+		}
+		$lines[] = 'Preview only; nothing was deleted. Legal review needed: the periods are suggestions, not legal advice.';
+		return self::out( 0, $json, $rows, $lines );
 	}
 
 	/**

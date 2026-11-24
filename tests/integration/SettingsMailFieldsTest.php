@@ -570,10 +570,13 @@ final class SettingsMailFieldsTest extends SchemaTestCase {
 		file_put_contents( $dir . '/cc-error-' . $old . '.log', "x\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents -- Test fixture.
 		self::assertSame( 1, Log::prune( $now ), 'debug 7 days, error 30 days' );
 		self::assertFileExists( $dir . '/cc-error-' . $old . '.log' );
-		Settings::save( Actor::cli(), 'advanced', array( 'error_log_days' => 5 ), array( 'error_log_days' ), Settings::rev( 'advanced' ) );
+		// SET-CC-02 (register v4): the periods live in `privacy.retention`.
+		$retention                   = (array) Settings::get( 'privacy.retention' );
+		$retention['error_log_days'] = 5;
+		Settings::save( Actor::cli(), 'privacy', array( 'retention' => $retention ), array( 'retention' ), Settings::rev( 'privacy' ) );
 		self::assertSame( 1, Log::prune( $now ) );
 		self::assertFileDoesNotExist( $dir . '/cc-error-' . $old . '.log' );
-		self::assertSame( 'invalid', SettingsScreen::process_save( $this->tab_post( 'advanced', array( 'debug_file_days' => '31' ) ), $this->admin )['result'] );
+		self::assertSame( 'invalid', SettingsScreen::process_save( $this->tab_post( 'privacy', array( 'retention' => array( 'debug_file_days' => '31' ) ) ), $this->admin )['result'] );
 		foreach ( (array) glob( $dir . '/cc-*.log' ) as $file ) {
 			wp_delete_file( (string) $file );
 		}

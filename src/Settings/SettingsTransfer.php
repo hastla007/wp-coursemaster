@@ -182,6 +182,8 @@ final class SettingsTransfer {
 			'applied_surfaces' => array(),
 			'addon'            => array(),
 		);
+		// Register v4 (SET-CC-02): values of moved keys in older files go to their new place.
+		$data = SettingsSchema::upgrade_file( $data, static fn( string $key ): array => (array) Settings::get( $key ) );
 		if ( (string) ( $data['site_hash'] ?? '' ) !== hash( 'sha256', home_url() ) ) {
 			$report['notices'][] = 'other_site';
 		}

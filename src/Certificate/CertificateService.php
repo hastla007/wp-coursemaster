@@ -727,10 +727,14 @@ final class CertificateService {
 	 *
 	 * @param Database $db     Database.
 	 * @param string   $cutoff UTC datetime.
-	 * @return int Rows deleted.
+	 * @param bool     $dry    Only count all due rows (retention preview, SET-CC-02).
+	 * @return int Rows deleted (or due).
 	 */
-	public static function expire_retention( Database $db, string $cutoff ): int {
+	public static function expire_retention( Database $db, string $cutoff, bool $dry = false ): int {
 		$table = $db->table( 'ccap_certificate' );
+		if ( $dry ) {
+			return (int) $db->scalar( $db->prepare( "SELECT COUNT(*) FROM `{$table}` c JOIN ( SELECT certificate_uid FROM `{$table}` GROUP BY certificate_uid HAVING MAX(issued_at) < %s ) d ON d.certificate_uid = c.certificate_uid", $cutoff ) );
+		}
 		$uids  = $db->wpdb()->get_col( $db->prepare( "SELECT certificate_uid FROM `{$table}` GROUP BY certificate_uid HAVING MAX(issued_at) < %s LIMIT 500", $cutoff ) );
 		$count = 0;
 		foreach ( $uids as $uid ) {
