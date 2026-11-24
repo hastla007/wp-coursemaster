@@ -10,6 +10,9 @@ declare(strict_types=1);
 namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Activity\ActivityProgress;
+use CourseCaptain\Access\ContentGate;
+use CourseCaptain\Access\GrantService;
+use CourseCaptain\Access\GrantTransitions;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Certificate\CertificatePages;
 use CourseCaptain\Certificate\CertificateService;
@@ -1019,6 +1022,159 @@ final class CertificateTest extends SchemaTestCase {
 		} finally {
 			remove_filter( 'get_available_languages', $filter );
 			delete_user_meta( $this->learner, 'locale' );
+		}
+	}
+
+	/**
+	 * Learning history of the learner without volatile columns (R0-41 §3:
+	 * expected DB state "history unchanged").
+	 *
+	 * @return array<string, list<array<string, mixed>>>
+	 */
+	private function history(): array {
+		$db  = Database::current();
+		$out = array();
+		foreach ( array( 'ccap_exam_session', 'ccap_certificate', 'ccap_course_progress', 'ccap_activity_progress' ) as $table ) {
+			$rows = $db->rows( $db->prepare( 'SELECT * FROM `' . $db->table( $table ) . '` WHERE user_id = %d ORDER BY id', $this->learner ) );
+			foreach ( $rows as $i => $row ) {
+				unset( $rows[ $i ]['updated_at'], $rows[ $i ]['last_access_at'], $rows[ $i ]['row_version'] );
+			}
+			$out[ $table ] = $rows;
+		}
+		return $out;
+	}
+
+	/**
+	 * Count rows of a table under a condition.
+	 *
+	 * @param string $table Table without prefix.
+	 * @param string $where Condition.
+	 * @return int
+	 */
+	private static function count_rows( string $table, string $where = '1=1' ): int {
+		$db = Database::current();
+		return (int) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( $table ) . "` WHERE {$where}" );
+	}
+
+	/**
+	 * CORE-06 (R1 part, konzept 35.3/35.5; R0-41 §3): refund of the only
+	 * source after course completion and certificate. The grant of this
+	 * source is revoked (`order_refunded`, grant event and `access.changed`),
+	 * the course is locked again; progress, exam attempt and the certificate
+	 * stay unchanged and the certificate still verifies as valid. No
+	 * certificate event, no certificate audit entry.
+	 *
+	 * @group CORE-06
+	 * @group GRANT-028
+	 */
+	public function test_CORE_06_refund_after_certificate_keeps_history_and_status(): void {
+		$cert = $this->exam_certificate();
+		$this->complete_course();
+		self::assertCount( 1, self::certs(), 'completion adds no second certificate' );
+		$learner = Actor::user( $this->learner );
+		self::assertTrue( ContentGate::current()->lesson( $learner, $this->course, $this->lessons[0] )->allowed() );
+		$history = $this->history();
+		$token   = CertificateService::token( $cert['uid'], 1 );
+		$before  = CertificateService::current()->verify( $token );
+		$changed = self::count_rows( 'ccap_outbox_event', "event_type = 'access.changed'" );
+		$audit   = self::count_rows( 'ccap_audit_log', "action LIKE 'certificate%'" );
+
+		self::assertSame( GrantTransitions::REVOKED, GrantService::current()->transition( Actor::cron(), $this->grant, GrantTransitions::REVOKED, 'order_refunded' ) );
+		PolicyService::flush();
+		OutboxDispatcher::current()->dispatch();
+
+		// Access from this source is gone.
+		self::assertFalse( ContentGate::current()->lesson( $learner, $this->course, $this->lessons[0] )->allowed() );
+		self::assertSame( 1, self::count_rows( 'ccap_grant_event', 'grant_id = ' . $this->grant . " AND from_status = 'active' AND to_status = 'revoked' AND reason_code = 'order_refunded'" ) );
+		self::assertSame( $changed + 1, self::count_rows( 'ccap_outbox_event', "event_type = 'access.changed'" ) );
+		// History and certificate status unchanged.
+		self::assertSame( $history, $this->history() );
+		self::assertSame( $before, CertificateService::current()->verify( $token ) );
+		self::assertSame( 'valid', $before['status'] );
+		self::assertSame( array( $cert['uid'] ), array_column( CertificateService::current()->mine( $learner ), 'uid' ), 'the learner still sees the certificate' );
+		self::assertSame( 0, self::events( 'certificate.revoked' ) );
+		self::assertSame( $audit, self::count_rows( 'ccap_audit_log', "action LIKE 'certificate%'" ), 'a refund is no certificate action' );
+		// A late "paid" for the same source revision does not re-grant (CORE-07).
+		self::assertSame( 'ignored', GrantService::current()->transition( Actor::cron(), $this->grant, GrantTransitions::ACTIVE, 'order_paid' ) );
+		self::assertSame( 'revoked', (string) Database::current()->scalar( 'SELECT status FROM `' . Database::current()->table( 'ccap_grant' ) . '` WHERE id = ' . $this->grant ) );
+	}
+
+	/**
+	 * CORE-10 (Free part, R1-18; konzept 35.4/35.5, R0-39 FG-03/FG-04,
+	 * R0-11 ER-3; R0-41 §3): the Pro licence ends and the add-on is
+	 * deactivated. Free never reads licence state and sends no request, so
+	 * learning goes on (lesson, new exam attempt, course completion), the
+	 * stored history stays byte-identical and the certificate verifies as
+	 * before. The Pro part (frozen designer template, CERT-008/CRT-064)
+	 * belongs to R3-15.
+	 *
+	 * @group CORE-10
+	 * @group SA-001
+	 */
+	public function test_CORE_10_pro_licence_end_keeps_free_learning_history_and_verification(): void {
+		$cert    = $this->exam_certificate();
+		$learner = Actor::user( $this->learner );
+		ActivityProgress::current()->interact( $learner, $this->course, $this->lessons[0], 'confirm' );
+		OutboxDispatcher::current()->dispatch();
+		$token    = CertificateService::token( $cert['uid'], 1 );
+		$verified = CertificateService::current()->verify( $token );
+		self::assertSame( 'valid', $verified['status'] );
+		$history  = $this->history();
+		$requests = count( $GLOBALS['ccap_test_http_requests'] );
+		$audit    = self::count_rows( 'ccap_audit_log', "action IN ('certificate_corrected', 'certificate_revoked')" );
+
+		// What an add-on would leave behind at licence end (R0-39 §3: class E/A). Free must not look at it.
+		$reads   = 0;
+		$options = array( 'course_captain_pro_license', 'course_captain_pro_license_state', 'course_captain_pro_settings_general' );
+		$probe   = static function ( $value ) use ( &$reads ) {
+			++$reads;
+			return $value;
+		};
+		foreach ( $options as $option ) {
+			add_filter( 'pre_option_' . $option, $probe );
+		}
+		update_option(
+			'course_captain_pro_license',
+			array(
+				'status'     => 'expired',
+				'expires_at' => gmdate( 'c', time() - DAY_IN_SECONDS ),
+			),
+			false
+		);
+		$reads = 0;
+		do_action( 'deactivated_plugin', 'course-captain-pro/course-captain-pro.php', false ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core hook, simulates the add-on deactivation.
+		PolicyService::flush();
+
+		try {
+			// History and verification unchanged.
+			self::assertSame( $history, $this->history() );
+			self::assertSame( $verified, CertificateService::current()->verify( $token ) );
+			self::assertSame( array( $cert['uid'] ), array_column( CertificateService::current()->mine( $learner ), 'uid' ) );
+
+			// Free learning goes on: the next lesson, a new exam attempt, course completion.
+			self::assertTrue( ContentGate::current()->lesson( $learner, $this->course, $this->lessons[1] )->allowed() );
+			ActivityProgress::current()->interact( $learner, $this->course, $this->lessons[1], 'confirm' );
+			$second = $this->take_exam( $this->rule() );
+			OutboxDispatcher::current()->dispatch();
+			self::assertNotSame( $cert['session'], $second );
+			self::assertSame( 1, self::count_rows( 'ccap_exam_session', 'id = ' . $second . " AND passed = 1 AND status = 'evaluated'" ), 'new attempt evaluated' );
+			self::assertSame( 'completed', (string) Database::current()->scalar( 'SELECT status FROM `' . Database::current()->table( 'ccap_course_progress' ) . '` WHERE user_id = ' . $this->learner ) );
+			$after = $this->history();
+			self::assertCount( 1, $history['ccap_certificate'] );
+			self::assertSame( $history['ccap_certificate'][0], $after['ccap_certificate'][0], 'the issued certificate is untouched' );
+			self::assertCount( 2, $after['ccap_certificate'], 'Free keeps issuing base certificates (new evidence, CR-5)' );
+			self::assertSame( $history['ccap_exam_session'][0], $after['ccap_exam_session'][0], 'the earlier attempt is untouched' );
+			self::assertSame( $verified, CertificateService::current()->verify( $token ) );
+
+			// Free never asked for licence state and sent no request (FG-03, FG-04, LG).
+			self::assertSame( 0, $reads, 'no read of add-on licence options' );
+			self::assertSame( $requests, count( $GLOBALS['ccap_test_http_requests'] ) );
+			self::assertSame( $audit, self::count_rows( 'ccap_audit_log', "action IN ('certificate_corrected', 'certificate_revoked')" ), 'no correction or revocation' );
+		} finally {
+			foreach ( $options as $option ) {
+				remove_filter( 'pre_option_' . $option, $probe );
+			}
+			delete_option( 'course_captain_pro_license' );
 		}
 	}
 }

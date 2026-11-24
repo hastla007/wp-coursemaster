@@ -175,8 +175,8 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 847 | K32 R3.3 | R3-FIRST-106 | R3-06 | R0-12 §3.4 (D-4) | – | offen |  |
 | 848 | K32 R3.3 | R3-FIRST-107 | R3-10 | R0-19 §6; R0-13 | SUP-024, SUP-029 | offen |  |
 | 849 | K32 R3.3 | R3-FIRST-108 | R3-07 | – | – | offen | Regel für die R3.4-Reihenfolge |
-| 859 | K34 R0 | FLOW-001 | R0-12 | R0-12 §1.1; R0-07; R0-08; R0-09; R0-13; R0-19 | – | offen | Owner/Trigger/Auth/Events je Fall nicht ausgearbeitet; Gate-A-Umfang nach E-186 (A-10) |
-| 860 | K34 R0 | FLOW-002 | R0-12 | R0-12 §1 | – | offen | Dimensionsspalten je Fall fehlen (T-4) |
+| 859 | K34 R0 | FLOW-001 | R0-12 | R0-41 §1; R0-12 §1.1; R0-07; R0-08; R0-09; R0-13; R0-19 | – | erledigt | R0-41 §1: 55 Fälle mit Owner, Trigger, Vorbedingung, Events, UI, Retry, Audit, Release, Spezifikation und Test; COMMERCE/SUITEFLOW R3 (E-186); abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 860 | K34 R0 | FLOW-002 | R0-12 | R0-41 §2; R0-12 §1 | – | erledigt | T-4 in R0-41 §2 erfüllt (neun Dimensionen je Fall); 18 Lücken-Zellen in R0-41 §4.2; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 861 | K34 R0 | FLOW-003 | R0-GATE | ENTSCHEIDUNGEN | – | erledigt | führend für Z.894 (Fachentscheidungen); juristische Bestätigung offen bei Z.894; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 862 | K34 R0 | FLOW-004 | R0-12 | R0-12 §1.1; R0-04 §2 | – | erledigt | abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 863 | K34 R0 | FLOW-005 | R0-34 | R0-19 §5, §6 | CT-08, CT-09 | erledigt | R0-34 §1.3, §2; E-185; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
@@ -194,7 +194,7 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 888 | K35 | CORE-SPEC-004 | R0-09 | R0-09 §2, §3 | GRANT-001…GRANT-029 | erledigt | führend für Z.801; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 889 | K35 | CORE-SPEC-005 | R0-09 | R0-09 §5 | GRANT-023, GRANT-027, GRANT-028 | abgedeckt (Entwurf) | kaufmännische Grundsätze beschlossen (E-29, E-32, E-35); offen: rechtliche Freigabe der Matrix |
 | 890 | K35 | CORE-SPEC-006 | R0-29 | R0-08 §7.2; R0-23 §5 | RBAC-060…RBAC-066, CERT-001* | erledigt | R0-29 §2, §3; E-94, E-96, E-97, E-183; Fristen AG-07; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
-| 891 | K35 | CORE-SPEC-007 | R0-12 | R0-12 §1.2 | ID-001, GRANT-010 | offen | Vorbedingungen, DB-Zustände, Auditspuren je Fall fehlen |
+| 891 | K35 | CORE-SPEC-007 | R0-12 | R0-41 §3; R0-12 §1.2 | ID-001, GRANT-010 | erledigt | R0-41 §3 (Vorbedingungen, DB-Zustand, Auditspur je Fall); CORE-10 Free-Teil als Integrationstest; Woo/Voucher R3 (FIN, E-186); abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 892 | K35 | CORE-SPEC-008 | R0-12 | R0-12 §1 | – | erledigt | abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 893 | K35 | CORE-SPEC-009 | R3-01 | R0-36 §3 | – | offen | E-186 |
 | 894 | K35 | CORE-SPEC-010 | R0-GATE | ENTSCHEIDUNGEN | – | offen | Fachentscheidungen erledigt (Z.861); offen: juristische Bestätigung der Fristen (AG-07, Eingang R1-GATE, E-329) |
@@ -211,7 +211,7 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 915 | K39 | LB-AUDIT-003 – Vollständigkeit | R0-02 | R0-02 | – | erledigt | gemeinsam mit Z.904; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 916 | K39 | LB-AUDIT-004 – Neutralität | R0-03 | R0-02 README | – | offen | Klassifikation erledigt (Z.905); offen: Aufwand je Codefunktion fehlt |
 | 917 | K39 | LB-AUDIT-005 – R1/R3-Schnitt | R0-04 | R0-04 §2, §3 | – | erledigt | abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
-| 918 | K39 | LB-AUDIT-006 – Golden Master | R0-05 | R0-05 §6 | – | offen | Verknüpfung erledigt (Z.906); offen: GM-118/125/128/136 teilweise (Medien-/Blueprint-Import, R1-18 C-3) |
+| 918 | K39 | LB-AUDIT-006 – Golden Master | R0-05 | R0-05 §6; R0-41 §5 | – | erledigt | GM-118/125/128 vollständig (Medien-/Blueprint-Import, R1-18 h1), GM-136 Vollvolumen gelaufen, R1-18 C-3 aktualisiert; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 919 | K39 | LB-AUDIT-007 – Gate A | R0-GATE | R0-12 §3.1 | – | erledigt | Gate A-1 vor der Freigabe; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 ### 1.3 Testdubletten → führender Test (R0-12 §2.2 Nr. 7)
 
@@ -233,10 +233,10 @@ So sieht die Reihenfolge aus Sicht des R-Plans aus: Wer eine Task bearbeitet, pr
 | Führende Task | führende Einträge (Z.) | Duplikate (Z.) | Summe |
 |---|---|---|---:|
 | R0-03 | 916 | – | 1 |
-| R0-05 | 655, 918 | 735, 736 | 4 |
+| R0-05 | 655 | 735, 736 | 3 |
 | R0-09 | 889 | – | 1 |
 | R0-11 | 685, 724 | – | 2 |
-| R0-12 | 719, 859, 860, 891 | – | 4 |
+| R0-12 | 719 | – | 1 |
 | R0-20 | 832 | – | 1 |
 | R0-24 | 914 | – | 1 |
 | R0-26 | 723 | – | 1 |
@@ -579,7 +579,7 @@ for z, c in reg.items():
         for t in expand(tok):
             if (tok.endswith('*') and t not in prop) or (not tok.endswith('*') and t not in cat): err['test'].append((z, t))
 unknownE = sorted({e for e in re.findall(r'(?<![A-Z]-)\bE-\d{2,3}\b', doc) if e not in E})
-unknownR = sorted({t for t in re.findall(r'\bR\d-\d\d\b', doc) if t not in tasks} - {'R2-08', 'R2-02'})  # R2-02 nach R1-46 vorgezogen, R2-08 entfallen
+unknownR = sorted({t for t in re.findall(r'\bR\d-\d\d\b', doc) if t not in tasks and not glob.glob(D + t + '-*.md')} - {'R2-08', 'R2-02'})  # R2-02 nach R1-46 vorgezogen, R2-08 entfallen; R0-Dokument ohne eigene Task (R0-41) zählt als bekannt
 open_ = [c for z, c in reg.items() if c[6] != 'erledigt']
 lead_ = [c for c in open_ if not c[6].startswith(('Duplikat', 'obsolet'))]
 print('Register', len(reg), '| TODO', len(boxes), '| fehlend', sorted(set(boxes) - set(reg)), '| überzählig', sorted(set(reg) - set(boxes)))
@@ -663,6 +663,16 @@ Fehler {} | unbekannte E [] | unbekannte R-Tasks []
 §1.4 Zeilen 41 | Abweichungen []
 ```
 
+Ergebnis am 24.11.2026 nach dem Abhaken von Z. 859, 860, 891 und 918 (R0-41; Auszug; die R-Task-Prüfung akzeptiert seitdem auch eine R0-Nummer, zu der ein Dokument in `docs/r0/` existiert, weil R0-41 keine eigene Task hat):
+
+```
+Register 147 | überzählig []
+erledigt 83 | offen 97 | führend 69 | Duplikat 28 | obsolet 0
+führend: abgedeckt 14 | offen 55 | führende Tasks 41
+Fehler {} | unbekannte E [] | unbekannte R-Tasks []
+§1.4 Zeilen 41 | Abweichungen []
+```
+
 **Grenzen der Zählung:** Das Skript prüft Existenz, Eindeutigkeit und Vollständigkeit der Zuordnung, nicht ihre fachliche Richtigkeit (Review). Test-IDs gelten als bekannt, wenn sie in einer Katalogzeile der genannten R0-Dokumente stehen; vorgeschlagene IDs (\*) müssen in R0-12 §1.3 stehen. Bereiche „A…B“ werden aufgelöst und jede ID einzeln geprüft. Die Spalte „E zusätzlich“ der DoR-Tabelle wird nur auf Existenz geprüft; „E direkt“ und „E über Dokument“ müssen exakt der Berechnung aus `ENTSCHEIDUNGEN.md` entsprechen. Die Zeilennummern beziehen sich auf den Stand nach `98bfc38` (R3-20 eingefügt, +4 ab Z. 586); jede Änderung am TODO oberhalb von Z. 653 verschiebt sie (das Skript meldet dann `fehlend`/`überzählig`).
 
 ---
@@ -700,7 +710,7 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §31 und „Von Claude entschi
 | **T-1** | ADR-Nummern: R0-19 vergibt Fehlerformat und Event-Envelope als **ADR-009** und **ADR-010**. ADR-007 (Lizenz-/Produktzugang) wird in R0-39 geschrieben, ADR-008 (Rollen und Datenschutz) als Kurz-ADR, das auf R0-07 und R0-17 verweist. R0-12 A-8 nennt dann 10 ADRs. | R0-19 Kopf, §3, §5.1; R0-12 A-8; R0-39 |
 | **T-2** | RBAC-093 und SEC-026: Replay-Antwort auf `202 duplicate` (wie CT-11, R0-19 R-51); Ziel von RBAC-093 auf **R3-01** (Route ist R3). R0-12 zählt RBAC-093 bisher unter R1-03. | R0-07 §5, R0-17 §7, R0-12 §5 |
 | **T-3** | Testdubletten nach §1.3 in den Katalogen als „wie CON-00x“ bzw. „wie REC-022“ kennzeichnen; SEAT-006 auf den Teil „Lock belegt“ kürzen. | R0-09 §6, R0-17 §7, R0-21 §5 |
-| **T-4** | FLOW-002-Dimensionsspalten je Fall (R0-12 §7, Delta „R0-24“) werden mit der Freigabe von R0-12 als §1.5 dort ergänzt, nicht in R0-24 (führende Task von Z. 860 ist R0-12). | R0-12 §1, §7 |
+| **T-4** | FLOW-002-Dimensionsspalten je Fall (R0-12 §7, Delta „R0-24“) werden mit der Freigabe von R0-12 als §1.5 dort ergänzt, nicht in R0-24 (führende Task von Z. 860 ist R0-12). **Erledigt 24.11.2026** in R0-41 §2 (eigenes Dokument, R0-12 unverändert). | R0-12 §1, §7; R0-41 §2 |
 | **T-5** | Testauswahl nach Task: Jeder Katalogtest trägt `@group <Test-ID>` und `@group <Task>` (PHPUnit) bzw. Tag `@<Task> @<Test-ID>` (Playwright). Kommando je Task: `composer test -- --group=R1-xx` (J-11/J-12/J-13) und `npx playwright test --grep @R1-xx` (J-14). Last- und Race-Läufe (R1-22, R1-42) über J-19/`perf-release.yml`, manuelle Fälle (R1-29) über Sitzungsprotokoll R0-26 §4. | R0-18 §1.4 (Ergänzung), R1-01 (Gerüst) |
 | **T-6** | E-190 (Signatur Pro-ZIP) blockiert fachlich R3-18, nicht R1-01/R1-39 (übernommen in ENTSCHEIDUNGEN §31). | `ENTSCHEIDUNGEN.md` §29 |
 
@@ -718,6 +728,8 @@ Alle Fragen sind entschieden (`ENTSCHEIDUNGEN.md` §31 und „Von Claude entschi
 | R0-12 | T-1 (A-8), T-2 (Zählung R1-03), T-4 (FLOW-002-Spalten), Verweis auf R0-24 §1.3 statt §2.2 Nr. 7 |
 | R0-18 | T-5 (Testauswahl nach Task); J-23 um das Skript aus §5 erweitern |
 | R0-19 | T-1 |
+| R0-41 (neu, 24.11.2026) | Prozessmatrix §1 (FLOW-001, Z. 859), Testdimensionen §2 (FLOW-002, Z. 860, T-4), Kernfälle mit DB-Zustand und Auditspur §3 (CORE-SPEC-007, Z. 891), Lücken §4, Golden-Master-Import §5 (LB-AUDIT-006, Z. 918); führende Task bleibt R0-12 bzw. R0-05 |
+| R0-12 | Verweis aus §1.1/§1.2 auf R0-41 §1–§3 (bei der nächsten Freigabe von R0-12) |
 
 ---
 
