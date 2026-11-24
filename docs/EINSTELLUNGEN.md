@@ -46,6 +46,7 @@ Registerversion (`settings_version`): 3.
 | `general.use_profile_locale` | Language for learners | bool, null | `null` | settings | internal | ja | – |
 | `general.catalog_indexing` | Search engines | enum: `public_catalog`, `noindex` | `"public_catalog"` | settings | internal | ja | course (sperrbar) |
 | `general.delete_data_on_uninstall` | Remove all data when the plugin is deleted | bool | `false` | admin | internal | nein | – |
+| `general.country_profile` | Country profile | enum: ``, `DE`, `AT`, `CH`, `EU`, `OTHER` | `""` | settings | internal | ja | – |
 
 **Hilfetexte**
 
@@ -57,6 +58,7 @@ Registerversion (`settings_version`): 3.
 - `general.use_profile_locale` – Automatic: learners see the learning area in their profile language as soon as more than one language is installed.
 - `general.catalog_indexing` – Public catalogue and course pages may appear in search engines. Learning area, lessons, certificates and invitations never appear.
 - `general.delete_data_on_uninstall` – When you delete the plugin under Plugins, all Course Captain data of this website is removed: courses, modules, lessons, questions and exams, enrollments and groups, learning progress, exam results, certificates, submissions and uploaded files, logs and settings. Deactivating never deletes anything; background jobs are always removed. On a network each website decides for itself. Importing settings never takes over this setting. To switch it on, type LÖSCHEN or DELETE below; switching it off needs no confirmation.
+- `general.country_profile` – Records which country profile you work with. It is set when you apply suggestions of a profile and kept in the settings export. Choosing a profile here changes no other setting; compare and apply its suggestions below.
 
 <a id="tab-display"></a>
 ## Course display (`display`)

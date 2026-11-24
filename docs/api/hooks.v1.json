@@ -8,6 +8,7 @@
     "course_captain_can_access": "filter",
     "course_captain_certificate_fallback_rendered": "action",
     "course_captain_certificate_renderers": "filter",
+    "course_captain_country_profiles": "filter",
     "course_captain_csp_frame_hosts": "filter",
     "course_captain_explanations_available": "filter",
     "course_captain_external_access_sources": "filter",

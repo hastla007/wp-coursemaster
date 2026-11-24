@@ -596,6 +596,21 @@ final class A11yI18nTest extends SchemaTestCase {
 		foreach ( SetupState::STEPS as $step ) {
 			$screens[ 'setup-' . $step ] = SetupWizard::html( array( 'step' => $step ), $this->admin );
 		}
+		// SET-CC-07: country profile comparison (table with apply controls) on the settings tab and in setup step 1.
+		$screens['settings-country-profile'] = SettingsScreen::html(
+			array(
+				'tab'          => 'general',
+				'ccap_profile' => 'DE',
+			),
+			$this->admin
+		);
+		$screens['setup-country-profile']    = SetupWizard::html(
+			array(
+				'step'         => 'purpose_language',
+				'ccap_profile' => 'EU',
+			),
+			$this->admin
+		);
 		foreach ( array( '', 'jobs', 'integrations', 'diagnostics' ) as $area ) {
 			$screens[ 'ops-' . $area ] = OpsScreen::html( array( 'area' => $area ) );
 		}

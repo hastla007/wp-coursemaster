@@ -93,6 +93,7 @@ final class SettingsFields {
 					array( __( 'Addresses', 'course-captain' ), array( 'learning_area_slug', 'course_slug' ) ),
 					array( __( 'Pages', 'course-captain' ), array( 'catalog_page_id', 'learner_home_page_id' ) ),
 					array( __( 'Learning area', 'course-captain' ), array( 'learning_area_title', 'use_profile_locale', 'catalog_indexing' ) ),
+					array( __( 'Country profile', 'course-captain' ), array( 'country_profile' ) ),
 					array( __( 'Removing the plugin', 'course-captain' ), array( 'delete_data_on_uninstall' ) ),
 				);
 			case 'display':
@@ -386,6 +387,20 @@ final class SettingsFields {
 					'options' => array(
 						'public_catalog' => __( 'Catalogue can be indexed', 'course-captain' ),
 						'noindex'        => __( 'Index nothing', 'course-captain' ),
+					),
+				),
+				'country_profile'          => array(
+					'label'   => __( 'Country profile', 'course-captain' ),
+					'help'    => __( 'Records which country profile you work with. It is set when you apply suggestions of a profile and kept in the settings export. Choosing a profile here changes no other setting; compare and apply its suggestions below.', 'course-captain' ),
+					'element' => 'select',
+					'scope'   => 'system',
+					'options' => array(
+						''      => __( 'No profile', 'course-captain' ),
+						'DE'    => __( 'Germany', 'course-captain' ),
+						'AT'    => __( 'Austria', 'course-captain' ),
+						'CH'    => __( 'Switzerland', 'course-captain' ),
+						'EU'    => __( 'Other EU country', 'course-captain' ),
+						'OTHER' => __( 'Other country', 'course-captain' ),
 					),
 				),
 				'delete_data_on_uninstall' => array(
