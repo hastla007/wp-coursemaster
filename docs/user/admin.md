@@ -67,6 +67,34 @@ Im Register vorhanden, aber **noch ohne Wirkung**: `display.*`, `learning.course
 
 > **Stand:** Verwaltungsoberfläche für Zugänge und Gruppen geplant (R1-35, Support-Dialoge R1-38); Annahmeseite für Einladungslinks geplant (R1-28). Die Einladungsmail wird bereits versendet.
 
+### Prüfmarkierung „Quelle liefert nicht mehr“ (H-29a)
+
+Betrifft nur Zugänge aus externen Zugangsquellen (Konnektoren). Course Captain entzieht dabei **nie automatisch** einen Zugang (ACCESS-09, Dienst `Ops\SourceReview`).
+
+**Wann die Markierung entsteht:** Beim Abgleich einer Quelle (`Access\GrantReconciler`) liefert die Quelle für eine Referenz keine Daten mehr (deaktiviert, nicht erreichbar oder gelöscht). Was dann passiert, legt die Einstellung `enrollment.source_disabled_policy` fest (Tab *Einschreibung*, Feld „Wenn eine Zugangsquelle wegfällt“; das Feld erscheint nur, wenn eine Erweiterung externe Zugangsquellen meldet, Filter `course_captain_external_access_sources`):
+
+- `keep` – „Zugang behalten“ (Standard): Es ändert sich nichts, es entsteht keine Markierung.
+- `keep_and_flag` – „Behalten und zur Prüfung markieren“: Jeder noch offene Zugang dieser Quellreferenz (`pending_claim`, `pending_confirmation`, `active`, `suspended`) erhält einmalig die Markierung `meta.source_review` (Zeitpunkt, Grund `source_unavailable`). Endgültige und bereits markierte Zugänge bleiben unberührt.
+
+In beiden Fällen bleiben Status, Gültigkeit und Zugriff unverändert; es entsteht kein Zugangsereignis und kein Outbox-Eintrag.
+
+**Wo die Markierung angezeigt wird:** Im **Systemstatus** (Course Captain › Systemstatus, Recht `ccap_view_system_status`) als Prüfung **H-29a**, ebenso in `wp course-captain status`. Gibt es markierte offene Zugänge, steht die Prüfung auf *Warnung* mit der Anzahl („… Zugänge stammen aus einer Quelle, die nicht mehr liefert; die Zugänge wurden behalten.“) und den ersten 20 Kennungen `grant:<uid>`. Sonst steht sie auf *OK*.
+
+**Was Sie tun:**
+
+1. Prüfen Sie die Quelle.
+2. Entziehen Sie Zugänge nur dort manuell, wo sie nicht mehr berechtigt sind: unter **Lernende** mit *Zugang beenden* (Begründung und Bestätigung Pflicht; Audit `grant.revoked_manually`). Beendete Zugänge zählen in H-29a nicht mehr mit.
+3. Liefert die Quelle wieder, entfernt der nächste Abgleich die Markierung von selbst, unabhängig von der aktuellen Einstellung.
+
+Einen Knopf, mit dem Sie die Markierung von Hand bestätigen oder verwerfen, gibt es nicht.
+
+**Protokoll** (Audit log, Bereich `access`; je Zugang ein Eintrag mit Quelltyp, Quellreferenz und aktueller Einstellung; Auslöser ist der Konnektor der Quelle):
+
+| Ereignis | Anzeige | Wann |
+|---|---|---|
+| `grant.source_flagged` | „Zugang behalten und zur Prüfung markiert: Die Quelle liefert nicht mehr“ | Markierung gesetzt |
+| `grant.source_review_cleared` | „Prüfmarkierung entfernt: Die Quelle liefert wieder“ | Markierung entfernt |
+
 ## 4. Lernsperre
 
 Unter **Lernende › Detail** setzt oder hebt eine Person mit `ccap_lock_learners` (Support, Kursmanager, Admin) die Lernsperre auf (R0-13 K-12, Dienst `Policy\LearnerLock`):
