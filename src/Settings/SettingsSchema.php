@@ -134,6 +134,12 @@ final class SettingsSchema {
 					'cap'     => 'admin',
 					'export'  => false,
 				),
+				// SET-CC-07: chosen country profile; changes no other value (suggestions only, CountryProfiles).
+				'country_profile'          => array(
+					'type'    => 'enum',
+					'values'  => array( '', 'DE', 'AT', 'CH', 'EU', 'OTHER' ),
+					'default' => '',
+				),
 			),
 			'display'      => array(
 				'container_width'       => array(

@@ -626,6 +626,10 @@ final class SetupWizard {
 		} else {
 			$html .= self::step_form( $step, $state, $form );
 		}
+		if ( 'purpose_language' === $step ) {
+			// SET-CC-07: country profile suggestions with before/after, applied only explicitly.
+			$html .= CountryProfilePanel::html( 'setup', $request, $user_id );
+		}
 		$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SettingsScreen::SLUG ) ) . '" data-ccap-leave="' . esc_attr( SettingsScreen::leave_text() ) . '">' . esc_html__( 'Leave setup – your progress is kept', 'course-captain' ) . '</a></p>';
 		return $html . '<div class="screen-reader-text" role="status" aria-live="polite" id="ccap-status">' . ( 'saved' === $result ? esc_html( self::saved_text( $state ) ) : esc_html( TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' ) ) ) . '</div></div>';
 	}

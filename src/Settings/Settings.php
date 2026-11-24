@@ -200,7 +200,8 @@ final class Settings {
 	 * Partial save of a tab.
 	 *
 	 * `$context` is added to the audit entry: `context` (`settings`,
-	 * `setup`, `import`), `step` (setup step key) and `confirmed_risks`
+	 * `setup`, `import`, `country_profile`), `step` (setup step key),
+	 * `profile` (country profile ID, SET-CC-07) and `confirmed_risks`
 	 * (RC numbers, R0-30 D-8). Risk tokens are enforced by the admin
 	 * entry points ({@see RiskConfirm}); this service trusts its caller.
 	 *
@@ -705,7 +706,7 @@ final class Settings {
 			array(
 				'tab'     => $tab,
 				'changed' => $diff,
-			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks' ) ) ) + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() )
+			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks', 'profile' ) ) ) + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() )
 		);
 	}
 

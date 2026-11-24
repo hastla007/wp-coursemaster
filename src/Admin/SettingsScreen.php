@@ -60,6 +60,7 @@ final class SettingsScreen {
 		add_action( 'admin_post_' . self::RESET, array( self::class, 'handle_reset' ) );
 		add_action( 'admin_post_' . self::UNDO, array( self::class, 'handle_undo' ) );
 		add_action( 'admin_post_' . self::HINT, array( self::class, 'handle_hint' ) );
+		CountryProfilePanel::register();
 	}
 
 	/**
@@ -447,6 +448,10 @@ final class SettingsScreen {
 		$html  .= self::message( $tab, $result, absint( $request['ccap_count'] ?? 0 ), $form );
 		$html  .= self::tab_form( $tab, $user_id, $form );
 		$status = '';
+		if ( 'general' === $tab ) {
+			// SET-CC-07: suggestions of the country profile with before/after; nothing is applied silently.
+			$html .= CountryProfilePanel::html( 'settings', $request, $user_id );
+		}
 		if ( 'certificates' === $tab ) {
 			// The base template is edited on the certificates screen (A-11), not a second form here.
 			$html .= '<h3>' . esc_html__( 'Base template', 'course-captain' ) . '</h3><p><a href="' . esc_url( admin_url( 'admin.php?page=course-captain-certificates' ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Edit the base template under Certificates', 'course-captain' ) . '</a></p>';

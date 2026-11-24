@@ -68,6 +68,7 @@ final class AuditView {
 			'course_settings_saved'          => array( 'content', __( 'Course settings saved', 'course-captain' ) ),
 			'course_settings_reset'          => array( 'content', __( 'Course settings reset to the defaults', 'course-captain' ) ),
 			'settings_imported'              => array( 'settings', __( 'Settings imported', 'course-captain' ) ),
+			'country_profile_applied'        => array( 'settings', __( 'Country profile suggestions applied', 'course-captain' ) ),
 			'role_caps_changed'              => array( 'settings', __( 'Role permissions changed', 'course-captain' ) ),
 			'privacy_request_automated'      => array( 'privacy', __( 'Data request processed automatically', 'course-captain' ) ),
 			'privacy_request_created'        => array( 'privacy', __( 'Data request filed by the person', 'course-captain' ) ),
@@ -422,6 +423,17 @@ final class AuditView {
 				}
 				foreach ( (array) ( $context['surfaces'] ?? array() ) as $surface => $items ) {
 					$add( (string) $surface, '', implode( ', ', array_map( 'strval', (array) $items ) ) );
+				}
+				break;
+			case 'country_profile_applied':
+				foreach ( (array) ( $context['changed'] ?? array() ) as $key => $diff ) {
+					$key   = (string) $key;
+					$parts = explode( '.', $key, 2 );
+					if ( ! is_array( $diff ) || ( 'wp' !== $parts[0] && ! self::shows_values( $parts[0], $parts[1] ?? '' ) ) ) {
+						$add( $key, __( '(not shown)', 'course-captain' ), __( 'changed', 'course-captain' ) );
+						continue;
+					}
+					$add( $key, self::value( $diff['before'] ?? null ), self::value( $diff['after'] ?? null ) );
 				}
 				break;
 			default:

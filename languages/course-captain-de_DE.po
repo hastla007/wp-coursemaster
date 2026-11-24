@@ -12282,3 +12282,201 @@ msgstr "bis zur Löschung des Kontos"
 
 msgid "years"
 msgstr "Jahre"
+
+#: src/Admin/SettingsFields.php
+msgid "Country profile"
+msgstr "Länderprofil"
+
+#: src/Admin/SettingsFields.php
+msgid "Records which country profile you work with. It is set when you apply suggestions of a profile and kept in the settings export. Choosing a profile here changes no other setting; compare and apply its suggestions below."
+msgstr "Hält fest, mit welchem Länderprofil du arbeitest. Es wird gesetzt, wenn du Vorschläge eines Profils übernimmst, und bleibt im Einstellungs-Export erhalten. Die Auswahl hier ändert keine andere Einstellung; vergleiche und übernimm die Vorschläge weiter unten."
+
+#: src/Admin/SettingsFields.php
+msgid "No profile"
+msgstr "Kein Profil"
+
+#: src/Admin/SettingsFields.php
+msgid "Germany"
+msgstr "Deutschland"
+
+#: src/Admin/SettingsFields.php
+msgid "Austria"
+msgstr "Österreich"
+
+#: src/Admin/SettingsFields.php
+msgid "Switzerland"
+msgstr "Schweiz"
+
+#: src/Admin/SettingsFields.php
+msgid "Other EU country"
+msgstr "Anderes EU-Land"
+
+#: src/Admin/SettingsFields.php
+msgid "Other country"
+msgstr "Anderes Land"
+
+#: src/Ops/AuditView.php
+msgid "Country profile suggestions applied"
+msgstr "Vorschläge eines Länderprofils übernommen"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Website language (WordPress; also sets number and date formats)"
+msgstr "Website-Sprache (WordPress; bestimmt auch Zahlen- und Datumsformate)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Time zone (WordPress)"
+msgstr "Zeitzone (WordPress)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Date format (WordPress)"
+msgstr "Datumsformat (WordPress)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Time format (WordPress)"
+msgstr "Zeitformat (WordPress)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Week starts on (WordPress)"
+msgstr "Woche beginnt am (WordPress)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Age limit and parental consent"
+msgstr "Altersgrenze und Einwilligung der Eltern"
+
+#. translators: 1: settings tab, 2: setting label
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "%1$s › %2$s"
+msgstr "%1$s › %2$s"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "No setting yet"
+msgstr "Noch keine Einstellung"
+
+#. translators: 1: PHP date format, 2: example
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "%1$s (for example %2$s)"
+msgstr "%1$s (zum Beispiel %2$s)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Changes the current value"
+msgstr "Ändert den aktuellen Wert"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Already set"
+msgstr "Bereits eingestellt"
+
+#. translators: %s: number of the owner decision, for example E4
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "open – decision by the owner (%s); never applied"
+msgstr "offen – Entscheidung Inhaber (%s); wird nie übernommen"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Install this language under Settings › General first."
+msgstr "Installiere diese Sprache zuerst unter Einstellungen › Allgemein."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Cannot be applied here."
+msgstr "Kann hier nicht übernommen werden."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Country profile suggestions"
+msgstr "Vorschläge des Länderprofils"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "A country profile suggests values for existing settings, for example date format, time zone and how external videos load. Nothing changes until you apply a value; you see the current value and the suggestion side by side."
+msgstr "Ein Länderprofil schlägt Werte für vorhandene Einstellungen vor, zum Beispiel Datumsformat, Zeitzone und wie externe Videos laden. Nichts ändert sich, bevor du einen Wert übernimmst; du siehst den aktuellen Wert und den Vorschlag nebeneinander."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Values marked “unreviewed” have not been checked legally. Course Captain decides nothing legal for you: have them checked (legal review) before you rely on them."
+msgstr "Mit „ungeprüft“ markierte Werte sind nicht rechtlich geprüft. Course Captain entscheidet nichts Rechtliches für dich: Lass sie prüfen (Rechtsprüfung), bevor du dich auf sie verlässt."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Show suggestions of"
+msgstr "Vorschläge zeigen für"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Show suggestions"
+msgstr "Vorschläge zeigen"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "No profile has been applied yet."
+msgstr "Bisher wurde kein Profil übernommen."
+
+#. translators: %s: country profile name
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "Chosen profile: %s"
+msgstr "Gewähltes Profil: %s"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "This profile has no suggestions."
+msgstr "Dieses Profil enthält keine Vorschläge."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Apply"
+msgstr "Übernehmen"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Only administrators can change WordPress values."
+msgstr "Nur Administratoren können WordPress-Werte ändern."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "unreviewed"
+msgstr "ungeprüft"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "legal review needed"
+msgstr "Rechtsprüfung nötig"
+
+#. translators: %s: country profile name
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "Suggestions of the profile “%s” compared with your current values"
+msgstr "Vorschläge des Profils „%s“ im Vergleich mit deinen aktuellen Werten"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Current value (before)"
+msgstr "Aktueller Wert (vorher)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Suggestion (after)"
+msgstr "Vorschlag (nachher)"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Apply selected values"
+msgstr "Ausgewählte Werte übernehmen"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Apply all suggestions"
+msgstr "Alle Vorschläge übernehmen"
+
+#: src/Admin/CountryProfilePanel.php
+msgid "No value changed. Values that are already set, open or unavailable are never applied."
+msgstr "Kein Wert geändert. Bereits eingestellte, offene oder nicht verfügbare Werte werden nie übernommen."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "Select at least one value or apply all suggestions."
+msgstr "Wähle mindestens einen Wert oder übernimm alle Vorschläge."
+
+#: src/Admin/CountryProfilePanel.php
+msgid "The current values changed in the meantime. Check the comparison again; nothing was applied."
+msgstr "Die aktuellen Werte haben sich inzwischen geändert. Prüfe den Vergleich erneut; nichts wurde übernommen."
+
+#. translators: %d: number of open values
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "%d value waits for a decision by the owner and stays unchanged."
+msgid_plural "%d values wait for a decision by the owner and stay unchanged."
+msgstr[0] "%d Wert wartet auf eine Entscheidung des Inhabers und bleibt unverändert."
+msgstr[1] "%d Werte warten auf eine Entscheidung des Inhabers und bleiben unverändert."
+
+#. translators: %d: number of applied values
+#: src/Admin/CountryProfilePanel.php
+#, php-format
+msgid "%d value applied. The change is in the audit log."
+msgid_plural "%d values applied. The change is in the audit log."
+msgstr[0] "%d Wert übernommen. Die Änderung steht im Änderungsprotokoll."
+msgstr[1] "%d Werte übernommen. Die Änderung steht im Änderungsprotokoll."
