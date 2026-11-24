@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-24T20:53:40+00:00\n"
+"POT-Creation-Date: 2026-11-24T21:21:37+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -2684,9 +2684,9 @@ msgstr ""
 
 #: src/Admin/ImportScreen.php:423
 #: src/Admin/MailTextsScreen.php:430
-#: src/Ops/AuditView.php:395
-#: src/Ops/AuditView.php:419
-#: src/Ops/AuditView.php:435
+#: src/Ops/AuditView.php:398
+#: src/Ops/AuditView.php:422
+#: src/Ops/AuditView.php:438
 msgid "changed"
 msgstr ""
 
@@ -3347,12 +3347,12 @@ msgid "Group invitation"
 msgstr ""
 
 #: src/Admin/MailTextsScreen.php:277
-#: src/Ops/AuditView.php:131
+#: src/Ops/AuditView.php:134
 msgid "Certificate corrected"
 msgstr ""
 
 #: src/Admin/MailTextsScreen.php:278
-#: src/Ops/AuditView.php:132
+#: src/Ops/AuditView.php:135
 msgid "Certificate revoked"
 msgstr ""
 
@@ -10723,7 +10723,7 @@ msgid "Assignment returned"
 msgstr ""
 
 #: src/Notification/NotificationPrefs.php:247
-#: src/Ops/AuditView.php:59
+#: src/Ops/AuditView.php:62
 msgid "Assignment graded"
 msgstr ""
 
@@ -10893,407 +10893,419 @@ msgid "Access kept after a source revocation (rule \"keep\")"
 msgstr ""
 
 #: src/Ops/AuditView.php:48
-msgid "Access kept and marked for review: the source no longer delivers"
+msgid "Learning access locked"
 msgstr ""
 
 #: src/Ops/AuditView.php:49
-msgid "Review mark removed: the source delivers again"
+msgid "Learning lock lifted"
 msgstr ""
 
 #: src/Ops/AuditView.php:50
-msgid "Group created"
+msgid "Account logged out everywhere"
 msgstr ""
 
 #: src/Ops/AuditView.php:51
-msgid "Group invitation link renewed"
+msgid "Access kept and marked for review: the source no longer delivers"
 msgstr ""
 
 #: src/Ops/AuditView.php:52
-msgid "Group validity changed"
+msgid "Review mark removed: the source delivers again"
 msgstr ""
 
 #: src/Ops/AuditView.php:53
-msgid "Group owner changed"
+msgid "Group created"
 msgstr ""
 
 #: src/Ops/AuditView.php:54
-msgid "Group invitation rule changed"
+msgid "Group invitation link renewed"
 msgstr ""
 
 #: src/Ops/AuditView.php:55
-msgid "Group renamed"
+msgid "Group validity changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:56
-msgid "Ended group reinstated"
+msgid "Group owner changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:57
-msgid "Learning progress reset"
+msgid "Group invitation rule changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:58
-msgid "Exam attempt re-evaluated"
+msgid "Group renamed"
+msgstr ""
+
+#: src/Ops/AuditView.php:59
+msgid "Ended group reinstated"
 msgstr ""
 
 #: src/Ops/AuditView.php:60
-msgid "Assignment re-graded"
+msgid "Learning progress reset"
 msgstr ""
 
 #: src/Ops/AuditView.php:61
-msgid "Assignment returned for revision"
-msgstr ""
-
-#: src/Ops/AuditView.php:62
-msgid "Assignment file opened by a grader"
+msgid "Exam attempt re-evaluated"
 msgstr ""
 
 #: src/Ops/AuditView.php:63
-msgid "Settings saved"
+msgid "Assignment re-graded"
 msgstr ""
 
 #: src/Ops/AuditView.php:64
-msgid "Settings reset"
+msgid "Assignment returned for revision"
 msgstr ""
 
 #: src/Ops/AuditView.php:65
-msgid "Setting locked for all courses"
+msgid "Assignment file opened by a grader"
 msgstr ""
 
 #: src/Ops/AuditView.php:66
-msgid "Setting lock removed"
+msgid "Settings saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:67
-msgid "Course and exam overrides reset to inherit"
+msgid "Settings reset"
 msgstr ""
 
 #: src/Ops/AuditView.php:68
-msgid "Settings exported"
+msgid "Setting locked for all courses"
 msgstr ""
 
 #: src/Ops/AuditView.php:69
-msgid "Audit log exported"
+msgid "Setting lock removed"
 msgstr ""
 
 #: src/Ops/AuditView.php:70
-msgid "Course settings saved"
+msgid "Course and exam overrides reset to inherit"
 msgstr ""
 
 #: src/Ops/AuditView.php:71
-msgid "Course settings reset to the defaults"
+msgid "Settings exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:72
-msgid "Settings imported"
+msgid "Audit log exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:73
-msgid "Country profile suggestions applied"
+msgid "Course settings saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:74
-msgid "Role permissions changed"
+msgid "Course settings reset to the defaults"
 msgstr ""
 
 #: src/Ops/AuditView.php:75
-msgid "Data request processed automatically"
+msgid "Settings imported"
 msgstr ""
 
 #: src/Ops/AuditView.php:76
-msgid "Data request filed by the person"
+msgid "Country profile suggestions applied"
 msgstr ""
 
 #: src/Ops/AuditView.php:77
-msgid "Event delivery replayed"
+msgid "Role permissions changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:78
-msgid "Import approved"
+msgid "Data request processed automatically"
 msgstr ""
 
 #: src/Ops/AuditView.php:79
-msgid "Import published"
+msgid "Data request filed by the person"
 msgstr ""
 
 #: src/Ops/AuditView.php:80
-msgid "Import rollback started"
+msgid "Event delivery replayed"
 msgstr ""
 
 #: src/Ops/AuditView.php:81
-msgid "Import resumed"
+msgid "Import approved"
 msgstr ""
 
 #: src/Ops/AuditView.php:82
-msgid "Import resumed automatically"
+msgid "Import published"
 msgstr ""
 
 #: src/Ops/AuditView.php:83
-msgid "Import cancellation requested"
+msgid "Import rollback started"
 msgstr ""
 
 #: src/Ops/AuditView.php:84
-msgid "Import stopped: too many failed objects"
+msgid "Import resumed"
 msgstr ""
 
 #: src/Ops/AuditView.php:85
-msgid "Imported course held back by the course check"
+msgid "Import resumed automatically"
 msgstr ""
 
 #: src/Ops/AuditView.php:86
-msgid "Import discarded"
+msgid "Import cancellation requested"
 msgstr ""
 
 #: src/Ops/AuditView.php:87
-msgid "Import report exported"
+msgid "Import stopped: too many failed objects"
 msgstr ""
 
 #: src/Ops/AuditView.php:88
-msgid "Import package downloaded from a link"
+msgid "Imported course held back by the course check"
 msgstr ""
 
 #: src/Ops/AuditView.php:89
-msgid "Rights status of a content item changed"
+msgid "Import discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:90
-msgid "Unclear rights of an import released"
+msgid "Import report exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:91
-msgid "Disallowed legacy media files moved to the quarantine"
+msgid "Import package downloaded from a link"
 msgstr ""
 
 #: src/Ops/AuditView.php:92
-msgid "Website hardening state changed"
+msgid "Rights status of a content item changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:93
-msgid "Website hardening switched off by constant"
+msgid "Unclear rights of an import released"
 msgstr ""
 
 #: src/Ops/AuditView.php:94
-msgid "Maintenance action"
+msgid "Disallowed legacy media files moved to the quarantine"
 msgstr ""
 
 #: src/Ops/AuditView.php:95
-msgid "Personal data erased"
+msgid "Website hardening state changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:96
-msgid "Retention applied"
+msgid "Website hardening switched off by constant"
 msgstr ""
 
 #: src/Ops/AuditView.php:97
-msgid "Old audit entries removed"
+msgid "Maintenance action"
 msgstr ""
 
 #: src/Ops/AuditView.php:98
-msgid "Audit chain re-sealed with pseudonyms"
+msgid "Personal data erased"
 msgstr ""
 
 #: src/Ops/AuditView.php:99
-msgid "Maintenance task failed"
+msgid "Retention applied"
 msgstr ""
 
 #: src/Ops/AuditView.php:100
-msgid "Mail template saved"
+msgid "Old audit entries removed"
 msgstr ""
 
 #: src/Ops/AuditView.php:101
-msgid "Built-in mail text restored"
+msgid "Audit chain re-sealed with pseudonyms"
 msgstr ""
 
 #: src/Ops/AuditView.php:102
-msgid "Mail texts imported"
+msgid "Maintenance task failed"
 msgstr ""
 
 #: src/Ops/AuditView.php:103
-msgid "Notification opt-out changed"
+msgid "Mail template saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:104
-msgid "Notification sent again"
+msgid "Built-in mail text restored"
 msgstr ""
 
 #: src/Ops/AuditView.php:105
-msgid "Group invitation sent again"
+msgid "Mail texts imported"
 msgstr ""
 
 #: src/Ops/AuditView.php:106
-msgid "Held notifications released"
+msgid "Notification opt-out changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:107
-msgid "Held notifications discarded"
+msgid "Notification sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:108
-msgid "Course revision published"
+msgid "Group invitation sent again"
 msgstr ""
 
 #: src/Ops/AuditView.php:109
-msgid "Enrollment of a course closed"
+msgid "Held notifications released"
 msgstr ""
 
 #: src/Ops/AuditView.php:110
-msgid "Enrollment of a course reopened"
+msgid "Held notifications discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:111
-msgid "Progress report exported as CSV"
+msgid "Course revision published"
 msgstr ""
 
 #: src/Ops/AuditView.php:112
-msgid "Question saved"
+msgid "Enrollment of a course closed"
 msgstr ""
 
 #: src/Ops/AuditView.php:113
-msgid "Question published"
+msgid "Enrollment of a course reopened"
 msgstr ""
 
 #: src/Ops/AuditView.php:114
-msgid "Question archived"
+msgid "Progress report exported as CSV"
 msgstr ""
 
 #: src/Ops/AuditView.php:115
-msgid "Questions of a module changed"
+msgid "Question saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:116
-msgid "Exam saved"
+msgid "Question published"
 msgstr ""
 
 #: src/Ops/AuditView.php:117
-msgid "Exam published"
+msgid "Question archived"
 msgstr ""
 
 #: src/Ops/AuditView.php:118
-msgid "Fixed exam form saved"
+msgid "Questions of a module changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:119
-msgid "Fixed exam form frozen"
+msgid "Exam saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:120
-msgid "Fixed exam form retired"
+msgid "Exam published"
 msgstr ""
 
 #: src/Ops/AuditView.php:121
-msgid "Question type changed (new version)"
+msgid "Fixed exam form saved"
 msgstr ""
 
 #: src/Ops/AuditView.php:122
-msgid "Course exported as a package"
+msgid "Fixed exam form frozen"
 msgstr ""
 
 #: src/Ops/AuditView.php:123
-msgid "Rights information of a course changed"
+msgid "Fixed exam form retired"
 msgstr ""
 
 #: src/Ops/AuditView.php:124
-msgid "Unclear rights of a course released"
+msgid "Question type changed (new version)"
 msgstr ""
 
 #: src/Ops/AuditView.php:125
-msgid "Access ended manually"
+msgid "Course exported as a package"
 msgstr ""
 
 #: src/Ops/AuditView.php:126
-msgid "Access suspended manually"
+msgid "Rights information of a course changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:127
-msgid "Access resumed manually"
+msgid "Unclear rights of a course released"
 msgstr ""
 
 #: src/Ops/AuditView.php:128
-msgid "Access rule of a course changed"
+msgid "Access ended manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:129
-msgid "Question tags changed"
+msgid "Access suspended manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:130
-msgid "Certificate issued manually"
+msgid "Access resumed manually"
+msgstr ""
+
+#: src/Ops/AuditView.php:131
+msgid "Access rule of a course changed"
+msgstr ""
+
+#: src/Ops/AuditView.php:132
+msgid "Question tags changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:133
-msgid "Certificate list exported"
-msgstr ""
-
-#: src/Ops/AuditView.php:134
-msgid "Certificate needs review after re-evaluation"
-msgstr ""
-
-#: src/Ops/AuditView.php:135
-msgid "Job retried"
+msgid "Certificate issued manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:136
-msgid "Dead letters discarded"
+msgid "Certificate list exported"
 msgstr ""
 
 #: src/Ops/AuditView.php:137
-msgid "Cache emptied"
+msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
 #: src/Ops/AuditView.php:138
-msgid "Diagnostics package exported"
+msgid "Job retried"
 msgstr ""
 
 #: src/Ops/AuditView.php:139
-msgid "Site identity confirmed after restore, move or copy"
+msgid "Dead letters discarded"
 msgstr ""
 
 #: src/Ops/AuditView.php:140
-msgid "Protected folders moved"
+msgid "Cache emptied"
 msgstr ""
 
 #: src/Ops/AuditView.php:141
+msgid "Diagnostics package exported"
+msgstr ""
+
+#: src/Ops/AuditView.php:142
+msgid "Site identity confirmed after restore, move or copy"
+msgstr ""
+
+#: src/Ops/AuditView.php:143
+msgid "Protected folders moved"
+msgstr ""
+
+#: src/Ops/AuditView.php:144
 msgid "Moving the protected folders failed"
 msgstr ""
 
-#: src/Ops/AuditView.php:200
-#: src/Ops/AuditView.php:376
+#: src/Ops/AuditView.php:203
+#: src/Ops/AuditView.php:379
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:200
-#: src/Ops/AuditView.php:376
+#: src/Ops/AuditView.php:203
+#: src/Ops/AuditView.php:379
 msgid "System"
 msgstr ""
 
-#: src/Ops/AuditView.php:395
-#: src/Ops/AuditView.php:403
-#: src/Ops/AuditView.php:435
+#: src/Ops/AuditView.php:398
+#: src/Ops/AuditView.php:406
+#: src/Ops/AuditView.php:438
 msgid "(not shown)"
 msgstr ""
 
 #. translators: 1: locked value, 2: reason
-#: src/Ops/AuditView.php:405
 #: src/Ops/AuditView.php:408
+#: src/Ops/AuditView.php:411
 msgid "not locked"
 msgstr ""
 
 #. translators: 1: locked value, 2: reason
-#: src/Ops/AuditView.php:405
+#: src/Ops/AuditView.php:408
 #, php-format
 msgid "locked to %1$s (%2$s)"
 msgstr ""
 
-#: src/Ops/AuditView.php:408
+#: src/Ops/AuditView.php:411
 msgid "locked"
 msgstr ""
 
-#: src/Ops/AuditView.php:411
-#: src/Ops/AuditView.php:419
+#: src/Ops/AuditView.php:414
+#: src/Ops/AuditView.php:422
 msgid "inherit"
 msgstr ""
 
-#: src/Ops/AuditView.php:419
+#: src/Ops/AuditView.php:422
 msgid "(own value of the course)"
 msgstr ""
 

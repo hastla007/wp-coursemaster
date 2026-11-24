@@ -12884,3 +12884,12 @@ msgstr[1] "%d Zugänge stammen aus einer Quelle, die nicht mehr liefert; die Zug
 
 msgid "Check the source. Withdraw access manually only where it is no longer justified; nothing is withdrawn automatically."
 msgstr "Prüfen Sie die Quelle. Entziehen Sie Zugänge nur dort manuell, wo sie nicht mehr berechtigt sind; automatisch wird nichts entzogen."
+
+msgid "Learning access locked"
+msgstr "Lernzugang gesperrt"
+
+msgid "Learning lock lifted"
+msgstr "Lernsperre aufgehoben"
+
+msgid "Account logged out everywhere"
+msgstr "Konto überall abgemeldet"
