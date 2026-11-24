@@ -537,6 +537,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 * @group KOMP-015
 	 * @group KOMP-045
 	 * @group GM-152
+	 * @group SEC-022
 	 */
 	public function test_KOMP_015_045_trusted_proxies(): void {
 		$_SERVER['REMOTE_ADDR']            = '10.1.2.3';
@@ -572,6 +573,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 *
 	 * @group R1-18
 	 * @group GM-152
+	 * @group SEC-022
 	 */
 	public function test_GM_152_ipv6_prefix_shares_the_limit(): void {
 		self::assertSame( ClientIp::rate_key_of( '2001:db8::1' ), ClientIp::rate_key_of( '2001:db8::2' ) );

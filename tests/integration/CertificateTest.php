@@ -520,6 +520,7 @@ final class CertificateTest extends SchemaTestCase {
 	 * @group CRT-014
 	 * @group CRT-028
 	 * @group REV-046
+	 * @group SEC-034
 	 */
 	public function test_CRT_013_014_028_revocation(): void {
 		$cert    = $this->exam_certificate( array( 'certifies_objectives' => array( 'obj-safety' ) ) );
@@ -567,6 +568,7 @@ final class CertificateTest extends SchemaTestCase {
 	 *
 	 * @group CRT-015
 	 * @group CRT-016
+	 * @group SEC-034
 	 */
 	public function test_CRT_015_016_verification_policy(): void {
 		$cert    = $this->exam_certificate( array( 'competency_validity_days' => 30 ) );
@@ -610,6 +612,7 @@ final class CertificateTest extends SchemaTestCase {
 	 * CRT-017 / SET-091: name opt-in per certificate, immediate, all revisions; policy `never`.
 	 *
 	 * @group CRT-017
+	 * @group SEC-034
 	 */
 	public function test_CRT_017_name_opt_in(): void {
 		$cert    = $this->exam_certificate();
@@ -776,6 +779,7 @@ final class CertificateTest extends SchemaTestCase {
 	 * cache headers; rate limit fail-closed bucket.
 	 *
 	 * @group CRT-029
+	 * @group SEC-034
 	 */
 	public function test_CRT_029_reference_and_rest(): void {
 		$cert    = $this->exam_certificate();

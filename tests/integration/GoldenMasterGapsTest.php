@@ -274,6 +274,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	 * leaves U-L1 allowed; it can only restrict (E-84).
 	 *
 	 * @group GM-093
+	 * @group SEC-037
 	 */
 	public function test_GM_093_can_access_filter(): void {
 		$course = $this->fx['courses']['C-A'];
@@ -372,6 +373,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	 * @group GM-147
 	 * @group RBAC-094
 	 * @group SUP-023
+	 * @group SEC-035
 	 */
 	public function test_GM_147_health_without_version(): void {
 		self::healthy( time() );
@@ -396,6 +398,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	 * @group GM-148
 	 * @group SUP-022
 	 * @group SUP-023
+	 * @group SEC-035
 	 */
 	public function test_GM_148_monitor_and_cron_stall(): void {
 		$t0 = time();

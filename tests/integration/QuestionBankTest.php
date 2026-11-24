@@ -230,6 +230,7 @@ final class QuestionBankTest extends SchemaTestCase {
 	 * @group GM-017
 	 * @group GM-024
 	 * @group GM-025
+	 * @group SEC-017
 	 */
 	public function test_GM_017_024_025_delivery_and_token(): void {
 		$question  = $this->published( self::single() );
