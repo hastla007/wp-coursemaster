@@ -24,6 +24,11 @@ defined( 'ABSPATH' ) || exit;
  * Plain admin-post form without JavaScript; the archive is built in the
  * private packages folder, streamed and deleted. Cap
  * `ccap_export_content` plus edit rights on every chosen course (M-04).
+ *
+ * Foreign content and content withheld from learners stays out of the
+ * package and is listed in `export.excluded[]` (R0-10 §6.1, E-66). The
+ * option "include foreign content" needs a second confirmation box and
+ * writes the audit entry `course_export_foreign_included`.
  */
 final class ExportArea {
 
@@ -59,16 +64,17 @@ final class ExportArea {
 	/**
 	 * Testable core: build the package.
 	 *
-	 * @param array<string, mixed> $post    Unslashed POST data: `courses[]`, `title`, `system`, `per_file`.
+	 * @param array<string, mixed> $post    Unslashed POST data: `courses[]`, `title`, `system`, `per_file`, `include_foreign`, `confirm_foreign`.
 	 * @param int                  $user_id Exporter.
-	 * @return array{result: string, file: string, name: string, counts: array<string, int>}
+	 * @return array{result: string, file: string, name: string, counts: array<string, int>, excluded: int}
 	 */
 	public static function process( array $post, int $user_id ): array {
 		$out = array(
-			'result' => 'ok',
-			'file'   => '',
-			'name'   => '',
-			'counts' => array(),
+			'result'   => 'ok',
+			'file'     => '',
+			'name'     => '',
+			'counts'   => array(),
+			'excluded' => 0,
 		);
 		if ( 'export' !== sanitize_key( (string) ( $post['op'] ?? '' ) ) || ! AdminUi::verify( self::ACTION, $post ) ) {
 			$out['result'] = 'ccap_invalid_nonce';
@@ -88,15 +94,22 @@ final class ExportArea {
 			$out['result'] = 'ccap_invalid_param';
 			return $out;
 		}
+		$include = ! empty( $post['include_foreign'] );
+		if ( $include && empty( $post['confirm_foreign'] ) ) {
+			$out['result'] = 'ccap_export_confirm_foreign';
+			return $out;
+		}
 		$system = sanitize_key( (string) ( $post['system'] ?? '' ) );
 		$system = '' === $system ? self::default_system() : $system;
 		$title  = trim( sanitize_text_field( (string) ( $post['title'] ?? '' ) ) );
 		$title  = '' === $title ? implode( ', ', array_map( static fn( int $c ): string => (string) get_the_title( $c ), $courses ) ) : $title;
 		$actor  = Actor::user( $user_id );
 		try {
-			$records       = PackageExporter::records( $actor, $courses );
-			$out['file']   = PackageExporter::write( $records, $system, $title, null, '' === $per_file ? PackageExporter::RECORDS_PER_FILE : (int) $per_file, array(), true );
-			$out['counts'] = array_map( 'count', $records );
+			$package         = PackageExporter::collect( $actor, $courses, $include );
+			$records         = $package['records'];
+			$out['file']     = PackageExporter::write( $records, $system, $title, null, '' === $per_file ? PackageExporter::RECORDS_PER_FILE : (int) $per_file, array(), true, $package['export'] );
+			$out['counts']   = array_map( 'count', $records );
+			$out['excluded'] = count( $package['export']['excluded'] );
 		} catch ( CourseException $e ) {
 			$out['result'] = $e->error_code;
 			return $out;
@@ -110,11 +123,26 @@ final class ExportArea {
 			(string) $courses[0],
 			null,
 			array(
-				'courses' => $courses,
-				'counts'  => $out['counts'],
-				'system'  => $system,
+				'courses'  => $courses,
+				'counts'   => $out['counts'],
+				'system'   => $system,
+				'excluded' => $out['excluded'],
 			)
 		);
+		if ( $include ) {
+			AuditLog::write(
+				Database::current(),
+				$actor,
+				'course_export_foreign_included',
+				'course',
+				(string) $courses[0],
+				null,
+				array(
+					'courses' => $courses,
+					'foreign' => $package['foreign'],
+				)
+			);
+		}
 		return $out;
 	}
 
@@ -139,9 +167,10 @@ final class ExportArea {
 		$html    = AdminUi::notice(
 			sanitize_key( (string) ( $request['ccap_result'] ?? '' ) ),
 			array(
-				'ccap_export_no_course'    => __( 'Choose at least one course to export.', 'course-captain' ),
-				'ccap_invalid_param'       => __( 'Enter the records per file as a whole number from 1 to 5000.', 'course-captain' ),
-				'ccap_storage_unavailable' => __( 'The package could not be written. Check the protected folders under System status.', 'course-captain' ),
+				'ccap_export_no_course'       => __( 'Choose at least one course to export.', 'course-captain' ),
+				'ccap_invalid_param'          => __( 'Enter the records per file as a whole number from 1 to 5000.', 'course-captain' ),
+				'ccap_export_confirm_foreign' => __( 'To include foreign content, also tick the confirmation that you may pass it on.', 'course-captain' ),
+				'ccap_storage_unavailable'    => __( 'The package could not be written. Check the protected folders under System status.', 'course-captain' ),
 			),
 			__( 'Done.', 'course-captain' )
 		);
@@ -160,6 +189,10 @@ final class ExportArea {
 		$fields .= '<p><label for="ccap-exp-title">' . esc_html__( 'Package title (optional)', 'course-captain' ) . '</label><br><input id="ccap-exp-title" type="text" class="regular-text" name="title" aria-describedby="ccap-exp-title-help"><br><span id="ccap-exp-title-help" class="description">' . esc_html__( 'Empty: the titles of the chosen courses.', 'course-captain' ) . '</span></p>';
 		$fields .= '<p><label for="ccap-exp-system">' . esc_html__( 'Source name', 'course-captain' ) . '</label><br><input id="ccap-exp-system" type="text" class="regular-text" name="system" value="' . esc_attr( self::default_system() ) . '" aria-describedby="ccap-exp-system-help"><br><span id="ccap-exp-system-help" class="description">' . esc_html__( 'Identifies where the content comes from. Keep it the same for later exports of the same courses, so that a new import updates the content instead of copying it (lowercase letters, digits and hyphens).', 'course-captain' ) . '</span></p>';
 		$fields .= '<p><label for="ccap-exp-per-file">' . esc_html__( 'Records per data file', 'course-captain' ) . '</label><br><input id="ccap-exp-per-file" type="number" min="1" max="' . (int) PackageExporter::RECORDS_PER_FILE . '" step="1" name="per_file" value="' . (int) PackageExporter::RECORDS_PER_FILE . '" aria-describedby="ccap-exp-per-file-help"><br><span id="ccap-exp-per-file-help" class="description">' . esc_html__( 'Large courses are split into several data files; 5000 is the most the format allows.', 'course-captain' ) . '</span></p></fieldset>';
+		$fields .= '<fieldset aria-describedby="ccap-exp-foreign-help"><legend><strong>' . esc_html__( 'Foreign content', 'course-captain' ) . '</strong></legend>'
+			. '<p id="ccap-exp-foreign-help" class="description">' . esc_html__( 'Lessons and questions from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. The package lists what was left out.', 'course-captain' ) . '</p>'
+			. '<p><label><input type="checkbox" name="include_foreign" value="1"> ' . esc_html__( 'Include foreign content', 'course-captain' ) . '</label></p>'
+			. '<p><label><input type="checkbox" name="confirm_foreign" value="1"> ' . esc_html__( 'I confirm that I may pass this content on. The export is recorded in the change log.', 'course-captain' ) . '</label></p></fieldset>';
 		return $html . AdminUi::form( self::ACTION, 'export', 0, $fields, __( 'Export and download', 'course-captain' ), '1' );
 	}
 }

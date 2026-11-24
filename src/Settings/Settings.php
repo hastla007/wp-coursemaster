@@ -384,14 +384,40 @@ final class Settings {
 	}
 
 	/**
+	 * Retention sub-keys that an undo of the privacy tab would extend
+	 * beyond their default (E-245): the undo restores the old values, so it
+	 * needs a reason like any other extension. Empty for other tabs and
+	 * when there is nothing to undo.
+	 *
+	 * @param string $tab Tab.
+	 * @return list<string>
+	 */
+	public static function undo_extended( string $tab ): array {
+		if ( 'privacy' !== $tab || 0 === self::undo_until( $tab ) ) {
+			return array();
+		}
+		$undo = (array) get_option( self::UNDO_PREFIX . $tab );
+		if ( ! is_array( $undo['values']['retention'] ?? null ) ) {
+			return array();
+		}
+		return \CourseCaptain\Privacy\RetentionPolicy::extended( (array) ( self::values( $tab )['retention'] ?? array() ), (array) $undo['values']['retention'] );
+	}
+
+	/**
 	 * Undo the last reset/import of a tab (one generation, 30 days).
 	 *
-	 * @param Actor  $actor Admin.
-	 * @param string $tab   Tab.
+	 * When the undo of the privacy tab restores retention periods above
+	 * their default (E-245, {@see self::undo_extended()}), it needs a reason
+	 * in `_retention_reason`; the reason goes to the audit column `reason`,
+	 * the keys to `retention_extended`.
+	 *
+	 * @param Actor                $actor Admin.
+	 * @param string               $tab   Tab.
+	 * @param array<string, mixed> $input Submitted values (`_retention_reason`).
 	 * @return bool Restored.
-	 * @throws CourseException When not allowed.
+	 * @throws CourseException When not allowed; `ccap_validation_failed` (`data.fields.retention` = `retention_reason`) without a needed reason.
 	 */
-	public static function undo( Actor $actor, string $tab ): bool {
+	public static function undo( Actor $actor, string $tab, array $input = array() ): bool {
 		$schema = self::tab_schema( $tab );
 		if ( ! self::can( $actor, 'settings' ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to change settings.', 403 );
@@ -400,13 +426,23 @@ final class Settings {
 		if ( ! is_array( $undo ) || (int) ( $undo['expires_at'] ?? 0 ) < time() || ! is_array( $undo['values'] ?? null ) ) {
 			return false;
 		}
+		$context  = array( 'context' => 'undo' );
+		$extended = self::undo_extended( $tab );
+		if ( array() !== $extended ) {
+			$reason = self::retention_reason( $input );
+			if ( null === $reason ) {
+				throw new CourseException( 'ccap_validation_failed', 'retention', 422, array( 'fields' => array( 'retention' => 'retention_reason' ) ) );
+			}
+			$context['retention_extended'] = $extended;
+			$context['reason']             = $reason;
+		}
 		$before = self::values( $tab );
 		self::write( $tab, (array) $undo['values'], $actor, self::rev( $tab ) );
 		delete_option( self::UNDO_PREFIX . $tab );
 		$after   = self::values( $tab );
 		$changed = array_keys( array_filter( $after, static fn( $value, $key ) => $value !== $before[ $key ], ARRAY_FILTER_USE_BOTH ) );
 		self::side_effects( $schema, $changed );
-		self::audit( $actor, 'settings_saved', $tab, $schema, $changed, $before, $after );
+		self::audit( $actor, 'settings_saved', $tab, $schema, $changed, $before, $after, $context );
 		return true;
 	}
 
