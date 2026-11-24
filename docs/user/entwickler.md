@@ -90,6 +90,7 @@ Mit R1-28 (parallel umgesetzt) tragen alle Fehler in `course-captain/v1` die Fel
 | `course_captain_outbound_mode` | Filter | `array $resolved` | Ausgangsmodus (Tests, MU-Plugins) |
 | `course_captain_notification_hold` | Filter | `bool $hold` | Mails zurückhalten (Anschluss Haltemodus) |
 | `course_captain_publish_guard_applies` | Filter | `bool $applies` | ob der Statuswechsel-Schutz greift |
+| `course_captain_purchase_sources` | Filter | `string[] $sources` (Standard `woo_order`, `voucher`) | weitere Kaufquellen eines Connectors: deren Grant-Historie bleibt nach einer Kontolöschung pseudonymisiert (RT-13) statt sofort gelöscht zu werden; nur ergänzend, ungültige Namen und `manual`/`group_seat`/`workflow`/`free_enrollment` werden ignoriert |
 | `course_captain_explanations_available` | Filter | `bool` (Standard `false`) | Erklärungstexte (nur Pro) |
 | `course_captain_allow_unmoved_protected_file` | Filter | `bool, string $path` | Auslieferung noch nicht verschobener Dateien |
 

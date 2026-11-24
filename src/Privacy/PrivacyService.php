@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
  * assignments, locks, accommodations, notifications and assignment
  * submissions; seats are released (address and token emptied); owned
  * groups lose their owner (GM-102). Grants of purchase sources
- * ({@see self::PURCHASE_SOURCES}) are pseudonymised instead of deleted
+ * ({@see \CourseCaptain\Access\PurchaseSources::all()}) are pseudonymised instead of deleted
  * (R0-09 §7, R0-31 RT-13): running ones end as `revoked`
  * (`account_deleted`, grant event and outbox), then `user_id = NULL` and
  * `subject_ref` = HMAC of the user ID with the site secret; the retention
@@ -44,12 +44,16 @@ final class PrivacyService {
 	public const ERASER   = 'course-captain';
 
 	/**
-	 * Purchase sources whose grant history is kept pseudonymised after an
-	 * erasure (R0-09 §7 "Kaufquellen (`woo_order`, `voucher`)"); other
+	 * Core purchase sources whose grant history is kept pseudonymised after
+	 * an erasure (R0-09 §7 "Kaufquellen (`woo_order`, `voucher`)"); other
 	 * sources (`manual`, `group_seat`, `workflow`, self-enrollment, …) are
-	 * deleted at once (RT-14).
+	 * deleted at once (RT-14). The erasure reads the registry
+	 * {@see \CourseCaptain\Access\PurchaseSources::all()}, where connectors
+	 * add their own purchase sources (filter `course_captain_purchase_sources`).
+	 *
+	 * @deprecated 0.1.0 Use \CourseCaptain\Access\PurchaseSources::all().
 	 */
-	public const PURCHASE_SOURCES = array( 'woo_order', 'voucher' );
+	public const PURCHASE_SOURCES = \CourseCaptain\Access\PurchaseSources::CORE;
 
 	/**
 	 * Classification of all own tables: personal (exported/erased), content, system.
@@ -340,8 +344,8 @@ final class PrivacyService {
 	 * @return int Ended grants.
 	 */
 	private static function end_purchase_grants( Database $db, int $user_id ): int {
-		$sources = "'" . implode( "', '", self::PURCHASE_SOURCES ) . "'";
-		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_grant' ) . "` WHERE user_id = %d AND source_type IN ({$sources}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended') ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant list.
+		$sources = \CourseCaptain\Access\PurchaseSources::sql_list();
+		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_grant' ) . "` WHERE user_id = %d AND source_type IN ({$sources}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended') ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Validated registry list ([a-z0-9_]).
 		$count   = 0;
 		foreach ( $ids as $id ) {
 			try {
@@ -370,8 +374,8 @@ final class PrivacyService {
 	 */
 	private static function pseudonymise_grants( Database $db, int $user_id ): int {
 		$grants  = $db->table( 'ccap_grant' );
-		$sources = "'" . implode( "', '", self::PURCHASE_SOURCES ) . "'";
-		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( "SELECT id FROM `{$grants}` WHERE user_id = %d AND source_type IN ({$sources}) ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant list.
+		$sources = \CourseCaptain\Access\PurchaseSources::sql_list();
+		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( "SELECT id FROM `{$grants}` WHERE user_id = %d AND source_type IN ({$sources}) ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Validated registry list ([a-z0-9_]).
 		$now     = $db->now();
 		if ( array() !== $ids ) {
 			$in = implode( ',', $ids );
