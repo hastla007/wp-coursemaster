@@ -28,6 +28,7 @@ use CourseCaptain\Question\QuestionPresenter;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\NamedLock;
 use CourseCaptain\Tests\Support\RaceRunner;
 
 /**
@@ -401,6 +402,7 @@ final class GrantSourceParallelTest extends SchemaTestCase {
 	 * occupation ≤ new number of seats; no active seat grant without seat.
 	 *
 	 * @group CON-004
+	 * @group SEAT-019
 	 */
 	public function test_CON_004_reduction_parallel_to_joins(): void {
 		$service = GroupService::current();
@@ -631,5 +633,136 @@ final class GrantSourceParallelTest extends SchemaTestCase {
 		);
 		self::assertSame( 1, self::rows( 'ccap_attempt', $db->prepare( 'user_id = %d AND idempotency_key = %s', $learner, $key2 ) ) );
 		self::assertSame( 1, self::rows( 'ccap_request_idempotency', $db->prepare( 'user_id = %d AND idem_key = %s AND status_code = 200', $learner, $key2 ) ) );
+	}
+
+	/**
+	 * SEAT-004 (R-02): the same learner joins N times in parallel over the
+	 * group link → one seat, one grant per course of the group.
+	 *
+	 * @group SEAT-004
+	 */
+	public function test_SEAT_004_same_user_joins_in_parallel(): void {
+		$service = GroupService::current();
+		$owner   = $this->user();
+		$second  = $this->post( 'ccap_course' );
+		$group   = $service->create(
+			Actor::user( $this->admin ),
+			$owner,
+			'Team',
+			3,
+			array(
+				array( 'course_id' => $this->course ),
+				array( 'course_id' => $second ),
+			),
+			wp_generate_uuid4()
+		);
+		$link    = $service->rotate_link( Actor::user( $owner ), $group );
+		$user    = $this->user();
+		$jobs    = array();
+		$limit_i = RaceRunner::n( 8 );
+		for ( $i = 0; $i < $limit_i; $i++ ) {
+			$jobs[ 't' . $i ] = static fn() => GroupService::current()->claim( Actor::user( $user ), $link );
+		}
+		$results  = RaceRunner::run( 'SEAT-004', $jobs );
+		$outcomes = self::assert_outcomes( $results, array( 'ok', 'ccap_group_busy' ) );
+		self::assertGreaterThanOrEqual( 1, $outcomes['ok'] ?? 0 );
+		$ok = array_filter( $results, static fn( array $r ): bool => ! empty( $r['ok'] ) );
+		self::assertCount( 1, array_unique( array_column( $ok, 'value' ) ), 'every answer = the one seat' );
+		self::assertSame( 1, self::rows( 'ccap_seat', 'group_id = ' . (int) $group . ' AND user_id = ' . $user ) );
+		foreach ( array( $this->course, $second ) as $course ) {
+			self::assertSame( 1, self::rows( 'ccap_grant', "source_type = 'group_seat' AND user_id = " . $user . ' AND course_id = ' . (int) $course ) );
+		}
+	}
+
+	/**
+	 * SEAT-006: lock held by another process (wait 2 s) → `ccap_group_busy`,
+	 * nothing written; `GET_LOCK` returns NULL → the claim runs without the
+	 * lock and the recount after insert still keeps the limit.
+	 *
+	 * @group SEAT-006
+	 */
+	public function test_SEAT_006_lock_busy_and_lock_unavailable(): void {
+		$service = GroupService::current();
+		$owner   = $this->user();
+		$group   = $service->create( Actor::user( $this->admin ), $owner, 'Team', 1, array( array( 'course_id' => $this->course ) ), wp_generate_uuid4(), array( 'claim_policy' => 'transferable' ) );
+		$link    = $service->rotate_link( Actor::user( $owner ), $group );
+		$user    = $this->user();
+
+		// Busy: the parent connection holds the group lock while the child claims.
+		$lock = NamedLock::for_key( Database::current(), 'group-seats:' . $group );
+		self::assertSame( NamedLock::ACQUIRED, $lock->acquire( 0 ) );
+		try {
+			$results = RaceRunner::run( 'SEAT-006', array( 'claim' => static fn() => GroupService::current()->claim( Actor::user( $user ), $link ) ) );
+		} finally {
+			$lock->release();
+		}
+		self::assertSame( array( 'ccap_group_busy' => 1 ), RaceRunner::outcomes( $results ), (string) wp_json_encode( $results ) );
+		self::assertSame( 0, self::rows( 'ccap_seat', 'group_id = ' . (int) $group ) );
+		self::assertSame( 0, self::rows( 'ccap_grant', 'user_id = ' . $user ) );
+
+		// Unavailable: an open invitation takes the only seat; the link claim passes the
+		// policy (no active seat yet) and is stopped by the recount after insert.
+		self::assertNotNull( $service->invite( Actor::user( $owner ), $group, 'invitee@example.org' ) );
+		$recount = 0;
+		$filter  = static function ( $sql ) use ( &$recount ) {
+			if ( ! is_string( $sql ) ) {
+				return $sql;
+			}
+			if ( str_starts_with( $sql, 'SELECT GET_LOCK(' ) ) {
+				return 'SELECT NULL';
+			}
+			if ( str_contains( $sql, 'SELECT COUNT(*) FROM' ) && str_contains( $sql, 'AND id < ' ) ) {
+				++$recount;
+			}
+			return $sql;
+		};
+		PolicyService::flush();
+		add_filter( 'query', $filter );
+		try {
+			$code = '';
+			try {
+				GroupService::current()->claim( Actor::user( $user ), $link );
+			} catch ( \CourseCaptain\Course\CourseException $e ) {
+				$code = $e->error_code;
+			}
+		} finally {
+			remove_filter( 'query', $filter );
+		}
+		self::assertSame( 'ccap_group_full', $code );
+		self::assertSame( 1, $recount, 'the recount ran without the lock' );
+		self::assertSame( 0, self::rows( 'ccap_seat', 'group_id = ' . (int) $group . ' AND user_id = ' . $user ), 'seat insert rolled back' );
+		self::assertSame( 1, self::rows( 'ccap_seat', 'group_id = ' . (int) $group ) );
+		self::assertSame( 0, self::rows( 'ccap_grant', 'user_id = ' . $user ) );
+	}
+
+	/**
+	 * GRANT-013 (R0-09 §3.3): an `extend` grant with other scopes than the
+	 * running chain starts at once (parallel); with the same scopes it starts
+	 * where the chain ends.
+	 *
+	 * @group GRANT-013
+	 */
+	public function test_GRANT_013_extend_with_other_scopes_starts_now(): void {
+		$service = GrantService::current();
+		$admin   = Actor::user( $this->admin );
+		$user    = $this->user();
+		$first   = $service->grant_manual( $admin, $user, $this->course, wp_generate_uuid4(), 'chain', array( 'duration_days' => 30 ) );
+		$other   = $service->grant_manual(
+			$admin,
+			$user,
+			$this->course,
+			wp_generate_uuid4(),
+			'other scopes',
+			array(
+				'duration_days' => 10,
+				'scopes'        => 'exam',
+			)
+		);
+		$same    = $service->grant_manual( $admin, $user, $this->course, wp_generate_uuid4(), 'same scopes', array( 'duration_days' => 10 ) );
+		$row     = self::grant( $first );
+		self::assertSame( 'extend', self::grant( $other )['renewal_mode'] );
+		self::assertLessThanOrEqual( 2, abs( (int) strtotime( self::grant( $other )['valid_from'] . ' UTC' ) - time() ), 'other scopes: starts now' );
+		self::assertSame( 10 * DAY_IN_SECONDS, (int) strtotime( self::grant( $other )['valid_until'] . ' UTC' ) - (int) strtotime( self::grant( $other )['valid_from'] . ' UTC' ) );
+		self::assertSame( $row['valid_until'], self::grant( $same )['valid_from'], 'same scopes: appended to the chain' );
 	}
 }
