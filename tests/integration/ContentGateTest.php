@@ -252,6 +252,10 @@ final class ContentGateTest extends SchemaTestCase {
 
 	/**
 	 * §1.4 Nr. 2: partial access without grant — first n questions, lessons, fixed variants only.
+	 *
+	 * RBAC-013: a lesson beyond the free limit is refused (reason `trial`).
+	 *
+	 * @group RBAC-013
 	 */
 	public function test_partial_access(): void {
 		$user = $this->learner( false );

@@ -308,6 +308,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 	 * deleted there, a rejected one stays.
 	 *
 	 * @group GM-129
+	 * @group RBAC-082
 	 */
 	public function test_GM_129_upload_limit_and_drop_folder(): void {
 		$mb = 1048576;
@@ -422,6 +423,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 	 * temporary files left.
 	 *
 	 * @group GM-130
+	 * @group RBAC-081
 	 */
 	public function test_GM_130_link_import(): void {
 		$admin = Actor::user( $this->fx['users']['admin'] );

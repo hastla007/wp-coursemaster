@@ -369,6 +369,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	 * GM-147: health for guests – 200, overall status only, no plugin version, `no-store`.
 	 *
 	 * @group GM-147
+	 * @group RBAC-094
 	 */
 	public function test_GM_147_health_without_version(): void {
 		self::healthy( time() );
