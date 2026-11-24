@@ -146,6 +146,7 @@ final class ProtectedFiles {
 			$headers = self::headers( $file['name'], $file['mime'], $size, true );
 		} else {
 			$this->authorize( $actor, $uid, (int) $media['id'], $course_id );
+			$this->assert_rights( $actor, (int) $media['id'], $course_id );
 			$path = (string) get_attached_file( (int) $media['attachment_id'], true );
 			if ( '' === $path || ! is_file( $path ) || ( ! ProtectedStorage::is_protected_path( $path ) && ! apply_filters( 'course_captain_allow_unmoved_protected_file', false, $path ) ) ) {
 				throw new CourseException( 'ccap_not_found', 'File not available.', 404 );
@@ -224,8 +225,14 @@ final class ProtectedFiles {
 	 * @return list<array{uid: string, name: string, locked: bool, reason: string|null}>
 	 */
 	public function listing( Actor $actor, int $course_id ): array {
-		$out = array();
-		foreach ( $this->gate->course_files( $course_id ) as $media_id ) {
+		$out      = array();
+		$files    = $this->gate->course_files( $course_id );
+		$withheld = RightsGate::exempt( $actor->user_id, $course_id ) || array() === $files ? array() : RightsGate::current()->media( $files );
+		foreach ( $files as $media_id ) {
+			if ( isset( $withheld[ $media_id ] ) ) {
+				// R0-10 §2.2: withheld foreign files are not listed for learners.
+				continue;
+			}
 			$row      = (array) $this->db->row( $this->db->prepare( 'SELECT uid, attachment_id FROM `' . $this->db->table( 'ccap_media' ) . '` WHERE id = %d', $media_id ) );
 			$decision = $this->policy->decide( $actor, PolicyService::DOWNLOAD_FILE, array( (string) $row['uid'] ) );
 			$gate     = $decision->allowed ? GateDecision::unlocked() : $this->gate->file( $actor, $course_id, $media_id );
@@ -326,6 +333,33 @@ final class ProtectedFiles {
 			return false;
 		}
 		return array( $start, $end );
+	}
+
+	/**
+	 * Rights lock (R0-10 §2.2, §4.4 media route): a withheld foreign file
+	 * answers 404 like an unknown one (no hint, no path); editors of a
+	 * course using the file are exempt (editorial side).
+	 *
+	 * @param Actor    $actor     User.
+	 * @param int      $media_id  Medium.
+	 * @param int|null $course_id Course context.
+	 * @return void
+	 * @throws CourseException 404 when withheld.
+	 */
+	private function assert_rights( Actor $actor, int $media_id, ?int $course_id ): void {
+		if ( null === RightsGate::current()->medium( $media_id ) ) {
+			return;
+		}
+		$courses = null === $course_id ? ( new Relations( $this->db ) )->courses_of_media( $media_id ) : array( $course_id );
+		foreach ( $courses as $course ) {
+			if ( RightsGate::exempt( $actor->user_id, (int) $course ) ) {
+				return;
+			}
+		}
+		if ( array() === $courses && $actor->user_id > 0 && user_can( $actor->user_id, 'ccap_edit_courses' ) ) {
+			return;
+		}
+		throw new CourseException( 'ccap_not_found', 'Unknown file.', 404 );
 	}
 
 	/**

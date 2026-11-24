@@ -75,7 +75,7 @@ final class StructureFingerprint {
 				);
 			}
 			$pool = array();
-			foreach ( $repo->pool( $link['module_id'] ) as $question_id ) {
+			foreach ( $repo->pool( $link['module_id'], true ) as $question_id ) {
 				$pool[] = (string) $db->scalar( $db->prepare( 'SELECT r.content_hash FROM `' . $db->table( 'ccap_question' ) . '` q JOIN `' . $db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE q.id = %d', $question_id ) );
 			}
 			$modules[] = array(

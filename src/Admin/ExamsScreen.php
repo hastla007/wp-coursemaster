@@ -419,7 +419,7 @@ final class ExamsScreen {
 			}
 		}
 		foreach ( $rule['blueprints'] as $bp ) {
-			$pool = count( QuestionRepository::current()->pool_revisions( (int) $bp['module_id'], true ) );
+			$pool = count( QuestionRepository::current()->pool_revisions( (int) $bp['module_id'], true, true ) );
 			if ( $pool < (int) $bp['question_count'] ) {
 				/* translators: 1: module title, 2: deliverable questions, 3: questions drawn */
 				$out[] = sprintf( __( 'Module %1$s: pool too small (%2$d of %3$d questions). Publish more questions or draw fewer.', 'course-captain' ), (string) get_the_title( (int) $bp['module_id'] ), $pool, (int) $bp['question_count'] );
@@ -635,7 +635,7 @@ final class ExamsScreen {
 			$title = (string) get_the_title( $m );
 			$count = (string) ( $input['blueprint'][ $m ]['count'] ?? ( isset( $bp[ $m ] ) ? $bp[ $m ][0] : '' ) );
 			$pts   = (string) ( $input['blueprint'][ $m ]['points'] ?? ( isset( $bp[ $m ] ) ? $bp[ $m ][1] : '1' ) );
-			$pool  = count( QuestionRepository::current()->pool_revisions( $m, true ) );
+			$pool  = count( QuestionRepository::current()->pool_revisions( $m, true, true ) );
 			$small = '' !== $count && (int) $count > $pool;
 			$html .= '<tr><th scope="row">' . esc_html( $title ) . '</th><td><label class="screen-reader-text" for="ccap-bp-' . $m . '">' . esc_html( sprintf( /* translators: %s: module */ __( 'Questions drawn from %s', 'course-captain' ), $title ) ) . '</label><input id="ccap-bp-' . $m . '" type="number" min="0" step="1" name="blueprint[' . $m . '][count]" value="' . esc_attr( $count ) . '"' . ( $small ? ' aria-describedby="ccap-bp-' . $m . '-small"' : '' ) . '></td>';
 			$html .= '<td><label class="screen-reader-text" for="ccap-bp-' . $m . '-pts">' . esc_html( sprintf( /* translators: %s: module */ __( 'Points per question from %s', 'course-captain' ), $title ) ) . '</label><input id="ccap-bp-' . $m . '-pts" type="number" min="1" max="100" step="1" name="blueprint[' . $m . '][points]" value="' . esc_attr( $pts ) . '"></td>';

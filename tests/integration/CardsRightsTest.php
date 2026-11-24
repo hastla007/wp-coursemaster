@@ -607,7 +607,7 @@ final class CardsRightsTest extends SchemaTestCase {
 		self::assertSame( array(), Rights::current()->set_course_meta( Actor::user( $this->admin ), $course, array( 'status' => 'review' ), 'Checking the contract' ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short test input.
 		$this->import( $this->package( 'fixture-kr', array( 'status' => 'public' ), null, 'Imported course v2' ) );
 		self::assertSame( array( 'status' => 'review' ), Rights::course_meta( $course ) );
-		self::assertSame( 'licensed', Rights::course_meta( $module )['status'] ?? '', 'unchanged module record keeps its imported rights' );
+		self::assertSame( array(), Rights::course_meta( $module ), 'the new package has no default_rights: the imported default leaves the unchanged module too (SET-CC-rechte-auslieferung)' );
 
 		// Foreign course with unclear rights: reported on activation, not held; publishing by hand blocks.
 		$this->import( $this->package( 'fixture-kr2', array( 'status' => 'unknown' ) ) );

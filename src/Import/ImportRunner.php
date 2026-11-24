@@ -741,6 +741,7 @@ final class ImportRunner {
 						'source_id' => $source,
 						'action'    => $action,
 						'record'    => $record,
+						'defaults'  => ! empty( $item['defaults'] ),
 					);
 					if ( '' === $type ) {
 						fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Private spool file.

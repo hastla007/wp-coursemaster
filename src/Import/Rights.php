@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Import;
 
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
@@ -114,6 +115,7 @@ final class Rights {
 		$this->db->transaction(
 			function () use ( $actor, $type, $object_id, $status, $reason, $before ): void {
 				$this->write( $actor, $type, $object_id, $status, $reason );
+				RightsGate::changed( RightsGate::courses_of_questions( array( $object_id ) ) );
 				AuditLog::write(
 					$this->db,
 					$actor,
@@ -212,6 +214,7 @@ final class Rights {
 				foreach ( $preview['items'] as $item ) {
 					$this->write( $actor, $item['type'], $item['object_id'], 'licensed', $reason );
 				}
+				RightsGate::changed( RightsGate::courses_of_questions( array_column( $preview['items'], 'object_id' ) ) );
 				AuditLog::write(
 					$this->db,
 					$actor,
@@ -376,6 +379,7 @@ final class Rights {
 				foreach ( $preview['items'] as $item ) {
 					$this->write( $actor, $item['type'], $item['object_id'], 'licensed', $reason );
 				}
+				RightsGate::changed( array_merge( array( $course_id ), RightsGate::courses_of_questions( array_column( $preview['items'], 'object_id' ) ) ) );
 				AuditLog::write(
 					$this->db,
 					$actor,
@@ -440,6 +444,7 @@ final class Rights {
 		} else {
 			update_post_meta( $course_id, self::COURSE_META, wp_slash( (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
 		}
+		RightsGate::changed( array( $course_id ) );
 		AuditLog::write(
 			$this->db,
 			$actor,
@@ -518,6 +523,7 @@ final class Rights {
 		if ( null === $rights ) {
 			if ( is_array( $raw ) ) {
 				delete_post_meta( $post_id, self::COURSE_META );
+				RightsGate::changed( RightsGate::courses_of_post( $post_id ) );
 				return true;
 			}
 			return false;
@@ -527,7 +533,12 @@ final class Rights {
 			$value['status'] = 'unknown';
 		}
 		$value['_source'] = 'import';
-		update_post_meta( $post_id, self::COURSE_META, wp_slash( (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		$json             = (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+		if ( is_array( $raw ) && $raw === $value ) {
+			return false;
+		}
+		update_post_meta( $post_id, self::COURSE_META, wp_slash( $json ) );
+		RightsGate::changed( RightsGate::courses_of_post( $post_id ) );
 		return true;
 	}
 
@@ -651,6 +662,54 @@ final class Rights {
 	}
 
 	/**
+	 * Whether a licence has expired: `valid_until` (ISO date) lies before today.
+	 *
+	 * @param array<string, mixed> $license Licence fields (`valid_until`).
+	 * @param string               $today   Today as `Y-m-d`.
+	 * @return bool
+	 */
+	public static function expired( array $license, string $today ): bool {
+		$until = is_scalar( $license['valid_until'] ?? null ) ? (string) $license['valid_until'] : '';
+		return '' !== $until && 1 === preg_match( '/^\d{4}-\d{2}-\d{2}$/', $until ) && $until < $today;
+	}
+
+	/**
+	 * Why content is withheld from learners (R0-10 §2.2), or null when it
+	 * may be delivered: only foreign content is withheld, with the status
+	 * `unknown` or `restricted` (blocking list) or an expired `valid_until`
+	 * (treated like `restricted`). Own content is never withheld (E-18).
+	 *
+	 * @param string               $status  Effective rights status.
+	 * @param array<string, mixed> $license Licence fields (`valid_until`).
+	 * @param bool                 $foreign Foreign per R0-10 §2.2.
+	 * @param string               $today   Today as `Y-m-d`.
+	 * @return string|null `unknown`, `restricted`, `expired` or null.
+	 */
+	public static function withheld( string $status, array $license, bool $foreign, string $today ): ?string {
+		if ( ! $foreign ) {
+			return null;
+		}
+		$status = in_array( $status, self::STATUSES, true ) ? $status : 'unknown';
+		if ( in_array( $status, self::BLOCKING, true ) ) {
+			return $status;
+		}
+		return self::expired( $license, $today ) ? 'expired' : null;
+	}
+
+	/**
+	 * Whether a medium is foreign (R0-10 §2.2): media of a foreign source,
+	 * and media of this site whose status the editors set to anything but
+	 * `own` (e.g. a photo of a third party uploaded locally).
+	 *
+	 * @param string $system Source system.
+	 * @param string $status Rights status.
+	 * @return bool
+	 */
+	public function media_foreign( string $system, string $status ): bool {
+		return 'own' !== $status || ! $this->own_system( $system );
+	}
+
+	/**
 	 * Whether a licence name requires an attribution (VAL-105).
 	 *
 	 * @param string $license Licence name, e.g. `CC-BY-SA-4.0`.
@@ -681,7 +740,6 @@ final class Rights {
 			return (string) $this->db->scalar( $this->db->prepare( 'SELECT source_system FROM `' . $this->db->table( 'ccap_source_map' ) . '` WHERE object_type = %s AND object_id = %d LIMIT 1', $type, $id ) );
 		};
 		$item   = static function ( string $type, int $id, string $title, string $where, string $status, bool $foreign, bool $required, array $license ) use ( $today ): array {
-			$until = (string) ( $license['valid_until'] ?? '' );
 			return array(
 				'type'        => $type,
 				'id'          => $id,
@@ -690,7 +748,7 @@ final class Rights {
 				'status'      => in_array( $status, self::STATUSES, true ) ? $status : 'unknown',
 				'foreign'     => $foreign,
 				'required'    => $required,
-				'expired'     => '' !== $until && 1 === preg_match( '/^\d{4}-\d{2}-\d{2}$/', $until ) && $until < $today,
+				'expired'     => self::expired( $license, $today ),
 				'license'     => is_scalar( $license['license'] ?? null ) ? (string) $license['license'] : '',
 				'attribution' => is_scalar( $license['attribution'] ?? null ) ? trim( (string) $license['attribution'] ) : '',
 			);
@@ -708,7 +766,7 @@ final class Rights {
 					continue;
 				}
 				$license     = (array) json_decode( (string) ( $row['license_reference'] ?? '' ), true );
-				$out[ $key ] = $item( 'media', $id, $name, $where, (string) $row['rights_status'], ! $this->own_system( (string) $row['source_system'] ), $required, $license );
+				$out[ $key ] = $item( 'media', $id, $name, $where, (string) $row['rights_status'], $this->media_foreign( (string) $row['source_system'], (string) $row['rights_status'] ), $required, $license );
 			}
 		};
 		$title  = (string) get_the_title( $course_id );
@@ -732,9 +790,16 @@ final class Rights {
 			}
 			$media( 'module', $module, $mtitle, $required );
 			foreach ( \CourseCaptain\Course\CourseStructure::current()->lessons( $module ) as $lesson ) {
-				if ( 'publish' === $lesson->post_status ) {
-					$media( 'lesson', (int) $lesson->ID, $lesson->post_title, $required );
+				if ( 'publish' !== $lesson->post_status ) {
+					continue;
 				}
+				// Lesson rights (`_ccap_rights`, R0-10 §2.1): imported from packages, checked like course and module rights.
+				$lmeta = self::course_meta( (int) $lesson->ID );
+				if ( isset( $lmeta['status'] ) ) {
+					$key         = 'lesson:' . (int) $lesson->ID;
+					$out[ $key ] = isset( $out[ $key ] ) ? array_merge( $out[ $key ], array( 'required' => $out[ $key ]['required'] || $required ) ) : $item( 'lesson', (int) $lesson->ID, $lesson->post_title, $mtitle, $lmeta['status'], ! $this->own_system( $system( 'lesson', (int) $lesson->ID ) ), $required, $lmeta );
+				}
+				$media( 'lesson', (int) $lesson->ID, $lesson->post_title, $required );
 			}
 			$rows = $this->db->rows(
 				$this->db->prepare(

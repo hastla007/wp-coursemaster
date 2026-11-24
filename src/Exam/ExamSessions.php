@@ -447,7 +447,7 @@ final class ExamSessions {
 		$questions = array();
 		$reduced   = false;
 		$revisions = array();
-		// D2 (B-03): flashcards are never drawn into an exam (scorable pool only).
+		// D2 (B-03): flashcards are never drawn into an exam (scorable pool only); the pool leaves out withheld foreign content (R0-10 §2.2).
 		foreach ( $rule['blueprints'] as $blueprint ) {
 			$module     = (int) $blueprint['module_id'];
 			$meta       = (array) json_decode( (string) $blueprint['rules'], true );
@@ -527,6 +527,10 @@ final class ExamSessions {
 		// D2 (B-03): a variant holding a flashcard (e.g. a card changed its type or came with an import) cannot start.
 		if ( array() !== $this->questions->flashcards( array_map( static fn( array $r ): int => (int) $r['question_id'], $rows ) ) ) {
 			throw new CourseException( 'ccap_exam_not_startable', 'variant_flashcard', 422 );
+		}
+		// R0-10 §2.2: a fixed variant holding withheld foreign content (unclear or restricted rights, expired licence) cannot start; running attempts keep their snapshot.
+		if ( array() !== \CourseCaptain\Access\RightsGate::current()->questions( array_map( static fn( array $r ): int => (int) $r['question_id'], $rows ) ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'variant_rights', 422 );
 		}
 		$relations = new Relations( $this->db );
 		$questions = array();

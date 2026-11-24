@@ -12771,3 +12771,38 @@ msgstr "Schließung der Gruppe oder Ende ihrer Gültigkeit"
 
 msgid "when the lock was lifted"
 msgstr "wenn die Sperre aufgehoben wurde"
+
+msgid "Not shown to learners: imported content marked as \"must not be shown\". Check the rights on the \"Rights & release\" page."
+msgstr "Wird Lernenden nicht gezeigt: importierter Inhalt mit dem Status „darf nicht gezeigt werden“. Prüfe die Rechte auf der Seite „Rechte & Freigabe“."
+
+msgid "Not shown to learners: the licence of this imported content has expired. Check the rights on the \"Rights & release\" page."
+msgstr "Wird Lernenden nicht gezeigt: Die Lizenz dieses importierten Inhalts ist abgelaufen. Prüfe die Rechte auf der Seite „Rechte & Freigabe“."
+
+msgid "Not shown to learners: the rights of this imported content are unclear. Check the rights on the \"Rights & release\" page."
+msgstr "Wird Lernenden nicht gezeigt: Die Rechte an diesem importierten Inhalt sind ungeklärt. Prüfe die Rechte auf der Seite „Rechte & Freigabe“."
+
+msgid "Media not available"
+msgstr "Medium nicht verfügbar"
+
+msgid "This content is not available at the moment."
+msgstr "Dieser Inhalt ist gerade nicht verfügbar."
+
+#, php-format
+msgid "%d imported question is not shown to learners because of its rights."
+msgid_plural "%d imported questions are not shown to learners because of their rights."
+msgstr[0] "%d importierte Frage wird Lernenden wegen ihrer Rechte nicht gezeigt."
+msgstr[1] "%d importierte Fragen werden Lernenden wegen ihrer Rechte nicht gezeigt."
+
+#, php-format
+msgid "Question %1$d: %2$s"
+msgstr "Frage %1$d: %2$s"
+
+#, php-format
+msgid "Learners see \"%1$s\" in place of a medium of this lesson. %2$s"
+msgstr "Lernende sehen anstelle eines Mediums dieser Lektion „%1$s“. %2$s"
+
+msgid "A fixed exam variant contains a flashcard. Flashcards are never part of exams."
+msgstr "Eine feste Prüfungsvariante enthält eine Karteikarte. Karteikarten sind nie Teil von Prüfungen."
+
+msgid "Remove the flashcard from the fixed variant in the source system and export the package again."
+msgstr "Entferne die Karteikarte im Quellsystem aus der festen Variante und exportiere das Paket erneut."

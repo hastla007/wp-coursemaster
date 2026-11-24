@@ -55,6 +55,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 		$dir = get_temp_dir() . 'ccap-fx-' . wp_generate_password( 6, false );
 		wp_mkdir_p( $dir );
 		$this->fx = NeutralFixture::load( $dir );
+		NeutralFixture::release_rights( $this->fx );
 		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.
 	}
 
