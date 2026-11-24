@@ -170,6 +170,8 @@ final class SettingsRegisterAuditTest extends SchemaTestCase {
 			'display.card_elements'          => array( 'cover' ),
 			'learning.assignment_file_types' => array( 'pdf' ),
 			'advanced.report_csv_columns'    => array( 'user_id', 'status' ),
+			// SET-CC-08: a fixed certificate language must be installed.
+			'certificates.fixed_locale'      => 'en_US',
 		);
 		if ( array_key_exists( $key, $special ) ) {
 			return $special[ $key ];
@@ -204,6 +206,8 @@ final class SettingsRegisterAuditTest extends SchemaTestCase {
 			case 'string':
 			case 'text':
 				return 'Changed text';
+			case 'url':
+				return 'https://example.org/changed';
 			case 'object':
 				$out = array();
 				foreach ( (array) $def['fields'] as $sub => $sub_def ) {

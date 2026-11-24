@@ -16,7 +16,9 @@ defined( 'ABSPATH' ) || exit;
  * Field contract: `type`, `default`, `cap` (`settings` = #19,
  * `admin` = #19 and administrator only), `privacy`
  * (public/internal/personal/secret), `side_effects`, `export`, plus type
- * rules (`min`, `max`, `nullable`, `values`, `fields`). `export` is `true`,
+ * rules (`min`, `max`, `nullable`, `values`, `fields`). `legal_review` = true
+ * marks values whose legal effect the operator has to check (badge
+ * "Legal review" in the form and the handbook). `export` is `true`,
  * `false` or `never_env` (environment-bound, never exported or imported, R0-31 EX-2). Free core fields
  * only; `pro.*` keys are registered by the add-on (SR-8). Roles, mail
  * templates and the retention sub-keys have their own stores (R1-34,
@@ -43,7 +45,16 @@ final class SettingsSchema {
 	public const ADDON_KEY_PATTERN = '/^pro\.[a-z][a-z0-9_]{0,39}(\.[a-z][a-z0-9_]{0,39}){1,3}$/';
 
 	/** Field types the register validator knows. */
-	public const TYPES = array( 'bool', 'int', 'page_id', 'enum', 'set', 'slug', 'string', 'text', 'color', 'email', 'ip_list', 'host_list', 'object' );
+	public const TYPES = array( 'bool', 'int', 'page_id', 'enum', 'set', 'slug', 'string', 'text', 'color', 'email', 'url', 'ip_list', 'host_list', 'object' );
+
+	/** Maximum length of a `url` value (SET-CC-06). */
+	public const URL_MAX = 2000;
+
+	/** Allowed schemes of a `url` value. */
+	public const URL_SCHEMES = array( 'http', 'https' );
+
+	/** Sub-keys of `general.legal_links` (SET-CC-06). */
+	public const LEGAL_LINKS = array( 'imprint', 'terms', 'withdrawal', 'privacy' );
 
 	/** Removed register keys (VERSION 3), kept for documentation and tests. */
 	public const REMOVED = array( 'general.catalog_group_language_versions', 'advanced.import_execution', 'advanced.file_delivery', 'advanced.media_delete_grace_days' );
@@ -115,6 +126,25 @@ final class SettingsSchema {
 					'type'    => 'enum',
 					'values'  => array( 'public_catalog', 'noindex' ),
 					'default' => 'public_catalog',
+				),
+				// SET-CC-06: links to the operator's legal texts; which of them are required is the operator's decision.
+				'legal_links'              => array(
+					'type'         => 'object',
+					'strict'       => true,
+					'legal_review' => true,
+					'fields'       => array(
+						'imprint'    => array( 'type' => 'url' ),
+						'terms'      => array( 'type' => 'url' ),
+						'withdrawal' => array( 'type' => 'url' ),
+						// Empty = the privacy policy page of WordPress (Settings › Privacy).
+						'privacy'    => array( 'type' => 'url' ),
+					),
+					'default'      => array(
+						'imprint'    => '',
+						'terms'      => '',
+						'withdrawal' => '',
+						'privacy'    => '',
+					),
 				),
 				'delete_data_on_uninstall' => array(
 					'type'    => 'bool',
@@ -433,20 +463,52 @@ final class SettingsSchema {
 			),
 			'certificates' => array(
 				// Module switch (SET-CC-24): issued certificates stay verifiable.
-				'enabled'            => array(
+				'enabled'               => array(
 					'type'    => 'bool',
 					'default' => true,
 				),
-				'auto_issue'         => array(
+				'auto_issue'            => array(
 					'type'    => 'bool',
 					'default' => false,
 				),
-				'holder_name_policy' => array(
+				'holder_name_policy'    => array(
 					'type'    => 'enum',
 					'values'  => array( 'never', 'learner_opt_in' ),
 					'default' => 'learner_opt_in',
 				),
-				'base_template'      => array(
+				// SET-CC-08: defaults of new certificates; issued certificates keep their snapshot.
+				// Validity in days for evidence without an own validity (course completion, exams without one); empty = unlimited.
+				'default_validity_days' => array(
+					'type'     => 'int',
+					'min'      => 1,
+					'max'      => 3650,
+					'nullable' => true,
+					'default'  => null,
+				),
+				// Days before the end of validity from which learners see the renewal notice.
+				'expiry_notice_days'    => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 365,
+					'default' => 30,
+				),
+				'paper_format'          => array(
+					'type'    => 'enum',
+					'values'  => array( 'a4', 'letter' ),
+					'default' => 'a4',
+				),
+				// Language of new certificates: website, profile language of the learner or `fixed_locale`.
+				'language'              => array(
+					'type'    => 'enum',
+					'values'  => array( 'site', 'learner', 'fixed' ),
+					'default' => 'site',
+				),
+				'fixed_locale'          => array(
+					'type'    => 'string',
+					'max'     => 20,
+					'default' => '',
+				),
+				'base_template'         => array(
 					'type'    => 'object',
 					'fields'  => array(
 						'issuer_name'     => array(
@@ -834,7 +896,7 @@ final class SettingsSchema {
 					'value' => null,
 				);
 			}
-			if ( in_array( $field['type'], array( 'string', 'text', 'email' ), true ) ) {
+			if ( in_array( $field['type'], array( 'string', 'text', 'email', 'url' ), true ) ) {
 				return array(
 					'ok'    => true,
 					'value' => '',
@@ -907,6 +969,8 @@ final class SettingsSchema {
 					'ok'    => true,
 					'value' => sanitize_email( $value ),
 				) : $bad;
+			case 'url':
+				return self::validate_url( $value );
 			case 'ip_list':
 				if ( ! is_array( $value ) || count( $value ) > (int) ( $field['max'] ?? 50 ) ) {
 					return $bad;
@@ -961,6 +1025,42 @@ final class SettingsSchema {
 				);
 		}
 		return $bad;
+	}
+
+	/**
+	 * Absolute `http`/`https` URL with a host, at most {@see self::URL_MAX}
+	 * characters, no white space or control characters (SET-CC-06); empty is
+	 * handled by the caller.
+	 *
+	 * @param mixed $value Value.
+	 * @return array{ok: bool, value: mixed}
+	 */
+	private static function validate_url( $value ): array {
+		$bad = array(
+			'ok'    => false,
+			'value' => null,
+		);
+		if ( ! is_string( $value ) ) {
+			return $bad;
+		}
+		$url = trim( $value );
+		if ( '' === $url ) {
+			return array(
+				'ok'    => true,
+				'value' => '',
+			);
+		}
+		if ( strlen( $url ) > self::URL_MAX || 1 === preg_match( '/[\s\x00-\x1f\x7f<>"]/', $url ) || false === filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return $bad;
+		}
+		$parts = parse_url( $url ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- Pure function, also used without WordPress (handbook tool).
+		if ( ! is_array( $parts ) || ! in_array( strtolower( (string) ( $parts['scheme'] ?? '' ) ), self::URL_SCHEMES, true ) || '' === (string) ( $parts['host'] ?? '' ) || isset( $parts['user'] ) || isset( $parts['pass'] ) ) {
+			return $bad;
+		}
+		return array(
+			'ok'    => true,
+			'value' => $url,
+		);
 	}
 
 	/**

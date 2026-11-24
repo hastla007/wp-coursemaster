@@ -12,6 +12,7 @@ namespace CourseCaptain\Notification;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Settings\LegalLinks;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
 
@@ -635,16 +636,18 @@ final class MailTemplates {
 	 * @return array<string, string>
 	 */
 	public static function site_vars(): array {
+		// SET-CC-06: `privacy_policy_url` = own link, else the WordPress privacy page; `imprint_url`, `terms_url`, `withdrawal_url`.
 		return array(
-			'site_name'          => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
-			'site_url'           => home_url( '/' ),
-			'learning_area_url'  => \CourseCaptain\Learner\LearningArea::url(),
-			'privacy_policy_url' => (string) get_privacy_policy_url(),
-		);
+			'site_name'         => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
+			'site_url'          => home_url( '/' ),
+			'learning_area_url' => \CourseCaptain\Learner\LearningArea::url(),
+		) + LegalLinks::mail_vars();
 	}
 
 	/**
-	 * Footer: operator text once, then the unsubscribe line (informational) or the reason sentence (required).
+	 * Footer: operator text once, the links to the legal texts that are set
+	 * (SET-CC-06), then the unsubscribe line (informational) or the reason
+	 * sentence (required).
 	 *
 	 * @param string                $type Type.
 	 * @param array<string, string> $vars Variables.
@@ -657,6 +660,18 @@ final class MailTemplates {
 		if ( '' !== trim( $custom ) ) {
 			$html .= '<p>' . nl2br( esc_html( $custom ) ) . '</p>';
 			$text .= "\n\n" . $custom;
+		}
+		$links = LegalLinks::present();
+		if ( array() !== $links ) {
+			$parts = array();
+			$lines = array();
+			foreach ( $links as $link ) {
+				$parts[] = '<a href="' . esc_url( $link[1] ) . '">' . esc_html( $link[0] ) . '</a>';
+				/* translators: 1: name of a legal text, e.g. "Imprint", 2: its address */
+				$lines[] = sprintf( __( '%1$s: %2$s', 'course-captain' ), $link[0], $link[1] );
+			}
+			$html .= '<p>' . implode( ' · ', $parts ) . '</p>';
+			$text .= "\n\n" . implode( "\n", $lines );
 		}
 		if ( NotificationTypes::is_informational( $type ) && isset( $vars['unsubscribe_url'] ) ) {
 			$line  = __( 'You no longer want these messages? Unsubscribe: {{unsubscribe_url}}', 'course-captain' );
@@ -701,6 +716,9 @@ final class MailTemplates {
 					return $m[0];
 				}
 				$value = trim( (string) preg_replace( '/[\r\n\t]+/', ' ', wp_strip_all_tags( $vars[ $m[1] ] ) ) );
+				if ( '' === $value ) {
+					return '';
+				}
 				if ( in_array( $m[1], NotificationTypes::URL_VARIABLES, true ) ) {
 					return $link_urls ? '<a href="' . esc_url( $value ) . '">' . esc_html( $value ) . '</a>' : esc_url( $value );
 				}

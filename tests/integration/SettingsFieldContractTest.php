@@ -97,6 +97,11 @@ final class SettingsFieldContractTest extends SchemaTestCase {
 					'value'  => 'no-address',
 					'tamper' => false,
 				);
+			case 'url':
+				return array(
+					'value'  => 'javascript:alert(1)',
+					'tamper' => false,
+				);
 			case 'hosts':
 				return array(
 					'value'  => "media.example.org\nnot a host/",

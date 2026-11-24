@@ -108,6 +108,7 @@ namespace CourseCaptain\Tools\Docs {
 			$out[]  = '- **Recht**: `settings` = Recht „Einstellungen verwalten“ (`ccap_manage_settings`); `admin` = zusätzlich Administrator (`manage_options`).';
 			$out[]  = '- **Datenklasse**: `public`/`internal` erscheinen im Protokoll mit Vorher/Nachher; `personal` nur als „geändert“ und im Export nur mit Opt-in; `secret` nie lesbar.';
 			$out[]  = '- **Export**: `ja` = in der Einstellungsdatei; `nein` = nie exportiert oder importiert (umgebungsgebunden).';
+			$out[]  = '- **Rechtsprüfung**: Werte mit rechtlicher Wirkung (Bezeichnung mit „Rechtsprüfung“). Ob sie für die eigene Website Pflicht sind und was sie enthalten müssen, entscheidet der Betreiber mit seiner Rechtsberatung; Course Captain prüft das nicht.';
 			$out[]  = '- **Übersteuerbar**: Ebenen, die abweichen dürfen (Kurs, Aktivität, Prüfung, Gruppe, Medium); „sperrbar“ = eine Sperre für alle Kurse ist möglich (Einstellungen → Sperren und Kurs-Übersteuerungen).';
 			$out[]  = '';
 			$out[]  = '## Inhalt';
@@ -140,6 +141,7 @@ namespace CourseCaptain\Tools\Docs {
 					$key    = $tab . '.' . $field;
 					$ui     = SettingsFields::ui( $tab, $field );
 					$label  = $ui['label'] === $field ? ( EffectiveSettings::labels()[ $key ] ?? $field ) : $ui['label'];
+					$label .= empty( $def['legal_review'] ) ? '' : ' (Rechtsprüfung)';
 					$out[]  = sprintf(
 						'| `%s` | %s | %s | %s | %s | %s | %s | %s |',
 						$key,

@@ -460,17 +460,22 @@ final class LearningArea {
 	}
 
 	/**
-	 * Footer with the link to the accessibility statement (SET-CC-18).
+	 * Footer with the links to the legal texts (SET-CC-06) and the
+	 * accessibility statement (SET-CC-18); only links that are set.
 	 *
 	 * @return string
 	 */
 	public static function footer(): string {
-		$page = (int) Settings::get( 'display.accessibility_page_id' );
-		$post = $page > 0 ? get_post( $page ) : null;
-		if ( ! $post instanceof \WP_Post || 'publish' !== $post->post_status ) {
+		$items = \CourseCaptain\Settings\LegalLinks::list_items();
+		$page  = (int) Settings::get( 'display.accessibility_page_id' );
+		$post  = $page > 0 ? get_post( $page ) : null;
+		if ( $post instanceof \WP_Post && 'publish' === $post->post_status ) {
+			$items .= '<li><a href="' . esc_url( (string) get_permalink( $post ) ) . '">' . esc_html__( 'Accessibility statement', 'course-captain' ) . '</a></li>';
+		}
+		if ( '' === $items ) {
 			return '';
 		}
-		return '<footer class="ccap-footer"><a href="' . esc_url( (string) get_permalink( $post ) ) . '">' . esc_html__( 'Accessibility statement', 'course-captain' ) . '</a></footer>';
+		return '<footer class="ccap-footer"><nav aria-label="' . esc_attr__( 'Legal information', 'course-captain' ) . '"><ul class="ccap-footer-links">' . $items . '</ul></nav></footer>';
 	}
 
 	/**
@@ -856,7 +861,7 @@ final class LearningArea {
 		return 'html{scroll-padding-block-start:6rem}body.ccap-learning{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere;background:#fff;color:#1d2327}'
 			. '.ccap-skip{position:absolute;inset-block-start:1rem;inset-inline-start:1rem;background:#fff;color:#1d2327;padding:.5rem;z-index:10}'
 			. '.ccap-skip:not(:focus){width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
-			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}.ccap-logo{max-block-size:3rem;inline-size:auto;vertical-align:middle;margin-inline-end:.75rem}.ccap-footer{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box;border-block-start:1px solid #8c8f94}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
+			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}.ccap-logo{max-block-size:3rem;inline-size:auto;vertical-align:middle;margin-inline-end:.75rem}.ccap-footer{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box;border-block-start:1px solid #8c8f94}.ccap-footer-links{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
 			. '.ccap-cards,.ccap-modules,.ccap-lessons,.ccap-qnav,.ccap-result-list{padding-inline-start:1.25rem}.ccap-card{margin-block-end:1rem}'
 			. '.ccap-button{display:inline-block;padding:.6rem 1rem;border:2px solid currentColor;border-radius:.25rem;text-decoration:none;min-block-size:44px;box-sizing:border-box;font:inherit;background:#fff;color:inherit;cursor:pointer}'
 			. ':focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}'

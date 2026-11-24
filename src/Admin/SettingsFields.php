@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
  * effect), a meta line (default, scope, dependency) and field-near error
  * messages. Keys are `<field>` or `<field>.<sub>` for object fields.
  *
- * Elements: `checkbox`, `radio`, `select`, `tristate`, `number`,
+ * Elements: `checkbox`, `radio`, `select`, `tristate`, `number`, `url`,
  * `nullable_number`, `text`, `textarea`, `email`, `page`, `set`, `lines`,
  * `percent`, `bools` (object of booleans), `hardening`, `xmlrpc`, `static`.
  */
@@ -93,6 +93,7 @@ final class SettingsFields {
 					array( __( 'Addresses', 'course-captain' ), array( 'learning_area_slug', 'course_slug' ) ),
 					array( __( 'Pages', 'course-captain' ), array( 'catalog_page_id', 'learner_home_page_id' ) ),
 					array( __( 'Learning area', 'course-captain' ), array( 'learning_area_title', 'use_profile_locale', 'catalog_indexing' ) ),
+					array( __( 'Legal texts', 'course-captain' ), array( 'legal_links.imprint', 'legal_links.terms', 'legal_links.withdrawal', 'legal_links.privacy' ) ),
 					array( __( 'Removing the plugin', 'course-captain' ), array( 'delete_data_on_uninstall' ) ),
 				);
 			case 'display':
@@ -124,6 +125,7 @@ final class SettingsFields {
 			case 'certificates':
 				return array(
 					array( __( 'Issuing', 'course-captain' ), array( 'enabled', 'auto_issue', 'holder_name_policy' ) ),
+					array( __( 'Defaults for new certificates', 'course-captain' ), array( 'default_validity_days', 'expiry_notice_days', 'paper_format', 'language', 'fixed_locale' ) ),
 				);
 			case 'emails':
 				return array(
@@ -193,7 +195,11 @@ final class SettingsFields {
 			return $fields[ $f ];
 		}
 		$def = $fields[ $f ]['fields'][ $sub ] ?? null;
-		return null === $def ? null : $def + array( 'default' => $fields[ $f ]['default'][ $sub ] ?? null );
+		// Sub-keys inherit the "Legal review" marking of their object (SET-CC-06).
+		return null === $def ? null : $def + array(
+			'default'      => $fields[ $f ]['default'][ $sub ] ?? null,
+			'legal_review' => ! empty( $fields[ $f ]['legal_review'] ),
+		);
 	}
 
 	/**
@@ -312,9 +318,32 @@ final class SettingsFields {
 				return sprintf( __( 'Error: %s: choose one of the offered options.', 'course-captain' ), $label );
 			case 'logo_missing':
 				return __( 'Error: logo: no image with this media ID exists. Enter the ID of an image from the media library or 0.', 'course-captain' );
+			case 'url':
+				/* translators: %s: field label */
+				return sprintf( __( 'Error: %s: enter a complete address starting with https:// or http://, for example https://example.org/imprint, or leave the field empty.', 'course-captain' ), $label );
+			case 'locale':
+				return __( 'Error: certificate language: choose one of the languages installed on this website.', 'course-captain' );
 		}
 		/* translators: %s: field label */
 		return sprintf( __( 'Error: %s: check the value.', 'course-captain' ), $label );
+	}
+
+	/**
+	 * Installed languages for the fixed certificate language (SET-CC-08).
+	 *
+	 * @return array<string, string> Locale => name ('' = none chosen).
+	 */
+	private static function locale_options(): array {
+		$out = array( '' => __( '– choose –', 'course-captain' ) );
+		if ( ! function_exists( 'get_available_languages' ) ) {
+			return $out + array( 'en_US' => 'English (United States)' );
+		}
+		foreach ( \CourseCaptain\Kernel\Locale::installed() as $locale ) {
+			// Native name without a network lookup; the locale code keeps variants (`de_DE_formal`) apart.
+			$name           = function_exists( 'locale_get_display_name' ) ? (string) locale_get_display_name( $locale, $locale ) : '';
+			$out[ $locale ] = '' === $name ? $locale : $name . ' (' . $locale . ')';
+		}
+		return $out;
 	}
 
 	/**
@@ -387,6 +416,38 @@ final class SettingsFields {
 						'public_catalog' => __( 'Catalogue can be indexed', 'course-captain' ),
 						'noindex'        => __( 'Index nothing', 'course-captain' ),
 					),
+				),
+				'legal_links'              => array(
+					'label' => __( 'Legal texts', 'course-captain' ),
+					'help'  => __( 'Links to your imprint, terms and conditions, right of withdrawal and privacy policy in the footer of the learning area and of all mails.', 'course-captain' ),
+				),
+				'legal_links.imprint'      => array(
+					'label'   => __( 'Imprint (address)', 'course-captain' ),
+					'help'    => __( 'Address of your imprint page, for example https://example.org/imprint. Empty = no link.', 'course-captain' ),
+					'element' => 'url',
+					'scope'   => 'system',
+					'none'    => __( 'no link', 'course-captain' ),
+				),
+				'legal_links.terms'        => array(
+					'label'   => __( 'Terms and conditions (address)', 'course-captain' ),
+					'help'    => __( 'Address of your terms and conditions. Empty = no link.', 'course-captain' ),
+					'element' => 'url',
+					'scope'   => 'system',
+					'none'    => __( 'no link', 'course-captain' ),
+				),
+				'legal_links.withdrawal'   => array(
+					'label'   => __( 'Right of withdrawal (address)', 'course-captain' ),
+					'help'    => __( 'Address of your information on the right of withdrawal. Empty = no link.', 'course-captain' ),
+					'element' => 'url',
+					'scope'   => 'system',
+					'none'    => __( 'no link', 'course-captain' ),
+				),
+				'legal_links.privacy'      => array(
+					'label'   => __( 'Privacy policy (address)', 'course-captain' ),
+					'help'    => __( 'Empty = the privacy policy page of WordPress (Settings › Privacy), if one is published. Enter an address only if your privacy policy is somewhere else.', 'course-captain' ),
+					'element' => 'url',
+					'scope'   => 'system',
+					'none'    => __( 'privacy page of WordPress', 'course-captain' ),
 				),
 				'delete_data_on_uninstall' => array(
 					'label'   => __( 'Remove all data when the plugin is deleted', 'course-captain' ),
@@ -781,6 +842,45 @@ final class SettingsFields {
 						'never'          => __( 'Never', 'course-captain' ),
 						'learner_opt_in' => __( 'When the person allows it for their certificate', 'course-captain' ),
 					),
+				),
+				'default_validity_days'         => array(
+					'label'   => __( 'Validity of new certificates', 'course-captain' ),
+					'help'    => __( 'Applies to certificates of course completions and of exams without their own validity. An exam rule with its own validity wins. Issued certificates keep their date.', 'course-captain' ),
+					'element' => 'nullable_number',
+					'unit'    => __( 'days', 'course-captain' ),
+					'none'    => __( 'Unlimited', 'course-captain' ),
+				),
+				'expiry_notice_days'            => array(
+					'label'   => __( 'Renewal notice before the end of validity', 'course-captain' ),
+					'help'    => __( 'From this many days before the end of validity, learners see a notice at the certificate in their list.', 'course-captain' ),
+					'element' => 'number',
+					'unit'    => __( 'days', 'course-captain' ),
+				),
+				'paper_format'                  => array(
+					'label'   => __( 'Paper format', 'course-captain' ),
+					'help'    => __( 'Page size when printing or saving as PDF. Issued certificates keep their format.', 'course-captain' ),
+					'element' => 'radio',
+					'options' => array(
+						'a4'     => __( 'A4', 'course-captain' ),
+						'letter' => __( 'US Letter', 'course-captain' ),
+					),
+				),
+				'language'                      => array(
+					'label'   => __( 'Language of new certificates', 'course-captain' ),
+					'help'    => __( 'Language of the fixed texts on the certificate, such as the heading and “Valid until”. Course title and names stay as they are. Issued certificates keep their language.', 'course-captain' ),
+					'element' => 'radio',
+					'options' => array(
+						'site'    => __( 'Website language', 'course-captain' ),
+						'learner' => __( 'Profile language of the learner', 'course-captain' ),
+						'fixed'   => __( 'Always this language:', 'course-captain' ),
+					),
+				),
+				'fixed_locale'                  => array(
+					'label'   => __( 'Fixed certificate language', 'course-captain' ),
+					'help'    => __( 'Only used with “Always this language”. Offered are the languages installed on this website.', 'course-captain' ),
+					'element' => 'select',
+					'options' => self::locale_options(),
+					'depends' => 'language',
 				),
 				'base_template.issuer_name'     => array(
 					'label' => __( 'Issuer', 'course-captain' ),

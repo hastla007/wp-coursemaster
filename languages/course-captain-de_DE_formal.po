@@ -11968,3 +11968,118 @@ msgstr "Fehler: %s: Wählen Sie eine der angebotenen Möglichkeiten."
 #, php-format
 msgid "Error: %1$s: enter a whole number of at least %2$s."
 msgstr "Fehler: %1$s: Geben Sie eine ganze Zahl ab %2$s ein."
+
+msgid "Imprint"
+msgstr "Impressum"
+
+msgid "Terms and conditions"
+msgstr "AGB"
+
+msgid "Right of withdrawal"
+msgstr "Widerrufsbelehrung"
+
+msgid "Privacy policy"
+msgstr "Datenschutzerklärung"
+
+msgid "Legal information"
+msgstr "Rechtliche Hinweise"
+
+msgid "{{imprint_url}}, {{terms_url}}, {{withdrawal_url}} and {{privacy_policy_url}} are the links to your legal texts from Settings › General › Legal texts (privacy policy: otherwise the privacy page of WordPress). A link that is not set stays empty. Set links also appear in the footer of every mail."
+msgstr "{{imprint_url}}, {{terms_url}}, {{withdrawal_url}} und {{privacy_policy_url}} sind die Links zu Ihren Rechtstexten aus Einstellungen › Allgemein › Rechtstexte (Datenschutzerklärung: sonst die Datenschutzseite von WordPress). Ein nicht gesetzter Link bleibt leer. Gesetzte Links stehen außerdem im Fuß jeder Mail."
+
+msgid "Legal texts"
+msgstr "Rechtstexte"
+
+msgid "Links to your imprint, terms and conditions, right of withdrawal and privacy policy in the footer of the learning area and of all mails."
+msgstr "Links zu Ihrem Impressum, Ihren AGB, Ihrer Widerrufsbelehrung und Ihrer Datenschutzerklärung im Fuß des Lernbereichs und aller Mails."
+
+msgid "Imprint (address)"
+msgstr "Impressum (Adresse)"
+
+msgid "Address of your imprint page, for example https://example.org/imprint. Empty = no link."
+msgstr "Adresse Ihrer Impressumsseite, zum Beispiel https://example.org/impressum. Leer = kein Link."
+
+msgid "no link"
+msgstr "kein Link"
+
+msgid "Terms and conditions (address)"
+msgstr "AGB (Adresse)"
+
+msgid "Address of your terms and conditions. Empty = no link."
+msgstr "Adresse Ihrer AGB. Leer = kein Link."
+
+msgid "Right of withdrawal (address)"
+msgstr "Widerrufsbelehrung (Adresse)"
+
+msgid "Address of your information on the right of withdrawal. Empty = no link."
+msgstr "Adresse Ihrer Widerrufsbelehrung. Leer = kein Link."
+
+msgid "Privacy policy (address)"
+msgstr "Datenschutzerklärung (Adresse)"
+
+msgid "Empty = the privacy policy page of WordPress (Settings › Privacy), if one is published. Enter an address only if your privacy policy is somewhere else."
+msgstr "Leer = die Datenschutzseite von WordPress (Einstellungen › Datenschutz), sofern eine veröffentlicht ist. Tragen Sie nur dann eine Adresse ein, wenn Ihre Datenschutzerklärung woanders liegt."
+
+msgid "privacy page of WordPress"
+msgstr "Datenschutzseite von WordPress"
+
+msgid "Defaults for new certificates"
+msgstr "Vorgaben für neue Zertifikate"
+
+#. translators: %s: field label
+msgid "Error: %s: enter a complete address starting with https:// or http://, for example https://example.org/imprint, or leave the field empty."
+msgstr "Fehler: %s: Geben Sie eine vollständige Adresse ein, die mit https:// oder http:// beginnt, zum Beispiel https://example.org/impressum, oder lassen Sie das Feld leer."
+
+msgid "Error: certificate language: choose one of the languages installed on this website."
+msgstr "Fehler: Zertifikatssprache: Wählen Sie eine der auf dieser Website installierten Sprachen."
+
+msgid "Validity of new certificates"
+msgstr "Gültigkeit neuer Zertifikate"
+
+msgid "Applies to certificates of course completions and of exams without their own validity. An exam rule with its own validity wins. Issued certificates keep their date."
+msgstr "Gilt für Zertifikate aus Kursabschlüssen und aus Prüfungen ohne eigene Gültigkeit. Eine Prüfungsregel mit eigener Gültigkeit hat Vorrang. Ausgestellte Zertifikate behalten ihr Datum."
+
+msgid "Renewal notice before the end of validity"
+msgstr "Hinweis zur Erneuerung vor Ablauf der Gültigkeit"
+
+msgid "From this many days before the end of validity, learners see a notice at the certificate in their list."
+msgstr "Ab so vielen Tagen vor Ablauf der Gültigkeit sehen Lernende beim Zertifikat in ihrer Liste einen Hinweis."
+
+msgid "Paper format"
+msgstr "Papierformat"
+
+msgid "Page size when printing or saving as PDF. Issued certificates keep their format."
+msgstr "Seitengröße beim Drucken oder Speichern als PDF. Ausgestellte Zertifikate behalten ihr Format."
+
+msgid "A4"
+msgstr "A4"
+
+msgid "US Letter"
+msgstr "US Letter"
+
+msgid "Language of new certificates"
+msgstr "Sprache neuer Zertifikate"
+
+msgid "Language of the fixed texts on the certificate, such as the heading and “Valid until”. Course title and names stay as they are. Issued certificates keep their language."
+msgstr "Sprache der festen Texte auf dem Zertifikat, etwa der Überschrift und „Gültig bis“. Kurstitel und Namen bleiben, wie sie sind. Ausgestellte Zertifikate behalten ihre Sprache."
+
+msgid "Profile language of the learner"
+msgstr "Profilsprache der lernenden Person"
+
+msgid "Always this language:"
+msgstr "Immer diese Sprache:"
+
+msgid "Fixed certificate language"
+msgstr "Feste Zertifikatssprache"
+
+msgid "Only used with “Always this language”. Offered are the languages installed on this website."
+msgstr "Nur bei „Immer diese Sprache“ verwendet. Angeboten werden die auf dieser Website installierten Sprachen."
+
+msgid "– choose –"
+msgstr "– auswählen –"
+
+msgid "Legal review:"
+msgstr "Rechtsprüfung:"
+
+msgid "Whether this is required for your website and what it must contain is your decision. Course Captain does not check it."
+msgstr "Ob das für Ihre Website Pflicht ist und was es enthalten muss, entscheiden Sie. Course Captain prüft das nicht."

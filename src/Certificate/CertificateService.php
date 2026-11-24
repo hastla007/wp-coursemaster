@@ -14,6 +14,7 @@ use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Event\Outbox;
+use CourseCaptain\Kernel\Locale;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
@@ -265,8 +266,9 @@ final class CertificateService {
 					if ( null === $evidence || ! $evidence['eligible'] ) {
 						throw new CourseException( 'ccap_validation_failed', 'The evidence no longer qualifies; revoke instead.', 422 );
 					}
-					$snapshot['evidence']    = self::evidence_snapshot( $evidence );
-					$snapshot['valid_until'] = $evidence['valid_until'];
+					$snapshot['evidence'] = self::evidence_snapshot( $evidence );
+					// Without an own validity the date of the issuance stays (SET-CC-08 default validity is a snapshot).
+					$snapshot['valid_until'] = $evidence['valid_until'] ?? $snapshot['valid_until'];
 				}
 				$snapshot['revision_no']   = $revision;
 				$snapshot['revision_kind'] = 'correction';
@@ -817,13 +819,45 @@ final class CertificateService {
 	}
 
 	/**
-	 * Recertification hint from 30 days before expiry (CF-14).
+	 * Recertification hint from `certificates.expiry_notice_days` (default
+	 * {@see self::RECERTIFY_DAYS}) days before expiry (CF-14, SET-CC-08).
 	 *
 	 * @param mixed $valid_until Date or null.
 	 * @return bool
 	 */
 	public static function recertify_hint( $valid_until ): bool {
-		return is_string( $valid_until ) && $valid_until <= self::site_today( self::RECERTIFY_DAYS );
+		return is_string( $valid_until ) && $valid_until <= self::site_today( max( 1, (int) Settings::get( 'certificates.expiry_notice_days' ) ) );
+	}
+
+	/**
+	 * Evidence with the default validity of new certificates
+	 * (`certificates.default_validity_days`, SET-CC-08) when it has no own
+	 * validity; an exam rule's own validity always wins.
+	 *
+	 * @param array<string, mixed> $evidence Evidence.
+	 * @return array<string, mixed>
+	 */
+	private static function with_default_validity( array $evidence ): array {
+		$days = Settings::get( 'certificates.default_validity_days' );
+		if ( null === $evidence['valid_until'] && null !== $days && null !== $evidence['evaluated_at'] ) {
+			$evidence['valid_until'] = self::site_date_after( (string) $evidence['evaluated_at'], max( 1, (int) $days ) );
+		}
+		return $evidence;
+	}
+
+	/**
+	 * Locale of a new certificate (`certificates.language`, SET-CC-08):
+	 * website language, the learner's profile language or the fixed locale;
+	 * a locale that is not installed falls back to the website language.
+	 *
+	 * @param int $user_id Learner.
+	 * @return string
+	 */
+	public static function issue_locale( int $user_id ): string {
+		$mode      = (string) Settings::get( 'certificates.language' );
+		$installed = Locale::installed();
+		$wanted    = 'learner' === $mode ? (string) get_user_locale( $user_id ) : ( 'fixed' === $mode ? (string) Settings::get( 'certificates.fixed_locale' ) : '' );
+		return '' !== $wanted && in_array( $wanted, $installed, true ) ? $wanted : (string) get_locale();
 	}
 
 	/**
@@ -853,6 +887,7 @@ final class CertificateService {
 			return $existing;
 		}
 		$template = self::template( (int) $evidence['course_id'] );
+		$evidence = self::with_default_validity( $evidence );
 		try {
 			return $this->db->transaction(
 				function ( Database $db ) use ( $evidence, $actor, $reason, $type, $evidence_id, $template ): array {
@@ -1092,6 +1127,21 @@ final class CertificateService {
 			$issuer['signature_label'] = (string) $definition['signature_label'];
 		}
 		$title = (string) get_post_field( 'post_title', $course_id, 'raw' );
+		// SET-CC-08: fixed texts in the certificate language; the result is part of the snapshot.
+		$locale   = self::issue_locale( (int) $evidence['user_id'] );
+		$switched = determine_locale() !== $locale && switch_to_locale( $locale );
+		try {
+			$texts = array(
+				'heading' => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'Certificate of achievement', 'course-captain' ) : __( 'Certificate of completion', 'course-captain' ),
+				'body'    => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'has passed the assessment of the course', 'course-captain' ) : __( 'has successfully completed the course', 'course-captain' ),
+				'footer'  => (string) $definition['footer_text'],
+			);
+			$ui    = (string) determine_locale();
+		} finally {
+			if ( $switched ) {
+				restore_previous_locale();
+			}
+		}
 		return array(
 			'format_version'  => CertificateSnapshot::FORMAT_VERSION,
 			'certificate_uid' => $uid,
@@ -1106,7 +1156,11 @@ final class CertificateService {
 			),
 			'locale'          => array(
 				'content' => CourseStructure::course_language( $course_id ),
-				'ui'      => (string) get_locale(),
+				'ui'      => $ui,
+			),
+			'layout'          => array(
+				'paper'    => (string) Settings::get( 'certificates.paper_format' ),
+				'language' => (string) Settings::get( 'certificates.language' ),
 			),
 			'issued_at'       => gmdate( 'Y-m-d\TH:i:s\Z', $this->db->time() ),
 			'issued_by'       => self::issued_by( $actor ),
@@ -1128,11 +1182,7 @@ final class CertificateService {
 			'valid_until'     => $evidence['valid_until'],
 			'fields'          => array(),
 			'assets'          => array(),
-			'texts'           => array(
-				'heading' => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'Certificate of achievement', 'course-captain' ) : __( 'Certificate of completion', 'course-captain' ),
-				'body'    => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'has passed the assessment of the course', 'course-captain' ) : __( 'has successfully completed the course', 'course-captain' ),
-				'footer'  => (string) $definition['footer_text'],
-			),
+			'texts'           => $texts,
 			'verify'          => array( 'path_at_issue' => CertificatePages::verify_path() ),
 		);
 	}

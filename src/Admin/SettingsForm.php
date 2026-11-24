@@ -450,9 +450,14 @@ final class SettingsForm {
 			$help .= ' ' . (string) $opts['disabled_reason'];
 		}
 		$err_html = '';
+		// "Legal review" marking (SET-CC-06): the operator decides with their legal advice whether and how the value is required.
+		if ( ! empty( $def['legal_review'] ) ) {
+			$describe[] = $id . '-legal';
+			$err_html  .= '<p id="' . esc_attr( $id . '-legal' ) . '" class="description ccap-legal-review"><strong>' . esc_html__( 'Legal review:', 'course-captain' ) . '</strong> ' . esc_html__( 'Whether this is required for your website and what it must contain is your decision. Course Captain does not check it.', 'course-captain' ) . '</p>';
+		}
 		if ( null !== $error ) {
 			$describe[] = $id . '-error';
-			$err_html   = '<p id="' . esc_attr( $id . '-error' ) . '" class="ccap-field-error"><strong>' . esc_html( SettingsFields::message( $ui['label'], $error['rule'], $def, $error['params'] ) ) . '</strong></p>';
+			$err_html  .= '<p id="' . esc_attr( $id . '-error' ) . '" class="ccap-field-error"><strong>' . esc_html( SettingsFields::message( $ui['label'], $error['rule'], $def, $error['params'] ) ) . '</strong></p>';
 		}
 		if ( ! empty( $opts['warning'] ) ) {
 			$describe[] = $id . '-warning';
@@ -534,6 +539,9 @@ final class SettingsForm {
 			return array() === $labels ? __( 'none', 'course-captain' ) : implode( ', ', $labels );
 		}
 		if ( '' === $value ) {
+			if ( 'url' === $ui['element'] && '' !== $ui['none'] ) {
+				return (string) $ui['none'];
+			}
 			return __( 'empty', 'course-captain' );
 		}
 		if ( is_scalar( $value ) && isset( $ui['options'][ (string) $value ] ) ) {
@@ -613,6 +621,8 @@ final class SettingsForm {
 			case 'lines':
 			case 'hosts':
 				return '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" rows="4" class="large-text code"' . $aria . '>' . esc_textarea( is_array( $value ) ? implode( "\n", array_map( 'strval', $value ) ) : ( is_scalar( $value ) ? (string) $value : '' ) ) . '</textarea>';
+			case 'url':
+				return '<input type="url" inputmode="url" autocomplete="off" spellcheck="false" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( is_scalar( $value ) ? (string) $value : '' ) . '" class="large-text code"' . $aria . '>';
 			case 'email':
 				return '<input type="email" autocomplete="off" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( is_scalar( $value ) ? (string) $value : '' ) . '" class="regular-text"' . $aria . '>';
 			case 'page':
