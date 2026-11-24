@@ -45,6 +45,8 @@ final class AuditView {
 			'grant.source_created'           => array( 'access', __( 'Access granted by a source', 'course-captain' ) ),
 			'grant.source_revoked'           => array( 'access', __( 'Access revoked by a source', 'course-captain' ) ),
 			'grant.source_kept'              => array( 'access', __( 'Access kept after a source revocation (rule "keep")', 'course-captain' ) ),
+			'grant.source_flagged'           => array( 'access', __( 'Access kept and marked for review: the source no longer delivers', 'course-captain' ) ),
+			'grant.source_review_cleared'    => array( 'access', __( 'Review mark removed: the source delivers again', 'course-captain' ) ),
 			'group.created'                  => array( 'groups', __( 'Group created', 'course-captain' ) ),
 			'group.token_rotated'            => array( 'groups', __( 'Group invitation link renewed', 'course-captain' ) ),
 			'group.validity_changed'         => array( 'groups', __( 'Group validity changed', 'course-captain' ) ),
