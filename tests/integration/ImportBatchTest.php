@@ -380,7 +380,8 @@ final class ImportBatchTest extends SchemaTestCase {
 	/**
 	 * GM-136 (scaled PKG-LARGE): 600 instead of 20 000 synthetic questions,
 	 * 3 of them defective; the run is aborted at 50 % and resumed: 597
-	 * imported, the report has exactly the 3 defective entries, no duplicates.
+	 * imported, the report (table and JSON export) has exactly the 3
+	 * defective entries, no duplicates in content or item log.
 	 *
 	 * @group R1-18
 	 * @group GM-136
@@ -417,6 +418,15 @@ final class ImportBatchTest extends SchemaTestCase {
 			self::assertSame( 0, self::object( 'question', $source ), $source );
 		}
 		self::assertSame( $bad, $issues(), 'report still has exactly 3 entries' );
+
+		// The exported error report (R0-38 §5.1) lists the same 3 records, nothing else.
+		$report = ImportReport::export( $admin, $batch, 'json', array( 'severity' => 'error' ) );
+		self::assertIsArray( $report );
+		self::assertSame( 'published', $report['status'] );
+		self::assertSame( $bad, array_column( $report['issues'], 'source_id' ) );
+		self::assertSame( 3, (int) ( (array) $report['summary']['severity'] )['error'] );
+		// Resume without duplicates: every imported record was written exactly once.
+		self::assertSame( 0, self::num( 'SELECT COUNT(*) FROM (SELECT source_id FROM {t} WHERE batch_id = %d GROUP BY entity, source_id HAVING COUNT(*) > 1) d', 'ccap_import_item_log', $batch ) );
 	}
 
 	/**
