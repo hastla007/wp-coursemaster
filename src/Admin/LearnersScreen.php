@@ -583,6 +583,8 @@ final class LearnersScreen {
 				(string) ( $progress['last_activity_at'] ?? '–' )
 			)
 		) . '</p>';
+		// Kap. 28: worked through, mastered and evidenced side by side (same read model as the REST route).
+		$html .= \CourseCaptain\Learner\ProgressPanel::html( \CourseCaptain\Progress\ProgressDimensions::current()->build( $learner, $course ), 'ccap-progress-' . $learner, 3 );
 		foreach ( CourseStructure::current()->modules( $course ) as $link ) {
 			$html .= '<h3>' . esc_html( (string) get_the_title( $link['module_id'] ) ) . '</h3><table class="widefat striped"><thead><tr><th scope="col">' . esc_html__( 'Lesson', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Completed (UTC)', 'course-captain' ) . '</th></tr></thead><tbody>';
 			foreach ( CourseStructure::current()->lessons( $link['module_id'] ) as $lesson ) {

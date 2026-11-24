@@ -1,6 +1,8 @@
 <?php
 /**
- * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32; R-33…R-37 in GroupOwnerRoutes).
+ * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32; R-33…R-37 in GroupOwnerRoutes;
+ * progress dimensions `GET /courses/{course}/progress` and
+ * `GET /reports/courses/{course}/learners/{user}/progress`).
  *
  * @package CourseCaptain
  */
@@ -18,6 +20,7 @@ use CourseCaptain\Learning\Favorites;
 use CourseCaptain\Learning\SmartTrainer;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Progress\CourseReport;
+use CourseCaptain\Progress\ProgressDimensions;
 use CourseCaptain\Security\ClientIp;
 use CourseCaptain\Storage\RateLimiter;
 
@@ -104,6 +107,9 @@ final class LearnerRoutes {
 				'GET',
 				static fn( Actor $a, \WP_REST_Request $r ) => array( 'learners' => CourseReport::current()->rows( $a, self::course( $r ) ) ),
 			),
+			// SET-CC kompetenz (Kap. 28 "three progress dimensions"): read-only, own data / M-11.
+			array( '/courses/' . $course . '/progress', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => ProgressDimensions::current()->own( $a, self::course( $r ) ) ),
+			array( '/reports/courses/' . $course . '/learners/(?P<user>\d+)/progress', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => ProgressDimensions::current()->of_learner( $a, self::course( $r ), (int) $r['user'] ) ),
 			array( '/answers', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => AnswerService::current()->answer( $a, (string) $r->get_param( 'token' ), $r->get_param( 'answer' ), self::idempotency_key( $r ) ) ),
 			array( '/courses/' . $course . '/lessons/(?P<lesson>\d+)/progress', 'PUT', static fn( Actor $a, \WP_REST_Request $r ) => ActivityProgress::current()->interact( $a, self::course( $r ), (int) $r['lesson'], (string) $r->get_param( 'kind' ), (array) ( $r->get_param( 'payload' ) ?? array() ) ) ),
 			array(

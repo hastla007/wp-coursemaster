@@ -40,6 +40,7 @@
 | `PUT` | `/courses/(?P<course>[0-9a-f-]+)/lessons/(?P<lesson>\d+)/progress` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/next-question` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<course>[0-9a-f-]+)/practice` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/courses/(?P<course>[0-9a-f-]+)/progress` | angemeldet (Cookie + `X-WP-Nonce`), nur eigene Daten | – |
 | `POST` | `/courses/(?P<id>\d+)/publish` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/courses/(?P<id>\d+)/structure` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `PUT` | `/courses/(?P<id>\d+)/structure` | angemeldet (Cookie + `X-WP-Nonce`) | `modules`* |
@@ -74,6 +75,7 @@
 | `POST` | `/me/privacy-requests` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 | `GET` | `/monitor` | öffentlich | – |
 | `GET` | `/reports/courses/(?P<course>[0-9a-f-]+)` | angemeldet (Cookie + `X-WP-Nonce`) | – |
+| `GET` | `/reports/courses/(?P<course>[0-9a-f-]+)/learners/(?P<user>\d+)/progress` | angemeldet (Cookie + `X-WP-Nonce`), M-11 (selbst, zugewiesene Trainer, websiteweites Personal) | – |
 | `GET` | `/status` | angemeldet (Cookie + `X-WP-Nonce`) | – |
 
 **Modulschalter (SET-CC-24):** Ist `certificates.enabled` aus, fehlen `GET /me/certificates` und `PUT /me/certificates/{uid}/visibility` (`404 rest_no_route`); `GET /certificates/verify/{token}` bleibt. Ist `learning.assignments_enabled` aus, fehlen die Abgaberouten (`/courses/{course}/assignments/…`, `/assignment-submissions/…`, `/grading/queue`). Fortschritt einer Lektion eines ausgeschalteten Moduls → `404 ccap_module_disabled`. Gespeicherte Daten bleiben unverändert.

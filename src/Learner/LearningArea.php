@@ -328,7 +328,7 @@ final class LearningArea {
 				$room                 = LearnerQueries::current()->course( $actor, $course );
 				$result['title']      = $room['title'];
 				$result['title_attr'] = Locale::content_attributes( CourseStructure::course_language( $course ) );
-				$result['body']       = ExamRoom::take_flash( $actor->user_id ) . self::course_status( $status ) . self::enrollment( $actor, $room ) . self::course_room( $room ) . self::practice( $room ) . ExamRoom::course_exams( $actor, $course );
+				$result['body']       = ExamRoom::take_flash( $actor->user_id ) . self::course_status( $status ) . self::enrollment( $actor, $room ) . self::course_room( $room ) . self::dimensions( $actor, $room ) . self::practice( $room ) . ExamRoom::course_exams( $actor, $course );
 			} elseif ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)$#', $path, $m ) ) {
 				$exam            = ExamRoom::render( $actor, (int) $m[1], $status );
 				$result['title'] = $exam['title'];
@@ -608,6 +608,21 @@ final class LearningArea {
 			return $e->error_code;
 		}
 		return 'enrolled';
+	}
+
+	/**
+	 * Three progress dimensions of the learner (Kap. 28, R0-08 §5): shown
+	 * once the learner has or had access to the course.
+	 *
+	 * @param Actor                $actor Learner.
+	 * @param array<string, mixed> $room  Course room.
+	 * @return string
+	 */
+	private static function dimensions( Actor $actor, array $room ): string {
+		if ( $actor->user_id <= 0 || 'not_granted' === (string) $room['access']['state'] ) {
+			return '';
+		}
+		return ProgressPanel::html( \CourseCaptain\Progress\ProgressDimensions::current()->own( $actor, (int) $room['course_id'] ), 'ccap-progress' );
 	}
 
 	/**

@@ -54,7 +54,7 @@ final class Competency {
 	 * @param array    $objectives Known objectives of the course (reported as `not_evidenced` without evidence).
 	 * @param int|null $now        Unix time (tests).
 	 * @phpstan-param list<string> $objectives
-	 * @return array<string, array{state: string, source?: string, rule_version?: string, evaluated_at?: string, points_milli?: int, max_points_milli?: int, valid_until?: string|null}>
+	 * @return array<string, array{state: string, source_type?: string, source?: string, rule_version?: string, evaluated_at?: string, points_milli?: int, max_points_milli?: int, valid_until?: string|null}>
 	 */
 	public function states( int $user_id, int $course_id, array $objectives = array(), ?int $now = null ): array {
 		$now          = $now ?? time();
@@ -95,6 +95,7 @@ final class Competency {
 				}
 				$out[ $objective ] = array(
 					'state'            => $state,
+					'source_type'      => 'exam_session',
 					'source'           => (string) $row['uid'],
 					'rule_version'     => (string) ( $snapshot['rule']['version'] ?? '' ),
 					'evaluated_at'     => (string) $row['evaluated_at'],
@@ -123,6 +124,7 @@ final class Competency {
 				$evidence          = (array) ( $snapshot['evidence'] ?? array() );
 				$out[ $objective ] = array(
 					'state'            => $state,
+					'source_type'      => 'certificate',
 					'source'           => (string) $certificate['certificate_uid'],
 					'rule_version'     => (string) ( $evidence['rule_version'] ?? '' ),
 					'evaluated_at'     => gmdate( 'Y-m-d H:i:s', (int) strtotime( (string) ( $evidence['evaluated_at'] ?? '' ) ) ),
