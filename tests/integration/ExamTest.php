@@ -497,9 +497,13 @@ final class ExamTest extends SchemaTestCase {
 
 	/**
 	 * GRANT-027 / E-113: answers refused after revocation; submission still evaluated.
+	 * REV-023 (R0-23 RV-02, P-6): the grant is revoked while the exam runs; the
+	 * next answer is refused (code `ccap_content_locked`, the learning lock of
+	 * the access check), the attempt stays open and is evaluated on submission.
 	 *
 	 * @group GRANT-027
 	 * @group GM-042
+	 * @group REV-023
 	 */
 	public function test_GRANT_027_revoked_during_exam(): void {
 		$sessions = ExamSessions::current();

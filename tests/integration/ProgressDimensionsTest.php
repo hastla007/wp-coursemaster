@@ -437,6 +437,11 @@ final class ProgressDimensionsTest extends SchemaTestCase {
 	 * Evidence stays frozen with its snapshot after the course changes: a new
 	 * rule version names other objectives, the question tag and a module
 	 * are removed – the REST output keeps source, version, date and validity.
+	 * REV-025 (R0-23 RV-12, RV-17): the attempt passed under rule version 1
+	 * stays evidence after version 2 is published, with the validity of the
+	 * version 1 snapshot; version 2 is not evidenced by it.
+	 *
+	 * @group REV-025
 	 */
 	public function test_evidence_frozen_after_course_change(): void {
 		$rule = $this->rule(
