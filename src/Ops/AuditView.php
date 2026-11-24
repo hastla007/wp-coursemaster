@@ -51,6 +51,7 @@ final class AuditView {
 			'group.owner_changed'            => array( 'groups', __( 'Group owner changed', 'course-captain' ) ),
 			'group.policy_changed'           => array( 'groups', __( 'Group invitation rule changed', 'course-captain' ) ),
 			'group.renamed'                  => array( 'groups', __( 'Group renamed', 'course-captain' ) ),
+			'group.reinstated'               => array( 'groups', __( 'Ended group reinstated', 'course-captain' ) ),
 			'progress_reset'                 => array( 'learner', __( 'Learning progress reset', 'course-captain' ) ),
 			'attempt_graded'                 => array( 'attempt', __( 'Exam attempt re-evaluated', 'course-captain' ) ),
 			'assignment_graded'              => array( 'attempt', __( 'Assignment graded', 'course-captain' ) ),
@@ -91,6 +92,7 @@ final class AuditView {
 			'personal_data_erased'           => array( 'privacy', __( 'Personal data erased', 'course-captain' ) ),
 			'retention_applied'              => array( 'ops', __( 'Retention applied', 'course-captain' ) ),
 			'audit_pruned'                   => array( 'ops', __( 'Old audit entries removed', 'course-captain' ) ),
+			'audit_chain_resealed'           => array( 'ops', __( 'Audit chain re-sealed with pseudonyms', 'course-captain' ) ),
 			'cron_task_failed'               => array( 'ops', __( 'Maintenance task failed', 'course-captain' ) ),
 			'mail_template_saved'            => array( 'notifications', __( 'Mail template saved', 'course-captain' ) ),
 			'mail_template_reset'            => array( 'notifications', __( 'Built-in mail text restored', 'course-captain' ) ),
@@ -154,7 +156,7 @@ final class AuditView {
 		$where    = array( '1 = 1' );
 		$registry = self::registry();
 		if ( ! empty( $filters['user'] ) ) {
-			$where[] = $db->prepare( '(actor_user_id = %d OR subject_user_id = %d)', (int) $filters['user'], (int) $filters['user'] );
+			$where[] = self::user_condition( $db, (int) $filters['user'], true );
 		}
 		if ( ! empty( $filters['action'] ) ) {
 			$where[] = $db->prepare( 'action = %s', (string) $filters['action'] );
@@ -183,9 +185,10 @@ final class AuditView {
 		$page  = max( 1, $page );
 		$rows  = $db->rows( $db->prepare( "SELECT * FROM `{$table}` WHERE {$cond} ORDER BY id DESC LIMIT %d OFFSET %d", $all ? self::CSV_MAX : self::PER_PAGE, $all ? 0 : ( $page - 1 ) * self::PER_PAGE ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Conditions prepared above.
 		$items = array();
+		$users = \CourseCaptain\Event\AuditIdentity::users_of( $db, array_values( array_map( 'strval', array_filter( array_column( $rows, 'actor_ref' ) ) ) ) );
 		foreach ( $rows as $row ) {
 			$entry   = $registry[ (string) $row['action'] ] ?? array( 'other', (string) $row['action'] );
-			$user    = null === $row['actor_user_id'] ? null : get_userdata( (int) $row['actor_user_id'] );
+			$user    = self::actor_user( $row, $users );
 			$items[] = array(
 				'id'      => (int) $row['id'],
 				'time'    => (string) $row['created_at'],
@@ -201,6 +204,44 @@ final class AuditView {
 			'total' => $total,
 			'pages' => (int) max( 1, ceil( $total / self::PER_PAGE ) ),
 		);
+	}
+
+	/**
+	 * SQL condition "entry of this user" (D12): the pseudonym from the
+	 * mapping, plus the legacy ID columns of rows not yet re-sealed.
+	 *
+	 * @param Database $db      Database.
+	 * @param int      $user    User.
+	 * @param bool     $subject Also as affected user.
+	 * @return string
+	 */
+	private static function user_condition( Database $db, int $user, bool $subject ): string {
+		$ref   = \CourseCaptain\Event\AuditIdentity::ref_of( $db, $user );
+		$parts = array( $db->prepare( 'actor_user_id = %d', $user ) );
+		if ( null !== $ref ) {
+			$parts[] = $db->prepare( 'actor_ref = %s', $ref );
+		}
+		if ( $subject ) {
+			$parts[] = $db->prepare( 'subject_user_id = %d', $user );
+			if ( null !== $ref ) {
+				$parts[] = $db->prepare( 'subject_ref = %s', $ref );
+			}
+		}
+		return '(' . implode( ' OR ', $parts ) . ')';
+	}
+
+	/**
+	 * Account of the actor: pseudonym mapping, or the legacy column.
+	 *
+	 * @param array<string, mixed> $row   Audit row.
+	 * @param array<string, int>   $users Pseudonym → user.
+	 * @return \WP_User|null
+	 */
+	private static function actor_user( array $row, array $users ): ?\WP_User {
+		$ref  = (string) ( $row['actor_ref'] ?? '' );
+		$id   = isset( $users[ $ref ] ) ? $users[ $ref ] : (int) ( $row['actor_user_id'] ?? 0 );
+		$user = $id > 0 ? get_userdata( $id ) : false;
+		return $user instanceof \WP_User ? $user : null;
 	}
 
 	/**
@@ -237,7 +278,7 @@ final class AuditView {
 		}
 		$where = array( array() === $actions ? '1 = 0' : 'action IN (' . implode( ',', array_map( static fn( string $a ): string => $db->prepare( '%s', $a ), $actions ) ) . ')' );
 		if ( ! empty( $filters['user'] ) ) {
-			$where[] = $db->prepare( 'actor_user_id = %d', (int) $filters['user'] );
+			$where[] = self::user_condition( $db, (int) $filters['user'], false );
 		}
 		if ( ! empty( $filters['from'] ) ) {
 			$where[] = $db->prepare( 'created_at >= %s', (string) $filters['from'] );
@@ -324,7 +365,7 @@ final class AuditView {
 		$action   = (string) $row['action'];
 		$context  = json_decode( (string) ( $row['context'] ?? '' ), true );
 		$context  = is_array( $context ) ? $context : array();
-		$user     = null === $row['actor_user_id'] ? null : get_userdata( (int) $row['actor_user_id'] );
+		$user     = self::actor_user( $row, \CourseCaptain\Event\AuditIdentity::users_of( Database::current(), array( (string) ( $row['actor_ref'] ?? '' ) ) ) );
 		$base     = array(
 			'id'     => (int) $row['id'],
 			'time'   => (string) $row['created_at'],

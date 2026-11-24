@@ -12,6 +12,7 @@ namespace CourseCaptain\Privacy;
 
 use CourseCaptain\Assignment\AssignmentService;
 use CourseCaptain\Certificate\CertificateService;
+use CourseCaptain\Event\AuditIdentity;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
@@ -26,7 +27,10 @@ defined( 'ABSPATH' ) || exit;
  * assignments, locks, accommodations, notifications and assignment
  * submissions; seats are released (address and token emptied); owned
  * groups lose their owner (GM-102). Audit rows are kept (hash chain,
- * R0-13 §4.4); the erasure itself is audited without the person's ID.
+ * R0-13 §4.4) but only carry pseudonyms; the eraser deletes the pseudonym
+ * mapping (D12, RT-23), so the chain stays verifiable and the entries can
+ * no longer be linked to the person. The erasure itself is audited without
+ * the person's ID.
  */
 final class PrivacyService {
 
@@ -84,6 +88,7 @@ final class PrivacyService {
 		'ccap_import_item_log'       => 'system',
 		'ccap_import_issue'          => 'system',
 		'ccap_audit_log'             => 'personal',
+		'ccap_audit_identity'        => 'personal',
 		'ccap_override'              => 'content',
 		'ccap_rate_limit'            => 'system',
 		'ccap_request_idempotency'   => 'personal',
@@ -271,6 +276,8 @@ final class PrivacyService {
 				$n += CertificateService::erase( $db, $user_id );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_seat' ) . "` SET status = IF(status = 'active', 'removed', status), removed_at = COALESCE(removed_at, %s), user_id = NULL, invite_email = NULL, claim_token_hash = NULL WHERE user_id = %d", $db->now(), $user_id ) );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_group' ) . '` SET owner_user_id = 0 WHERE owner_user_id = %d', $user_id ) );
+				// D12/RT-23: the audit pseudonym loses its link to the person; the hash chain stays valid.
+				$n += AuditIdentity::erase( $db, $user_id );
 				return $n;
 			}
 		);

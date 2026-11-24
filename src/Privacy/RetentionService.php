@@ -113,7 +113,12 @@ final class RetentionService {
 		$last   = (int) $last;
 		$span   = $db->rows( $db->prepare( "SELECT MIN(created_at) AS oldest, MAX(created_at) AS newest FROM `{$table}` WHERE id <= %d AND created_at < %s", $last, $cutoff ) );
 		$anchor = (string) $db->scalar( $db->prepare( "SELECT row_hash FROM `{$table}` WHERE id = %d", $last ) );
-		$count  = $db->execute( $db->prepare( "DELETE FROM `{$table}` WHERE id <= %d AND created_at < %s ORDER BY id LIMIT %d", $last, $cutoff, self::AUDIT_BATCH ) );
+		// D12: one anchor per chain epoch (hash of its newest removed row), so every epoch stays verifiable.
+		$anchors = array();
+		foreach ( $db->rows( $db->prepare( "SELECT l.chain_epoch, l.row_hash FROM `{$table}` l JOIN ( SELECT chain_epoch, MAX(id) AS id FROM `{$table}` WHERE id <= %d AND created_at < %s GROUP BY chain_epoch ) m ON m.id = l.id", $last, $cutoff ) ) as $row ) {
+			$anchors[ (int) $row['chain_epoch'] ] = (string) $row['row_hash'];
+		}
+		$count = $db->execute( $db->prepare( "DELETE FROM `{$table}` WHERE id <= %d AND created_at < %s ORDER BY id LIMIT %d", $last, $cutoff, self::AUDIT_BATCH ) );
 		if ( $count > 0 ) {
 			AuditLog::write(
 				$db,
@@ -123,10 +128,11 @@ final class RetentionService {
 				'RT-23_audit',
 				null,
 				array(
-					'count'  => $count,
-					'oldest' => (string) ( $span[0]['oldest'] ?? '' ),
-					'newest' => (string) ( $span[0]['newest'] ?? '' ),
-					'anchor' => $anchor,
+					'count'   => $count,
+					'oldest'  => (string) ( $span[0]['oldest'] ?? '' ),
+					'newest'  => (string) ( $span[0]['newest'] ?? '' ),
+					'anchor'  => $anchor,
+					'anchors' => $anchors,
 				)
 			);
 		}

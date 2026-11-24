@@ -398,8 +398,8 @@ final class BackupCheckH3Test extends SchemaTestCase {
 		self::assertSame( 3, $requests->count, 'protected, packages, media' );
 		self::assertSame( 'ok', StorageSelfTest::cached()['state'] ?? '' );
 		self::assertSame( 1, $audits() );
-		$entry = Database::current()->row( 'SELECT actor_user_id, object_id, context FROM `' . Database::current()->table( 'ccap_audit_log' ) . "` WHERE action = 'job_retried' AND object_type = 'storage'" );
-		self::assertSame( $admin, (int) $entry['actor_user_id'] );
+		$entry = Database::current()->row( 'SELECT actor_ref, object_id, context FROM `' . Database::current()->table( 'ccap_audit_log' ) . "` WHERE action = 'job_retried' AND object_type = 'storage'" );
+		self::assertSame( $admin, \CourseCaptain\Event\AuditIdentity::user_of( Database::current(), $entry['actor_ref'] ) );
 		self::assertSame( 'selftest', $entry['object_id'] );
 		$details = json_decode( (string) $entry['context'], true );
 		self::assertSame( 'exposed', $details['before'] );

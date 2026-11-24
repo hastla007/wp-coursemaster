@@ -11968,3 +11968,27 @@ msgstr "Fehler: %s: Wählen Sie eine der angebotenen Möglichkeiten."
 #, php-format
 msgid "Error: %1$s: enter a whole number of at least %2$s."
 msgstr "Fehler: %1$s: Geben Sie eine ganze Zahl ab %2$s ein."
+
+#: src/Ops/AuditView.php
+msgid "Ended group reinstated"
+msgstr "Beendete Gruppe wiedereingesetzt"
+
+#: src/Ops/AuditView.php
+msgid "Audit chain re-sealed with pseudonyms"
+msgstr "Protokollkette mit Pseudonymen neu versiegelt"
+
+#: src/Admin/GroupsScreen.php
+msgid "Reinstate the group"
+msgstr "Gruppe wiedereinsetzen"
+
+#: src/Admin/GroupsScreen.php
+msgid "The group becomes active again. Members get their access back only while the group and their access are still valid; removed seats stay removed."
+msgstr "Die Gruppe wird wieder aktiv. Mitglieder erhalten ihren Zugang nur zurück, solange die Gruppe und ihr Zugang noch gültig sind; entfernte Plätze bleiben entfernt."
+
+#: src/Admin/GroupsScreen.php
+msgid "Reason for reinstating (required)"
+msgstr "Grund für die Wiedereinsetzung (Pflichtfeld)"
+
+#: src/Admin/GroupsScreen.php
+msgid "Reinstate group"
+msgstr "Gruppe wiedereinsetzen"

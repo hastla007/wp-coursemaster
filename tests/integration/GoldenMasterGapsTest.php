@@ -303,7 +303,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 		$GLOBALS['ccap_gm093_free'] = $this->fx['users']['free'];
 		self::assertFalse( $decide( $this->fx['users']['free'] )->allowed );
 		$db = Database::current();
-		self::assertSame( '1', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'access_filter_ignored' AND subject_user_id = %d", $this->fx['users']['free'] ) ) );
+		self::assertSame( '1', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'access_filter_ignored' AND subject_ref = %s", \CourseCaptain\Event\AuditIdentity::ref_of( $db, $this->fx['users']['free'] ) ) ) );
 		add_filter( 'course_captain_can_access', static fn( $allowed, $user ) => (int) $user === (int) $GLOBALS['ccap_gm093_free'] ? $allowed : false, 30, 2 );
 		$locked = $decide( $this->fx['users']['lea'] );
 		self::assertFalse( $locked->allowed );

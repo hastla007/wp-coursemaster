@@ -396,6 +396,95 @@ final class GroupService {
 	}
 
 	/**
+	 * Reinstate an ended group (owner decision D11, R0-09 §4.8, E-29).
+	 *
+	 * Only administrators (`ccap_manage_groups` and `manage_options`), with a
+	 * reason. Under the group lock (L3) the group becomes `active` with
+	 * `source_revision + 1` (CAS, outbox `group.reinstated`); afterwards every
+	 * seat grant that ended with `group_revoked` in the old revision on a seat
+	 * that is still `active` gets a new grant revision (G-15 via
+	 * {@see GrantService::reactivate()}, which takes the chain lock L4 itself:
+	 * order L3 → L4 → DB-TX, no lock inside an open transaction). A grant is
+	 * only renewed while it is still valid: its own end when it was set
+	 * individually (`valid_until_locked`), else the group's end. Removed seats
+	 * stay removed; open invitations work again until their deadline.
+	 *
+	 * @param Actor  $actor    Administrator.
+	 * @param int    $group_id Ended group.
+	 * @param string $reason   Reason (required, audited).
+	 * @return array{revision: int, grants: int, skipped: int} New revision, renewed grants, grants left ended because their validity is over.
+	 * @throws CourseException `ccap_forbidden`, `ccap_reason_required`, `ccap_not_found`, `ccap_conflict`.
+	 */
+	public function reinstate( Actor $actor, int $group_id, string $reason ): array {
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'ccap_manage_groups' ) || ! user_can( $actor->user_id, 'manage_options' ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Only administrators can reinstate a group.', 403 );
+		}
+		$reason = sanitize_textarea_field( $reason );
+		if ( '' === trim( $reason ) ) {
+			throw new CourseException( 'ccap_reason_required', 'A reason is required.', 422 );
+		}
+		if ( null === $this->relations->row( 'ccap_group', $group_id ) ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown group.', 404 );
+		}
+		$result = $this->locked(
+			$group_id,
+			function () use ( $actor, $group_id ): array {
+				// Re-read under the lock: a parallel reinstatement must not create a second revision.
+				$group = (array) $this->relations->row( 'ccap_group', $group_id );
+				if ( 'revoked' !== ( $group['status'] ?? '' ) ) {
+					throw new CourseException( 'ccap_conflict', 'Only an ended group can be reinstated.', 409 );
+				}
+				$old      = (int) $group['source_revision'];
+				$revision = $old + 1;
+				$this->db->transaction(
+					function ( Database $db ) use ( $group, $group_id, $revision, $actor ): void {
+						if ( ! $db->compare_and_swap(
+							'ccap_group',
+							$group_id,
+							(int) $group['row_version'],
+							array(
+								'status'          => 'active',
+								'source_revision' => $revision,
+							)
+						) ) {
+							throw new CourseException( 'ccap_conflict', 'Concurrent change, please retry.', 409 );
+						}
+						$this->group_event( $group_id, 'group.reinstated', $actor );
+					}
+				);
+				$ended   = $this->db->rows(
+					$this->db->prepare(
+						'SELECT g.id, g.valid_until, g.valid_until_locked FROM `' . $this->db->table( 'ccap_grant' ) . '` g JOIN `' . $this->db->table( 'ccap_seat' ) . "` s ON s.id = g.seat_id WHERE s.group_id = %d AND s.status = 'active' AND s.user_id IS NOT NULL AND g.source_type = 'group_seat' AND g.status = 'revoked' AND g.revocation_reason = 'group_revoked' AND g.source_revision = %d ORDER BY g.id",
+						$group_id,
+						$old
+					)
+				);
+				$now     = $this->db->now();
+				$renewed = 0;
+				$skipped = 0;
+				foreach ( $ended as $grant ) {
+					$until = 1 === (int) $grant['valid_until_locked'] ? $grant['valid_until'] : $group['valid_until'];
+					if ( null !== $until && (string) $until <= $now ) {
+						++$skipped;
+						continue;
+					}
+					$this->grants->reactivate( $actor, (int) $grant['id'], 'reinstated', null === $until ? null : (string) $until );
+					++$renewed;
+				}
+				return array(
+					'revision' => $revision,
+					'grants'   => $renewed,
+					'skipped'  => $skipped,
+				);
+			}
+		);
+		AuditLog::write( $this->db, $actor, 'group.reinstated', 'group', (string) $group_id, $reason, $result );
+		PolicyService::flush();
+		\CourseCaptain\Cache\CacheStore::bump_content();
+		return $result;
+	}
+
+	/**
 	 * Change the validity (GF-05): seat grants take the new end unless
 	 * their end was set individually (`valid_until_locked`, R0-09 §3.3).
 	 *
