@@ -69,7 +69,12 @@ Im Register vorhanden, aber **noch ohne Wirkung**: `display.*`, `learning.course
 
 ## 4. Lernsperre
 
-Datenmodell und Rechte (`ccap_lock_learners`) sind vorhanden; eine gesperrte Person erhält `ccap_account_locked`. Der Schreibweg (setzen/aufheben mit Begründung) ist geplant (R1-38).
+Unter **Lernende › Detail** setzt oder hebt eine Person mit `ccap_lock_learners` (Support, Kursmanager, Admin) die Lernsperre auf (R0-13 K-12, Dienst `Policy\LearnerLock`):
+
+- **Setzen:** Grund-Code (`abuse`, `account_compromised`, `legal_hold`, `other`; bei `other` Freitext Pflicht), optional Enddatum, optional „überall abmelden“ (beendet alle Sitzungen des Kontos). Audit `learner_locked`, bei Abmeldung zusätzlich `sessions_terminated`.
+- **Aufheben:** Begründung Pflicht; Audit `learner_unlocked`.
+- Nie gegen sich selbst und nie gegen Konten mit mehr Rechten (M-24). Pro Konto höchstens eine aktive Sperre.
+- Zugänge, Plätze, Ergebnisse und Zertifikate bleiben unverändert; die Person erhält **keine Mail** und beim nächsten Aufruf `ccap_account_locked`. Aufgehobene Sperren werden nach 30 Tagen gelöscht (RT-22).
 
 ## 5. Benachrichtigungen und Mailvorlagen
 

@@ -278,9 +278,11 @@ final class GroupAuditTest extends SchemaTestCase {
 	 * empty; the mapping resolves them for the audit view. Erasure deletes
 	 * the mapping, the entries stay and the chain still verifies (before and
 	 * after); a later change of any hashed field is detected.
+	 * SUP-035: eraser for one person, chain valid afterwards.
 	 *
 	 * @group D12
 	 * @group RT-23
+	 * @group SUP-035
 	 */
 	public function test_D12_pseudonymised_chain_survives_erasure(): void {
 		$db      = Database::current();
@@ -422,9 +424,11 @@ final class GroupAuditTest extends SchemaTestCase {
 	/**
 	 * D12 with retention (RT-23): after old rows are removed the remaining
 	 * chain starts at the anchor of the summary entry and still verifies.
+	 * SUP-035: prune after the period with `audit_pruned` anchor.
 	 *
 	 * @group D12
 	 * @group RT-23
+	 * @group SUP-035
 	 */
 	public function test_D12_chain_verifies_after_retention(): void {
 		global $wpdb;
