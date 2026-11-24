@@ -15,6 +15,7 @@ use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Policy\LearnerLock;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Storage\Database;
 
@@ -34,7 +35,7 @@ final class LearnersScreen {
 	public const SLUG   = 'course-captain-learners';
 	public const ACTION = 'ccap_learner_admin';
 	public const CAP    = 'ccap_view_learner_details';
-	public const OPS    = array( 'grant', 'revoke', 'enrollment', 'suspend', 'resume', 'extend', 'reset' );
+	public const OPS    = array( 'grant', 'revoke', 'enrollment', 'suspend', 'resume', 'extend', 'reset', 'lock', 'unlock' );
 
 	/** Confirmation words of the progress reset (typed literally, either one; UI-F8). */
 	public const RESET_WORDS = array( 'ZURÜCKSETZEN', 'RESET' );
@@ -139,8 +140,9 @@ final class LearnersScreen {
 		);
 		if ( in_array( $out['op'], array( 'suspend', 'resume', 'extend' ), true ) ) {
 			$args['grant'] = absint( $_POST['object'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in process(); display only.
-		} elseif ( 'reset' === $out['op'] ) {
+		} elseif ( in_array( $out['op'], array( 'reset', 'lock', 'unlock' ), true ) ) {
 			$args['learner'] = absint( $_POST['object'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in process(); display only.
+			$args['ccap_op'] = $out['op'];
 		}
 		wp_safe_redirect( add_query_arg( $args, admin_url( 'admin.php' ) ) );
 		exit;
@@ -183,6 +185,8 @@ final class LearnersScreen {
 				$out['count'] = self::change_grant( $actor, $op, $course, absint( $post['object'] ?? 0 ), $post );
 			} elseif ( 'reset' === $op ) {
 				$out['count'] = self::reset( $actor, $course, absint( $post['object'] ?? 0 ), $post );
+			} elseif ( 'lock' === $op || 'unlock' === $op ) {
+				$out['count'] = self::lock( $actor, $op, absint( $post['object'] ?? 0 ), $post );
 			} else {
 				$grant = absint( $post['object'] ?? 0 );
 				if ( empty( $post['confirm'] ) ) {
@@ -324,6 +328,32 @@ final class LearnersScreen {
 	}
 
 	/**
+	 * Set or lift the learner lock (R0-13 K-12, E-79, M-24): reason code
+	 * (lock) or reason (lift) required, audited in {@see LearnerLock}.
+	 *
+	 * @param Actor                $actor   Support or manager (#18).
+	 * @param string               $op      lock|unlock.
+	 * @param int                  $learner Learner.
+	 * @param array<string, mixed> $post    POST data.
+	 * @return int 1 on change.
+	 * @throws CourseException `ccap_reason_required`, `ccap_invalid_param`, `ccap_date_invalid`, `ccap_conflict`, rights and lookup errors.
+	 */
+	private static function lock( Actor $actor, string $op, int $learner, array $post ): int {
+		$reason  = trim( sanitize_text_field( (string) ( $post['reason'] ?? '' ) ) );
+		$service = LearnerLock::current();
+		if ( 'unlock' === $op ) {
+			$service->lift( $actor, $learner, $reason );
+			return 1;
+		}
+		$until = trim( (string) ( $post['valid_until'] ?? '' ) );
+		if ( '' !== $until && ( 1 !== preg_match( '/^\d{4}-\d{2}-\d{2}$/', $until ) || false === strtotime( $until ) ) ) {
+			throw new CourseException( 'ccap_date_invalid', 'valid_until', 422 );
+		}
+		$service->lock( $actor, $learner, sanitize_key( (string) ( $post['reason_code'] ?? '' ) ), $reason, '' === $until ? null : $until . ' 23:59:59', ! empty( $post['end_sessions'] ) );
+		return 1;
+	}
+
+	/**
 	 * Account from ID, login or address.
 	 *
 	 * @param string $value Input.
@@ -367,7 +397,12 @@ final class LearnersScreen {
 		$course  = absint( $request['course'] ?? 0 );
 		$learner = absint( $request['learner'] ?? 0 );
 		$grant   = absint( $request['grant'] ?? 0 );
-		if ( $learner > 0 ) {
+		$op      = sanitize_key( (string) ( $request['ccap_op'] ?? '' ) );
+		if ( $learner > 0 && 'lock' === $op ) {
+			$ok = __( 'Learning access locked. The lock is recorded with your reason; the learner gets no mail.', 'course-captain' );
+		} elseif ( $learner > 0 && 'unlock' === $op ) {
+			$ok = __( 'Lock lifted. The learner can learn again with their existing accesses.', 'course-captain' );
+		} elseif ( $learner > 0 ) {
 			/* translators: %d: number of stored progress entries */
 			$ok = sprintf( _n( 'Progress reset. %d entry was moved to the reset journal (kept for 30 days).', 'Progress reset. %d entries were moved to the reset journal (kept for 30 days).', $count, 'course-captain' ), $count );
 		} elseif ( $grant > 0 ) {
@@ -391,6 +426,7 @@ final class LearnersScreen {
 				'ccap_columns_required'      => __( 'Choose at least one column for the download.', 'course-captain' ),
 				'ccap_date_invalid'          => __( 'Enter a date in the future. To end an access, use "End access".', 'course-captain' ),
 				'ccap_confirm_word'          => __( 'Not reset: type the confirmation word exactly as shown.', 'course-captain' ),
+				'ccap_invalid_param'         => __( 'Please choose a valid option.', 'course-captain' ),
 			),
 			$ok
 		);
@@ -593,7 +629,66 @@ final class LearnersScreen {
 			}
 			$html .= '</tbody></table>';
 		}
-		return $html . self::reset_form( $user_id, $course, $learner );
+		return $html . self::lock_form( $user_id, $course, $learner ) . self::reset_form( $user_id, $course, $learner );
+	}
+
+	/**
+	 * Learner lock of the learner detail (R0-13 K-12): state, then set
+	 * (reason code, optional text, end date, end sessions) or lift (reason).
+	 * Shown only with M-24 (not for oneself or someone with more rights).
+	 *
+	 * @param int $user_id Viewer.
+	 * @param int $course  Course of the screen (return target).
+	 * @param int $learner Learner.
+	 * @return string
+	 */
+	private static function lock_form( int $user_id, int $course, int $learner ): string {
+		if ( ! PolicyService::instance()->decide( Actor::user( $user_id ), PolicyService::LOCK_LEARNER, array( $learner ) )->allowed ) {
+			return '';
+		}
+		$id     = 'ccap-lock-' . $learner;
+		$active = LearnerLock::current()->active( $learner );
+		$fields = '<input type="hidden" name="course" value="' . (int) $course . '">';
+		$html   = '<h3>' . esc_html__( 'Learning lock', 'course-captain' ) . '</h3>';
+		if ( null !== $active ) {
+			$html .= '<p>' . esc_html(
+				sprintf(
+					/* translators: 1: date (UTC), 2: reason code, 3: end date or "until lifted" */
+					__( 'Locked since %1$s (UTC), reason: %2$s, %3$s.', 'course-captain' ),
+					(string) $active['valid_from'],
+					self::lock_reason_label( (string) $active['reason_code'] ),
+					null === $active['valid_until'] ? __( 'until lifted', 'course-captain' ) : sprintf( /* translators: %s: date (UTC) */ __( 'until %s (UTC)', 'course-captain' ), (string) $active['valid_until'] )
+				)
+			) . '</p>';
+			$fields .= '<p><label for="' . esc_attr( $id ) . '-reason">' . esc_html__( 'Reason (required, recorded)', 'course-captain' ) . '</label><br><input id="' . esc_attr( $id ) . '-reason" type="text" name="reason" class="large-text" required></p>';
+			return $html . AdminUi::form( self::ACTION, 'unlock', $learner, $fields, __( 'Lift lock', 'course-captain' ) );
+		}
+		$html   .= '<p id="' . esc_attr( $id ) . '-what">' . esc_html__( 'A lock blocks learning, exams and certificates on this site for this account. Accesses, seats and results stay unchanged; the learner gets no mail.', 'course-captain' ) . '</p>';
+		$options = '';
+		foreach ( LearnerLock::REASONS as $code ) {
+			$options .= '<option value="' . esc_attr( $code ) . '">' . esc_html( self::lock_reason_label( $code ) ) . '</option>';
+		}
+		$fields .= '<p><label for="' . esc_attr( $id ) . '-code">' . esc_html__( 'Reason', 'course-captain' ) . '</label> <select id="' . esc_attr( $id ) . '-code" name="reason_code" aria-describedby="' . esc_attr( $id ) . '-what" required>' . $options . '</select></p>';
+		$fields .= '<p><label for="' . esc_attr( $id ) . '-reason">' . esc_html__( 'Details (required for "other", recorded)', 'course-captain' ) . '</label><br><input id="' . esc_attr( $id ) . '-reason" type="text" name="reason" class="large-text"></p>';
+		$fields .= '<p><label for="' . esc_attr( $id ) . '-until">' . esc_html__( 'Locked until (optional, empty = until lifted)', 'course-captain' ) . '</label> <input id="' . esc_attr( $id ) . '-until" type="date" name="valid_until"></p>';
+		$fields .= '<p><label><input type="checkbox" name="end_sessions" value="1"> ' . esc_html__( 'Also log the account out everywhere', 'course-captain' ) . '</label></p>';
+		return $html . AdminUi::form( self::ACTION, 'lock', $learner, $fields, __( 'Lock learning access', 'course-captain' ) );
+	}
+
+	/**
+	 * Label of a lock reason code (R0-13 K-12).
+	 *
+	 * @param string $code Code.
+	 * @return string
+	 */
+	private static function lock_reason_label( string $code ): string {
+		$labels = array(
+			'abuse'               => __( 'abuse', 'course-captain' ),
+			'account_compromised' => __( 'account compromised', 'course-captain' ),
+			'legal_hold'          => __( 'legal hold', 'course-captain' ),
+			'other'               => __( 'other', 'course-captain' ),
+		);
+		return $labels[ $code ] ?? $code;
 	}
 
 	/**

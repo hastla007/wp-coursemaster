@@ -28,7 +28,7 @@ Antworten der REST-API `course-captain/v1` enthalten einen stabilen Code `ccap_*
 | `ccap_forbidden` | 403 | Recht fehlt | Rolle/Recht prüfen (§1 in [admin.md](admin.md)) |
 | `ccap_not_found` | 404 | existiert nicht **oder** kein Recht (bewusst gleich) | Kennung prüfen; Rechte prüfen |
 | `ccap_content_locked` | 403 | Inhalt gesperrt; Grund `trial`, `drip`, `prerequisite` oder `exam_running` (heute in `message`, ab R1-28 im Feld `reason`). Ohne Modulzugang kommt statt dessen die Policy-Ablehnung (401/403/404) | Zugang/Drip/Voraussetzung im Kursraum prüfen (RB-SUP-1) |
-| `ccap_account_locked` | 403 | Lernsperre aktiv | Grund im Protokoll; Aufheben geplant (R1-38) |
+| `ccap_account_locked` | 403 | Lernsperre aktiv | Grund im Protokoll; Aufheben unter Lernende › Detail (K-12) |
 | `ccap_invalid_param` | 400/409/422 | Parameter fehlt oder ungültig | Anfrage korrigieren |
 | `ccap_validation_failed` | 422 | Validierung gescheitert (Einstellungen, Veröffentlichung mit Blockern, Zertifikat) | Feld- bzw. VAL-Liste lesen ([autoren.md](autoren.md) §6) |
 | `ccap_validation_unacknowledged` | 409 | Warnungen beim Veröffentlichen nicht bestätigt | Warnungen bestätigen |
@@ -141,7 +141,7 @@ Format: **Symptom → Prüfen (nur lesend) → Ursache und Aktion → Eskalation
 
 ### RB-SUP-6 · Verdacht auf Kontomissbrauch
 - **Prüfen:** Zugangs- und Platzhistorie, auffällige Versuchsmuster (nur Status und Zeiten).
-- **Aktion:** Lernsperre (geplant R1-38), Passwort-Reset durch die Person; Zugänge nicht widerrufen, solange der Fall offen ist.
+- **Aktion:** Lernsperre (Lernende › Detail, optional überall abmelden), Passwort-Reset durch die Person; Zugänge nicht widerrufen, solange der Fall offen ist.
 
 ### RB-SUP-7 · Website-Zustand rot / Wartungslauf steht
 - **Prüfen:** „maintenance“ (geplant? letzte Ausführung? fehlgeschlagene Schritte), `DISABLE_WP_CRON` ohne System-Cron, `ccap_maintenance` bei Schreibzugriffen (Migration fällig), Ablage.
