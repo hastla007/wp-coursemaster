@@ -699,6 +699,7 @@ final class ExamTest extends SchemaTestCase {
 	 * @group GM-036
 	 * @group GM-037
 	 * @group GM-054
+	 * @group SEC-011
 	 */
 	public function test_R120_offline_buffer_and_tabs(): void {
 		$sessions = ExamSessions::current();

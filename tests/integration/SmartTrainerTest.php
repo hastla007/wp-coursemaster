@@ -408,6 +408,7 @@ final class SmartTrainerTest extends SchemaTestCase {
 	 * GM-073: 60 answers per minute, atomic table counter.
 	 *
 	 * @group GM-073
+	 * @group SEC-017
 	 */
 	public function test_GM_073_rate_limit(): void {
 		$db     = Database::current();
