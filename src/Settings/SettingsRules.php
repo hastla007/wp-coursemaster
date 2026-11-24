@@ -154,6 +154,10 @@ final class SettingsRules {
 				$errors['review_intervals'] = 'interval_order';
 			}
 		}
+		// RR-4 (PSD-018): raw answers never outlive the exam attempts they belong to.
+		if ( 'privacy' === $tab && $check( 'retention' ) && self::retention_order_violation( (array) $candidate['retention'] ) ) {
+			$errors['retention'] = 'retention_order';
+		}
 		// SET-CC-08: a fixed certificate language must be installed (the switch would fail silently otherwise).
 		if ( 'certificates' === $tab && ( $check( 'language' ) || $check( 'fixed_locale' ) ) ) {
 			$locale = (string) $candidate['fixed_locale'];
@@ -176,6 +180,35 @@ final class SettingsRules {
 			}
 		}
 		return $errors;
+	}
+
+	/**
+	 * RR-4 (R0-31 §2.3, PSD-018) sentence 1: raw answers may not be kept
+	 * longer than the exam attempts they belong to (`raw_answers_years_after_course_end`
+	 * ≤ `exam_attempts_years`; missing keys count with their default).
+	 *
+	 * @param array<string, mixed> $retention Candidate `privacy.retention`.
+	 * @return bool True when the rule is broken.
+	 */
+	public static function retention_order_violation( array $retention ): bool {
+		$keys = \CourseCaptain\Privacy\RetentionPolicy::KEYS;
+		$raw  = $retention['raw_answers_years_after_course_end'] ?? $keys['raw_answers_years_after_course_end']['default'];
+		$exam = $retention['exam_attempts_years'] ?? $keys['exam_attempts_years']['default'];
+		return is_int( $raw ) && is_int( $exam ) && $raw > $exam;
+	}
+
+	/**
+	 * RR-4 sentence 2: certificates deleted before the exam attempts they
+	 * rest on are allowed, the settings screen only shows a notice.
+	 *
+	 * @param array<string, mixed> $retention `privacy.retention` values.
+	 * @return bool
+	 */
+	public static function certificates_before_attempts( array $retention ): bool {
+		$keys = \CourseCaptain\Privacy\RetentionPolicy::KEYS;
+		$cert = $retention['certificates_years'] ?? $keys['certificates_years']['default'];
+		$exam = $retention['exam_attempts_years'] ?? $keys['exam_attempts_years']['default'];
+		return is_int( $cert ) && is_int( $exam ) && $cert < $exam;
 	}
 
 	/**

@@ -124,6 +124,10 @@ final class RetentionPreview {
 			/* translators: 1: number of periods, 2: name of the filter */
 			$html .= '<div class="notice notice-warning inline"><p>' . esc_html( sprintf( _n( 'A plugin or theme sets %1$d period with the filter %2$s; for it the value shown in the field is not effective.', 'A plugin or theme sets %1$d periods with the filter %2$s; for them the values shown in the fields are not effective.', count( $filtered ), 'course-captain' ), count( $filtered ), RetentionPolicy::FILTER ) ) . '</p></div>';
 		}
+		// RR-4 sentence 2: allowed, but evidence disappears before the attempts it rests on.
+		if ( \CourseCaptain\Settings\SettingsRules::certificates_before_attempts( RetentionPolicy::effective() ) ) {
+			$html .= '<div class="notice notice-info inline ccap-retention-rr4"><p>' . esc_html__( 'Note: certificates are deleted earlier than the exam attempts they are based on. Afterwards the verification page reports them as not available although the attempt still exists.', 'course-captain' ) . '</p></div>';
+		}
 		return $html;
 	}
 

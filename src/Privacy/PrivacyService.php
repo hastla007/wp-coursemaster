@@ -118,6 +118,50 @@ final class PrivacyService {
 	);
 
 	/**
+	 * PRIV-001 (R0-17 §7, T-42): registry of every column that names a
+	 * person (`user_id`, `*_user_id`, `*_email`, `actor_id`) with its eraser
+	 * rule and its export group (`''` = not exported: no own data of the
+	 * person, or only a reference to whoever acted). A schema scan in
+	 * `tests/unit/PersonalColumnScanTest.php` fails for a new column that is
+	 * missing here. Rules: `delete` (rows of the person are deleted),
+	 * `null` (the column is cleared by {@see self::erase_user()}, the row
+	 * stays), `pseudonymise` (purchase grants, RT-13), `detach` (seat or
+	 * group loses the person, the row stays), `audit_identity`
+	 * ({@see AuditIdentity::erase()}, D12), `service` (deleted by the
+	 * owning service: assignments, certificates).
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	public const PERSON_COLUMNS = array(
+		'ccap_question.author_user_id'        => array( 'null', '' ),
+		'ccap_exam_session.user_id'           => array( 'delete', 'cc-exams' ),
+		'ccap_attempt.user_id'                => array( 'delete', 'cc-answers' ),
+		'ccap_question_progress.user_id'      => array( 'delete', 'cc-questions' ),
+		'ccap_activity_progress.user_id'      => array( 'delete', 'cc-activity' ),
+		'ccap_course_progress.user_id'        => array( 'delete', 'cc-progress' ),
+		'ccap_favorite.user_id'               => array( 'delete', 'cc-favorite' ),
+		'ccap_collection.user_id'             => array( 'delete', 'cc-collections' ),
+		'ccap_group.owner_user_id'            => array( 'detach', '' ),
+		'ccap_seat.user_id'                   => array( 'detach', 'cc-seats' ),
+		'ccap_seat.invite_email'              => array( 'detach', 'cc-invitations' ),
+		'ccap_grant.user_id'                  => array( 'pseudonymise', 'cc-grants' ),
+		'ccap_grant_event.actor_id'           => array( 'null', '' ),
+		'ccap_assignment_submission.user_id'  => array( 'service', 'cc-submissions' ),
+		'ccap_certificate.user_id'            => array( 'service', 'cc-certificates' ),
+		'ccap_audit_log.actor_user_id'        => array( 'audit_identity', '' ),
+		'ccap_audit_log.subject_user_id'      => array( 'audit_identity', '' ),
+		'ccap_audit_identity.user_id'         => array( 'audit_identity', '' ),
+		'ccap_override.user_id'               => array( 'null', '' ),
+		'ccap_request_idempotency.user_id'    => array( 'delete', '' ),
+		'ccap_course_staff.user_id'           => array( 'delete', '' ),
+		'ccap_learner_lock.user_id'           => array( 'delete', '' ),
+		'ccap_accommodation.user_id'          => array( 'delete', '' ),
+		'ccap_notification.recipient_user_id' => array( 'delete', 'cc-notifications' ),
+		'ccap_reset_journal.user_id'          => array( 'delete', '' ),
+		'ccap_reset_journal.actor_user_id'    => array( 'null', '' ),
+	);
+
+	/**
 	 * Export groups: id → [label, table, user column, columns].
 	 *
 	 * @var array<string, array{0: string, 1: string, 2: string, 3: list<string>}>
@@ -296,6 +340,13 @@ final class PrivacyService {
 				$n += CertificateService::erase( $db, $user_id );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_seat' ) . "` SET status = IF(status = 'active', 'removed', status), removed_at = COALESCE(removed_at, %s), user_id = NULL, invite_email = NULL, claim_token_hash = NULL WHERE user_id = %d", $db->now(), $user_id ) );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_group' ) . '` SET owner_user_id = 0 WHERE owner_user_id = %d', $user_id ) );
+				// PRIV-001/PRIV-003: references to the person as author or actor are cleared, the rows stay.
+				foreach ( self::PERSON_COLUMNS as $key => $rule ) {
+					if ( 'null' === $rule[0] && 'ccap_grant_event.actor_id' !== $key ) {
+						$ref = explode( '.', $key, 2 );
+						$n  += $db->execute( $db->prepare( 'UPDATE `' . $db->table( $ref[0] ) . "` SET `{$ref[1]}` = NULL WHERE `{$ref[1]}` = %d", $user_id ) );
+					}
+				}
 				// D12/RT-23: the audit pseudonym loses its link to the person; the hash chain stays valid.
 				$n += AuditIdentity::erase( $db, $user_id );
 				return $n;
