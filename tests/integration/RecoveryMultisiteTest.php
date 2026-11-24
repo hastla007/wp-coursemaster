@@ -134,9 +134,11 @@ final class RecoveryMultisiteTest extends SchemaTestCase {
 
 	/**
 	 * REC-024: a restore of one site holds only that site; identity, epoch
-	 * journal and confirmation are per site.
+	 * journal and confirmation are per site (MS-021 "= REC-024": site 1
+	 * unchanged, site identity per site).
 	 *
 	 * @group REC-024
+	 * @group MS-021
 	 */
 	public function test_REC_024_restore_of_one_site_leaves_the_other_untouched(): void {
 		SiteIdentity::check();
