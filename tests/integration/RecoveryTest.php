@@ -353,6 +353,7 @@ final class RecoveryTest extends SchemaTestCase {
 	 *
 	 * @group REC-002
 	 * @group NTF-017
+	 * @group SUP-025
 	 */
 	public function test_REC_002_new_domain_holds_mails_until_moved_is_confirmed(): void {
 		SiteIdentity::check();
