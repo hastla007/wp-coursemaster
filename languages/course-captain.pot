@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-24T21:21:37+00:00\n"
+"POT-Creation-Date: 2026-11-24T21:39:12+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -300,7 +300,7 @@ msgstr ""
 #: src/Admin/RoleSettings.php:388
 #: src/Admin/SettingLocksScreen.php:330
 #: src/Admin/SettingsBackup.php:170
-#: src/Admin/SettingsScreen.php:599
+#: src/Admin/SettingsScreen.php:604
 #: src/Admin/SetupWizard.php:720
 #: src/Admin/TestMail.php:121
 #: src/Ops/OpsScreen.php:249
@@ -686,7 +686,7 @@ msgid "Issued certificates"
 msgstr ""
 
 #: src/Admin/CertificatesScreen.php:363
-#: src/Admin/SettingsScreen.php:460
+#: src/Admin/SettingsScreen.php:461
 msgid "Base template"
 msgstr ""
 
@@ -910,7 +910,7 @@ msgstr ""
 #: src/Admin/CountryProfilePanel.php:228
 #: src/Admin/MailTextsScreen.php:351
 #: src/Admin/RoleSettings.php:384
-#: src/Admin/SettingsScreen.php:603
+#: src/Admin/SettingsScreen.php:608
 #: src/Admin/SetupWizard.php:728
 msgid "You are not allowed to change these settings."
 msgstr ""
@@ -1016,7 +1016,7 @@ msgstr ""
 #: src/Admin/CourseSettingsPanel.php:239
 #: src/Admin/ExamsScreen.php:603
 #: src/Admin/LearnersScreen.php:517
-#: src/Admin/SettingsScreen.php:499
+#: src/Admin/SettingsScreen.php:500
 msgid "Source"
 msgstr ""
 
@@ -1852,36 +1852,40 @@ msgstr ""
 msgid "retired"
 msgstr ""
 
-#: src/Admin/ExportArea.php:142
+#: src/Admin/ExportArea.php:170
 msgid "Choose at least one course to export."
 msgstr ""
 
-#: src/Admin/ExportArea.php:143
+#: src/Admin/ExportArea.php:171
 msgid "Enter the records per file as a whole number from 1 to 5000."
 msgstr ""
 
-#: src/Admin/ExportArea.php:144
+#: src/Admin/ExportArea.php:172
+msgid "To include foreign content, also tick the confirmation that you may pass it on."
+msgstr ""
+
+#: src/Admin/ExportArea.php:173
 msgid "The package could not be written. Check the protected folders under System status."
 msgstr ""
 
-#: src/Admin/ExportArea.php:146
+#: src/Admin/ExportArea.php:175
 #: src/Admin/ImportScreen.php:311
 msgid "Done."
 msgstr ""
 
-#: src/Admin/ExportArea.php:148
+#: src/Admin/ExportArea.php:177
 msgid "Export a course as a package"
 msgstr ""
 
-#: src/Admin/ExportArea.php:149
+#: src/Admin/ExportArea.php:178
 msgid "The package (ZIP file in the Course Captain package format) contains the course, its modules, published lessons and the questions of the module pools. Learner data, access, results and settings are never part of it. You can import it on another site under Import content."
 msgstr ""
 
-#: src/Admin/ExportArea.php:152
+#: src/Admin/ExportArea.php:181
 msgid "There is no course you may export."
 msgstr ""
 
-#: src/Admin/ExportArea.php:154
+#: src/Admin/ExportArea.php:183
 #: src/Admin/GroupsScreen.php:424
 #: src/Admin/GroupsScreen.php:520
 #: src/Admin/ImportScreen.php:511
@@ -1891,35 +1895,51 @@ msgstr ""
 msgid "Courses"
 msgstr ""
 
-#: src/Admin/ExportArea.php:159
+#: src/Admin/ExportArea.php:188
 msgid "Options"
 msgstr ""
 
-#: src/Admin/ExportArea.php:160
+#: src/Admin/ExportArea.php:189
 msgid "Package title (optional)"
 msgstr ""
 
-#: src/Admin/ExportArea.php:160
+#: src/Admin/ExportArea.php:189
 msgid "Empty: the titles of the chosen courses."
 msgstr ""
 
-#: src/Admin/ExportArea.php:161
+#: src/Admin/ExportArea.php:190
 msgid "Source name"
 msgstr ""
 
-#: src/Admin/ExportArea.php:161
+#: src/Admin/ExportArea.php:190
 msgid "Identifies where the content comes from. Keep it the same for later exports of the same courses, so that a new import updates the content instead of copying it (lowercase letters, digits and hyphens)."
 msgstr ""
 
-#: src/Admin/ExportArea.php:162
+#: src/Admin/ExportArea.php:191
 msgid "Records per data file"
 msgstr ""
 
-#: src/Admin/ExportArea.php:162
+#: src/Admin/ExportArea.php:191
 msgid "Large courses are split into several data files; 5000 is the most the format allows."
 msgstr ""
 
-#: src/Admin/ExportArea.php:163
+#: src/Admin/ExportArea.php:192
+msgid "Foreign content"
+msgstr ""
+
+#: src/Admin/ExportArea.php:193
+msgid "Lessons and questions from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. The package lists what was left out."
+msgstr ""
+
+#: src/Admin/ExportArea.php:194
+msgid "Include foreign content"
+msgstr ""
+
+#: src/Admin/ExportArea.php:195
+msgid "I confirm that I may pass this content on. The export is recorded in the change log."
+msgstr ""
+
+#: src/Admin/ExportArea.php:196
 msgid "Export and download"
 msgstr ""
 
@@ -2684,9 +2704,9 @@ msgstr ""
 
 #: src/Admin/ImportScreen.php:423
 #: src/Admin/MailTextsScreen.php:430
-#: src/Ops/AuditView.php:398
-#: src/Ops/AuditView.php:422
-#: src/Ops/AuditView.php:438
+#: src/Ops/AuditView.php:399
+#: src/Ops/AuditView.php:423
+#: src/Ops/AuditView.php:439
 msgid "changed"
 msgstr ""
 
@@ -3328,12 +3348,12 @@ msgstr ""
 #: src/Admin/MailTextsScreen.php:56
 #: src/Admin/MailTextsScreen.php:252
 #: src/Admin/MailTextsScreen.php:257
-#: src/Admin/SettingsScreen.php:463
+#: src/Admin/SettingsScreen.php:464
 msgid "Mail texts"
 msgstr ""
 
 #: src/Admin/MailTextsScreen.php:252
-#: src/Admin/SettingsScreen.php:430
+#: src/Admin/SettingsScreen.php:431
 msgid "You are not allowed to change settings."
 msgstr ""
 
@@ -3347,12 +3367,12 @@ msgid "Group invitation"
 msgstr ""
 
 #: src/Admin/MailTextsScreen.php:277
-#: src/Ops/AuditView.php:134
+#: src/Ops/AuditView.php:135
 msgid "Certificate corrected"
 msgstr ""
 
 #: src/Admin/MailTextsScreen.php:278
-#: src/Ops/AuditView.php:135
+#: src/Ops/AuditView.php:136
 msgid "Certificate revoked"
 msgstr ""
 
@@ -3365,7 +3385,7 @@ msgid "Exam result annulled"
 msgstr ""
 
 #: src/Admin/MailTextsScreen.php:281
-#: src/Admin/SettingsScreen.php:465
+#: src/Admin/SettingsScreen.php:466
 msgid "Test mail"
 msgstr ""
 
@@ -3375,7 +3395,7 @@ msgstr ""
 
 #: src/Admin/MailTextsScreen.php:299
 #: src/Admin/RoleSettings.php:370
-#: src/Admin/SettingsScreen.php:561
+#: src/Admin/SettingsScreen.php:562
 msgid "No changes – nothing saved."
 msgstr ""
 
@@ -3542,7 +3562,7 @@ msgstr ""
 #: src/Admin/SettingLocksScreen.php:230
 #: src/Admin/SettingLocksScreen.php:295
 #: src/Admin/SettingsBackup.php:260
-#: src/Admin/SettingsScreen.php:778
+#: src/Admin/SettingsScreen.php:784
 #: src/Import/RightsReleaseForm.php:124
 msgid "Cancel"
 msgstr ""
@@ -5652,8 +5672,8 @@ msgid "Authors and trainers are assigned to courses in the course itself, not he
 msgstr ""
 
 #: src/Admin/RoleSettings.php:336
-#: src/Admin/SettingsScreen.php:717
-#: src/Admin/SettingsScreen.php:719
+#: src/Admin/SettingsScreen.php:722
+#: src/Admin/SettingsScreen.php:724
 msgid "Reset tab …"
 msgstr ""
 
@@ -5682,13 +5702,13 @@ msgid "Roles reset. You can undo this for 30 days."
 msgstr ""
 
 #: src/Admin/RoleSettings.php:377
-#: src/Admin/SettingsScreen.php:569
+#: src/Admin/SettingsScreen.php:570
 msgid "Reset undone."
 msgstr ""
 
 #: src/Admin/RoleSettings.php:392
-#: src/Admin/SettingsScreen.php:607
-#: src/Admin/SettingsScreen.php:791
+#: src/Admin/SettingsScreen.php:612
+#: src/Admin/SettingsScreen.php:797
 #: src/Admin/SetupWizard.php:724
 #: src/Admin/SetupWizard.php:992
 msgid "This change needs a confirmation. Save again and confirm the dialog."
@@ -5696,7 +5716,7 @@ msgstr ""
 
 #: src/Admin/SettingLocksScreen.php:43
 #: src/Admin/SettingLocksScreen.php:138
-#: src/Admin/SettingsScreen.php:437
+#: src/Admin/SettingsScreen.php:438
 msgid "Locks and course overrides"
 msgstr ""
 
@@ -5945,7 +5965,7 @@ msgstr ""
 
 #: src/Admin/SettingsBackup.php:42
 #: src/Admin/SettingsBackup.php:174
-#: src/Admin/SettingsScreen.php:437
+#: src/Admin/SettingsScreen.php:438
 msgid "Back up settings"
 msgstr ""
 
@@ -6041,12 +6061,14 @@ msgstr ""
 
 #. translators: %s: list of retention periods
 #: src/Admin/SettingsBackup.php:274
+#: src/Admin/SettingsScreen.php:937
 #, php-format
 msgid "Longer than the suggested default: %s. A reason is required; it is stored in the change log."
 msgstr ""
 
 #: src/Admin/SettingsBackup.php:275
-#: src/Admin/SettingsScreen.php:909
+#: src/Admin/SettingsScreen.php:915
+#: src/Admin/SettingsScreen.php:934
 msgid "Reason for longer periods"
 msgstr ""
 
@@ -7511,17 +7533,17 @@ msgid "Lifetime of the device cookie. Applies to new logins; existing cookies ke
 msgstr ""
 
 #: src/Admin/SettingsFields.php:1051
-#: src/Admin/SettingsScreen.php:942
+#: src/Admin/SettingsScreen.php:968
 msgid "Failed logins per address"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:1057
-#: src/Admin/SettingsScreen.php:943
+#: src/Admin/SettingsScreen.php:969
 msgid "Failed logins per account and address"
 msgstr ""
 
 #: src/Admin/SettingsFields.php:1063
-#: src/Admin/SettingsScreen.php:944
+#: src/Admin/SettingsScreen.php:970
 msgid "Failed logins per account"
 msgstr ""
 
@@ -7801,7 +7823,7 @@ msgstr ""
 
 #. translators: 1: default value, 2: scope
 #: src/Admin/SettingsForm.php:508
-#: src/Admin/SettingsScreen.php:893
+#: src/Admin/SettingsScreen.php:899
 #, php-format
 msgid "Default: %1$s · Applies: %2$s"
 msgstr ""
@@ -7847,8 +7869,8 @@ msgid "Send “%s”"
 msgstr ""
 
 #: src/Admin/SettingsScreen.php:53
-#: src/Admin/SettingsScreen.php:430
-#: src/Admin/SettingsScreen.php:435
+#: src/Admin/SettingsScreen.php:431
+#: src/Admin/SettingsScreen.php:436
 msgid "Settings"
 msgstr ""
 
@@ -7883,96 +7905,96 @@ msgstr ""
 msgid "note: %s"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:437
+#: src/Admin/SettingsScreen.php:438
 msgid "Open the setup assistant"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:460
+#: src/Admin/SettingsScreen.php:461
 msgid "Edit the base template under Certificates"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:463
+#: src/Admin/SettingsScreen.php:464
 msgid "Subject and text of every message, per language, with preview, test mail and export."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:463
+#: src/Admin/SettingsScreen.php:464
 msgid "Edit mail texts"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:482
+#: src/Admin/SettingsScreen.php:483
 msgid "On: mails go to the real recipients."
 msgstr ""
 
 #. translators: %s: catch address
-#: src/Admin/SettingsScreen.php:486
+#: src/Admin/SettingsScreen.php:487
 #, php-format
 msgid "Test mode: every mail goes only to %s, with “[catch]” in front of the subject. Learners receive nothing."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:490
+#: src/Admin/SettingsScreen.php:491
 msgid "Off: the catch address is not a valid email address, so no mails are sent at all."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:491
+#: src/Admin/SettingsScreen.php:492
 msgid "Off: no mails are sent at all."
 msgstr ""
 
 #. translators: %s: value of the constant
-#: src/Admin/SettingsScreen.php:495
+#: src/Admin/SettingsScreen.php:496
 #, php-format
 msgid "Set in wp-config.php: COURSE_CAPTAIN_OUTBOUND = %s"
 msgstr ""
 
 #. translators: %s: environment type
-#: src/Admin/SettingsScreen.php:497
+#: src/Admin/SettingsScreen.php:498
 #, php-format
 msgid "Automatic for the environment type “%s”: on only in production, otherwise test mode."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:498
+#: src/Admin/SettingsScreen.php:499
 msgid "Outgoing mails"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:500
+#: src/Admin/SettingsScreen.php:501
 msgid "Catch address"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:500
+#: src/Admin/SettingsScreen.php:501
 msgid "not set – the administration address of the website is used"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:502
+#: src/Admin/SettingsScreen.php:503
 msgid "Hold mode"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:502
+#: src/Admin/SettingsScreen.php:503
 msgid "Active: the website seems to have moved or been restored. Mails are held until you confirm the website under System status."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:504
+#: src/Admin/SettingsScreen.php:505
 msgid "Test mode"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:504
+#: src/Admin/SettingsScreen.php:505
 msgid "Read only: change it with the constants COURSE_CAPTAIN_OUTBOUND (on, catch, off) and COURSE_CAPTAIN_MAIL_CATCH_ADDRESS in wp-config.php."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:516
+#: src/Admin/SettingsScreen.php:517
 msgid "Settings: areas"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:536
+#: src/Admin/SettingsScreen.php:537
 msgid "You changed settings in this form but did not save them. Leave the page and discard the changes?"
 msgstr ""
 
 #. translators: %s: tab name
-#: src/Admin/SettingsScreen.php:556
+#: src/Admin/SettingsScreen.php:557
 #, php-format
 msgid "Settings “%s” saved."
 msgstr ""
 
 #. translators: 1: tab name, 2: number of warnings
-#: src/Admin/SettingsScreen.php:558
+#: src/Admin/SettingsScreen.php:559
 #, php-format
 msgid "Settings “%1$s” saved, %2$d warning."
 msgid_plural "Settings “%1$s” saved, %2$d warnings."
@@ -7980,189 +8002,193 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of settings
-#: src/Admin/SettingsScreen.php:566
+#: src/Admin/SettingsScreen.php:567
 #, php-format
 msgid "Tab reset: %d setting has its default value again. You can undo this for 30 days."
 msgid_plural "Tab reset: %d settings have their default value again. You can undo this for 30 days."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/SettingsScreen.php:572
+#: src/Admin/SettingsScreen.php:573
 msgid "The note is hidden for you."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:576
+#: src/Admin/SettingsScreen.php:577
+msgid "Undoing the reset restores retention periods longer than their default. Enter a reason next to the undo button."
+msgstr ""
+
+#: src/Admin/SettingsScreen.php:581
 msgid "There is nothing to undo any more."
 msgstr ""
 
 #. translators: 1: display name, 2: time, 3: list of fields
-#: src/Admin/SettingsScreen.php:591
+#: src/Admin/SettingsScreen.php:596
 #, php-format
 msgid "This tab was changed in the meantime by %1$s (%2$s). Affected: %3$s. Your input is still here. Check the new values and save again."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:592
+#: src/Admin/SettingsScreen.php:597
 msgid "someone else"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:596
+#: src/Admin/SettingsScreen.php:601
 msgid "Load new values (discard my input)"
 msgstr ""
 
 #. translators: %s: current stored value
-#: src/Admin/SettingsScreen.php:661
+#: src/Admin/SettingsScreen.php:666
 #, php-format
 msgid "Changed in the meantime to: %s"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:698
+#: src/Admin/SettingsScreen.php:703
 msgid "Save changes"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:717
+#: src/Admin/SettingsScreen.php:722
 msgid "All values match the default."
 msgstr ""
 
 #. translators: %s: date until which undo is possible
-#: src/Admin/SettingsScreen.php:727
+#: src/Admin/SettingsScreen.php:733
 #, php-format
 msgid "Undo the reset (possible until %s)"
 msgstr ""
 
 #. translators: %s: tab name
-#: src/Admin/SettingsScreen.php:771
+#: src/Admin/SettingsScreen.php:777
 #, php-format
 msgid "Reset tab “%s”?"
 msgstr ""
 
 #. translators: %d: number of settings
-#: src/Admin/SettingsScreen.php:773
+#: src/Admin/SettingsScreen.php:779
 #, php-format
 msgid "This %d setting gets its default value again:"
 msgid_plural "These %d settings get their default value again:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/Admin/SettingsScreen.php:775
+#: src/Admin/SettingsScreen.php:781
 msgid "Not affected: other tabs, settings of single courses and exams, learning progress, access, groups, attempts and certificates. You can undo this for 30 days."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:778
+#: src/Admin/SettingsScreen.php:784
 msgid "Reset tab"
 msgstr ""
 
 #. translators: %s: domain of the website
-#: src/Admin/SettingsScreen.php:823
+#: src/Admin/SettingsScreen.php:829
 #, php-format
 msgid "Warning: the address does not belong to the domain of this website (%s). Without matching SPF/DMARC records mails often land in spam."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:828
+#: src/Admin/SettingsScreen.php:834
 msgid "Warning: new people cannot register on this website. Only people with an existing account can enroll themselves."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:831
+#: src/Admin/SettingsScreen.php:837
 msgid "Warning: long validity keeps invitation links usable and invited addresses stored for longer."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:836
+#: src/Admin/SettingsScreen.php:842
 msgid "Warning: deletion markers can expire before your backups are rotated."
 msgstr ""
 
 #. translators: %s: IP address of the proxy
-#: src/Admin/SettingsScreen.php:843
+#: src/Admin/SettingsScreen.php:849
 #, php-format
 msgid "Warning: all requests seem to come from %s (probably a proxy or load balancer). Enter it under Privacy & security › Trusted proxies, otherwise a login lockout hits everyone at once."
 msgstr ""
 
 #. translators: %s: plugin slug
-#: src/Admin/SettingsScreen.php:847
+#: src/Admin/SettingsScreen.php:853
 #, php-format
 msgid "Warning: %s uses XML-RPC. After switching it off, parts of it no longer work."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:873
+#: src/Admin/SettingsScreen.php:879
 msgid "Currently without effect because of the setting it depends on; the stored value is kept."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:911
+#: src/Admin/SettingsScreen.php:917
 msgid "Required when you set a period longer than its suggested default. The reason is stored in the change log with the new values (at most 500 characters)."
 msgstr ""
 
 #. translators: 1: German confirmation word, 2: English confirmation word (both typed literally)
-#: src/Admin/SettingsScreen.php:923
+#: src/Admin/SettingsScreen.php:949
 #, php-format
 msgid "To switch it on, type %1$s or %2$s:"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:935
+#: src/Admin/SettingsScreen.php:961
 msgid "Website hardening is switched off in wp-config.php (COURSE_CAPTAIN_HARDENING). Changes here only take effect once the constant is removed."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:938
+#: src/Admin/SettingsScreen.php:964
 #: src/Admin/SetupWizard.php:861
 msgid "Detected security plugins"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:939
+#: src/Admin/SettingsScreen.php:965
 #: src/Admin/SetupWizard.php:861
 msgid "No security plugin detected."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:945
+#: src/Admin/SettingsScreen.php:971
 msgid "Lost password per address"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:946
+#: src/Admin/SettingsScreen.php:972
 msgid "Lost password per account and address"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:947
+#: src/Admin/SettingsScreen.php:973
 msgid "Lost password per account"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:948
+#: src/Admin/SettingsScreen.php:974
 msgid "Registrations per address"
 msgstr ""
 
 #. translators: 1: number of attempts, 2: minutes
-#: src/Admin/SettingsScreen.php:952
+#: src/Admin/SettingsScreen.php:978
 #, php-format
 msgid "%1$d in %2$d min"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:954
+#: src/Admin/SettingsScreen.php:980
 msgid "Effective limits (the filter course_captain_hardening_limits overrides the values above)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:955
+#: src/Admin/SettingsScreen.php:981
 msgid "Emergency"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:955
+#: src/Admin/SettingsScreen.php:981
 #: src/Admin/SetupWizard.php:799
 msgid "If you lock yourself out: add define( 'COURSE_CAPTAIN_HARDENING', 'off' ); to wp-config.php or run wp course-captain hardening disable."
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:968
+#: src/Admin/SettingsScreen.php:994
 msgid "Status: active"
 msgstr ""
 
 #. translators: %s: plugin slug
-#: src/Admin/SettingsScreen.php:971
+#: src/Admin/SettingsScreen.php:997
 #, php-format
 msgid "Status: paused because of %s"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:973
+#: src/Admin/SettingsScreen.php:999
 msgid "Status: off until the tab is saved once"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:975
+#: src/Admin/SettingsScreen.php:1001
 msgid "Status: not needed (registration closed)"
 msgstr ""
 
-#: src/Admin/SettingsScreen.php:977
+#: src/Admin/SettingsScreen.php:1003
 msgid "Status: off"
 msgstr ""
 
@@ -11201,111 +11227,115 @@ msgid "Course exported as a package"
 msgstr ""
 
 #: src/Ops/AuditView.php:126
-msgid "Rights information of a course changed"
+msgid "Course exported with foreign content"
 msgstr ""
 
 #: src/Ops/AuditView.php:127
-msgid "Unclear rights of a course released"
+msgid "Rights information of a course changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:128
-msgid "Access ended manually"
+msgid "Unclear rights of a course released"
 msgstr ""
 
 #: src/Ops/AuditView.php:129
-msgid "Access suspended manually"
+msgid "Access ended manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:130
-msgid "Access resumed manually"
+msgid "Access suspended manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:131
-msgid "Access rule of a course changed"
+msgid "Access resumed manually"
 msgstr ""
 
 #: src/Ops/AuditView.php:132
-msgid "Question tags changed"
+msgid "Access rule of a course changed"
 msgstr ""
 
 #: src/Ops/AuditView.php:133
+msgid "Question tags changed"
+msgstr ""
+
+#: src/Ops/AuditView.php:134
 msgid "Certificate issued manually"
 msgstr ""
 
-#: src/Ops/AuditView.php:136
+#: src/Ops/AuditView.php:137
 msgid "Certificate list exported"
 msgstr ""
 
-#: src/Ops/AuditView.php:137
+#: src/Ops/AuditView.php:138
 msgid "Certificate needs review after re-evaluation"
 msgstr ""
 
-#: src/Ops/AuditView.php:138
+#: src/Ops/AuditView.php:139
 msgid "Job retried"
 msgstr ""
 
-#: src/Ops/AuditView.php:139
+#: src/Ops/AuditView.php:140
 msgid "Dead letters discarded"
 msgstr ""
 
-#: src/Ops/AuditView.php:140
+#: src/Ops/AuditView.php:141
 msgid "Cache emptied"
 msgstr ""
 
-#: src/Ops/AuditView.php:141
+#: src/Ops/AuditView.php:142
 msgid "Diagnostics package exported"
 msgstr ""
 
-#: src/Ops/AuditView.php:142
+#: src/Ops/AuditView.php:143
 msgid "Site identity confirmed after restore, move or copy"
 msgstr ""
 
-#: src/Ops/AuditView.php:143
+#: src/Ops/AuditView.php:144
 msgid "Protected folders moved"
 msgstr ""
 
-#: src/Ops/AuditView.php:144
+#: src/Ops/AuditView.php:145
 msgid "Moving the protected folders failed"
 msgstr ""
 
-#: src/Ops/AuditView.php:203
-#: src/Ops/AuditView.php:379
+#: src/Ops/AuditView.php:204
+#: src/Ops/AuditView.php:380
 msgid "Deleted user"
 msgstr ""
 
-#: src/Ops/AuditView.php:203
-#: src/Ops/AuditView.php:379
+#: src/Ops/AuditView.php:204
+#: src/Ops/AuditView.php:380
 msgid "System"
 msgstr ""
 
-#: src/Ops/AuditView.php:398
-#: src/Ops/AuditView.php:406
-#: src/Ops/AuditView.php:438
+#: src/Ops/AuditView.php:399
+#: src/Ops/AuditView.php:407
+#: src/Ops/AuditView.php:439
 msgid "(not shown)"
 msgstr ""
 
 #. translators: 1: locked value, 2: reason
-#: src/Ops/AuditView.php:408
-#: src/Ops/AuditView.php:411
+#: src/Ops/AuditView.php:409
+#: src/Ops/AuditView.php:412
 msgid "not locked"
 msgstr ""
 
 #. translators: 1: locked value, 2: reason
-#: src/Ops/AuditView.php:408
+#: src/Ops/AuditView.php:409
 #, php-format
 msgid "locked to %1$s (%2$s)"
 msgstr ""
 
-#: src/Ops/AuditView.php:411
+#: src/Ops/AuditView.php:412
 msgid "locked"
 msgstr ""
 
-#: src/Ops/AuditView.php:414
-#: src/Ops/AuditView.php:422
+#: src/Ops/AuditView.php:415
+#: src/Ops/AuditView.php:423
 msgid "inherit"
 msgstr ""
 
-#: src/Ops/AuditView.php:422
+#: src/Ops/AuditView.php:423
 msgid "(own value of the course)"
 msgstr ""
 

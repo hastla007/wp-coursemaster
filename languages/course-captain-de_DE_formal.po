@@ -12893,3 +12893,24 @@ msgstr "Lernsperre aufgehoben"
 
 msgid "Account logged out everywhere"
 msgstr "Konto überall abgemeldet"
+
+msgid "To include foreign content, also tick the confirmation that you may pass it on."
+msgstr "Um fremde Inhalte einzuschließen, setzen Sie zusätzlich das Häkchen, dass Sie sie weitergeben dürfen."
+
+msgid "Foreign content"
+msgstr "Fremde Inhalte"
+
+msgid "Lessons and questions from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. The package lists what was left out."
+msgstr "Lektionen und Fragen aus anderen Quellen sowie Inhalte, die Lernende wegen unklarer, eingeschränkter oder abgelaufener Rechte nicht sehen, werden weggelassen. Das Paket listet, was weggelassen wurde."
+
+msgid "Include foreign content"
+msgstr "Fremde Inhalte einschließen"
+
+msgid "I confirm that I may pass this content on. The export is recorded in the change log."
+msgstr "Ich bestätige, dass ich diese Inhalte weitergeben darf. Der Export wird im Änderungsprotokoll festgehalten."
+
+msgid "Undoing the reset restores retention periods longer than their default. Enter a reason next to the undo button."
+msgstr "Das Rückgängigmachen stellt Aufbewahrungsfristen wieder her, die länger als ihre Vorgabe sind. Geben Sie neben der Schaltfläche „Zurücksetzen rückgängig machen“ eine Begründung ein."
+
+msgid "Course exported with foreign content"
+msgstr "Kurs mit fremden Inhalten exportiert"
