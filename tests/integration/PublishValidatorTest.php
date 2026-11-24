@@ -118,6 +118,10 @@ final class PublishValidatorTest extends SchemaTestCase {
 
 	/**
 	 * Structure blockers VAL-001/003/020/023/026/027 block publishing without override.
+	 *
+	 * @group PUB-001
+	 * @group PUB-002
+	 * @group PUB-003
 	 */
 	public function test_structure_blockers(): void {
 		$admin = Actor::user( $this->admin );
@@ -148,6 +152,8 @@ final class PublishValidatorTest extends SchemaTestCase {
 
 	/**
 	 * Question rules VAL-042/043/047/048/052/058 for pool questions.
+	 *
+	 * @group PUB-006
 	 */
 	public function test_question_rules(): void {
 		$admin = Actor::user( $this->admin );
@@ -222,6 +228,12 @@ final class PublishValidatorTest extends SchemaTestCase {
 
 	/**
 	 * Exam rules VAL-074/079/085/086/087 and prerequisites VAL-120/121.
+	 *
+	 * @group PUB-014
+	 * @group PUB-017
+	 * @group PUB-020
+	 * @group PUB-022
+	 * @group PUB-034
 	 */
 	public function test_exam_and_prerequisite_rules(): void {
 		$admin = Actor::user( $this->admin );
