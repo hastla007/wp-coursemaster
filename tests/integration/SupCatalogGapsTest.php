@@ -56,8 +56,8 @@ final class SupCatalogGapsTest extends SchemaTestCase {
 		$db     = Database::current();
 		$grant  = $this->f->grant_l1;
 		$before = $db->row( $db->prepare( 'SELECT status, row_version FROM `' . $db->table( 'ccap_grant' ) . '` WHERE id = %d', $grant ) );
-		$events = self::count( 'ccap_grant_event' );
-		$audits = self::count( 'ccap_audit_log' );
+		$events = self::row_count( 'ccap_grant_event' );
+		$audits = self::row_count( 'ccap_audit_log' );
 		$post   = $this->form(
 			$this->f->sup,
 			'revoke',
@@ -71,8 +71,8 @@ final class SupCatalogGapsTest extends SchemaTestCase {
 		$result = LearnersScreen::process( $post, $this->f->sup )['result'];
 		self::assertContains( $result, array( Decision::FORBIDDEN, Decision::NOT_FOUND ) );
 		self::assertSame( $before, $db->row( $db->prepare( 'SELECT status, row_version FROM `' . $db->table( 'ccap_grant' ) . '` WHERE id = %d', $grant ) ) );
-		self::assertSame( $events, self::count( 'ccap_grant_event' ), 'no grant event' );
-		self::assertSame( $audits, self::count( 'ccap_audit_log' ), 'no audit entry' );
+		self::assertSame( $events, self::row_count( 'ccap_grant_event' ), 'no grant event' );
+		self::assertSame( $audits, self::row_count( 'ccap_audit_log' ), 'no audit entry' );
 	}
 
 	/**
@@ -206,7 +206,7 @@ final class SupCatalogGapsTest extends SchemaTestCase {
 	 * @param string $table Table without prefix.
 	 * @return int
 	 */
-	private static function count( string $table ): int {
+	private static function row_count( string $table ): int {
 		$db = Database::current();
 		return (int) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( $table ) . '`' );
 	}

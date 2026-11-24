@@ -149,10 +149,11 @@ final class CourseReport {
 		if ( $pseudo ) {
 			$columns = array_merge( array( 'pseudonym' ), array_values( array_diff( $columns, self::IDENTIFYING ) ) );
 		}
+		// Permission first (RBAC-087): a viewer without rights learns nothing from validation.
+		$rows = $this->rows( $viewer, $course_id );
 		if ( array() === $columns ) {
 			throw new CourseException( 'ccap_validation_failed', 'Choose at least one column.', 422, array( 'reason' => 'no_columns' ) );
 		}
-		$rows  = $this->rows( $viewer, $course_id );
 		$lines = array( implode( ',', $columns ) );
 		foreach ( $rows as $row ) {
 			$flat    = array(

@@ -107,6 +107,19 @@ final class RightsLessonImagesTest extends SchemaTestCase {
 			),
 			array( 'created_at', 'updated_at' )
 		);
+		// The author view of the lesson needs course access as well.
+		$db->insert(
+			'ccap_grant',
+			array(
+				'uid'         => $db->uuid(),
+				'user_id'     => $this->admin,
+				'course_id'   => $this->course,
+				'status'      => 'active',
+				'source_type' => 'manual',
+				'source_id'   => $db->uuid(),
+			),
+			array( 'created_at', 'updated_at' )
+		);
 		PolicyService::flush();
 	}
 
@@ -219,6 +232,7 @@ final class RightsLessonImagesTest extends SchemaTestCase {
 		self::assertSame( array(), A11yDom::fragment_problems( $page['body'] ) );
 
 		wp_set_current_user( $this->admin );
+		PolicyService::flush();
 		$author = LessonView::render( $admin, $this->course, $lesson );
 		self::assertStringContainsString( 'Not shown to learners: the rights of this imported content are unclear.', $author['body'] );
 		self::assertStringContainsString( 'Not shown to learners: imported content marked as "must not be shown".', html_entity_decode( $author['body'], ENT_QUOTES ) );
