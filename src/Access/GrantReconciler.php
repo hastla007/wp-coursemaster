@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Access;
 
+use CourseCaptain\Ops\SourceReview;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\NamedLock;
@@ -19,7 +20,9 @@ defined( 'ABSPATH' ) || exit;
  * Under the source lock `grant-source:<type>:<reference>`: stale source
  * revisions are ignored (`source_seq`), `revoked → active` never happens
  * automatically (E-29), manual decisions are only overridden by
- * revocation (GrantService), revocation only touches this source.
+ * revocation (GrantService), revocation only touches this source. A
+ * source without snapshot changes no grant; with the operator policy
+ * `keep_and_flag` its open grants are marked for review (ACCESS-09).
  */
 final class GrantReconciler {
 
@@ -62,9 +65,12 @@ final class GrantReconciler {
 		$actor    = Actor::connector( $type );
 		$snapshot = $adapter->snapshot( $reference );
 		if ( null === $snapshot ) {
+			// ACCESS-09: never a revocation; the operator policy may mark the grants for review.
+			SourceReview::source_missing( $this->db, $actor, $type, $reference );
 			$result['no_change'] = true;
 			return $result;
 		}
+		SourceReview::source_back( $this->db, $actor, $type, $reference );
 		$lock = NamedLock::for_key( $this->db, 'grant-source:' . $type . ':' . $reference );
 		$lock->acquire( 10 );
 		try {

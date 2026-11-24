@@ -62,6 +62,7 @@ final class OpsStatus {
 			self::backlog_check( $db ),
 			self::from_site_health( 'mail', NotificationService::test_mail_health() ),
 			self::grants_check( $db ),
+			SourceReview::check( $db ),
 			self::broken_attempts_check( $db ),
 			self::imports_check( $db ),
 			self::secret_check(),
