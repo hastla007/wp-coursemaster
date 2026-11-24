@@ -806,6 +806,8 @@ final class RightsDeliveryTest extends SchemaTestCase {
 		$this->post( 'ccap_lesson', 'Own lesson', $this->module );
 		$foreign = $this->post( 'ccap_lesson', 'Foreign lesson', $this->module );
 		$db      = Database::current();
+		// The lesson already has its local source map row; make it an imported one.
+		$db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_source_map' ) . "` WHERE object_type = 'lesson' AND object_id = %d", $foreign ) );
 		$db->insert(
 			'ccap_source_map',
 			array(
