@@ -858,4 +858,167 @@ final class CertificateTest extends SchemaTestCase {
 		self::assertSame( 'issued', self::certs( "certificate_uid = '" . $cert['uid'] . "'" )[0]['status'] );
 		self::assertSame( '1', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'certificate_review_required'" ) );
 	}
+
+	/**
+	 * Progress row of the learner's course completion.
+	 *
+	 * @return int
+	 */
+	private function progress_id(): int {
+		$db = Database::current();
+		return (int) $db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_course_progress' ) . '` WHERE user_id = %d', $this->learner ) );
+	}
+
+	/**
+	 * Pretend that language packs are installed (locale switcher and `get_available_languages`).
+	 *
+	 * @param array $locales Locales besides en_US.
+	 * @phpstan-param list<string> $locales
+	 * @return callable Filter to remove again.
+	 */
+	private function install_locales( array $locales ): callable {
+		$filter   = static fn(): array => $locales;
+		add_filter( 'get_available_languages', $filter );
+		$property = new \ReflectionProperty( $GLOBALS['wp_locale_switcher'], 'available_languages' );
+		$property->setValue( $GLOBALS['wp_locale_switcher'], array_merge( array( 'en_US' ), $locales ) );
+		return $filter;
+	}
+
+	/**
+	 * SET-CC-08: default validity for evidence without an own validity; an
+	 * exam rule's own validity wins; changing the setting never touches issued
+	 * certificates (snapshot, hash); a correction keeps the issued date;
+	 * renewal notice lead time from the setting.
+	 *
+	 * @group SET-CC-08
+	 */
+	public function test_SET_CC_08_default_validity_and_notice(): void {
+		$this->settings(
+			array(
+				'auto_issue'            => true,
+				'default_validity_days' => 365,
+			)
+		);
+		$this->complete_course();
+		$rows = self::certs( "evidence_type = 'course_completion'" );
+		self::assertCount( 1, $rows );
+		$snapshot = json_decode( (string) $rows[0]['snapshot'], true );
+		$done     = (string) Database::current()->scalar( Database::current()->prepare( 'SELECT completed_at FROM `' . Database::current()->table( 'ccap_course_progress' ) . '` WHERE id = %d', $this->progress_id() ) );
+		self::assertSame( CertificateService::site_date_after( $done, 365 ), $snapshot['valid_until'], 'completion certificate gets the default validity' );
+		self::assertSame( array( 'language', 'paper' ), array_keys( $snapshot['layout'] ), 'canonical (sorted) keys' );
+
+		// Settings change: the issued certificate stays byte-identical.
+		$this->settings(
+			array(
+				'default_validity_days' => 30,
+				'paper_format'          => 'letter',
+			)
+		);
+		$again = self::certs( "evidence_type = 'course_completion'" );
+		self::assertSame( $rows[0]['snapshot'], $again[0]['snapshot'] );
+		self::assertSame( $rows[0]['snapshot_hash'], $again[0]['snapshot_hash'] );
+		self::assertTrue( CertificateSnapshot::intact( (string) $again[0]['snapshot'], (string) $again[0]['snapshot_hash'] ) );
+
+		// Correction with fresh evidence keeps the date of the issuance (no own validity).
+		$uid       = (string) $rows[0]['certificate_uid'];
+		$corrected = CertificateService::current()->correct( Actor::user( $this->manager ), $uid, 'refresh', array( 'refresh_evidence' => true ) );
+		self::assertNotEmpty( $corrected );
+		$latest = CertificateService::current()->latest( $uid );
+		self::assertSame( $snapshot['valid_until'], json_decode( (string) $latest['snapshot'], true )['valid_until'] );
+
+		// An exam rule with its own validity wins over the default.
+		$exam      = $this->exam_certificate( array( 'competency_validity_days' => 10 ) );
+		$evaluated = (string) Database::current()->scalar( Database::current()->prepare( 'SELECT evaluated_at FROM `' . Database::current()->table( 'ccap_exam_session' ) . '` WHERE id = %d', $exam['session'] ) );
+		self::assertSame( CertificateService::site_date_after( $evaluated, 10 ), json_decode( (string) $exam['row']['snapshot'], true )['valid_until'] );
+
+		// Renewal notice: from `expiry_notice_days` before the end.
+		$in_20 = CertificateService::site_today( 20 );
+		self::assertTrue( CertificateService::recertify_hint( $in_20 ), 'default 30 days' );
+		$this->settings( array( 'expiry_notice_days' => 10 ) );
+		self::assertFalse( CertificateService::recertify_hint( $in_20 ) );
+		self::assertTrue( CertificateService::recertify_hint( CertificateService::site_today( 5 ) ) );
+		self::assertFalse( CertificateService::recertify_hint( null ), 'unlimited certificates never show it' );
+
+		// Unlimited stays the default.
+		$this->settings( array( 'default_validity_days' => null ) );
+		self::assertNull( Settings::get( 'certificates.default_validity_days' ) );
+	}
+
+	/**
+	 * SET-CC-08: paper format and language are snapshotted at issuance;
+	 * certificates issued before keep A4 and the request language.
+	 *
+	 * @group SET-CC-08
+	 */
+	public function test_SET_CC_08_paper_and_language(): void {
+		$filter = $this->install_locales( array( 'de_DE' ) );
+		try {
+			// Fixed locale must be installed.
+			$admin = Actor::user( $this->admin );
+			$check = Settings::check(
+				$admin,
+				'certificates',
+				array(
+					'language'     => 'fixed',
+					'fixed_locale' => 'fr_FR',
+				),
+				array( 'language', 'fixed_locale' )
+			);
+			self::assertSame( 'locale', $check['errors']['fixed_locale'] ?? null );
+			$check = Settings::check( $admin, 'certificates', array( 'language' => 'fixed' ), array( 'language' ) );
+			self::assertSame( 'locale', $check['errors']['fixed_locale'] ?? null, 'fixed without a locale' );
+
+			$this->settings(
+				array(
+					'paper_format' => 'letter',
+					'language'     => 'fixed',
+					'fixed_locale' => 'de_DE',
+				)
+			);
+			$cert     = $this->exam_certificate();
+			$snapshot = json_decode( (string) $cert['row']['snapshot'], true );
+			self::assertSame(
+				array(
+					'language' => 'fixed',
+					'paper'    => 'letter',
+				),
+				$snapshot['layout']
+			);
+			self::assertSame( 'de_DE', $snapshot['locale']['ui'] );
+			self::assertSame( 'Leistungszertifikat', $snapshot['texts']['heading'], 'fixed texts in the certificate language' );
+			self::assertSame( 'en_US', determine_locale(), 'locale restored after issuing' );
+			$page = CertificatePages::certificate_page( Actor::user( $this->learner ), $cert['uid'] );
+			self::assertStringContainsString( '@page{size:letter', $page['html'] );
+			self::assertStringContainsString( 'Ausgestellt am', $page['html'], 'labels in the certificate language' );
+			self::assertStringContainsString( '>Print<', $page['html'], 'controls stay in the viewer language' );
+
+			// Learner mode: profile language of the learner.
+			$this->settings( array( 'language' => 'learner' ) );
+			update_user_meta( $this->learner, 'locale', 'de_DE' );
+			$progress = $this->progress_id();
+			if ( 0 === $progress ) {
+				$this->complete_course();
+				$progress = $this->progress_id();
+			}
+			$issued = CertificateService::current()->issue( Actor::user( $this->manager ), CertificateService::EVIDENCE_COURSE, $progress, 'support case' );
+			$row    = self::certs( "certificate_uid = '" . $issued['certificate_uid'] . "'" )[0];
+			$learn  = json_decode( (string) $row['snapshot'], true );
+			self::assertSame( 'de_DE', $learn['locale']['ui'] );
+			self::assertSame( 'Teilnahmezertifikat', $learn['texts']['heading'] );
+
+			// A certificate issued before the settings existed (no `layout`) renders as before: A4, request language.
+			unset( $snapshot['layout'] );
+			$snapshot['locale']['ui'] = 'en_US';
+			$old                      = CertificatePages::render( $snapshot, 'valid', 'https://example.org/v', (string) $cert['row']['snapshot_hash'] );
+			self::assertStringContainsString( 'Issued on', $old );
+			$snapshot['locale']['ui'] = 'de_DE';
+			self::assertStringContainsString( 'Issued on', CertificatePages::render( $snapshot, 'valid', 'https://example.org/v', (string) $cert['row']['snapshot_hash'] ), 'no switch without layout' );
+			$legacy = $snapshot;
+			unset( $legacy['snapshot_hash'] );
+			CertificateSnapshot::validate( $legacy );
+		} finally {
+			remove_filter( 'get_available_languages', $filter );
+			delete_user_meta( $this->learner, 'locale' );
+		}
+	}
 }

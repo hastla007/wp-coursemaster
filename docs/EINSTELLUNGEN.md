@@ -12,6 +12,7 @@ Registerversion (`settings_version`): 4.
 - **Recht**: `settings` = Recht „Einstellungen verwalten“ (`ccap_manage_settings`); `admin` = zusätzlich Administrator (`manage_options`).
 - **Datenklasse**: `public`/`internal` erscheinen im Protokoll mit Vorher/Nachher; `personal` nur als „geändert“ und im Export nur mit Opt-in; `secret` nie lesbar.
 - **Export**: `ja` = in der Einstellungsdatei; `nein` = nie exportiert oder importiert (umgebungsgebunden).
+- **Rechtsprüfung**: Werte mit rechtlicher Wirkung (Bezeichnung mit „Rechtsprüfung“). Ob sie für die eigene Website Pflicht sind und was sie enthalten müssen, entscheidet der Betreiber mit seiner Rechtsberatung; Course Captain prüft das nicht.
 - **Übersteuerbar**: Ebenen, die abweichen dürfen (Kurs, Aktivität, Prüfung, Gruppe, Medium); „sperrbar“ = eine Sperre für alle Kurse ist möglich (Einstellungen → Sperren und Kurs-Übersteuerungen).
 
 ## Inhalt
@@ -46,6 +47,7 @@ Registerversion (`settings_version`): 4.
 | `general.learning_area_title` | Title of the learning area | string (max. 60) | `""` | settings | internal | ja | – |
 | `general.use_profile_locale` | Language for learners | bool, null | `null` | settings | internal | ja | – |
 | `general.catalog_indexing` | Search engines | enum: `public_catalog`, `noindex` | `"public_catalog"` | settings | internal | ja | course (sperrbar) |
+| `general.legal_links` | Legal texts (Rechtsprüfung) | object {imprint, terms, withdrawal, privacy} | `{"imprint":"","terms":"","withdrawal":"","privacy":""}` | settings | internal | ja | – |
 | `general.delete_data_on_uninstall` | Remove all data when the plugin is deleted | bool | `false` | admin | internal | nein | – |
 | `general.country_profile` | Country profile | enum: ``, `DE`, `AT`, `CH`, `EU`, `OTHER` | `""` | settings | internal | ja | – |
 
@@ -58,6 +60,7 @@ Registerversion (`settings_version`): 4.
 - `general.learning_area_title` – Leave empty to use the website title.
 - `general.use_profile_locale` – Automatic: learners see the learning area in their profile language as soon as more than one language is installed.
 - `general.catalog_indexing` – Public catalogue and course pages may appear in search engines. Learning area, lessons, certificates and invitations never appear.
+- `general.legal_links` – Links to your imprint, terms and conditions, right of withdrawal and privacy policy in the footer of the learning area and of all mails. `imprint`: Imprint (address) – Address of your imprint page, for example https://example.org/imprint. Empty = no link. `terms`: Terms and conditions (address) – Address of your terms and conditions. Empty = no link. `withdrawal`: Right of withdrawal (address) – Address of your information on the right of withdrawal. Empty = no link. `privacy`: Privacy policy (address) – Empty = the privacy policy page of WordPress (Settings › Privacy), if one is published. Enter an address only if your privacy policy is somewhere else.
 - `general.delete_data_on_uninstall` – When you delete the plugin under Plugins, all Course Captain data of this website is removed: courses, modules, lessons, questions and exams, enrollments and groups, learning progress, exam results, certificates, submissions and uploaded files, logs and settings. Deactivating never deletes anything; background jobs are always removed. On a network each website decides for itself. Importing settings never takes over this setting. To switch it on, type LÖSCHEN or DELETE below; switching it off needs no confirmation.
 - `general.country_profile` – Records which country profile you work with. It is set when you apply suggestions of a profile and kept in the settings export. Choosing a profile here changes no other setting; compare and apply its suggestions below.
 
@@ -204,6 +207,11 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 | `certificates.enabled` | Use certificates | bool | `true` | settings | internal | ja | – |
 | `certificates.auto_issue` | Issue certificates automatically | bool | `false` | settings | internal | ja | course (sperrbar) |
 | `certificates.holder_name_policy` | Name on the public verification page | enum: `never`, `learner_opt_in` | `"learner_opt_in"` | settings | internal | ja | – |
+| `certificates.default_validity_days` | Validity of new certificates | int 1–3650, null | `null` | settings | internal | ja | – |
+| `certificates.expiry_notice_days` | Renewal notice before the end of validity | int 1–365 | `30` | settings | internal | ja | – |
+| `certificates.paper_format` | Paper format | enum: `a4`, `letter` | `"a4"` | settings | internal | ja | – |
+| `certificates.language` | Language of new certificates | enum: `site`, `learner`, `fixed` | `"site"` | settings | internal | ja | – |
+| `certificates.fixed_locale` | Fixed certificate language | string (max. 20) | `""` | settings | internal | ja | – |
 | `certificates.base_template` | Certificate template | object {issuer_name, footer_text, logo_id, signature_label} | `{"issuer_name":"","footer_text":"","logo_id":0,"signature_label":""}` | settings | internal | ja | course (sperrbar) |
 
 **Hilfetexte**
@@ -211,6 +219,11 @@ Eigener Speicher (WordPress-Rollen), nicht Teil des Registers. Export nur mit ei
 - `certificates.enabled` – Switching off hides it for learners and in the administration, stops its interfaces and background jobs and leaves it out of the course check. Nothing is deleted; switching on again restores everything. Issued certificates stay verifiable on the public verification page.
 - `certificates.auto_issue` – Applies to courses without an own setting that have a completion rule. Issued certificates do not change.
 - `certificates.holder_name_policy` – Email addresses never appear there.
+- `certificates.default_validity_days` – Applies to certificates of course completions and of exams without their own validity. An exam rule with its own validity wins. Issued certificates keep their date.
+- `certificates.expiry_notice_days` – From this many days before the end of validity, learners see a notice at the certificate in their list.
+- `certificates.paper_format` – Page size when printing or saving as PDF. Issued certificates keep their format.
+- `certificates.language` – Language of the fixed texts on the certificate, such as the heading and “Valid until”. Course title and names stay as they are. Issued certificates keep their language.
+- `certificates.fixed_locale` – Only used with “Always this language”. Offered are the languages installed on this website.
 - `certificates.base_template` – `issuer_name`: Issuer – Leave empty to use the website title. Changes create a new template version; issued certificates keep theirs. `footer_text`: Footer – Text at the bottom of every certificate. `logo_id`: Logo (media ID) – ID of an image in the media library; 0 = no logo. `signature_label`: Signature line – Text below the signature area, for example a role.
 
 <a id="tab-emails"></a>

@@ -282,6 +282,16 @@ final class Locale {
 	}
 
 	/**
+	 * Locales WordPress can switch to: `en_US` plus the installed language
+	 * packs (the list of the locale switcher; SET-CC-08 certificate language).
+	 *
+	 * @return list<string>
+	 */
+	public static function installed(): array {
+		return array_values( array_unique( array_merge( array( 'en_US' ), array_map( 'strval', get_available_languages() ) ) ) );
+	}
+
+	/**
 	 * Percentage as text with the translatable pattern (I18N-R-27).
 	 *
 	 * @param int|float $value    Value 0–100.

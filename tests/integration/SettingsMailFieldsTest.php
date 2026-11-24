@@ -520,7 +520,7 @@ final class SettingsMailFieldsTest extends SchemaTestCase {
 		$out  = SettingsScreen::process_save( $this->tab_post( 'display', array( 'accessibility_page_id' => (string) $page ) ), $this->admin );
 		self::assertSame( 'saved', $out['result'] );
 		$doc = LearningArea::page( $actor, '' );
-		self::assertStringContainsString( '<footer class="ccap-footer"><a href="' . esc_url( (string) get_permalink( $page ) ) . '">Accessibility statement</a></footer>', $doc );
+		self::assertStringContainsString( '<footer class="ccap-footer"><nav aria-label="Legal information"><ul class="ccap-footer-links"><li><a href="' . esc_url( (string) get_permalink( $page ) ) . '">Accessibility statement</a></li></ul></nav></footer>', $doc );
 		$draft = (int) self::factory()->post->create(
 			array(
 				'post_type'   => 'page',

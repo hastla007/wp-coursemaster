@@ -167,8 +167,10 @@ final class CertificatePages {
 	 * @return array{status: int, html: string}
 	 */
 	public static function certificate_page( Actor $actor, string $uid ): array {
+		$paper = 'a4';
 		try {
 			$view   = CertificateService::current()->view( $actor, $uid );
+			$paper  = (string) ( $view['snapshot']['layout']['paper'] ?? 'a4' );
 			$title  = (string) ( $view['snapshot']['texts']['heading'] ?? __( 'Certificate', 'course-captain' ) );
 			$body   = self::render( $view['snapshot'], $view['status'], $view['verify_url'], (string) $view['row']['snapshot_hash'] );
 			$body  .= '<p class="ccap-noprint"><a href="' . esc_url( LearningArea::url( self::LIST_PATH ) ) . '">' . esc_html__( 'Back to my certificates', 'course-captain' ) . '</a></p>';
@@ -180,7 +182,7 @@ final class CertificatePages {
 		}
 		return array(
 			'status' => $status,
-			'html'   => self::document( $title, $body, false ),
+			'html'   => self::document( $title, $body, false, $paper ),
 		);
 	}
 
@@ -219,6 +221,30 @@ final class CertificatePages {
 			do_action( 'course_captain_certificate_fallback_rendered', $kind, (string) ( $snapshot['certificate_uid'] ?? '' ) );
 			$note = '<p class="ccap-fallback">' . esc_html__( 'Shown in the standard layout.', 'course-captain' ) . '</p>';
 		}
+		// SET-CC-08: certificates issued with a language setting show their fixed labels in that language; older ones stay as they were.
+		$locale   = isset( $snapshot['layout'] ) ? (string) ( $snapshot['locale']['ui'] ?? '' ) : '';
+		$switched = '' !== $locale && determine_locale() !== $locale && in_array( $locale, \CourseCaptain\Kernel\Locale::installed(), true ) && switch_to_locale( $locale );
+		try {
+			$html = self::article( $snapshot, $status, $verify_url, $hash, $note );
+		} finally {
+			if ( $switched ) {
+				restore_previous_locale();
+			}
+		}
+		return $html . '<p class="ccap-noprint"><button type="button" onclick="window.print()">' . esc_html__( 'Print', 'course-captain' ) . '</button></p>';
+	}
+
+	/**
+	 * The certificate itself (base layout).
+	 *
+	 * @param array<string, mixed> $snapshot   Snapshot.
+	 * @param string               $status     Display status.
+	 * @param string               $verify_url Verification URL.
+	 * @param string               $hash       Stored `snapshot_hash`.
+	 * @param string               $note       Fallback note.
+	 * @return string
+	 */
+	private static function article( array $snapshot, string $status, string $verify_url, string $hash, string $note ): string {
 		$issuer = (array) ( $snapshot['issuer'] ?? array() );
 		$texts  = (array) ( $snapshot['texts'] ?? array() );
 		$html   = '<article class="ccap-certificate" lang="' . esc_attr( (string) ( $snapshot['locale']['content'] ?? '' ) ) . '">' . $note;
@@ -262,7 +288,7 @@ final class CertificatePages {
 			$html .= '<p class="ccap-footer" dir="auto">' . esc_html( (string) $texts['footer'] ) . '</p>';
 		}
 		$html .= '<p class="ccap-verify">' . esc_html__( 'Verify this certificate at:', 'course-captain' ) . ' <a href="' . esc_url( $verify_url ) . '">' . esc_html( $verify_url ) . '</a></p>';
-		return $html . '</article><p class="ccap-noprint"><button type="button" onclick="window.print()">' . esc_html__( 'Print', 'course-captain' ) . '</button></p>';
+		return $html . '</article>';
 	}
 
 	/**
@@ -392,18 +418,21 @@ final class CertificatePages {
 	}
 
 	/**
-	 * Standalone document with print styles (one A4/Letter page).
+	 * Standalone document with print styles (one page; SET-CC-08 paper format
+	 * from the snapshot, A4 for certificates issued before).
 	 *
 	 * @param string $title   Title.
 	 * @param string $body    Body HTML.
 	 * @param bool   $heading Print the title as `h1`.
+	 * @param string $paper   `a4` or `letter`.
 	 * @return string
 	 */
-	private static function document( string $title, string $body, bool $heading = true ): string {
-		$css = 'body{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere}main{max-width:48rem;margin:0 auto;padding:1rem;box-sizing:border-box}'
+	private static function document( string $title, string $body, bool $heading = true, string $paper = 'a4' ): string {
+		$size = 'letter' === $paper ? 'letter' : 'A4';
+		$css  = 'body{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere}main{max-width:48rem;margin:0 auto;padding:1rem;box-sizing:border-box}'
 			. '.ccap-certificate{border:2px solid #333;padding:1.5rem}.ccap-heading{font-size:1.75rem}.ccap-holder{font-size:1.5rem;font-weight:700}.ccap-course{font-size:1.25rem}'
 			. '.ccap-facts dt{font-weight:700}.ccap-facts dd{margin:0 0 .5rem}a:focus-visible,button:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}'
-			. '@page{size:A4;margin:15mm}@media print{.ccap-noprint{display:none}main{max-width:none;padding:0}.ccap-certificate{break-inside:avoid;page-break-inside:avoid}a{color:inherit;text-decoration:none}}';
+			. '@page{size:' . $size . ';margin:15mm}@media print{.ccap-noprint{display:none}main{max-width:none;padding:0}.ccap-certificate{break-inside:avoid;page-break-inside:avoid}a{color:inherit;text-decoration:none}}';
 		return '<!doctype html><html ' . get_language_attributes() . '><head><meta charset="' . esc_attr( (string) get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, nofollow"><title>' . esc_html( $title . ' – ' . get_bloginfo( 'name' ) ) . '</title><style>' . $css . '</style></head><body><main id="ccap-main">' . ( $heading ? '<h1>' . esc_html( $title ) . '</h1>' : '' ) . $body . '</main></body></html>';
 	}
 }

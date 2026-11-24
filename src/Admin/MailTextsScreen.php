@@ -472,6 +472,8 @@ final class MailTextsScreen {
 		}
 		$list .= '</ul>';
 		$html .= '<h3 id="ccap-mail-placeholders">' . esc_html__( 'Allowed placeholders', 'course-captain' ) . '</h3>' . $list;
+		// SET-CC-06: where the legal links come from; the preview uses the stored addresses.
+		$html .= '<p class="description">' . esc_html__( '{{imprint_url}}, {{terms_url}}, {{withdrawal_url}} and {{privacy_policy_url}} are the links to your legal texts from Settings › General › Legal texts (privacy policy: otherwise the privacy page of WordPress). A link that is not set stays empty. Set links also appear in the footer of every mail.', 'course-captain' ) . '</p>';
 		$html .= '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" id="ccap-mail-form" data-ccap-dirty-form="1"><input type="hidden" name="action" value="' . esc_attr( self::ACTION ) . '"><input type="hidden" name="type" value="' . esc_attr( $type ) . '"><input type="hidden" name="locale" value="' . esc_attr( $locale ) . '">' . wp_nonce_field( self::ACTION, '_wpnonce', true, false );
 		$html .= self::text_field( 'subject', __( 'Subject', 'course-captain' ), sprintf( /* translators: %d: maximum number of characters */ __( 'At most %d characters, no line breaks.', 'course-captain' ), MailTemplates::SUBJECT_MAX ), (string) ( $values['subject'] ?? '' ), $errors['subject'] ?? null, $vars, false );
 		$html .= self::text_field( 'body_html', __( 'Text (HTML)', 'course-captain' ), __( 'Allowed: paragraphs, line breaks, bold, italic, links, lists and headings (h2, h3). Placeholders are inserted as plain text, never as HTML.', 'course-captain' ), (string) ( $values['body_html'] ?? '' ), $errors['body_html'] ?? null, $vars, true );

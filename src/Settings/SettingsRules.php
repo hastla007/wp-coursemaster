@@ -54,6 +54,8 @@ final class SettingsRules {
 				return 'format';
 			case 'email':
 				return 'email';
+			case 'url':
+				return 'url';
 			case 'color':
 				return 'color';
 			case 'ip_list':
@@ -150,6 +152,13 @@ final class SettingsRules {
 			$intervals = (array) $candidate['review_intervals'];
 			if ( (int) $intervals['second'] < (int) $intervals['first'] || (int) $intervals['third'] < (int) $intervals['second'] ) {
 				$errors['review_intervals'] = 'interval_order';
+			}
+		}
+		// SET-CC-08: a fixed certificate language must be installed (the switch would fail silently otherwise).
+		if ( 'certificates' === $tab && ( $check( 'language' ) || $check( 'fixed_locale' ) ) ) {
+			$locale = (string) $candidate['fixed_locale'];
+			if ( ( 'fixed' === $candidate['language'] || '' !== $locale ) && ! in_array( $locale, \CourseCaptain\Kernel\Locale::installed(), true ) ) {
+				$errors['fixed_locale'] = 'locale';
 			}
 		}
 		/**

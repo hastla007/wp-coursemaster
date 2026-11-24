@@ -865,7 +865,8 @@ final class SettingsScreen {
 		if ( ( 'feedback.visibility' === $ui['depends'] && 'never' === $dep )
 			|| ( 'max_attempts' === $ui['depends'] && null === $dep )
 			|| ( 'external_media_mode' === $ui['depends'] && 'click_to_load' !== $dep )
-			|| ( 'login_limit' === $ui['depends'] && 'off' === $dep ) ) {
+			|| ( 'login_limit' === $ui['depends'] && 'off' === $dep )
+			|| ( 'language' === $ui['depends'] && 'fixed' !== $dep ) ) {
 			return __( 'Currently without effect because of the setting it depends on; the stored value is kept.', 'course-captain' );
 		}
 		return '';

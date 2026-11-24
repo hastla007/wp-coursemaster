@@ -56,6 +56,15 @@ final class CertificateSnapshot {
 					'ui'      => array( true, 'string' ),
 				),
 			),
+			// SET-CC-08 (optional, so older snapshots stay valid): paper format and language mode at issuance.
+			'layout'          => array(
+				false,
+				'object',
+				array(
+					'paper'    => array( true, 'string' ),
+					'language' => array( true, 'string' ),
+				),
+			),
 			'issued_at'       => array( true, 'string' ),
 			'issued_by'       => array(
 				true,
