@@ -64,6 +64,10 @@ Die Planung markiert unveränderte Kurs-/Modul-Datensätze ohne eigenes `rights`
 - `test_imported_variant_with_flashcard_is_rejected`: Fragetyp `flashcard`, `flashcards`-Entität, Gegenprobe ohne Karte; Code und Meldung.
 - `test_changed_default_rights_reach_unchanged_records`: Modul folgt dem neuen Standard (Aktion `unchanged`), lokale Kursrechte bleiben; ohne Standard wird er entfernt.
 
+`tests/integration/RightsLearningListsTest.php` (gleiche Gruppe, 2 Tests, Nachtrag 24.11.2026):
+- `test_favorites_and_collections_hide_withheld_questions`: Liste, Sammlung, Modus `favorites` ohne gesperrte Frage; Markieren/Einsortieren 404; Markierung bleibt, Freigabe bringt sie zurück.
+- `test_mistake_training_hides_withheld_questions`: Lernfehler, Prüfungsfehler, `remaining` und Modus `wrong` ohne gesperrte Frage; nach der Freigabe wieder enthalten.
+
 i18n: 10 neue msgids (eine davon mit `_n`), Übersetzungen in `de_DE` (du) und `de_DE_formal` (Sie), .mo neu erzeugt.
 
 ## Offen / Abweichungen
@@ -71,7 +75,7 @@ i18n: 10 neue msgids (eine davon mit `_n`), Übersetzungen in `de_DE` (du) und `
 - **Abhängigkeitsregel:** Gesperrt wird nur, wenn verknüpfte Pflichtmedien vorhanden und alle gesperrt sind. Fehlende Bilder bleiben Sache des Validators (VAL-141).
 - **Bilder im Lektionstext** (Anhänge, die auf `/cc-file/` umgebogen werden) liefert die Dateiroute nicht aus. Im HTML erscheint dafür kein Platzhalter; das Bild bleibt leer.
 - **Export (R0-10 §6.1):** Der Ausschluss fremder Inhalte mit `export.excluded[]` ist nicht Teil dieses Slices; der Exporter liest den Pool weiter vollständig.
-- **Favoriten und Fehlertraining** listen nur IDs. Gesperrte Fragen bleiben dort sichtbar, werden aber nicht ausgeliefert (404 über den Presenter).
+- ~~**Favoriten und Fehlertraining** listen nur IDs. Gesperrte Fragen bleiben dort sichtbar, werden aber nicht ausgeliefert (404 über den Presenter).~~ **Erledigt (24.11.2026):** `Favorites::list()`/`question_ids()` (auch je Sammlung) und `ErrorTraining::wrong()`/`from_exam()` lassen gesperrte Fragen weg; sie zählen auch nicht in `remaining` des Einstiegs „Prüfungsfehler üben“. Markieren und Einsortieren einer gesperrten Frage antwortet 404 wie die Auslieferung. Die Markierung und die Antworten bleiben gespeichert; nach der Freigabe ist die Frage wieder in Liste und Sammlung (`Favorites::accessible_all()`, Rechte in einer Abfrage je Liste). Test `tests/integration/RightsLearningListsTest.php`.
 - Kurs- und Modul-`_ccap_rights` bleiben Metadaten für VAL-100…105. Sie sperren keine ganzen Kurse oder Module.
 - Lokal geleerte Kurs-/Modulrechte (die Meta wird gelöscht) kann ein späterer Import wie bisher wieder mit importierten Standardrechten füllen.
 - Eine gesperrte Pflichtlektion kann nicht abgeschlossen werden. Manuelles Veröffentlichen verhindert VAL-100 (Blocker); bei der Importaktivierung wird es nur gemeldet.
