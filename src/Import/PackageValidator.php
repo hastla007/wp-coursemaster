@@ -17,6 +17,8 @@ defined( 'ABSPATH' ) || exit;
  * - V1 archive: valid, not empty, ≤ 20 000 entries, ≤ 200 MB, unpacked ≤ 800 MB;
  * - V2 zip bomb: ratio ≤ 200 per file > 1 MB, ≤ 50 in total > 50 MB, no zero sizes;
  * - V3 paths: no absolute/backslash/`..`/NUL/drive/hidden segments, no symlinks,
+ *   at most 32 segments of at most 255 bytes, no two entries that differ only
+ *   in case or Unicode normalisation (NFC/NFD, `V3_collision`, SEC-028),
  *   only `manifest.json`, `data/<entity>/<6 digits>.json`, `media/…`;
  * - V4 media: extension allowlist, no dangerous inner extension, declared and
  *   detected MIME match (reported here; the import treats a V4 finding as
@@ -46,6 +48,8 @@ final class PackageValidator {
 	);
 	private const DANGEROUS   = array( 'php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'pht', 'html', 'htm', 'js', 'svg', 'svgz', 'shtml', 'cgi', 'pl', 'py', 'sh', 'exe', 'htaccess' );
 	private const JUNK        = '#(^|/)(__MACOSX/|\.DS_Store$|Thumbs\.db$)#';
+	public const MAX_DEPTH    = 32;
+	public const MAX_SEGMENT  = 255;
 
 	/**
 	 * Validate a package file.
@@ -75,6 +79,7 @@ final class PackageValidator {
 		$total   = 0;
 		$packed  = 0;
 		$entries = array();
+		$folded  = array();
 		for ( $i = 0; $i < $count; $i++ ) {
 			$stat = $zip->statIndex( $i );
 			if ( false === $stat ) {
@@ -105,6 +110,13 @@ final class PackageValidator {
 				$fail( $path_error, $name );
 				continue;
 			}
+			// SEC-028: names that differ only in case or normalisation would overwrite each other on many file systems.
+			$key = self::fold( $name );
+			if ( isset( $folded[ $key ] ) ) {
+				$fail( 'V3_collision', $name );
+				continue;
+			}
+			$folded[ $key ]   = true;
 			$entries[ $name ] = $size;
 		}
 		if ( $total > self::MAX_UNPACKED || ( $total > 52428800 && $total / max( 1, $packed ) > 50 ) ) {
@@ -181,8 +193,12 @@ final class PackageValidator {
 		if ( '' === $name || str_starts_with( $name, '/' ) || str_contains( $name, '\\' ) || str_contains( $name, "\0" ) || 1 === preg_match( '/^[a-z]:/i', $name ) ) {
 			return 'V3_path';
 		}
-		foreach ( explode( '/', $name ) as $segment ) {
-			if ( '..' === $segment || '.' === $segment || str_starts_with( $segment, '.' ) ) {
+		$segments = explode( '/', $name );
+		if ( count( $segments ) > self::MAX_DEPTH ) {
+			return 'V3_path';
+		}
+		foreach ( $segments as $segment ) {
+			if ( '..' === $segment || '.' === $segment || str_starts_with( $segment, '.' ) || strlen( $segment ) > self::MAX_SEGMENT ) {
 				return 'V3_path';
 			}
 		}
@@ -190,6 +206,21 @@ final class PackageValidator {
 			return null;
 		}
 		return 'V3_entry';
+	}
+
+	/**
+	 * Collision key of an entry name: NFC, then case-folded (SEC-028).
+	 * Invalid UTF-8 is compared byte-wise, lower-cased.
+	 *
+	 * @param string $name Entry name.
+	 * @return string
+	 */
+	private static function fold( string $name ): string {
+		if ( class_exists( \Normalizer::class ) ) {
+			$nfc  = \Normalizer::normalize( $name, \Normalizer::FORM_C );
+			$name = false === $nfc ? $name : $nfc;
+		}
+		return 1 === preg_match( '//u', $name ) ? mb_strtolower( $name, 'UTF-8' ) : strtolower( $name );
 	}
 
 	/**
