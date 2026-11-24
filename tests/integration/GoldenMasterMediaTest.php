@@ -318,6 +318,7 @@ final class GoldenMasterMediaTest extends SchemaTestCase {
 	 * entry.
 	 *
 	 * @group GM-128
+	 * @group RBAC-076
 	 */
 	public function test_GM_128_media_types_and_quarantine(): void {
 		$system  = 'cc-fx-gm-128';
