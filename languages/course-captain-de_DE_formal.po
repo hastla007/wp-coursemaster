@@ -12595,3 +12595,95 @@ msgstr "Rechtsprüfung:"
 
 msgid "Whether this is required for your website and what it must contain is your decision. Course Captain does not check it."
 msgstr "Ob das für Ihre Website Pflicht ist und was es enthalten muss, entscheiden Sie. Course Captain prüft das nicht."
+
+# SET-CC kompetenz: three progress dimensions (Kap. 28)
+
+msgid "Competency evidence"
+msgstr "Kompetenznachweis"
+
+msgid "Competency evidence counts only a passed exam whose rule names the learning objective, or a certificate issued from such an exam. Worked-through lessons, practice results or purchases never count. Each piece of evidence keeps the exam version, date and validity it was taken with; later course changes do not alter it."
+msgstr "Als Kompetenznachweis zählt nur eine bestandene Prüfung, deren Regel das Lernziel nennt, oder ein daraus ausgestelltes Zertifikat. Bearbeitete Lektionen, Übungsergebnisse oder Käufe zählen nie. Jeder Nachweis behält Prüfungsversion, Datum und Gültigkeit, mit denen er erbracht wurde; spätere Kursänderungen ändern ihn nicht."
+
+msgid "Evidenced by a certificate based on the exam of %1$s with %2$s of %3$s points."
+msgstr "Nachgewiesen durch ein Zertifikat auf Grundlage der Prüfung vom %1$s mit %2$s von %3$s Punkten."
+
+msgid "Evidenced by a passed exam (rule version %1$s) on %2$s with %3$s of %4$s points."
+msgstr "Nachgewiesen durch eine bestandene Prüfung (Regelversion %1$s) am %2$s mit %3$s von %4$s Punkten."
+
+msgid "Expired on %s."
+msgstr "Abgelaufen am %s."
+
+msgid "Learning objective"
+msgstr "Lernziel"
+
+msgid "Learning objectives and evidence"
+msgstr "Lernziele und Nachweise"
+
+msgid "Mastered"
+msgstr "Beherrscht"
+
+msgid "Mastered counts practice questions in the stage \"Consolidated\": three correct answers in a row with spacing make a question secure, one more correct answer on a later review day consolidates it. Only practice answers count; exam answers and opened lessons do not."
+msgstr "Beherrscht zählt Übungsfragen in der Stufe „Gefestigt“: Drei richtige Antworten in Folge mit Abstand machen eine Frage sicher, eine weitere richtige Antwort an einem späteren Wiederholungstag festigt sie. Es zählen nur Übungsantworten, keine Prüfungsantworten und keine geöffneten Lektionen."
+
+msgid "No data yet: no practice question has been answered."
+msgstr "Noch keine Daten: Es wurde noch keine Übungsfrage beantwortet."
+
+msgid "No expiry date."
+msgstr "Ohne Ablaufdatum."
+
+msgid "No required lessons counted yet."
+msgstr "Noch keine Pflichtlektionen gezählt."
+
+msgid "Not evidenced: no passed exam or certificate names this learning objective yet."
+msgstr "Nicht nachgewiesen: Noch keine bestandene Prüfung und kein Zertifikat nennt dieses Lernziel."
+
+msgid "Progress overview"
+msgstr "Fortschrittsübersicht"
+
+msgid "Revoked: the attempt was voided or the certificate was revoked."
+msgstr "Widerrufen: Der Versuch wurde annulliert oder das Zertifikat widerrufen."
+
+msgid "This course names no learning objectives."
+msgstr "Dieser Kurs nennt keine Lernziele."
+
+msgid "Valid until %s."
+msgstr "Gültig bis %s."
+
+msgid "Why this value:"
+msgstr "Warum dieser Wert:"
+
+msgid "Worked through"
+msgstr "Bearbeitet"
+
+msgid "Worked through counts the required lessons whose completion rule is met, for example viewed, confirmed, submitted or quiz passed. With access to single modules only, only those modules count. Practice results and evidence never change this value."
+msgstr "Bearbeitet zählt die Pflichtlektionen, deren Abschlussregel erfüllt ist, zum Beispiel angesehen, bestätigt, abgegeben oder Quiz bestanden. Bei Zugang nur zu einzelnen Modulen zählen nur diese Module. Übungsergebnisse und Nachweise ändern diesen Wert nie."
+
+msgid "Worked through, mastered and evidenced are counted separately; none of them changes the others."
+msgstr "Bearbeitet, beherrscht und nachgewiesen werden getrennt gezählt; keiner der Werte ändert die anderen."
+
+msgid "evidence expired"
+msgstr "Nachweis abgelaufen"
+
+msgid "evidence revoked"
+msgstr "Nachweis widerrufen"
+
+msgid "evidenced"
+msgstr "nachgewiesen"
+
+msgid "not evidenced"
+msgstr "nicht nachgewiesen"
+
+msgid "%1$s of %2$s learning objective evidenced."
+msgid_plural "%1$s of %2$s learning objectives evidenced."
+msgstr[0] "%1$s von %2$s Lernziel nachgewiesen."
+msgstr[1] "%1$s von %2$s Lernzielen nachgewiesen."
+
+msgid "%1$s of %2$s practice question consolidated (%3$s); %4$s secure, %5$s due for review."
+msgid_plural "%1$s of %2$s practice questions consolidated (%3$s); %4$s secure, %5$s due for review."
+msgstr[0] "%1$s von %2$s Übungsfrage gefestigt (%3$s); %4$s sicher, %5$s zur Wiederholung fällig."
+msgstr[1] "%1$s von %2$s Übungsfragen gefestigt (%3$s); %4$s sicher, %5$s zur Wiederholung fällig."
+
+msgid "%1$s of %2$s required lesson completed (%3$s)."
+msgid_plural "%1$s of %2$s required lessons completed (%3$s)."
+msgstr[0] "%1$s von %2$s Pflichtlektion abgeschlossen (%3$s)."
+msgstr[1] "%1$s von %2$s Pflichtlektionen abgeschlossen (%3$s)."

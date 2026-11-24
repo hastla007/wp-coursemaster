@@ -408,6 +408,7 @@ final class ExamSnapshotImmutabilityTest extends SchemaTestCase {
 		self::assertSame(
 			array(
 				'state'            => 'evidenced',
+				'source_type'      => 'exam_session',
 				'source'           => (string) $row['uid'],
 				'rule_version'     => $version,
 				'evaluated_at'     => '2026-11-20 10:00:00',
