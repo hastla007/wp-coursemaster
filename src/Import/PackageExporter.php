@@ -14,6 +14,7 @@ use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Course\ObjectIdentity;
+use CourseCaptain\Ops\RestoreCheck;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Question\QuestionRepository;
@@ -138,7 +139,7 @@ final class PackageExporter {
 						'summary'       => $module->post_excerpt,
 						'lessons'       => $lessons,
 						'question_pool' => $pool,
-					)
+					) + self::rights( $link['module_id'] )
 				);
 			}
 			$out['courses'][] = self::sealed(
@@ -149,7 +150,7 @@ final class PackageExporter {
 					'summary'          => $course->post_excerpt,
 					'description_html' => $course->post_content,
 					'modules'          => $modules,
-				)
+				) + self::rights( $course_id )
 			);
 		}
 		return $out;
@@ -164,10 +165,11 @@ final class PackageExporter {
 	 * @param string|null                                             $file    Target path (default: packages folder).
 	 * @param int                                                     $per_file Records per data file (R0-10 §1.1: ≤ 5 000).
 	 * @param array<string, string|array{data: string, mime: string}> $media Media files `media/…` → content (MIME from the extension) or content with declared MIME.
+	 * @param bool                                                    $own_export Export of this site's courses: the manifest carries `source.exported_from_site` (installation UUID, D8).
 	 * @return string Path.
 	 * @throws CourseException When the archive cannot be written.
 	 */
-	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE, array $media = array() ): string {
+	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE, array $media = array(), bool $own_export = false ): string {
 		$files  = array();
 		$mimes  = array();
 		$counts = array();
@@ -213,6 +215,10 @@ final class PackageExporter {
 				'not_converted' => array(),
 			),
 		);
+		if ( $own_export ) {
+			// D8 (R0-10 §2.2): a re-import on this site is recognised as own content.
+			$manifest['source']['exported_from_site'] = self::installation_uuid();
+		}
 		foreach ( $files as $path => $data ) {
 			$manifest['files'][] = array(
 				'path'      => $path,
@@ -232,6 +238,34 @@ final class PackageExporter {
 		}
 		$zip->close();
 		return $file;
+	}
+
+	/**
+	 * Installation UUID of this site (R0-10 §2.2, R0-38 §3.3), created on
+	 * first use. It identifies the site only, never a person.
+	 *
+	 * @return string
+	 */
+	public static function installation_uuid(): string {
+		$uuid = get_option( RestoreCheck::INSTALLATION_UUID );
+		if ( is_string( $uuid ) && 1 === preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $uuid ) ) {
+			return $uuid;
+		}
+		$uuid = strtolower( wp_generate_uuid4() );
+		update_option( RestoreCheck::INSTALLATION_UUID, $uuid, false );
+		return $uuid;
+	}
+
+	/**
+	 * `rights` of a course or module record from `_ccap_rights` (D8);
+	 * nothing when no status is stored.
+	 *
+	 * @param int $post_id Course or module.
+	 * @return array<string, array<string, string>>
+	 */
+	private static function rights( int $post_id ): array {
+		$meta = Rights::course_meta( $post_id );
+		return isset( $meta['status'] ) ? array( 'rights' => $meta ) : array();
 	}
 
 	/**

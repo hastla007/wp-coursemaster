@@ -87,6 +87,16 @@ final class ImportRunner {
 	public const MEDIA_PENDING_RULES = array( 'VAL-027' );
 
 	/**
+	 * Rights blockers reported as course findings on activation, not held
+	 * (R0-38 §3.2 step 4): the rights were confirmed on approval, the
+	 * affected content stays hidden from learners until it is released on
+	 * "Rights & release"; publishing by hand still blocks (VAL-100, D8).
+	 *
+	 * @var list<string>
+	 */
+	public const RIGHTS_REPORTED_RULES = array( 'VAL-100' );
+
+	/**
 	 * Fault injection for tests (COURSE_CAPTAIN_TESTING only).
 	 *
 	 * @var (\Closure(string, int): void)|null
@@ -995,7 +1005,7 @@ final class ImportRunner {
 						if ( ! in_array( $found['severity'], array( 'blocker', 'warning' ), true ) ) {
 							continue;
 						}
-						$pending = in_array( $found['code'], self::MEDIA_PENDING_RULES, true );
+						$pending = in_array( $found['code'], self::MEDIA_PENDING_RULES, true ) || in_array( $found['code'], self::RIGHTS_REPORTED_RULES, true );
 						if ( 'blocker' === $found['severity'] && ! $pending ) {
 							++$blockers;
 						}

@@ -96,6 +96,17 @@ final class CoursePublisher {
 	}
 
 	/**
+	 * Whether a publish through this service is switching the post status
+	 * (callers validated the course already: authoring with acknowledgement,
+	 * import activation with its own handling of findings).
+	 *
+	 * @return bool
+	 */
+	public static function publishing(): bool {
+		return self::$busy;
+	}
+
+	/**
 	 * Publish a course (M-04).
 	 *
 	 * @param Actor       $actor        Actor.

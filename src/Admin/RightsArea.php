@@ -33,6 +33,23 @@ final class RightsArea {
 	public const OPS    = array( 'save_meta', 'release', 'override' );
 
 	/**
+	 * Address of the area for one course (jump target of R0-22 VAL-100…105).
+	 *
+	 * @param int $course Course.
+	 * @return string
+	 */
+	public static function url( int $course ): string {
+		return add_query_arg(
+			array(
+				'page'   => ImportScreen::SLUG,
+				'area'   => 'rights',
+				'course' => $course,
+			),
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
 	 * Admin-post entry point.
 	 *
 	 * @return void

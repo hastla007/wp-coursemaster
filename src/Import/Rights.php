@@ -42,6 +42,20 @@ final class Rights {
 	public const COURSE_FIELDS = array( 'status', 'owner', 'license', 'license_url', 'attribution', 'source_url', 'valid_until', 'note' );
 
 	/**
+	 * Licences that require an attribution (R0-22 VAL-105 licence registry):
+	 * Creative Commons BY family (CC-BY, CC-BY-SA, CC-BY-NC …), Open Data
+	 * Commons Attribution and Datenlizenz Deutschland – Namensnennung.
+	 */
+	public const ATTRIBUTION_LICENSES = '/^(cc[\s_-]*by|odc[\s_-]*by|dl[\s_-]*de[\s\/_-]*by)/i';
+
+	/**
+	 * Own-content verdict per source system (cache of {@see own_system()}).
+	 *
+	 * @var array<string, bool>
+	 */
+	private array $own_systems = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Database $db Database access.
@@ -251,7 +265,7 @@ final class Rights {
 				'object_id'     => $id,
 				'status'        => (string) $row['status'],
 				'rights'        => (string) ( $row['override_value'] ?? $row['rights_status'] ?? 'own' ),
-				'foreign'       => '' !== $system && 'local' !== $system,
+				'foreign'       => ! $this->own_system( $system ),
 				'source_system' => $system,
 			);
 		}
@@ -412,10 +426,46 @@ final class Rights {
 	 */
 	public function set_course_meta( Actor $actor, int $course_id, array $input, string $reason ): array {
 		$this->authorize_course( $actor, $course_id );
+		list( $value, $errors ) = self::clean_meta( $input );
+		$reason                 = sanitize_textarea_field( $reason );
+		if ( '' === trim( $reason ) ) {
+			$errors['reason'] = 'required';
+		}
+		if ( array() !== $errors ) {
+			return $errors;
+		}
+		$before = self::course_meta( $course_id );
+		if ( array() === $value ) {
+			delete_post_meta( $course_id, self::COURSE_META );
+		} else {
+			update_post_meta( $course_id, self::COURSE_META, wp_slash( (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		}
+		AuditLog::write(
+			$this->db,
+			$actor,
+			'course_rights_saved',
+			'course',
+			(string) $course_id,
+			$reason,
+			array(
+				'before' => $before,
+				'after'  => $value,
+			)
+		);
+		return array();
+	}
+
+	/**
+	 * Sanitised rights metadata and field errors (form and import share the rules).
+	 *
+	 * @param array<string, mixed> $input Fields of {@see COURSE_FIELDS}.
+	 * @return array{0: array<string, string>, 1: array<string, string>} Value, errors (field → code).
+	 */
+	public static function clean_meta( array $input ): array {
 		$errors = array();
 		$value  = array();
 		foreach ( self::COURSE_FIELDS as $field ) {
-			$raw = trim( (string) ( $input[ $field ] ?? '' ) );
+			$raw = is_scalar( $input[ $field ] ?? null ) ? trim( (string) $input[ $field ] ) : '';
 			if ( '' === $raw ) {
 				continue;
 			}
@@ -446,32 +496,84 @@ final class Rights {
 			}
 			$value[ $field ] = $raw;
 		}
-		$reason = sanitize_textarea_field( $reason );
-		if ( '' === trim( $reason ) ) {
-			$errors['reason'] = 'required';
+		return array( $value, $errors );
+	}
+
+	/**
+	 * Store the rights of an imported course or module as `_ccap_rights`
+	 * (R0-10 §2.1). Rights saved locally on the "Rights & release" page
+	 * win and survive every re-import (like overrides); imported metadata
+	 * is marked with `_source = import` and replaced or removed by the
+	 * next import.
+	 *
+	 * @param int                       $post_id Course or module.
+	 * @param array<string, mixed>|null $rights  Resolved rights (`status`, `owner`, `license` fields) or null for none.
+	 * @return bool Whether the meta was written or removed.
+	 */
+	public static function import_meta( int $post_id, ?array $rights ): bool {
+		$raw = json_decode( (string) get_post_meta( $post_id, self::COURSE_META, true ), true );
+		if ( is_array( $raw ) && array() !== $raw && 'import' !== ( $raw['_source'] ?? '' ) ) {
+			return false;
 		}
-		if ( array() !== $errors ) {
-			return $errors;
+		if ( null === $rights ) {
+			if ( is_array( $raw ) ) {
+				delete_post_meta( $post_id, self::COURSE_META );
+				return true;
+			}
+			return false;
 		}
-		$before = self::course_meta( $course_id );
-		if ( array() === $value ) {
-			delete_post_meta( $course_id, self::COURSE_META );
-		} else {
-			update_post_meta( $course_id, self::COURSE_META, wp_slash( (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		list( $value ) = self::clean_meta( array( 'status' => $rights['status'] ?? '', 'owner' => $rights['owner'] ?? '' ) + (array) ( $rights['license'] ?? array() ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short input.
+		if ( ! isset( $value['status'] ) ) {
+			$value['status'] = 'unknown';
 		}
-		AuditLog::write(
-			$this->db,
-			$actor,
-			'course_rights_saved',
-			'course',
-			(string) $course_id,
-			$reason,
-			array(
-				'before' => $before,
-				'after'  => $value,
-			)
-		);
-		return array();
+		$value['_source'] = 'import';
+		update_post_meta( $post_id, self::COURSE_META, wp_slash( (string) wp_json_encode( $value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) ) );
+		return true;
+	}
+
+	/**
+	 * Shape check of a package `rights` object (R0-10 §1.5 `common.rights`):
+	 * object with a valid `status`, only known keys, https URLs, ISO date.
+	 *
+	 * @param mixed $rights Rights value of a record or `default_rights`.
+	 * @return bool
+	 */
+	public static function valid_package_rights( $rights ): bool {
+		if ( ! is_array( $rights ) || ! in_array( (string) ( $rights['status'] ?? '' ), self::STATUSES, true ) ) {
+			return false;
+		}
+		if ( array() !== array_diff( array_keys( $rights ), self::COURSE_FIELDS ) ) {
+			return false;
+		}
+		foreach ( $rights as $key => $value ) {
+			if ( 'status' === $key || null === $value ) {
+				continue;
+			}
+			if ( ! is_string( $value ) ) {
+				return false;
+			}
+			$max = array(
+				'owner'   => 255,
+				'license' => 64,
+			)[ $key ] ?? 0;
+			if ( ( $max > 0 && mb_strlen( $value ) > $max )
+				|| ( in_array( $key, array( 'license_url', 'source_url' ), true ) && ! str_starts_with( $value, 'https://' ) )
+				|| ( 'valid_until' === $key && ! self::iso_date( $value ) ) ) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Whether a string is a real ISO date `YYYY-MM-DD`.
+	 *
+	 * @param string $value Value.
+	 * @return bool
+	 */
+	private static function iso_date( string $value ): bool {
+		$date = \DateTimeImmutable::createFromFormat( '!Y-m-d', $value );
+		return false !== $date && $date->format( 'Y-m-d' ) === $value;
 	}
 
 	/**
@@ -505,6 +607,155 @@ final class Rights {
 			break;
 		}
 		return $out;
+	}
+
+	/**
+	 * Whether a manifest describes this site's own content (R0-10 §2.2):
+	 * source system `local`, or `source.exported_from_site` is the
+	 * installation UUID of this site (re-import of an own export).
+	 *
+	 * @param array<string, mixed> $manifest Manifest.
+	 * @return bool
+	 */
+	public static function own_manifest( array $manifest ): bool {
+		$site = (string) get_option( 'course_captain_installation_uuid', '' );
+		$from = (string) ( $manifest['source']['exported_from_site'] ?? '' );
+		return 'local' === ( $manifest['source']['system'] ?? '' ) || ( '' !== $site && $site === $from );
+	}
+
+	/**
+	 * Whether content of a source system is own content: locally created
+	 * (`local` or no source) or imported from a package this site exported
+	 * (newest package of that source system, {@see own_manifest()}).
+	 *
+	 * @param string $system Source system.
+	 * @return bool
+	 */
+	public function own_system( string $system ): bool {
+		if ( '' === $system || 'local' === $system ) {
+			return true;
+		}
+		if ( ! isset( $this->own_systems[ $system ] ) ) {
+			$own     = false;
+			$batches = $this->db->table( 'ccap_import_batch' );
+			foreach ( $this->db->rows( "SELECT manifest FROM `{$batches}` WHERE manifest IS NOT NULL ORDER BY id DESC LIMIT 200" ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name.
+				$manifest = (array) json_decode( (string) $row['manifest'], true );
+				if ( ( $manifest['source']['system'] ?? '' ) === $system ) {
+					$own = self::own_manifest( $manifest );
+					break;
+				}
+			}
+			$this->own_systems[ $system ] = $own;
+		}
+		return $this->own_systems[ $system ];
+	}
+
+	/**
+	 * Whether a licence name requires an attribution (VAL-105).
+	 *
+	 * @param string $license Licence name, e.g. `CC-BY-SA-4.0`.
+	 * @return bool
+	 */
+	public static function requires_attribution( string $license ): bool {
+		return 1 === preg_match( self::ATTRIBUTION_LICENSES, trim( $license ) );
+	}
+
+	/**
+	 * Everything of a course that carries rights, for the publish validator
+	 * (R0-22 VAL-100…105): the rights metadata of the course and its
+	 * modules (`_ccap_rights`), the questions and flashcards of the module
+	 * pools (effective status incl. overrides) and the media linked to the
+	 * course, its modules, lessons and current question revisions.
+	 *
+	 * `required` = part of the mandatory path (the course itself, required
+	 * modules and everything in them); `foreign` per R0-10 §2.2; `expired`
+	 * = `valid_until` lies before today.
+	 *
+	 * @param int $course_id Course.
+	 * @return list<array{type: string, id: int, title: string, where: string, status: string, foreign: bool, required: bool, expired: bool, license: string, attribution: string}>
+	 */
+	public function course_rights_items( int $course_id ): array {
+		$today  = gmdate( 'Y-m-d', $this->db->time() );
+		$out    = array();
+		$system = function ( string $type, int $id ): string {
+			return (string) $this->db->scalar( $this->db->prepare( 'SELECT source_system FROM `' . $this->db->table( 'ccap_source_map' ) . '` WHERE object_type = %s AND object_id = %d LIMIT 1', $type, $id ) );
+		};
+		$item   = static function ( string $type, int $id, string $title, string $where, string $status, bool $foreign, bool $required, array $license ) use ( $today ): array {
+			$until = (string) ( $license['valid_until'] ?? '' );
+			return array(
+				'type'        => $type,
+				'id'          => $id,
+				'title'       => $title,
+				'where'       => $where,
+				'status'      => in_array( $status, self::STATUSES, true ) ? $status : 'unknown',
+				'foreign'     => $foreign,
+				'required'    => $required,
+				'expired'     => '' !== $until && 1 === preg_match( '/^\d{4}-\d{2}-\d{2}$/', $until ) && $until < $today,
+				'license'     => is_scalar( $license['license'] ?? null ) ? (string) $license['license'] : '',
+				'attribution' => is_scalar( $license['attribution'] ?? null ) ? trim( (string) $license['attribution'] ) : '',
+			);
+		};
+		$media  = function ( string $object_type, int $object_id, string $where, bool $required ) use ( &$out, $item ): void {
+			$rows = $this->db->rows( $this->db->prepare( 'SELECT m.id, m.source_system, m.package_path, m.storage_key, m.alt_text, m.rights_status, m.license_reference FROM `' . $this->db->table( 'ccap_content_media' ) . '` cm JOIN `' . $this->db->table( 'ccap_media' ) . "` m ON m.id = cm.media_id WHERE cm.object_type = %s AND cm.object_id = %d AND m.status = 'active' ORDER BY cm.sort_order, m.id", $object_type, $object_id ) );
+			foreach ( $rows as $row ) {
+				$id   = (int) $row['id'];
+				$key  = 'media:' . $id;
+				$name = basename( (string) ( $row['package_path'] ?? '' ) );
+				$name = '' !== $name ? $name : basename( (string) ( $row['storage_key'] ?? '' ) );
+				$name = '' !== $name ? $name : (string) ( $row['alt_text'] ?? '' );
+				if ( isset( $out[ $key ] ) ) {
+					$out[ $key ]['required'] = $out[ $key ]['required'] || $required;
+					continue;
+				}
+				$license     = (array) json_decode( (string) ( $row['license_reference'] ?? '' ), true );
+				$out[ $key ] = $item( 'media', $id, $name, $where, (string) $row['rights_status'], ! $this->own_system( (string) $row['source_system'] ), $required, $license );
+			}
+		};
+		$title  = (string) get_the_title( $course_id );
+		$meta   = self::course_meta( $course_id );
+		if ( isset( $meta['status'] ) ) {
+			$out[ 'course:' . $course_id ] = $item( 'course', $course_id, $title, $title, $meta['status'], ! $this->own_system( $system( 'course', $course_id ) ), true, $meta );
+		}
+		$media( 'course', $course_id, $title, true );
+		$q   = $this->db->table( 'ccap_question' );
+		$rev = $this->db->table( 'ccap_question_revision' );
+		$ovr = $this->db->table( 'ccap_override' );
+		$mq  = $this->db->table( 'ccap_module_question' );
+		foreach ( \CourseCaptain\Course\CourseStructure::current()->modules( $course_id ) as $link ) {
+			$module   = (int) $link['module_id'];
+			$required = (bool) $link['required'];
+			$mtitle   = (string) get_the_title( $module );
+			$mmeta    = self::course_meta( $module );
+			if ( isset( $mmeta['status'] ) ) {
+				$key         = 'module:' . $module;
+				$out[ $key ] = isset( $out[ $key ] ) ? array_merge( $out[ $key ], array( 'required' => $out[ $key ]['required'] || $required ) ) : $item( 'module', $module, $mtitle, $mtitle, $mmeta['status'], ! $this->own_system( $system( 'module', $module ) ), $required, $mmeta );
+			}
+			$media( 'module', $module, $mtitle, $required );
+			foreach ( \CourseCaptain\Course\CourseStructure::current()->lessons( $module ) as $lesson ) {
+				if ( 'publish' === $lesson->post_status ) {
+					$media( 'lesson', (int) $lesson->ID, $lesson->post_title, $required );
+				}
+			}
+			$rows = $this->db->rows(
+				$this->db->prepare(
+					"SELECT q.id, q.current_revision_id, r.question_type, r.question_text, r.rights_status, r.license_reference, o.value AS override_value, (SELECT sm.source_system FROM `{$this->db->table( 'ccap_source_map' )}` sm WHERE sm.object_id = q.id AND sm.object_type IN ('question', 'flashcard') LIMIT 1) AS source_system FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id LEFT JOIN `{$ovr}` o ON o.object_id = q.id AND o.object_type IN ('question', 'flashcard') AND o.field = %s WHERE mq.module_id = %d AND q.status <> 'archived' ORDER BY q.id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table names.
+					self::FIELD,
+					$module
+				)
+			);
+			foreach ( $rows as $row ) {
+				$id  = (int) $row['id'];
+				$key = 'question:' . $id;
+				if ( isset( $out[ $key ] ) ) {
+					$out[ $key ]['required'] = $out[ $key ]['required'] || $required;
+					continue;
+				}
+				$type        = 'flashcard' === $row['question_type'] ? 'flashcard' : 'question';
+				$out[ $key ] = $item( $type, $id, mb_substr( wp_strip_all_tags( (string) $row['question_text'] ), 0, 60 ), $mtitle, (string) ( $row['override_value'] ?? $row['rights_status'] ), ! $this->own_system( (string) ( $row['source_system'] ?? '' ) ), $required, (array) json_decode( (string) ( $row['license_reference'] ?? '' ), true ) );
+				$media( 'question_revision', (int) $row['current_revision_id'], $mtitle, $required );
+			}
+		}
+		return array_values( $out );
 	}
 
 	/**

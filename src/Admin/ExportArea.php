@@ -95,7 +95,7 @@ final class ExportArea {
 		$actor  = Actor::user( $user_id );
 		try {
 			$records       = PackageExporter::records( $actor, $courses );
-			$out['file']   = PackageExporter::write( $records, $system, $title, null, '' === $per_file ? PackageExporter::RECORDS_PER_FILE : (int) $per_file );
+			$out['file']   = PackageExporter::write( $records, $system, $title, null, '' === $per_file ? PackageExporter::RECORDS_PER_FILE : (int) $per_file, array(), true );
 			$out['counts'] = array_map( 'count', $records );
 		} catch ( CourseException $e ) {
 			$out['result'] = $e->error_code;

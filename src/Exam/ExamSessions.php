@@ -447,10 +447,11 @@ final class ExamSessions {
 		$questions = array();
 		$reduced   = false;
 		$revisions = array();
+		// D2 (B-03): flashcards are never drawn into an exam (scorable pool only).
 		foreach ( $rule['blueprints'] as $blueprint ) {
 			$module     = (int) $blueprint['module_id'];
 			$meta       = (array) json_decode( (string) $blueprint['rules'], true );
-			$current    = $this->questions->pool_revisions( $module );
+			$current    = $this->questions->pool_revisions( $module, true );
 			$revisions += $current;
 			$pool       = $randomizer->shuffle( array_keys( $current ), 'pool:' . $module );
 			$count      = (int) $blueprint['question_count'];
@@ -522,7 +523,11 @@ final class ExamSessions {
 		if ( null === $variant || (int) $variant['course_id'] !== (int) $rule['course_id'] ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown variant.', 404 );
 		}
-		$rows      = $this->db->rows( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d ORDER BY position', $variant_id ) );
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d ORDER BY position', $variant_id ) );
+		// D2 (B-03): a variant holding a flashcard (e.g. a card changed its type or came with an import) cannot start.
+		if ( array() !== $this->questions->flashcards( array_map( static fn( array $r ): int => (int) $r['question_id'], $rows ) ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'variant_flashcard', 422 );
+		}
 		$relations = new Relations( $this->db );
 		$questions = array();
 		foreach ( $rows as $row ) {

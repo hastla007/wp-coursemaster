@@ -780,6 +780,10 @@ final class ImportService {
 			if ( null === $rule && 'flashcards' === $entity ) {
 				$rule = self::card_error( $record );
 			}
+			// D8: course and module `rights` follow `common.rights` (R0-10 §1.5).
+			if ( null === $rule && in_array( $entity, array( 'courses', 'modules' ), true ) && array_key_exists( 'rights', $record ) && ! Rights::valid_package_rights( $record['rights'] ) ) {
+				$rule = 'schema';
+			}
 			if ( null === $rule && 'media' === $entity ) {
 				$rule = ImportMedia::record_error( $record, $context['files'], $context['rejected'] );
 			}
@@ -877,6 +881,9 @@ final class ImportService {
 				$payload = $written['payload'];
 			} else {
 				$object = $this->write_object( $actor, $system, $type, $record, $object );
+			}
+			if ( in_array( $type, array( 'course', 'module' ), true ) ) {
+				$this->write_post_rights( $object, $record, $package );
 			}
 			if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 				$revision = $this->saved[ $object ] ?? (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $object ) );
@@ -1282,6 +1289,26 @@ final class ImportService {
 	}
 
 	/**
+	 * Store the rights of an imported course or module (R0-10 §2.1 post
+	 * meta `_ccap_rights`): the record's `rights`, else the package's
+	 * `default_rights`, else none. Foreign `own` becomes `licensed` with
+	 * the publisher as owner (E-62); locally saved rights stay.
+	 *
+	 * @param int                  $post_id Course or module.
+	 * @param array<string, mixed> $record  Record.
+	 * @param string               $package Package ID.
+	 * @return void
+	 */
+	private function write_post_rights( int $post_id, array $record, string $package ): void {
+		$rights = is_array( $record['rights'] ?? null ) ? $record['rights'] : null;
+		if ( null === $rights ) {
+			$default = $this->package_manifest( $package )['default_rights'] ?? null;
+			$rights  = Rights::valid_package_rights( $default ) ? (array) $default : null;
+		}
+		Rights::import_meta( $post_id, null === $rights ? null : $this->resolve_rights( $rights, $package ) );
+	}
+
+	/**
 	 * Rights of a record (R0-10 §2.1): without rights the record is `own`
 	 * of the source; foreign `own` becomes `licensed` with the publisher as
 	 * owner (E-62); an unknown status counts as `unknown`.
@@ -1327,10 +1354,7 @@ final class ImportService {
 	 * @return bool
 	 */
 	private function own_package( string $package ): bool {
-		$manifest = $this->package_manifest( $package );
-		$site     = (string) get_option( 'course_captain_installation_uuid', '' );
-		$from     = (string) ( $manifest['source']['exported_from_site'] ?? '' );
-		return 'local' === ( $manifest['source']['system'] ?? '' ) || ( '' !== $site && $site === $from );
+		return Rights::own_manifest( $this->package_manifest( $package ) );
 	}
 
 	/**

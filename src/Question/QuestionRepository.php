@@ -217,16 +217,22 @@ final class QuestionRepository {
 	 * Deliverable pool with the current revision per question, in pool order
 	 * (exam draw: no second read of the current revisions, R0-14 OP-05).
 	 *
-	 * @param int $module_id Module.
+	 * With `$scorable` only questions that can be scored in an exam or a
+	 * scored quiz: flashcards are never drawn there (owner decision D2,
+	 * B-03); they stay in the pool for flashcard lessons and practice.
+	 *
+	 * @param int  $module_id Module.
+	 * @param bool $scorable  Leave out flashcards.
 	 * @return array<int, int> Question => current revision.
 	 */
-	public function pool_revisions( int $module_id ): array {
+	public function pool_revisions( int $module_id, bool $scorable = false ): array {
 		$mq   = $this->db->table( 'ccap_module_question' );
 		$q    = $this->db->table( 'ccap_question' );
 		$rev  = $this->db->table( 'ccap_question_revision' );
+		$type = $scorable ? $this->db->prepare( ' AND r.question_type <> %s', QuestionTypes::FLASHCARD ) : '';
 		$rows = $this->db->rows(
 			$this->db->prepare(
-				"SELECT q.id, q.current_revision_id FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s) ORDER BY COALESCE(mq.sort_order, 2147483647), q.id",
+				"SELECT q.id, q.current_revision_id FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s){$type} ORDER BY COALESCE(mq.sort_order, 2147483647), q.id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared fragment.
 				$module_id,
 				gmdate( 'Y-m-d', $this->db->time() ),
 				gmdate( 'Y-m-d', $this->db->time() )
@@ -237,6 +243,23 @@ final class QuestionRepository {
 			$out[ (int) $row['id'] ] = (int) $row['current_revision_id'];
 		}
 		return $out;
+	}
+
+	/**
+	 * The flashcards among questions (type of the current revision, D2).
+	 *
+	 * @param array $question_ids Questions.
+	 * @phpstan-param list<int> $question_ids
+	 * @return list<int>
+	 */
+	public function flashcards( array $question_ids ): array {
+		$ids = array_values( array_unique( array_filter( array_map( 'intval', $question_ids ), static fn( int $id ): bool => $id > 0 ) ) );
+		if ( array() === $ids ) {
+			return array();
+		}
+		$q   = $this->db->table( 'ccap_question' );
+		$rev = $this->db->table( 'ccap_question_revision' );
+		return array_map( 'intval', $this->db->wpdb()->get_col( $this->db->prepare( "SELECT q.id FROM `{$q}` q JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE r.question_type = %s AND q.id IN (" . implode( ',', $ids ) . ') ORDER BY q.id', QuestionTypes::FLASHCARD ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list and table names.
 	}
 
 	/**
