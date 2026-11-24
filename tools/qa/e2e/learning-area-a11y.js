@@ -6,7 +6,7 @@
 //   CCAP_DUMP_DIR=<dir> vendor/bin/phpunit -c phpunit-integration.xml.dist --filter A11yI18nTest
 //   AXE_PATH=<path to axe.min.js> enables the axe-core run (tags wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa);
 //   without it only the DOM/keyboard checks run (axe-core is not a repository dependency yet).
-const { chromium } = require( 'playwright' );
+const { launch } = require( './lib' );
 const path = require( 'path' );
 const fs = require( 'fs' );
 
@@ -72,7 +72,7 @@ async function tabWalk( page, dir, name ) {
 ( async () => {
 	const dir = process.argv[ 2 ];
 	const axePath = process.env.AXE_PATH && fs.existsSync( process.env.AXE_PATH ) ? process.env.AXE_PATH : null;
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const context = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
 	const page = await context.newPage();
 	const errors = [];

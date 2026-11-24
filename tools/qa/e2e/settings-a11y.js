@@ -1,5 +1,5 @@
 // SET-CC-21 / SET-CC-P5: accessibility acceptance of the settings surfaces on a live site
-// (started by settings-a11y.sh) in Chromium:
+// (started by settings-a11y.sh) in the browser of CCAP_E2E_BROWSER (default chromium):
 //
 //   - every settings tab, the setup assistant (every step), the course settings box in the
 //     course editor, mail texts (overview, editor), locks and course overrides (overview, one
@@ -17,7 +17,7 @@
 //
 // Env: CCAP_E2E_URL, CCAP_E2E_PASS, CCAP_E2E_SETUP (live-setup.php `setup` JSON), CCAP_E2E_OUT
 // (optional: settings-a11y.json with the full report), AXE_PATH (optional).
-const { chromium } = require( 'playwright' );
+const { launch, contextOptions, phone, where, shot, submitLogin } = require( './lib' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 const { AXE, domChecks, fieldChecks, focusWalk, overflow, runAxe } = require( './a11y-checks' );
@@ -35,7 +35,7 @@ async function login( page, user ) {
 	await page.goto( BASE + '/wp-login.php' );
 	await page.fill( '#user_login', user );
 	await page.fill( '#user_pass', process.env.CCAP_E2E_PASS );
-	await Promise.all( [ page.waitForNavigation(), page.click( '#wp-submit' ) ] );
+	await submitLogin( page );
 	if ( page.url().includes( 'wp-login.php' ) ) {
 		throw new Error( 'login failed: ' + user );
 	}
@@ -51,6 +51,7 @@ async function check( page, label, url, opts ) {
 		await o.ready( page );
 	}
 	const scope = o.scope || WRAP;
+	await shot( page, label );
 	const problems = await page.evaluate( domChecks, scope );
 	if ( ! o.noH1 ) {
 		const h1 = await page.evaluate( ( s ) => [ ...document.querySelectorAll( s + ' h1' ) ].length, scope );
@@ -128,6 +129,12 @@ async function errorState( page, label, formSel, submitSel, fieldId ) {
 	const problems = [];
 	await Promise.all( [ page.waitForNavigation(), page.click( submitSel ) ] );
 	await page.waitForLoadState( 'load' );
+	// admin-settings.js focuses the summary again in a task after `load` (WordPress moves notices);
+	// give that task up to 2 s (WebKit ran the check before it once, UI-F7).
+	await page.waitForFunction( () => {
+		const s = document.querySelector( '#ccap-error-summary, .notice-error[role=alert][data-ccap-focus]' );
+		return ! s || document.activeElement === s;
+	}, null, { timeout: 2000 } ).catch( () => {} );
 	const state = await page.evaluate( ( id ) => {
 		const summary = document.querySelector( '#ccap-error-summary, .notice-error[role=alert][data-ccap-focus]' );
 		const el = document.getElementById( id );
@@ -169,14 +176,14 @@ async function errorState( page, label, formSel, submitSel, fieldId ) {
 }
 
 ( async () => {
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const report = [];
 	const record = ( r ) => {
 		report.push( r );
 		console.log( ( r.problems.length ? 'FAIL ' : 'ok   ' ) + r.page + ( r.problems.length ? ': ' + r.problems.join( ' | ' ) : '' ) );
 	};
 	try {
-		const ctx = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+		const ctx = await browser.newContext( contextOptions( browser, { viewport: { width: 1280, height: 900 } } ) );
 		const page = await ctx.newPage();
 		page.on( 'dialog', ( d ) => d.accept() );
 		await login( page, 'cc_e2e_admin' );
@@ -237,7 +244,7 @@ async function errorState( page, label, formSel, submitSel, fieldId ) {
 		record( await check( page, 'course editor: settings box', null, { scope: '#ccap-course-settings', noH1: true, noMobile: true } ) );
 
 		// Learner pages on the phone widths (SET-CC-P5).
-		const lctx = await browser.newContext( { viewport: { width: 390, height: 844 } } );
+		const lctx = await browser.newContext( phone( browser ) );
 		const lp = await lctx.newPage();
 		await login( lp, 'cc_fx_lea' );
 		for ( const [ label, p ] of [
@@ -265,7 +272,7 @@ async function errorState( page, label, formSel, submitSel, fieldId ) {
 		await browser.close();
 	}
 	const failed = report.filter( ( r ) => r.problems.length );
-	console.log( 'settings a11y (' + ( AXE ? 'axe-core ' + AXE.replace( /.*\//, '' ) + ' + DOM checks' : 'DOM checks, axe-core not available' ) + '): ' + ( report.length - failed.length ) + '/' + report.length + ' pages ok' );
+	console.log( 'settings a11y [' + where() + '] (' + ( AXE ? 'axe-core ' + AXE.replace( /.*\//, '' ) + ' + DOM checks' : 'DOM checks, axe-core not available' ) + '): ' + ( report.length - failed.length ) + '/' + report.length + ' pages ok' );
 	if ( OUT ) {
 		fs.writeFileSync( path.join( OUT, 'settings-a11y.json' ), JSON.stringify( { axe: !! AXE, report }, null, 1 ) );
 	}

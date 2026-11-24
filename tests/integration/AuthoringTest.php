@@ -525,6 +525,11 @@ final class AuthoringTest extends SchemaTestCase {
 		$_SERVER['HTTP_SEC_FETCH_MODE'] = 'cors';
 		EditorScreens::editor_notices();
 		self::assertTrue( wp_script_is( 'ccap-editor-notices', 'enqueued' ) );
+		// UI-F7: meta box fields stay inside a 390 px screen (fieldset min-content, 25em inputs).
+		self::assertTrue( wp_style_is( 'ccap-editor-boxes', 'enqueued' ) );
+		$css = implode( '', (array) wp_styles()->get_data( 'ccap-editor-boxes', 'after' ) );
+		self::assertStringContainsString( 'fieldset{min-inline-size:0}', $css );
+		self::assertStringContainsString( 'textarea{max-inline-size:100%', $css );
 		self::assertStringContainsString( '"message":""', (string) wp_scripts()->get_data( 'ccap-editor-notices', 'data' ), 'background page: nothing taken' );
 		self::assertSame( 'Not saved: z', get_transient( $key ) );
 		wp_dequeue_script( 'ccap-editor-notices' );
