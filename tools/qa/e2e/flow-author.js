@@ -1,5 +1,5 @@
 // R1-18 B-4 · R0-11 Flow 1 (Autor erstellt und veröffentlicht einen Kurs) in the WordPress admin,
-// driven like a person in Chromium (block editor + the plugin's meta boxes, no REST shortcuts):
+// driven like a person in the browser of CCAP_E2E_BROWSER (block editor + the plugin's meta boxes, no REST shortcuts):
 // Course Manager `cc_e2e_author` creates 3 modules, the course and adds the modules (two
 // saves without reload: the stale-form case), tries to publish too early → validator
 // blockers (F1.1), follows the jump link to the module; question bank + exam rule come from
@@ -9,11 +9,10 @@
 // including a rejected save with invalid settings; finally the course is published
 // (revision 1) after the validator shows 0 blockers.
 // Writes the created IDs to $CCAP_E2E_OUT/reference-course.json.
-const { chromium } = require( 'playwright' );
 const { execSync } = require( 'child_process' );
 const fs = require( 'fs' );
 const path = require( 'path' );
-const { BASE, OUT, recorder, assert, login } = require( './lib' );
+const { launch, contextOptions, MOBILE, BASE, OUT, recorder, assert, login } = require( './lib' );
 
 const CLI = process.env.CCAP_E2E_CLI; // php tools/qa/e2e/live-setup.php <site>
 const { step, results } = recorder( 'flow1-author' );
@@ -84,14 +83,35 @@ async function editorError( page, pattern ) {
 	return notice.first().innerText();
 }
 
+// Side meta boxes (course: "Publish revision" with the validator) live in the settings sidebar,
+// which the block editor keeps closed on a phone; a person opens it with "Settings" (UI-F7).
+async function sideBoxes( page ) {
+	const box = page.locator( '#ccap-course-publish' );
+	if ( ! MOBILE || 0 === ( await box.count() ) || ( await box.isVisible() ) ) {
+		return;
+	}
+	// The editor may still restore its sidebar state after load: toggle only while it is closed.
+	const toggle = page.locator( '.editor-header__settings' ).getByRole( 'button', { name: 'Settings', exact: true } );
+	for ( let i = 0; i < 3; i++ ) {
+		if ( 'true' !== ( await toggle.getAttribute( 'aria-expanded' ) ) && 'true' !== ( await toggle.getAttribute( 'aria-pressed' ) ) ) {
+			await toggle.click();
+		}
+		if ( await box.waitFor( { state: 'visible', timeout: 5000 } ).then( () => true, () => false ) ) {
+			return;
+		}
+	}
+	throw new Error( 'side meta boxes not reachable on the phone' );
+}
+
 async function editPage( page, id ) {
 	await page.goto( BASE + '/wp-admin/post.php?post=' + id + '&action=edit' );
 	await openMetaBoxes( page );
+	await sideBoxes( page );
 }
 
 ( async () => {
-	const browser = await chromium.launch();
-	const page = await browser.newPage( { viewport: { width: 1400, height: 1000 } } );
+	const browser = await launch();
+	const page = await browser.newPage( contextOptions( browser, { viewport: { width: 1400, height: 1000 } } ) );
 	const errors = [];
 	page.on( 'pageerror', ( e ) => errors.push( String( e.stack || e ) ) );
 	const state = { modules: [], lessons: {} };

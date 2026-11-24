@@ -1,11 +1,11 @@
 // R1-16b / GM-143: rendered learning-area pages at 390 px (no overflow, skip link, focus, no JS errors).
 // Usage: node tools/qa/e2e/learning-area-mobile.js <dir with room.html and home.html>
-const { chromium } = require( 'playwright' );
+const { launch } = require( './lib' );
 const path = require( 'path' );
 
 ( async () => {
 	const dir = process.argv[ 2 ];
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const page = await browser.newPage( { viewport: { width: 390, height: 844 } } );
 	const errors = [];
 	page.on( 'pageerror', ( e ) => errors.push( String( e ) ) );

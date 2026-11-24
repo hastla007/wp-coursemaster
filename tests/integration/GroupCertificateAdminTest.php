@@ -322,6 +322,9 @@ final class GroupCertificateAdminTest extends SchemaTestCase {
 		self::assertSame( 'v***@example.org', $admin_view[0]['address'] );
 		$html = GroupsScreen::html( array( 'group' => $group ), $this->admin );
 		self::assertStringNotContainsString( 'visible@example.org', $html );
+		// UI-F7: the wide tables scroll in their own named region (no page scrolling at 390 px).
+		self::assertStringContainsString( '<div class="ccap-table-scroll" role="region" tabindex="0" aria-label="Members and invitations"><table', $html );
+		self::assertStringContainsString( '<div class="ccap-table-scroll" role="region" tabindex="0" aria-label="All groups"><table', GroupsScreen::html( array(), $this->admin ) );
 		foreach ( array( 'Progress', 'Score', 'Certificate' ) as $word ) {
 			self::assertStringNotContainsString( $word, $html, 'GR-7' );
 		}

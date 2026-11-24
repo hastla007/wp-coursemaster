@@ -7,11 +7,11 @@
 // repository and is not downloaded here; without it the built-in DOM checks run: lang, title,
 // one h1 and no skipped heading level, accessible names of form controls/links/buttons,
 // alt texts, unique IDs, a main landmark, skip link first (learning area), no horizontal scrolling
-// at 320 px (A11Y-050) and a visible focus outline on every tab stop of the learning area.
-const { chromium } = require( 'playwright' );
+// at 320 px (A11Y-050) and a visible focus outline on every tab stop of the learning area; the
+// other pages (certificate, verification, editor boxes, groups) at 390 px (UI-F7).
 const fs = require( 'fs' );
 const path = require( 'path' );
-const { BASE, OUT, area, assert, login, api } = require( './lib' );
+const { launch, contextOptions, where, shot, PHONE_WIDTH, BASE, OUT, area, assert, login, api } = require( './lib' );
 
 const COURSE = JSON.parse( fs.readFileSync( path.join( OUT, 'reference-course.json' ), 'utf8' ) );
 const { AXE, domChecks, runAxe } = require( './a11y-checks' );
@@ -24,6 +24,7 @@ async function check( page, label, url, opts ) {
 	if ( o.ready ) {
 		await o.ready( page );
 	}
+	await shot( page, label );
 	const problems = await page.evaluate( domChecks, o.scope || null );
 	if ( o.learner ) {
 		// The WordPress toolbar of logged-in users brings its own "Skip to toolbar" link first;
@@ -53,22 +54,38 @@ async function check( page, label, url, opts ) {
 			}
 			await page.keyboard.press( 'Tab' );
 		}
+		const size = page.viewportSize();
 		await page.setViewportSize( { width: 320, height: 640 } );
 		const px = await page.evaluate( () => document.documentElement.scrollWidth - document.documentElement.clientWidth );
 		if ( px > 0 ) {
 			problems.push( 'horizontal scrolling at 320 px: ' + px );
 		}
-		await page.setViewportSize( { width: 1280, height: 900 } );
+		await page.setViewportSize( size );
+	}
+	if ( ! o.learner ) {
+		// UI-F7: admin and other pages reflow at a phone width too (WCAG 1.4.10); on a phone the
+		// page is already 390 px wide. Found: the groups tables scrolled the whole page.
+		const size = page.viewportSize();
+		if ( size.width > PHONE_WIDTH ) {
+			await page.setViewportSize( { width: PHONE_WIDTH, height: 844 } );
+		}
+		const px = await page.evaluate( () => document.documentElement.scrollWidth - document.documentElement.clientWidth );
+		if ( px > 0 ) {
+			problems.push( 'horizontal scrolling at ' + PHONE_WIDTH + ' px: ' + px );
+		}
+		if ( size.width > PHONE_WIDTH ) {
+			await page.setViewportSize( size );
+		}
 	}
 	problems.push( ...( await runAxe( page, o.scope || null ) ) );
 	return { page: label, problems: [ ...new Set( problems ) ] };
 }
 
 ( async () => {
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const report = [];
 	try {
-		const member = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+		const member = await browser.newContext( contextOptions( browser, { viewport: { width: 1280, height: 900 } } ) );
 		const mp = await member.newPage();
 		const n = await login( mp, 'cc_e2e_ina' );
 		const uid = COURSE.course_uid;
@@ -82,12 +99,12 @@ async function check( page, label, url, opts ) {
 		assert( cert, 'certificate of the reference course for the A11Y check' );
 		report.push( await check( mp, 'L-15 certificate', cert.view_url ) );
 		const verify = await mp.locator( '.ccap-verify a' ).getAttribute( 'href' );
-		const guest = await browser.newContext();
+		const guest = await browser.newContext( contextOptions( browser ) );
 		const gp = await guest.newPage();
 		report.push( await check( gp, 'L-16 verification (guest)', verify ) );
 		await guest.close();
 
-		const author = await browser.newContext( { viewport: { width: 1400, height: 1000 } } );
+		const author = await browser.newContext( contextOptions( browser, { viewport: { width: 1400, height: 1000 } } ) );
 		const ap = await author.newPage();
 		await login( ap, 'cc_e2e_author' );
 		const metaBoxes = async ( p ) => {
@@ -107,7 +124,7 @@ async function check( page, label, url, opts ) {
 		await browser.close();
 	}
 	const failed = report.filter( ( r ) => r.problems.length );
-	console.log( 'a11y (' + ( AXE ? 'axe-core + DOM checks' : 'DOM checks, axe-core not available' ) + '):' );
+	console.log( 'a11y [' + where() + '] (' + ( AXE ? 'axe-core + DOM checks' : 'DOM checks, axe-core not available' ) + '):' );
 	for ( const r of report ) {
 		console.log( ( r.problems.length ? 'FAIL ' : 'ok   ' ) + r.page + ( r.problems.length ? ': ' + r.problems.join( ' | ' ) : '' ) );
 	}

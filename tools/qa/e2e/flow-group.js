@@ -1,5 +1,5 @@
 // R1-18 B-4 · R0-11 Flow 3 (Gruppenverwalter lädt ein) and the reference course from the
-// learner's side (E-168: with assignment), Chromium desktop.
+// learner's side (E-168: with assignment); browser from CCAP_E2E_BROWSER, CCAP_E2E_DEVICE=mobile = phone.
 // - Group manager `cc_e2e_author` (Course Manager) creates a group with 2 seats for the
 //   reference course of Flow 1 (A-10), invites ina@example.test; the outbox/notification
 //   queue runs (WP-Cron), the invitation mail lands in the mail sink.
@@ -10,12 +10,11 @@
 //   assignment written and submitted (REST: no learning-area UI yet), graded by the manager
 //   (REST: no grading screen yet), exam 20 of 50 passed in the exam room, certificate listed.
 // Requires $CCAP_E2E_OUT/reference-course.json from flow-author.js.
-const { chromium } = require( 'playwright' );
 const { execSync } = require( 'child_process' );
 const crypto = require( 'crypto' );
 const fs = require( 'fs' );
 const path = require( 'path' );
-const { BASE, OUT, area, recorder, record, assert, login, api, referenceLetters, answerExam } = require( './lib' );
+const { launch, contextOptions, submitLogin, BASE, OUT, area, recorder, record, assert, login, api, referenceLetters, answerExam } = require( './lib' );
 
 const { step, results } = recorder( 'flow3-group' );
 const COURSE = JSON.parse( fs.readFileSync( path.join( OUT, 'reference-course.json' ), 'utf8' ) );
@@ -28,10 +27,10 @@ function mails() {
 }
 
 ( async () => {
-	const browser = await chromium.launch();
-	const manager = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+	const browser = await launch();
+	const manager = await browser.newContext( contextOptions( browser, { viewport: { width: 1280, height: 900 } } ) );
 	const mpage = await manager.newPage();
-	const invitee = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+	const invitee = await browser.newContext( contextOptions( browser, { viewport: { width: 1280, height: 900 } } ) );
 	const ipage = await invitee.newPage();
 	const timings = [];
 	let mnonce = '';
@@ -40,7 +39,7 @@ function mails() {
 	let claimUrl = '';
 	try {
 		await step( 'administrator switches groups on (Settings › Enrollment; default off)', async () => {
-			const admin = await browser.newContext();
+			const admin = await browser.newContext( contextOptions( browser ) );
 			const apage = await admin.newPage();
 			await login( apage, 'cc_e2e_admin' );
 			await apage.goto( BASE + '/wp-admin/admin.php?page=course-captain-settings&tab=enrollment' );
@@ -94,7 +93,7 @@ function mails() {
 			assert( ! ( await ipage.locator( 'body' ).innerText() ).includes( 'Team Zeitplan' ), 'guests see no group data' );
 			await ipage.fill( '#user_login', 'cc_e2e_ina' );
 			await ipage.fill( '#user_pass', process.env.CCAP_E2E_PASS );
-			await Promise.all( [ ipage.waitForNavigation(), ipage.click( '#wp-submit' ) ] );
+			await submitLogin( ipage );
 			assert( ipage.url().includes( 'ccap_claim=' ), 'back at the invitation: ' + ipage.url() );
 			assert( ( await ipage.locator( 'main' ).innerText() ).includes( 'You have been invited to the group "Team Zeitplan".' ), 'group named after login' );
 		} );

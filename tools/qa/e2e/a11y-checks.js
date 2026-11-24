@@ -146,6 +146,9 @@ async function focusWalk( page, scope, max ) {
 		window.ccapPrev = null;
 	} );
 	for ( let i = 0; i < ( max || 60 ); i++ ) {
+		// Measure after the next frames: the browser scrolls the focused element into view
+		// (also inside scrolling regions) before painting; WebKit does it after the key event.
+		await page.evaluate( () => new Promise( ( r ) => requestAnimationFrame( () => requestAnimationFrame( r ) ) ) );
 		const f = await page.evaluate( ( s ) => {
 			const el = document.activeElement;
 			if ( ! el || ! el.closest( s ) ) {
@@ -154,6 +157,10 @@ async function focusWalk( page, scope, max ) {
 			const st = getComputedStyle( el );
 			const r = el.getBoundingClientRect();
 			const prev = window.ccapPrev;
+			if ( prev === el ) {
+				// Tab left the document (browser UI): Firefox keeps the last element as activeElement.
+				return { end: true };
+			}
 			const forward = ! prev || !! ( prev.compareDocumentPosition( el ) & Node.DOCUMENT_POSITION_FOLLOWING );
 			window.ccapPrev = el;
 			return {
@@ -164,7 +171,7 @@ async function focusWalk( page, scope, max ) {
 				offscreen: r.right > document.documentElement.clientWidth + 1 || r.left < -1,
 			};
 		}, scope );
-		if ( ! f ) {
+		if ( ! f || f.end ) {
 			break;
 		}
 		stops.push( f.what );

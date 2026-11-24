@@ -7,7 +7,7 @@
 //   CCAP_DUMP_DIR=<dir> vendor/bin/phpunit -c phpunit-integration.xml.dist --filter ExternalMediaViewTest
 // The pages are served from a local origin together with assets/js/external-media.js;
 // every request to another host is recorded and answered locally (no real network).
-const { chromium } = require( 'playwright' );
+const { launch } = require( './lib' );
 const path = require( 'path' );
 const fs = require( 'fs' );
 
@@ -49,7 +49,7 @@ async function open( context, name, before ) {
 }
 
 ( async () => {
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const context = await browser.newContext();
 
 	// MED-021/MED-022, PSD-022 (b): nothing before the click, only this medium after it, focus on the player.

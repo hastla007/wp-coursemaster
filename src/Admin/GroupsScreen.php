@@ -50,7 +50,11 @@ final class GroupsScreen {
 		add_action(
 			'admin_menu',
 			static function (): void {
-				add_submenu_page( EditorScreens::MENU, __( 'Groups', 'course-captain' ), __( 'Groups', 'course-captain' ), self::CAP, self::SLUG, array( self::class, 'render' ) );
+				$hook = add_submenu_page( EditorScreens::MENU, __( 'Groups', 'course-captain' ), __( 'Groups', 'course-captain' ), self::CAP, self::SLUG, array( self::class, 'render' ) );
+				// UI-F7: layout rules of the settings screens (wide tables scroll in their own region, no page scrolling at 390 px).
+				if ( is_string( $hook ) && '' !== $hook ) {
+					add_action( 'admin_print_styles-' . $hook, array( AdminUi::class, 'settings_style' ) );
+				}
 			},
 			20
 		);
@@ -373,7 +377,7 @@ final class GroupsScreen {
 			return $html . self::detail( $actor, $group, $request ) . '</div>';
 		}
 		$rows  = GroupService::current()->overview( $actor, isset( $request['status'] ) ? sanitize_key( (string) $request['status'] ) : '' );
-		$html .= '<table class="widefat striped"><caption>' . esc_html__( 'All groups', 'course-captain' ) . '</caption><thead><tr>';
+		$html .= AdminUi::scroll_open( __( 'All groups', 'course-captain' ) ) . '<table class="widefat striped"><caption>' . esc_html__( 'All groups', 'course-captain' ) . '</caption><thead><tr>';
 		foreach ( array( __( 'Name', 'course-captain' ), __( 'Owner', 'course-captain' ), __( 'Status', 'course-captain' ), __( 'Seats used / total', 'course-captain' ), __( 'Open invitations', 'course-captain' ), __( 'Seats freed so far', 'course-captain' ), __( 'Valid until', 'course-captain' ) ) as $label ) {
 			$html .= '<th scope="col">' . esc_html( $label ) . '</th>';
 		}
@@ -391,7 +395,7 @@ final class GroupsScreen {
 			);
 			$html .= '<tr><th scope="row"><a href="' . esc_url( $url ) . '">' . esc_html( $row['name'] ) . '</a></th><td>' . esc_html( $row['owner'] ) . '</td><td>' . esc_html( self::status_label( $row['status'] ) ) . '</td><td>' . (int) $row['seats_used'] . ' / ' . (int) $row['seats_total'] . '</td><td>' . (int) $row['invites_open'] . '</td><td>' . (int) $row['seats_ended'] . '</td><td>' . esc_html( null === $row['valid_until'] ? __( 'unlimited', 'course-captain' ) : $row['valid_until'] ) . '</td></tr>';
 		}
-		return $html . '</tbody></table>' . self::create_form() . '</div>';
+		return $html . '</tbody></table></div>' . self::create_form() . '</div>';
 	}
 
 	/**
@@ -423,7 +427,7 @@ final class GroupsScreen {
 			$link  = add_query_arg( 'ccap_claim', $token, \CourseCaptain\Learner\LearningArea::url() );
 			$html .= '<div class="notice notice-info" role="status"><p><label for="ccap-group-link">' . esc_html__( 'New group link (shown only now, copy it):', 'course-captain' ) . '</label> <input id="ccap-group-link" type="text" readonly class="large-text" value="' . esc_attr( $link ) . '"></p></div>';
 		}
-		$html .= '<table class="widefat striped"><caption>' . esc_html__( 'Members and invitations', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Name', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Address', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Since', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Actions', 'course-captain' ) . '</th></tr></thead><tbody>';
+		$html .= AdminUi::scroll_open( __( 'Members and invitations', 'course-captain' ) ) . '<table class="widefat striped"><caption>' . esc_html__( 'Members and invitations', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Name', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Address', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Since', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Actions', 'course-captain' ) . '</th></tr></thead><tbody>';
 		foreach ( GroupService::current()->members( $actor, $group ) as $seat ) {
 			$actions = '';
 			if ( ! $readonly ) {
@@ -435,7 +439,7 @@ final class GroupsScreen {
 			}
 			$html .= '<tr><td>' . esc_html( self::seat_label( $seat['status'] ) ) . '</td><td>' . esc_html( $seat['name'] ) . '</td><td>' . esc_html( $seat['address'] ) . '</td><td>' . esc_html( (string) $seat['since'] ) . '</td><td>' . $actions . '</td></tr>';
 		}
-		$html .= '</tbody></table>';
+		$html .= '</tbody></table></div>';
 		if ( $readonly ) {
 			return $html . '<p>' . esc_html__( 'This group has ended and can only be viewed.', 'course-captain' ) . '</p>';
 		}

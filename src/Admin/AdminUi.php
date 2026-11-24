@@ -238,6 +238,16 @@ final class AdminUi {
 		. '#wpbody-content .wrap td a{text-decoration:underline}';
 
 	/**
+	 * Layout rules of the plugin's meta boxes in the block editor (UI-F7): on
+	 * a phone (390 px) a fieldset grows to its widest control by default
+	 * (`min-inline-size: min-content`) and `regular-text` inputs are 25em
+	 * wide, so fields of the course settings box stood outside the screen.
+	 * Logical properties only.
+	 */
+	public const EDITOR_CSS = '.postbox[id^="ccap-"] fieldset{min-inline-size:0}'
+		. '.postbox[id^="ccap-"] input[type=text],.postbox[id^="ccap-"] input[type=number],.postbox[id^="ccap-"] input[type=email],.postbox[id^="ccap-"] select,.postbox[id^="ccap-"] textarea{max-inline-size:100%;box-sizing:border-box}';
+
+	/**
 	 * Script (focus of messages, unsaved-changes warning) and layout rules of
 	 * a settings screen; call with the hook suffix of `add_submenu_page()`.
 	 *

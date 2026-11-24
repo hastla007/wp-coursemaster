@@ -493,7 +493,8 @@ final class EditorScreens {
 	 * Block editor of courses, modules and lessons: classic admin notices are
 	 * hidden there and the meta boxes are saved in the background, so the save
 	 * messages are shown as editor notices (on load and after each meta box
-	 * save, `assets/js/editor-notices.js`).
+	 * save, `assets/js/editor-notices.js`); plus the layout rules of the
+	 * plugin's meta boxes (`AdminUi::EDITOR_CSS`).
 	 *
 	 * @return void
 	 */
@@ -503,6 +504,9 @@ final class EditorScreens {
 			return;
 		}
 		wp_enqueue_script( 'ccap-editor-notices', plugins_url( 'assets/js/editor-notices.js', COURSE_CAPTAIN_FILE ), array( 'wp-data', 'wp-notices' ), COURSE_CAPTAIN_VERSION, true );
+		wp_register_style( 'ccap-editor-boxes', false, array(), COURSE_CAPTAIN_VERSION );
+		wp_enqueue_style( 'ccap-editor-boxes' );
+		wp_add_inline_style( 'ccap-editor-boxes', AdminUi::EDITOR_CSS );
 		wp_localize_script(
 			'ccap-editor-notices',
 			'ccapEditorNotices',
