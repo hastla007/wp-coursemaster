@@ -22,10 +22,15 @@ defined( 'ABSPATH' ) || exit;
  *   detected MIME match (reported here; the import treats a V4 finding as
  *   an object error of the medium, R0-38 §2.3 class O, see
  *   {@see ImportService::validate()});
- * - V5 integrity: manifest fields, major 1, every listed file present with size
+ * - V5 integrity: manifest fields, major 1 and minor ≤ {@see SCHEMA_MINOR}, every listed file present with size
  *   and SHA-256, no unlisted files, `content_sha256`.
  */
 final class PackageValidator {
+
+	/**
+	 * Highest supported minor version of `schema_version` 1.x (R0-10 §1.2, IMP-005).
+	 */
+	public const SCHEMA_MINOR = 0;
 
 	public const MAX_ENTRIES  = 20000;
 	public const MAX_ZIP      = 209715200;
@@ -260,8 +265,11 @@ final class PackageValidator {
 		if ( 'cc-package' !== ( $manifest['format'] ?? '' ) ) {
 			$errors[] = 'V5_format';
 		}
-		if ( 1 !== preg_match( '/^1\.\d+\.\d+$/', (string) ( $manifest['schema_version'] ?? '' ) ) ) {
+		if ( 1 !== preg_match( '/^1\.(\d+)\.\d+$/', (string) ( $manifest['schema_version'] ?? '' ), $version ) ) {
 			$errors[] = 'V5_major';
+		} elseif ( (int) $version[1] > self::SCHEMA_MINOR ) {
+			// IMP-005: a newer minor version may use fields this plugin does not know yet (update the plugin).
+			$errors[] = 'V5_minor';
 		}
 		if ( 1 !== preg_match( '/^[a-z0-9][a-z0-9-]{1,40}-[0-9a-f]{12}$/', (string) ( $manifest['package_id'] ?? '' ) ) ) {
 			$errors[] = 'V5_package_id';

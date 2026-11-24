@@ -207,9 +207,10 @@ final class ImportTest extends SchemaTestCase {
 	}
 
 	/**
-	 * V1–V5 and `requires`.
+	 * V1–V5 and `requires` (IMP-021: a required question type that is not installed fails the package).
 	 *
 	 * @group GM-122
+	 * @group IMP-021
 	 */
 	public function test_validation(): void {
 		$good = PackageExporter::write( self::records(), 'fixture-a', 'Fixture', $this->dir . '/good.zip' );
@@ -329,9 +330,14 @@ final class ImportTest extends SchemaTestCase {
 	}
 
 	/**
-	 * Full path: create → unchanged → update/archive/conflict → rollback.
+	 * Full path: create → unchanged → update/archive/conflict → rollback
+	 * (IMP-017 plan update/unchanged/archive on an existing state; IMP-026
+	 * rollback with a reason as a new batch, old hash active, removed
+	 * lesson back, nothing deleted).
 	 *
 	 * @group GM-121
+	 * @group IMP-017
+	 * @group IMP-026
 	 */
 	public function test_import_lifecycle(): void {
 		$v1    = PackageExporter::write( self::records( 1 ), 'fixture-a', 'Fixture', $this->dir . '/v1.zip' );
