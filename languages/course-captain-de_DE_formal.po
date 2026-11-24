@@ -12806,3 +12806,81 @@ msgstr "Eine feste Prüfungsvariante enthält eine Karteikarte. Karteikarten sin
 
 msgid "Remove the flashcard from the fixed variant in the source system and export the package again."
 msgstr "Entfernen Sie die Karteikarte im Quellsystem aus der festen Variante und exportieren Sie das Paket erneut."
+
+msgid "Learning access locked. The lock is recorded with your reason; the learner gets no mail."
+msgstr "Lernzugang gesperrt. Die Sperre ist mit Ihrer Begründung protokolliert; die lernende Person erhält keine Mail."
+
+msgid "Lock lifted. The learner can learn again with their existing accesses."
+msgstr "Sperre aufgehoben. Die lernende Person kann mit ihren bisherigen Zugängen wieder lernen."
+
+msgid "Please choose a valid option."
+msgstr "Bitte wählen Sie eine gültige Option."
+
+msgid "Learning lock"
+msgstr "Lernsperre"
+
+#. translators: 1: date (UTC), 2: reason code, 3: end date or "until lifted"
+msgid "Locked since %1$s (UTC), reason: %2$s, %3$s."
+msgstr "Gesperrt seit %1$s (UTC), Grund: %2$s, %3$s."
+
+msgid "until lifted"
+msgstr "bis zur Aufhebung"
+
+#. translators: %s: date (UTC)
+msgid "until %s (UTC)"
+msgstr "bis %s (UTC)"
+
+msgid "Lift lock"
+msgstr "Sperre aufheben"
+
+msgid "A lock blocks learning, exams and certificates on this site for this account. Accesses, seats and results stay unchanged; the learner gets no mail."
+msgstr "Eine Sperre verhindert Lernen, Prüfungen und Zertifikate auf dieser Website für dieses Konto. Zugänge, Plätze und Ergebnisse bleiben unverändert; die lernende Person erhält keine Mail."
+
+msgid "Details (required for \"other\", recorded)"
+msgstr "Details (Pflicht bei \"Sonstiges\", wird protokolliert)"
+
+msgid "Locked until (optional, empty = until lifted)"
+msgstr "Gesperrt bis (optional, leer = bis zur Aufhebung)"
+
+msgid "Also log the account out everywhere"
+msgstr "Konto zusätzlich überall abmelden"
+
+msgid "Lock learning access"
+msgstr "Lernzugang sperren"
+
+msgid "abuse"
+msgstr "Missbrauch"
+
+msgid "account compromised"
+msgstr "Konto kompromittiert"
+
+msgid "legal hold"
+msgstr "rechtliche Sperre"
+
+msgid "Note: certificates are deleted earlier than the exam attempts they are based on. Afterwards the verification page reports them as not available although the attempt still exists."
+msgstr "Hinweis: Zertifikate werden früher gelöscht als die Prüfungsversuche, auf denen sie beruhen. Danach meldet die Prüfseite sie als nicht verfügbar, obwohl der Versuch noch existiert."
+
+#. translators: %s: field label
+msgid "Error: %s: answers cannot be kept longer than the exam attempts they belong to. Shorten this period or extend “Exam attempts”."
+msgstr "Fehler: %s: Antworten können nicht länger aufbewahrt werden als die zugehörigen Prüfungsversuche. Verkürzen Sie diese Frist oder verlängern Sie „Prüfungsversuche“."
+
+msgid "Access kept and marked for review: the source no longer delivers"
+msgstr "Zugang behalten und zur Prüfung markiert: Die Quelle liefert nicht mehr"
+
+msgid "Review mark removed: the source delivers again"
+msgstr "Prüfmarkierung entfernt: Die Quelle liefert wieder"
+
+msgid "No access grants of missing sources to review."
+msgstr "Keine Zugänge fehlender Quellen zu prüfen."
+
+msgid "Access of missing sources is kept without review list."
+msgstr "Zugänge fehlender Quellen werden ohne Prüfliste behalten."
+
+#. translators: %d: number of access grants
+msgid "%d access grant comes from a source that no longer delivers; access was kept."
+msgid_plural "%d access grants come from a source that no longer delivers; access was kept."
+msgstr[0] "%d Zugang stammt aus einer Quelle, die nicht mehr liefert; der Zugang wurde behalten."
+msgstr[1] "%d Zugänge stammen aus einer Quelle, die nicht mehr liefert; die Zugänge wurden behalten."
+
+msgid "Check the source. Withdraw access manually only where it is no longer justified; nothing is withdrawn automatically."
+msgstr "Prüfen Sie die Quelle. Entziehen Sie Zugänge nur dort manuell, wo sie nicht mehr berechtigt sind; automatisch wird nichts entzogen."
