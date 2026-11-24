@@ -410,9 +410,10 @@ final class SettingsScreen {
 			return $out;
 		}
 		try {
-			$out['result'] = Settings::undo( Actor::user( $user_id ), $tab ) ? 'undone' : 'undo_expired';
+			$out['result'] = Settings::undo( Actor::user( $user_id ), $tab, $post ) ? 'undone' : 'undo_expired';
 		} catch ( CourseException $e ) {
-			$out['result'] = $e->error_code;
+			// E-245: the undo restores longer retention periods and needs a reason.
+			$out['result'] = 'ccap_validation_failed' === $e->error_code && 'retention_reason' === ( $e->data['fields']['retention'] ?? '' ) ? 'undo_reason' : $e->error_code;
 		}
 		return $out;
 	}
@@ -572,6 +573,10 @@ final class SettingsScreen {
 				$text = __( 'The note is hidden for you.', 'course-captain' );
 				$type = 'info';
 				break;
+			case 'undo_reason':
+				$text = __( 'Undoing the reset restores retention periods longer than their default. Enter a reason next to the undo button.', 'course-captain' );
+				$type = 'error';
+				break;
 			case 'undo_expired':
 				$text = __( 'There is nothing to undo any more.', 'course-captain' );
 				$type = 'warning';
@@ -723,6 +728,7 @@ final class SettingsScreen {
 		if ( $until > 0 ) {
 			$html .= ' <form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ccap-inline-form"><input type="hidden" name="action" value="' . esc_attr( self::UNDO ) . '"><input type="hidden" name="tab" value="' . esc_attr( $tab ) . '">'
 				. wp_nonce_field( 'ccap_settings_undo_' . $tab, '_wpnonce', true, false )
+				. self::undo_reason_field( $tab )
 				/* translators: %s: date until which undo is possible */
 				. '<button type="submit" class="button">' . esc_html( sprintf( __( 'Undo the reset (possible until %s)', 'course-captain' ), (string) wp_date( (string) get_option( 'date_format' ), $until ) ) ) . '</button></form>';
 		}
@@ -909,6 +915,26 @@ final class SettingsScreen {
 		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html__( 'Reason for longer periods', 'course-captain' ) . '</label>'
 			. '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::RETENTION_REASON_FIELD ) . '" rows="2" class="large-text" maxlength="' . esc_attr( (string) Settings::RETENTION_REASON_MAX ) . '" aria-describedby="' . esc_attr( $id ) . '-help"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '>' . esc_textarea( (string) ( $input[ Settings::RETENTION_REASON_FIELD ] ?? '' ) ) . '</textarea>'
 			. '<p id="' . esc_attr( $id ) . '-help" class="description">' . esc_html__( 'Required when you set a period longer than its suggested default. The reason is stored in the change log with the new values (at most 500 characters).', 'course-captain' ) . '</p></div>';
+	}
+
+	/**
+	 * E-245 reason in the undo form when the undo restores retention
+	 * periods above their default ({@see Settings::undo_extended()}).
+	 *
+	 * @param string $tab Tab.
+	 * @return string Empty when no reason is needed.
+	 */
+	private static function undo_reason_field( string $tab ): string {
+		$keys = Settings::undo_extended( $tab );
+		if ( array() === $keys ) {
+			return '';
+		}
+		$id     = SettingsForm::id( $tab, 'undo-retention-reason' );
+		$labels = array_map( static fn( string $key ): string => SettingsFields::ui( 'privacy', 'retention.' . $key )['label'], $keys );
+		return '<label for="' . esc_attr( $id ) . '">' . esc_html__( 'Reason for longer periods', 'course-captain' ) . '</label> '
+			. '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::RETENTION_REASON_FIELD ) . '" rows="2" class="large-text" required maxlength="' . esc_attr( (string) Settings::RETENTION_REASON_MAX ) . '" aria-describedby="' . esc_attr( $id ) . '-help"></textarea>'
+			/* translators: %s: list of retention periods */
+			. '<span id="' . esc_attr( $id ) . '-help" class="description">' . esc_html( sprintf( __( 'Longer than the suggested default: %s. A reason is required; it is stored in the change log.', 'course-captain' ), implode( ', ', $labels ) ) ) . '</span> ';
 	}
 
 	/**

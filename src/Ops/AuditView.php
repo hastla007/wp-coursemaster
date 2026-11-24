@@ -123,6 +123,7 @@ final class AuditView {
 			'exam_variant_retired'           => array( 'content', __( 'Fixed exam form retired', 'course-captain' ) ),
 			'question_type_changed'          => array( 'content', __( 'Question type changed (new version)', 'course-captain' ) ),
 			'course_exported'                => array( 'import', __( 'Course exported as a package', 'course-captain' ) ),
+			'course_export_foreign_included' => array( 'import', __( 'Course exported with foreign content', 'course-captain' ) ),
 			'course_rights_saved'            => array( 'import', __( 'Rights information of a course changed', 'course-captain' ) ),
 			'rights_course_release'          => array( 'import', __( 'Unclear rights of a course released', 'course-captain' ) ),
 			'grant.revoked_manually'         => array( 'access', __( 'Access ended manually', 'course-captain' ) ),

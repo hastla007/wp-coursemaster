@@ -376,6 +376,10 @@ final class CardsRightsTest extends SchemaTestCase {
 
 	/**
 	 * D8: VAL-100…VAL-105 with the jump target "Rights & release".
+	 *
+	 * @group PUB-025
+	 * @group PUB-026
+	 * @group PUB-027
 	 */
 	public function test_rights_rules(): void {
 		$admin  = Actor::user( $this->admin );

@@ -632,6 +632,8 @@ final class AutorUi2Test extends SchemaTestCase {
 
 	/**
 	 * Transcript fields and VAL-142 (captions notice, blocker with the setting).
+	 *
+	 * @group PUB-040
 	 */
 	public function test_transcript_fields_and_captions_rule(): void {
 		$html = LessonMediaFields::html( 'video', array( 'transcript' => 'Hello' ) );

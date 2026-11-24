@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Import;
 
 use CourseCaptain\Access\ProtectedStorage;
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
@@ -27,6 +28,17 @@ defined( 'ABSPATH' ) || exit;
  * never exported, only `source_id`s (the source map value or the stable
  * object UID). Learner data, grants, attempts and settings are never part
  * of a package. The archive goes to the private `packages` folder.
+ *
+ * Rights (R0-10 §6.1, E-66, IMP-031): foreign lessons and questions
+ * (R0-10 §2.2, {@see Rights::own_system()}) and those the delivery lock
+ * withholds ({@see RightsGate}: `unknown`, `restricted`, expired licence,
+ * required image withheld) are left out by default and listed in the
+ * manifest under `export.excluded[] {entity, source_id, reason}`; the
+ * references to them (module lessons, question pool) are dropped so the
+ * package stays valid. `$include_foreign` (confirmed and audited by the
+ * caller) exports them anyway. Courses and modules are containers and
+ * always exported with their rights metadata (they withhold nothing,
+ * SET-CC-rechte-auslieferung).
  */
 final class PackageExporter {
 
@@ -38,14 +50,51 @@ final class PackageExporter {
 	/**
 	 * Build the package records (no file I/O).
 	 *
-	 * @param Actor $actor   Author.
-	 * @param array $courses Courses.
+	 * @param Actor $actor           Author.
+	 * @param array $courses         Courses.
+	 * @param bool  $include_foreign Export foreign and withheld content too (see {@see self::collect()}).
 	 * @phpstan-param list<int> $courses
 	 * @return array<string, list<array<string, mixed>>>
 	 * @throws CourseException When a course may not be edited.
 	 */
-	public static function records( Actor $actor, array $courses ): array {
+	public static function records( Actor $actor, array $courses, bool $include_foreign = false ): array {
+		return self::collect( $actor, $courses, $include_foreign )['records'];
+	}
+
+	/**
+	 * Build the package records and the manifest block `export`
+	 * (R0-10 §1.2: `{course_ids[], included_foreign, excluded[]}`).
+	 *
+	 * @param Actor $actor           Author.
+	 * @param array $courses         Courses.
+	 * @param bool  $include_foreign Export foreign and withheld content too (confirmed opt-in).
+	 * @phpstan-param list<int> $courses
+	 * @return array{records: array<string, list<array<string, mixed>>>, export: array{course_ids: list<string>, included_foreign: bool, excluded: list<array{entity: string, source_id: string, reason: string}>}, foreign: int}
+	 *         `foreign`: number of foreign or withheld records exported because of the opt-in.
+	 * @throws CourseException When a course may not be edited.
+	 */
+	public static function collect( Actor $actor, array $courses, bool $include_foreign = false ): array {
 		$db       = Database::current();
+		$gate     = RightsGate::current();
+		$rights   = Rights::current();
+		$excluded = array();
+		$foreign  = array();
+		$ids      = array();
+		$skip     = static function ( string $entity, string $source_id, ?string $reason ) use ( $include_foreign, &$excluded, &$foreign ): bool {
+			if ( null === $reason ) {
+				return false;
+			}
+			if ( $include_foreign ) {
+				$foreign[ $entity . "\0" . $source_id ] = true;
+				return false;
+			}
+			$excluded[ $entity . "\0" . $source_id ] = array(
+				'entity'    => $entity,
+				'source_id' => $source_id,
+				'reason'    => $reason,
+			);
+			return true;
+		};
 		$identity = new ObjectIdentity( $db );
 		$repo     = QuestionRepository::current();
 		$out      = array(
@@ -82,7 +131,10 @@ final class PackageExporter {
 					if ( 'publish' !== $lesson->post_status ) {
 						continue;
 					}
-					$lesson_id        = self::source_id( 'lesson', (int) $lesson->ID, $identity->ensure( $lesson ) );
+					$lesson_id = self::source_id( 'lesson', (int) $lesson->ID, $identity->ensure( $lesson ) );
+					if ( $skip( 'lessons', $lesson_id, self::excluded_reason( $rights, $gate->post( (int) $lesson->ID ), (int) $lesson->ID, array( 'lesson' ) ) ) ) {
+						continue;
+					}
 					$lessons[]        = array(
 						'lesson' => $lesson_id,
 						'sort'   => (int) $lesson->menu_order,
@@ -99,12 +151,15 @@ final class PackageExporter {
 					);
 				}
 				$pool = array();
-				foreach ( $repo->pool( $link['module_id'], true ) as $i => $question_id ) {
+				foreach ( $repo->pool( $link['module_id'], true ) as $question_id ) {
 					$uid     = (string) $db->scalar( $db->prepare( 'SELECT uid FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
 					$qsource = self::source_id( 'question', $question_id, $uid );
-					$pool[]  = array(
+					if ( $skip( 'questions', $qsource, self::excluded_reason( $rights, $gate->question( $question_id ), $question_id, array( 'question', 'flashcard' ) ) ) ) {
+						continue;
+					}
+					$pool[] = array(
 						'question' => $qsource,
-						'sort'     => $i + 1,
+						'sort'     => count( $pool ) + 1,
 					);
 					if ( isset( $seen[ 'q' . $question_id ] ) ) {
 						continue;
@@ -142,9 +197,11 @@ final class PackageExporter {
 					) + self::rights( $link['module_id'] )
 				);
 			}
+			$course_source    = self::source_id( 'course', $course_id, $identity->ensure( $course ) );
+			$ids[]            = $course_source;
 			$out['courses'][] = self::sealed(
 				array(
-					'source_id'        => self::source_id( 'course', $course_id, $identity->ensure( $course ) ),
+					'source_id'        => $course_source,
 					'title'            => $course->post_title,
 					'slug'             => $course->post_name,
 					'summary'          => $course->post_excerpt,
@@ -153,7 +210,37 @@ final class PackageExporter {
 				) + self::rights( $course_id )
 			);
 		}
-		return $out;
+		ksort( $excluded, SORT_STRING );
+		return array(
+			'records' => $out,
+			'export'  => array(
+				'course_ids'       => $ids,
+				'included_foreign' => $include_foreign,
+				'excluded'         => array_values( $excluded ),
+			),
+			'foreign' => count( $foreign ),
+		);
+	}
+
+	/**
+	 * Why a lesson or question is left out of an export by default: the
+	 * reason of the delivery lock (`unknown`, `restricted`, `expired`), else
+	 * `foreign` for content of a foreign source system, else null.
+	 *
+	 * @param Rights      $rights   Rights rules.
+	 * @param string|null $withheld Verdict of the delivery lock.
+	 * @param int         $id       Object ID.
+	 * @param array       $types    Object types in the source map.
+	 * @phpstan-param list<string> $types
+	 * @return string|null
+	 */
+	private static function excluded_reason( Rights $rights, ?string $withheld, int $id, array $types ): ?string {
+		if ( null !== $withheld ) {
+			return $withheld;
+		}
+		$db     = Database::current();
+		$system = (string) $db->scalar( $db->prepare( 'SELECT source_system FROM `' . $db->table( 'ccap_source_map' ) . '` WHERE object_id = %d AND object_type IN (' . implode( ',', array_fill( 0, count( $types ), '%s' ) ) . ') LIMIT 1', $id, ...$types ) );
+		return $rights->own_system( $system ) ? null : 'foreign';
 	}
 
 	/**
@@ -166,10 +253,11 @@ final class PackageExporter {
 	 * @param int                                                     $per_file Records per data file (R0-10 §1.1: ≤ 5 000).
 	 * @param array<string, string|array{data: string, mime: string}> $media Media files `media/…` → content (MIME from the extension) or content with declared MIME.
 	 * @param bool                                                    $own_export Export of this site's courses: the manifest carries `source.exported_from_site` (installation UUID, D8).
+	 * @param array<string, mixed>|null                               $export Manifest block `export` from {@see self::collect()} (R0-10 §1.2); null leaves it out.
 	 * @return string Path.
 	 * @throws CourseException When the archive cannot be written.
 	 */
-	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE, array $media = array(), bool $own_export = false ): string {
+	public static function write( array $records, string $system, string $title, ?string $file = null, int $per_file = self::RECORDS_PER_FILE, array $media = array(), bool $own_export = false, ?array $export = null ): string {
 		$files  = array();
 		$mimes  = array();
 		$counts = array();
@@ -218,6 +306,9 @@ final class PackageExporter {
 		if ( $own_export ) {
 			// D8 (R0-10 §2.2): a re-import on this site is recognised as own content.
 			$manifest['source']['exported_from_site'] = self::installation_uuid();
+		}
+		if ( null !== $export ) {
+			$manifest['export'] = $export;
 		}
 		foreach ( $files as $path => $data ) {
 			$manifest['files'][] = array(

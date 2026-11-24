@@ -14,6 +14,8 @@ namespace CourseCaptain\Tests\Integration;
 use CourseCaptain\Access\ProtectedFiles;
 use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Activity\ActivityService;
+use CourseCaptain\Admin\AdminUi;
+use CourseCaptain\Admin\ExportArea;
 use CourseCaptain\Admin\PreviewScreen;
 use CourseCaptain\Cache\CacheStore;
 use CourseCaptain\Course\CourseException;
@@ -23,6 +25,7 @@ use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Exam\ExamSessions;
 use CourseCaptain\Import\ImportService;
 use CourseCaptain\Import\PackageExporter;
+use CourseCaptain\Import\PackageValidator;
 use CourseCaptain\Import\Rights;
 use CourseCaptain\Kernel\Plugin;
 use CourseCaptain\Learner\LessonView;
@@ -329,6 +332,8 @@ final class RightsDeliveryTest extends SchemaTestCase {
 	 * R0-10 §2.2: the central gate and the module pool, smart trainer and
 	 * question delivery never hand withheld foreign questions to learners;
 	 * own content is never withheld (E-18).
+	 *
+	 * @group MED-018
 	 */
 	public function test_pool_trainer_and_delivery_withhold_foreign_content(): void {
 		$gate = RightsGate::current();
@@ -502,6 +507,8 @@ final class RightsDeliveryTest extends SchemaTestCase {
 	/**
 	 * Lessons with withheld rights and withheld media: learners get a
 	 * neutral placeholder, editors a notice; the file route answers 404.
+	 *
+	 * @group MED-018
 	 */
 	public function test_lesson_view_media_route_and_preview(): void {
 		$admin = Actor::user( $this->admin );
@@ -771,8 +778,9 @@ final class RightsDeliveryTest extends SchemaTestCase {
 		$val    = array_values( array_filter( CourseValidator::validate( $course )['issues'], static fn( array $i ): bool => 'VAL-100' === $i['code'] ) );
 		self::assertSame( array( 'lesson:' . $lesson ), $val[0]['params']['items'] );
 
-		// Export carries the lesson rights again (round trip).
-		$records = PackageExporter::records( Actor::user( $this->admin ), array( $course ) );
+		// R0-10 §6.1: the foreign lesson stays out by default; with the opt-in the export carries its rights again (round trip).
+		self::assertSame( array(), PackageExporter::records( Actor::user( $this->admin ), array( $course ) )['lessons'] );
+		$records = PackageExporter::records( Actor::user( $this->admin ), array( $course ), true );
 		self::assertSame( 'unknown', $records['lessons'][0]['rights']['status'] ?? null );
 		self::assertArrayNotHasKey( '_source', $records['lessons'][0]['rights'] );
 
@@ -783,6 +791,120 @@ final class RightsDeliveryTest extends SchemaTestCase {
 
 		// Invalid lesson rights: record error `schema`.
 		self::assertSame( 'schema', $this->preview_rules( $this->package( 'fixture-lr3', array( 'status' => 'mine' ) ) )['L-1'] ?? '' );
+	}
+
+	/**
+	 * R0-10 §6.1 / IMP-031 / E-66: foreign and withheld lessons and
+	 * questions stay out of the export and are listed in
+	 * `export.excluded[]`; references to them are dropped so the package
+	 * stays valid; the opt-in needs a confirmation and is audited.
+	 *
+	 * @group IMP-031
+	 */
+	public function test_IMP_031_export_excludes_foreign_content(): void {
+		$admin = Actor::user( $this->admin );
+		$this->post( 'ccap_lesson', 'Own lesson', $this->module );
+		$foreign = $this->post( 'ccap_lesson', 'Foreign lesson', $this->module );
+		$db      = Database::current();
+		// The lesson already has its local source map row; make it an imported one.
+		$db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_source_map' ) . "` WHERE object_type = 'lesson' AND object_id = %d", $foreign ) );
+		$db->insert(
+			'ccap_source_map',
+			array(
+				'uid'           => $db->uuid(),
+				'object_type'   => 'lesson',
+				'object_id'     => $foreign,
+				'source_system' => self::FOREIGN,
+				'source_id'     => 'L-foreign',
+			),
+			array( 'created_at', 'updated_at' )
+		);
+		$uid = static fn( int $id ): string => (string) $db->scalar( $db->prepare( 'SELECT uid FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $id ) );
+
+		$package = PackageExporter::collect( $admin, array( $this->course ) );
+		$records = $package['records'];
+		self::assertSame( array( 'Own lesson' ), array_column( $records['lessons'], 'title' ) );
+		self::assertCount( 2, $records['questions'], 'own question with an override (E-18) and the own card' );
+		self::assertSame( array( $uid( $this->q[2] ), $uid( $this->c[1] ) ), array_column( $records['modules'][0]['question_pool'], 'question' ) );
+		self::assertSame( array( 1, 2 ), array_column( $records['modules'][0]['question_pool'], 'sort' ), 'pool order without gaps' );
+		self::assertCount( 1, $records['modules'][0]['lessons'] );
+		$reasons = array();
+		foreach ( $package['export']['excluded'] as $item ) {
+			$reasons[ $item['entity'] . ':' . $item['source_id'] ] = $item['reason'];
+		}
+		$expected = array(
+			'lessons:L-foreign'                 => 'foreign',
+			'questions:question-' . $this->q[0] => 'unknown',
+			'questions:question-' . $this->q[1] => 'expired',
+			'questions:question-' . $this->q[3] => 'foreign',
+			'questions:' . $uid( $this->q[4] )  => 'unknown',
+			'questions:' . $uid( $this->c[0] )  => 'restricted',
+		);
+		ksort( $expected );
+		ksort( $reasons );
+		self::assertSame( $expected, $reasons );
+		self::assertFalse( $package['export']['included_foreign'] );
+		self::assertSame( array( $records['courses'][0]['source_id'] ), $package['export']['course_ids'] );
+		self::assertSame( 0, $package['foreign'] );
+
+		// The package with the `export` block passes the import check; the list is in the manifest.
+		$file  = PackageExporter::write( $records, 'site-x', 'Export', $this->dir . '/excluded.zip', PackageExporter::RECORDS_PER_FILE, array(), true, $package['export'] );
+		$check = PackageValidator::validate( $file );
+		self::assertTrue( $check['ok'], (string) wp_json_encode( $check['errors'] ) );
+		self::assertSame( $package['export'], $check['manifest']['export'] );
+		self::assertSame( (string) wp_json_encode( $package ), (string) wp_json_encode( PackageExporter::collect( $admin, array( $this->course ) ) ), 'deterministic' );
+
+		// Opt-in: everything is exported, nothing listed.
+		$all = PackageExporter::collect( $admin, array( $this->course ), true );
+		self::assertCount( 7, $all['records']['questions'] );
+		self::assertSame( array( 'Own lesson', 'Foreign lesson' ), array_column( $all['records']['lessons'], 'title' ) );
+		self::assertSame( array(), $all['export']['excluded'] );
+		self::assertTrue( $all['export']['included_foreign'] );
+		self::assertSame( 6, $all['foreign'] );
+
+		// Admin area: opt-in without confirmation is refused; with it the export is audited.
+		$form = function ( array $data ): array {
+			wp_set_current_user( $this->admin );
+			return array(
+				'op'       => 'export',
+				'object'   => 0,
+				'_wpnonce' => wp_create_nonce( AdminUi::nonce_action( ExportArea::ACTION, 'export', 0 ) ),
+				'courses'  => array( $this->course ),
+			) + $data;
+		};
+		self::assertSame( 'ccap_export_confirm_foreign', ExportArea::process( $form( array( 'include_foreign' => '1' ) ), $this->admin )['result'] );
+		$plain = ExportArea::process( $form( array() ), $this->admin );
+		self::assertSame( 'ok', $plain['result'] );
+		self::assertSame( 6, $plain['excluded'] );
+		$zip = new \ZipArchive();
+		self::assertTrue( $zip->open( $plain['file'] ) );
+		self::assertCount( 6, ( (array) json_decode( (string) $zip->getFromName( 'manifest.json' ), true ) )['export']['excluded'] );
+		$zip->close();
+		wp_delete_file( $plain['file'] );
+		self::assertSame( 0, $this->audit_count( 'course_export_foreign_included' ) );
+		$opted = ExportArea::process( $form( array( 'include_foreign' => '1', 'confirm_foreign' => '1' ) ), $this->admin ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short test input.
+		self::assertSame( 'ok', $opted['result'] );
+		self::assertSame( 0, $opted['excluded'] );
+		wp_delete_file( $opted['file'] );
+		self::assertSame( 1, $this->audit_count( 'course_export_foreign_included' ) );
+		$context = (array) json_decode( (string) $db->scalar( $db->prepare( 'SELECT context FROM `' . $db->table( 'ccap_audit_log' ) . '` WHERE action = %s', 'course_export_foreign_included' ) ), true );
+		self::assertSame( 6, $context['foreign'] );
+
+		$page = ExportArea::html( array(), $this->admin );
+		self::assertStringContainsString( 'name="include_foreign"', $page );
+		self::assertStringContainsString( 'name="confirm_foreign"', $page );
+		self::assertSame( array(), A11yDom::fragment_problems( $page ) );
+	}
+
+	/**
+	 * Audit entries of an action.
+	 *
+	 * @param string $action Action.
+	 * @return int
+	 */
+	private function audit_count( string $action ): int {
+		$db = Database::current();
+		return (int) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . '` WHERE action = %s', $action ) );
 	}
 
 	/**

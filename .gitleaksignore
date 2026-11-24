@@ -1,3 +1,5 @@
 # Reviewed false positives (J-08, R0-18 §2.3). Each entry: fingerprint and reason.
 # Synthetic canary token in a test that proves diagnostics redact token-like values; never a real secret.
 59f978d8f0cf952d27760f51f5294cb588bcfba8:tests/integration/OpsDashboardTest.php:generic-api-key:41
+# Fixed test site secret of a unit test (PseudonymReversalTest), never a real secret.
+227e29c2dd3a51a65a16e977304c8d0d329d96c0:tests/unit/PseudonymReversalTest.php:generic-api-key:30

@@ -430,6 +430,8 @@ final class AuthoringScreensTest extends SchemaTestCase {
 
 	/**
 	 * B-05: question image needs an alt text or "decorative"; VAL-140/141 block publishing.
+	 *
+	 * @group PUB-040
 	 */
 	public function test_question_image_alt_text_rule(): void {
 		$image = $this->image();
