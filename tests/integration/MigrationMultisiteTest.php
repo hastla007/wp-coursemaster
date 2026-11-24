@@ -27,9 +27,12 @@ final class MigrationMultisiteTest extends SchemaTestCase {
 	/**
 	 * MIG-020 (lock part): the named lock and the lease are per site; a
 	 * runner holding site 1 never blocks site 2, and the step state of one
-	 * site does not leak into the other.
+	 * site does not leak into the other. Also MS-020 (lazy upgrade per site,
+	 * lock part): site 2 migrates on its own request while site 1 keeps its
+	 * old schema version until its own run.
 	 *
 	 * @group MIG-020
+	 * @group MS-020
 	 */
 	public function test_MIG_020_locks_are_independent_per_site(): void {
 		global $wpdb;
