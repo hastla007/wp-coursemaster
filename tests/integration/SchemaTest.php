@@ -59,7 +59,7 @@ final class SchemaTest extends SchemaTestCase {
 
 		$steps = Database::current()->rows( 'SELECT step_id, status FROM `' . Database::current()->table( 'ccap_migration_step' ) . '` ORDER BY step_id' );
 		self::assertSame(
-			array( Migrator::STEP_TABLES, 'core:0001_exam_session_running', 'core:0002_seat_active_user', Migrator::STEP_FOREIGN, \CourseCaptain\Access\AccessRuleKindsBackfill::ID ),
+			array( Migrator::STEP_TABLES, 'core:0001_exam_session_running', 'core:0002_seat_active_user', Migrator::STEP_FOREIGN, \CourseCaptain\Access\AccessRuleKindsBackfill::ID, \CourseCaptain\Event\AuditResealBackfill::ID ),
 			array_column( $steps, 'step_id' )
 		);
 		self::assertSame( array( 'done' ), array_values( array_unique( array_column( $steps, 'status' ) ) ) );

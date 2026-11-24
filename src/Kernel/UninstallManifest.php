@@ -75,6 +75,7 @@ final class UninstallManifest {
 		'course_captain_cache_generation',
 		'course_captain_hardening_state',
 		'course_captain_retention_state',
+		'course_captain_audit_reseal',
 		'course_captain_rewrite_version',
 		'course_captain_installation_uuid',
 		'course_captain_site_identity',

@@ -166,7 +166,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 		);
 		self::assertSame( 'licensed', $rights->effective( 'question', $q ) );
 		$row = (array) $db->row( 'SELECT * FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'rights_override_set'" );
-		self::assertSame( array( 'question', (string) $q, 'Lizenzvertrag LV-7 geprüft', (string) $this->fx['users']['admin'] ), array( $row['object_type'], $row['object_id'], $row['reason'], (string) $row['actor_user_id'] ) );
+		self::assertSame( array( 'question', (string) $q, 'Lizenzvertrag LV-7 geprüft', (string) $this->fx['users']['admin'] ), array( $row['object_type'], $row['object_id'], $row['reason'], (string) \CourseCaptain\Event\AuditIdentity::user_of( $db, $row['actor_ref'] ) ) );
 		self::assertSame(
 			array(
 				'field'  => 'rights_status',

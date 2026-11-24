@@ -393,7 +393,7 @@ final class RecoveryTest extends SchemaTestCase {
 		self::assertSame( SiteIdentity::STATUS_OK, $state['state'] );
 		$audit = self::audit( 'site_identity_confirmed' );
 		self::assertCount( 1, $audit );
-		self::assertSame( (string) $this->admin, (string) $audit[0]['actor_user_id'] );
+		self::assertSame( (string) $this->admin, (string) \CourseCaptain\Event\AuditIdentity::user_of( Database::current(), $audit[0]['actor_ref'] ) );
 		self::assertSame(
 			array(
 				'choice'   => 'moved',

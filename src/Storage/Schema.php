@@ -1097,6 +1097,10 @@ final class Schema {
 					'request_id'      => 'varchar(40) NULL',
 					'row_hash'        => 'char(64) NOT NULL',
 					'created_at'      => self::DT,
+					// D12/RT-23: pseudonyms instead of user IDs; epoch of the hash format (0 = legacy, 1 = re-sealed, 2 = current).
+					'actor_ref'       => 'varchar(24) NULL',
+					'subject_ref'     => 'varchar(24) NULL',
+					'chain_epoch'     => 'smallint(5) unsigned NOT NULL DEFAULT 0',
 				),
 				'keys'    => array(
 					'PRIMARY KEY  (id)',
@@ -1106,6 +1110,23 @@ final class Schema {
 					'KEY action (action)',
 					'KEY created_at (created_at)',
 					'KEY correlation_id (correlation_id)',
+					'KEY actor_ref (actor_ref)',
+					'KEY subject_ref (subject_ref)',
+					'KEY chain_epoch (chain_epoch,id)',
+				),
+			),
+			// D12/RT-23: the only link between an audit pseudonym and a person; deleted on erasure.
+			'ccap_audit_identity'        => array(
+				'columns' => array(
+					'id'         => self::ID,
+					'pseudonym'  => 'varchar(24) NOT NULL',
+					'user_id'    => self::REF,
+					'created_at' => self::DT,
+				),
+				'keys'    => array(
+					'PRIMARY KEY  (id)',
+					'UNIQUE KEY pseudonym (pseudonym)',
+					'UNIQUE KEY user_id (user_id)',
 				),
 			),
 			'ccap_override'              => array(
@@ -1374,6 +1395,7 @@ final class Schema {
 			'ccap_assignment_file',
 			'ccap_assignment_grade',
 			'ccap_audit_log',
+			'ccap_audit_identity',
 			'ccap_group',
 			'ccap_outbox_event',
 			'ccap_outbox_delivery',

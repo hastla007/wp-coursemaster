@@ -277,7 +277,7 @@ final class UninstallProbeTest extends SchemaTestCase {
 		self::assertSame( array( 'delete_data_on_uninstall' ), $result['changed'] );
 		self::assertTrue( Uninstaller::is_data_deletion_confirmed( get_option( UninstallManifest::GENERAL_SETTINGS_OPTION ) ) );
 		$db    = Database::current();
-		$audit = $db->rows( $db->prepare( 'SELECT * FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'settings_saved' AND actor_user_id = %d", $this->admin ) );
+		$audit = $db->rows( $db->prepare( 'SELECT * FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'settings_saved' AND actor_ref = %s", \CourseCaptain\Event\AuditIdentity::ref_of( $db, $this->admin ) ) );
 		self::assertCount( 1, $audit );
 		self::assertStringContainsString( 'delete_data_on_uninstall', (string) $audit[0]['context'] );
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI `wp course-captain status|cache flush|outbox|integrations|diagnostics`
+ * WP-CLI `wp course-captain status|cache flush|outbox|integrations|diagnostics|audit verify`
  * (R0-19 §4.7; R0-21 §3.7; R0-13 §2.1, §2.2).
  *
  * @package CourseCaptain
@@ -36,7 +36,7 @@ final class OpsCommand {
 		if ( ! ( defined( 'WP_CLI' ) && WP_CLI && class_exists( '\WP_CLI' ) ) ) {
 			return;
 		}
-		foreach ( array( 'status', 'cache flush', 'outbox status', 'outbox retry', 'outbox discard', 'integrations status', 'diagnostics', 'backup-check' ) as $command ) {
+		foreach ( array( 'status', 'cache flush', 'outbox status', 'outbox retry', 'outbox discard', 'integrations status', 'diagnostics', 'backup-check', 'audit verify' ) as $command ) {
 			\WP_CLI::add_command(
 				'course-captain ' . $command,
 				static function ( array $args, array $assoc ) use ( $command ): void {
@@ -138,6 +138,16 @@ final class OpsCommand {
 						$report,
 						$lines
 					);
+				case 'audit verify':
+					// D12/RT-23: read only; exit 1 when a chain epoch is broken or a user ID is left.
+					$report = \CourseCaptain\Event\AuditChain::verify( Database::current() );
+					$lines  = array( 'Audit chain: ' . ( $report['ok'] ? 'ok' : 'BROKEN' ) . ' (' . $report['rows'] . ' entries, ' . $report['mappings'] . ' pseudonyms)' );
+					foreach ( $report['epochs'] as $epoch => $stats ) {
+						$lines[] = sprintf( 'epoch %d: %d entries, %s', $epoch, $stats['rows'], $stats['ok'] ? 'ok' : 'broken at ID ' . $stats['broken_at'] );
+					}
+					$lines[] = sprintf( 'legacy (not yet re-sealed): %d entries, %d mismatches, %d pseudonymised by erasure', $report['legacy']['rows'], $report['legacy']['mismatches'], $report['legacy']['erased'] );
+					$lines[] = 'user IDs left in pseudonymised entries: ' . $report['personal_refs'];
+					return self::out( $report['ok'] ? 0 : 1, $json, $report, $lines );
 				case 'diagnostics':
 					$package = Diagnostics::current()->export( $actor );
 					if ( isset( $assoc['output'] ) && '' !== $assoc['output'] ) {

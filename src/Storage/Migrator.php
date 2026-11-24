@@ -126,12 +126,13 @@ final class Migrator implements MigrationRunner {
 
 	/**
 	 * Backfill steps of the core schema: split single partial-access
-	 * limits into one limit per kind (E-332).
+	 * limits into one limit per kind (E-332); re-seal legacy audit rows
+	 * with pseudonyms (D12, RT-23).
 	 *
 	 * @return list<BackfillStep>
 	 */
 	public static function core_backfills(): array {
-		return array( new \CourseCaptain\Access\AccessRuleKindsBackfill() );
+		return array( new \CourseCaptain\Access\AccessRuleKindsBackfill(), new \CourseCaptain\Event\AuditResealBackfill() );
 	}
 
 	/**

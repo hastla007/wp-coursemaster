@@ -39,7 +39,7 @@ final class GroupsScreen {
 	 *
 	 * @var list<string>
 	 */
-	public const OPS = array( 'create', 'seats', 'validity', 'status', 'owner', 'policy', 'rename', 'invite', 'resend', 'withdraw', 'remove', 'link' );
+	public const OPS = array( 'create', 'seats', 'validity', 'status', 'owner', 'policy', 'rename', 'invite', 'resend', 'withdraw', 'remove', 'link', 'reinstate' );
 
 	/**
 	 * Hooks.
@@ -178,6 +178,10 @@ final class GroupsScreen {
 					break;
 				case 'link':
 					$out['token'] = $service->rotate_link( $actor, $group );
+					break;
+				case 'reinstate':
+					// D11: administrators only, reason required; count = renewed member grants.
+					$out['count'] = $service->reinstate( $actor, $group, isset( $post['reason'] ) ? (string) $post['reason'] : '' )['grants'];
 					break;
 			}
 		} catch ( CourseException $e ) {
@@ -437,7 +441,14 @@ final class GroupsScreen {
 		}
 		$html .= '</tbody></table>';
 		if ( $readonly ) {
-			return $html . '<p>' . esc_html__( 'This group has ended and can only be viewed.', 'course-captain' ) . '</p>';
+			$html .= '<p>' . esc_html__( 'This group has ended and can only be viewed.', 'course-captain' ) . '</p>';
+			if ( user_can( $actor->user_id, 'manage_options' ) ) {
+				// D11: reinstatement by administrators with a reason (new source revision, audited).
+				$html .= '<h3>' . esc_html__( 'Reinstate the group', 'course-captain' ) . '</h3>';
+				$html .= '<p id="ccap-reinstate-help">' . esc_html__( 'The group becomes active again. Members get their access back only while the group and their access are still valid; removed seats stay removed.', 'course-captain' ) . '</p>';
+				$html .= self::form( 'reinstate', $group, '<label for="ccap-reinstate-reason">' . esc_html__( 'Reason for reinstating (required)', 'course-captain' ) . '</label> <input id="ccap-reinstate-reason" type="text" name="reason" required aria-describedby="ccap-reinstate-help"> ', __( 'Reinstate group', 'course-captain' ) );
+			}
+			return $html;
 		}
 		$preview = absint( $request['preview_seats'] ?? 0 );
 		$html   .= '<h3>' . esc_html__( 'Change the group', 'course-captain' ) . '</h3>';

@@ -304,8 +304,8 @@ final class GoldenMasterLearningTest extends SchemaTestCase {
 
 		$audit = (array) $db->row( $db->prepare( 'SELECT * FROM `' . $db->table( 'ccap_audit_log' ) . '` WHERE id = %d', $result['audit_id'] ) );
 		self::assertSame( 'progress_reset', $audit['action'] );
-		self::assertSame( (string) $lea->user_id, (string) $audit['subject_user_id'] );
-		self::assertSame( (string) $admin->user_id, (string) $audit['actor_user_id'] );
+		self::assertSame( (string) $lea->user_id, (string) \CourseCaptain\Event\AuditIdentity::user_of( $db, $audit['subject_ref'] ) );
+		self::assertSame( (string) $admin->user_id, (string) \CourseCaptain\Event\AuditIdentity::user_of( $db, $audit['actor_ref'] ) );
 		self::assertSame( 'Support case', $audit['reason'] );
 		self::assertSame( 'course', json_decode( (string) $audit['context'], true )['scope'] );
 		self::assertSame( 2, json_decode( (string) $audit['context'], true )['rows']['ccap_question_progress'] );
