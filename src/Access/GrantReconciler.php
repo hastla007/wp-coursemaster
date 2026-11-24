@@ -54,15 +54,15 @@ final class GrantReconciler {
 	 * @return array{created: int, changed: int, ignored: int, stale: bool, no_change: bool}
 	 */
 	public function reconcile( GrantSourceAdapter $adapter, SourceStatusMapper $mapper, string $reference, ?string $source_event_id = null ): array {
-		$result   = array(
+		$result = array(
 			'created'   => 0,
 			'changed'   => 0,
 			'ignored'   => 0,
 			'stale'     => false,
 			'no_change' => false,
 		);
-		$type     = $adapter->source_type();
-		$actor    = Actor::connector( $type );
+		$type   = $adapter->source_type();
+		$actor  = Actor::connector( $type );
 		// R0-09 R-04: read the source only under the grant-source lock, so a slow
 		// callback cannot apply an older snapshot after a parallel refund.
 		$lock = NamedLock::for_key( $this->db, 'grant-source:' . $type . ':' . $reference );
