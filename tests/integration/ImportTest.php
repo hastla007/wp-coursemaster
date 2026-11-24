@@ -418,7 +418,12 @@ final class ImportTest extends SchemaTestCase {
 	}
 
 	/**
-	 * V6 object errors, threshold, state machine.
+	 * V6 object errors, threshold, state machine (IMP-015: object error
+	 * with its dependants, the rest stays importable below the threshold;
+	 * IMP-019: approval without preview is refused).
+	 *
+	 * @group IMP-015
+	 * @group IMP-019
 	 */
 	public function test_object_errors_and_states(): void {
 		$records                            = self::records();
