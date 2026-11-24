@@ -519,6 +519,7 @@ final class CertificateTest extends SchemaTestCase {
 	 * @group CRT-013
 	 * @group CRT-014
 	 * @group CRT-028
+	 * @group REV-046
 	 */
 	public function test_CRT_013_014_028_revocation(): void {
 		$cert    = $this->exam_certificate( array( 'certifies_objectives' => array( 'obj-safety' ) ) );
@@ -1066,6 +1067,7 @@ final class CertificateTest extends SchemaTestCase {
 	 *
 	 * @group CORE-06
 	 * @group GRANT-028
+	 * @group REV-046
 	 */
 	public function test_CORE_06_refund_after_certificate_keeps_history_and_status(): void {
 		$cert = $this->exam_certificate();
@@ -1097,6 +1099,71 @@ final class CertificateTest extends SchemaTestCase {
 		// A late "paid" for the same source revision does not re-grant (CORE-07).
 		self::assertSame( 'ignored', GrantService::current()->transition( Actor::cron(), $this->grant, GrantTransitions::ACTIVE, 'order_paid' ) );
 		self::assertSame( 'revoked', (string) Database::current()->scalar( 'SELECT status FROM `' . Database::current()->table( 'ccap_grant' ) . '` WHERE id = ' . $this->grant ) );
+	}
+
+	/**
+	 * REV-046 (R0-23 RV-13, §5.4, §5.5): an issued certificate stays as it
+	 * is after a new course revision, a new template version, a change of
+	 * the profile name and the withdrawal of the course: status `issued`,
+	 * snapshot and template version unchanged, the verification stays
+	 * valid. A recertification issues a new `certificate_uid`; the old one
+	 * stays `issued`. The refund and the revocation (all revisions
+	 * `revoked`, no revival) are part of REV-046 in
+	 * `test_CORE_06_refund_after_certificate_keeps_history_and_status()` and
+	 * `test_CRT_013_014_028_revocation()`.
+	 *
+	 * @group REV-046
+	 */
+	public function test_REV_046_certificate_survives_course_and_template_changes(): void {
+		$cert      = $this->exam_certificate();
+		$service   = CertificateService::current();
+		$token     = CertificateService::token( $cert['uid'], 1 );
+		$before    = self::certs( "certificate_uid = '" . $cert['uid'] . "'" );
+		$publisher = CoursePublisher::current();
+		$admin     = Actor::user( $this->admin );
+		self::assertCount( 1, $before );
+		self::assertSame( 'valid', $service->verify( $token )['status'] );
+
+		// New course revision, new template version, new profile name, course withdrawn.
+		$revision = (int) $publisher->current_revision( $this->course )['id'];
+		$this->post( 'ccap_lesson', $this->module, 'Additional lesson' );
+		self::assertNotSame( $revision, $publisher->publish( $admin, $this->course, 'minor' ), 'a new course revision' );
+		$this->settings(
+			array(
+				'base_template' => array(
+					'issuer_name'     => 'Akademie Süd',
+					'footer_text'     => 'Neu',
+					'logo_id'         => 0,
+					'signature_label' => 'Vorstand',
+				),
+			)
+		);
+		self::assertSame( (int) $before[0]['template_version'] + 1, CertificateService::template()['version'] );
+		wp_update_user(
+			array(
+				'ID'           => $this->learner,
+				'display_name' => 'Jürgen Anders',
+			)
+		);
+		$publisher->archive( $admin, $this->course );
+		OutboxDispatcher::current()->dispatch();
+
+		$after = self::certs( "certificate_uid = '" . $cert['uid'] . "'" );
+		self::assertCount( 1, $after, 'no automatic correction' );
+		self::assertSame( 'issued', $after[0]['status'] );
+		self::assertSame( $before[0]['snapshot'], $after[0]['snapshot'], 'snapshot unchanged' );
+		self::assertSame( $before[0]['template_version'], $after[0]['template_version'], 'rendered with the old template version' );
+		self::assertSame( 'valid', $service->verify( $token )['status'] );
+		self::assertSame( 0, self::events( 'certificate.revoked' ) );
+		self::assertSame( 0, self::events( 'certificate.corrected' ) );
+
+		// Recertification after the course is offered again: new UID, the old certificate stays issued.
+		$publisher->publish( $admin, $this->course );
+		$second = $service->issue( Actor::user( $this->manager ), CertificateService::EVIDENCE_EXAM, $this->take_exam( $this->rule() ), 'recertification' );
+		$rows   = self::certs( 'id = ' . (int) $second['id'] );
+		self::assertNotSame( $cert['uid'], (string) $rows[0]['certificate_uid'] );
+		self::assertSame( 'issued', self::certs( "certificate_uid = '" . $cert['uid'] . "'" )[0]['status'] );
+		self::assertSame( 'valid', $service->verify( $token )['status'] );
 	}
 
 	/**
