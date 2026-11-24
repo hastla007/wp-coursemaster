@@ -367,8 +367,10 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 
 	/**
 	 * GM-147: health for guests – 200, overall status only, no plugin version, `no-store`.
+	 * SUP-023: `?key=` is ignored (overall status only).
 	 *
 	 * @group GM-147
+	 * @group SUP-023
 	 */
 	public function test_GM_147_health_without_version(): void {
 		self::healthy( time() );
@@ -387,8 +389,12 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	/**
 	 * GM-148: monitor – anonymous overall status, single checks with the header
 	 * key or for #22, cron standstill (clock + 3 h 1 min without a run) → 503.
+	 * SUP-023: without key overall status only, with `X-CC-Monitor-Key` details.
+	 * SUP-022: cron run older than 3 h → `fail` and 503.
 	 *
 	 * @group GM-148
+	 * @group SUP-022
+	 * @group SUP-023
 	 */
 	public function test_GM_148_monitor_and_cron_stall(): void {
 		$t0 = time();
