@@ -69,7 +69,7 @@ i18n: 10 neue msgids (eine davon mit `_n`), Übersetzungen in `de_DE` (du) und `
 ## Offen / Abweichungen
 
 - **Abhängigkeitsregel:** Gesperrt wird nur, wenn verknüpfte Pflichtmedien vorhanden und alle gesperrt sind. Fehlende Bilder bleiben Sache des Validators (VAL-141).
-- **Bilder im Lektionstext** (Anhänge, die auf `/cc-file/` umgebogen werden) liefert die Dateiroute nicht aus. Im HTML erscheint dafür kein Platzhalter; das Bild bleibt leer.
+- ~~**Bilder im Lektionstext**~~ **Erledigt (24.11.2026):** `Learner\WithheldInlineMedia` ersetzt in der Lektionsansicht nach `the_content` eingebettete gesperrte Medien (`<img>`, `<video>`/`<audio>`/`<source>`, `<object>`/`<embed>`/`<iframe>`, auch `srcset`/`poster`; URLs `/cc-file/<uid>/` und `?course_captain_file=<uid>`) durch den Platzhalter „Media not available“ (ohne UID, ohne Pfad); Links auf gesperrte Dateien verlieren den Link, der Text bleibt. Bearbeitende sehen den Grund (`RightsGate::notice`). Freigegebene und eigene Medien bleiben unverändert; ohne Datei-URL im Text keine Abfrage. Tests: `tests/unit/WithheldInlineMediaTest.php`, `tests/integration/RightsLessonImagesTest.php`. Die Vorschau (`PreviewScreen`) ist nicht umgestellt.
 - **Export (R0-10 §6.1):** Der Ausschluss fremder Inhalte mit `export.excluded[]` ist nicht Teil dieses Slices; der Exporter liest den Pool weiter vollständig.
 - **Favoriten und Fehlertraining** listen nur IDs. Gesperrte Fragen bleiben dort sichtbar, werden aber nicht ausgeliefert (404 über den Presenter).
 - Kurs- und Modul-`_ccap_rights` bleiben Metadaten für VAL-100…105. Sie sperren keine ganzen Kurse oder Module.

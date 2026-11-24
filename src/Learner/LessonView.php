@@ -116,12 +116,12 @@ final class LessonView {
 		$html = $back . self::status_message( $status );
 		if ( ! \CourseCaptain\Settings\Modules::activity_enabled( $type ) ) {
 			// SET-CC-24: the module is switched off; the lesson text stays readable, the activity is hidden.
-			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Activity', 'course-captain' ) . '</h2><p>' . esc_html__( 'This activity is not available on this website at the moment. Your previous work is kept.', 'course-captain' ) . '</p></section></article>';
+			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang, $rights, $course_id ) . '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Activity', 'course-captain' ) . '</h2><p>' . esc_html__( 'This activity is not available on this website at the moment. Your previous work is kept.', 'course-captain' ) . '</p></section></article>';
 		} else {
 			$activity = null !== $media && 'video' === $type
 				? '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Video', 'course-captain' ) . '</h2><p class="ccap-withheld">' . esc_html( $media ) . '</p></section>'
 				: ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : ( 'quiz' === $type ? QuizView::section( $actor, $course_id, $lesson_id, $lang, $status ) : self::activity( $type, $definition['settings'], $course_id ) ) );
-			$html    .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . $activity . '</article>';
+			$html    .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang, $rights, $course_id ) . $activity . '</article>';
 			$html    .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'], $media );
 		}
 		$html .= self::navigation( $room, $lesson_id, $lang );
@@ -254,12 +254,17 @@ final class LessonView {
 	/**
 	 * Lesson text through `the_content` (content filters, `ContentProtection`).
 	 *
-	 * @param Actor    $actor  Learner.
-	 * @param \WP_Post $lesson Lesson.
-	 * @param string   $lang   Content language attributes.
+	 * Embedded media whose rights withhold them (R0-10 §2.2) are replaced by
+	 * the placeholder ({@see WithheldInlineMedia}).
+	 *
+	 * @param Actor      $actor     Learner.
+	 * @param \WP_Post   $lesson    Lesson.
+	 * @param string     $lang      Content language attributes.
+	 * @param RightsGate $rights    Rights gate of the request.
+	 * @param int        $course_id Course.
 	 * @return string
 	 */
-	private static function content( Actor $actor, \WP_Post $lesson, string $lang ): string {
+	private static function content( Actor $actor, \WP_Post $lesson, string $lang, RightsGate $rights, int $course_id ): string {
 		if ( ContentProtection::is_locked( (int) $lesson->ID, $actor->user_id ) ) {
 			return ContentProtection::notice();
 		}
@@ -271,6 +276,7 @@ final class LessonView {
 		$post     = $lesson; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored below; filters read the current post.
 		setup_postdata( $lesson );
 		$html = (string) apply_filters( 'the_content', $lesson->post_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter.
+		$html = WithheldInlineMedia::filter( $html, array( $rights, 'medium_uid' ), RightsGate::exempt( $actor->user_id, $course_id ) );
 		$post = $previous; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore.
 		if ( $previous instanceof \WP_Post ) {
 			setup_postdata( $previous );
