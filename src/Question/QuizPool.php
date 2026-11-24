@@ -79,17 +79,19 @@ final class QuizPool {
 	}
 
 	/**
-	 * Questions of the module pool this quiz may draw from, in pool order.
+	 * Questions of the module pool this quiz may draw from, in pool order
+	 * (without foreign content withheld for its rights, R0-10 §2.2).
 	 *
-	 * @param int $lesson_id Lesson.
+	 * @param int  $lesson_id Lesson.
+	 * @param bool $withheld  Keep withheld questions (structure check of the validator; rights are VAL-100/101).
 	 * @return list<int>
 	 */
-	public function eligible( int $lesson_id ): array {
+	public function eligible( int $lesson_id, bool $withheld = false ): array {
 		$module = (int) wp_get_post_parent_id( $lesson_id );
 		if ( $module <= 0 ) {
 			return array();
 		}
-		$revisions = $this->questions->pool_revisions( $module );
+		$revisions = $this->questions->pool_revisions( $module, false, $withheld );
 		if ( array() === $revisions ) {
 			return array();
 		}

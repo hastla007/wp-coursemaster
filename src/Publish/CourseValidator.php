@@ -200,7 +200,7 @@ final class CourseValidator {
 				continue;
 			}
 			$lessons = array_values( array_filter( $structure->lessons( $link['module_id'] ), static fn( \WP_Post $l ): bool => 'publish' === $l->post_status ) );
-			$pool    = QuestionRepository::current()->pool( $link['module_id'] );
+			$pool    = QuestionRepository::current()->pool( $link['module_id'], true );
 			if ( '' === trim( $module->post_title ) ) {
 				$this->add( 'VAL-021', 'blocker', 'module', (int) $module->ID, '', 'cc.val.module.title', array(), __( 'A module has no title. Enter a title.', 'course-captain' ), 'post_title' );
 			}
@@ -255,7 +255,7 @@ final class CourseValidator {
 				}
 				if ( 'quiz' === $type && \CourseCaptain\Question\QuizPool::SOURCE === ( $definition['settings']['source'] ?? '' ) ) {
 					// UI-F5: drawn from the module pool; the pool must hold deliverable questions (R0-22 VAL-029).
-					$eligible = count( \CourseCaptain\Question\QuizPool::current()->eligible( (int) $lesson->ID ) );
+					$eligible = count( \CourseCaptain\Question\QuizPool::current()->eligible( (int) $lesson->ID, true ) );
 					$wanted   = \CourseCaptain\Question\QuizPool::count_setting( $definition['settings'] );
 					if ( 0 === $eligible ) {
 						$this->add( 'VAL-029', 'blocker', 'activity', (int) $lesson->ID, $lesson->post_title, 'cc.val.quiz.pool_empty', array(), __( 'This quiz draws its questions from the module pool, but the pool of its module has no questions that can be delivered. Add published questions to the module pool.', 'course-captain' ), 'settings.source' );
@@ -398,8 +398,8 @@ final class CourseValidator {
 					$this->add( 'VAL-084', 'blocker', 'blueprint', $module, (string) get_the_title( $module ), 'cc.val.blueprint.count', array(), __( 'The exam must draw at least one question from each module.', 'course-captain' ) );
 				}
 				// D2 (B-03): flashcards are never drawn into an exam, so only scorable questions count.
-				$available = count( QuestionRepository::current()->pool_revisions( $module, true ) );
-				$cards     = count( QuestionRepository::current()->pool_revisions( $module ) ) - $available;
+				$available = count( QuestionRepository::current()->pool_revisions( $module, true, true ) );
+				$cards     = count( QuestionRepository::current()->pool_revisions( $module, false, true ) ) - $available;
 				if ( $cards > 0 && ( 0 === $available || $count > $available ) ) {
 					$this->add(
 						'VAL-099',

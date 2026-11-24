@@ -118,7 +118,7 @@ final class Flashcards {
 	 * @return array{total: int, known: int}
 	 */
 	public function counts( int $user_id, int $lesson_id ): array {
-		$cards = $this->presenter->inline_questions( $lesson_id );
+		$cards = $this->presenter->deck( $lesson_id );
 		if ( array() === $cards ) {
 			return array(
 				'total' => 0,

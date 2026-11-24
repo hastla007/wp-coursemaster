@@ -68,6 +68,7 @@ final class GoldenMasterTest extends SchemaTestCase {
 		$this->dir = get_temp_dir() . 'ccap-fx-' . wp_generate_password( 6, false );
 		wp_mkdir_p( $this->dir );
 		$this->fx = NeutralFixture::load( $this->dir );
+		NeutralFixture::release_rights( $this->fx );
 	}
 
 	/**

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Learning;
 
 use CourseCaptain\Access\ContentGate;
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
@@ -591,9 +592,11 @@ final class SmartTrainer {
 		// One query for all unlocked modules instead of one per module (R0-14 constancy rule).
 		$in     = implode( ',', array_map( 'intval', array_keys( $limits ) ) );
 		$by     = array();
+		$rights = RightsGate::current();
+		$cols   = $rights->columns();
 		$result = $this->db->rows(
 			$this->db->prepare(
-				"SELECT p.module_id, p.question_id, q.current_revision_id, q.uid, (r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s)) AS deliverable, COALESCE((SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'smart_category' ORDER BY t.id LIMIT 1), (SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'topic' ORDER BY t.id LIMIT 1), '') AS topic FROM `{$pool}` p JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.module_id IN ({$in}) AND q.status = 'published' AND r.question_type <> %s ORDER BY (p.sort_order IS NULL), p.sort_order, p.question_id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				"SELECT p.module_id, p.question_id, q.current_revision_id, q.uid{$cols}, (r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s)) AS deliverable, COALESCE((SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'smart_category' ORDER BY t.id LIMIT 1), (SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'topic' ORDER BY t.id LIMIT 1), '') AS topic FROM `{$pool}` p JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.module_id IN ({$in}) AND q.status = 'published' AND r.question_type <> %s ORDER BY (p.sort_order IS NULL), p.sort_order, p.question_id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
 				gmdate( 'Y-m-d', $this->db->time() ),
 				gmdate( 'Y-m-d', $this->db->time() ),
 				QuestionTypes::FLASHCARD
@@ -602,8 +605,11 @@ final class SmartTrainer {
 		foreach ( $result as $row ) {
 			$by[ (int) $row['module_id'] ][] = $row;
 		}
-		$seen = array();
-		$out  = array();
+		// R0-10 §2.2: withheld foreign questions are never drawn (rights read with the candidates).
+		$rights->absorb( $result, 'question_id' );
+		$withheld = array() === $result ? array() : $rights->questions( array_map( static fn( array $r ): int => (int) $r['question_id'], $result ) );
+		$seen     = array();
+		$out      = array();
 		foreach ( $limits as $module => $limit ) {
 			$rows = $by[ $module ] ?? array();
 			if ( null !== $limit ) {
@@ -612,7 +618,7 @@ final class SmartTrainer {
 			}
 			foreach ( $rows as $row ) {
 				$id = (int) $row['question_id'];
-				if ( isset( $seen[ $id ] ) || in_array( $id, $locked, true ) || ( null !== $topic && (string) $row['topic'] !== $topic ) ) {
+				if ( isset( $seen[ $id ] ) || isset( $withheld[ $id ] ) || in_array( $id, $locked, true ) || ( null !== $topic && (string) $row['topic'] !== $topic ) ) {
 					continue;
 				}
 				$seen[ $id ] = true;

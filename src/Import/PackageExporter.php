@@ -95,11 +95,11 @@ final class PackageExporter {
 							'body_html'     => $lesson->post_content,
 							'activity_type' => '' === $definition['type'] ? 'lesson' : $definition['type'],
 							'settings'      => (object) $definition['settings'],
-						)
+						) + self::rights( (int) $lesson->ID )
 					);
 				}
 				$pool = array();
-				foreach ( $repo->pool( $link['module_id'] ) as $i => $question_id ) {
+				foreach ( $repo->pool( $link['module_id'], true ) as $i => $question_id ) {
 					$uid     = (string) $db->scalar( $db->prepare( 'SELECT uid FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $question_id ) );
 					$qsource = self::source_id( 'question', $question_id, $uid );
 					$pool[]  = array(
@@ -257,10 +257,10 @@ final class PackageExporter {
 	}
 
 	/**
-	 * `rights` of a course or module record from `_ccap_rights` (D8);
-	 * nothing when no status is stored.
+	 * `rights` of a course, module or lesson record from `_ccap_rights`
+	 * (D8, R0-10 §2.1); nothing when no status is stored.
 	 *
-	 * @param int $post_id Course or module.
+	 * @param int $post_id Course, module or lesson.
 	 * @return array<string, array<string, string>>
 	 */
 	private static function rights( int $post_id ): array {

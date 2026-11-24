@@ -204,13 +204,15 @@ final class QuestionRepository {
 
 	/**
 	 * Deliverable questions of a module pool in order: published, not
-	 * archived, with a published current revision (drafts never, GM-023).
+	 * archived, with a published current revision (drafts never, GM-023),
+	 * without foreign content whose rights withhold it from learners.
 	 *
-	 * @param int $module_id Module.
+	 * @param int  $module_id Module.
+	 * @param bool $withheld  Keep questions withheld for rights (structure, export, preview).
 	 * @return list<int>
 	 */
-	public function pool( int $module_id ): array {
-		return array_keys( $this->pool_revisions( $module_id ) );
+	public function pool( int $module_id, bool $withheld = false ): array {
+		return array_keys( $this->pool_revisions( $module_id, false, $withheld ) );
 	}
 
 	/**
@@ -221,18 +223,27 @@ final class QuestionRepository {
 	 * scored quiz: flashcards are never drawn there (owner decision D2,
 	 * B-03); they stay in the pool for flashcard lessons and practice.
 	 *
+	 * Foreign questions and flashcards with unclear or restricted rights or
+	 * an expired licence are never delivered to learners (R0-10 §2.2,
+	 * {@see \CourseCaptain\Access\RightsGate}); the editorial side passes
+	 * `$withheld` to see them (preview with a notice, structure, export).
+	 *
 	 * @param int  $module_id Module.
 	 * @param bool $scorable  Leave out flashcards.
+	 * @param bool $withheld  Keep questions withheld for rights.
 	 * @return array<int, int> Question => current revision.
 	 */
-	public function pool_revisions( int $module_id, bool $scorable = false ): array {
+	public function pool_revisions( int $module_id, bool $scorable = false, bool $withheld = false ): array {
 		$mq   = $this->db->table( 'ccap_module_question' );
 		$q    = $this->db->table( 'ccap_question' );
 		$rev  = $this->db->table( 'ccap_question_revision' );
 		$type = $scorable ? $this->db->prepare( ' AND r.question_type <> %s', QuestionTypes::FLASHCARD ) : '';
+		// Rights columns in the same query (no extra read for the lock, R0-14 OP-05).
+		$gate = $withheld ? null : \CourseCaptain\Access\RightsGate::current();
+		$cols = null === $gate ? '' : $gate->columns();
 		$rows = $this->db->rows(
 			$this->db->prepare(
-				"SELECT q.id, q.current_revision_id FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s){$type} ORDER BY COALESCE(mq.sort_order, 2147483647), q.id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared fragment.
+				"SELECT q.id, q.current_revision_id{$cols} FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s){$type} ORDER BY COALESCE(mq.sort_order, 2147483647), q.id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared fragment.
 				$module_id,
 				gmdate( 'Y-m-d', $this->db->time() ),
 				gmdate( 'Y-m-d', $this->db->time() )
@@ -241,6 +252,10 @@ final class QuestionRepository {
 		$out  = array();
 		foreach ( $rows as $row ) {
 			$out[ (int) $row['id'] ] = (int) $row['current_revision_id'];
+		}
+		if ( ! $withheld && array() !== $out ) {
+			$gate?->absorb( $rows );
+			$out = null === $gate ? $out : array_diff_key( $out, $gate->questions( array_keys( $out ) ) );
 		}
 		return $out;
 	}
@@ -263,27 +278,37 @@ final class QuestionRepository {
 	}
 
 	/**
-	 * One question of the deliverable pool (same conditions as `pool()`) with
-	 * its current revision and UID, or null (one query, R0-14 OP-03/OP-04).
+	 * One question of the deliverable pool (same conditions as `pool()`,
+	 * incl. the rights lock) with its current revision and UID, or null
+	 * (R0-14 OP-03/OP-04).
 	 *
 	 * @param int $module_id   Module.
 	 * @param int $question_id Question.
 	 * @return array{current_revision_id: int, uid: string}|null
 	 */
 	public function pool_member( int $module_id, int $question_id ): ?array {
-		$mq  = $this->db->table( 'ccap_module_question' );
-		$q   = $this->db->table( 'ccap_question' );
-		$rev = $this->db->table( 'ccap_question_revision' );
-		$row = $this->db->row(
+		$mq   = $this->db->table( 'ccap_module_question' );
+		$q    = $this->db->table( 'ccap_question' );
+		$rev  = $this->db->table( 'ccap_question_revision' );
+		$gate = \CourseCaptain\Access\RightsGate::current();
+		$cols = $gate->columns();
+		$row  = $this->db->row(
 			$this->db->prepare(
-				"SELECT q.current_revision_id, q.uid FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND mq.question_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s) LIMIT 1",
+				"SELECT q.id, q.current_revision_id, q.uid{$cols} FROM `{$mq}` mq JOIN `{$q}` q ON q.id = mq.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE mq.module_id = %d AND mq.question_id = %d AND q.status = 'published' AND r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s) LIMIT 1",
 				$module_id,
 				$question_id,
 				gmdate( 'Y-m-d', $this->db->time() ),
 				gmdate( 'Y-m-d', $this->db->time() )
 			)
 		);
-		return null === $row ? null : array(
+		if ( null === $row ) {
+			return null;
+		}
+		$gate->absorb( array( $row ) );
+		if ( null !== $gate->question( $question_id ) ) {
+			return null;
+		}
+		return array(
 			'current_revision_id' => (int) $row['current_revision_id'],
 			'uid'                 => (string) $row['uid'],
 		);

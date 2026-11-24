@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Question;
 
 use CourseCaptain\Access\ContentGate;
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
@@ -88,6 +89,7 @@ final class QuestionPresenter {
 		$gate = $this->gate();
 		$gate->module( $actor, $course_id, $module_id )->assert();
 		$revision = $this->deliverable_revision( $gate, $module_id, $question_id );
+		$this->assert_rights( $gate, $question_id );
 		$gate->question( $actor, $course_id, $module_id, $question_id )->assert();
 		$this->assert_not_in_running_exam( $gate, $actor->user_id, $question_id );
 		$uid      = $this->question_uid( $gate, $question_id );
@@ -129,6 +131,7 @@ final class QuestionPresenter {
 			QuizPool::current()->draw( $actor, $course_id, $lesson_id );
 		}
 		$revision = $this->inline_revision( $gate, $lesson_id, $question_id, $actor->user_id );
+		$this->assert_rights( $gate, $question_id );
 		if ( QuizPool::is_pool( $lesson_id ) ) {
 			// A pool question keeps the rules of the module pool (partial access, R0-08 §3.4).
 			$gate->question( $actor, $course_id, $module_id, $question_id )->assert();
@@ -183,10 +186,22 @@ final class QuestionPresenter {
 	 * @return list<int>
 	 */
 	public function quiz_questions( int $lesson_id, int $user_id ): array {
-		if ( QuizPool::is_pool( $lesson_id ) ) {
-			return QuizPool::current()->current_draw( $user_id, $lesson_id )['ids'] ?? array();
-		}
-		return $this->inline_questions( $lesson_id );
+		$ids = QuizPool::is_pool( $lesson_id ) ? ( QuizPool::current()->current_draw( $user_id, $lesson_id )['ids'] ?? array() ) : $this->inline_questions( $lesson_id );
+		// R0-10 §2.2: withheld foreign questions are neither listed nor counted (also in a draw made before the rights changed).
+		return array() === $ids ? array() : RightsGate::current()->deliverable( $ids );
+	}
+
+	/**
+	 * Cards of a flashcard deck as learners get them: the inline cards
+	 * without withheld foreign cards (R0-10 §2.2); counts and completion
+	 * use this list.
+	 *
+	 * @param int $lesson_id Flashcard lesson.
+	 * @return list<int>
+	 */
+	public function deck( int $lesson_id ): array {
+		$ids = $this->inline_questions( $lesson_id );
+		return array() === $ids ? array() : RightsGate::current()->deliverable( $ids );
 	}
 
 	/**
@@ -230,6 +245,7 @@ final class QuestionPresenter {
 			$this->deliverable_revision( $gate, $claims['m'], $claims['q'] );
 			$gate->question( $actor, $claims['c'], $claims['m'], $claims['q'] )->assert();
 		}
+		$this->assert_rights( $gate, $claims['q'] );
 		$this->assert_not_in_running_exam( $gate, $actor->user_id, $claims['q'] );
 		return $claims;
 	}
@@ -285,7 +301,7 @@ final class QuestionPresenter {
 	/**
 	 * Record that a question is in the deliverable pool of a module, read by
 	 * the caller in this operation with the conditions of
-	 * `QuestionRepository::pool()` (e.g. the smart trainer's candidates).
+	 * `QuestionRepository::pool()` incl. the rights lock (e.g. the smart trainer's candidates).
 	 *
 	 * @param ContentGate $gate        Gate of the operation.
 	 * @param int         $module_id   Module.
@@ -350,6 +366,8 @@ final class QuestionPresenter {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
 		}
 		$gate->remember( 'question|' . $question_id, static fn(): array => $member );
+		// The pool check includes the rights lock (pool_member or a caller that filtered with RightsGate).
+		$gate->remember( 'rights|' . $question_id, static fn(): ?string => null );
 		$revision = $this->questions->revision( (int) $member['current_revision_id'] );
 		if ( null === $revision ) {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
@@ -385,6 +403,23 @@ final class QuestionPresenter {
 			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
 		}
 		return $revision;
+	}
+
+	/**
+	 * Rights lock (R0-10 §2.2): a foreign question or flashcard with unclear
+	 * or restricted rights or an expired licence is not deliverable, also
+	 * when the caller primed the pool check or the token is older than the
+	 * rights change. Checked by the central {@see RightsGate}.
+	 *
+	 * @param ContentGate $gate        Gate of the operation (memo).
+	 * @param int         $question_id Question.
+	 * @return void
+	 * @throws CourseException 404 when withheld.
+	 */
+	private function assert_rights( ContentGate $gate, int $question_id ): void {
+		if ( null !== $gate->remember( 'rights|' . $question_id, static fn(): ?string => RightsGate::current()->question( $question_id ) ) ) {
+			throw new CourseException( 'ccap_not_found', 'Question not deliverable.', 404 );
+		}
 	}
 
 	/**
