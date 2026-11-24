@@ -347,6 +347,11 @@ final class SettingsForm {
 					$value         = $value[ $extended[0] ];
 				}
 			}
+			// RR-4: the order error belongs to the raw answers.
+			if ( 'retention_order' === $rule && 'privacy' === $tab && is_array( $value ) ) {
+				$params['sub'] = 'raw_answers_years_after_course_end';
+				$value         = $value['raw_answers_years_after_course_end'] ?? '';
+			}
 			$value         = is_scalar( $value ) ? (string) $value : '';
 			$out[ $field ] = array(
 				'rule'   => $rule,

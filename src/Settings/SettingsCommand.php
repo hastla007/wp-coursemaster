@@ -207,6 +207,7 @@ final class SettingsCommand {
 			$rule = (string) ( $check['errors'][ $field ] ?? reset( $check['errors'] ) );
 			$hint = 'confirm_word' === $rule ? ' Add --confirm=LÖSCHEN (or DELETE) to switch data deletion on.' : '';
 			$hint = 'retention_reason' === $rule ? ' This period is longer than its default; add --reason="…" (at most 500 characters).' : $hint;
+			$hint = 'retention_order' === $rule ? ' Answers cannot be kept longer than exam attempts (raw_answers_years_after_course_end <= exam_attempts_years).' : $hint;
 			return self::out( 1, $json, array( 'error' => 'ccap_validation_failed', 'fields' => $check['errors'] ), array( 'Error: ccap_validation_failed ' . $tab . '.' . $field . ': ' . $rule . '.' . $hint ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short JSON payload.
 		}
 		$risks = RiskRules::detect( $tab, $check['before'], $check['candidate'] );

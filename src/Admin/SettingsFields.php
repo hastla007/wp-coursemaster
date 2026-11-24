@@ -299,6 +299,9 @@ final class SettingsFields {
 			case 'retention_reason':
 				/* translators: %s: field label */
 				return sprintf( __( 'Error: %s: this period is longer than its suggested default. Enter a reason under “Reason for longer periods” (at most 500 characters).', 'course-captain' ), $label );
+			case 'retention_order':
+				/* translators: %s: field label */
+				return sprintf( __( 'Error: %s: answers cannot be kept longer than the exam attempts they belong to. Shorten this period or extend “Exam attempts”.', 'course-captain' ), $label );
 			case 'reason_required':
 				return __( 'Error: reason: required when evidence is kept despite an erasure request (at most 500 characters).', 'course-captain' );
 			case 'required_mail':

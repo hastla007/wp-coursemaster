@@ -90,7 +90,7 @@ D1 (24.11.2026): „SET-CC-02 retention: build it (all 21 keys of R0-27 §1.4 �
 
 ## Was noch fehlt / offen
 
-- **RR-4** (`raw_answers_years_after_course_end` ≤ `exam_attempts_years`, sonst Feldfehler; Hinweis bei `certificates_years` < `exam_attempts_years`) ist nicht gebaut (nicht Teil dieses Auftrags).
+- ~~**RR-4**~~ **Erledigt (24.11.2026):** `raw_answers_years_after_course_end` > `exam_attempts_years` wird in Dienst, Einstellungsseite, Import und WP-CLI mit der Feldregel `retention_order` abgelehnt (vor der E-245-Begründungsprüfung; auch eine Begründung hilft nicht; Fehler am Feld der Rohantworten), `certificates_years` < `exam_attempts_years` ist erlaubt und zeigt im Abschnitt Aufbewahrung einen Hinweis (`ccap-retention-rr4`). Code `Settings\SettingsRules::retention_order_violation()`/`certificates_before_attempts()`; Tests `tests/unit/RetentionOrderTest.php`, `tests/integration/SettingsRetentionRr4Test.php` (PSD-018). Neue msgids: Fehlertext `retention_order`, Hinweistext RR-4 (Übersetzung offen).
 - Kaufquellen sind wörtlich `woo_order` und `voucher`; ein künftiger Pro-Connector mit anderem Quelltyp (z. B. andere Shops) würde gelöscht statt pseudonymisiert – Liste dann erweitern (ggf. Filter, wäre ein neuer Hook).
 - Laufende Zugänge **übriger** Quellen werden beim Löschen wie bisher direkt gelöscht (RT-14), ohne vorheriges `revoked`-Ereignis/Outbox (R0-09 §2 nennt „alle Grants → revoked“); bei Bedarf nachziehen.
 - Das Löschereignis `personal_data_erased` trägt weiterhin als `object_id` den gesalzenen SHA-256 der Nutzer-ID (bestehendes Verhalten, Test `PrivacyOpsTest`); im Sinne von D12 könnte es ganz entfallen – Entscheidung offen.

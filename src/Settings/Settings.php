@@ -175,11 +175,11 @@ final class Settings {
 			$candidate[ $field ] = $check['value'];
 			$touched[]           = $field;
 		}
-		// E-245: a retention period above its default needs a reason (stored in the audit entry).
+		$errors += SettingsRules::check( $actor, $tab, $candidate, $before, $touched );
+		// E-245: a retention period above its default needs a reason (stored in the audit entry); a rule error (RR-4) comes first.
 		if ( 'privacy' === $tab && in_array( 'retention', $touched, true ) && ! isset( $errors['retention'] ) && array() !== \CourseCaptain\Privacy\RetentionPolicy::extended( (array) $before['retention'], (array) $candidate['retention'] ) && null === self::retention_reason( $input ) ) {
 			$errors['retention'] = 'retention_reason';
 		}
-		$errors += SettingsRules::check( $actor, $tab, $candidate, $before, $touched );
 		// F4.1 / KOMP-132: a changed public slug that is already in use needs a confirmation.
 		$slug_conflicts = array();
 		if ( 'general' === $tab && empty( $input[ self::CONFIRM_SLUG_FIELD ] ) ) {
