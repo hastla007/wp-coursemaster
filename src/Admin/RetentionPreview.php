@@ -136,10 +136,65 @@ final class RetentionPreview {
 		$rows = '';
 		foreach ( array_keys( RetentionPolicy::KEYS ) as $key ) {
 			$entry = self::entry( $key );
-			$rows .= '<tr><th scope="row">' . esc_html( SettingsFields::ui( 'privacy', 'retention.' . $key )['label'] ) . '</th><td>' . esc_html( self::value_text( $key, $entry['value'] ) ) . '</td><td>' . esc_html( self::count_text( $entry ) ) . '</td></tr>';
+			$rows .= '<tr><th scope="row">' . esc_html( SettingsFields::ui( 'privacy', 'retention.' . $key )['label'] ) . '</th><td>' . esc_html( self::value_text( $key, $entry['value'] ) ) . '</td><td>' . esc_html( self::start_text( $key ) ) . '</td><td>' . esc_html( self::count_text( $entry ) ) . '</td></tr>';
 		}
 		return '<table class="widefat striped ccap-retention-preview"><caption>' . esc_html__( 'What the next run would delete with the saved periods (preview; nothing is deleted here)', 'course-captain' ) . '</caption>'
-			. '<thead><tr><th scope="col">' . esc_html__( 'Data', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Effective period', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Next run deletes', 'course-captain' ) . '</th></tr></thead><tbody>' . $rows . '</tbody></table>';
+			. '<thead><tr><th scope="col">' . esc_html__( 'Data', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Effective period', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Period starts', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Next run deletes', 'course-captain' ) . '</th></tr></thead><tbody>' . $rows . '</tbody></table>';
+	}
+
+	/**
+	 * Start of the period of a sub-key (R0-31 §2.1 column "Auslöser";
+	 * course end = E-244, {@see \CourseCaptain\Privacy\CourseEnd}).
+	 *
+	 * @param string $key Sub-key.
+	 * @return string
+	 */
+	public static function start_text( string $key ): string {
+		switch ( $key ) {
+			case 'audit_log_years':
+				return __( 'when the entry was written', 'course-captain' );
+			case 'grant_history_deleted_accounts_years':
+				return __( 'when the account was deleted (purchase access is kept pseudonymised until then)', 'course-captain' );
+			case 'import_log_days':
+			case 'import_unchanged_days':
+				return __( 'when the log entry was written', 'course-captain' );
+			case 'import_keep_packages':
+				return __( 'no date: the active copy and the newest copies per source stay', 'course-captain' );
+			case 'import_package_days':
+				return __( 'last activity of the unfinished import', 'course-captain' );
+			case 'inbox_days':
+				return __( 'when the event was received or created', 'course-captain' );
+			case 'outbox_event_days':
+				return __( 'when the event was created (deliveries still open)', 'course-captain' );
+			case 'notification_log_days':
+				return __( 'when the message was created', 'course-captain' );
+			case 'error_log_days':
+			case 'debug_file_days':
+				return __( 'date of the log file', 'course-captain' );
+			case 'exam_attempts_years':
+				return __( 'submission or evaluation of the attempt', 'course-captain' );
+			case 'raw_answers_years_after_course_end':
+				return __( 'course end: the later of the end of the last access and the last activity in the course; no period runs while the access is active', 'course-captain' );
+			case 'certificates_years':
+				return __( 'issue of the latest certificate revision', 'course-captain' );
+			case 'inactive_learning_data_years':
+				return __( 'last learning activity, only without active access', 'course-captain' );
+			case 'invite_email_days_after_expiry':
+				return __( 'when the invitation expired', 'course-captain' );
+			case 'held_mail_days':
+				return __( 'when the held message was created', 'course-captain' );
+			case 'learning_progress':
+				return __( 'deletion of the account or erasure request', 'course-captain' );
+			case 'ended_grants_years':
+				return __( 'end of the access', 'course-captain' );
+			case 'removed_seats_days':
+				return __( 'when the seat was removed', 'course-captain' );
+			case 'closed_groups_years':
+				return __( 'closing of the group or end of its validity', 'course-captain' );
+			case 'lifted_locks_days':
+				return __( 'when the lock was lifted', 'course-captain' );
+		}
+		return '';
 	}
 
 	/**

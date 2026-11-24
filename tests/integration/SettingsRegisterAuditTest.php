@@ -329,9 +329,11 @@ final class SettingsRegisterAuditTest extends SchemaTestCase {
 				self::assertNotSame( $def['default'], $value, $tab . '.' . $field . ' test value differs from the default' );
 				$input[ $field ] = $value;
 			}
-			$result = Settings::check( $actor, $tab, $input, array_keys( $input ) );
+			// E-245: longer retention periods carry a reason (aufbewahrung-2).
+			$reason = array( Settings::RETENTION_REASON_FIELD => 'Register round trip' );
+			$result = Settings::check( $actor, $tab, $input + $reason, array_keys( $input ) );
 			self::assertSame( array(), $result['errors'], $tab . ' test values are valid' );
-			Settings::save( $actor, $tab, $input, array_keys( $input ), Settings::rev( $tab ) );
+			Settings::save( $actor, $tab, $input + $reason, array_keys( $input ), Settings::rev( $tab ) );
 			foreach ( $fields as $field => $def ) {
 				if ( true === $def['export'] && 'secret' !== $def['privacy'] && isset( $input[ $field ] ) ) {
 					$expected[ $tab ][ $field ] = Settings::values( $tab )[ $field ];
@@ -349,8 +351,9 @@ final class SettingsRegisterAuditTest extends SchemaTestCase {
 			$actor,
 			SettingsTransfer::parse( (string) wp_json_encode( $file ) ),
 			array(
-				'apply'     => true,
-				'confirmed' => array( '*' ),
+				'apply'            => true,
+				'confirmed'        => array( '*' ),
+				'retention_reason' => 'Register round trip',
 			)
 		);
 		foreach ( $report['tabs'] as $tab => $entry ) {

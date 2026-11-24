@@ -128,7 +128,7 @@ final class RetentionPolicy {
 			'default' => 2,
 			'min'     => 0,
 			'max'     => 30,
-			'steps'   => array( 'RT-04_answers', 'RT-45_assignments' ),
+			'steps'   => array( 'RT-04_answers', 'RT-05_exam_answers', 'RT-45_assignments' ),
 		),
 		'certificates_years'                   => array(
 			'unit'    => 'years',
@@ -339,6 +339,32 @@ final class RetentionPolicy {
 			$old = $before[ $key ] ?? $def['default'];
 			$new = $after[ $key ];
 			if ( null !== $new && ( null === $old || (int) $new < (int) $old ) ) {
+				$out[] = $key;
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * Sub-keys that are extended beyond their default from `$before` to
+	 * `$after` (E-245, R0-31 RR-3/PSD-015: only with a mandatory reason
+	 * that is stored in the audit entry). A value counts when it is above
+	 * the default and above the previous value; keys whose default is "off"
+	 * (`null`) and the fixed key never count.
+	 *
+	 * @param array<string, mixed> $before Before.
+	 * @param array<string, mixed> $after  After.
+	 * @return list<string>
+	 */
+	public static function extended( array $before, array $after ): array {
+		$out = array();
+		foreach ( self::KEYS as $key => $def ) {
+			if ( 'fixed' === $def['unit'] || null === $def['default'] || ! array_key_exists( $key, $after ) || ! is_int( $after[ $key ] ) ) {
+				continue;
+			}
+			$old = $before[ $key ] ?? $def['default'];
+			$new = $after[ $key ];
+			if ( $new > (int) $def['default'] && ( ! is_int( $old ) || $new > $old ) ) {
 				$out[] = $key;
 			}
 		}

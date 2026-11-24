@@ -27,12 +27,15 @@ defined( 'ABSPATH' ) || exit;
  *   (audit `settings_saved`, context `cli`). Risk fields (RiskRules) need
  *   `--confirm`; switching data deletion on needs `--confirm=LÖSCHEN`
  *   (or LOESCHEN/DELETE, SET-CC-30). Without confirmation: exit 1, nothing written, no audit.
+ *   A retention period above its default needs `--reason=<text>` (E-245,
+ *   stored in the audit entry).
  * - `export [--output=<file>] [--include-personal] [--include=roles,…]`:
  *   stdout, or the safe export writer (`0600`, new file, outside the
  *   WordPress directory, EX-6).
- * - `import <file> [--dry-run] [--tabs=…] [--surfaces=…] [--confirm] [--yes]`:
+ * - `import <file> [--dry-run] [--tabs=…] [--surfaces=…] [--confirm] [--reason=<text>] [--yes]`:
  *   diff preview first; without `--yes` nothing is written; risk fields and
- *   RC-07 roles only with `--confirm` (else skipped and reported).
+ *   RC-07 roles only with `--confirm` (else skipped and reported);
+ *   retention periods above their default only with `--reason` (E-245).
  * - `reset <tab> --yes` (roles: {@see RoleCaps::reset()}), `reset <tab.field>`
  *   = `set` to the default (risk rules apply).
  * - Object fields also take a sub-key: `get|set|reset <tab.field.sub>`
@@ -195,10 +198,15 @@ final class SettingsCommand {
 			// SET-CC-30: the typed word (LÖSCHEN/LOESCHEN/DELETE) confirms switching data deletion on.
 			$input[ Settings::CONFIRM_WORD_FIELD ] = (string) $assoc['confirm'];
 		}
+		if ( isset( $assoc['reason'] ) ) {
+			// E-245: reason for a retention period above its default (stored in the audit entry).
+			$input[ Settings::RETENTION_REASON_FIELD ] = (string) $assoc['reason'];
+		}
 		$check = Settings::check( $actor, $tab, $input, array( $field ) );
 		if ( array() !== $check['errors'] ) {
 			$rule = (string) ( $check['errors'][ $field ] ?? reset( $check['errors'] ) );
 			$hint = 'confirm_word' === $rule ? ' Add --confirm=LÖSCHEN (or DELETE) to switch data deletion on.' : '';
+			$hint = 'retention_reason' === $rule ? ' This period is longer than its default; add --reason="…" (at most 500 characters).' : $hint;
 			return self::out( 1, $json, array( 'error' => 'ccap_validation_failed', 'fields' => $check['errors'] ), array( 'Error: ccap_validation_failed ' . $tab . '.' . $field . ': ' . $rule . '.' . $hint ) ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short JSON payload.
 		}
 		$risks = RiskRules::detect( $tab, $check['before'], $check['candidate'] );
@@ -310,6 +318,9 @@ final class SettingsCommand {
 			'confirmed' => isset( $assoc['confirm'] ) ? array( '*' ) : array(),
 			'context'   => 'cli',
 		);
+		if ( isset( $assoc['reason'] ) ) {
+			$options['retention_reason'] = (string) $assoc['reason'];
+		}
 		if ( isset( $assoc['tabs'] ) ) {
 			$options['tabs'] = self::csv( (string) $assoc['tabs'] );
 		}
@@ -328,7 +339,7 @@ final class SettingsCommand {
 				$lines[] = '  ~ ' . ( isset( $change['summary'] ) ? (string) $change['summary'] : $item . ': ' . (string) wp_json_encode( $change['before'] ) . ' -> ' . (string) wp_json_encode( $change['after'] ) ) . ( array() === (array) $change['risks'] ? '' : ' [' . implode( ', ', (array) $change['risks'] ) . ' confirmed]' );
 			}
 			foreach ( $entry['skipped'] as $skip ) {
-				$lines[] = '  - ' . (string) ( $skip['field'] ?? $skip['item'] ) . ': skipped (' . (string) $skip['reason'] . ( isset( $skip['risks'] ) ? ' ' . implode( ', ', (array) $skip['risks'] ) . '; add --confirm' : '' ) . ')';
+				$lines[] = '  - ' . (string) ( $skip['field'] ?? $skip['item'] ) . ': skipped (' . (string) $skip['reason'] . ( isset( $skip['risks'] ) ? ' ' . implode( ', ', (array) $skip['risks'] ) . '; add --confirm' : '' ) . ( 'retention_reason' === $skip['reason'] ? ' ' . implode( ', ', (array) ( $skip['extended'] ?? array() ) ) . '; add --reason' : '' ) . ')';
 			}
 			foreach ( $entry['errors'] as $item => $rule ) {
 				$lines[] = '  ! ' . (string) $item . ': invalid (' . (string) $rule . '); not imported';

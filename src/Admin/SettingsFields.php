@@ -296,6 +296,9 @@ final class SettingsFields {
 			case 'confirm_word':
 				/* translators: 1: German confirmation word, 2: English confirmation word (both typed literally) */
 				return sprintf( __( 'Error: to switch on the data deletion, type %1$s or %2$s into the confirmation field.', 'course-captain' ), 'LÖSCHEN', 'DELETE' );
+			case 'retention_reason':
+				/* translators: %s: field label */
+				return sprintf( __( 'Error: %s: this period is longer than its suggested default. Enter a reason under “Reason for longer periods” (at most 500 characters).', 'course-captain' ), $label );
 			case 'reason_required':
 				return __( 'Error: reason: required when evidence is kept despite an erasure request (at most 500 characters).', 'course-captain' );
 			case 'required_mail':
@@ -1130,7 +1133,7 @@ final class SettingsFields {
 			'error_log_days'                       => array( __( 'Error log files', 'course-captain' ), __( 'Log files with errors and warnings are deleted after this time.', 'course-captain' ), $days ),
 			'debug_file_days'                      => array( __( 'Debug log files', 'course-captain' ), __( 'Log files with info and debug entries are deleted after this time (at most 30 days).', 'course-captain' ), $days ),
 			'exam_attempts_years'                  => array( __( 'Exam attempts', 'course-captain' ), __( 'Core data of finished exam attempts (course, date, points, passed), counted from the submission. Attempts with a certificate stay as long as the certificate.', 'course-captain' ), $years ),
-			'raw_answers_years_after_course_end'   => array( __( 'Learning answers and assignment submissions', 'course-captain' ), __( 'Answers given while practising and assignment submissions with their files. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay.', 'course-captain' ), $years ),
+			'raw_answers_years_after_course_end'   => array( __( 'Learning answers, exam answers and assignment submissions', 'course-captain' ), __( 'Answers given while practising, the raw answers of exams (answers, flags, free text; the result of the attempt stays) and assignment submissions with their files. Counted from the course end: the later of the end of the last access and the last activity in the course. Deleted after this time; 0 deletes them as soon as the course has ended. Submissions waiting for grading stay.', 'course-captain' ), $years ),
 			'certificates_years'                   => array( __( 'Certificates', 'course-captain' ), __( 'Certificates with all revisions, counted from the newest revision. The verification page then reports them as not available.', 'course-captain' ), $years ),
 			'inactive_learning_data_years'         => array( __( 'Learning progress of inactive people', 'course-captain' ), __( 'Off by default. With a value, the learning progress of people without active course access and without learning activity for this time is deleted. Check the preview before you save.', 'course-captain' ), $years ),
 			'invite_email_days_after_expiry'       => array( __( 'Invited email addresses', 'course-captain' ), __( 'Addresses of expired or withdrawn group invitations are cleared after this time.', 'course-captain' ), $days ),

@@ -51,6 +51,15 @@ final class Settings {
 	public const CONFIRM_WORD_FIELD = '_confirm_delete';
 
 	/**
+	 * Input key carrying the reason for extending a retention period beyond
+	 * its default (E-245, R0-31 RR-3/PSD-015); stored in the audit entry.
+	 */
+	public const RETENTION_REASON_FIELD = '_retention_reason';
+
+	/** Maximum length of that reason (characters). */
+	public const RETENTION_REASON_MAX = 500;
+
+	/**
 	 * Accepted confirmation words (compared case-insensitively).
 	 *
 	 * @var list<string>
@@ -166,6 +175,10 @@ final class Settings {
 			$candidate[ $field ] = $check['value'];
 			$touched[]           = $field;
 		}
+		// E-245: a retention period above its default needs a reason (stored in the audit entry).
+		if ( 'privacy' === $tab && in_array( 'retention', $touched, true ) && ! isset( $errors['retention'] ) && array() !== \CourseCaptain\Privacy\RetentionPolicy::extended( (array) $before['retention'], (array) $candidate['retention'] ) && null === self::retention_reason( $input ) ) {
+			$errors['retention'] = 'retention_reason';
+		}
 		$errors += SettingsRules::check( $actor, $tab, $candidate, $before, $touched );
 		// F4.1 / KOMP-132: a changed public slug that is already in use needs a confirmation.
 		$slug_conflicts = array();
@@ -204,6 +217,9 @@ final class Settings {
 	 * `profile` (country profile ID, SET-CC-07) and `confirmed_risks`
 	 * (RC numbers, R0-30 D-8). Risk tokens are enforced by the admin
 	 * entry points ({@see RiskConfirm}); this service trusts its caller.
+	 * A retention period extended beyond its default (E-245) puts the
+	 * reason from `_retention_reason` into the audit column `reason` and
+	 * the keys into `retention_extended`.
 	 *
 	 * @param Actor                $actor   Admin.
 	 * @param string               $tab     Tab.
@@ -236,6 +252,13 @@ final class Settings {
 				'changed' => array(),
 				'rev'     => $stored['_rev'],
 			);
+		}
+		if ( 'privacy' === $tab && in_array( 'retention', $changed, true ) ) {
+			$extended = \CourseCaptain\Privacy\RetentionPolicy::extended( (array) $before['retention'], (array) $candidate['retention'] );
+			if ( array() !== $extended ) {
+				$context['retention_extended'] = $extended;
+				$context['reason']             = (string) self::retention_reason( $input );
+			}
 		}
 		$new_rev = self::write( $tab, $candidate + $stored['passthrough'], $actor, $stored['_rev'] );
 		self::side_effects( $schema, $changed );
@@ -295,6 +318,19 @@ final class Settings {
 	public static function deletion_confirmed( array $input ): bool {
 		$typed = $input[ self::CONFIRM_WORD_FIELD ] ?? null;
 		return is_string( $typed ) && self::is_confirm_word( $typed );
+	}
+
+	/**
+	 * Reason for extending a retention period (E-245): trimmed plain text,
+	 * null when missing or longer than {@see self::RETENTION_REASON_MAX}.
+	 *
+	 * @param array<string, mixed> $input Submitted values.
+	 * @return string|null
+	 */
+	public static function retention_reason( array $input ): ?string {
+		$raw    = $input[ self::RETENTION_REASON_FIELD ] ?? null;
+		$reason = is_string( $raw ) ? trim( sanitize_textarea_field( $raw ) ) : '';
+		return '' === $reason || mb_strlen( $reason ) > self::RETENTION_REASON_MAX ? null : $reason;
 	}
 
 	/**
@@ -702,11 +738,11 @@ final class Settings {
 			$action,
 			'settings',
 			$tab,
-			null,
+			isset( $context['reason'] ) && '' !== $context['reason'] ? (string) $context['reason'] : null,
 			array(
 				'tab'     => $tab,
 				'changed' => $diff,
-			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks', 'profile' ) ) ) + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() )
+			) + array_intersect_key( $context, array_flip( array( 'context', 'step', 'confirmed_risks', 'profile', 'retention_extended' ) ) ) + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() )
 		);
 	}
 

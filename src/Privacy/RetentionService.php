@@ -47,6 +47,9 @@ final class RetentionService {
 	/** Rows per run of the daily-type steps (R0-27 §1.4 "≤ 1 000 je Lauf"). */
 	public const BATCH = 1000;
 
+	/** Learning answers per run (RT-04, largest table; R0-31 §2.1 "stündlich ≤ 5 000"). */
+	public const ANSWERS_BATCH = 5000;
+
 	/** Import batches in work whose package copy expires after `import_package_days` (R0-10 §3.6). */
 	public const WORK_STATUSES = array( 'uploaded', 'validated', 'previewed', 'approved', 'aborted' );
 
@@ -153,11 +156,21 @@ final class RetentionService {
 		$count   = static fn( string $sql ): int => (int) $db->scalar( $sql );
 		$answers = $cut( 'raw_answers_years_after_course_end' );
 		$steps   = array(
-			'RT-04_answers'               => array(
+			'RT-04_answers'               => self::batch_step(
+				$db,
+				'raw_answers_years_after_course_end',
+				'FROM ' . $t( 'ccap_attempt' ) . ' a WHERE a.created_at < %s AND ( a.course_id IS NULL OR ' . CourseEnd::ended_before( $db, 'a.user_id', 'a.course_id', $answers ) . ' )',
+				$answers,
+				'a.id',
+				array( array( 'ccap_attempt_answer', 'attempt_id' ), array( 'ccap_attempt', 'id' ) ),
+				'rows',
+				self::ANSWERS_BATCH
+			),
+			'RT-05_exam_answers'          => array(
 				'key'   => 'raw_answers_years_after_course_end',
 				'kind'  => 'rows',
-				'count' => static fn(): int => $count( $db->prepare( 'SELECT COUNT(*) FROM ' . $t( 'ccap_attempt' ) . ' WHERE created_at < %s', $answers ) ),
-				'run'   => static fn(): int => $db->execute( $db->prepare( 'DELETE a, x FROM ' . $t( 'ccap_attempt' ) . ' a LEFT JOIN ' . $t( 'ccap_attempt_answer' ) . ' x ON x.attempt_id = a.id WHERE a.created_at < %s', $answers ) ),
+				'count' => static fn(): int => self::raw_exam_answers( $db, $answers, true ),
+				'run'   => static fn(): int => self::raw_exam_answers( $db, $answers, false ),
 			),
 			'RT-15_invite_emails'         => array(
 				'key'   => 'invite_email_days_after_expiry',
@@ -347,16 +360,17 @@ final class RetentionService {
 	 * @param string                            $id     Selected ID expression.
 	 * @param list<array{0: string, 1: string}> $tables Table and ID column to delete from, in order.
 	 * @param string                            $kind   Kind of the count.
+	 * @param int                               $limit  Objects per run.
 	 * @return array{key: string, kind: string, count: callable(): int, run: callable(): int}
 	 */
-	private static function batch_step( Database $db, string $key, string $from, string $cutoff, string $id, array $tables, string $kind = 'rows' ): array {
+	private static function batch_step( Database $db, string $key, string $from, string $cutoff, string $id, array $tables, string $kind = 'rows', int $limit = self::BATCH ): array {
 		$sql = static fn( string $select ): string => $db->prepare( 'SELECT ' . $select . ' ' . $from, ...array_fill( 0, substr_count( $from, '%s' ), $cutoff ) );
 		return array(
 			'key'   => $key,
 			'kind'  => $kind,
 			'count' => static fn(): int => (int) $db->scalar( 'SELECT COUNT(*) FROM (' . $sql( 'DISTINCT ' . $id . ' AS id' ) . ') t' ),
-			'run'   => static function () use ( $db, $sql, $id, $tables ): int {
-				$ids = array_map( 'intval', array_column( $db->rows( $sql( 'DISTINCT ' . $id . ' AS id' ) . ' ORDER BY id LIMIT ' . self::BATCH ), 'id' ) );
+			'run'   => static function () use ( $db, $sql, $id, $tables, $limit ): int {
+				$ids = array_map( 'intval', array_column( $db->rows( $sql( 'DISTINCT ' . $id . ' AS id' ) . ' ORDER BY id LIMIT ' . $limit ), 'id' ) );
 				if ( array() === $ids ) {
 					return 0;
 				}
@@ -372,6 +386,34 @@ final class RetentionService {
 				return $count;
 			},
 		);
+	}
+
+	/**
+	 * RT-05: raw exam answers (given answer incl. free text, self-assessment,
+	 * revealed model answer, flags) of finished attempts whose course ended
+	 * before the cutoff (E-244, {@see CourseEnd}) are deleted; the core data
+	 * of the attempt (RT-06: course, dates, points, passed, per-question
+	 * result) stays. At most {@see self::BATCH} attempts per run. An attempt
+	 * without raw answers can no longer be re-evaluated
+	 * ({@see \CourseCaptain\Exam\ExamSessions::regrade()}).
+	 *
+	 * @param Database $db     Database.
+	 * @param string   $cutoff Cutoff.
+	 * @param bool     $dry    Only count.
+	 * @return int Cleared (or due) question rows.
+	 */
+	private static function raw_exam_answers( Database $db, string $cutoff, bool $dry ): int {
+		$q    = '`' . $db->table( 'ccap_exam_session_question' ) . '`';
+		$raw  = '(q.given_answer IS NOT NULL OR q.self_assessed_known IS NOT NULL OR q.revealed_at IS NOT NULL OR q.flagged = 1)';
+		$from = $db->prepare( 'FROM ' . $q . ' q JOIN `' . $db->table( 'ccap_exam_session' ) . "` s ON s.id = q.session_id WHERE s.status <> 'in_progress' AND COALESCE(s.evaluated_at, s.submitted_at, s.started_at) < %s AND " . $raw, $cutoff ) . ' AND ' . CourseEnd::ended_before( $db, 's.user_id', 's.course_id', $cutoff );
+		if ( $dry ) {
+			return (int) $db->scalar( 'SELECT COUNT(*) ' . $from );
+		}
+		$ids = array_map( 'intval', array_column( $db->rows( 'SELECT DISTINCT q.session_id AS id ' . $from . ' ORDER BY id LIMIT ' . self::BATCH ), 'id' ) );
+		if ( array() === $ids ) {
+			return 0;
+		}
+		return $db->execute( 'UPDATE ' . $q . ' q SET q.given_answer = NULL, q.self_assessed_known = NULL, q.revealed_at = NULL, q.flagged = 0 WHERE q.session_id IN (' . implode( ',', $ids ) . ') AND ' . $raw );
 	}
 
 	/**

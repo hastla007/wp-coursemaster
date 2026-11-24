@@ -788,6 +788,10 @@ final class ExamSessions {
 				if ( 'evaluated' !== ( $row['status'] ?? '' ) ) {
 					throw new CourseException( 'ccap_exam_conflict', 'Only evaluated attempts can be re-evaluated.', 409 );
 				}
+				// RT-05: once the raw answers are deleted by retention, a new evaluation would score empty answers.
+				if ( null !== $db->scalar( $db->prepare( 'SELECT 1 FROM `' . $db->table( 'ccap_exam_session_question' ) . '` WHERE session_id = %d AND answered_at IS NOT NULL AND given_answer IS NULL LIMIT 1', $session ) ) ) {
+					throw new CourseException( 'ccap_exam_conflict', 'The raw answers of this attempt were deleted after the retention period; it cannot be re-evaluated.', 409, array( 'reason' => 'raw_answers_deleted' ) );
+				}
 				$snapshot = (array) json_decode( (string) $row['snapshot'], true );
 				$scoring  = array_column( (array) ( $snapshot['scoring'] ?? array() ), null, 'position' );
 				if ( ! isset( $scoring[ $position ] ) ) {

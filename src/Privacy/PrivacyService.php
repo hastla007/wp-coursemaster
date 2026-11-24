@@ -26,7 +26,13 @@ defined( 'ABSPATH' ) || exit;
  * deleted, verification then `ccap_not_found`), manual/group grants, staff
  * assignments, locks, accommodations, notifications and assignment
  * submissions; seats are released (address and token emptied); owned
- * groups lose their owner (GM-102). Audit rows are kept (hash chain,
+ * groups lose their owner (GM-102). Grants of purchase sources
+ * ({@see self::PURCHASE_SOURCES}) are pseudonymised instead of deleted
+ * (R0-09 §7, R0-31 RT-13): running ones end as `revoked`
+ * (`account_deleted`, grant event and outbox), then `user_id = NULL` and
+ * `subject_ref` = HMAC of the user ID with the site secret; the retention
+ * step RT-13 deletes them after `grant_history_deleted_accounts_years`.
+ * All other grants are deleted with their events (RT-14). Audit rows are kept (hash chain,
  * R0-13 §4.4) but only carry pseudonyms; the eraser deletes the pseudonym
  * mapping (D12, RT-23), so the chain stays verifiable and the entries can
  * no longer be linked to the person. The erasure itself is audited without
@@ -36,6 +42,14 @@ final class PrivacyService {
 
 	public const EXPORTER = 'course-captain';
 	public const ERASER   = 'course-captain';
+
+	/**
+	 * Purchase sources whose grant history is kept pseudonymised after an
+	 * erasure (R0-09 §7 "Kaufquellen (`woo_order`, `voucher`)"); other
+	 * sources (`manual`, `group_seat`, `workflow`, self-enrollment, …) are
+	 * deleted at once (RT-14).
+	 */
+	public const PURCHASE_SOURCES = array( 'woo_order', 'voucher' );
 
 	/**
 	 * Classification of all own tables: personal (exported/erased), content, system.
@@ -254,10 +268,12 @@ final class PrivacyService {
 			return 0;
 		}
 		$db     = Database::current();
-		$count  = 0;
+		$count  = self::end_purchase_grants( $db, $user_id );
 		$count += $db->transaction(
 			static function ( Database $db ) use ( $user_id ): int {
-				$n   = 0;
+				$n = 0;
+				// RT-13: purchase grants keep their history pseudonymised (before the grants of the user are deleted).
+				$n  += self::pseudonymise_grants( $db, $user_id );
 				$del = static function ( string $table, string $column ) use ( $db, $user_id, &$n ): void {
 					$n += $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( $table ) . "` WHERE `{$column}` = %d", $user_id ) );
 				};
@@ -302,6 +318,84 @@ final class PrivacyService {
 			do_action( 'course_captain_policy_changed' );
 		}
 		return $count;
+	}
+
+	/**
+	 * Pseudonym of a deleted account in the grant history (`ccap_grant.subject_ref`,
+	 * R0-09 §7: HMAC-SHA-256 with the site secret, not a plain hash of the ID).
+	 *
+	 * @param int $user_id User.
+	 * @return string 64 hex characters.
+	 */
+	public static function grant_subject_ref( int $user_id ): string {
+		return hash_hmac( 'sha256', 'course-captain-grant-subject|' . $user_id, \CourseCaptain\Access\ProtectedStorage::secret() );
+	}
+
+	/**
+	 * R0-09 §7: running grants of purchase sources end as `revoked`
+	 * (`account_deleted`) through the grant service (event, outbox, cache).
+	 *
+	 * @param Database $db      Database.
+	 * @param int      $user_id User.
+	 * @return int Ended grants.
+	 */
+	private static function end_purchase_grants( Database $db, int $user_id ): int {
+		$sources = "'" . implode( "', '", self::PURCHASE_SOURCES ) . "'";
+		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_grant' ) . "` WHERE user_id = %d AND source_type IN ({$sources}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended') ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant list.
+		$count   = 0;
+		foreach ( $ids as $id ) {
+			try {
+				$count += 'revoked' === \CourseCaptain\Access\GrantService::current()->transition( Actor::cron(), $id, 'revoked', 'account_deleted' ) ? 1 : 0;
+			} catch ( \Throwable $e ) {
+				// The pseudonymisation below still ends the grant; the erasure never waits (RR-8).
+				unset( $e );
+			}
+		}
+		return $count;
+	}
+
+	/**
+	 * RT-13 / R0-09 §7: grants of purchase sources lose the user ID
+	 * (`user_id = NULL`, `subject_ref` = {@see self::grant_subject_ref()});
+	 * a grant still running ends as `revoked` (`account_deleted`). Ended
+	 * grants keep their state (`ccap_grant_event` is append-only and an
+	 * ended grant has no further transition, R0-09 §2). The retention period
+	 * starts with the erasure (`updated_at`). The person's ID also leaves
+	 * the events (`actor_id`) and `granted_by` of all grants. Nothing of
+	 * this enters the audit chain (D12).
+	 *
+	 * @param Database $db      Database.
+	 * @param int      $user_id User.
+	 * @return int Pseudonymised grants.
+	 */
+	private static function pseudonymise_grants( Database $db, int $user_id ): int {
+		$grants  = $db->table( 'ccap_grant' );
+		$sources = "'" . implode( "', '", self::PURCHASE_SOURCES ) . "'";
+		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( "SELECT id FROM `{$grants}` WHERE user_id = %d AND source_type IN ({$sources}) ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Constant list.
+		$now     = $db->now();
+		if ( array() !== $ids ) {
+			$in = implode( ',', $ids );
+			foreach ( $db->rows( "SELECT id, status FROM `{$grants}` WHERE id IN ({$in}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended')" ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				$db->insert(
+					'ccap_grant_event',
+					array(
+						'grant_id'    => (int) $row['id'],
+						'event_type'  => 'status_changed',
+						'from_status' => (string) $row['status'],
+						'to_status'   => 'revoked',
+						'reason_code' => 'account_deleted',
+						'actor_type'  => 'system',
+						'occurred_at' => $now,
+						'created_at'  => $now,
+					)
+				);
+			}
+			$db->execute( "UPDATE `{$grants}` SET revocation_reason = 'account_deleted', status = 'revoked' WHERE id IN ({$in}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended')" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list, no values.
+			$db->execute( $db->prepare( "UPDATE `{$grants}` SET user_id = NULL, subject_ref = %s, granted_by = IF(granted_by = %d, NULL, granted_by), row_version = row_version + 1, updated_at = %s WHERE id IN ({$in})", self::grant_subject_ref( $user_id ), $user_id, $now ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+		}
+		$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_grant_event' ) . '` SET actor_id = NULL WHERE actor_id = %d', $user_id ) );
+		$db->execute( $db->prepare( "UPDATE `{$grants}` SET granted_by = NULL WHERE granted_by = %d", $user_id ) );
+		return count( $ids );
 	}
 
 	/**

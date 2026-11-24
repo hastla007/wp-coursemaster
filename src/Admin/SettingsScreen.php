@@ -282,6 +282,9 @@ final class SettingsScreen {
 			if ( 'general' === $tab && isset( $post[ Settings::CONFIRM_WORD_FIELD ] ) ) {
 				$input[ Settings::CONFIRM_WORD_FIELD ] = sanitize_text_field( (string) $post[ Settings::CONFIRM_WORD_FIELD ] );
 			}
+			if ( 'privacy' === $tab && isset( $post[ Settings::RETENTION_REASON_FIELD ] ) ) {
+				$input[ Settings::RETENTION_REASON_FIELD ] = sanitize_textarea_field( (string) $post[ Settings::RETENTION_REASON_FIELD ] );
+			}
 			if ( array() !== $decoded['errors'] ) {
 				self::keep_form( $user_id, $tab, $input, $decoded['errors'] );
 				$out['result'] = 'invalid';
@@ -684,7 +687,7 @@ final class SettingsScreen {
 				}
 			}
 			if ( '' !== $rows && 'privacy' === $tab && str_starts_with( (string) ( $section[1][0] ?? '' ), 'retention.' ) ) {
-				$rows = RetentionPreview::intro() . $rows . RetentionPreview::table();
+				$rows = RetentionPreview::intro() . $rows . ( $read_only ? '' : self::retention_reason_field( $tab, $input, isset( $errors['retention']['rule'] ) && 'retention_reason' === $errors['retention']['rule'] ) ) . RetentionPreview::table();
 			}
 			if ( '' !== $rows ) {
 				$html .= '<h3>' . esc_html( $section[0] ) . '</h3>' . $rows;
@@ -890,6 +893,22 @@ final class SettingsScreen {
 			$meta = '<p id="' . esc_attr( $id . '-meta' ) . '" class="description ccap-field-meta">' . esc_html( sprintf( __( 'Default: %1$s · Applies: %2$s', 'course-captain' ), $text, SettingsFields::scope_label( (string) $ui['scope'] ) ) ) . '</p>';
 		}
 		return '<div class="ccap-field"><p class="ccap-field-label"><strong>' . esc_html( $ui['label'] ) . '</strong></p><p>' . esc_html( $text ) . ( '' === $status ? '' : ' <span id="' . esc_attr( $id . '-status' ) . '" class="ccap-field-status">' . esc_html( $status ) . '</span>' ) . '</p><p id="' . esc_attr( $id . '-help' ) . '" class="description">' . esc_html( $ui['help'] ) . '</p>' . $meta . '</div>';
+	}
+
+	/**
+	 * E-245 reason for retention periods above their default (checked on
+	 * the server, stored in the audit entry of the save).
+	 *
+	 * @param string               $tab     Tab.
+	 * @param array<string, mixed> $input   Kept input after an error.
+	 * @param bool                 $invalid Invalid.
+	 * @return string
+	 */
+	private static function retention_reason_field( string $tab, array $input, bool $invalid ): string {
+		$id = SettingsForm::id( $tab, 'retention-reason' );
+		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html__( 'Reason for longer periods', 'course-captain' ) . '</label>'
+			. '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::RETENTION_REASON_FIELD ) . '" rows="2" class="large-text" maxlength="' . esc_attr( (string) Settings::RETENTION_REASON_MAX ) . '" aria-describedby="' . esc_attr( $id ) . '-help"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '>' . esc_textarea( (string) ( $input[ Settings::RETENTION_REASON_FIELD ] ?? '' ) ) . '</textarea>'
+			. '<p id="' . esc_attr( $id ) . '-help" class="description">' . esc_html__( 'Required when you set a period longer than its suggested default. The reason is stored in the change log with the new values (at most 500 characters).', 'course-captain' ) . '</p></div>';
 	}
 
 	/**

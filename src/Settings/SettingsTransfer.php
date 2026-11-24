@@ -12,6 +12,7 @@ namespace CourseCaptain\Settings;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Privacy\RetentionPolicy;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -159,7 +160,7 @@ final class SettingsTransfer {
 	 *
 	 * @param Actor                $actor   Admin.
 	 * @param array<string, mixed> $data    Parsed file.
-	 * @param array<string, mixed> $options `tabs` (list|null), `surfaces` (list|null), `confirmed` (list of `tab.field` / `key.item`, `*` wildcards), `apply` (bool), `context` (audit, default `import`).
+	 * @param array<string, mixed> $options `tabs` (list|null), `surfaces` (list|null), `confirmed` (list of `tab.field` / `key.item`, `*` wildcards), `apply` (bool), `context` (audit, default `import`), `retention_reason` (E-245: reason for retention periods above their default; without it `privacy.retention` is skipped with reason `retention_reason`), `list_unreasoned` (preview: list such changes with `extended` instead of skipping them).
 	 * @return array{notices: list<string>, tabs: array<string, array{changed: list<array<string, mixed>>, skipped: list<array<string, mixed>>, errors: array<string, string>}>, applied: list<string>, surfaces: array<string, array{label: string, changed: list<array<string, mixed>>, skipped: list<array<string, mixed>>, errors: array<string, string>}>, applied_surfaces: list<string>, addon: list<string>}
 	 * @throws CourseException `ccap_forbidden`, `ccap_rate_limited`.
 	 */
@@ -209,6 +210,7 @@ final class SettingsTransfer {
 				'errors'  => array(),
 			);
 			$input  = array();
+			$extra  = array();
 			foreach ( $values as $field => $value ) {
 				$field = (string) $field;
 				$def   = $schema[ $field ] ?? null;
@@ -261,17 +263,36 @@ final class SettingsTransfer {
 					);
 					continue;
 				}
+				// E-245: a retention period above its default needs a reason (UI field, CLI `--reason`).
+				$extended = 'privacy' === $tab && 'retention' === $field ? RetentionPolicy::extended( (array) $before[ $field ], (array) $check['value'] ) : array();
+				if ( array() !== $extended ) {
+					$reason = Settings::retention_reason( array( Settings::RETENTION_REASON_FIELD => (string) ( $options['retention_reason'] ?? '' ) ) );
+					if ( null === $reason && empty( $options['list_unreasoned'] ) ) {
+						$entry['skipped'][] = array(
+							'field'    => $field,
+							'reason'   => 'retention_reason',
+							'extended' => $extended,
+						);
+						continue;
+					}
+					$extra[ Settings::RETENTION_REASON_FIELD ] = (string) $reason;
+				}
 				$input[ $field ]    = $check['value'];
 				$personal           = ! in_array( $def['privacy'], array( 'public', 'internal' ), true );
 				$entry['changed'][] = array(
-					'field'  => $field,
-					'before' => $personal ? 'changed' : $before[ $field ],
-					'after'  => $personal ? 'changed' : $check['value'],
-					'risks'  => $risks,
+					'field'    => $field,
+					'before'   => $personal ? 'changed' : $before[ $field ],
+					'after'    => $personal ? 'changed' : $check['value'],
+					'risks'    => $risks,
+					'extended' => $extended,
 				);
 			}
 			if ( array() === $entry['errors'] && array() !== $input ) {
-				$semantic        = Settings::check( $actor, $tab, $input, array_keys( $input ) )['errors'];
+				$semantic = Settings::check( $actor, $tab, $input + $extra, array_keys( $input ) )['errors'];
+				if ( ! empty( $options['list_unreasoned'] ) && 'retention_reason' === ( $semantic['retention'] ?? '' ) ) {
+					// Preview only: the reason is asked for in the apply form.
+					unset( $semantic['retention'] );
+				}
 				$entry['errors'] = $semantic;
 			}
 			if ( $apply && array() === $entry['errors'] && array() !== $input ) {
@@ -283,7 +304,7 @@ final class SettingsTransfer {
 					),
 					false
 				);
-				Settings::save( $actor, $tab, $input, array_keys( $input ), Settings::rev( $tab ), array( 'context' => (string) ( $options['context'] ?? 'import' ) ) );
+				Settings::save( $actor, $tab, $input + $extra, array_keys( $input ), Settings::rev( $tab ), array( 'context' => (string) ( $options['context'] ?? 'import' ) ) );
 				$report['applied'][] = $tab;
 				$keys[ $tab ]        = array_keys( $input );
 			}
