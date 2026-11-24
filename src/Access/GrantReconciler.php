@@ -63,17 +63,19 @@ final class GrantReconciler {
 		);
 		$type     = $adapter->source_type();
 		$actor    = Actor::connector( $type );
-		$snapshot = $adapter->snapshot( $reference );
-		if ( null === $snapshot ) {
-			// ACCESS-09: never a revocation; the operator policy may mark the grants for review.
-			SourceReview::source_missing( $this->db, $actor, $type, $reference );
-			$result['no_change'] = true;
-			return $result;
-		}
-		SourceReview::source_back( $this->db, $actor, $type, $reference );
+		// R0-09 R-04: read the source only under the grant-source lock, so a slow
+		// callback cannot apply an older snapshot after a parallel refund.
 		$lock = NamedLock::for_key( $this->db, 'grant-source:' . $type . ':' . $reference );
 		$lock->acquire( 10 );
 		try {
+			$snapshot = $adapter->snapshot( $reference );
+			if ( null === $snapshot ) {
+				// ACCESS-09: never a revocation; the operator policy may mark the grants for review.
+				SourceReview::source_missing( $this->db, $actor, $type, $reference );
+				$result['no_change'] = true;
+				return $result;
+			}
+			SourceReview::source_back( $this->db, $actor, $type, $reference );
 			$revision = (int) ( $snapshot['revision'] ?? 0 );
 			$table    = $this->db->table( 'ccap_grant' );
 			$seen     = $this->db->scalar( $this->db->prepare( "SELECT MAX(source_seq) FROM `{$table}` WHERE source_type = %s AND source_id = %s", $type, $reference ) );
