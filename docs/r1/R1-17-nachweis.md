@@ -34,8 +34,8 @@ phpcs 0 · PHPStan L8 0 · Unit **85** · Integration **150 / 1 570** · Multisi
 
 | Nr. | Thema | Entscheidung |
 |---|---|---|
-| A-1 | Audit-Pseudonymisierung durch den Eraser (RT-23) | Die Hash-Kette deckt `subject_user_id` ab; Ändern bricht die Manipulationsprüfung. Einträge bleiben, die Löschung selbst wird pseudonym auditiert. **Klärung R0-13 §4.4** (z. B. Kette über pseudonymisierbare Referenz) |
-| A-2 | Aufbewahrung Paketkopien: GM-131/RT-26 „aktiv + jüngstes Rollback-Ziel“ vs. R0-10 §3.6 „aktiv + 2 weitere“ | umgesetzt nach GM-131/RT-26; **Klärung** im R1-Gate |
+| A-1 | Audit-Pseudonymisierung durch den Eraser (RT-23) | Die Hash-Kette deckt `subject_user_id` ab; Ändern bricht die Manipulationsprüfung. Einträge bleiben, die Löschung selbst wird pseudonym auditiert. **Klärung R0-13 §4.4** (z. B. Kette über pseudonymisierbare Referenz) **Entschieden 24.11.2026: Kette über Pseudonym, getrennte Zuordnung wird bei Löschung entfernt (E-361); Umsetzung offen.** |
+| A-2 | Aufbewahrung Paketkopien: GM-131/RT-26 „aktiv + jüngstes Rollback-Ziel“ vs. R0-10 §3.6 „aktiv + 2 weitere“ | umgesetzt nach GM-131/RT-26; **Klärung** im R1-Gate **Entschieden 24.11.2026: eigener Aufbewahrungsschlüssel, Vorgabe = kürzere Regel aus GM-131 und R0-10 §3.6 (E-350); Umsetzung mit SET-CC-02.** |
 | A-3 | `keep_evidence_on_erasure` (RT-07/RT-10), Tombstones nach Restore (RT-41, E-92) | Einstellung und Tombstone-Tabelle fehlen im Datenmodell; mit R1-34 bzw. R1-23 |
 | A-4 | `privacy.retention`-Unterschlüssel editierbar, Verkürzen mit Vorschau (RR-2/RR-3), Systemstatus-Rückstand (RR-6) | Konstanten nach RT-Defaults; Einstellungen mit R1-34, Anzeige mit R1-38 |
 | A-5 | Selbstbedienungs-Anträge (GM-174), asynchroner Export (GM-175), Shortcode `[ccap_privacy_request]` | WP-Kernanträge funktionieren über Exporter/Eraser; eigene Selbstbedienung mit R1-28/R1-34 |

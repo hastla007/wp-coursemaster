@@ -118,8 +118,8 @@ Die Richtlinie gilt unabhängig von `hardening.site_headers` (PSD-052). Der Hilf
   - Löschfristen je Kanal;
   - Bereichsfehler.
 - **Hinweis/Offen:**
-  - R0-27 §1.4 führt `error_log_days`/`debug_file_days` als Unterschlüssel von `privacy.retention` (SET-CC-02, Gruppe h8). Hier liegen sie als `advanced.*` im Tab „Erweitert“. Beim Zusammenführen mit SET-CC-02 entscheiden, ob `privacy.retention` darauf verweist oder die Felder übernimmt (dann Migration der zwei Werte).
-  - R0-13 DL-1 sieht für das Debug-Fenster höchstens 24 h vor; der TODO-Punkt verlangt 7 Tage. Umgesetzt sind die 7 Tage aus dem TODO; die Abweichung ist zur Bestätigung vorgemerkt.
+  - R0-27 §1.4 führt `error_log_days`/`debug_file_days` als Unterschlüssel von `privacy.retention` (SET-CC-02, Gruppe h8). Hier liegen sie als `advanced.*` im Tab „Erweitert“. Beim Zusammenführen mit SET-CC-02 entscheiden, ob `privacy.retention` darauf verweist oder die Felder übernimmt (dann Migration der zwei Werte). **Entschieden 24.11.2026: Felder wandern mit Migration nach `privacy.retention` (E-350).**
+  - R0-13 DL-1 sieht für das Debug-Fenster höchstens 24 h vor; der TODO-Punkt verlangt 7 Tage. Umgesetzt sind die 7 Tage aus dem TODO; die Abweichung ist zur Bestätigung vorgemerkt. **Entschieden 24.11.2026: 7 Tage beibehalten (E-352).**
   - Es gibt keine Log-Ansicht im Systemstatus und keinen Diagnose-Auszug (R1-38-Umfeld).
 
 ## Geteilte Dateien

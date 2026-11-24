@@ -62,7 +62,7 @@ Bereits in R1-44 abgedeckt und weiter grün: CRT-017 (Namensfreigabe), CRT-013/0
 | A-4 | Elterngruppen/Kontingente (Δ-1/Δ-2, GRP-023/024/025), Delegierte (GRP-022) | Spalte `parent_group_id` und Resolver-Slot `groupManagerResolvers` fehlen im Schema bzw. Registry; ohne Pro gibt es keine Kinder und keine Delegierten, Verhalten unverändert (nur Besitzer und #11). Mit Schema-Upgrade/R3-08 |
 | A-5 | Gruppenfilter im Basisbericht (GF-16, GRP-019/020) | Basisbericht A-12 existiert noch nicht (R1-12-Folge) |
 | A-6 | Gruppen-Overrides `enrollment.claim_policy`/`invite_valid_days` (R0-28 #25/#26) | `claim_policy` ist Gruppenspalte; `invite_valid_days` je Gruppe (nur kürzer) validiert der Resolver, ein Speicherort am Gruppen-Datensatz fehlt; Einladungsdauer bleibt 30 Tage bzw. globaler Wert mit R1-36 |
-| A-7 | Wiedereinsetzung einer beendeten Gruppe (R1-13 A-4) | nicht gebaut; „beendet“ bleibt endgültig je Quellrevision. **Klärung**, ob ein manueller Weg (neue Quellrevision) in R1 gebraucht wird |
+| A-7 | Wiedereinsetzung einer beendeten Gruppe (R1-13 A-4) | nicht gebaut; „beendet“ bleibt endgültig je Quellrevision. **Klärung**, ob ein manueller Weg (neue Quellrevision) in R1 gebraucht wird **Entschieden 24.11.2026: Wiedereinsetzung durch Administratoren mit Begründung, neue Quellrevision, Audit (E-360); Umsetzung offen.** |
 | A-8 | Basisvorlage auch im globalen Settings-Tab „Zertifikate“ (R1-32/R1-34) | A-11 speichert über denselben Dienst (`Settings::save`, `_rev`); bei paralleler Umsetzung im Tab darf es nur eine Oberfläche geben – **Abstimmung mit R1-34** |
 | A-9 | QR-Code (SOLL), Sprachvarianten des Fußtexts | nicht gebaut |
 

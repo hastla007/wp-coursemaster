@@ -68,7 +68,7 @@ Nichts wird gelöscht; Einschalten stellt alles wieder her (Test). **Bewusste Au
 - Hinweiszeile `course.analytics` (wartet auf SET-CC-01 und S5).
 - WP-CLI `--confirm=LÖSCHEN` (wartet auf SET-CC-12).
 - Übersetzungen de_DE/de_DE_formal (Koordinator erzeugt die .po neu).
-- Lektionen eines ausgeschalteten Moduls zählen weiter für den Kursabschluss (Fortschritt bleibt unverändert, damit nichts still neu bewertet wird); wer ein Pflichtmodul abschaltet, sieht das in der Kursprüfung nicht. Entscheidung, ob solche Lektionen aus dem Nenner fallen, steht aus.
+- Lektionen eines ausgeschalteten Moduls zählen weiter für den Kursabschluss (Fortschritt bleibt unverändert, damit nichts still neu bewertet wird); wer ein Pflichtmodul abschaltet, sieht das in der Kursprüfung nicht. Entscheidung, ob solche Lektionen aus dem Nenner fallen, steht aus. **Entschieden 24.11.2026: sie zählen weiter (E-353).**
 
 ## Gates (23.11.2026)
 

@@ -137,7 +137,9 @@ gm-coverage: 210 IDs, 207 mit Test, 3 Ausnahmen (r2 1, r3 1, deviation 1), missi
 | g5 A-3 | Löschung nach Bestätigung nur mit Opt-in E-43 | so lassen (konform) | ☐ ok |
 | Umgebung | Zertifikats-/Import-Hashes hängen von `intl`/`Normalizer` ab | `intl` als Systemvoraussetzung dokumentieren oder Fallback angleichen | ☐ dokumentieren ☐ angleichen |
 | R1-18 §7 | Antwort-IDs `<frage>-a…e` (R0-05 §2.3) gegen Schlüssel `^([A-Z]|MODEL)$` (R0-08 §3.1); umgesetzt positionsweise beim Import | so lassen | ☐ ok |
-| R1-03 A-1 | Kursmanager vergibt Support trotz #21 | klären | ☐ ______ |
+| R1-03 A-1 | Kursmanager vergibt Support trotz #21 | klären | ☒ nur Administratoren vergeben die Support-Rolle (E-363, Inhaberin 24.11.2026) |
+
+**Entschieden am 24.11.2026 (Inhaberin, E-350…E-368):** GM-178 Ablehnung (E-362), GM-180 erledigt (E-364), RT-23 Kette über Pseudonym (E-361), Paketkopien GM-131 vs. R0-10 §3.6 (E-350), Support-Rolle nur durch Administratoren (E-363), Login-Limit-Bestätigung RC-14 (E-358), Slug-Kollision harter Fehler (E-359), Wiedereinsetzung beendeter Gruppen (E-360), Karteikarten nie in Prüfungen B-03 (E-351), Debug-Fenster 7 Tage (E-352), Rollen-Export Opt-in/RC-07 (E-365), Setup-Assistent Schritt 7 ohne leere Prüfung (E-366), Multisite-Löschung nur auf der Site (E-367); R1 noch nicht freigegeben, keine R2-Arbeit (E-368). Umsetzung offen: E-350, E-351 (Ausschluss in Prüfungen und Validatorhinweis; das Modulpool-Quiz schließt Karteikarten bereits aus), E-357, E-360, E-361.
 
 ## 8. Abweichungen (Stand)
 
@@ -146,7 +148,7 @@ gm-coverage: 210 IDs, 207 mit Test, 3 Ausnahmen (r2 1, r3 1, deviation 1), missi
 | A-01…A-06, B-01…B-19 | Abweichungen vom Original aus R0 | E-55a | freigegeben 16.11.2026 |
 | F-1 / F-2 | Prüfungsteile über Modulgruppen; Teilumfang je Art | E-331, E-332 | nachgebaut |
 | F-6 / F-7 | Join-Token nur als Hash; 409 `ccap_exam_start_busy`; fremder Kurs 404 | E-333 | freigegeben |
-| GM-180 | kein Einstellungsschlüssel `default_access` | E-334 | freigegeben |
+| GM-180 | kein Einstellungsschlüssel `default_access`; Standard-Zugangsdauer `enrollment.default_access_days` im Tab Einschreibung | E-334, E-364 | freigegeben, erledigt (24.11.2026) |
 | GM-068 | Nachrüstung `due_at` nur im Migrationswerkzeug | E-335 | entschieden |
 | GM-038/GM-150/GM-136 | Statuscodes nach R0-19; GM-136 skaliert | E-338 | entschieden |
 | GM-118/125/128 | Medien-/Blueprint-Import fehlt | – | **offen** (W-09) |

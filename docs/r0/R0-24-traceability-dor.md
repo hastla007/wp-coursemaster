@@ -69,7 +69,7 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 655 | P0 | LearnBoating-Paritätsmatrix abschließen | R0-05 | R0-02 A…E; R0-04 §2, §6; R0-05 §1, §6 | GM-001…GM-190 | abgedeckt (Entwurf) | führend für Z.735, Z.736; Referenzlauf E-56, Abweichungsliste E-55 offen |
 | 656 | P0 | Kurs-/Quiz-Builder im Admin prüfen und vervollständigen | R2-04 | R0-11 §1 (BS-05, F2); R0-22 §3 | – | offen | führend für Z.752; R1-Paritätsteil (Editor, Vorschau, Revisionen) bleibt R1-05/R1-26 (Ausnahmeregel Kap. 29); R2-Katalog fehlt (Gate D-2) |
 | 657 | P0 | Persönliche Lernnotizen evaluieren | R2-01 | R0-11 §1 (F2) | – | offen | führend für Z.749; „Lernkarten aus Notizen“ optional in R2-01 |
-| 658 | P0 | Aufgabenabgaben als universelle Aktivität spezifizieren | R1-46 | R0-11 §1 (F1, A-19, L-22); R0-05 §2.3 (Fixture v1.1); R0-26 §6 (RK-v1.1) | GM-195, GM-196 | offen | führend für Z.712, Z.750; E-168: aus R2-02 nach R1-46 vorgezogen; Praxisaufgaben-Abgrenzung: INV-A-059 exclude, E-22 |
+| 658 | P0 | Aufgabenabgaben als universelle Aktivität spezifizieren | R1-46 | R0-11 §1 (F1, A-19, L-22); R0-05 §2.3 (Fixture v1.1); R0-26 §6 (RK-v1.1) | GM-195, GM-196 | erledigt | führend für Z.712, Z.750; E-168: aus R2-02 nach R1-46 vorgezogen; Praxisaufgaben-Abgrenzung: INV-A-059 exclude, E-22; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 659 | P0 | Kursvorlagen und Demokurse | R2-03 | R0-04 BS-24, BS-29; R0-11 §1 (BS-24, F2) | GM-189, GM-190 | offen | führend für Z.751; E-16 (Mechanik R1), E-102 (Demo erst R2-03) |
 | 663 | P1 | Gradebook/Notenbuch | R3-08 | R0-11 §1 (Pro) | – | offen | führend für Sammelpunkt Z.757; Kap. 29 R3 |
 | 664 | P1 | Tutorbewertung | R3-08 | R0-11 §1 (Pro) | – | offen | setzt R1-46 voraus (E-168); E-99 (Tutor-Rolle `ccap_trainer`) |
@@ -92,24 +92,24 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 687 | Markt | Praxis-Benchmark | R1-29 | R0-26 §1 | GM-187 | Duplikat → Z.714 | Referenzkurs mit Aufgabe schon in R1 (E-168, R1-46) |
 | 691 | Tore | Keine Konkurrenzfunktion blind übernehmen | R0-24 | R0-24 §4.1 (DoR-Feld 1) | – | abgedeckt (Entwurf) | Regel; wirkt über DoR |
 | 692 | Tore | Dopplungen vermeiden | R0-24 | R0-24 §1 | – | abgedeckt (Entwurf) | Dubletten in §1 und §1.3 zurückgeführt |
-| 693 | Tore | Free/Pro-Grenzen einzeln entscheiden | R0-11 | R0-11 §1 | – | Duplikat → Z.721 |  |
+| 693 | Tore | Free/Pro-Grenzen einzeln entscheiden | R0-11 | R0-11 §1 | – | erledigt | abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 694 | Tore | P0 bedeutet Prüfung/Planung, nicht automatisch v1.0-Pflicht | R0-04 | R0-04 §1 Z-8 | – | obsolet (Kap. 29, Z.720) | Grundsatz durch den Release-Plan Kap. 29 entschieden |
 | 695 | Tore | Aufnahme ins Konzept freigegeben | – | Konzept Kap. 27 | – | erledigt |  |
-| 701 | K28 Arch. | ADR-001 bis ADR-008 verfassen | R0-06 | R0-06 (ADR-001…003, 006 Teil); R0-08 (ADR-004, 005); R0-19 §5.4 (ADR-006); R0-11 §1 (Lizenzende); R0-07, R0-17 (Rollen, Datenschutz) | – | offen | Nummernkonflikt gelöst (E-299: ADR-009/010 in R0-19); ADR-007 im Kopf von R0-39, ADR-008 im Kopf von R0-07 (T-1); E-47…E-52 |
-| 702 | K28 Arch. | Unveränderliche Prüfungs-Snapshots nachweisen | R1-08 | R0-08 §6, §7; R0-23 §2 | GM-027…GM-034, GM-052 | abgedeckt (Entwurf) | E-50 |
-| 703 | K28 Arch. | Zustandsmaschinen spezifizieren | R0-08 | R0-08 §6 (Versuch); R0-22 §2 (Content); R0-09 §2, §4 (Einschreibung) | GRANT-001, PUB-001 | offen | Automat der Aufgabenabgabe mit R1-46 (Z.658, E-168) |
-| 704 | K28 Arch. | Idempotenz- und Wiederanlauftests | R1-42 | R0-21 §2, §5; R0-09 §6; R0-19 §5.4 | CON-001…CON-048, GRANT-005, CT-07, REC-016 | abgedeckt (Entwurf) | Outbox-Teil braucht R1-43 (E-182) |
-| 705 | K28 Arch. | Golden-Master-Tests für Smarttrainer | R1-12 | R0-05 §1.6; R0-08 §5.2 | GM-065…GM-074 | abgedeckt (Entwurf) | Referenzlauf E-56 |
-| 706 | K28 Arch. | Datenmodell-/Upgrade-Probe | R1-23 | R0-06 §6; R0-16 §2, §4; R0-37 §4, §7; R0-14 §2 | REC-001…REC-025, MIG-001…MIG-026 | abgedeckt (Entwurf) |  |
-| 710 | K28 Lern/UX | Drei getrennte Fortschrittsdimensionen | R1-10 | R0-08 §5 | GM-066, GM-075, GM-076, CRT-064 | abgedeckt (Entwurf) | führend für Z.668; E-70, E-73 |
-| 711 | K28 Lern/UX | Abschluss- und Bewertungsregeln je Activity | R1-09 | R0-08 §2.3, §4 | GM-017…GM-031 | abgedeckt (Entwurf) | E-74, E-76, E-77 |
-| 712 | K28 Lern/UX | Aufgaben-Workflow und sichere Uploads | R1-46 | R0-11 §1 (F1) | – | Duplikat → Z.658 | Detail-DoD (draft/submitted/returned/graded, MIME, private Ablage) übernehmen |
-| 713 | K28 Lern/UX | Kompetenzzuordnung | R1-10 | R0-08 §5.3 | CRT-064 | abgedeckt (Entwurf) | E-73 (abgeleitet, keine eigene Tabelle) |
-| 714 | K28 Lern/UX | Drei neutrale Autorentests | R1-29 | R0-26 §1, §5 | UX-001…UX-015 | abgedeckt (Entwurf) | führend für Z.687; E-161…E-171 |
-| 715 | K28 Lern/UX | Lernenden-E2E und Accessibility | R1-18 | R0-15 §2; R0-26 §1–§5; R0-11 §3 Flow 2 | A11Y-001…A11Y-010, UX-050 | abgedeckt (Entwurf) | Gate B-4, C-10 |
-| 719 | K28 Produkt | Release-Gates A–D verbindlich abnehmen | R0-12 | R0-12 §3 | – | abgedeckt (Entwurf) | Kriterien A-1…D-7; E-184; Abhaken je Gate |
+| 701 | K28 Arch. | ADR-001 bis ADR-008 verfassen | R0-06 | R0-06 (ADR-001…003, 006 Teil); R0-08 (ADR-004, 005); R0-19 §5.4 (ADR-006); R0-11 §1 (Lizenzende); R0-07, R0-17 (Rollen, Datenschutz) | – | erledigt | Nummernkonflikt gelöst (E-299: ADR-009/010 in R0-19); ADR-007 im Kopf von R0-39, ADR-008 im Kopf von R0-07 (T-1); E-47…E-52; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 702 | K28 Arch. | Unveränderliche Prüfungs-Snapshots nachweisen | R1-08 | R0-08 §6, §7; R0-23 §2 | GM-027…GM-034, GM-052 | erledigt | E-50; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 703 | K28 Arch. | Zustandsmaschinen spezifizieren | R0-08 | R0-08 §6 (Versuch); R0-22 §2 (Content); R0-09 §2, §4 (Einschreibung) | GRANT-001, PUB-001 | erledigt | Automat der Aufgabenabgabe mit R1-46 (Z.658, E-168); abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 704 | K28 Arch. | Idempotenz- und Wiederanlauftests | R1-42 | R0-21 §2, §5; R0-09 §6; R0-19 §5.4 | CON-001…CON-048, GRANT-005, CT-07, REC-016 | erledigt | Outbox-Teil braucht R1-43 (E-182); abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 705 | K28 Arch. | Golden-Master-Tests für Smarttrainer | R1-12 | R0-05 §1.6; R0-08 §5.2 | GM-065…GM-074 | abgedeckt (Entwurf) | Referenzlauf E-56; Stand 24.11.2026: GM-065…074 grün, Referenzlauf E-328 offen |
+| 706 | K28 Arch. | Datenmodell-/Upgrade-Probe | R1-23 | R0-06 §6; R0-16 §2, §4; R0-37 §4, §7; R0-14 §2 | REC-001…REC-025, MIG-001…MIG-026 | abgedeckt (Entwurf) | Stand 24.11.2026: Rollback/Downgrade REC-009/025 (R1-23 O-6) und Messung R-M offen |
+| 710 | K28 Lern/UX | Drei getrennte Fortschrittsdimensionen | R1-10 | R0-08 §5 | GM-066, GM-075, GM-076, CRT-064 | abgedeckt (Entwurf) | führend für Z.668; E-70, E-73; Stand 24.11.2026: Competency ohne REST/UI |
+| 711 | K28 Lern/UX | Abschluss- und Bewertungsregeln je Activity | R1-09 | R0-08 §2.3, §4 | GM-017…GM-031 | erledigt | E-74, E-76, E-77; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 712 | K28 Lern/UX | Aufgaben-Workflow und sichere Uploads | R1-46 | R0-11 §1 (F1) | – | erledigt | Detail-DoD (draft/submitted/returned/graded, MIME, private Ablage) übernehmen; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 713 | K28 Lern/UX | Kompetenzzuordnung | R1-10 | R0-08 §5.3 | CRT-064 | erledigt | E-73 (abgeleitet, keine eigene Tabelle); abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
+| 714 | K28 Lern/UX | Drei neutrale Autorentests | R1-29 | R0-26 §1, §5 | UX-001…UX-015 | abgedeckt (Entwurf) | führend für Z.687; E-161…E-171; Stand 24.11.2026: vorbereitet, Durchführung offen (E-341) |
+| 715 | K28 Lern/UX | Lernenden-E2E und Accessibility | R1-18 | R0-15 §2; R0-26 §1–§5; R0-11 §3 Flow 2 | A11Y-001…A11Y-010, UX-050 | abgedeckt (Entwurf) | Gate B-4, C-10; Stand 24.11.2026: Firefox/WebKit (UI-F7) und Screenreader-Durchläufe offen |
+| 719 | K28 Produkt | Release-Gates A–D verbindlich abnehmen | R0-12 | R0-12 §3 | – | abgedeckt (Entwurf) | Kriterien A-1…D-7; E-184; Abhaken je Gate; Stand 24.11.2026: Gate A abgenommen; B/C offen (E-368) |
 | 720 | K28 Produkt | P0 aufteilen | – | Konzept Kap. 29 | – | erledigt |  |
-| 721 | K28 Produkt | Free-/Pro-Grenzen abgleichen | R0-11 | R0-11 §1; R0-04 §3 | SA-001*, CT-09 | abgedeckt (Entwurf) | führend für Z.693; E-53, E-93…E-102 |
+| 721 | K28 Produkt | Free-/Pro-Grenzen abgleichen | R0-11 | R0-11 §1; R0-04 §3 | SA-001*, CT-09 | erledigt | führend für Z.693; E-53, E-93…E-102; abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 722 | K28 Produkt | Suite-Contract-Tests | R3-12 | R0-19 §9 | CT-01…CT-12 | abgedeckt (Entwurf) | COMMERCE-/SUITEFLOW-Kataloge E-186 |
 | 723 | K28 Produkt | Messkonzept erstellen | R0-26 | R0-26 §7; R0-14 §2; R0-13 §2 | – | offen | Teil abgedeckt (Veröffentlichung, Abschluss); Konversion, Supportlast, Job-Wiederherstellung ohne Baseline; R3-Teil SEAM-109 |
 | 724 | K28 Produkt | Verbleibende Produktfragen entscheiden | R0-11 | R0-11 §0; ENTSCHEIDUNGEN | – | offen | E-07, E-49, E-78, E-80, E-94, E-96, E-99 |
@@ -123,7 +123,7 @@ Die Zeilennummern des Registers wurden auf den aktuellen TODO-Stand (`d5b31f7`, 
 | 744 | K29 R1 | 100 % der fachneutralen Paritätsmatrix abnehmen; Gates B und C bestehe… | R1-GATE | R0-12 §3.2, §3.3 | – | abgedeckt (Entwurf) | führend für Z.745; Kriterien B-1…B-8, C-1…C-16; E-184 |
 | 745 | K29 R1 | R1 ausdrücklich freigeben | R1-GATE | R0-12 §3 | – | Duplikat → Z.744 |  |
 | 749 | K29 R2 | Persönliche Lernnotizen, Suche/Export und optional Lernkarten aus Noti… | R2-01 | R0-11 §1 | – | Duplikat → Z.657 |  |
-| 750 | K29 R2 | Text-/Datei-Aufgabenabgaben mit sicherem Upload und Basisfeedback. | R1-46 | R0-11 §1 | – | Duplikat → Z.658 |  |
+| 750 | K29 R2 | Text-/Datei-Aufgabenabgaben mit sicherem Upload und Basisfeedback. | R1-46 | R0-11 §1 | – | erledigt | abgehakt 24.11.2026 mit Nachweis (TODO-Zeile) |
 | 751 | K29 R2 | Neutrale Kursvorlagen, Demokurse und Duplizierungs-Komfortfunktionen. | R2-03 | R0-11 §1 | – | Duplikat → Z.659 |  |
 | 752 | K29 R2 | Zusätzliche Kurs-/Quiz-Builder-UX, soweit nicht bereits für R1-Parität… | R2-04 | R0-11 §1 | – | Duplikat → Z.656 |  |
 | 753 | K29 R2 | Jedes R2-Feature einzeln auf Nutzen, Free-/Pro-Grenzen, UX, Sicherheit… | R2-05 | R0-12 §3.4 | – | Duplikat → Z.869 |  |
@@ -236,11 +236,11 @@ So sieht die Reihenfolge aus Sicht des R-Plans aus: Wer eine Task bearbeitet, pr
 | R0-03 | 905 | 916 | 2 |
 | R0-04 | 694, 917 | – | 2 |
 | R0-05 | 655, 906 | 735, 736, 918 | 5 |
-| R0-06 | 701, 902, 903 | – | 3 |
+| R0-06 | 902, 903 | – | 2 |
 | R0-07 | 900, 901 | 885 | 3 |
-| R0-08 | 703, 803 | – | 2 |
+| R0-08 | 803 | – | 1 |
 | R0-09 | 806, 831, 886, 887, 888, 889 | 801 | 7 |
-| R0-11 | 685, 721, 724 | 693 | 4 |
+| R0-11 | 685, 724 | – | 2 |
 | R0-12 | 719, 859, 860, 862, 891, 892 | – | 6 |
 | R0-19 | 770, 805 | – | 2 |
 | R0-20 | 832 | – | 1 |
@@ -254,16 +254,12 @@ So sieht die Reihenfolge aus Sicht des R-Plans aus: Wer eine Task bearbeitet, pr
 | R0-39 | 772 | – | 1 |
 | R0-40 | 802, 830 | – | 2 |
 | R0-GATE | 861, 907 | 737, 894, 919 | 5 |
-| R1-08 | 702 | – | 1 |
-| R1-09 | 711 | – | 1 |
-| R1-10 | 710, 713 | 668 | 3 |
+| R1-10 | 710 | 668 | 2 |
 | R1-12 | 705 | – | 1 |
 | R1-13 | 810 | – | 1 |
 | R1-18 | 715, 868 | 741, 742, 743 | 5 |
 | R1-23 | 706 | – | 1 |
 | R1-29 | 714 | 687 | 2 |
-| R1-42 | 704 | – | 1 |
-| R1-46 | 658 | 712, 750 | 3 |
 | R1-GATE | 744 | 745 | 2 |
 | R2-01 | 657 | 749 | 2 |
 | R2-03 | 659 | 751 | 2 |
@@ -285,6 +281,8 @@ So sieht die Reihenfolge aus Sicht des R-Plans aus: Wer eine Task bearbeitet, pr
 | R3-16 | 784 | 814, 876 | 3 |
 | R3-18 | 782 | – | 1 |
 | R4-01 | 669, 670, 676, 677, 678, 686, 790, 791, 864 | 682, 683, 684, 758 | 13 |
+
+*Stand 24.11.2026:* Nach dem Abhaken der Kap.-28-Einträge Z. 658, 693, 701–704, 711–713, 721 und 750 (TODO, mit Nachweis) entfallen die Zeilen R1-08, R1-09, R1-42 und R1-46; R0-06, R0-08, R0-11 und R1-10 verkürzt. Zählung per Skript (§5): erledigt 47, offen 133 (führend 94, Duplikat 37, obsolet 2). Die Befunde unten beschreiben den Entwurfsstand.
 **Befunde zu §1**
 
 1. **Kein Registereintrag ohne Task.** Alle 144 offenen Einträge haben genau eine führende R-Task. 13 Einträge hängen an R4-01 (Nachfragepool): 9 führend (Diskussionen, interaktive Medien, Gamification, SCORM, Kohorten, Anforderungsmatrix, SUITE-201, SUITE-202 und die obsolete Dashboard-Option), 4 Duplikate.

@@ -135,6 +135,8 @@ Die Codes heißen `IMP-<Gruppe><n>.<nn>` und sind damit von den **Testfall**-IDs
 | IMP-B1.07 | Paketkopie fehlt oder Spool-Prüfsumme weicht ab | F | `aborted`; Resume nur nach erneuter Validierung |
 | IMP-B1.08 | Objekt hängt von einem fehlgeschlagenen Objekt ab | O | `skipped_dependency` |
 | IMP-B1.09 | Abbruch durch Bedienung | F | `aborted` (`reason = cancelled`) |
+| IMP-B1.10 | Person, die den Import freigegeben hat (`approved_by`), hat beim Hintergrundschritt die Rechte `ccap_import_content` und `ccap_publish_courses` nicht mehr (Meldung: „Die Person, die den Import freigegeben hat, hat die nötigen Rechte nicht mehr.“; Abhilfe: mit einem Konto, das Kurse veröffentlichen darf, erneut freigeben und starten) | F | Lauf `aborted` (`reason = approver_rights`), nichts geschrieben |
+| IMP-B1.11 | unerwarteter Fehler im Lauf (nicht vorübergehend, keine andere Regel) (Meldung: „Der Import wurde wegen eines unerwarteten Fehlers angehalten.“; Abhilfe: fortsetzen, bei erneutem Halt Support mit Bericht) | F | Lauf `aborted` (`reason = error`); synchroner Lauf antwortet `500 ccap_import_failed` |
 
 `VAL`-Regeln (R0-22) erscheinen unverändert mit ihrer Schwere (`blocker/warning/notice`). Im Import legen Blocker kein Objekt still, sondern verhindern nur die **Aktivierung** des betroffenen Kurses (§5.3).
 

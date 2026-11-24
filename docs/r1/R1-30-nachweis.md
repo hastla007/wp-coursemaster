@@ -247,7 +247,7 @@ Legende **Status:** **CI** = bestanden in der CI-Suite ohne fremdes Plugin · **
 | F-03 | Geschützte HTML-Seiten ohne LiteSpeed-/CDN-/Surrogate-Signale | behoben |
 | F-04 | Permissions-Policy überschrieb fremden Wert (E-307) | behoben |
 | F-05 | CPT/Rolle/Shortcode/Block-Kollisionen nicht abgefangen | behoben + Systemstatus kritisch |
-| F-06 | Slug-Kollisionsprüfung F4.1 fehlte | behoben |
+| F-06 | Slug-Kollisionsprüfung F4.1 fehlte | behoben (harter Fehler bestätigt 24.11.2026, E-359) |
 | F-07 | `view_admin_dashboard` für CC-Rollen fehlte (D-20-10) | behoben |
 | F-08 | `trusted_proxies` ohne Wirkung | behoben (`ClientIp`) |
 | F-09 | SEO-Erkennung nur Yoast/Rank Math | behoben |

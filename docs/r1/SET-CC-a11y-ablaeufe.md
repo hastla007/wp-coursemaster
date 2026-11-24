@@ -75,6 +75,6 @@ Alle auf PHP 8.5.12, MariaDB 10.11, Testdatenbank `ccap_test_g`:
 ## Offen
 
 - Hinweiszeilen ausblendbar (P5) prüfen, sobald SET-CC-01 gemergt ist.
-- B-03 (Karteikarten in Blueprint-Prüfungen) – Produktentscheidung.
+- B-03 (Karteikarten in Blueprint-Prüfungen) – Produktentscheidung. **Entschieden 24.11.2026: immer ausgeschlossen (E-351).**
 - UI-F6-Kästen: Auswahl während des Neuzeichnens nach dem Speichern geht verloren (ein Anfrage-Fenster); Vorschlag: Kasten bis zur Antwort `aria-busy` und Steuerelemente sperren.
 - Firefox/WebKit und Hilfstechnik-Durchläufe mit Personen bleiben bei UI-F7/R1-29.

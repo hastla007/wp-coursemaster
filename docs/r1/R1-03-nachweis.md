@@ -48,7 +48,7 @@ RBAC-096 (kein Existenz-Orakel) ist auf Dienstebene als **Gleichheit der Entsche
 
 | Nr. | Thema | Entscheidung | Begründung |
 |---|---|---|---|
-| A-1 | **Kursmanager vergibt `ccap_support`** (§3.5 Nr. 3) | **nicht erlaubt**, solange Support `ccap_view_audit_log` (#21) hat, das dem Kursmanager fehlt | widerspricht der Regel „nie Caps über dem eigenen Satz“ im selben Absatz; die strengere Regel gilt. **Klärung durch Auftraggeber**: entweder #21 für Kursmanager oder Support ohne #21 |
+| A-1 | **Kursmanager vergibt `ccap_support`** (§3.5 Nr. 3) | **nicht erlaubt**, solange Support `ccap_view_audit_log` (#21) hat, das dem Kursmanager fehlt | widerspricht der Regel „nie Caps über dem eigenen Satz“ im selben Absatz; die strengere Regel gilt. **Klärung durch Auftraggeber**: entweder #21 für Kursmanager oder Support ohne #21 **Entschieden 24.11.2026: nur Administratoren vergeben die Support-Rolle (E-363).** |
 | A-2 | Site-weiter Lernenden-Scope (M-11) | `ccap_view_learner_details` **und** (`ccap_manage_grants` oder `ccap_lock_learners`) = Kursmanager/Support/Admin; Trainer nur über Zuweisung | R0-07 unterscheidet Manager/Support von Trainern, beide Rollen haben aber #13 |
 | A-3 | „Versuch in Bewertung“ (M-09) | Status `submitted` oder `evaluated` | R0-07 nennt keinen Status |
 | A-4 | Zuordnung FAQ/Tipp | `post_parent` = Kurs (Lektion: `post_parent` = Modul) | R0-06 §3.1 legt nur die Lektion fest; R1-04 bestätigt |
