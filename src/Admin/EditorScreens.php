@@ -239,6 +239,14 @@ final class EditorScreens {
 	 * @return string
 	 */
 	private static function jump_link( array $issue ): string {
+		if ( 'rights' === ( $issue['target']['page'] ?? '' ) ) {
+			// R0-22 VAL-100…105: "Rights & release" of the course, only with the release right.
+			$course = (int) ( $issue['target']['course'] ?? 0 );
+			if ( $course > 0 && current_user_can( RightsArea::CAP ) && current_user_can( 'edit_post', $course ) ) {
+				return ' <a href="' . esc_url( RightsArea::url( $course ) ) . '" class="ccap-validation-jump">' . esc_html__( 'Check rights', 'course-captain' ) . '</a>';
+			}
+			return ' <span class="description">' . esc_html__( 'Please inform the course administration.', 'course-captain' ) . '</span>';
+		}
 		$object = (array) ( $issue['object'] ?? array() );
 		$id     = (int) ( $object['id'] ?? 0 );
 		if ( $id <= 0 || ! in_array( (string) ( $object['type'] ?? '' ), array( 'module', 'lesson', 'activity' ), true ) || ! current_user_can( 'edit_post', $id ) ) {

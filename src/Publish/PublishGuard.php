@@ -39,7 +39,7 @@ final class PublishGuard {
 	 * @return mixed
 	 */
 	public static function filter( $data, $postarr ) {
-		if ( ! is_array( $data ) || Relations::COURSE_TYPE !== ( $data['post_type'] ?? '' ) || 'publish' !== ( $data['post_status'] ?? '' ) || ! self::interactive() ) {
+		if ( ! is_array( $data ) || Relations::COURSE_TYPE !== ( $data['post_type'] ?? '' ) || 'publish' !== ( $data['post_status'] ?? '' ) || ! self::interactive() || \CourseCaptain\Course\CoursePublisher::publishing() ) {
 			return $data;
 		}
 		$id = (int) ( is_array( $postarr ) ? ( $postarr['ID'] ?? 0 ) : 0 );

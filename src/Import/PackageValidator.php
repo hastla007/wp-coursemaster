@@ -276,6 +276,13 @@ final class PackageValidator {
 		if ( 1 !== preg_match( '/^[a-z0-9][a-z0-9._-]{1,31}$/', (string) ( $manifest['source']['system'] ?? '' ) ) ) {
 			$errors[] = 'V5_source_system';
 		}
+		// D8: provenance of an own export (installation UUID) and the package-wide rights fallback (R0-10 §1.2).
+		if ( isset( $manifest['source']['exported_from_site'] ) && 1 !== preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', (string) $manifest['source']['exported_from_site'] ) ) {
+			$errors[] = 'V5_exported_from_site';
+		}
+		if ( array_key_exists( 'default_rights', $manifest ) && null !== $manifest['default_rights'] && ! Rights::valid_package_rights( $manifest['default_rights'] ) ) {
+			$errors[] = 'V5_default_rights';
+		}
 		return $errors;
 	}
 

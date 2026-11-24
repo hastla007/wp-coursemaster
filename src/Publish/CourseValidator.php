@@ -81,7 +81,7 @@ final class CourseValidator {
 		$post = get_post( $course_id );
 		$uid  = $post instanceof \WP_Post ? ( new ObjectIdentity( $db ) )->ensure( $post ) : '';
 		$hash = '';
-		foreach ( array( 'course', 'structure', 'questions', 'exams', 'prerequisites', 'media' ) as $group ) {
+		foreach ( array( 'course', 'structure', 'questions', 'exams', 'prerequisites', 'media', 'rights' ) as $group ) {
 			try {
 				switch ( $group ) {
 					case 'course':
@@ -101,6 +101,9 @@ final class CourseValidator {
 						break;
 					case 'media':
 						$self->alt_texts( $course_id, $post instanceof \WP_Post ? $post : null );
+						break;
+					case 'rights':
+						$self->rights( $course_id );
 						break;
 				}
 			} catch ( \Throwable $e ) {
@@ -394,7 +397,33 @@ final class CourseValidator {
 				if ( $count < 1 ) {
 					$this->add( 'VAL-084', 'blocker', 'blueprint', $module, (string) get_the_title( $module ), 'cc.val.blueprint.count', array(), __( 'The exam must draw at least one question from each module.', 'course-captain' ) );
 				}
-				$available = $this->deliverable( $module );
+				// D2 (B-03): flashcards are never drawn into an exam, so only scorable questions count.
+				$available = count( QuestionRepository::current()->pool_revisions( $module, true ) );
+				$cards     = count( QuestionRepository::current()->pool_revisions( $module ) ) - $available;
+				if ( $cards > 0 && ( 0 === $available || $count > $available ) ) {
+					$this->add(
+						'VAL-099',
+						'warning',
+						'blueprint',
+						$module,
+						(string) get_the_title( $module ),
+						0 === $available ? 'cc.val.exam.pool_only_flashcards' : 'cc.val.exam.pool_flashcards',
+						array(
+							'available'  => $available,
+							'flashcards' => $cards,
+							'required'   => $count,
+						),
+						0 === $available
+							? __( 'The pool of this module holds only flashcards. Flashcards are never drawn into exams; add scorable questions or draw from another module.', 'course-captain' )
+							: sprintf(
+								/* translators: 1: flashcards in the pool, 2: scorable questions, 3: questions drawn */
+								_n( 'The pool of this module holds %1$s flashcard, which is never drawn into exams. Only %2$s scorable questions remain for %3$s drawn questions.', 'The pool of this module holds %1$s flashcards, which are never drawn into exams. Only %2$s scorable questions remain for %3$s drawn questions.', $cards, 'course-captain' ),
+								number_format_i18n( $cards ),
+								number_format_i18n( $available ),
+								number_format_i18n( $count )
+							)
+					);
+				}
 				if ( 0 === $available ) {
 					$this->add( 'VAL-085', 'blocker', 'blueprint', $module, (string) get_the_title( $module ), 'cc.val.exam.pool_empty', array(), __( 'The module has no deliverable questions for the exam.', 'course-captain' ) );
 				} elseif ( $count > $available ) {
@@ -422,13 +451,18 @@ final class CourseValidator {
 		}
 		$variants = $db->rows( $db->prepare( 'SELECT id, variant_no FROM `' . $db->table( 'ccap_exam_variant' ) . "` WHERE course_id = %d AND status = 'published'", $course_id ) );
 		foreach ( $variants as $variant ) {
-			$rows = $db->rows( $db->prepare( 'SELECT v.position, q.status FROM `' . $db->table( 'ccap_exam_variant_question' ) . '` v LEFT JOIN `' . $db->table( 'ccap_question' ) . '` q ON q.id = v.question_id WHERE v.variant_id = %d ORDER BY v.position', (int) $variant['id'] ) );
+			$rows = $db->rows( $db->prepare( 'SELECT v.position, v.question_id, q.status FROM `' . $db->table( 'ccap_exam_variant_question' ) . '` v LEFT JOIN `' . $db->table( 'ccap_question' ) . '` q ON q.id = v.question_id WHERE v.variant_id = %d ORDER BY v.position', (int) $variant['id'] ) );
 			$name = sprintf( /* translators: %d: variant number */ __( 'Variant %d', 'course-captain' ), (int) $variant['variant_no'] );
 			if ( array() === $rows || array_column( $rows, 'position' ) !== array_map( 'strval', range( 1, count( $rows ) ) ) ) {
 				$this->add( 'VAL-090', 'blocker', 'variant', (int) $variant['id'], $name, 'cc.val.variant.positions', array(), __( 'The variant is empty or its positions have gaps.', 'course-captain' ) );
 			}
 			if ( in_array( true, array_map( static fn( array $r ): bool => 'published' !== $r['status'], $rows ), true ) ) {
 				$this->add( 'VAL-089', 'blocker', 'variant', (int) $variant['id'], $name, 'cc.val.variant.undeliverable', array(), __( 'The variant contains a question that cannot be delivered.', 'course-captain' ) );
+			}
+			// D2 (B-03): a fixed variant with a flashcard cannot start.
+			$cards = count( QuestionRepository::current()->flashcards( array_map( static fn( array $r ): int => (int) $r['question_id'], $rows ) ) );
+			if ( $cards > 0 ) {
+				$this->add( 'VAL-089', 'blocker', 'variant', (int) $variant['id'], $name, 'cc.val.variant.flashcard', array( 'flashcards' => $cards ), __( 'The variant contains a flashcard. Flashcards never count in exams: remove it from the variant.', 'course-captain' ) );
 			}
 		}
 	}
@@ -569,6 +603,118 @@ final class CourseValidator {
 	}
 
 	/**
+	 * VAL-100…VAL-105 (R0-22 "Medium und Rechte", R0-38 §3.2, E-18, D8):
+	 * rights of the course and module metadata, the questions and
+	 * flashcards of the pools and the linked media. Foreign content with
+	 * `unknown`/`restricted` rights or an expired `valid_until` is hidden
+	 * from learners: a blocker in the mandatory path (VAL-100), else a
+	 * warning (VAL-101), one issue each with the count and an example.
+	 * Own content is never blocked (VAL-102 warning for `restricted`,
+	 * VAL-103 notice for `unknown`); `review` is a warning (VAL-104); a
+	 * licence of the attribution registry without attribution is a warning
+	 * (VAL-105). Every finding points to the "Rights & release" page.
+	 *
+	 * @param int $course_id Course.
+	 * @return void
+	 */
+	private function rights( int $course_id ): void {
+		$hidden = array(
+			'VAL-100' => array(),
+			'VAL-101' => array(),
+		);
+		foreach ( \CourseCaptain\Import\Rights::current()->course_rights_items( $course_id ) as $item ) {
+			$label = '' === $item['title'] ? '#' . $item['id'] : $item['title'];
+			if ( $item['foreign'] && ( in_array( $item['status'], \CourseCaptain\Import\Rights::BLOCKING, true ) || $item['expired'] ) ) {
+				$hidden[ $item['required'] ? 'VAL-100' : 'VAL-101' ][] = $item;
+				continue;
+			}
+			if ( ! $item['foreign'] && 'restricted' === $item['status'] ) {
+				/* translators: %s: title of the content or file */
+				$this->rights_issue( $course_id, 'VAL-102', 'warning', $item, 'cc.val.rights.own_restricted', sprintf( __( '"%s" is marked as "must not be shown", but it is own material and is delivered to learners.', 'course-captain' ), $label ) );
+			} elseif ( ! $item['foreign'] && 'unknown' === $item['status'] ) {
+				/* translators: %s: title of the content or file */
+				$this->rights_issue( $course_id, 'VAL-103', 'notice', $item, 'cc.val.rights.own_unknown', sprintf( __( 'The rights for "%s" are not documented.', 'course-captain' ), $label ) );
+			} elseif ( 'review' === $item['status'] ) {
+				/* translators: %s: title of the content or file */
+				$this->rights_issue( $course_id, 'VAL-104', 'warning', $item, 'cc.val.rights.review', sprintf( __( '"%s" is still under rights review.', 'course-captain' ), $label ) );
+			}
+			if ( in_array( $item['status'], array( 'licensed', 'public' ), true ) && '' === $item['attribution'] && \CourseCaptain\Import\Rights::requires_attribution( $item['license'] ) ) {
+				/* translators: 1: licence name such as CC-BY-4.0, 2: title of the content or file */
+				$this->rights_issue( $course_id, 'VAL-105', 'warning', $item, 'cc.val.rights.attribution', sprintf( __( 'The licence %1$s of "%2$s" requires an attribution. Add it.', 'course-captain' ), $item['license'], $label ), 'attribution' );
+			}
+		}
+		foreach ( $hidden as $code => $items ) {
+			if ( array() === $items ) {
+				continue;
+			}
+			$n       = count( $items );
+			$first   = $items[0];
+			$title   = '' === $first['title'] ? '#' . $first['id'] : $first['title'];
+			$message = 'VAL-100' === $code
+				? sprintf(
+					/* translators: 1: number of items, 2: title of the first item, 3: lesson, module or course it belongs to */
+					_n( '%1$s imported item has unclear rights and is not shown to learners: "%2$s" in "%3$s".', '%1$s imported items have unclear rights and are not shown to learners, among them "%2$s" in "%3$s".', $n, 'course-captain' ),
+					number_format_i18n( $n ),
+					$title,
+					$first['where']
+				)
+				: sprintf(
+					/* translators: 1: number of items, 2: title of the first item, 3: lesson, module or course it belongs to */
+					_n( '%1$s imported item outside the required path has unclear rights and is not shown to learners: "%2$s" in "%3$s". Learners see the placeholder "Media not available" there.', '%1$s imported items outside the required path have unclear rights and are not shown to learners, among them "%2$s" in "%3$s". Learners see the placeholder "Media not available" there.', $n, 'course-captain' ),
+					number_format_i18n( $n ),
+					$title,
+					$first['where']
+				);
+			$this->add(
+				$code,
+				'VAL-100' === $code ? 'blocker' : 'warning',
+				'course',
+				$course_id,
+				(string) get_the_title( $course_id ),
+				'VAL-100' === $code ? 'cc.val.rights.foreign_required' : 'cc.val.rights.foreign_optional',
+				array(
+					'count' => $n,
+					'items' => array_map( static fn( array $i ): string => $i['type'] . ':' . $i['id'], array_slice( $items, 0, 20 ) ),
+				),
+				$message
+			);
+			$this->link_rights( $course_id );
+		}
+	}
+
+	/**
+	 * One rights issue of an item, linked to the "Rights & release" page.
+	 *
+	 * @param int                  $course_id Course.
+	 * @param string               $code      Code.
+	 * @param string               $severity  Severity.
+	 * @param array<string, mixed> $item      Item of Rights::course_rights_items().
+	 * @param string               $key       Message key.
+	 * @param string               $message   Message.
+	 * @param string|null          $field     Field.
+	 * @return void
+	 */
+	private function rights_issue( int $course_id, string $code, string $severity, array $item, string $key, string $message, ?string $field = null ): void {
+		$this->add( $code, $severity, (string) $item['type'], (int) $item['id'], (string) $item['title'], $key, array( 'status' => (string) $item['status'] ), $message, $field );
+		$this->link_rights( $course_id );
+	}
+
+	/**
+	 * Jump target of the last issue: area "Rights & release" of the course
+	 * (R0-22: A-13 › Rechte & Freigabe; editors without
+	 * `ccap_release_rights` are told to inform the course administration).
+	 *
+	 * @param int $course_id Course.
+	 * @return void
+	 */
+	private function link_rights( int $course_id ): void {
+		$last                                      = count( $this->issues ) - 1;
+		$this->issues[ $last ]['target']['page']   = 'rights';
+		$this->issues[ $last ]['target']['course'] = $course_id;
+		$this->issues[ $last ]['target']['url']    = \CourseCaptain\Admin\RightsArea::url( $course_id );
+	}
+
+	/**
 	 * VAL-140/VAL-141 (E-131, A11Y-110): images without alternative text.
 	 *
 	 * An image counts as described when its `alt` is not empty; `alt=""`
@@ -676,17 +822,6 @@ final class CourseValidator {
 			}
 		}
 		return $out;
-	}
-
-	/**
-	 * Deliverable questions of a module pool.
-	 *
-	 * @param int $module Module.
-	 * @return int
-	 */
-	private function deliverable( int $module ): int {
-		$db = Database::current();
-		return (int) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_module_question' ) . '` p JOIN `' . $db->table( 'ccap_question' ) . "` q ON q.id = p.question_id WHERE p.module_id = %d AND q.status = 'published'", $module ) );
 	}
 
 	/**

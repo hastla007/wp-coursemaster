@@ -419,7 +419,7 @@ final class ExamsScreen {
 			}
 		}
 		foreach ( $rule['blueprints'] as $bp ) {
-			$pool = count( QuestionRepository::current()->pool( (int) $bp['module_id'] ) );
+			$pool = count( QuestionRepository::current()->pool_revisions( (int) $bp['module_id'], true ) );
 			if ( $pool < (int) $bp['question_count'] ) {
 				/* translators: 1: module title, 2: deliverable questions, 3: questions drawn */
 				$out[] = sprintf( __( 'Module %1$s: pool too small (%2$d of %3$d questions). Publish more questions or draw fewer.', 'course-captain' ), (string) get_the_title( (int) $bp['module_id'] ), $pool, (int) $bp['question_count'] );
@@ -635,7 +635,7 @@ final class ExamsScreen {
 			$title = (string) get_the_title( $m );
 			$count = (string) ( $input['blueprint'][ $m ]['count'] ?? ( isset( $bp[ $m ] ) ? $bp[ $m ][0] : '' ) );
 			$pts   = (string) ( $input['blueprint'][ $m ]['points'] ?? ( isset( $bp[ $m ] ) ? $bp[ $m ][1] : '1' ) );
-			$pool  = count( QuestionRepository::current()->pool( $m ) );
+			$pool  = count( QuestionRepository::current()->pool_revisions( $m, true ) );
 			$small = '' !== $count && (int) $count > $pool;
 			$html .= '<tr><th scope="row">' . esc_html( $title ) . '</th><td><label class="screen-reader-text" for="ccap-bp-' . $m . '">' . esc_html( sprintf( /* translators: %s: module */ __( 'Questions drawn from %s', 'course-captain' ), $title ) ) . '</label><input id="ccap-bp-' . $m . '" type="number" min="0" step="1" name="blueprint[' . $m . '][count]" value="' . esc_attr( $count ) . '"' . ( $small ? ' aria-describedby="ccap-bp-' . $m . '-small"' : '' ) . '></td>';
 			$html .= '<td><label class="screen-reader-text" for="ccap-bp-' . $m . '-pts">' . esc_html( sprintf( /* translators: %s: module */ __( 'Points per question from %s', 'course-captain' ), $title ) ) . '</label><input id="ccap-bp-' . $m . '-pts" type="number" min="1" max="100" step="1" name="blueprint[' . $m . '][points]" value="' . esc_attr( $pts ) . '"></td>';
@@ -794,6 +794,9 @@ final class ExamsScreen {
 			case 'variant_freeze':
 				$blockers = $rules->variant_blockers( $variant );
 				if ( array() !== $blockers ) {
+					if ( in_array( 'flashcard', $blockers, true ) ) {
+						return array( __( 'The exam form contains a flashcard. Flashcards never count in exams: remove it from the form.', 'course-captain' ) );
+					}
 					return array( in_array( 'empty', $blockers, true ) ? __( 'Choose at least one question for the exam form first.', 'course-captain' ) : __( 'The exam form contains a question that is not published. Publish it or remove it from the form.', 'course-captain' ) );
 				}
 				$rules->freeze_variant( $actor, $variant );
@@ -867,7 +870,7 @@ final class ExamsScreen {
 				$field   = 'ccap-vq-' . $id . '-' . $question;
 				$fields .= '<tr><th scope="row">' . esc_html( $label ) . '</th><td>' . esc_html( (string) get_the_title( $module ) ) . '</td><td><label class="screen-reader-text" for="' . esc_attr( $field ) . '">' . esc_html( sprintf( /* translators: %s: question text */ __( 'Position of: %s', 'course-captain' ), $label ) ) . '</label><input id="' . esc_attr( $field ) . '" type="number" min="0" max="1000" step="1" name="position[' . (int) $question . ']" value="' . esc_attr( isset( $order[ $question ] ) ? (string) ( $order[ $question ] + 1 ) : '' ) . '"></td></tr>';
 			}
-			$fields .= '</tbody></table><p class="description">' . esc_html__( 'Enter 1 for the first question, 2 for the second and so on. Leave the field empty to leave a question out.', 'course-captain' ) . '</p>';
+			$fields .= '</tbody></table><p class="description">' . esc_html__( 'Enter 1 for the first question, 2 for the second and so on. Leave the field empty to leave a question out.', 'course-captain' ) . ' ' . esc_html__( 'Flashcards are not listed: they never count in exams.', 'course-captain' ) . '</p>';
 			$html   .= AdminUi::form( self::ACTION, 'variant_save', $id, $fields, sprintf( /* translators: %d: exam form number */ __( 'Save exam form %d', 'course-captain' ), $variant['variant_no'] ) );
 			$html   .= AdminUi::form( self::ACTION, 'variant_freeze', $id, $hidden . '<p class="description">' . esc_html__( 'Freezing makes the exam form available to learners. It cannot be changed afterwards.', 'course-captain' ) . '</p>', sprintf( /* translators: %d: exam form number */ __( 'Freeze exam form %d', 'course-captain' ), $variant['variant_no'] ) );
 			$html   .= AdminUi::form( self::ACTION, 'variant_retire', $id, $hidden . '<p><label><input type="checkbox" name="confirm" value="1"> ' . esc_html__( 'Confirm: discard this draft exam form', 'course-captain' ) . '</label></p>', sprintf( /* translators: %d: exam form number */ __( 'Discard exam form %d', 'course-captain' ), $variant['variant_no'] ) ) . '</section>';

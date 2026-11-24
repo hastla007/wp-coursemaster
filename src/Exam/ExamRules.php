@@ -14,6 +14,7 @@ use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Question\QuestionRepository;
+use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
 
@@ -306,6 +307,9 @@ final class ExamRules {
 		if ( array() === $questions ) {
 			throw new CourseException( 'ccap_validation_failed', 'A variant needs questions.', 422 );
 		}
+		if ( array() !== QuestionRepository::current()->flashcards( array_values( array_map( 'intval', $questions ) ) ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'flashcard', 422 );
+		}
 		return $this->db->transaction(
 			function ( Database $db ) use ( $course_id, $number, $questions ): int {
 				$variant = $db->insert(
@@ -394,7 +398,8 @@ final class ExamRules {
 
 	/**
 	 * Deliverable questions a variant of the course may use: the pools of
-	 * the course modules (published question, published current revision).
+	 * the course modules (published question, published current revision),
+	 * without flashcards (D2, B-03).
 	 *
 	 * @param int $course_id Course.
 	 * @return array<int, int> Question → module.
@@ -402,7 +407,7 @@ final class ExamRules {
 	public static function variant_candidates( int $course_id ): array {
 		$out = array();
 		foreach ( CourseStructure::current()->modules( $course_id ) as $link ) {
-			foreach ( QuestionRepository::current()->pool( (int) $link['module_id'] ) as $question ) {
+			foreach ( array_keys( QuestionRepository::current()->pool_revisions( (int) $link['module_id'], true ) ) as $question ) {
 				$out[ $question ] = $out[ $question ] ?? (int) $link['module_id'];
 			}
 		}
@@ -450,6 +455,9 @@ final class ExamRules {
 		$variant    = $this->editable_variant( $actor, $variant_id, array( 'draft' ) );
 		$candidates = self::variant_candidates( (int) $variant['course_id'] );
 		$questions  = array_values( array_unique( array_map( 'intval', $questions ) ) );
+		if ( array() !== QuestionRepository::current()->flashcards( $questions ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'flashcard', 422 );
+		}
 		foreach ( $questions as $question ) {
 			if ( ! isset( $candidates[ $question ] ) ) {
 				throw new CourseException( 'ccap_validation_failed', 'question', 422 );
@@ -474,20 +482,23 @@ final class ExamRules {
 	}
 
 	/**
-	 * Reasons a variant cannot be frozen: `empty`, `undeliverable`
-	 * (same conditions as the start of a variant attempt).
+	 * Reasons a variant cannot be frozen: `empty`, `undeliverable`,
+	 * `flashcard` (same conditions as the start of a variant attempt).
 	 *
 	 * @param int $variant_id Variant.
 	 * @return list<string>
 	 */
 	public function variant_blockers( int $variant_id ): array {
-		$rows = $this->db->rows( $this->db->prepare( 'SELECT q.status, r.editorial_status FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` v LEFT JOIN `' . $this->db->table( 'ccap_question' ) . '` q ON q.id = v.question_id LEFT JOIN `' . $this->db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE v.variant_id = %d ORDER BY v.position', $variant_id ) );
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT q.status, r.editorial_status, r.question_type FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` v LEFT JOIN `' . $this->db->table( 'ccap_question' ) . '` q ON q.id = v.question_id LEFT JOIN `' . $this->db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE v.variant_id = %d ORDER BY v.position', $variant_id ) );
 		if ( array() === $rows ) {
 			return array( 'empty' );
 		}
 		foreach ( $rows as $row ) {
 			if ( 'published' !== $row['status'] || 'published' !== $row['editorial_status'] ) {
 				return array( 'undeliverable' );
+			}
+			if ( QuestionTypes::FLASHCARD === $row['question_type'] ) {
+				return array( 'flashcard' );
 			}
 		}
 		return array();

@@ -11992,3 +11992,75 @@ msgstr "Grund für die Wiedereinsetzung (Pflichtfeld)"
 #: src/Admin/GroupsScreen.php
 msgid "Reinstate group"
 msgstr "Gruppe wiedereinsetzen"
+
+#: src/Admin/ExamsScreen.php
+msgid "The exam form contains a flashcard. Flashcards never count in exams: remove it from the form."
+msgstr "Der Prüfungsbogen enthält eine Karteikarte. Karteikarten zählen nie in Prüfungen: Entferne sie aus dem Bogen."
+
+#: src/Admin/ExamsScreen.php
+msgid "Flashcards are not listed: they never count in exams."
+msgstr "Karteikarten werden nicht aufgeführt: Sie zählen nie in Prüfungen."
+
+#: src/Publish/CourseValidator.php
+msgid "The pool of this module holds only flashcards. Flashcards are never drawn into exams; add scorable questions or draw from another module."
+msgstr "Der Pool dieses Moduls enthält nur Karteikarten. Karteikarten werden nie in Prüfungen gezogen; ergänze wertbare Fragen oder ziehe aus einem anderen Modul."
+
+#. translators: 1: flashcards in the pool, 2: scorable questions, 3: questions drawn
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "The pool of this module holds %1$s flashcard, which is never drawn into exams. Only %2$s scorable questions remain for %3$s drawn questions."
+msgid_plural "The pool of this module holds %1$s flashcards, which are never drawn into exams. Only %2$s scorable questions remain for %3$s drawn questions."
+msgstr[0] "Der Pool dieses Moduls enthält %1$s Karteikarte, die nie in Prüfungen gezogen wird. Für %3$s gezogene Fragen bleiben nur %2$s wertbare Fragen."
+msgstr[1] "Der Pool dieses Moduls enthält %1$s Karteikarten, die nie in Prüfungen gezogen werden. Für %3$s gezogene Fragen bleiben nur %2$s wertbare Fragen."
+
+#: src/Publish/CourseValidator.php
+msgid "The variant contains a flashcard. Flashcards never count in exams: remove it from the variant."
+msgstr "Die Variante enthält eine Karteikarte. Karteikarten zählen nie in Prüfungen: Entferne sie aus der Variante."
+
+#. translators: %s: title of the content or file
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "\"%s\" is marked as \"must not be shown\", but it is own material and is delivered to learners."
+msgstr "„%s“ ist als „darf nicht gezeigt werden“ markiert, ist aber eigenes Material und wird Lernenden ausgeliefert."
+
+#. translators: %s: title of the content or file
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "The rights for \"%s\" are not documented."
+msgstr "Die Rechte für „%s“ sind nicht dokumentiert."
+
+#. translators: %s: title of the content or file
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "\"%s\" is still under rights review."
+msgstr "„%s“ ist noch in Rechteprüfung."
+
+#. translators: 1: licence name such as CC-BY-4.0, 2: title of the content or file
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "The licence %1$s of \"%2$s\" requires an attribution. Add it."
+msgstr "Die Lizenz %1$s von „%2$s“ verlangt eine Namensnennung. Ergänze sie."
+
+#. translators: 1: number of items, 2: title of the first item, 3: lesson, module or course it belongs to
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "%1$s imported item has unclear rights and is not shown to learners: \"%2$s\" in \"%3$s\"."
+msgid_plural "%1$s imported items have unclear rights and are not shown to learners, among them \"%2$s\" in \"%3$s\"."
+msgstr[0] "%1$s importierter Inhalt hat ungeklärte Rechte und wird Lernenden nicht gezeigt: „%2$s“ in „%3$s“."
+msgstr[1] "%1$s importierte Inhalte haben ungeklärte Rechte und werden Lernenden nicht gezeigt, darunter „%2$s“ in „%3$s“."
+
+#. translators: 1: number of items, 2: title of the first item, 3: lesson, module or course it belongs to
+#: src/Publish/CourseValidator.php
+#, php-format
+msgid "%1$s imported item outside the required path has unclear rights and is not shown to learners: \"%2$s\" in \"%3$s\". Learners see the placeholder \"Media not available\" there."
+msgid_plural "%1$s imported items outside the required path have unclear rights and are not shown to learners, among them \"%2$s\" in \"%3$s\". Learners see the placeholder \"Media not available\" there."
+msgstr[0] "%1$s importierter Inhalt außerhalb des Pflichtpfads hat ungeklärte Rechte und wird Lernenden nicht gezeigt: „%2$s“ in „%3$s“. Lernende sehen dort den Platzhalter „Medium nicht verfügbar“."
+msgstr[1] "%1$s importierte Inhalte außerhalb des Pflichtpfads haben ungeklärte Rechte und werden Lernenden nicht gezeigt, darunter „%2$s“ in „%3$s“. Lernende sehen dort den Platzhalter „Medium nicht verfügbar“."
+
+#: src/Admin/EditorScreens.php
+msgid "Check rights"
+msgstr "Rechte prüfen"
+
+#: src/Admin/EditorScreens.php
+msgid "Please inform the course administration."
+msgstr "Bitte informiere die Kursverwaltung."
