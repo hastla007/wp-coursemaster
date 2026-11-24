@@ -84,6 +84,7 @@ final class ApiContractTest extends SchemaTestCase {
 	 *
 	 * @group CT-01
 	 * @group GM-155
+	 * @group SEC-002
 	 */
 	public function test_CT_01_route_snapshot(): void {
 		$snapshot = array();
