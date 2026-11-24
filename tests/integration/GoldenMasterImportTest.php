@@ -194,6 +194,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 	 * the count; nothing happens without it; the no-JS form returns to the page.
 	 *
 	 * @group GM-127
+	 * @group MED-020
 	 */
 	public function test_GM_127_bulk_release(): void {
 		$rights  = Rights::current();

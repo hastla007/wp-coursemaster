@@ -332,6 +332,8 @@ final class RightsDeliveryTest extends SchemaTestCase {
 	 * R0-10 §2.2: the central gate and the module pool, smart trainer and
 	 * question delivery never hand withheld foreign questions to learners;
 	 * own content is never withheld (E-18).
+	 *
+	 * @group MED-018
 	 */
 	public function test_pool_trainer_and_delivery_withhold_foreign_content(): void {
 		$gate = RightsGate::current();
@@ -505,6 +507,8 @@ final class RightsDeliveryTest extends SchemaTestCase {
 	/**
 	 * Lessons with withheld rights and withheld media: learners get a
 	 * neutral placeholder, editors a notice; the file route answers 404.
+	 *
+	 * @group MED-018
 	 */
 	public function test_lesson_view_media_route_and_preview(): void {
 		$admin = Actor::user( $this->admin );
