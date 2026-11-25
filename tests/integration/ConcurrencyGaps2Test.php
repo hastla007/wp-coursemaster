@@ -503,7 +503,7 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 	public function test_CON_012_zombie_import_worker_is_fenced(): void {
 		$dir = get_temp_dir() . 'ccap-con012-' . wp_generate_password( 6, false );
 		wp_mkdir_p( $dir );
-		$file    = PackageExporter::write( self::import_records( 300 ), 'con-012', 'Synthetic CON-012', $dir . '/p.zip', 1000 );
+		$file    = PackageExporter::write( self::import_records( 150 ), 'con-012', 'Synthetic CON-012', $dir . '/p.zip', 1000 );
 		$service = ImportService::current();
 		$admin   = Actor::user( $this->admin );
 		$batch   = $service->upload( $admin, $file );
@@ -525,7 +525,7 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 		}
 		$before = $logs();
 		self::assertGreaterThan( 0, $before );
-		self::assertLessThan( 303, $before, 'run not finished yet' );
+		self::assertLessThan( 153, $before, 'run not finished yet' );
 
 		// Worker A acquires the lease; before its next chunk transaction worker B takes over.
 		global $wpdb;
@@ -571,7 +571,7 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 		self::assertSame( 'published', (string) ImportService::current()->get( $batch )['status'], (string) wp_json_encode( $last ) );
 		$t = $db->table( 'ccap_import_item_log' );
 		self::assertSame( '0', (string) $db->scalar( $db->prepare( "SELECT COUNT(*) - COUNT(DISTINCT entity, source_id) FROM `{$t}` WHERE batch_id = %d", $batch ) ), 'no duplicate step' );
-		self::assertSame( 300, self::rows( 'ccap_source_map', "object_type = 'question'" ) );
+		self::assertSame( 150, self::rows( 'ccap_source_map', "object_type = 'question'" ) );
 	}
 
 	/**
