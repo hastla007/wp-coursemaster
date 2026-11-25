@@ -969,3 +969,13 @@ Antworten der Inhaberin auf die offenen Klärungen aus den Nachweisen R1-xx, SET
 | E-380 | Rollback während laufendem Import (IMP-027) | **Ablehnen**, solange ein anderer Import läuft | Inhaberin 25.11.2026 | IMP-027 |
 | E-381 | Konflikt: Paketfassung übernehmen (IMP-028) | **Ja:** Wahl je Objekt und global bei der Freigabe, Audit je Übernahme; Standard bleibt „lokal gewinnt“ | Inhaberin 25.11.2026 | IMP-028, E-63 |
 | E-382 | Export-Umfang (IMP-030) | **Medien und Prüfungsvorlagen exportieren** (R0-10 §6.1); kein Abgleich per UID beim Reimport | Inhaberin 25.11.2026 | IMP-030, R0-10 §6.1 |
+| E-383 | E1 Zustimmung zum sofortigen Beginn/Widerruf (SET-CC-03) | **Neutrales Kästchen im Kern** + Kassentext im Add-on; Text mit Rechtsprüfung (bis dahin „ungeprüft“) | Inhaberin 25.11.2026 (Q1) | SET-CC-03 |
+| E-384 | E3 Zertifikatsnummer (SET-CC-08) | **Frei einstellbar** mit Platzhaltern `{YEAR}` `{SEQ}` | Inhaberin 25.11.2026 (Q2) | SET-CC-08 |
+| E-385 | E4 EU-Profil externe Videos (SET-CC-07) | **`click_to_load` als Vorschlag** im EU-Profil; Betreiber kann in den Einstellungen auf `always_load` umstellen | Inhaberin 25.11.2026 (Q3) | SET-CC-07, E-45a |
+| E-386 | E7 Altersgrenze (SET-CC-17/07) | **Ohne Standard**; der Betreiber legt sie fest | Inhaberin 25.11.2026 (Q4) | SET-CC-17, SET-CC-07 |
+| E-387 | E5 Rechte im Lizenzkatalog (SET-CC-05) | **Einzeln reservieren** (Umsetzung im Lizenz-/Add-on-Repository) | Inhaberin 25.11.2026 (Q5) | SET-CC-05 |
+| E-388 | W-14 überschrittene Query-Budgets OP-01/03/04/05/06 | **Als Abweichung freigegeben**; aktuelle Werte sind die Regressionsgrenze | Inhaberin 25.11.2026 (Q6) | R1-22 B-3, C-6 |
+| E-389 | W-09 Medien- und Blueprint-Import | **Wird gebaut** (E-382); keine Teilumfangsfreigabe nötig | Inhaberin 25.11.2026 (Q7) | C-3, R1-18 |
+| E-390 | W-06 Prüfrolle Referenzlauf E-328 | **Variante B: die Inhaberin führt den Referenzlauf selbst durch** | Inhaberin 25.11.2026 (Q8) | R1-18, B-1 |
+| E-391 | W-12 fehlende Oberflächen vor der Usability-Abnahme | **Bauen**: alle für die ★-Aufgaben nötigen Oberflächen vor R1-29 | Inhaberin 25.11.2026 (Q9) | B-4, B-9, B-10, C-11 |
+| E-392 | R1-GATE §7 offene Klärungen | **Alle Vorschläge übernehmen** (Prüfungspuffer beim Abmelden leeren; Rest backup-check als Folgeaufgabe; Einladungsseite mit Besitzer-Oberfläche; `installation_uuid` bei Aktivierung setzen; GM-190/Routennamen/Opt-in E-43/Antwort-IDs so lassen; `intl` als Systemvoraussetzung dokumentieren) | Inhaberin 25.11.2026 (Q10) | W-20 |
