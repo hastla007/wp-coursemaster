@@ -11,9 +11,11 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Access\ProtectedStorage;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
+use CourseCaptain\Course\DeletionGuard;
 use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Exam\ExamSessions;
 use CourseCaptain\Import\ImportMedia;
@@ -28,7 +30,6 @@ use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
 use CourseCaptain\Storage\Database;
-use CourseCaptain\Storage\ProtectedStorage;
 use CourseCaptain\Tests\Support\Fixtures\NeutralFixture;
 
 /**
@@ -358,7 +359,7 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 		$service->validate( $admin, $once );
 		$whole = $service->preview( $admin, $once );
 		self::assertSame( 'previewed', $whole['status'] );
-		self::assertSame( 1, $whole['stats']['object_errors'] );
+		self::assertSame( 3, $whole['stats']['object_errors'], 'Q-5 with its dependants M-1 and C-1' );
 
 		foreach ( array( 0.0, 0.1 ) as $budget ) {
 			$sliced = $service->upload( $admin, $file );
@@ -409,16 +410,16 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 	 * @group IMP-024
 	 */
 	public function test_IMP_024_activation_switches_everything_at_once(): void {
-		$this->import( $this->package( self::records( 60 ), 'act-v1' ) );
+		$this->import( $this->package( self::records( 250 ), 'act-v1' ) );
 		$course     = self::object( 'course', 'C-1' );
 		$before     = self::current_revisions();
 		$course_rev = (int) CoursePublisher::current()->current_revision( $course )['id'];
-		self::assertCount( 60, $before );
+		self::assertCount( 250, $before );
 
 		$batch = $this->approved(
 			$this->package(
 				self::records(
-					60,
+					250,
 					array(
 						'text'          => ' (korrigiert)',
 						'second_lesson' => true,
@@ -442,7 +443,7 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 					self::assertSame( $before, self::current_revisions(), 'no question pointer switched before the activation' );
 					self::assertSame( $course_rev, (int) CoursePublisher::current()->current_revision( $course )['id'], 'no course revision before the activation' );
 					$revisions = (int) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_question_revision' ) . '`' );
-					self::assertGreaterThan( 60, $revisions, 'new revisions are written already' );
+					self::assertGreaterThan( 250, $revisions, 'new revisions are written already' );
 				}
 			}
 		);
@@ -451,7 +452,7 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 		self::assertContains( 'activating', $seen );
 
 		$after = self::current_revisions();
-		self::assertCount( 60, $after );
+		self::assertCount( 250, $after );
 		foreach ( $after as $source => $revision ) {
 			self::assertNotSame( $before[ $source ], $revision, $source );
 			self::assertStringEndsWith( '(korrigiert)', (string) QuestionRepository::current()->revision( $revision )['question_text'] );
@@ -781,8 +782,18 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 		// the hand-built questions stay as orphans, the import creates its own).
 		$db = Database::current();
 		$db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_course_module' ) . '` WHERE course_id = %d', $course ) );
-		foreach ( array( $lesson, $module, $course ) as $id ) {
-			wp_delete_post( $id, true );
+		$guard = has_filter( 'pre_delete_post', array( DeletionGuard::class, 'filter' ) );
+		if ( false !== $guard ) {
+			remove_filter( 'pre_delete_post', array( DeletionGuard::class, 'filter' ), (int) $guard );
+		}
+		try {
+			foreach ( array( $lesson, $module, $course ) as $id ) {
+				self::assertNotFalse( wp_delete_post( $id, true ) );
+			}
+		} finally {
+			if ( false !== $guard ) {
+				add_filter( 'pre_delete_post', array( DeletionGuard::class, 'filter' ), (int) $guard, 2 );
+			}
 		}
 		self::assertCount( 2, $qids );
 
@@ -809,7 +820,7 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 			$zip->close();
 			return $out;
 		};
-		self::assertSame( $first['records'], $second['records'], 'same records after the round trip' );
+		self::assertSame( (string) wp_json_encode( $first['records'] ), (string) wp_json_encode( $second['records'] ), 'same records after the round trip' );
 		self::assertSame( $manifest( $p1 )['content_sha256'], $manifest( $p2 )['content_sha256'] );
 		self::assertSame( $manifest( $p1 )['package_id'], $manifest( $p2 )['package_id'] );
 
