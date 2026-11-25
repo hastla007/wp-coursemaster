@@ -484,6 +484,50 @@ final class Relations {
 	}
 
 	/**
+	 * Modules of a course that reference a medium (R0-10 §4.3, E-27):
+	 * module media, lesson media (lesson below the module), question
+	 * media (module pool or inline activity question). Course media
+	 * belong to no module (whole course only).
+	 *
+	 * @param int $media_id  Medium.
+	 * @param int $course_id Course.
+	 * @return list<int>
+	 */
+	public function modules_of_media( int $media_id, int $course_id ): array {
+		$table   = $this->db->table( 'ccap_content_media' );
+		$mq      = $this->db->table( 'ccap_module_question' );
+		$aq      = $this->db->table( 'ccap_activity_question' );
+		$posts   = $this->db->wpdb()->posts;
+		$rows    = $this->db->rows( $this->db->prepare( "SELECT object_type, object_id FROM `{$table}` WHERE media_id = %d", $media_id ) );
+		$modules = array();
+		foreach ( $rows as $row ) {
+			$type = (string) $row['object_type'];
+			$id   = (int) $row['object_id'];
+			if ( 'module' === $type ) {
+				$modules[] = $id;
+			} elseif ( 'lesson' === $type ) {
+				$post = $this->post( $id, self::LESSON_TYPE );
+				if ( null !== $post ) {
+					$modules[] = (int) $post->post_parent;
+				}
+			} elseif ( 'question_revision' === $type ) {
+				$revision = $this->row( 'ccap_question_revision', $id );
+				if ( null !== $revision ) {
+					$question = (int) $revision['question_id'];
+					$modules  = array_merge(
+						$modules,
+						$this->ids( $this->db->prepare( "SELECT module_id FROM `{$mq}` WHERE question_id = %d", $question ) ),
+						$this->ids( $this->db->prepare( "SELECT p.post_parent FROM `{$aq}` aq JOIN `{$posts}` p ON p.ID = aq.activity_id WHERE aq.question_id = %d", $question ) )
+					);
+				}
+			}
+		}
+		$modules = array_values( array_unique( array_filter( $modules, fn( int $module ): bool => $module > 0 && $this->module_in_course( $module, $course_id ) ) ) );
+		sort( $modules );
+		return $modules;
+	}
+
+	/**
 	 * Media row by UID.
 	 *
 	 * @param string $uid Media UID.
