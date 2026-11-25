@@ -355,7 +355,7 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 		// File => [count, rule]. `pk`: every locking read has `id = %d` (or `ID = %d`) equality.
 		$reviewed = array(
 			'src/Access/TrialLimits.php'             => array( 1, 'review: migration of legacy rules, course + module equality (no interactive path)' ),
-			'src/Access/GroupService.php'            => array( 1, 'pk' ),
+			'src/Access/GroupService.php'            => array( 2, 'pk: group row by id, then wp_users by ID share lock (R-12, ID-014); lock order group row before account' ),
 			'src/Access/GrantService.php'            => array( 1, 'review: parent row wp_users by PK, share lock against a parallel account deletion (R-12, CON-014)' ),
 			'src/Assignment/AssignmentService.php'   => array( 2, 'review: row by PK; latest submission by user + activity (prefix of user_activity_no, ORDER BY … LIMIT 1)' ),
 			'src/Certificate/CertificateService.php' => array( 3, 'review: revisions by certificate_uid (prefix of cert_rev), evidence (prefix of evidence_rev)' ),
