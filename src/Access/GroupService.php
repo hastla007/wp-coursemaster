@@ -225,6 +225,14 @@ final class GroupService {
 				$seat = $target['seat'];
 				return $this->db->transaction(
 					function ( Database $db ) use ( $actor, $token, $group, $seat, $group_id ): int {
+						// R-1 parent row (CON-001/CON-006): serialises the claims of one group in the DB, so
+						// the recount below sees every older committed seat even when GET_LOCK is unavailable.
+						$db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_group' ) . '` WHERE id = %d FOR UPDATE', $group_id ) );
+						// Second tab of the same account after the row lock (CON-002): existing membership.
+						$member = $this->active_seat( $group_id, $actor->user_id );
+						if ( null !== $member ) {
+							return $member;
+						}
 						// R0-09 R-12 / ID-014: the account is checked inside the transaction. The share lock
 						// keeps a parallel account deletion waiting until this join has committed; the
 						// deletion's second pass (`deleted_user`) then removes the seat and its grants.

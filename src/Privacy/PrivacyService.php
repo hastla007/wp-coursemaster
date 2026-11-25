@@ -206,6 +206,8 @@ final class PrivacyService {
 			}
 		);
 		add_action( 'delete_user', array( self::class, 'on_delete_user' ) );
+		// Second pass after the account row is gone (CON-014): rows a parallel request wrote
+		// between the first pass and the deletion are erased too.
 		add_action( 'deleted_user', array( self::class, 'on_deleted_user' ) );
 		add_action( 'admin_init', array( self::class, 'policy_text' ) );
 	}

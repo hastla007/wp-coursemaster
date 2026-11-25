@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-25T06:06:13+00:00\n"
+"POT-Creation-Date: 2026-11-25T07:45:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: course-captain\n"
@@ -26,7 +26,7 @@ msgstr ""
 #: src/Ops/StorageSelfTest.php:200
 #: src/Privacy/PrivacyService.php:192
 #: src/Privacy/PrivacyService.php:202
-#: src/Privacy/PrivacyService.php:529
+#: src/Privacy/PrivacyService.php:531
 msgid "Course Captain"
 msgstr ""
 
@@ -12454,12 +12454,12 @@ msgstr ""
 msgid "Direct access to the protected folders is blocked."
 msgstr ""
 
-#: src/Privacy/PrivacyService.php:290
+#: src/Privacy/PrivacyService.php:292
 msgid "Course Captain keeps the audit log (tamper protection) and course content."
 msgstr ""
 
 #. translators: 1: years learning answers are kept, 2: years exam attempts and certificates are kept, 3: years of the audit log, 4: days of the notification log
-#: src/Privacy/PrivacyService.php:541
+#: src/Privacy/PrivacyService.php:543
 #, php-format
 msgid "Course Captain stores learning progress, answers, exam attempts, certificates, course access and group memberships of logged-in learners. Learning answers are kept for %1$d years after the end of a course, exam attempts and certificates for %2$d years, ended access records for %2$d years, the audit log for %3$d years and the notification log for %4$d days. Personal data can be exported and erased with the WordPress privacy tools; logged-in learners can request an export or erasure themselves."
 msgstr ""
@@ -13441,7 +13441,7 @@ msgstr[1] ""
 msgid "%1$s: adds %2$s; removes %3$s"
 msgstr ""
 
-#: src/Storage/Database.php:461
+#: src/Storage/Database.php:480
 msgid "Invalid identifier."
 msgstr ""
 

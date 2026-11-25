@@ -61,6 +61,11 @@ final class Database {
 	public const DEADLOCK_RETRIES = 3;
 
 	/**
+	 * Session `innodb_lock_wait_timeout` of interactive requests in seconds (D-14-03).
+	 */
+	public const INTERACTIVE_LOCK_WAIT = 5;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param wpdb         $wpdb  WordPress database object.
@@ -209,11 +214,25 @@ final class Database {
 			return;
 		}
 		self::$sessions[ $key ] = true;
-		$version                = (string) $this->wpdb->get_var( 'SELECT VERSION()' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		// D-14-03 / RB-04 / RB-08 (CON-044): interactive requests wait at most 5 s for a row lock
+		// (server default 50 s); background runs (cron, WP-CLI) keep the server setting.
+		if ( ! self::is_background() ) {
+			$this->wpdb->query( 'SET SESSION innodb_lock_wait_timeout = ' . self::INTERACTIVE_LOCK_WAIT ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.NotPrepared -- Integer constant.
+		}
+		$version = (string) $this->wpdb->get_var( 'SELECT VERSION()' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		if ( ! self::needs_snapshot_isolation_off( $version ) ) {
 			return;
 		}
 		$this->wpdb->query( 'SET SESSION innodb_snapshot_isolation = OFF' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
+	/**
+	 * Whether this process is a background run (cron or WP-CLI).
+	 *
+	 * @return bool
+	 */
+	private static function is_background(): bool {
+		return ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) || ( defined( 'WP_CLI' ) && WP_CLI );
 	}
 
 	/**
