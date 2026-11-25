@@ -228,6 +228,11 @@ final class GroupService {
 						// R-1 parent row (CON-001/CON-006): serialises the claims of one group in the DB, so
 						// the recount below sees every older committed seat even when GET_LOCK is unavailable.
 						$db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_group' ) . '` WHERE id = %d FOR UPDATE', $group_id ) );
+						// Second tab of the same account after the row lock (CON-002): existing membership.
+						$member = $this->active_seat( $group_id, $actor->user_id );
+						if ( null !== $member ) {
+							return $member;
+						}
 						$now = $db->now();
 						if ( null !== $seat ) {
 							$rows = $db->execute(
