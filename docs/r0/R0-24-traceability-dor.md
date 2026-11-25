@@ -438,11 +438,11 @@ Spalten: „direkt“ = `ENTSCHEIDUNGEN.md` nennt die Task in „Blockiert“; �
 | R1-15 | R1-04, R1-06 | R0-10, R0-38 | – | E-03, E-62, E-63, E-64, E-66 | E-18, E-45 | – | ready |
 | R1-16 | R1-05, R1-07, R1-08, R1-10, R1-11, R1-12, R1-13 | R0-11 | R0-15 | – | E-14, E-15, E-24, E-38, E-53 | – | ready |
 | R1-17 | R1-02, R1-14, R1-15 | R0-17, R0-13 | R0-16 | E-72, E-119, E-150, E-151, E-154 | E-04, E-10, E-19, E-43, E-46, E-51, E-81, E-82, E-122 | – | ready |
-| R1-18 | R1-01…R1-17 | R0-05, R0-18 | R0-12, R0-14 | E-55, E-56, E-60 | E-02, E-11, E-13 | E-01, E-184 | ready |
+| R1-18 | R1-01…R1-17 | R0-05, R0-18 | R0-12, R0-14 | E-55, E-56, E-60, E-364, E-389, E-390 | E-02, E-11, E-13, E-362 | E-01, E-184 | ready |
 | R1-19 | R1-05,R1-16 | R0-15, R0-25 | – | E-61, E-121, E-124, E-155, E-156, E-157, E-158, E-159, E-160 | E-07, E-49 | – | ready |
 | R1-20 | R1-08,R1-09 | R0-08, R0-17 | R0-14 | E-71, E-148, E-149, E-173 | E-04, E-10, E-20, E-21, E-22, E-23, E-43, E-46, E-50, E-51, E-81, E-122 | E-123 | ready |
 | R1-21 | R1-13,R1-17 | R0-27 | R0-25 §2 | E-187, E-215, E-216, E-217, E-218, E-219, E-220, E-221, E-222, E-223, E-224 | E-20 | E-24, E-136, E-159 | ready |
-| R1-22 | R1-17,R1-20 | R0-14 | – | E-52, E-59 | – | – | ready |
+| R1-22 | R1-17,R1-20 | R0-14 | – | E-52, E-59, E-388 | – | – | ready |
 | R1-23 | R1-15,R1-17 | R0-16 | R0-17 §5.5, R0-37 | E-85, E-86, E-87, E-88, E-89, E-90, E-91, E-92, E-151 | – | – | ready |
 | R1-24 | R1-16,R1-21 | R0-13 | R0-16 §5, R0-35 | E-59, E-125, E-153 | E-19, E-82 | – | ready |
 | R1-25 | R1-02,R1-13 | R0-21 | – | E-198 | E-46 | E-182 | ready |
@@ -694,6 +694,19 @@ Fehler {} | unbekannte E [] | unbekannte R-Tasks []
 §1.4 Zeilen 41 | Abweichungen []
 PAR 16 | LB 15 | Lead ungültig [] | BS doppelt [] | R1-BS fehlend [] | INV-Summe falsch [] | INV R1 546 | GM fehlend 0
 INV mit R2 42 | nicht in §3 []
+```
+
+Ergebnis am 25.11.2026 nach den Beschlüssen E-383…E-392 (Slice `gate-klaerungen`, aus dem Repository-Wurzelverzeichnis; Auszug). Neue E-Nummern mit R1-Bezug in die DoR-Tabelle §4.2 übernommen: R1-22 „E direkt“ + E-388; R1-18 „E direkt“ + E-364, E-389, E-390 und „E über Dokument“ + E-362 (R0-18). Damit sind R1-18 und R1-22 nicht mehr abweichend; die übrigen DoR-Abweichungen bestanden schon vorher (spätere E-Nummern mit R1-Bezug) und sind unverändert. Register und §1.4 unverändert (keine neue Registerzeile nötig: E-383…E-392 beziehen sich auf SET-CC-Einträge, Gate-Punkte und R1-18/R1-22):
+
+```
+Register 147 | überzählig []
+erledigt 86 | offen 96 | führend 68 | Duplikat 28 | obsolet 0
+führend: abgedeckt 13 | offen 55 | führende Tasks 41
+Fehler {} | unbekannte E [] | unbekannte R-Tasks []
+§1.4 Zeilen 41 | Abweichungen []
+PAR 16 | LB 15 | Lead ungültig [] | BS doppelt [] | R1-BS fehlend [] | INV-Summe falsch [] | INV R1 546 | GM fehlend 0
+INV mit R2 42 | nicht in §3 []
+DoR-Zeilen 46 / 46 | abweichend: 34 Zeilen (vorher 36; R1-18 und R1-22 behoben) | nicht ready 0
 ```
 
 **Grenzen der Zählung:** Das Skript prüft Existenz, Eindeutigkeit und Vollständigkeit der Zuordnung, nicht ihre fachliche Richtigkeit (Review). Test-IDs gelten als bekannt, wenn sie in einer Katalogzeile der genannten R0-Dokumente stehen; vorgeschlagene IDs (\*) müssen in R0-12 §1.3 stehen. Bereiche „A…B“ werden aufgelöst und jede ID einzeln geprüft. Die Spalte „E zusätzlich“ der DoR-Tabelle wird nur auf Existenz geprüft; „E direkt“ und „E über Dokument“ müssen exakt der Berechnung aus `ENTSCHEIDUNGEN.md` entsprechen. Die Zeilennummern beziehen sich auf den Stand nach `98bfc38` (R3-20 eingefügt, +4 ab Z. 586); jede Änderung am TODO oberhalb von Z. 653 verschiebt sie (das Skript meldet dann `fehlend`/`überzählig`).

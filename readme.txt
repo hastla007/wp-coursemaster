@@ -21,7 +21,7 @@ Some screens are not available yet in this build: settings pages, the question a
 == Installation ==
 
 1. Install the plugin from the plugin directory or upload the ZIP file under "Plugins > Add New".
-2. Make sure the site meets the requirements: WordPress 7.0 or newer, PHP 8.5 or newer, MariaDB 12.3+ or MySQL 9.7+ with InnoDB and JSON functions (older database servers from MariaDB 10.6 / MySQL 8.0 work with a warning in the system status).
+2. Make sure the site meets the requirements: WordPress 7.0 or newer, PHP 8.5 or newer, MariaDB 12.3+ or MySQL 9.7+ with InnoDB and JSON functions (older database servers from MariaDB 10.6 / MySQL 8.0 work with a warning in the system status), and the PHP extension intl (without it the system status shows a warning, and certificate checksums and import fingerprints can differ between servers).
 3. Activate the plugin. If a requirement is not met, activation stops with a message and nothing is changed.
 
 Multisite: activate Course Captain on each site individually. Network activation is blocked.

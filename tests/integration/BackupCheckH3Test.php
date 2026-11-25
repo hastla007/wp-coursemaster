@@ -170,7 +170,8 @@ final class BackupCheckH3Test extends SchemaTestCase {
 		self::assertStringContainsString( '0 of ' . count( Schema::foreign_keys() ), $fks['message'] );
 		$this->drop_filters();
 
-		// Options: no UUID recorded → ok with a note (R1-18 h3 F-1); unreadable UUID or missing secret → fail.
+		// Options: no UUID recorded (installation before E-392) → ok with a note (R1-18 h3 F-1); unreadable UUID or missing secret → fail.
+		delete_option( RestoreCheck::INSTALLATION_UUID );
 		self::assertSame( array( 'No installation UUID is recorded (not created by this version).' ), $this->area( 'options', 'ok' )['items'] );
 		update_option( RestoreCheck::INSTALLATION_UUID, 'not-a-uuid', false );
 		self::assertSame( array( 'The installation UUID is not readable.' ), $this->area( 'options', 'fail' )['items'] );

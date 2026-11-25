@@ -371,6 +371,7 @@ final class Plugin {
 		}
 		$this->migrations->maybe_run_in_admin();
 		\CourseCaptain\Settings\Settings::maybe_migrate();
+		InstallationUuid::ensure();
 		\CourseCaptain\Admin\MigrationNotice::maybe_add( $this->migrations );
 		if ( self::schema_ready() ) {
 			\CourseCaptain\Course\StarterContent::maybe_run( 'admin' );

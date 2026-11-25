@@ -33,7 +33,7 @@
 |---|---|---|
 | B-1 | OP-01 skalierte linear mit der Kurszahl (≈ 21 Queries je Kurs) | behoben |
 | B-2 | OP-05 ≈ 4 Queries je Prüfungsfrage, Einzel-INSERTs | behoben |
-| B-3 | Absolute Query-Budgets für OP-01/03/04/05/06 überschritten (u. a. Policy-/Gate-Prüfungen je Aufruf, Rate-Limit-Zähler, Fortschritts-Upsert) | Nachtrag h9 (23.11.2026, `R1-22-nachtrag-h9.md`): kalt gemessen OP-01 9, OP-03 10, OP-05 15, OP-07 10 im Budget; OP-04 (16) und OP-06 (8 kalt, 6 mit Objekt-Cache) **Freigabe nötig** (F-1/F-2) |
+| B-3 | Absolute Query-Budgets für OP-01/03/04/05/06 überschritten (u. a. Policy-/Gate-Prüfungen je Aufruf, Rate-Limit-Zähler, Fortschritts-Upsert) | Nachtrag h9 (23.11.2026, `R1-22-nachtrag-h9.md`): kalt gemessen OP-01 9, OP-03 10, OP-05 15, OP-07 10 im Budget; OP-04 (16) und OP-06 (8 kalt, 6 mit Objekt-Cache) **Freigabe nötig** (F-1/F-2); **als Abweichung freigegeben (E-388, 25.11.2026)**, Regressionsgrenzen siehe A-5 |
 
 ## 4. Abweichungen und offene Punkte
 
@@ -43,5 +43,19 @@
 | A-2 | Datenprofil `default`/`heavy` (Millionen Zeilen) | Scanregel mit befüllten Tabellen im Profil `ci`-Maßstab geprüft; Volllauf auf R-M |
 | A-3 | Redis-Achse (NFR-008), R-S-Grenzen (NFR-007), Cron-Ausfall unter Last (NFR-013) | Cache-Korrektheit in R1-25; Funktionsnachweise Cron-frei in R1-08/R1-20; Lastvarianten auf R-M/R-S |
 | A-4 | Import 10 000 Fragen (OP-11, NFR-006) | mit R1-41 (Großimport) |
+| A-5 | Überschrittene Query-Budgets OP-01/03/04/05/06 (B-3; h9 F-1/F-2) | **E-388 (Inhaberin, 25.11.2026): als Abweichung freigegeben; die aktuellen Werte sind die Regressionsgrenze.** Die Grenzen stehen als `CEILING` in `tests/integration/PerformanceTest.php` (eigene Abfragen je Anfrage, kalt gemessen, ohne persistenten Objekt-Cache); höher nur mit neuem Beschluss, Senken ist erwünscht. Siehe Tabelle unten |
+
+**Regressionsgrenzen nach E-388** (Messwerte aus der Budget-Tabelle in `R1-22-nachtrag-h9.md`, 23.11.2026):
+
+| OP | Budget R0-14 | gemessen (kalt) | Regressionsgrenze `CEILING` | Stand gegenüber Budget |
+|---|---|---|---|---|
+| OP-01 Mein Lernen (1/5/20 Kurse) | 15 | 9 / 9 / 9 (Kursraum-Konstanz 8 = 8) | 15 | im Budget (zusätzlich gegen das Budget geprüft) |
+| OP-03 Smarttrainer `next` | 10 | 10 | 10 | im Budget |
+| OP-04 Smarttrainer `answer` | 8 | 16 (7 Schreibzugriffe, 3 davon in der TX) | **16**, höchstens 7 Schreibzugriffe | **Abweichung E-388** (+8) |
+| OP-05 Prüfungsstart (5/30 Fragen) | 15 | 15 / 15 | 15 | im Budget |
+| OP-06 `saveAnswer` | 6 | 8 kalt, 6 mit Revision im Objekt-Cache | **8** kalt; 6 mit Revision im Cache (geprüft) | **Abweichung E-388** (+2 kalt) |
+| OP-07 `submit` (nicht von B-3 betroffen) | 20 | 10 | 10 | im Budget |
+
+Die Werte von OP-01/03/05 lagen beim Messstand 16.11.2026 über dem Budget (21/23/22–23) und sind seit Nachtrag h9 im Budget; E-388 deckt sie mit ab. Die Grenze von OP-01 bleibt beim Budget 15, nicht beim Messwert 9 (keine Verschärfung ohne Lauf).
 
 Review durch zweite Person vor Merge (AG-05).
