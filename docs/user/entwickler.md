@@ -93,6 +93,7 @@ Mit R1-28 (parallel umgesetzt) tragen alle Fehler in `course-captain/v1` die Fel
 | `course_captain_purchase_sources` | Filter | `string[] $sources` (Standard `woo_order`, `voucher`) | weitere Kaufquellen eines Connectors: deren Grant-Historie bleibt nach einer Kontolöschung pseudonymisiert (RT-13) statt sofort gelöscht zu werden; nur ergänzend, ungültige Namen und `manual`/`group_seat`/`workflow`/`free_enrollment` werden ignoriert |
 | `course_captain_explanations_available` | Filter | `bool` (Standard `false`) | Erklärungstexte (nur Pro) |
 | `course_captain_allow_unmoved_protected_file` | Filter | `bool, string $path` | Auslieferung noch nicht verschobener Dateien |
+| `course_captain_protected_file_sendfile` | Filter (experimentell) | `?array $headers, string $path, array $media` | Header wie `X-Accel-Redirect`/`X-Sendfile`: der Webserver liefert die geprüfte Datei aus, PHP sendet nur Header (Standard `null` = PHP-Auslieferung) |
 
 **Intern** (keine stabile Schnittstelle, nur für Kernabonnenten): `course_captain_internal_subscribers`, `course_captain_internal_subscriber_handlers`.
 
