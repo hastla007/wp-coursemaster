@@ -1,6 +1,6 @@
 # Installation und erste Schritte
 
-Geprüft gegen: `course-captain.php`, `readme.txt`, `composer.json`, `src/Kernel/{Requirements,Activator,NetworkGuard,HoldMode,Plugin,Uninstaller,UninstallManifest,CronHooks}.php`.
+Geprüft gegen: `course-captain.php`, `readme.txt`, `composer.json`, `src/Kernel/{Requirements,Activator,NetworkGuard,HoldMode,Plugin,Uninstaller,UninstallManifest,CronHooks}.php`, `src/Ops/Compatibility.php` (Prüfung `php_intl`).
 
 ## 1. Voraussetzungen
 
@@ -11,6 +11,7 @@ Geprüft gegen: `course-captain.php`, `readme.txt`, `composer.json`, `src/Kernel
 | Datenbank | MariaDB 10.6 oder MySQL 8.0 (darunter keine Aktivierung; bis MariaDB 12.2 / MySQL 9.6 nur mit Warnung im Systemstatus) | MariaDB 12.3+ oder MySQL 9.7+ (MINVER-1) | nur bei Aktivierung |
 | Tabellen-Engine | InnoDB | – | bei Aktivierung |
 | Datenbankfunktionen | `JSON_VALID`, Zeichensatz `utf8mb4` | – | bei Aktivierung |
+| PHP-Erweiterung `intl` | Systemvoraussetzung (E-392) | – | **keine Aktivierungssperre**; Warnung `php_intl` im Systemstatus und im Website-Zustand („Course Captain compatibility“). Ohne `intl` werden Texte nicht nach Unicode NFC normalisiert: Prüfsummen von Zertifikaten, Fingerabdrücke von Importpaketen und Antwortvergleiche können dann von Servern mit `intl` abweichen |
 | Permalinks | sprechende Permalinks (nicht „Einfach“) | – | **keine Prüfung**: Lernbereich, Nachweis- und Abmeldeseiten nutzen Rewrite-Regeln (`/lernen/…`) |
 
 Nicht nötig: WooCommerce, andere Plugins, ein Lizenzschlüssel oder ein Konto beim Hersteller. Course Captain sendet keine Telemetrie.

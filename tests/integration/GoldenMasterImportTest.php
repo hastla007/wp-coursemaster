@@ -166,7 +166,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 		);
 		self::assertSame( 'licensed', $rights->effective( 'question', $q ) );
 		$row = (array) $db->row( 'SELECT * FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'rights_override_set'" );
-		self::assertSame( array( 'question', (string) $q, 'Lizenzvertrag LV-7 geprüft', (string) $this->fx['users']['admin'] ), array( $row['object_type'], $row['object_id'], $row['reason'], (string) $row['actor_user_id'] ) );
+		self::assertSame( array( 'question', (string) $q, 'Lizenzvertrag LV-7 geprüft', (string) $this->fx['users']['admin'] ), array( $row['object_type'], $row['object_id'], $row['reason'], (string) \CourseCaptain\Event\AuditIdentity::user_of( $db, $row['actor_ref'] ) ) );
 		self::assertSame(
 			array(
 				'field'  => 'rights_status',
@@ -194,6 +194,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 	 * the count; nothing happens without it; the no-JS form returns to the page.
 	 *
 	 * @group GM-127
+	 * @group MED-020
 	 */
 	public function test_GM_127_bulk_release(): void {
 		$rights  = Rights::current();
@@ -308,6 +309,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 	 * deleted there, a rejected one stays.
 	 *
 	 * @group GM-129
+	 * @group RBAC-082
 	 */
 	public function test_GM_129_upload_limit_and_drop_folder(): void {
 		$mb = 1048576;
@@ -422,6 +424,7 @@ final class GoldenMasterImportTest extends SchemaTestCase {
 	 * temporary files left.
 	 *
 	 * @group GM-130
+	 * @group RBAC-081
 	 */
 	public function test_GM_130_link_import(): void {
 		$admin = Actor::user( $this->fx['users']['admin'] );

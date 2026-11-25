@@ -101,7 +101,7 @@ Die Prüfung allein, ohne zu veröffentlichen: `GET /courses/{id}/validation`.
 | VAL-025 | Blocker | Activity-Einstellungen ungültig | Einstellungen korrigieren |
 | VAL-026 | Blocker | Lektion ohne Inhalt | Text schreiben |
 | VAL-027 | Blocker / Hinweis | Video ohne Quelle / Video ist Platzhalter | Video ergänzen |
-| VAL-029 | Blocker | Quiz ohne Fragen | Fragen zuordnen |
+| VAL-029 | Blocker | Quiz ohne Fragen bzw. Modulpool ohne auslieferbare Fragen (`source: module_pool`; Hinweis, wenn der Pool kleiner als `count` ist) | Fragen zuordnen bzw. Fragen in den Modulpool aufnehmen |
 | VAL-033 | Hinweis | zwei Lektionen eines Moduls mit gleichem Titel | umbenennen |
 | VAL-040…045, 053…056, 063, 066…068 | Blocker | Frage unvollständig oder widersprüchlich (typabhängig) | Frage korrigieren |
 | VAL-047 | Blocker | gleiche Optionstexte, eine richtig, eine falsch | Optionen korrigieren |

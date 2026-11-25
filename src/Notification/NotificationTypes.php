@@ -24,11 +24,11 @@ final class NotificationTypes {
 	public const REQUIRED      = 'required';
 	public const INFORMATIONAL = 'informational';
 
-	/** Variables of every type (§3.10). */
-	private const COMMON = array( 'site_name', 'site_url', 'learning_area_url', 'privacy_policy_url' );
+	/** Variables of every type (§3.10); the legal links (SET-CC-06) are '' when not set. */
+	private const COMMON = array( 'site_name', 'site_url', 'learning_area_url', 'privacy_policy_url', 'imprint_url', 'terms_url', 'withdrawal_url' );
 
 	/** Variables holding URLs (escaped with `esc_url`). */
-	public const URL_VARIABLES = array( 'site_url', 'learning_area_url', 'privacy_policy_url', 'unsubscribe_url', 'course_url', 'claim_url', 'certificate_url', 'verify_url', 'result_url' );
+	public const URL_VARIABLES = array( 'site_url', 'learning_area_url', 'privacy_policy_url', 'imprint_url', 'terms_url', 'withdrawal_url', 'unsubscribe_url', 'course_url', 'claim_url', 'certificate_url', 'verify_url', 'result_url' );
 
 	/**
 	 * Type => [class, default enabled, wired, extra variables].

@@ -428,6 +428,74 @@ final class AuthoringTest extends SchemaTestCase {
 	}
 
 	/**
+	 * UI-F6 (h5 L-4): the block editor saves the meta boxes again without
+	 * reloading them. A "Publish a new revision when saving" box still
+	 * ticked from an earlier save must not publish once more; after the save
+	 * the panels come back from the stored state with the box unticked, the
+	 * new revision and the current module list (AJAX `ccap_editor_flash`).
+	 *
+	 * @group UI-F6
+	 */
+	public function test_publish_box_does_not_republish_and_panels_refresh(): void {
+		wp_set_current_user( $this->admin );
+		AuthoringService::current()->update_structure( Actor::user( $this->admin ), $this->course, array( array( 'module_id' => $this->modules[0] ) ) );
+		ob_start();
+		EditorScreens::render_publish( get_post( $this->course ) );
+		$html = (string) ob_get_clean();
+		self::assertSame( 1, preg_match( '/name="ccap_publish_revision" value="(base:0)"/', $html, $m ), 'box names the revision it was rendered for' );
+		$form  = array(
+			'ccap_structure_nonce'  => wp_create_nonce( 'ccap_course_structure_' . $this->course ),
+			'ccap_modules'          => array( array( 'module_id' => (string) $this->modules[0] ) ),
+			'ccap_add_module'       => (string) $this->modules[2],
+			'ccap_publish_revision' => $m[1],
+			'ccap_change_class'     => 'minor',
+		);
+		$_POST = $form;
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		$first = CoursePublisher::current()->current_revision( $this->course );
+		self::assertNotNull( $first );
+		self::assertFalse( get_transient( 'ccap_editor_error_' . $this->admin ) );
+
+		// Second save from the same page load with a further change (box still ticked):
+		// the change is saved to the draft, but no new revision is published; a hint instead.
+		$form['ccap_add_module'] = '0';
+		$form['ccap_modules']    = array(
+			array( 'module_id' => (string) $this->modules[0] ),
+			array(
+				'module_id'  => (string) $this->modules[2],
+				'sort_order' => '99',
+			),
+		);
+		$_POST                   = $form;
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		self::assertSame( (int) $first['revision_no'], (int) CoursePublisher::current()->current_revision( $this->course )['revision_no'], 'not published again' );
+		self::assertStringContainsString( 'already published', (string) EditorScreens::pull_flash() );
+		self::assertSame( 99, CourseStructure::current()->modules( $this->course )[1]['sort_order'], 'draft change saved' );
+
+		// Fresh panels after the save: box unticked for the new revision, module list current.
+		$boxes = EditorScreens::fresh_boxes( $this->course );
+		self::assertSame( array( 'ccap-course-structure', 'ccap-course-publish' ), array_keys( $boxes ) );
+		self::assertStringContainsString( 'name="ccap_publish_revision" value="base:' . (int) $first['revision_no'] . '">', $boxes['ccap-course-publish'], 'unticked, new base' );
+		self::assertStringContainsString( 'Published revision: ' . (int) $first['revision_no'], $boxes['ccap-course-publish'] );
+		self::assertStringContainsString( 'name="ccap_modules[1][module_id]" value="' . $this->modules[2] . '"', $boxes['ccap-course-structure'] );
+		self::assertStringContainsString( 'name="ccap_modules[1][sort_order]" value="99"', $boxes['ccap-course-structure'] );
+		self::assertSame( array(), self::unlabelled( implode( '', $boxes ) ) );
+
+		// Ticked again on the fresh panel: publishes the next revision.
+		$_POST = array( 'ccap_publish_revision' => 'base:' . (int) $first['revision_no'] ) + $form;
+		EditorScreens::save_course( $this->course, get_post( $this->course ) );
+		self::assertSame( (int) $first['revision_no'] + 1, (int) CoursePublisher::current()->current_revision( $this->course )['revision_no'], (string) EditorScreens::pull_flash() );
+		$_POST = array();
+
+		// Lesson panel; nothing for posts the viewer may not edit.
+		$lesson = $this->post( 'ccap_lesson', 'draft', 'L', $this->modules[0] );
+		self::assertSame( array( 'ccap-lesson-activity' ), array_keys( EditorScreens::fresh_boxes( $lesson ) ) );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+		self::assertSame( array(), EditorScreens::fresh_boxes( $this->course ) );
+		self::assertSame( array(), EditorScreens::fresh_boxes( 0 ) );
+	}
+
+	/**
 	 * R1-18 B-4 (found by the Flow 1 browser run): the block editor follows the
 	 * redirect of its meta box save in the background (fetch); that page must
 	 * not consume the "Not saved" message, the next real page view shows it.
@@ -457,6 +525,11 @@ final class AuthoringTest extends SchemaTestCase {
 		$_SERVER['HTTP_SEC_FETCH_MODE'] = 'cors';
 		EditorScreens::editor_notices();
 		self::assertTrue( wp_script_is( 'ccap-editor-notices', 'enqueued' ) );
+		// UI-F7: meta box fields stay inside a 390 px screen (fieldset min-content, 25em inputs).
+		self::assertTrue( wp_style_is( 'ccap-editor-boxes', 'enqueued' ) );
+		$css = implode( '', (array) wp_styles()->get_data( 'ccap-editor-boxes', 'after' ) );
+		self::assertStringContainsString( 'fieldset{min-inline-size:0}', $css );
+		self::assertStringContainsString( 'textarea{max-inline-size:100%', $css );
 		self::assertStringContainsString( '"message":""', (string) wp_scripts()->get_data( 'ccap-editor-notices', 'data' ), 'background page: nothing taken' );
 		self::assertSame( 'Not saved: z', get_transient( $key ) );
 		wp_dequeue_script( 'ccap-editor-notices' );

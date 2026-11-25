@@ -51,14 +51,14 @@ phpcs 0 Fehler (bekannte Warnung ImportTest.php:318) · PHPStan 0 · Unit **104*
 | Nr. | Thema | Entscheidung |
 |---|---|---|
 | A-1 | UD-1 als natives `<dialog>` mit drei Knöpfen, RC-Dialoge als `<dialog>` (D-1) | Bestätigung als serverseitige Seite (D-7, gilt für alle Clients); UD-1 als `window.confirm` im Skript; `<dialog>`-Variante mit R1-19/R1-29 (Playwright/AXE) |
-| A-2 | RC-14: R0-30 „beim Einschalten“, R0-27/R0-31 „bei `force` und `off`“ | Vereinigung umgesetzt (Einschalten, `force`, Abschalten nach Bestätigung); **Klärung** |
+| A-2 | RC-14: R0-30 „beim Einschalten“, R0-27/R0-31 „bei `force` und `off`“ | Vereinigung umgesetzt (Einschalten, `force`, Abschalten nach Bestätigung); **Klärung** **Entschieden 24.11.2026: Vereinigung beibehalten (E-358).** |
 | A-3 | R0-31-Risikofelder ohne Dialognummer (Δ-1, Δ-6, `consent_category = functional`, `file_delivery`) | als RC-19…RC-22 nummeriert |
 | A-4 | Token-Pflicht im Dienst `Settings::save` | in den Eingängen (Tab, Assistent; Import mit R1-36); der Dienst bleibt die vertrauenswürdige API für Code, CLI (eigene `--yes`-Prüfung) und Tests |
 | A-5 | Menüpunkte Übersicht/Kurse/… (§1.2), Menüposition 26.3, Übersicht-Checkliste, Einrichtungshinweis „{n} Punkte offen“ auf der Übersicht | es gibt noch keine Übersichtsseite; Abschlussmeldung erscheint im Assistenten; Menübaum mit R1-19/R1-38 |
 | A-6 | Testmail (Schritt 5, F-63, F4.4), Rollen-Tab, Fristen-Übersicht | R1-34 |
 | A-7 | Farbtokens (`display.tokens`), Debug (`advanced.debug`), Fehlerschwelle Import, Rate-Limit-Tabelle, „Alle Sperren aufheben“, „Header erneut prüfen“ | Felder fehlen im Register bzw. Loopback; nicht gebaut |
 | A-8 | RDY-01/03/06/11/15 | ohne Loopback nur Hinweis; Prüfung im Systemstatus (R1-38/R1-30) |
-| A-9 | Schritt 7 „leere Abschlussprüfung“ | Kursentwurf mit Modul und Lektion; Prüfungsregel-Entwurf mit dem Prüfungseditor |
+| A-9 | Schritt 7 „leere Abschlussprüfung“ | Kursentwurf mit Modul und Lektion; Prüfungsregel-Entwurf mit dem Prüfungseditor **Entschieden 24.11.2026: keine leere Prüfung, beibehalten (E-366).** |
 | A-10 | Playwright/AXE/NVDA-Fälle (ADM-041…043, 073, 074, 083, 120…127) | Struktur per PHPUnit geprüft; Browserläufe mit R1-19/R1-29 |
 
 Review durch zweite Person vor Merge (AG-05).

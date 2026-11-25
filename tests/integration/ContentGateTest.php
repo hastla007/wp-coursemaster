@@ -252,6 +252,10 @@ final class ContentGateTest extends SchemaTestCase {
 
 	/**
 	 * §1.4 Nr. 2: partial access without grant — first n questions, lessons, fixed variants only.
+	 *
+	 * RBAC-013: a lesson beyond the free limit is refused (reason `trial`).
+	 *
+	 * @group RBAC-013
 	 */
 	public function test_partial_access(): void {
 		$user = $this->learner( false );
@@ -313,12 +317,19 @@ final class ContentGateTest extends SchemaTestCase {
 	}
 
 	/**
-	 * GM-015 / GM-016 / GM-111 / GM-112: protected storage and delivery.
+	 * GM-015 / GM-016 / GM-111 / GM-112: protected storage and delivery;
+	 * MED-010/MED-011 byte ranges (206 with offset/length, 416 with an
+	 * unsatisfied Content-Range, malformed or multiple ranges → whole file), MED-014
+	 * headers (nosniff, no-store, sandbox except PDF, umlaut/quote/CRLF in
+	 * the file name without header injection).
 	 *
 	 * @group GM-015
 	 * @group GM-016
 	 * @group GM-111
 	 * @group GM-112
+	 * @group MED-010
+	 * @group MED-011
+	 * @group MED-014
 	 */
 	public function test_protected_files(): void {
 		$admin  = Actor::user( $this->admin );
@@ -375,7 +386,18 @@ final class ContentGateTest extends SchemaTestCase {
 		$size = $response['length'];
 		$part = $files->prepare( $full, $uids[0], 'bytes=0-9' );
 		self::assertSame( array( 206, 10, 'bytes 0-9/' . $size ), array( $part['status'], $part['length'], $part['headers']['Content-Range'] ) );
-		self::assertSame( 416, $files->prepare( $full, $uids[0], 'bytes=99999-' )['status'] );
+		$from = $files->prepare( $full, $uids[0], 'bytes=100-' );
+		self::assertSame( array( 206, 100, $size - 100, (string) ( $size - 100 ), 'bytes 100-' . ( $size - 1 ) . '/' . $size ), array( $from['status'], $from['offset'], $from['length'], $from['headers']['Content-Length'], $from['headers']['Content-Range'] ) );
+		$tail = $files->prepare( $full, $uids[0], 'bytes=-50' );
+		self::assertSame( array( 206, $size - 50, 50 ), array( $tail['status'], $tail['offset'], $tail['length'] ) );
+		self::assertSame( substr( (string) file_get_contents( $tail['path'] ), -50 ), substr( (string) file_get_contents( $tail['path'] ), $tail['offset'], $tail['length'] ), 'bytes match the end of the file' );
+		$beyond = $files->prepare( $full, $uids[0], 'bytes=99999-' );
+		self::assertSame( array( 416, 'bytes */' . $size, 0 ), array( $beyond['status'], $beyond['headers']['Content-Range'], $beyond['length'] ) );
+		self::assertSame( 200, $files->prepare( $full, $uids[0], 'bytes=abc' )['status'], 'malformed range → whole file' );
+		self::assertSame( 'sandbox', ProtectedFiles::headers( 'x.png', 'image/png', 1 )['Content-Security-Policy'], 'sandbox except PDF' );
+		$injected = ProtectedFiles::content_disposition( "Bad\r\nX-Evil: 1.pdf" );
+		self::assertStringNotContainsString( "\r", $injected );
+		self::assertStringNotContainsString( "\n", $injected );
 		self::assertSame( 200, $files->prepare( $full, $uids[0], 'bytes=0-1,5-6' )['status'], 'multiple ranges → whole file' );
 		self::assertSame( array( $size - 5, $size - 1 ), ProtectedFiles::range( 'bytes=-5', $size ) );
 		self::assertStringContainsString( 'attachment;', ProtectedFiles::content_disposition( 'x.zip' ) );

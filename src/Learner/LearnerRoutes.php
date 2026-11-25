@@ -1,6 +1,8 @@
 <?php
 /**
- * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32).
+ * Learner REST routes (R0-19 R-05…R-13, R-26…R-28, R-31/R-32; R-33…R-37 in GroupOwnerRoutes;
+ * progress dimensions `GET /courses/{course}/progress` and
+ * `GET /reports/courses/{course}/learners/{user}/progress`).
  *
  * @package CourseCaptain
  */
@@ -18,6 +20,7 @@ use CourseCaptain\Learning\Favorites;
 use CourseCaptain\Learning\SmartTrainer;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Progress\CourseReport;
+use CourseCaptain\Progress\ProgressDimensions;
 use CourseCaptain\Security\ClientIp;
 use CourseCaptain\Storage\RateLimiter;
 
@@ -66,6 +69,13 @@ final class LearnerRoutes {
 				'/courses/' . $course . '/next-question',
 				'GET',
 				static function ( Actor $a, \WP_REST_Request $r ) {
+					$mode = (string) ( $r->get_param( 'mode' ) ?? 'smart' );
+					if ( in_array( $mode, array( 'due', 'exam_mistakes' ), true ) ) {
+						// UI-F3: own entries "Due" and "Practise exam mistakes".
+						$entry = SmartTrainer::current()->entry( $a, self::course( $r ), $mode, array( 'exam_session' => $r->get_param( 'exam_session' ) ) );
+						$extra = array_diff_key( $entry, array( 'question' => true ) );
+						return null === $entry['question'] ? array( 'question' => null ) + $extra : $entry['question'] + $extra;
+					}
 					$options = array_filter(
 						array(
 							'topic'      => $r->get_param( 'topic' ),
@@ -73,7 +83,7 @@ final class LearnerRoutes {
 						),
 						static fn( $v ): bool => null !== $v && '' !== $v
 					);
-					$next    = SmartTrainer::current()->next( $a, self::course( $r ), (string) ( $r->get_param( 'mode' ) ?? 'smart' ), $options );
+					$next    = SmartTrainer::current()->next( $a, self::course( $r ), $mode, $options );
 					return null === $next ? array( 'question' => null ) : $next;
 				},
 			),
@@ -97,6 +107,9 @@ final class LearnerRoutes {
 				'GET',
 				static fn( Actor $a, \WP_REST_Request $r ) => array( 'learners' => CourseReport::current()->rows( $a, self::course( $r ) ) ),
 			),
+			// SET-CC kompetenz (Kap. 28 "three progress dimensions"): read-only, own data / M-11.
+			array( '/courses/' . $course . '/progress', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => ProgressDimensions::current()->own( $a, self::course( $r ) ) ),
+			array( '/reports/courses/' . $course . '/learners/(?P<user>\d+)/progress', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => ProgressDimensions::current()->of_learner( $a, self::course( $r ), (int) $r['user'] ) ),
 			array( '/answers', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => AnswerService::current()->answer( $a, (string) $r->get_param( 'token' ), $r->get_param( 'answer' ), self::idempotency_key( $r ) ) ),
 			array( '/courses/' . $course . '/lessons/(?P<lesson>\d+)/progress', 'PUT', static fn( Actor $a, \WP_REST_Request $r ) => ActivityProgress::current()->interact( $a, self::course( $r ), (int) $r['lesson'], (string) $r->get_param( 'kind' ), (array) ( $r->get_param( 'payload' ) ?? array() ) ) ),
 			array(
@@ -169,7 +182,11 @@ final class LearnerRoutes {
 			array( '/groups/join/(?P<token>[A-Za-z0-9_-]{1,64})', 'GET', static fn( Actor $a, \WP_REST_Request $r ) => self::join_preview( $a, (string) $r['token'] ) ),
 			// R-32: accept an invitation or the group link.
 			array( '/groups/join', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => self::join( $a, $r->get_param( 'token' ) ) ),
+			// Self-enrollment (L-02, UI-F2): `ccap_enrollment_closed` while the course enrollment is closed (E-108).
+			array( '/courses/' . $course . '/enrollment', 'POST', static fn( Actor $a, \WP_REST_Request $r ) => \CourseCaptain\Access\SelfEnrollment::current()->enroll( $a, self::course( $r ) ) ),
 		);
+		// R-33…R-37: owner routes of the group area (UI-F1).
+		GroupOwnerRoutes::routes();
 		foreach ( $routes as $route ) {
 			list( $path, $method, $callback ) = $route;
 			register_rest_route(

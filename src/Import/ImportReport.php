@@ -45,6 +45,7 @@ final class ImportReport {
 	public const CODES = array(
 		'schema'              => 'IMP-V6.01',
 		'unknown_type'        => 'IMP-V6.01',
+		'variant_flashcard'   => 'IMP-V6.01',
 		'duplicate_source_id' => 'IMP-V6.02',
 		'missing_reference'   => 'IMP-V6.03',
 		'hash_mismatch'       => 'IMP-V6.06',
@@ -340,6 +341,8 @@ final class ImportReport {
 				return array( __( 'The record does not match the package format.', 'course-captain' ), __( 'Correct the record in the source system and export the package again.', 'course-captain' ) );
 			case 'cc.imp.unknown_type':
 				return array( __( 'The question type is not available on this site.', 'course-captain' ), __( 'Activate the extension that provides the question type, then import again.', 'course-captain' ) );
+			case 'cc.imp.variant_flashcard':
+				return array( __( 'A fixed exam variant contains a flashcard. Flashcards are never part of exams.', 'course-captain' ), __( 'Remove the flashcard from the fixed variant in the source system and export the package again.', 'course-captain' ) );
 			case 'cc.imp.duplicate_source_id':
 				return array( __( 'The object ID occurs more than once in the package.', 'course-captain' ), __( 'Give every object a unique ID in the source system.', 'course-captain' ) );
 			case 'cc.imp.missing_reference':

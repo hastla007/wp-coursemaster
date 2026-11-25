@@ -39,7 +39,7 @@ final class GroupsScreen {
 	 *
 	 * @var list<string>
 	 */
-	public const OPS = array( 'create', 'seats', 'validity', 'status', 'owner', 'policy', 'rename', 'invite', 'resend', 'withdraw', 'remove', 'link' );
+	public const OPS = array( 'create', 'seats', 'validity', 'status', 'owner', 'policy', 'rename', 'invite', 'resend', 'withdraw', 'remove', 'link', 'reinstate' );
 
 	/**
 	 * Hooks.
@@ -50,7 +50,11 @@ final class GroupsScreen {
 		add_action(
 			'admin_menu',
 			static function (): void {
-				add_submenu_page( EditorScreens::MENU, __( 'Groups', 'course-captain' ), __( 'Groups', 'course-captain' ), self::CAP, self::SLUG, array( self::class, 'render' ) );
+				$hook = add_submenu_page( EditorScreens::MENU, __( 'Groups', 'course-captain' ), __( 'Groups', 'course-captain' ), self::CAP, self::SLUG, array( self::class, 'render' ) );
+				// UI-F7: layout rules of the settings screens (wide tables scroll in their own region, no page scrolling at 390 px).
+				if ( is_string( $hook ) && '' !== $hook ) {
+					add_action( 'admin_print_styles-' . $hook, array( AdminUi::class, 'settings_style' ) );
+				}
 			},
 			20
 		);
@@ -179,6 +183,10 @@ final class GroupsScreen {
 				case 'link':
 					$out['token'] = $service->rotate_link( $actor, $group );
 					break;
+				case 'reinstate':
+					// D11: administrators only, reason required; count = renewed member grants.
+					$out['count'] = $service->reinstate( $actor, $group, isset( $post['reason'] ) ? (string) $post['reason'] : '' )['grants'];
+					break;
 			}
 		} catch ( CourseException $e ) {
 			$out['result'] = $e->error_code;
@@ -212,42 +220,112 @@ final class GroupsScreen {
 			$key,
 			array(
 				'valid_until'  => $until,
-				'claim_policy' => isset( $post['claim_policy'] ) ? sanitize_key( (string) $post['claim_policy'] ) : 'transferable',
+				'claim_policy' => isset( $post['claim_policy'] ) ? sanitize_key( (string) $post['claim_policy'] ) : (string) \CourseCaptain\Settings\Settings::get( 'enrollment.claim_policy' ),
 				'reason'       => isset( $post['reason'] ) ? sanitize_textarea_field( (string) $post['reason'] ) : '',
 			)
 		);
 	}
 
 	/**
-	 * Invite up to 200 addresses (GF-09).
+	 * Invite up to 200 addresses (GF-09). Addresses that are already in the
+	 * group and addresses beyond the invitation budget (F3.7) count as
+	 * `limited` here (no seat taken, no mail).
 	 *
 	 * @param Actor  $actor  Manager.
 	 * @param int    $group  Group.
 	 * @param string $emails One address per line or separated by commas.
-	 * @return array{invited: int, invalid: int, limited: int}
+	 * @return array{invited: int, invalid: int, limited: int, already_member: int, budget: int}
 	 * @throws CourseException `ccap_invalid_param` above 200 addresses.
 	 */
 	public static function invite( Actor $actor, int $group, string $emails ): array {
 		$parts = preg_split( '/[\s,;]+/', $emails );
 		$list  = array_values( array_filter( array_map( 'trim', false === $parts ? array() : $parts ) ) );
-		if ( array() === $list || count( $list ) > 200 ) {
+		$out   = array(
+			'invited'        => 0,
+			'invalid'        => 0,
+			'limited'        => 0,
+			'already_member' => 0,
+			'budget'         => 0,
+		);
+		foreach ( self::invite_list( $actor, $group, $list ) as $row ) {
+			switch ( $row['status'] ) {
+				case 'invited':
+					++$out['invited'];
+					break;
+				case 'invalid':
+					++$out['invalid'];
+					break;
+				case 'already_member':
+					++$out['already_member'];
+					break;
+				case 'budget':
+					++$out['budget'];
+					break;
+				default:
+					++$out['limited'];
+			}
+		}
+		$out['limited'] += $out['already_member'] + $out['budget'];
+		return $out;
+	}
+
+	/**
+	 * Invite addresses one by one (GF-09, R0-19 R-35): `invalid` address,
+	 * `already_member` (an active seat or an open invitation of the group
+	 * with this address), `limited` (no free seat), `budget` (invitation
+	 * budget of the group used up, F3.7: the mail would not be sent), or
+	 * `invited`. Duplicates in the list are handled once.
+	 *
+	 * @param Actor $actor  Owner (M-15) or manager.
+	 * @param int   $group  Group.
+	 * @param array $emails Addresses (1…200).
+	 * @phpstan-param list<string> $emails
+	 * @return list<array{email: string, status: string}>
+	 * @throws CourseException `ccap_invalid_param` for an empty list or more than 200 addresses; rights of {@see GroupService::invite()}.
+	 */
+	public static function invite_list( Actor $actor, int $group, array $emails ): array {
+		if ( array() === $emails || count( $emails ) > 200 ) {
 			throw new CourseException( 'ccap_invalid_param', 'emails', 422 );
 		}
-		$out = array(
-			'invited' => 0,
-			'invalid' => 0,
-			'limited' => 0,
-		);
-		foreach ( array_unique( $list ) as $email ) {
+		$service = GroupService::current();
+		$budget  = null;
+		$out     = array();
+		$unique  = array();
+		foreach ( $emails as $email ) {
+			$email                            = trim( (string) $email );
+			$unique[ strtolower( $email ) ] ??= $email;
+		}
+		foreach ( $unique as $email ) {
 			if ( ! is_email( $email ) ) {
-				++$out['invalid'];
+				$out[] = array(
+					'email'  => $email,
+					'status' => 'invalid',
+				);
 				continue;
 			}
-			if ( null === GroupService::current()->invite( $actor, $group, $email ) ) {
-				++$out['limited'];
-			} else {
-				++$out['invited'];
+			if ( $service->has_address( $group, $email ) ) {
+				$out[] = array(
+					'email'  => $email,
+					'status' => 'already_member',
+				);
+				continue;
 			}
+			$budget ??= NotificationService::current()->group_invite_status( $group )['remaining'];
+			if ( $budget <= 0 ) {
+				$out[] = array(
+					'email'  => $email,
+					'status' => 'budget',
+				);
+				continue;
+			}
+			$seat = $service->invite( $actor, $group, $email );
+			if ( null !== $seat ) {
+				--$budget;
+			}
+			$out[] = array(
+				'email'  => $email,
+				'status' => null === $seat ? 'limited' : 'invited',
+			);
 		}
 		return $out;
 	}
@@ -303,7 +381,7 @@ final class GroupsScreen {
 			return $html . self::detail( $actor, $group, $request ) . '</div>';
 		}
 		$rows  = GroupService::current()->overview( $actor, isset( $request['status'] ) ? sanitize_key( (string) $request['status'] ) : '' );
-		$html .= '<table class="widefat striped"><caption>' . esc_html__( 'All groups', 'course-captain' ) . '</caption><thead><tr>';
+		$html .= AdminUi::scroll_open( __( 'All groups', 'course-captain' ) ) . '<table class="widefat striped"><caption>' . esc_html__( 'All groups', 'course-captain' ) . '</caption><thead><tr>';
 		foreach ( array( __( 'Name', 'course-captain' ), __( 'Owner', 'course-captain' ), __( 'Status', 'course-captain' ), __( 'Seats used / total', 'course-captain' ), __( 'Open invitations', 'course-captain' ), __( 'Seats freed so far', 'course-captain' ), __( 'Valid until', 'course-captain' ) ) as $label ) {
 			$html .= '<th scope="col">' . esc_html( $label ) . '</th>';
 		}
@@ -321,7 +399,7 @@ final class GroupsScreen {
 			);
 			$html .= '<tr><th scope="row"><a href="' . esc_url( $url ) . '">' . esc_html( $row['name'] ) . '</a></th><td>' . esc_html( $row['owner'] ) . '</td><td>' . esc_html( self::status_label( $row['status'] ) ) . '</td><td>' . (int) $row['seats_used'] . ' / ' . (int) $row['seats_total'] . '</td><td>' . (int) $row['invites_open'] . '</td><td>' . (int) $row['seats_ended'] . '</td><td>' . esc_html( null === $row['valid_until'] ? __( 'unlimited', 'course-captain' ) : $row['valid_until'] ) . '</td></tr>';
 		}
-		return $html . '</tbody></table>' . self::create_form() . '</div>';
+		return $html . '</tbody></table></div>' . self::create_form() . '</div>';
 	}
 
 	/**
@@ -353,7 +431,7 @@ final class GroupsScreen {
 			$link  = add_query_arg( 'ccap_claim', $token, \CourseCaptain\Learner\LearningArea::url() );
 			$html .= '<div class="notice notice-info" role="status"><p><label for="ccap-group-link">' . esc_html__( 'New group link (shown only now, copy it):', 'course-captain' ) . '</label> <input id="ccap-group-link" type="text" readonly class="large-text" value="' . esc_attr( $link ) . '"></p></div>';
 		}
-		$html .= '<table class="widefat striped"><caption>' . esc_html__( 'Members and invitations', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Name', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Address', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Since', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Actions', 'course-captain' ) . '</th></tr></thead><tbody>';
+		$html .= AdminUi::scroll_open( __( 'Members and invitations', 'course-captain' ) ) . '<table class="widefat striped"><caption>' . esc_html__( 'Members and invitations', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Name', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Address', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Since', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Actions', 'course-captain' ) . '</th></tr></thead><tbody>';
 		foreach ( GroupService::current()->members( $actor, $group ) as $seat ) {
 			$actions = '';
 			if ( ! $readonly ) {
@@ -365,9 +443,16 @@ final class GroupsScreen {
 			}
 			$html .= '<tr><td>' . esc_html( self::seat_label( $seat['status'] ) ) . '</td><td>' . esc_html( $seat['name'] ) . '</td><td>' . esc_html( $seat['address'] ) . '</td><td>' . esc_html( (string) $seat['since'] ) . '</td><td>' . $actions . '</td></tr>';
 		}
-		$html .= '</tbody></table>';
+		$html .= '</tbody></table></div>';
 		if ( $readonly ) {
-			return $html . '<p>' . esc_html__( 'This group has ended and can only be viewed.', 'course-captain' ) . '</p>';
+			$html .= '<p>' . esc_html__( 'This group has ended and can only be viewed.', 'course-captain' ) . '</p>';
+			if ( user_can( $actor->user_id, 'manage_options' ) ) {
+				// D11: reinstatement by administrators with a reason (new source revision, audited).
+				$html .= '<h3>' . esc_html__( 'Reinstate the group', 'course-captain' ) . '</h3>';
+				$html .= '<p id="ccap-reinstate-help">' . esc_html__( 'The group becomes active again. Members get their access back only while the group and their access are still valid; removed seats stay removed.', 'course-captain' ) . '</p>';
+				$html .= self::form( 'reinstate', $group, '<label for="ccap-reinstate-reason">' . esc_html__( 'Reason for reinstating (required)', 'course-captain' ) . '</label> <input id="ccap-reinstate-reason" type="text" name="reason" required aria-describedby="ccap-reinstate-help"> ', __( 'Reinstate group', 'course-captain' ) );
+			}
+			return $html;
 		}
 		$preview = absint( $request['preview_seats'] ?? 0 );
 		$html   .= '<h3>' . esc_html__( 'Change the group', 'course-captain' ) . '</h3>';
@@ -435,11 +520,13 @@ final class GroupsScreen {
 		$fields .= '<fieldset><legend>' . esc_html__( 'Courses', 'course-captain' ) . '</legend>';
 		foreach ( $courses as $course ) {
 			if ( $course instanceof \WP_Post ) {
-				$fields .= '<label><input type="checkbox" name="courses[]" value="' . (int) $course->ID . '"> ' . esc_html( $course->post_title ) . '</label><br>';
+				// One paragraph per choice: enough space between the targets (WCAG 2.5.8, axe target-size).
+				$fields .= '<p><label><input type="checkbox" name="courses[]" value="' . (int) $course->ID . '"> ' . esc_html( $course->post_title ) . '</label></p>';
 			}
 		}
 		$fields .= '</fieldset><p><label for="ccap-new-valid">' . esc_html__( 'Valid until (date, empty = unlimited)', 'course-captain' ) . '</label><br><input id="ccap-new-valid" type="date" name="valid_until"> <label><input type="checkbox" name="unlimited_confirm" value="1"> ' . esc_html__( 'Confirm: unlimited', 'course-captain' ) . '</label></p>';
-		$fields .= '<p><label for="ccap-new-policy">' . esc_html__( 'Who may redeem an invitation', 'course-captain' ) . '</label><br><select id="ccap-new-policy" name="claim_policy"><option value="transferable">' . esc_html__( 'anyone with the link', 'course-captain' ) . '</option><option value="invited_address_only">' . esc_html__( 'only the invited address', 'course-captain' ) . '</option></select></p>';
+		$policy  = (string) \CourseCaptain\Settings\Settings::get( 'enrollment.claim_policy' );
+		$fields .= '<p><label for="ccap-new-policy">' . esc_html__( 'Who may redeem an invitation', 'course-captain' ) . '</label><br><select id="ccap-new-policy" name="claim_policy"><option value="transferable"' . selected( $policy, 'transferable', false ) . '>' . esc_html__( 'anyone with the link', 'course-captain' ) . '</option><option value="invited_address_only"' . selected( $policy, 'invited_address_only', false ) . '>' . esc_html__( 'only the invited address', 'course-captain' ) . '</option></select></p>';
 		$fields .= '<p><label for="ccap-new-reason">' . esc_html__( 'Note (optional, for example the order number)', 'course-captain' ) . '</label><br><input id="ccap-new-reason" type="text" name="reason" class="regular-text"></p>';
 		$fields .= '<input type="hidden" name="request_key" value="' . esc_attr( wp_generate_uuid4() ) . '">';
 		return '<h2>' . esc_html__( 'Create group', 'course-captain' ) . '</h2>' . self::form( 'create', 0, $fields, __( 'Create group', 'course-captain' ) );

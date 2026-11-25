@@ -64,9 +64,13 @@ final class ActivityProgress {
 		}
 		\CourseCaptain\Access\ContentGate::current()->lesson( $actor, $course_id, $lesson_id )->assert();
 		$definition = ActivityService::definition( $lesson_id );
-		$row        = $this->ensure_row( $actor->user_id, $course_id, $lesson_id, $definition['type'] );
-		$data       = self::data_of( $row );
-		$pos        = (int) $row['position_seconds'];
+		// SET-CC-24: activities of a switched-off module take no interactions (stored progress stays).
+		if ( ! \CourseCaptain\Settings\Modules::activity_enabled( (string) $definition['type'] ) ) {
+			throw new CourseException( 'ccap_module_disabled', 'This function is switched off.', 404 );
+		}
+		$row  = $this->ensure_row( $actor->user_id, $course_id, $lesson_id, $definition['type'] );
+		$data = self::data_of( $row );
+		$pos  = (int) $row['position_seconds'];
 		switch ( $kind ) {
 			case 'position':
 				// GM-011: an update without position keeps the stored position.
@@ -112,10 +116,10 @@ final class ActivityProgress {
 	 * produced by a checked workflow (a grade stays effective after the
 	 * learner lost access). Completion stays monotonic.
 	 *
-	 * @param int                     $user_id   Learner.
-	 * @param int                     $course_id Course.
-	 * @param int                     $lesson_id Lesson (activity).
-	 * @param array<string, bool|int> $flags     Evidence flags/counters merged into the progress data.
+	 * @param int                  $user_id   Learner.
+	 * @param int                  $course_id Course.
+	 * @param int                  $lesson_id Lesson (activity).
+	 * @param array<string, mixed> $flags     Evidence flags/counters merged into the progress data.
 	 * @return array<string, mixed> Stored state.
 	 */
 	public function record_evidence( int $user_id, int $course_id, int $lesson_id, array $flags ): array {

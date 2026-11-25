@@ -12,6 +12,7 @@ namespace CourseCaptain\Notification;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Settings\LegalLinks;
 use CourseCaptain\Settings\Settings;
 use CourseCaptain\Storage\Database;
 
@@ -32,6 +33,18 @@ final class MailTemplates {
 	public const OPTION_PREFIX = 'course_captain_mail_template_';
 	public const SUBJECT_MAX   = 200;
 	public const BODY_MAX      = 20000;
+
+	/** Export format of the mail texts (SET-CC-04). */
+	public const FORMAT = 'course-captain-mail-templates';
+
+	/** Maximum size of an import file (as settings imports, R0-27 §2.5). */
+	public const IMPORT_MAX_BYTES = 262144;
+
+	/** Exports/imports per account and hour, fail-closed (R0-17 §3.4). */
+	public const TRANSFER_PER_HOUR = 10;
+
+	/** User transient of the transfer rate limit. */
+	public const RATE_PREFIX = 'ccap_mail_tpl_rate_';
 
 	/** Mail kses allowlist (§3.10). */
 	private const KSES = array(
@@ -102,34 +115,34 @@ final class MailTemplates {
 	 * @throws CourseException `ccap_forbidden`, `ccap_invalid_param`, `ccap_validation_failed`.
 	 */
 	public static function save( Actor $actor, string $type, string $locale, string $subject, string $body_html, string $body_text = '' ): int {
-		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, Settings::CAP ) ) {
-			throw new CourseException( 'ccap_forbidden', 'Not allowed to change mail templates.', 403 );
-		}
+		self::assert_admin( $actor );
 		if ( ! NotificationTypes::exists( $type ) || ! in_array( $locale, self::locales(), true ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Unknown mail type or locale.', 422 );
 		}
-		$subject   = trim( (string) preg_replace( '/[\r\n]+/', ' ', sanitize_text_field( $subject ) ) );
-		$body_html = wp_kses( $body_html, self::KSES );
-		$body_text = sanitize_textarea_field( $body_text );
-		if ( '' === $subject || '' === trim( wp_strip_all_tags( $body_html ) ) || mb_strlen( $subject ) > self::SUBJECT_MAX || mb_strlen( $body_html ) > self::BODY_MAX || mb_strlen( $body_text ) > self::BODY_MAX ) {
-			throw new CourseException( 'ccap_validation_failed', 'subject,body_html', 422 );
+		$check = self::check( $type, $subject, $body_html, $body_text );
+		if ( array() !== $check['errors'] ) {
+			$unknown = array();
+			foreach ( $check['errors'] as $error ) {
+				$unknown = array_merge( $unknown, $error['unknown'] );
+			}
+			if ( array() !== $unknown ) {
+				throw new CourseException( 'ccap_validation_failed', esc_html( 'Unknown placeholders: ' . implode( ', ', array_unique( $unknown ) ) . '. Allowed: ' . implode( ', ', NotificationTypes::variables( $type ) ) ), 422, array( 'fields' => $check['errors'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
+			}
+			throw new CourseException( 'ccap_validation_failed', 'subject,body_html', 422, array( 'fields' => $check['errors'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Data for the caller, not output.
 		}
-		$unknown = array_diff( self::placeholders( $subject . ' ' . $body_html . ' ' . $body_text ), NotificationTypes::variables( $type ) );
-		if ( array() !== $unknown ) {
-			throw new CourseException( 'ccap_validation_failed', esc_html( 'Unknown placeholders: ' . implode( ', ', $unknown ) . '. Allowed: ' . implode( ', ', NotificationTypes::variables( $type ) ) ), 422 );
-		}
-		$all            = self::stored( $type );
-		$before         = $all[ $locale ] ?? null;
-		$rev            = null === $before ? 1 : $before['rev'] + 1;
-		$all[ $locale ] = array(
+		list( $subject, $body_html, $body_text ) = array( $check['values']['subject'], $check['values']['body_html'], $check['values']['body_text'] );
+		$all                                     = self::stored( $type );
+		$before                                  = $all[ $locale ] ?? null;
+		$rev                                     = null === $before ? 1 : $before['rev'] + 1;
+		$all[ $locale ]                          = array(
 			'subject'   => $subject,
 			'body_html' => $body_html,
 			'body_text' => $body_text,
 			'rev'       => $rev,
 		);
-		$hash           = static fn( ?array $v ): ?string => null === $v ? null : hash( 'sha256', (string) wp_json_encode( array( $v['subject'], $v['body_html'], $v['body_text'] ) ) );
-		$hash_after     = $hash( $all[ $locale ] );
-		$hash_before    = $hash( $before );
+		$hash                                    = static fn( ?array $v ): ?string => null === $v ? null : hash( 'sha256', (string) wp_json_encode( array( $v['subject'], $v['body_html'], $v['body_text'] ) ) );
+		$hash_after                              = $hash( $all[ $locale ] );
+		$hash_before                             = $hash( $before );
 		if ( null !== $before && $hash_after === $hash_before ) {
 			return $before['rev'];
 		}
@@ -159,6 +172,226 @@ final class MailTemplates {
 	public static function placeholders( string $text ): array {
 		preg_match_all( '/\{\{\s*([^{}]*?)\s*\}\}/', $text, $m );
 		return array_values( array_unique( $m[1] ) );
+	}
+
+	/**
+	 * Clean and check an operator text (field-near rules, SET-CC-04).
+	 *
+	 * Rules per field (`subject`, `body_html`, `body_text`): `required`,
+	 * `length`, `placeholder` (with `unknown` = names outside the allowlist
+	 * of the type).
+	 *
+	 * @param string $type      Type.
+	 * @param string $subject   Subject.
+	 * @param string $body_html HTML body.
+	 * @param string $body_text Text body (empty = derived from HTML).
+	 * @return array{values: array{subject: string, body_html: string, body_text: string}, errors: array<string, array{rule: string, unknown: list<string>}>}
+	 */
+	public static function check( string $type, string $subject, string $body_html, string $body_text ): array {
+		$values  = array(
+			'subject'   => trim( (string) preg_replace( '/[\r\n]+/', ' ', sanitize_text_field( $subject ) ) ),
+			'body_html' => wp_kses( $body_html, self::KSES ),
+			'body_text' => sanitize_textarea_field( $body_text ),
+		);
+		$allowed = NotificationTypes::variables( $type );
+		$errors  = array();
+		foreach ( $values as $field => $value ) {
+			$max     = 'subject' === $field ? self::SUBJECT_MAX : self::BODY_MAX;
+			$unknown = array_values( array_diff( self::placeholders( $value ), $allowed ) );
+			if ( 'body_text' !== $field && '' === trim( wp_strip_all_tags( $value ) ) ) {
+				$errors[ $field ] = array(
+					'rule'    => 'required',
+					'unknown' => array(),
+				);
+			} elseif ( mb_strlen( $value ) > $max ) {
+				$errors[ $field ] = array(
+					'rule'    => 'length',
+					'unknown' => array(),
+				);
+			} elseif ( array() !== $unknown ) {
+				$errors[ $field ] = array(
+					'rule'    => 'placeholder',
+					'unknown' => $unknown,
+				);
+			}
+		}
+		return array(
+			'values' => $values,
+			'errors' => $errors,
+		);
+	}
+
+	/**
+	 * Restore the built-in text of one type and language (R0-27 §2.4
+	 * "Werkstext wiederherstellen"); other languages stay.
+	 *
+	 * @param Actor  $actor  Admin.
+	 * @param string $type   Type.
+	 * @param string $locale Locale.
+	 * @return bool Whether an operator text was removed.
+	 * @throws CourseException `ccap_forbidden`, `ccap_invalid_param`.
+	 */
+	public static function reset( Actor $actor, string $type, string $locale ): bool {
+		self::assert_admin( $actor );
+		if ( ! NotificationTypes::exists( $type ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Unknown mail type.', 422 );
+		}
+		$all = self::stored( $type );
+		if ( ! isset( $all[ $locale ] ) ) {
+			return false;
+		}
+		$hash = hash( 'sha256', (string) wp_json_encode( array( $all[ $locale ]['subject'], $all[ $locale ]['body_html'], $all[ $locale ]['body_text'] ) ) );
+		unset( $all[ $locale ] );
+		if ( array() === $all ) {
+			delete_option( self::OPTION_PREFIX . $type );
+		} else {
+			update_option( self::OPTION_PREFIX . $type, $all, false );
+		}
+		AuditLog::write(
+			Database::current(),
+			$actor,
+			'mail_template_reset',
+			'mail_template',
+			$type,
+			null,
+			array(
+				'locale'      => $locale,
+				'hash_before' => $hash,
+			)
+		);
+		return true;
+	}
+
+	/**
+	 * Export of all operator texts (SET-CC-04; no personal data, no secrets).
+	 *
+	 * @param Actor $actor Admin.
+	 * @return array<string, mixed>
+	 * @throws CourseException `ccap_forbidden`, `ccap_rate_limited`.
+	 */
+	public static function export( Actor $actor ): array {
+		self::assert_admin( $actor );
+		self::rate_limit( $actor );
+		$templates = array();
+		foreach ( NotificationTypes::all() as $type ) {
+			foreach ( self::stored( $type ) as $locale => $variant ) {
+				$templates[ $type ][ $locale ] = array(
+					'subject'   => $variant['subject'],
+					'body_html' => $variant['body_html'],
+					'body_text' => $variant['body_text'],
+				);
+			}
+		}
+		return array(
+			'format'         => self::FORMAT,
+			'format_version' => 1,
+			'plugin_version' => defined( 'COURSE_CAPTAIN_VERSION' ) ? (string) constant( 'COURSE_CAPTAIN_VERSION' ) : '',
+			'exported_at'    => gmdate( 'c' ),
+			'site_hash'      => hash( 'sha256', home_url() ),
+			'templates'      => (object) $templates,
+		);
+	}
+
+	/**
+	 * Parse an import file.
+	 *
+	 * @param string $raw Raw JSON.
+	 * @return array<string, mixed>
+	 * @throws CourseException `ccap_validation_failed`.
+	 */
+	public static function parse( string $raw ): array {
+		if ( strlen( $raw ) > self::IMPORT_MAX_BYTES ) {
+			throw new CourseException( 'ccap_validation_failed', 'The file is larger than 256 KB.', 413 );
+		}
+		$data = json_decode( $raw, true );
+		if ( ! is_array( $data ) || self::FORMAT !== ( $data['format'] ?? '' ) || 1 !== (int) ( $data['format_version'] ?? 0 ) || ! is_array( $data['templates'] ?? null ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'Not a Course Captain mail text file.', 422 );
+		}
+		return $data;
+	}
+
+	/**
+	 * Preview or apply an import: every entry is checked like a manual save.
+	 *
+	 * @param Actor                $actor Admin.
+	 * @param array<string, mixed> $data  Parsed file.
+	 * @param bool                 $apply Write the valid entries.
+	 * @return list<array{type: string, locale: string, status: string, errors: array<string, array{rule: string, unknown: list<string>}>}> Status `new`, `changed`, `unchanged`, `unknown_type`, `unknown_locale`, `invalid`.
+	 * @throws CourseException `ccap_forbidden`, `ccap_rate_limited`.
+	 */
+	public static function import( Actor $actor, array $data, bool $apply = false ): array {
+		self::assert_admin( $actor );
+		if ( ! $apply ) {
+			self::rate_limit( $actor );
+		}
+		$plan    = array();
+		$applied = 0;
+		foreach ( (array) $data['templates'] as $type => $variants ) {
+			foreach ( is_array( $variants ) ? $variants : array() as $locale => $variant ) {
+				$entry = array(
+					'type'   => (string) $type,
+					'locale' => (string) $locale,
+					'status' => 'invalid',
+					'errors' => array(),
+				);
+				if ( ! NotificationTypes::exists( (string) $type ) ) {
+					$entry['status'] = 'unknown_type';
+				} elseif ( ! in_array( (string) $locale, self::locales(), true ) ) {
+					$entry['status'] = 'unknown_locale';
+				} elseif ( is_array( $variant ) && is_string( $variant['subject'] ?? null ) && is_string( $variant['body_html'] ?? null ) ) {
+					$check = self::check( (string) $type, $variant['subject'], $variant['body_html'], is_string( $variant['body_text'] ?? null ) ? $variant['body_text'] : '' );
+					if ( array() !== $check['errors'] ) {
+						$entry['errors'] = $check['errors'];
+					} else {
+						$before          = self::stored( (string) $type )[ (string) $locale ] ?? null;
+						$entry['status'] = null === $before ? 'new' : ( array( $before['subject'], $before['body_html'], $before['body_text'] ) === array_values( $check['values'] ) ? 'unchanged' : 'changed' );
+						if ( $apply && 'unchanged' !== $entry['status'] ) {
+							self::save( $actor, (string) $type, (string) $locale, $check['values']['subject'], $check['values']['body_html'], $check['values']['body_text'] );
+							++$applied;
+						}
+					}
+				}
+				$plan[] = $entry;
+			}
+		}
+		if ( $apply ) {
+			AuditLog::write( Database::current(), $actor, 'mail_templates_imported', 'mail_template', 'import', null, array( 'applied' => $applied ) );
+		}
+		return $plan;
+	}
+
+	/**
+	 * Administrators with `ccap_manage_settings` only.
+	 *
+	 * @param Actor $actor Actor.
+	 * @return void
+	 * @throws CourseException `ccap_forbidden`.
+	 */
+	private static function assert_admin( Actor $actor ): void {
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, Settings::CAP ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Not allowed to change mail templates.', 403 );
+		}
+	}
+
+	/**
+	 * 10 exports/imports per account and hour, fail-closed.
+	 *
+	 * @param Actor $actor Actor.
+	 * @return void
+	 * @throws CourseException `ccap_rate_limited`.
+	 */
+	private static function rate_limit( Actor $actor ): void {
+		$key   = self::RATE_PREFIX . $actor->user_id;
+		$now   = time();
+		$state = get_transient( $key );
+		$state = array_values( array_filter( array_map( 'intval', is_array( $state ) ? $state : array() ), static fn( int $t ): bool => $t > $now - HOUR_IN_SECONDS ) );
+		if ( count( $state ) >= self::TRANSFER_PER_HOUR ) {
+			throw new CourseException( 'ccap_rate_limited', 'At most ten mail text exports or imports per hour.', 429 );
+		}
+		$state[] = $now;
+		if ( ! set_transient( $key, $state, HOUR_IN_SECONDS ) && false === get_transient( $key ) ) {
+			throw new CourseException( 'ccap_rate_limited', 'Rate limit storage unavailable.', 503 );
+		}
 	}
 
 	/**
@@ -285,13 +518,18 @@ final class MailTemplates {
 	 * @param string                $locale Requested locale.
 	 * @param array<string, string> $vars   Variable values (raw, unescaped).
 	 * @param bool                  $builtin_only Skip operator variants (fallback after `template_error`).
+	 * @param array|null            $draft  Unsaved operator text `{subject, body_html, body_text}` (preview and test mail of the editor).
+	 * @phpstan-param array{subject: string, body_html: string, body_text: string}|null $draft
 	 * @return array{subject: string, html: string, text: string, locale: string, template_rev: int|null, lang: string, dir: string}
 	 * @throws TemplateError When the template cannot be rendered.
 	 */
-	public static function render( string $type, string $locale, array $vars, bool $builtin_only = false ): array {
+	public static function render( string $type, string $locale, array $vars, bool $builtin_only = false, ?array $draft = null ): array {
 		$allowed = NotificationTypes::variables( $type );
 		$vars    = array_intersect_key( $vars, array_flip( $allowed ) );
 		$variant = $builtin_only ? null : self::variant( $type, $locale );
+		if ( null !== $draft ) {
+			$variant = array( $locale, $draft + array( 'rev' => 0 ) );
+		}
 		if ( null !== $variant ) {
 			list( $resolved, $data ) = $variant;
 			$used                    = self::placeholders( $data['subject'] . ' ' . $data['body_html'] . ' ' . $data['body_text'] );
@@ -366,19 +604,25 @@ final class MailTemplates {
 	/**
 	 * Preview with sample data in a chosen locale.
 	 *
-	 * @param Actor  $actor  Admin.
-	 * @param string $type   Type.
-	 * @param string $locale Locale.
+	 * @param Actor      $actor  Admin.
+	 * @param string     $type   Type.
+	 * @param string     $locale Locale.
+	 * @param array|null $draft Unsaved operator text (editor), null = stored text or built-in text.
+	 * @phpstan-param array{subject: string, body_html: string, body_text: string}|null $draft
 	 * @return array{subject: string, html: string, text: string, locale: string, template_rev: int|null, lang: string, dir: string}
 	 * @throws CourseException Without the capability.
+	 * @throws TemplateError When the text cannot be rendered.
 	 */
-	public static function preview( Actor $actor, string $type, string $locale ): array {
+	public static function preview( Actor $actor, string $type, string $locale, ?array $draft = null ): array {
 		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, Settings::CAP ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to preview mail templates.', 403 );
 		}
 		$switched = switch_to_locale( $locale );
 		try {
-			return self::render( $type, $locale, self::sample_vars( $type ) );
+			return self::render( $type, $locale, self::sample_vars( $type ), false, $draft );
+		} catch ( TemplateError $e ) {
+			// The editor shows its own message; the caller decides (no state change here).
+			throw $e;
 		} finally {
 			if ( $switched ) {
 				restore_previous_locale();
@@ -392,16 +636,18 @@ final class MailTemplates {
 	 * @return array<string, string>
 	 */
 	public static function site_vars(): array {
+		// SET-CC-06: `privacy_policy_url` = own link, else the WordPress privacy page; `imprint_url`, `terms_url`, `withdrawal_url`.
 		return array(
-			'site_name'          => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
-			'site_url'           => home_url( '/' ),
-			'learning_area_url'  => \CourseCaptain\Learner\LearningArea::url(),
-			'privacy_policy_url' => (string) get_privacy_policy_url(),
-		);
+			'site_name'         => wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ),
+			'site_url'          => home_url( '/' ),
+			'learning_area_url' => \CourseCaptain\Learner\LearningArea::url(),
+		) + LegalLinks::mail_vars();
 	}
 
 	/**
-	 * Footer: operator text once, then the unsubscribe line (informational) or the reason sentence (required).
+	 * Footer: operator text once, the links to the legal texts that are set
+	 * (SET-CC-06), then the unsubscribe line (informational) or the reason
+	 * sentence (required).
 	 *
 	 * @param string                $type Type.
 	 * @param array<string, string> $vars Variables.
@@ -414,6 +660,18 @@ final class MailTemplates {
 		if ( '' !== trim( $custom ) ) {
 			$html .= '<p>' . nl2br( esc_html( $custom ) ) . '</p>';
 			$text .= "\n\n" . $custom;
+		}
+		$links = LegalLinks::present();
+		if ( array() !== $links ) {
+			$parts = array();
+			$lines = array();
+			foreach ( $links as $link ) {
+				$parts[] = '<a href="' . esc_url( $link[1] ) . '">' . esc_html( $link[0] ) . '</a>';
+				/* translators: 1: name of a legal text, e.g. "Imprint", 2: its address */
+				$lines[] = sprintf( __( '%1$s: %2$s', 'course-captain' ), $link[0], $link[1] );
+			}
+			$html .= '<p>' . implode( ' · ', $parts ) . '</p>';
+			$text .= "\n\n" . implode( "\n", $lines );
 		}
 		if ( NotificationTypes::is_informational( $type ) && isset( $vars['unsubscribe_url'] ) ) {
 			$line  = __( 'You no longer want these messages? Unsubscribe: {{unsubscribe_url}}', 'course-captain' );
@@ -458,6 +716,9 @@ final class MailTemplates {
 					return $m[0];
 				}
 				$value = trim( (string) preg_replace( '/[\r\n\t]+/', ' ', wp_strip_all_tags( $vars[ $m[1] ] ) ) );
+				if ( '' === $value ) {
+					return '';
+				}
 				if ( in_array( $m[1], NotificationTypes::URL_VARIABLES, true ) ) {
 					return $link_urls ? '<a href="' . esc_url( $value ) . '">' . esc_html( $value ) . '</a>' : esc_url( $value );
 				}

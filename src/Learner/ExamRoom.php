@@ -11,6 +11,7 @@ namespace CourseCaptain\Learner;
 
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
+use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Exam\ExamSessions;
 use CourseCaptain\Kernel\Locale;
 use CourseCaptain\Policy\Actor;
@@ -156,7 +157,7 @@ final class ExamRoom {
 		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="save">' . esc_html__( 'Save answers', 'course-captain' ) . '</button></p>';
 		$html .= '<section class="ccap-submit" aria-labelledby="ccap-submit-heading"><h2 id="ccap-submit-heading">' . esc_html__( 'Submit the exam', 'course-captain' ) . '</h2><p id="ccap-submit-summary">' . esc_html( self::summary( $open, $flagged ) ) . '</p>';
 		$html .= '<p><input type="checkbox" id="ccap-confirm" name="confirm" value="1" aria-describedby="ccap-submit-summary"> <label for="ccap-confirm">' . esc_html__( 'I want to submit my answers now. I cannot change them afterwards.', 'course-captain' ) . '</label></p>';
-		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="submit">' . esc_html__( 'Submit exam', 'course-captain' ) . '</button></p></section>';
+		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="submit">' . esc_html( LearningArea::button_label( 'submit_exam', __( 'Submit exam', 'course-captain' ) ) ) . '</button></p></section>';
 		$html .= '<section class="ccap-cancel" aria-labelledby="ccap-cancel-heading"><h2 id="ccap-cancel-heading">' . esc_html__( 'Cancel the exam', 'course-captain' ) . '</h2><p id="ccap-cancel-hint">' . esc_html__( 'A cancelled attempt is not evaluated. You will be asked to confirm.', 'course-captain' ) . '</p>';
 		$html .= '<p><button type="submit" class="ccap-button" name="ccap_do" value="cancel" aria-describedby="ccap-cancel-hint">' . esc_html__( 'Cancel exam', 'course-captain' ) . '</button></p></section></form>';
 		if ( null !== $view['remaining_seconds'] ) {
@@ -507,7 +508,7 @@ final class ExamRoom {
 	 */
 	public static function course_exams( Actor $actor, int $course_id ): string {
 		$db    = Database::current();
-		$rules = $db->rows( $db->prepare( 'SELECT id, version, time_limit_seconds FROM `' . $db->table( 'ccap_exam_rule' ) . "` WHERE course_id = %d AND status = 'published' ORDER BY id", $course_id ) );
+		$rules = $db->rows( $db->prepare( 'SELECT id, version, time_limit_seconds, settings FROM `' . $db->table( 'ccap_exam_rule' ) . "` WHERE course_id = %d AND status = 'published' ORDER BY id", $course_id ) );
 		if ( array() === $rules ) {
 			return '';
 		}
@@ -531,11 +532,43 @@ final class ExamRoom {
 			if ( isset( $running[ $rule['id'] ] ) ) {
 				$html .= '<p><a class="ccap-button" href="' . esc_url( LearningArea::url( 'pruefung/' . (int) $running[ $rule['id'] ] ) ) . '">' . esc_html__( 'Continue exam', 'course-captain' ) . '</a></p>';
 			} else {
-				$html .= '<form method="post" action=""><input type="hidden" name="ccap_do" value="start_exam"><input type="hidden" name="rule" value="' . (int) $rule['id'] . '"><input type="hidden" name="request_key" value="' . esc_attr( wp_generate_uuid4() ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false ) . '<button type="submit" class="ccap-button">' . esc_html__( 'Start exam', 'course-captain' ) . '</button></form>';
+				$choice = self::variant_choice( $course_id, (string) $rule['settings'] );
+				if ( null === $choice ) {
+					$html .= '<p>' . esc_html__( 'This exam cannot be started yet: no exam form is available.', 'course-captain' ) . '</p></li>';
+					continue;
+				}
+				$html .= '<form method="post" action=""><input type="hidden" name="ccap_do" value="start_exam"><input type="hidden" name="rule" value="' . (int) $rule['id'] . '"><input type="hidden" name="request_key" value="' . esc_attr( wp_generate_uuid4() ) . '">' . wp_nonce_field( self::NONCE, '_wpnonce', false, false ) . $choice . '<button type="submit" class="ccap-button">' . esc_html( LearningArea::button_label( 'start_exam', __( 'Start exam', 'course-captain' ) ) ) . '</button></form>';
 			}
 			$html .= '</li>';
 		}
 		return $html . '</ul></section>';
+	}
+
+	/**
+	 * Choice of the fixed exam form for rules in the mode "fixed variants"
+	 * (UI-F8): '' for a random draw, null when no form is frozen yet.
+	 *
+	 * @param int    $course_id Course.
+	 * @param string $settings  Stored rule settings (JSON).
+	 * @return string|null
+	 */
+	private static function variant_choice( int $course_id, string $settings ): ?string {
+		$stored = json_decode( $settings, true );
+		if ( 'variants' !== ExamRules::form_mode( array( 'settings_stored' => is_array( $stored ) ? $stored : array() ) ) ) {
+			return '';
+		}
+		$variants = array_values( array_filter( ExamRules::current()->variants( $course_id, false ), static fn( array $v ): bool => 'published' === $v['status'] ) );
+		if ( array() === $variants ) {
+			return null;
+		}
+		$html = '<fieldset class="ccap-exam-forms"><legend>' . esc_html__( 'Choose an exam form', 'course-captain' ) . '</legend>';
+		foreach ( $variants as $i => $variant ) {
+			$count = count( $variant['questions'] );
+			/* translators: 1: exam form number, 2: number of questions */
+			$label = sprintf( _n( 'Exam form %1$d (%2$d question)', 'Exam form %1$d (%2$d questions)', $count, 'course-captain' ), $variant['variant_no'], $count );
+			$html .= '<p><label><input type="radio" name="variant" value="' . (int) $variant['id'] . '"' . ( 0 === $i ? ' required' : '' ) . '> ' . esc_html( $label ) . '</label></p>';
+		}
+		return $html . '</fieldset>';
 	}
 
 	/**
@@ -557,7 +590,8 @@ final class ExamRoom {
 			return 'ccap_invalid_param';
 		}
 		try {
-			return ExamSessions::current()->start( $actor, $rule, null, $key );
+			$variant = absint( $post['variant'] ?? 0 );
+			return ExamSessions::current()->start( $actor, $rule, $variant > 0 ? $variant : null, $key );
 		} catch ( CourseException $e ) {
 			return $e->error_code;
 		}

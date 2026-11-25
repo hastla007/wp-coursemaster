@@ -76,6 +76,10 @@ final class GradingArea {
 			$out['result'] = 'ccap_invalid_nonce';
 			return $out;
 		}
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::ASSIGNMENTS ) ) {
+			$out['result'] = 'ccap_module_disabled';
+			return $out;
+		}
 		$points = trim( (string) ( $post['points'] ?? '' ) );
 		if ( 'grade' === $op && ! ctype_digit( $points ) ) {
 			$out['result'] = 'ccap_points_invalid';

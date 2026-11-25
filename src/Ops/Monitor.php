@@ -42,6 +42,22 @@ final class Monitor {
 	public const PER_MINUTE  = 60;
 
 	/**
+	 * Warning threshold of the hourly maintenance in seconds: the setting
+	 * `advanced.cron_stale_warning_minutes` (SET-CC-P1; default 180 = the
+	 * former constant), the constant when the setting cannot be read.
+	 *
+	 * @return int
+	 */
+	public static function cron_stale(): int {
+		try {
+			return max( HOUR_IN_SECONDS, (int) \CourseCaptain\Settings\Settings::get( 'advanced.cron_stale_warning_minutes' ) * MINUTE_IN_SECONDS );
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			return self::CRON_STALE;
+		}
+	}
+
+	/**
 	 * Clock override (tests).
 	 *
 	 * @var int|null
@@ -250,7 +266,7 @@ final class Monitor {
 			// H-04: own tables present.
 			'H-04' => self::tables_present(),
 			// H-07: hourly maintenance ran within 3 h; freshly installed and planned = ok.
-			'H-07' => false !== $next && ( $last > 0 ? $now - $last <= self::CRON_STALE : (int) $next >= $now - self::CRON_STALE ),
+			'H-07' => false !== $next && ( $last > 0 ? $now - $last <= self::cron_stale() : (int) $next >= $now - self::cron_stale() ),
 			// H-10: no whole maintenance task failed within 2 h.
 			'H-10' => array() === $failures || $now - $last > self::TASK_WINDOW,
 			// H-14: protected folder reachable and guarded.

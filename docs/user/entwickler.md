@@ -79,6 +79,7 @@ Mit R1-28 (parallel umgesetzt) tragen alle Fehler in `course-captain/v1` die Fel
 | `course_captain_outbox_dead_lettered` | Action | `int $delivery_id, string $subscriber_id` | Zustellung endgültig gescheitert |
 | `course_captain_certificate_fallback_rendered` | Action | `string $kind, string $certificate_uid` | Diagnose: unbekannte Vorlagenart, Standardlayout genutzt |
 | `course_captain_uninstall` | Action | `UninstallManifest $manifest` | während der Deinstallation |
+| `course_captain_business_rule` | Filter | `mixed $value, string $key` | Geschäftsregel aus dem Einstellungsregister ersetzen (Filter gewinnt, S2); Schlüssel z. B. `exams.starts_per_hour`, `learning.review_intervals`; ungültige Werte werden ignoriert |
 | `course_captain_cache_purge` | Action | `array{scope, ids, urls} $purge` | nach Veröffentlichen/Archivieren eines Kurses: öffentliche Seiten aus Page-Caches entfernen |
 | `course_captain_policy_changed` | Action | – | Rechte-/Zugangsänderung (leert Memo); auslösen, wenn eigene Regeln Zugriff ändern |
 | `course_captain_certificate_renderers` | Filter | `array $renderers` | weitere Zertifikats-Renderer |
@@ -89,8 +90,10 @@ Mit R1-28 (parallel umgesetzt) tragen alle Fehler in `course-captain/v1` die Fel
 | `course_captain_outbound_mode` | Filter | `array $resolved` | Ausgangsmodus (Tests, MU-Plugins) |
 | `course_captain_notification_hold` | Filter | `bool $hold` | Mails zurückhalten (Anschluss Haltemodus) |
 | `course_captain_publish_guard_applies` | Filter | `bool $applies` | ob der Statuswechsel-Schutz greift |
+| `course_captain_purchase_sources` | Filter | `string[] $sources` (Standard `woo_order`, `voucher`) | weitere Kaufquellen eines Connectors: deren Grant-Historie bleibt nach einer Kontolöschung pseudonymisiert (RT-13) statt sofort gelöscht zu werden; nur ergänzend, ungültige Namen und `manual`/`group_seat`/`workflow`/`free_enrollment` werden ignoriert |
 | `course_captain_explanations_available` | Filter | `bool` (Standard `false`) | Erklärungstexte (nur Pro) |
 | `course_captain_allow_unmoved_protected_file` | Filter | `bool, string $path` | Auslieferung noch nicht verschobener Dateien |
+| `course_captain_protected_file_sendfile` | Filter (experimentell) | `?array $headers, string $path, array $media` | Header wie `X-Accel-Redirect`/`X-Sendfile`: der Webserver liefert die geprüfte Datei aus, PHP sendet nur Header (Standard `null` = PHP-Auslieferung) |
 
 **Intern** (keine stabile Schnittstelle, nur für Kernabonnenten): `course_captain_internal_subscribers`, `course_captain_internal_subscriber_handlers`.
 

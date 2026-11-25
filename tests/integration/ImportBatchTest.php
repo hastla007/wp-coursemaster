@@ -282,10 +282,13 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * budgeted steps (monotonic progress, adaptive chunk size), activation,
 	 * then the same package again creates nothing.
 	 *
+	 * IMP-032 (scaled): large package over many budgeted steps with resume-safe progress.
+	 *
 	 * @group BIG-011
 	 * @group BIG-020
 	 * @group BIG-022
 	 * @group GM-125
+	 * @group IMP-032
 	 */
 	public function test_BIG_020_chunked_commit_and_idempotent_reimport(): void {
 		$file  = $this->package( self::records( 1500 ), 'p1500' );
@@ -330,10 +333,14 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * BIG-023/BIG-024/BIG-027: crash inside a chunk, live and expired foreign
 	 * leases, resume repeats at most one chunk without duplicates.
 	 *
+	 * IMP-020: a live foreign lease keeps a second step of the same batch out; IMP-022: resume after a crash finishes without duplicates.
+	 *
 	 * @group BIG-023
 	 * @group BIG-024
 	 * @group BIG-027
 	 * @group GM-136
+	 * @group IMP-020
+	 * @group IMP-022
 	 */
 	public function test_BIG_023_crash_resume_and_lease(): void {
 		$batch  = $this->approved( $this->package( self::records( 300 ), 'p300' ) );
@@ -380,7 +387,8 @@ final class ImportBatchTest extends SchemaTestCase {
 	/**
 	 * GM-136 (scaled PKG-LARGE): 600 instead of 20 000 synthetic questions,
 	 * 3 of them defective; the run is aborted at 50 % and resumed: 597
-	 * imported, the report has exactly the 3 defective entries, no duplicates.
+	 * imported, the report (table and JSON export) has exactly the 3
+	 * defective entries, no duplicates in content or item log.
 	 *
 	 * @group R1-18
 	 * @group GM-136
@@ -417,6 +425,15 @@ final class ImportBatchTest extends SchemaTestCase {
 			self::assertSame( 0, self::object( 'question', $source ), $source );
 		}
 		self::assertSame( $bad, $issues(), 'report still has exactly 3 entries' );
+
+		// The exported error report (R0-38 §5.1) lists the same 3 records, nothing else.
+		$report = ImportReport::export( $admin, $batch, 'json', array( 'severity' => 'error' ) );
+		self::assertIsArray( $report );
+		self::assertSame( 'published', $report['status'] );
+		self::assertSame( $bad, array_column( $report['issues'], 'source_id' ) );
+		self::assertSame( 3, (int) ( (array) $report['summary']['severity'] )['error'] );
+		// Resume without duplicates: every imported record was written exactly once.
+		self::assertSame( 0, self::num( 'SELECT COUNT(*) FROM (SELECT source_id FROM {t} WHERE batch_id = %d GROUP BY entity, source_id HAVING COUNT(*) > 1) d', 'ccap_import_item_log', $batch ) );
 	}
 
 	/**
@@ -589,6 +606,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 *
 	 * @group BIG-035
 	 * @group GM-136
+	 * @group IMP-015
 	 */
 	public function test_BIG_035_object_isolation_and_threshold(): void {
 		$admin = Actor::user( $this->admin );
@@ -711,6 +729,7 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * @group BIG-016
 	 * @group BIG-030
 	 * @group GM-126
+	 * @group IMP-023
 	 */
 	public function test_BIG_030_cancel_and_discard(): void {
 		$before = self::counts();
@@ -756,9 +775,12 @@ final class ImportBatchTest extends SchemaTestCase {
 	/**
 	 * BIG-037/BIG-038: resume pre-checks (changed spool, newer activated import).
 	 *
+	 * IMP-019: a newer activated import supersedes the batch.
+	 *
 	 * @group BIG-037
 	 * @group BIG-038
 	 * @group GM-124
+	 * @group IMP-019
 	 */
 	public function test_BIG_037_resume_prechecks(): void {
 		$admin  = Actor::user( $this->admin );
@@ -791,8 +813,11 @@ final class ImportBatchTest extends SchemaTestCase {
 	 * E-177/E-181: background chain over `ccap_task_continue`, approver rights
 	 * re-checked, hourly watchdog resumes stale runs up to three times.
 	 *
+	 * IMP-022: stale runs (no heartbeat) are resumed by the watchdog.
+	 *
 	 * @group E-177
 	 * @group E-181
+	 * @group IMP-022
 	 */
 	public function test_background_chain_and_watchdog(): void {
 		$admin = Actor::user( $this->admin );

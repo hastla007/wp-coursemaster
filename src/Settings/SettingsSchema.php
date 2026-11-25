@@ -16,15 +16,63 @@ defined( 'ABSPATH' ) || exit;
  * Field contract: `type`, `default`, `cap` (`settings` = #19,
  * `admin` = #19 and administrator only), `privacy`
  * (public/internal/personal/secret), `side_effects`, `export`, plus type
- * rules (`min`, `max`, `nullable`, `values`, `fields`). `export` is `true`,
+ * rules (`min`, `max`, `nullable`, `values`, `fields`). `legal_review` = true
+ * marks values whose legal effect the operator has to check (badge
+ * "Legal review" in the form and the handbook). `export` is `true`,
  * `false` or `never_env` (environment-bound, never exported or imported, R0-31 EX-2). Free core fields
- * only; `pro.*` keys are registered by the add-on (SR-8). Roles, mail
- * templates and the retention sub-keys have their own stores (R1-34,
- * R1-21, R1-17); `emails.types` is a strict object (R1-21).
+ * only; `pro.*` keys are registered by the add-on (SR-8). Roles and mail
+ * templates have their own stores (R1-34, R1-21); the retention periods are
+ * the object `privacy.retention` (SET-CC-02); `emails.types` is a strict object (R1-21).
  */
 final class SettingsSchema {
 
-	public const VERSION = 1;
+	/**
+	 * 2: business rules and module switches (SET-CC-13/24/25/26); v1 values stay as they are.
+	 * 3: fields without any effect removed (SET-CC-P1): `general.catalog_group_language_versions`,
+	 * `advanced.import_execution`, `advanced.file_delivery`, `advanced.media_delete_grace_days`;
+	 * the migration drops their stored values, every other value stays.
+	 * 4: retention periods `privacy.retention` (SET-CC-02, D1); `advanced.error_log_days` and
+	 * `advanced.debug_file_days` move into it ({@see self::MOVED}) with their stored values.
+	 */
+	public const VERSION = 4;
+
+	/**
+	 * Keys moved by a register version: old key => new key (`tab.field.sub`) and the version that moved it.
+	 *
+	 * @var array<string, array{0: string, 1: int}>
+	 */
+	public const MOVED = array(
+		'advanced.error_log_days'  => array( 'privacy.retention.error_log_days', 4 ),
+		'advanced.debug_file_days' => array( 'privacy.retention.debug_file_days', 4 ),
+	);
+
+	/**
+	 * Docking point for add-on fields (SET-CC-01, R0-27 SR-1/SR-8): keys
+	 * `pro.<tab>.<field>`; the core validates the definitions but never
+	 * stores, renders or deletes their values.
+	 */
+	public const ADDON_FIELDS_FILTER = 'course_captain_settings_register_fields_v1';
+
+	/** Pattern of an add-on register key. */
+	public const ADDON_KEY_PATTERN = '/^pro\.[a-z][a-z0-9_]{0,39}(\.[a-z][a-z0-9_]{0,39}){1,3}$/';
+
+	/** Field types the register validator knows. */
+	public const TYPES = array( 'bool', 'int', 'page_id', 'enum', 'set', 'slug', 'string', 'text', 'color', 'email', 'url', 'ip_list', 'host_list', 'object' );
+
+	/** Maximum length of a `url` value (SET-CC-06). */
+	public const URL_MAX = 2000;
+
+	/** Allowed schemes of a `url` value. */
+	public const URL_SCHEMES = array( 'http', 'https' );
+
+	/** Sub-keys of `general.legal_links` (SET-CC-06). */
+	public const LEGAL_LINKS = array( 'imprint', 'terms', 'withdrawal', 'privacy' );
+
+	/** Removed register keys (VERSION 3), kept for documentation and tests. */
+	public const REMOVED = array( 'general.catalog_group_language_versions', 'advanced.import_execution', 'advanced.file_delivery', 'advanced.media_delete_grace_days' );
+
+	/** Maximum length of a button label of the learning area (SET-CC-16). */
+	public const BUTTON_LABEL_MAX = 40;
 
 	/**
 	 * Tabs with their autoload flag (R0-27 §2.1).
@@ -58,73 +106,143 @@ final class SettingsSchema {
 		);
 		$schema    = array(
 			'general'      => array(
-				'learning_area_slug'              => array(
+				'learning_area_slug'       => array(
 					'type'         => 'slug',
 					'default'      => 'lernen',
 					'side_effects' => array( 'rewrite_flush' ),
 				),
-				'course_slug'                     => array(
+				'course_slug'              => array(
 					'type'         => 'slug',
 					'default'      => 'kurs',
 					'side_effects' => array( 'rewrite_flush' ),
 				),
-				'catalog_page_id'                 => array(
+				'catalog_page_id'          => array(
 					'type'    => 'page_id',
 					'default' => 0,
 				),
-				'learner_home_page_id'            => array(
+				'learner_home_page_id'     => array(
 					'type'    => 'page_id',
 					'default' => 0,
 				),
-				'learning_area_title'             => array(
+				'learning_area_title'      => array(
 					'type'    => 'string',
 					'max'     => 60,
 					'default' => '',
 				),
-				'use_profile_locale'              => array(
+				'use_profile_locale'       => array(
 					'type'     => 'bool',
 					'nullable' => true,
 					'default'  => null,
 				),
-				'catalog_group_language_versions' => array(
-					'type'    => 'bool',
-					'default' => false,
-				),
-				'catalog_indexing'                => array(
+				'catalog_indexing'         => array(
 					'type'    => 'enum',
 					'values'  => array( 'public_catalog', 'noindex' ),
 					'default' => 'public_catalog',
 				),
-				'delete_data_on_uninstall'        => array(
+				// SET-CC-06: links to the operator's legal texts; which of them are required is the operator's decision.
+				'legal_links'              => array(
+					'type'         => 'object',
+					'strict'       => true,
+					'legal_review' => true,
+					'fields'       => array(
+						'imprint'    => array( 'type' => 'url' ),
+						'terms'      => array( 'type' => 'url' ),
+						'withdrawal' => array( 'type' => 'url' ),
+						// Empty = the privacy policy page of WordPress (Settings › Privacy).
+						'privacy'    => array( 'type' => 'url' ),
+					),
+					'default'      => array(
+						'imprint'    => '',
+						'terms'      => '',
+						'withdrawal' => '',
+						'privacy'    => '',
+					),
+				),
+				'delete_data_on_uninstall' => array(
 					'type'    => 'bool',
 					'default' => false,
 					'cap'     => 'admin',
 					'export'  => false,
 				),
+				// SET-CC-07: chosen country profile; changes no other value (suggestions only, CountryProfiles).
+				'country_profile'          => array(
+					'type'    => 'enum',
+					'values'  => array( '', 'DE', 'AT', 'CH', 'EU', 'OTHER' ),
+					'default' => '',
+				),
 			),
 			'display'      => array(
-				'container_width'  => array(
+				'container_width'       => array(
 					'type'    => 'enum',
 					'values'  => array( 'theme', 'wide', 'full' ),
 					'default' => 'theme',
 				),
-				'breadcrumbs'      => array(
+				'breadcrumbs'           => array(
 					'type'    => 'bool',
 					'default' => true,
 				),
-				'catalog_sort'     => array(
+				'catalog_sort'          => array(
 					'type'    => 'enum',
 					'values'  => array( 'manual', 'title', 'newest' ),
 					'default' => 'manual',
 				),
-				'card_elements'    => array(
+				'card_elements'         => array(
 					'type'    => 'set',
 					'values'  => array( 'cover', 'summary', 'lesson_count', 'progress' ),
 					'default' => array( 'cover', 'summary', 'lesson_count', 'progress' ),
 				),
-				'require_captions' => array(
+				'require_captions'      => array(
 					'type'    => 'bool',
 					'default' => false,
+				),
+				// SET-CC-18: missing transcripts block publishing (VAL-144); without it they are a notice.
+				'require_transcripts'   => array(
+					'type'    => 'bool',
+					'default' => false,
+				),
+				'accessibility_page_id' => array(
+					'type'    => 'page_id',
+					'default' => 0,
+				),
+				// SET-CC-16: base branding of the learning area (E-346 S6: free).
+				'logo_id'               => array(
+					'type'    => 'int',
+					'min'     => 0,
+					'default' => 0,
+					// A media ID only means something on this website.
+					'export'  => false,
+				),
+				'accent_color'          => array(
+					'type'    => 'color',
+					'default' => '',
+				),
+				'button_labels'         => array(
+					'type'    => 'object',
+					'strict'  => true,
+					'fields'  => array(
+						'enroll'      => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+						'complete'    => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+						'start_exam'  => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+						'submit_exam' => array(
+							'type' => 'string',
+							'max'  => self::BUTTON_LABEL_MAX,
+						),
+					),
+					'default' => array(
+						'enroll'      => '',
+						'complete'    => '',
+						'start_exam'  => '',
+						'submit_exam' => '',
+					),
 				),
 			),
 			'learning'     => array(
@@ -145,6 +263,41 @@ final class SettingsSchema {
 				'mistake_training_enabled'  => array(
 					'type'    => 'bool',
 					'default' => true,
+				),
+				// Module switches (SET-CC-24): off hides UI, REST and jobs; no data is deleted.
+				'flashcards_enabled'        => array(
+					'type'    => 'bool',
+					'default' => true,
+				),
+				'assignments_enabled'       => array(
+					'type'    => 'bool',
+					'default' => true,
+				),
+				// Smart trainer review intervals in days (SET-CC-13; former SmartTrainer::REVIEW_INTERVAL_DAYS).
+				'review_intervals'          => array(
+					'type'    => 'object',
+					'fields'  => array(
+						'first'  => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 365,
+						),
+						'second' => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 730,
+						),
+						'third'  => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1825,
+						),
+					),
+					'default' => array(
+						'first'  => 7,
+						'second' => 21,
+						'third'  => 60,
+					),
 				),
 				// Register `assignments.*` (R0-27 SET-134, E-289): a task may only be stricter.
 				'assignment_file_types'     => array(
@@ -271,6 +424,13 @@ final class SettingsSchema {
 					'nullable' => true,
 					'default'  => null,
 				),
+				// Exam starts per learner and hour (SET-CC-13; former ExamSessions::START_LIMIT_HOUR).
+				'starts_per_hour'           => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 1000,
+					'default' => 40,
+				),
 			),
 			'enrollment'   => array(
 				'self_enrollment'             => array(
@@ -281,6 +441,14 @@ final class SettingsSchema {
 					'type'     => 'int',
 					'min'      => 1,
 					'max'      => 3650,
+					'nullable' => true,
+					'default'  => null,
+				),
+				// Global drip plan (SET-CC-25): module n unlocks n × days after the access start; empty = at once.
+				'default_drip_days'           => array(
+					'type'     => 'int',
+					'min'      => 1,
+					'max'      => 365,
 					'nullable' => true,
 					'default'  => null,
 				),
@@ -312,16 +480,53 @@ final class SettingsSchema {
 				),
 			),
 			'certificates' => array(
-				'auto_issue'         => array(
+				// Module switch (SET-CC-24): issued certificates stay verifiable.
+				'enabled'               => array(
+					'type'    => 'bool',
+					'default' => true,
+				),
+				'auto_issue'            => array(
 					'type'    => 'bool',
 					'default' => false,
 				),
-				'holder_name_policy' => array(
+				'holder_name_policy'    => array(
 					'type'    => 'enum',
 					'values'  => array( 'never', 'learner_opt_in' ),
 					'default' => 'learner_opt_in',
 				),
-				'base_template'      => array(
+				// SET-CC-08: defaults of new certificates; issued certificates keep their snapshot.
+				// Validity in days for evidence without an own validity (course completion, exams without one); empty = unlimited.
+				'default_validity_days' => array(
+					'type'     => 'int',
+					'min'      => 1,
+					'max'      => 3650,
+					'nullable' => true,
+					'default'  => null,
+				),
+				// Days before the end of validity from which learners see the renewal notice.
+				'expiry_notice_days'    => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 365,
+					'default' => 30,
+				),
+				'paper_format'          => array(
+					'type'    => 'enum',
+					'values'  => array( 'a4', 'letter' ),
+					'default' => 'a4',
+				),
+				// Language of new certificates: website, profile language of the learner or `fixed_locale`.
+				'language'              => array(
+					'type'    => 'enum',
+					'values'  => array( 'site', 'learner', 'fixed' ),
+					'default' => 'site',
+				),
+				'fixed_locale'          => array(
+					'type'    => 'string',
+					'max'     => 20,
+					'default' => '',
+				),
+				'base_template'         => array(
 					'type'    => 'object',
 					'fields'  => array(
 						'issuer_name'     => array(
@@ -411,6 +616,12 @@ final class SettingsSchema {
 					'cap'     => 'admin',
 					'export'  => 'never_env',
 				),
+				// Hosts that do not count as foreign media hosts (SET-CC-13; filter `course_captain_trusted_media_hosts` wins).
+				'trusted_media_hosts'     => array(
+					'type'    => 'host_list',
+					'max'     => 50,
+					'default' => array(),
+				),
 				'show_avatars'            => array(
 					'type'    => 'bool',
 					'default' => false,
@@ -419,6 +630,12 @@ final class SettingsSchema {
 					'type'    => 'enum',
 					'values'  => array( 'enforce', 'report_only' ),
 					'default' => 'enforce',
+				),
+				// SET-CC-02 (R0-27 §1.4, D1): 21 sub-keys plus `import_package_days`; filter `course_captain_retention_days` wins.
+				'retention'               => array(
+					'type'    => 'object',
+					'fields'  => \CourseCaptain\Privacy\RetentionPolicy::fields(),
+					'default' => \CourseCaptain\Privacy\RetentionPolicy::defaults(),
 				),
 			),
 			'hardening'    => array(
@@ -430,32 +647,68 @@ final class SettingsSchema {
 					'default' => true,
 					'cap'     => 'admin',
 				),
+				// Lifetime of the device cookie (SET-CC-13; former Hardening::DEVICE_DAYS).
+				'known_device_days'  => array(
+					'type'    => 'int',
+					'min'     => 1,
+					'max'     => 365,
+					'default' => 180,
+					'cap'     => 'admin',
+				),
+				// Failed logins per 15 minutes (SET-CC-13, R1-45): `ip`, `account_ip`, `account`; windows and
+				// the reset/registration limits stay technical constants; the filter `course_captain_hardening_limits` wins.
+				'login_limits'       => array(
+					'type'    => 'object',
+					'fields'  => array(
+						'ip'         => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1000,
+						),
+						'account_ip' => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1000,
+						),
+						'account'    => array(
+							'type' => 'int',
+							'min'  => 1,
+							'max'  => 1000,
+						),
+					),
+					'default' => array(
+						'ip'         => 10,
+						'account_ip' => 5,
+						'account'    => 30,
+					),
+					'cap'     => 'admin',
+				),
 				'xmlrpc'             => $hardening,
 				'site_headers'       => $hardening,
 			),
 			'advanced'     => array(
-				'import_execution'           => array(
-					'type'    => 'enum',
-					'values'  => array( 'background', 'browser' ),
-					'default' => 'background',
-				),
-				'file_delivery'              => array(
-					'type'    => 'enum',
-					'values'  => array( 'php', 'x_sendfile', 'x_accel_redirect' ),
-					'default' => 'php',
-					'export'  => 'never_env',
-				),
-				'media_delete_grace_days'    => array(
-					'type'    => 'int',
-					'min'     => 1,
-					'max'     => 90,
-					'default' => 7,
-				),
 				'cron_stale_warning_minutes' => array(
 					'type'    => 'int',
 					'min'     => 60,
 					'max'     => 1440,
 					'default' => 180,
+				),
+				// SET-CC-22 (R0-13 DL-3, E-143): `info`/`debug` fall back to the default after 7 days.
+				'log_level'                  => array(
+					'type'    => 'enum',
+					'values'  => array( 'error', 'warning', 'info', 'debug' ),
+					'default' => 'warning',
+					'export'  => 'never_env',
+				),
+				// Reports (SET-CC-26): default CSV columns and pseudonymised exports.
+				'report_csv_columns'         => array(
+					'type'    => 'set',
+					'values'  => \CourseCaptain\Progress\CourseReport::CSV_COLUMNS,
+					'default' => \CourseCaptain\Progress\CourseReport::CSV_COLUMNS,
+				),
+				'report_pseudonymize'        => array(
+					'type'    => 'bool',
+					'default' => false,
 				),
 			),
 		);
@@ -550,6 +803,83 @@ final class SettingsSchema {
 	}
 
 	/**
+	 * Add-on fields registered through `course_captain_settings_register_fields_v1`
+	 * (SET-CC-01). Same contract as a core field plus the `pro.` key prefix;
+	 * a definition is dropped when the key does not match
+	 * `pro.<tab>.<field>`, the type is unknown, the default does not pass
+	 * the validator or an object or closure is passed anywhere (no function code
+	 * through the register). Core fields can never be replaced this way.
+	 *
+	 * @return array<string, array<string, mixed>> Key => normalized definition.
+	 */
+	public static function addon_fields(): array {
+		/**
+		 * Add-on register fields (stable docking point, contract v1).
+		 *
+		 * @since 1.0.0
+		 * @param array<string, array<string, mixed>> $fields `pro.<tab>.<field>` => definition (`type`, `default`, optional `cap`, `privacy`, `export`, type rules).
+		 */
+		$raw = apply_filters( 'course_captain_settings_register_fields_v1', array() );
+		$out = array();
+		foreach ( is_array( $raw ) ? $raw : array() as $key => $def ) {
+			$def = self::addon_field( (string) $key, $def );
+			if ( null !== $def ) {
+				$out[ (string) $key ] = $def;
+			}
+		}
+		ksort( $out );
+		return $out;
+	}
+
+	/**
+	 * Normalize one add-on definition, null when it is not acceptable.
+	 *
+	 * @param string $key Register key.
+	 * @param mixed  $def Definition.
+	 * @return array<string, mixed>|null
+	 */
+	private static function addon_field( string $key, $def ): ?array {
+		if ( 1 !== preg_match( self::ADDON_KEY_PATTERN, $key ) || ! is_array( $def ) || self::has_callable( $def ) ) {
+			return null;
+		}
+		if ( ! in_array( $def['type'] ?? null, self::TYPES, true ) || ! array_key_exists( 'default', $def ) ) {
+			return null;
+		}
+		$def += array(
+			'cap'          => 'settings',
+			'privacy'      => 'internal',
+			'side_effects' => array(),
+			'export'       => true,
+		);
+		if ( ! in_array( $def['cap'], array( 'settings', 'admin' ), true ) || ! in_array( $def['privacy'], array( 'public', 'internal', 'personal', 'secret' ), true ) || ! in_array( $def['export'], array( true, false, 'never_env' ), true ) ) {
+			return null;
+		}
+		// Side effects belong to the add-on; the core runs none for foreign fields.
+		$def['side_effects'] = array();
+		$check               = self::validate( $def, $def['default'] );
+		if ( ! $check['ok'] || $check['value'] !== $def['default'] ) {
+			return null;
+		}
+		$def['tab'] = explode( '.', $key )[1];
+		return $def;
+	}
+
+	/**
+	 * Whether a definition carries a callable or object anywhere.
+	 *
+	 * @param array<mixed> $def Definition.
+	 * @return bool
+	 */
+	private static function has_callable( array $def ): bool {
+		foreach ( $def as $value ) {
+			if ( is_object( $value ) || ( is_array( $value ) && self::has_callable( $value ) ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Defaults of a tab.
 	 *
 	 * @param string $tab Tab.
@@ -557,6 +887,42 @@ final class SettingsSchema {
 	 */
 	public static function defaults( string $tab ): array {
 		return array_map( static fn( array $f ) => $f['default'], self::fields()[ $tab ] ?? array() );
+	}
+
+	/**
+	 * Upgrade the tabs of a settings file of an older register version
+	 * ({@see self::MOVED}): a moved value is taken out of its old tab and
+	 * merged into the object of its new tab (on top of the object in the
+	 * file, else of `$current`). Newer files are returned unchanged.
+	 *
+	 * @param array<string, mixed> $data    Parsed file.
+	 * @param callable             $current Current value of an object field by `tab.field`.
+	 * @phpstan-param callable(string): array<string, mixed> $current
+	 * @return array<string, mixed>
+	 */
+	public static function upgrade_file( array $data, callable $current ): array {
+		$version = (int) ( $data['settings_version'] ?? 0 );
+		if ( ! is_array( $data['tabs'] ?? null ) ) {
+			return $data;
+		}
+		foreach ( self::MOVED as $from => $move ) {
+			list( $to, $since )    = $move;
+			list( $ftab, $ffield ) = explode( '.', $from, 2 );
+			if ( $version >= $since || ! is_array( $data['tabs'][ $ftab ]['values'] ?? null ) || ! array_key_exists( $ffield, $data['tabs'][ $ftab ]['values'] ) ) {
+				continue;
+			}
+			list( $ttab, $tfield, $tsub ) = explode( '.', $to, 3 );
+			$value                        = $data['tabs'][ $ftab ]['values'][ $ffield ];
+			unset( $data['tabs'][ $ftab ]['values'][ $ffield ] );
+			$target                                     = $data['tabs'][ $ttab ]['values'][ $tfield ] ?? null;
+			$target                                     = is_array( $target ) ? $target : $current( $ttab . '.' . $tfield );
+			$target[ $tsub ]                            = $value;
+			$data['tabs'][ $ttab ]['values'][ $tfield ] = $target;
+			if ( ! isset( $data['tabs'][ $ttab ]['_schema'] ) ) {
+				$data['tabs'][ $ttab ]['_schema'] = $version;
+			}
+		}
+		return $data;
 	}
 
 	/**
@@ -578,7 +944,7 @@ final class SettingsSchema {
 					'value' => null,
 				);
 			}
-			if ( in_array( $field['type'], array( 'string', 'text', 'email' ), true ) ) {
+			if ( in_array( $field['type'], array( 'string', 'text', 'email', 'url' ), true ) ) {
 				return array(
 					'ok'    => true,
 					'value' => '',
@@ -634,11 +1000,25 @@ final class SettingsSchema {
 					'ok'    => true,
 					'value' => $clean,
 				);
+			case 'color':
+				// `#rrggbb` (normalized to lower case) or empty = theme/default colours.
+				if ( '' === $value ) {
+					return array(
+						'ok'    => true,
+						'value' => '',
+					);
+				}
+				return is_string( $value ) && 1 === preg_match( '/^#[0-9a-fA-F]{6}$/', $value ) ? array(
+					'ok'    => true,
+					'value' => strtolower( $value ),
+				) : $bad;
 			case 'email':
 				return is_string( $value ) && false !== is_email( $value ) ? array(
 					'ok'    => true,
 					'value' => sanitize_email( $value ),
 				) : $bad;
+			case 'url':
+				return self::validate_url( $value );
 			case 'ip_list':
 				if ( ! is_array( $value ) || count( $value ) > (int) ( $field['max'] ?? 50 ) ) {
 					return $bad;
@@ -651,6 +1031,21 @@ final class SettingsSchema {
 				return array(
 					'ok'    => true,
 					'value' => array_values( $value ),
+				);
+			case 'host_list':
+				if ( ! is_array( $value ) || count( $value ) > (int) ( $field['max'] ?? 50 ) ) {
+					return $bad;
+				}
+				$hosts = array();
+				foreach ( $value as $host ) {
+					if ( ! is_string( $host ) || ! self::is_host( strtolower( trim( $host ) ) ) ) {
+						return $bad;
+					}
+					$hosts[] = strtolower( trim( $host ) );
+				}
+				return array(
+					'ok'    => true,
+					'value' => array_values( array_unique( $hosts ) ),
 				);
 			case 'object':
 				if ( ! is_array( $value ) ) {
@@ -678,6 +1073,52 @@ final class SettingsSchema {
 				);
 		}
 		return $bad;
+	}
+
+	/**
+	 * Absolute `http`/`https` URL with a host, at most {@see self::URL_MAX}
+	 * characters, no white space or control characters (SET-CC-06); empty is
+	 * handled by the caller.
+	 *
+	 * @param mixed $value Value.
+	 * @return array{ok: bool, value: mixed}
+	 */
+	private static function validate_url( $value ): array {
+		$bad = array(
+			'ok'    => false,
+			'value' => null,
+		);
+		if ( ! is_string( $value ) ) {
+			return $bad;
+		}
+		$url = trim( $value );
+		if ( '' === $url ) {
+			return array(
+				'ok'    => true,
+				'value' => '',
+			);
+		}
+		if ( strlen( $url ) > self::URL_MAX || 1 === preg_match( '/[\s\x00-\x1f\x7f<>"]/', $url ) || false === filter_var( $url, FILTER_VALIDATE_URL ) ) {
+			return $bad;
+		}
+		$parts = parse_url( $url ); // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- Pure function, also used without WordPress (handbook tool).
+		if ( ! is_array( $parts ) || ! in_array( strtolower( (string) ( $parts['scheme'] ?? '' ) ), self::URL_SCHEMES, true ) || '' === (string) ( $parts['host'] ?? '' ) || isset( $parts['user'] ) || isset( $parts['pass'] ) ) {
+			return $bad;
+		}
+		return array(
+			'ok'    => true,
+			'value' => $url,
+		);
+	}
+
+	/**
+	 * Host name (lower case, at least one dot, no scheme, port or path).
+	 *
+	 * @param string $value Value.
+	 * @return bool
+	 */
+	public static function is_host( string $value ): bool {
+		return strlen( $value ) <= 253 && 1 === preg_match( '/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$/', $value );
 	}
 
 	/**

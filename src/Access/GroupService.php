@@ -28,7 +28,6 @@ defined( 'ABSPATH' ) || exit;
  */
 final class GroupService {
 
-	public const INVITE_DAYS  = 30;
 	private const LOCK_WAIT   = 2;
 	private const TOKEN_BYTES = 32;
 
@@ -70,8 +69,9 @@ final class GroupService {
 		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'ccap_manage_groups' ) ) {
 			throw new CourseException( 'ccap_forbidden', 'Not allowed to create groups.', 403 );
 		}
-		$name   = self::sanitize_name( $name );
-		$policy = (string) ( $options['claim_policy'] ?? 'transferable' );
+		$name = self::sanitize_name( $name );
+		// SET-CC-P1: without an explicit choice a new group starts with `enrollment.claim_policy`.
+		$policy = (string) ( $options['claim_policy'] ?? \CourseCaptain\Settings\Settings::get( 'enrollment.claim_policy' ) );
 		if ( '' === $name || $seats < 1 || array() === $targets || false === get_userdata( $owner ) || ! in_array( $policy, array( 'transferable', 'invited_address_only' ), true ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Invalid group data.', 422 );
 		}
@@ -154,7 +154,7 @@ final class GroupService {
 								'status'           => 'invited',
 								'claim_token_hash' => hash( 'sha256', $token ),
 								'invited_at'       => $db->now(),
-								'claim_expires_at' => $db->now( self::INVITE_DAYS * DAY_IN_SECONDS ),
+								'claim_expires_at' => $db->now( \CourseCaptain\Settings\BusinessRules::invite_valid_days() * DAY_IN_SECONDS ),
 							),
 							array( 'created_at', 'updated_at' )
 						);
@@ -225,6 +225,21 @@ final class GroupService {
 				$seat = $target['seat'];
 				return $this->db->transaction(
 					function ( Database $db ) use ( $actor, $token, $group, $seat, $group_id ): int {
+						// R-1 parent row (CON-001/CON-006): serialises the claims of one group in the DB, so
+						// the recount below sees every older committed seat even when GET_LOCK is unavailable.
+						$db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_group' ) . '` WHERE id = %d FOR UPDATE', $group_id ) );
+						// Second tab of the same account after the row lock (CON-002): existing membership.
+						$member = $this->active_seat( $group_id, $actor->user_id );
+						if ( null !== $member ) {
+							return $member;
+						}
+						// R0-09 R-12 / ID-014: the account is checked inside the transaction. The share lock
+						// keeps a parallel account deletion waiting until this join has committed; the
+						// deletion's second pass (`deleted_user`) then removes the seat and its grants.
+						$users = $db->wpdb()->users;
+						if ( null === $db->scalar( $db->prepare( "SELECT ID FROM `{$users}` WHERE ID = %d LOCK IN SHARE MODE", $actor->user_id ) ) ) {
+							throw new CourseException( 'ccap_forbidden', 'The account no longer exists.', 403 );
+						}
 						$now = $db->now();
 						if ( null !== $seat ) {
 							$rows = $db->execute(
@@ -393,6 +408,95 @@ final class GroupService {
 				$this->db->transaction( fn() => $this->group_event( $group_id, 'group.status_changed', $actor ) );
 			}
 		);
+	}
+
+	/**
+	 * Reinstate an ended group (owner decision D11, R0-09 §4.8, E-29).
+	 *
+	 * Only administrators (`ccap_manage_groups` and `manage_options`), with a
+	 * reason. Under the group lock (L3) the group becomes `active` with
+	 * `source_revision + 1` (CAS, outbox `group.reinstated`); afterwards every
+	 * seat grant that ended with `group_revoked` in the old revision on a seat
+	 * that is still `active` gets a new grant revision (G-15 via
+	 * {@see GrantService::reactivate()}, which takes the chain lock L4 itself:
+	 * order L3 → L4 → DB-TX, no lock inside an open transaction). A grant is
+	 * only renewed while it is still valid: its own end when it was set
+	 * individually (`valid_until_locked`), else the group's end. Removed seats
+	 * stay removed; open invitations work again until their deadline.
+	 *
+	 * @param Actor  $actor    Administrator.
+	 * @param int    $group_id Ended group.
+	 * @param string $reason   Reason (required, audited).
+	 * @return array{revision: int, grants: int, skipped: int} New revision, renewed grants, grants left ended because their validity is over.
+	 * @throws CourseException `ccap_forbidden`, `ccap_reason_required`, `ccap_not_found`, `ccap_conflict`.
+	 */
+	public function reinstate( Actor $actor, int $group_id, string $reason ): array {
+		if ( $actor->user_id <= 0 || ! user_can( $actor->user_id, 'ccap_manage_groups' ) || ! user_can( $actor->user_id, 'manage_options' ) ) {
+			throw new CourseException( 'ccap_forbidden', 'Only administrators can reinstate a group.', 403 );
+		}
+		$reason = sanitize_textarea_field( $reason );
+		if ( '' === trim( $reason ) ) {
+			throw new CourseException( 'ccap_reason_required', 'A reason is required.', 422 );
+		}
+		if ( null === $this->relations->row( 'ccap_group', $group_id ) ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown group.', 404 );
+		}
+		$result = $this->locked(
+			$group_id,
+			function () use ( $actor, $group_id ): array {
+				// Re-read under the lock: a parallel reinstatement must not create a second revision.
+				$group = (array) $this->relations->row( 'ccap_group', $group_id );
+				if ( 'revoked' !== ( $group['status'] ?? '' ) ) {
+					throw new CourseException( 'ccap_conflict', 'Only an ended group can be reinstated.', 409 );
+				}
+				$old      = (int) $group['source_revision'];
+				$revision = $old + 1;
+				$this->db->transaction(
+					function ( Database $db ) use ( $group, $group_id, $revision, $actor ): void {
+						if ( ! $db->compare_and_swap(
+							'ccap_group',
+							$group_id,
+							(int) $group['row_version'],
+							array(
+								'status'          => 'active',
+								'source_revision' => $revision,
+							)
+						) ) {
+							throw new CourseException( 'ccap_conflict', 'Concurrent change, please retry.', 409 );
+						}
+						$this->group_event( $group_id, 'group.reinstated', $actor );
+					}
+				);
+				$ended   = $this->db->rows(
+					$this->db->prepare(
+						'SELECT g.id, g.valid_until, g.valid_until_locked FROM `' . $this->db->table( 'ccap_grant' ) . '` g JOIN `' . $this->db->table( 'ccap_seat' ) . "` s ON s.id = g.seat_id WHERE s.group_id = %d AND s.status = 'active' AND s.user_id IS NOT NULL AND g.source_type = 'group_seat' AND g.status = 'revoked' AND g.revocation_reason = 'group_revoked' AND g.source_revision = %d ORDER BY g.id",
+						$group_id,
+						$old
+					)
+				);
+				$now     = $this->db->now();
+				$renewed = 0;
+				$skipped = 0;
+				foreach ( $ended as $grant ) {
+					$until = 1 === (int) $grant['valid_until_locked'] ? $grant['valid_until'] : $group['valid_until'];
+					if ( null !== $until && (string) $until <= $now ) {
+						++$skipped;
+						continue;
+					}
+					$this->grants->reactivate( $actor, (int) $grant['id'], 'reinstated', null === $until ? null : (string) $until );
+					++$renewed;
+				}
+				return array(
+					'revision' => $revision,
+					'grants'   => $renewed,
+					'skipped'  => $skipped,
+				);
+			}
+		);
+		AuditLog::write( $this->db, $actor, 'group.reinstated', 'group', (string) $group_id, $reason, $result );
+		PolicyService::flush();
+		\CourseCaptain\Cache\CacheStore::bump_content();
+		return $result;
 	}
 
 	/**
@@ -694,6 +798,30 @@ final class GroupService {
 			);
 		}
 		return $out;
+	}
+
+	/**
+	 * Whether an address is already in a group: an active member with this
+	 * account or invitation address, or an open invitation to it (R0-19
+	 * R-35 `already_member`).
+	 *
+	 * @param int    $group_id Group.
+	 * @param string $email    Address.
+	 * @return bool
+	 */
+	public function has_address( int $group_id, string $email ): bool {
+		$seats = $this->db->table( 'ccap_seat' );
+		$users = $this->db->wpdb()->users;
+		return null !== $this->db->scalar(
+			$this->db->prepare(
+				"SELECT 1 FROM `{$seats}` s LEFT JOIN `{$users}` u ON u.ID = s.user_id WHERE s.group_id = %d AND ((s.status = 'active' AND (s.invite_email = %s OR u.user_email = %s)) OR (s.status = 'invited' AND s.invite_email = %s AND s.claim_expires_at > %s)) LIMIT 1",
+				$group_id,
+				$email,
+				$email,
+				$email,
+				$this->db->now()
+			)
+		);
 	}
 
 	/**

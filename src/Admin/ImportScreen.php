@@ -12,6 +12,8 @@ namespace CourseCaptain\Admin;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Import\ImportReport;
 use CourseCaptain\Import\ImportService;
+use CourseCaptain\Import\ImportSources;
+use CourseCaptain\Import\PackageValidator;
 use CourseCaptain\Import\RightsReleaseForm;
 use CourseCaptain\Learner\LearnerRoutes;
 use CourseCaptain\Policy\Actor;
@@ -28,6 +30,13 @@ defined( 'ABSPATH' ) || exit;
  * Everything goes through {@see ImportService} (rights M-21, audit,
  * state machine); this screen only adds the forms. Page cap
  * `ccap_menu_import` ⇐ #6 ∨ #7 ∨ #8; the package area needs #6.
+ *
+ * UI-F8: a package can also come from an https link or from the server
+ * drop folder ({@see ImportSources}: https/443 only, size limit, every
+ * resolved address public, pinned connection; base name inside the drop
+ * folder only); both continue in the same check and test run as an
+ * upload. Areas "Course export" ({@see ExportArea}, #7) and "Rights &
+ * release" ({@see RightsArea}, #8) share the menu item (M-2, M-3).
  */
 final class ImportScreen {
 
@@ -35,7 +44,7 @@ final class ImportScreen {
 	public const ACTION   = 'ccap_import_admin';
 	public const MENU_CAP = 'ccap_menu_import';
 	public const CAP      = 'ccap_import_content';
-	public const OPS      = array( 'upload', 'preview', 'approve', 'run', 'discard', 'rollback' );
+	public const OPS      = array( 'upload', 'link', 'folder', 'preview', 'approve', 'run', 'discard', 'rollback' );
 
 	/**
 	 * Hooks.
@@ -52,6 +61,28 @@ final class ImportScreen {
 		);
 		add_filter( 'map_meta_cap', array( self::class, 'map_meta_cap' ), 10, 3 );
 		add_action( 'admin_post_' . self::ACTION, array( self::class, 'handle' ) );
+		add_action( 'admin_post_' . ExportArea::ACTION, array( ExportArea::class, 'handle' ) );
+		add_action( 'admin_post_' . RightsArea::ACTION, array( RightsArea::class, 'handle' ) );
+	}
+
+	/**
+	 * Areas the user may open (M-2).
+	 *
+	 * @param int $user_id User.
+	 * @return array<string, string>
+	 */
+	public static function areas( int $user_id ): array {
+		$out = array();
+		if ( user_can( $user_id, self::CAP ) ) {
+			$out['packages'] = __( 'Packages', 'course-captain' );
+		}
+		if ( user_can( $user_id, ExportArea::CAP ) ) {
+			$out['export'] = __( 'Course export', 'course-captain' );
+		}
+		if ( user_can( $user_id, RightsArea::CAP ) ) {
+			$out['rights'] = __( 'Rights & release', 'course-captain' );
+		}
+		return $out;
 	}
 
 	/**
@@ -115,9 +146,10 @@ final class ImportScreen {
 	 * @param int                  $user_id Importer.
 	 * @param string               $file    Uploaded ZIP (upload only).
 	 * @param int                  $error   PHP upload error code.
+	 * @param ImportSources|null   $sources Package sources (tests inject resolver/transport).
 	 * @return array{op: string, batch: int, result: string}
 	 */
-	public static function process( array $post, int $user_id, string $file = '', int $error = UPLOAD_ERR_OK ): array {
+	public static function process( array $post, int $user_id, string $file = '', int $error = UPLOAD_ERR_OK, ?ImportSources $sources = null ): array {
 		$op    = sanitize_key( (string) ( $post['op'] ?? '' ) );
 		$batch = absint( $post['object'] ?? 0 );
 		$out   = array(
@@ -149,6 +181,21 @@ final class ImportScreen {
 					}
 					$out['batch']  = $service->upload( $actor, $file );
 					$out['result'] = self::check_and_preview( $actor, $out['batch'], $partial );
+					break;
+				case 'link':
+					$url  = trim( (string) ( $post['url'] ?? '' ) );
+					$hash = strtolower( trim( (string) ( $post['sha256'] ?? '' ) ) );
+					if ( '' === $url ) {
+						$out['result'] = 'ccap_link_invalid';
+						break;
+					}
+					$out['batch']  = ( $sources ?? ImportSources::current() )->from_url( $actor, $url, '' === $hash ? null : $hash );
+					$out['result'] = self::check_and_preview( $actor, $out['batch'], $partial );
+					break;
+				case 'folder':
+					$taken         = ( $sources ?? ImportSources::current() )->from_drop( $actor, (string) ( $post['name'] ?? '' ) );
+					$out['batch']  = $taken['batch'];
+					$out['result'] = 'validated' === $taken['status'] ? self::check_and_preview( $actor, $taken['batch'], $partial ) : 'invalid_package';
 					break;
 				case 'preview':
 					$out['result'] = self::check_and_preview( $actor, $batch, $partial );
@@ -210,9 +257,19 @@ final class ImportScreen {
 	 * @return string
 	 */
 	public static function html( array $request, int $user_id ): string {
-		$html = '<div class="wrap"><h1>' . esc_html__( 'Import content', 'course-captain' ) . '</h1>';
-		if ( ! user_can( $user_id, self::CAP ) ) {
+		$html  = '<div class="wrap"><h1>' . esc_html__( 'Import content', 'course-captain' ) . '</h1>';
+		$areas = self::areas( $user_id );
+		if ( array() === $areas ) {
 			return $html . '<p>' . esc_html__( 'You are not allowed to import packages.', 'course-captain' ) . '</p></div>';
+		}
+		$area  = sanitize_key( (string) ( $request['area'] ?? '' ) );
+		$area  = isset( $areas[ $area ] ) ? $area : (string) array_key_first( $areas );
+		$html .= AdminUi::areas( __( 'Import content: areas', 'course-captain' ), $areas, $area, self::SLUG );
+		if ( 'export' === $area ) {
+			return $html . ExportArea::html( $request, $user_id ) . '</div>';
+		}
+		if ( 'rights' === $area ) {
+			return $html . RightsArea::html( $request, $user_id ) . '</div>';
 		}
 		$html .= self::notice( sanitize_key( (string) ( $request['ccap_result'] ?? '' ) ) );
 		$batch = absint( $request['batch'] ?? 0 );
@@ -239,6 +296,12 @@ final class ImportScreen {
 			'ccap_import_locked'         => array( 'error', __( 'Another import is running. Try again in a few minutes.', 'course-captain' ) ),
 			'ccap_confirmation_required' => array( 'error', __( 'Please confirm the action (tick the confirmation box).', 'course-captain' ) ),
 			'ccap_storage_unavailable'   => array( 'error', __( 'The package could not be stored. Check the protected folders under System status.', 'course-captain' ) ),
+			'ccap_link_invalid'          => array( 'error', __( 'Enter a complete https address (port 443, no user name or password in the address).', 'course-captain' ) ),
+			'ccap_link_blocked'          => array( 'error', __( 'This address is not allowed: packages can only be loaded from public servers, not from this network or local addresses.', 'course-captain' ) ),
+			'ccap_link_redirects'        => array( 'error', __( 'The address forwards too often. Use the final address of the package.', 'course-captain' ) ),
+			'ccap_link_checksum'         => array( 'error', __( 'The downloaded file does not match the expected checksum. Nothing was imported.', 'course-captain' ) ),
+			'ccap_link_failed'           => array( 'error', __( 'The package could not be downloaded. Check the address and try again later.', 'course-captain' ) ),
+			'ccap_package_too_large'     => array( 'error', __( 'The package is larger than the package limit. Use the server folder or the command line import.', 'course-captain' ) ),
 		);
 		if ( isset( $texts[ $code ] ) ) {
 			return '<div class="notice notice-' . esc_attr( $texts[ $code ][0] ) . '" role="' . ( 'error' === $texts[ $code ][0] ? 'alert' : 'status' ) . '"><p>' . esc_html( $texts[ $code ][1] ) . '</p></div>';
@@ -261,6 +324,7 @@ final class ImportScreen {
 		$fields .= '<p id="ccap-imp-help" class="description">' . esc_html__( 'The package is checked and a test run shows what would change. Nothing is imported before you approve.', 'course-captain' ) . ' ' . esc_html( sprintf( /* translators: %s: size */ __( 'Largest file this site accepts: %s.', 'course-captain' ), size_format( wp_max_upload_size() ) ) ) . '</p>';
 		$fields .= '<p><label><input type="checkbox" name="partial" value="1"> ' . esc_html__( 'Partial package: keep content that is missing in the package (do not archive it)', 'course-captain' ) . '</label></p>';
 		$html    = '<h2>' . esc_html__( 'Import a package', 'course-captain' ) . '</h2>' . AdminUi::form( self::ACTION, 'upload', 0, $fields, __( 'Upload and test', 'course-captain' ), '1', ' enctype="multipart/form-data"' );
+		$html   .= self::link_form() . self::folder_form();
 		$html   .= '<h2>' . esc_html__( 'Imports', 'course-captain' ) . '</h2><table class="widefat striped"><caption class="screen-reader-text">' . esc_html__( 'Imports', 'course-captain' ) . '</caption><thead><tr><th scope="col">' . esc_html__( 'Import', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Status', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'Started (UTC)', 'course-captain' ) . '</th><th scope="col">' . esc_html__( 'By', 'course-captain' ) . '</th></tr></thead><tbody>';
 		if ( array() === $rows ) {
 			$html .= '<tr><td colspan="4">' . esc_html__( 'No imports yet. A course package is a ZIP file with a manifest and data files in the Course Captain package format.', 'course-captain' ) . '</td></tr>';
@@ -277,6 +341,52 @@ final class ImportScreen {
 			$html .= '<tr><th scope="row"><a href="' . esc_url( $url ) . '">' . esc_html( sprintf( /* translators: 1: import number, 2: package */ __( 'Import %1$d (%2$s)', 'course-captain' ), (int) $row['id'], (string) $row['package_id'] ) ) . '</a></th><td>' . esc_html( self::status_label( (string) $row['status'] ) ) . '</td><td>' . esc_html( (string) $row['created_at'] ) . '</td><td>' . esc_html( $user instanceof \WP_User ? $user->display_name : '' ) . '</td></tr>';
 		}
 		return $html . '</tbody></table>';
+	}
+
+	/**
+	 * Form "Import from a link".
+	 *
+	 * @return string
+	 */
+	private static function link_form(): string {
+		$fields  = '<p><label for="ccap-imp-url">' . esc_html__( 'Address of the package (https)', 'course-captain' ) . '</label><br><input id="ccap-imp-url" type="url" class="large-text" name="url" required placeholder="https://" aria-describedby="ccap-imp-url-help"></p>';
+		$fields .= '<p id="ccap-imp-url-help" class="description">' . esc_html( sprintf( /* translators: %s: size */ __( 'Only https addresses on public servers; at most 3 forwardings; largest package: %s. The file is checked and test-run like an upload.', 'course-captain' ), size_format( ImportSources::package_limit() ) ) ) . '</p>';
+		$fields .= '<p><label for="ccap-imp-sha">' . esc_html__( 'Expected SHA-256 checksum (optional)', 'course-captain' ) . '</label><br><input id="ccap-imp-sha" type="text" class="large-text" name="sha256" pattern="[0-9a-fA-F]{64}" autocomplete="off"></p>';
+		$fields .= '<p><label><input type="checkbox" name="partial" value="1"> ' . esc_html__( 'Partial package: keep content that is missing in the package (do not archive it)', 'course-captain' ) . '</label></p>';
+		return '<h3>' . esc_html__( 'Import from a link', 'course-captain' ) . '</h3>' . AdminUi::form( self::ACTION, 'link', 0, $fields, __( 'Download and test', 'course-captain' ) );
+	}
+
+	/**
+	 * Form "Import from the server folder" (ZIP files of the drop folder).
+	 *
+	 * @return string
+	 */
+	private static function folder_form(): string {
+		$html = '<h3>' . esc_html__( 'Import from the server folder', 'course-captain' ) . '</h3>';
+		try {
+			$dir = ImportSources::drop_dir();
+		} catch ( CourseException $e ) {
+			return $html . '<p>' . esc_html__( 'The server folder for packages is not available. Check the protected folders under System status.', 'course-captain' ) . '</p>';
+		}
+		$files = array();
+		foreach ( (array) glob( $dir . '/*.zip' ) as $path ) {
+			$path = (string) $path;
+			$name = wp_basename( $path );
+			if ( is_file( $path ) && ! is_link( $path ) && ! str_starts_with( $name, '.' ) ) {
+				$files[ $name ] = (int) filesize( $path );
+			}
+		}
+		ksort( $files );
+		$help = '<p class="description" id="ccap-imp-folder-help">' . esc_html__( 'For large packages: copy the ZIP file by SFTP into the protected import folder of this site (shown under System status). A package that passes the check is removed from the folder.', 'course-captain' ) . '</p>';
+		if ( array() === $files ) {
+			return $html . $help . '<p>' . esc_html__( 'There are no packages in the server folder.', 'course-captain' ) . '</p>';
+		}
+		$fields = '<p><label for="ccap-imp-folder">' . esc_html__( 'Package in the server folder', 'course-captain' ) . '</label><br><select id="ccap-imp-folder" name="name" aria-describedby="ccap-imp-folder-help">';
+		foreach ( $files as $name => $size ) {
+			$fields .= '<option value="' . esc_attr( $name ) . '">' . esc_html( $name . ' (' . size_format( $size ) . ')' ) . '</option>';
+		}
+		$fields .= '</select></p>' . $help . '<p><label><input type="checkbox" name="partial" value="1"> ' . esc_html__( 'Partial package: keep content that is missing in the package (do not archive it)', 'course-captain' ) . '</label></p>';
+		return $html . AdminUi::form( self::ACTION, 'folder', 0, $fields, __( 'Take over and test', 'course-captain' ) );
 	}
 
 	/**
@@ -303,7 +413,10 @@ final class ImportScreen {
 		if ( 'failed' === $status && is_array( $errors ) && array() !== $errors ) {
 			$html .= '<h3>' . esc_html__( 'Errors in the package', 'course-captain' ) . '</h3><ul>';
 			foreach ( array_slice( $errors, 0, 50 ) as $error ) {
-				$html .= '<li>' . esc_html( (string) ( $error['rule'] ?? '' ) . ( '' !== (string) ( $error['path'] ?? '' ) ? ': ' . (string) $error['path'] : '' ) ) . '</li>';
+				$rule  = (string) ( $error['rule'] ?? '' );
+				$hint  = PackageValidator::hint( $rule, (string) ( $row['schema_version'] ?? '' ) );
+				$code  = $rule . ( '' !== (string) ( $error['path'] ?? '' ) ? ': ' . (string) $error['path'] : '' );
+				$html .= '<li>' . esc_html( null === $hint ? $code : sprintf( /* translators: 1: readable hint, 2: rule code */ __( '%1$s (rule: %2$s)', 'course-captain' ), $hint, $code ) ) . '</li>';
 			}
 			$html .= '</ul>';
 		}

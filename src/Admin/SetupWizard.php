@@ -49,9 +49,7 @@ final class SetupWizard {
 			static function (): void {
 				// Hidden page (no menu entry, R0-30 §1.3).
 				$hook = add_submenu_page( '', __( 'Setup', 'course-captain' ), __( 'Setup', 'course-captain' ), Settings::CAP, self::SLUG, array( self::class, 'render' ) );
-				if ( is_string( $hook ) ) {
-					add_action( 'admin_print_scripts-' . $hook, array( SettingsScreen::class, 'enqueue' ) );
-				}
+				AdminUi::settings_assets( $hook );
 			},
 			19
 		);
@@ -327,7 +325,7 @@ final class SetupWizard {
 				return $out;
 			}
 			if ( array() !== $check['errors'] ) {
-				$errors[ $tab ] = SettingsForm::with_params( $check['errors'], (array) $input );
+				$errors[ $tab ] = SettingsForm::with_params( $check['errors'], (array) $input, (string) $tab );
 			}
 			if ( Settings::rev( (string) $tab ) !== (int) $revs[ $tab ] ) {
 				self::keep_form( $user_id, $step, $inputs, array(), $extra );
@@ -628,6 +626,10 @@ final class SetupWizard {
 		} else {
 			$html .= self::step_form( $step, $state, $form );
 		}
+		if ( 'purpose_language' === $step ) {
+			// SET-CC-07: country profile suggestions with before/after, applied only explicitly.
+			$html .= CountryProfilePanel::html( 'setup', $request, $user_id );
+		}
 		$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SettingsScreen::SLUG ) ) . '" data-ccap-leave="' . esc_attr( SettingsScreen::leave_text() ) . '">' . esc_html__( 'Leave setup – your progress is kept', 'course-captain' ) . '</a></p>';
 		return $html . '<div class="screen-reader-text" role="status" aria-live="polite" id="ccap-status">' . ( 'saved' === $result ? esc_html( self::saved_text( $state ) ) : esc_html( TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' ) ) ) . '</div></div>';
 	}
@@ -749,6 +751,10 @@ final class SetupWizard {
 				$all_errors[ $tab . '|' . $field ] = array(
 					'tab'   => (string) $tab,
 					'field' => (string) $field,
+					'error' => is_array( $error ) ? array(
+						'rule'   => (string) ( $error['rule'] ?? '' ),
+						'params' => is_array( $error['params'] ?? null ) ? $error['params'] : array(),
+					) : null,
 				);
 			}
 		}
@@ -756,7 +762,7 @@ final class SetupWizard {
 		if ( array() !== $all_errors ) {
 			$items = '';
 			foreach ( $all_errors as $entry ) {
-				$key    = 'first_course' === $entry['tab'] ? 'course_title' : SettingsForm::first_key( $entry['field'], self::step_fields( $step )[ $entry['tab'] ] ?? array() );
+				$key    = 'first_course' === $entry['tab'] ? 'course_title' : SettingsForm::error_key( $entry['field'], $entry['error'], self::step_fields( $step )[ $entry['tab'] ] ?? array() );
 				$label  = 'first_course' === $entry['tab'] ? __( 'Course title', 'course-captain' ) : SettingsFields::ui( $entry['tab'], $key )['label'];
 				$items .= '<li><a href="#' . esc_attr( SettingsForm::id( $entry['tab'], $key ) ) . '">' . esc_html( $label ) . '</a></li>';
 			}
@@ -786,7 +792,7 @@ final class SetupWizard {
 				if ( isset( $warn[ $f ] ) ) {
 					$opts['warning'] = $warn[ $f ];
 				}
-				$html .= '<input type="hidden" name="t[' . esc_attr( $tab ) . '][_fields][]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, $errors[ $tab ][ $f ] ?? null, $opts );
+				$html .= '<input type="hidden" name="t[' . esc_attr( $tab ) . '][_fields][]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, SettingsForm::error_for( (array) ( $errors[ $tab ] ?? array() ), $key ), $opts );
 			}
 		}
 		if ( 'hardening' === $step ) {

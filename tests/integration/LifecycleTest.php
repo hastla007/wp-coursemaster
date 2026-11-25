@@ -15,6 +15,7 @@ use CourseCaptain\Kernel\Activator;
 use CourseCaptain\Kernel\Capabilities;
 use CourseCaptain\Kernel\CronHooks;
 use CourseCaptain\Kernel\EnvironmentSnapshot;
+use CourseCaptain\Kernel\InstallationUuid;
 use CourseCaptain\Kernel\Plugin;
 use CourseCaptain\Kernel\Requirements;
 use RuntimeException;
@@ -354,7 +355,59 @@ final class LifecycleTest extends TestCase {
 			self::assertDoesNotMatchRegularExpression( '/wplc_|licen[cs]e/i', $option );
 		}
 		// The hardening state is system state written on `init` (R1-45), depending on test order.
-		self::assertSame( array( Capabilities::GRANTS_OPTION ), array_values( array_diff( self::own_options(), array( \CourseCaptain\Security\Hardening::STATE_OPTION ) ) ) );
+		$own = array_values( array_diff( self::own_options(), array( \CourseCaptain\Security\Hardening::STATE_OPTION ) ) );
+		sort( $own );
+		$expected = array( Capabilities::GRANTS_OPTION, InstallationUuid::OPTION );
+		sort( $expected );
+		self::assertSame( $expected, $own );
 		self::assertSame( array(), $GLOBALS['ccap_test_http_requests'] );
+	}
+
+	/**
+	 * E-392 (R1-18 g4): activation creates the installation UUID, the next
+	 * admin request creates it for installations that predate it (upgrade);
+	 * a stored value is never replaced, an unreadable one stays for the
+	 * restore check; exports use the same value.
+	 */
+	public function test_E_392_installation_uuid_on_activation_and_upgrade(): void {
+		delete_option( InstallationUuid::OPTION );
+		Plugin::activate( false );
+		$uuid = get_option( InstallationUuid::OPTION );
+		self::assertIsString( $uuid );
+		self::assertMatchesRegularExpression( '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/', $uuid );
+		self::assertSame( 'off', self::autoload_of( InstallationUuid::OPTION ), 'read on export/import only' );
+
+		Plugin::activate( false );
+		self::assertSame( $uuid, get_option( InstallationUuid::OPTION ), 'reactivation keeps the UUID' );
+		self::assertSame( $uuid, \CourseCaptain\Import\PackageExporter::installation_uuid(), 'exports use it' );
+
+		// Upgrade of an installation without UUID: the admin trigger point creates it.
+		delete_option( InstallationUuid::OPTION );
+		$plugin = new Plugin( self::basename(), self::spy() );
+		$plugin->on_admin_init();
+		$upgraded = get_option( InstallationUuid::OPTION );
+		self::assertIsString( $upgraded );
+		self::assertMatchesRegularExpression( InstallationUuid::PATTERN, $upgraded );
+		self::assertNotSame( $uuid, $upgraded );
+		$plugin->on_admin_init();
+		self::assertSame( $upgraded, get_option( InstallationUuid::OPTION ), 'stable' );
+
+		// An unreadable value is left for the restore check (R1-18 h3).
+		update_option( InstallationUuid::OPTION, 'broken', false );
+		Plugin::activate( false );
+		$plugin->on_admin_init();
+		self::assertSame( 'broken', get_option( InstallationUuid::OPTION ) );
+		update_option( InstallationUuid::OPTION, $uuid, false );
+	}
+
+	/**
+	 * Autoload value of an option as stored.
+	 *
+	 * @param string $name Option.
+	 * @return string
+	 */
+	private static function autoload_of( string $name ): string {
+		global $wpdb;
+		return (string) $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", $name ) );
 	}
 }

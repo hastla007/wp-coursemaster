@@ -331,6 +331,12 @@ final class GrantService {
 			$before = $this->has_access( $user_id, $course );
 			return $this->db->transaction(
 				function ( Database $db ) use ( $spec, $actor, $reason_code, $source_event_id, $user_id, $course, $module, $scopes, $before ): array {
+					// R-12 / CON-014: the account row is share-locked until commit, so a parallel
+					// account deletion waits for this grant (and erases it afterwards) or wins and this
+					// grant is refused; never a grant on a deleted account.
+					if ( 0 !== $user_id && null === $db->scalar( $db->prepare( 'SELECT ID FROM `' . $db->wpdb()->users . '` WHERE ID = %d LOCK IN SHARE MODE', $user_id ) ) ) {
+						throw new CourseException( 'ccap_invalid_param', 'Unknown user.', 400 );
+					}
 					$status = (string) ( $spec['status'] ?? GrantTransitions::ACTIVE );
 					$paid   = (string) ( $spec['paid_at'] ?? $db->now() );
 					$from   = null;

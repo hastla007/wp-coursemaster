@@ -10,8 +10,11 @@ declare(strict_types=1);
 namespace CourseCaptain\Exam;
 
 use CourseCaptain\Course\CourseException;
+use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
+use CourseCaptain\Question\QuestionRepository;
+use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
 
@@ -30,6 +33,11 @@ defined( 'ABSPATH' ) || exit;
 final class ExamRules {
 
 	public const SETTINGS_FORMAT = 2;
+
+	/**
+	 * Form modes of a rule (UI-F8): blueprint draw or fixed variants.
+	 */
+	public const FORM_MODES = array( 'random', 'variants' );
 
 	/**
 	 * Register keys backed by a rule setting (R0-28 §1.4 #9–#18) → rule
@@ -299,6 +307,9 @@ final class ExamRules {
 		if ( array() === $questions ) {
 			throw new CourseException( 'ccap_validation_failed', 'A variant needs questions.', 422 );
 		}
+		if ( array() !== QuestionRepository::current()->flashcards( array_values( array_map( 'intval', $questions ) ) ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'flashcard', 422 );
+		}
 		return $this->db->transaction(
 			function ( Database $db ) use ( $course_id, $number, $questions ): int {
 				$variant = $db->insert(
@@ -324,6 +335,227 @@ final class ExamRules {
 				return $variant;
 			}
 		);
+	}
+
+	/**
+	 * Form mode of a rule (UI-F8): `random` (blueprint draw only),
+	 * `variants` (a fixed variant must be chosen) or '' for rules stored
+	 * before the choice existed (both ways, as before).
+	 *
+	 * @param array<string, mixed> $rule Rule from {@see get()}.
+	 * @return string
+	 */
+	public static function form_mode( array $rule ): string {
+		$mode = (string) ( ( (array) ( $rule['settings_stored'] ?? array() ) )['form_mode'] ?? '' );
+		return in_array( $mode, self::FORM_MODES, true ) ? $mode : '';
+	}
+
+	/**
+	 * Choose the form mode of a draft rule (published rules never change).
+	 *
+	 * @param Actor  $actor   Actor (M-06).
+	 * @param int    $rule_id Draft rule.
+	 * @param string $mode    `random` or `variants`.
+	 * @return void
+	 * @throws CourseException `ccap_rule_frozen`, `ccap_validation_failed`.
+	 */
+	public function set_form_mode( Actor $actor, int $rule_id, string $mode ): void {
+		if ( ! in_array( $mode, self::FORM_MODES, true ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'form_mode', 422 );
+		}
+		$rule                = $this->editable( $actor, $rule_id );
+		$stored              = (array) $rule['settings_stored'];
+		$stored['form_mode'] = $mode;
+		$this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_exam_rule' ) . "` SET settings = %s, updated_at = %s WHERE id = %d AND status = 'draft'", (string) wp_json_encode( $stored ), $this->db->now(), $rule_id ) );
+	}
+
+	/**
+	 * Fixed variants of a course with their questions in position order.
+	 *
+	 * @param int  $course_id Course.
+	 * @param bool $retired   Include retired variants.
+	 * @return list<array{id: int, variant_no: int, status: string, questions: list<int>}>
+	 */
+	public function variants( int $course_id, bool $retired = true ): array {
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT v.id, v.variant_no, v.status, q.question_id FROM `' . $this->db->table( 'ccap_exam_variant' ) . '` v LEFT JOIN `' . $this->db->table( 'ccap_exam_variant_question' ) . '` q ON q.variant_id = v.id WHERE v.course_id = %d' . ( $retired ? '' : " AND v.status <> 'retired'" ) . ' ORDER BY v.variant_no, q.position', $course_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Fixed SQL fragment.
+		$out  = array();
+		foreach ( $rows as $row ) {
+			$id = (int) $row['id'];
+			if ( ! isset( $out[ $id ] ) ) {
+				$out[ $id ] = array(
+					'id'         => $id,
+					'variant_no' => (int) $row['variant_no'],
+					'status'     => (string) $row['status'],
+					'questions'  => array(),
+				);
+			}
+			if ( null !== $row['question_id'] ) {
+				$out[ $id ]['questions'][] = (int) $row['question_id'];
+			}
+		}
+		return array_values( $out );
+	}
+
+	/**
+	 * Deliverable questions a variant of the course may use: the pools of
+	 * the course modules (published question, published current revision),
+	 * without flashcards (D2, B-03).
+	 *
+	 * @param int $course_id Course.
+	 * @return array<int, int> Question → module.
+	 */
+	public static function variant_candidates( int $course_id ): array {
+		$out = array();
+		foreach ( CourseStructure::current()->modules( $course_id ) as $link ) {
+			foreach ( array_keys( QuestionRepository::current()->pool_revisions( (int) $link['module_id'], true ) ) as $question ) {
+				$out[ $question ] = $out[ $question ] ?? (int) $link['module_id'];
+			}
+		}
+		return $out;
+	}
+
+	/**
+	 * New empty draft variant with the next free number of the course.
+	 *
+	 * @param Actor $actor     Actor (M-06 on the course).
+	 * @param int   $course_id Course.
+	 * @return int Variant ID.
+	 * @throws CourseException When not allowed.
+	 */
+	public function create_variant_draft( Actor $actor, int $course_id ): int {
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::EDIT_COURSE, array( $course_id ) ), 'Not allowed to edit this course.' );
+		return $this->db->transaction(
+			function ( Database $db ) use ( $course_id ): int {
+				$next = (int) $db->scalar( $db->prepare( 'SELECT COALESCE(MAX(variant_no), 0) + 1 FROM `' . $db->table( 'ccap_exam_variant' ) . '` WHERE course_id = %d FOR UPDATE', $course_id ) );
+				return $db->insert(
+					'ccap_exam_variant',
+					array(
+						'uid'        => $db->uuid(),
+						'course_id'  => $course_id,
+						'variant_no' => $next,
+						'status'     => 'draft',
+					),
+					array( 'created_at', 'updated_at' )
+				);
+			}
+		);
+	}
+
+	/**
+	 * Replace the ordered question list of a draft variant.
+	 *
+	 * @param Actor $actor      Actor (M-06 on the variant's course).
+	 * @param int   $variant_id Draft variant.
+	 * @param array $questions  Question IDs in position order.
+	 * @phpstan-param list<int> $questions
+	 * @return void
+	 * @throws CourseException `ccap_variant_frozen` (409), `ccap_validation_failed` for questions outside the course pools.
+	 */
+	public function set_variant_questions( Actor $actor, int $variant_id, array $questions ): void {
+		$variant    = $this->editable_variant( $actor, $variant_id, array( 'draft' ) );
+		$candidates = self::variant_candidates( (int) $variant['course_id'] );
+		$questions  = array_values( array_unique( array_map( 'intval', $questions ) ) );
+		if ( array() !== QuestionRepository::current()->flashcards( $questions ) ) {
+			throw new CourseException( 'ccap_validation_failed', 'flashcard', 422 );
+		}
+		foreach ( $questions as $question ) {
+			if ( ! isset( $candidates[ $question ] ) ) {
+				throw new CourseException( 'ccap_validation_failed', 'question', 422 );
+			}
+		}
+		$this->db->transaction(
+			function ( Database $db ) use ( $variant_id, $questions ): void {
+				$db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d', $variant_id ) );
+				foreach ( $questions as $i => $question ) {
+					$db->insert(
+						'ccap_exam_variant_question',
+						array(
+							'variant_id'  => $variant_id,
+							'question_id' => $question,
+							'position'    => $i + 1,
+						)
+					);
+				}
+				$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_variant' ) . '` SET updated_at = %s WHERE id = %d', $db->now(), $variant_id ) );
+			}
+		);
+	}
+
+	/**
+	 * Reasons a variant cannot be frozen: `empty`, `undeliverable`,
+	 * `flashcard` (same conditions as the start of a variant attempt).
+	 *
+	 * @param int $variant_id Variant.
+	 * @return list<string>
+	 */
+	public function variant_blockers( int $variant_id ): array {
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT q.status, r.editorial_status, r.question_type FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` v LEFT JOIN `' . $this->db->table( 'ccap_question' ) . '` q ON q.id = v.question_id LEFT JOIN `' . $this->db->table( 'ccap_question_revision' ) . '` r ON r.id = q.current_revision_id WHERE v.variant_id = %d ORDER BY v.position', $variant_id ) );
+		if ( array() === $rows ) {
+			return array( 'empty' );
+		}
+		foreach ( $rows as $row ) {
+			if ( 'published' !== $row['status'] || 'published' !== $row['editorial_status'] ) {
+				return array( 'undeliverable' );
+			}
+			if ( QuestionTypes::FLASHCARD === $row['question_type'] ) {
+				return array( 'flashcard' );
+			}
+		}
+		return array();
+	}
+
+	/**
+	 * Freeze a draft variant: it becomes `published` and never changes.
+	 *
+	 * @param Actor $actor      Actor (M-04 publish on the course).
+	 * @param int   $variant_id Draft variant.
+	 * @return void
+	 * @throws CourseException `ccap_variant_frozen`, `ccap_validation_failed` (message = blocker codes).
+	 */
+	public function freeze_variant( Actor $actor, int $variant_id ): void {
+		$variant = $this->editable_variant( $actor, $variant_id, array( 'draft' ) );
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::PUBLISH_COURSE, array( (int) $variant['course_id'] ) ), 'Not allowed to publish.' );
+		$blockers = $this->variant_blockers( $variant_id );
+		if ( array() !== $blockers ) {
+			throw new CourseException( 'ccap_validation_failed', esc_html( implode( ',', $blockers ) ), 422 );
+		}
+		$this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_exam_variant' ) . "` SET status = 'published', updated_at = %s WHERE id = %d AND status = 'draft'", $this->db->now(), $variant_id ) );
+	}
+
+	/**
+	 * Retire a draft or frozen variant: no new attempts; running and
+	 * finished attempts keep their snapshot.
+	 *
+	 * @param Actor $actor      Actor (M-06).
+	 * @param int   $variant_id Variant.
+	 * @return void
+	 * @throws CourseException `ccap_variant_frozen` for retired variants.
+	 */
+	public function retire_variant( Actor $actor, int $variant_id ): void {
+		$this->editable_variant( $actor, $variant_id, array( 'draft', 'published' ) );
+		$this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_exam_variant' ) . "` SET status = 'retired', updated_at = %s WHERE id = %d", $this->db->now(), $variant_id ) );
+	}
+
+	/**
+	 * Variant the actor may change in one of the given states.
+	 *
+	 * @param Actor $actor      Actor.
+	 * @param int   $variant_id Variant.
+	 * @param array $states     Allowed states.
+	 * @phpstan-param list<string> $states
+	 * @return array<string, mixed>
+	 * @throws CourseException 404, 403, 409 `ccap_variant_frozen`.
+	 */
+	private function editable_variant( Actor $actor, int $variant_id, array $states ): array {
+		$variant = $this->db->row( $this->db->prepare( 'SELECT id, course_id, variant_no, status FROM `' . $this->db->table( 'ccap_exam_variant' ) . '` WHERE id = %d', $variant_id ) );
+		if ( null === $variant ) {
+			throw new CourseException( 'ccap_not_found', 'Unknown variant.', 404 );
+		}
+		CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::EDIT_COURSE_ITEM, array( $variant_id, 'variant' ) ), 'Not allowed to edit this variant.' );
+		if ( ! in_array( (string) $variant['status'], $states, true ) ) {
+			throw new CourseException( 'ccap_variant_frozen', 'A frozen variant never changes.', 409 );
+		}
+		return $variant;
 	}
 
 	/**

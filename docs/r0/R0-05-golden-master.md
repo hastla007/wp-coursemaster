@@ -550,6 +550,8 @@ PKG-X1 (`package_id` aus dem Inhalt gebildet, E-336) wird nur von den Tests in �
 
 ---
 
+**Rechtefreigabe im Fixture (24.11.2026, `docs/r1/SET-CC-rechte-auslieferung.md`):** Das Fixture importiert Q-A3-010 und FC-A-07 als fremd mit Rechtestatus `unknown`; seit der Rechtesperre für Lernende (R0-10 §2.2, `RightsGate`) werden sie Lernenden nicht ausgeliefert. Die Lern- und Prüfungs-Golden-Master (GM-028…031, 049, 052, 062/063, 078, 079, F4) setzen daher eine Rechtefreigabe voraus (`NeutralFixture::release_rights()`, Override `licensed`); die Import-Golden-Master GM-123/127 prüfen den importierten Status `unknown` unverändert.
+
 ## 3. Determinismus-Regeln (belegt an den Quellmustern)
 
 „Übernehmen“ heißt in dieser Tabelle: Das Muster wird nach der Beschreibung neu implementiert (E-01); kein LB-Testcode wird kopiert.

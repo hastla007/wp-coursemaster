@@ -21,6 +21,7 @@ use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
 use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\Lease;
 use CourseCaptain\Storage\NamedLock;
 use CourseCaptain\Storage\RateLimiter;
 
@@ -38,7 +39,9 @@ final class ExamSessions {
 	public const EVALUATOR_VERSION = '1.0.0';
 	public const UNLIMITED_LOCK    = 86400;
 	private const START_LOCK_WAIT  = 10;
-	public const START_LIMIT_HOUR  = 40;
+	private const START_LEASE_TTL  = 30;
+	/** Default of `exams.starts_per_hour` (SET-CC-13); the effective value comes from BusinessRules. */
+	public const START_LIMIT_HOUR = 40;
 
 	/**
 	 * Clock override (tests).
@@ -85,15 +88,30 @@ final class ExamSessions {
 			throw new CourseException( 'ccap_not_found', 'Unknown exam.', 404 );
 		}
 		$course = (int) $rule['course_id'];
+		// Form mode of the rule (UI-F8); rules without a choice accept both ways.
+		$mode = ExamRules::form_mode( $rule );
+		if ( ( 'variants' === $mode && null === $variant_id ) || ( 'random' === $mode && null !== $variant_id ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'variants' === $mode ? 'variant_required' : 'variant_not_offered', 422 );
+		}
 		$target = $this->exam_modules( $rule, $variant_id );
 		ContentGate::current()->exam( $actor, $course, $target['modules'], $target['variant_no'] )->assert();
 		if ( 'published' !== $rule['status'] || null === $rule['passing_rule'] || array() !== ExamRules::validate_passing_rule( $rule['passing_rule'] ) ) {
 			throw new CourseException( 'ccap_exam_not_startable', 'rule_unavailable', 422 );
 		}
 
-		$lock = NamedLock::for_key( $this->db, 'exam_start:' . $actor->user_id );
-		if ( NamedLock::BUSY === $lock->acquire( self::START_LOCK_WAIT ) ) {
+		$lock  = NamedLock::for_key( $this->db, 'exam_start:' . $actor->user_id );
+		$state = $lock->acquire( self::START_LOCK_WAIT );
+		if ( NamedLock::BUSY === $state ) {
 			throw new CourseException( 'ccap_exam_start_busy', 'Start in progress.', 409 );
+		}
+		// Without GET_LOCK (R0-21 §2.5, CON-006) a short lease row keeps one start per learner;
+		// a parallel start gets the same 409 instead of a second running attempt.
+		$lease = null;
+		if ( NamedLock::UNAVAILABLE === $state ) {
+			$lease = Lease::acquire( $this->db, 'exam_start:' . $actor->user_id, self::START_LEASE_TTL, false );
+			if ( null === $lease ) {
+				throw new CourseException( 'ccap_exam_start_busy', 'Start in progress.', 409 );
+			}
 		}
 		try {
 			$form_key = null === $variant_id ? 'random:' . $rule_id : 'variant:' . $variant_id;
@@ -121,7 +139,7 @@ final class ExamSessions {
 				return $known;
 			}
 			$this->assert_attempts_left( $actor->user_id, $rule );
-			RateLimiter::hit( $this->db, 'exam_start', $actor->user_id, 3600, self::START_LIMIT_HOUR, $this->now() );
+			RateLimiter::hit( $this->db, 'exam_start', $actor->user_id, 3600, \CourseCaptain\Settings\BusinessRules::exam_starts_per_hour(), $this->now() );
 
 			$randomizer = $randomizer ?? Randomizer::fresh();
 			$plan       = null === $variant_id ? $this->draw( $actor, $rule, $randomizer ) : $this->variant( $actor, $rule, $variant_id );
@@ -131,6 +149,7 @@ final class ExamSessions {
 			return $this->create_session( $actor, $rule, $variant_id, $form_key, $request_key, $randomizer, $plan );
 		} finally {
 			$lock->release();
+			$lease?->release();
 		}
 	}
 
@@ -441,10 +460,11 @@ final class ExamSessions {
 		$questions = array();
 		$reduced   = false;
 		$revisions = array();
+		// D2 (B-03): flashcards are never drawn into an exam (scorable pool only); the pool leaves out withheld foreign content (R0-10 §2.2).
 		foreach ( $rule['blueprints'] as $blueprint ) {
 			$module     = (int) $blueprint['module_id'];
 			$meta       = (array) json_decode( (string) $blueprint['rules'], true );
-			$current    = $this->questions->pool_revisions( $module );
+			$current    = $this->questions->pool_revisions( $module, true );
 			$revisions += $current;
 			$pool       = $randomizer->shuffle( array_keys( $current ), 'pool:' . $module );
 			$count      = (int) $blueprint['question_count'];
@@ -516,7 +536,15 @@ final class ExamSessions {
 		if ( null === $variant || (int) $variant['course_id'] !== (int) $rule['course_id'] ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown variant.', 404 );
 		}
-		$rows      = $this->db->rows( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d ORDER BY position', $variant_id ) );
+		$rows = $this->db->rows( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_exam_variant_question' ) . '` WHERE variant_id = %d ORDER BY position', $variant_id ) );
+		// D2 (B-03): a variant holding a flashcard (e.g. a card changed its type or came with an import) cannot start.
+		if ( array() !== $this->questions->flashcards( array_map( static fn( array $r ): int => (int) $r['question_id'], $rows ) ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'variant_flashcard', 422 );
+		}
+		// R0-10 §2.2: a fixed variant holding withheld foreign content (unclear or restricted rights, expired licence) cannot start; running attempts keep their snapshot.
+		if ( array() !== \CourseCaptain\Access\RightsGate::current()->questions( array_map( static fn( array $r ): int => (int) $r['question_id'], $rows ) ) ) {
+			throw new CourseException( 'ccap_exam_not_startable', 'variant_rights', 422 );
+		}
 		$relations = new Relations( $this->db );
 		$questions = array();
 		foreach ( $rows as $row ) {
@@ -776,6 +804,10 @@ final class ExamSessions {
 				$row   = (array) $db->row( $db->prepare( "SELECT * FROM `{$table}` WHERE id = %d FOR UPDATE", $session ) );
 				if ( 'evaluated' !== ( $row['status'] ?? '' ) ) {
 					throw new CourseException( 'ccap_exam_conflict', 'Only evaluated attempts can be re-evaluated.', 409 );
+				}
+				// RT-05: once the raw answers are deleted by retention, a new evaluation would score empty answers.
+				if ( null !== $db->scalar( $db->prepare( 'SELECT 1 FROM `' . $db->table( 'ccap_exam_session_question' ) . '` WHERE session_id = %d AND answered_at IS NOT NULL AND given_answer IS NULL LIMIT 1', $session ) ) ) {
+					throw new CourseException( 'ccap_exam_conflict', 'The raw answers of this attempt were deleted after the retention period; it cannot be re-evaluated.', 409, array( 'reason' => 'raw_answers_deleted' ) );
 				}
 				$snapshot = (array) json_decode( (string) $row['snapshot'], true );
 				$scoring  = array_column( (array) ( $snapshot['scoring'] ?? array() ), null, 'position' );

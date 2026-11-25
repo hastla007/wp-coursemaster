@@ -17,15 +17,26 @@ defined( 'ABSPATH' ) || exit;
  * - V1 archive: valid, not empty, ≤ 20 000 entries, ≤ 200 MB, unpacked ≤ 800 MB;
  * - V2 zip bomb: ratio ≤ 200 per file > 1 MB, ≤ 50 in total > 50 MB, no zero sizes;
  * - V3 paths: no absolute/backslash/`..`/NUL/drive/hidden segments, no symlinks,
+ *   at most 32 segments of at most 255 bytes, no two entries that differ only
+ *   in case or Unicode normalisation (NFC/NFD, `V3_collision`, SEC-028),
  *   only `manifest.json`, `data/<entity>/<6 digits>.json`, `media/…`;
  * - V4 media: extension allowlist, no dangerous inner extension, declared and
  *   detected MIME match (reported here; the import treats a V4 finding as
  *   an object error of the medium, R0-38 §2.3 class O, see
  *   {@see ImportService::validate()});
- * - V5 integrity: manifest fields, major 1, every listed file present with size
+ * - V5 integrity: manifest fields, major 1 and minor ≤ {@see SCHEMA_MINOR}, every listed file present with size
  *   and SHA-256, no unlisted files, `content_sha256`.
  */
 final class PackageValidator {
+
+	/**
+	 * Highest supported minor version of `schema_version` 1.x (R0-10 §1.2, IMP-005).
+	 * 1.1 (E-382): optional blueprint fields of the course export (form mode,
+	 * setting overrides, points per draw, part labels, empty-part policy,
+	 * blueprints of fixed variants only) and stored media roles
+	 * ({@see PackageExporter::schema_minor()}).
+	 */
+	public const SCHEMA_MINOR = 1;
 
 	public const MAX_ENTRIES  = 20000;
 	public const MAX_ZIP      = 209715200;
@@ -46,6 +57,8 @@ final class PackageValidator {
 	);
 	private const DANGEROUS   = array( 'php', 'phtml', 'phar', 'php3', 'php4', 'php5', 'php7', 'pht', 'html', 'htm', 'js', 'svg', 'svgz', 'shtml', 'cgi', 'pl', 'py', 'sh', 'exe', 'htaccess' );
 	private const JUNK        = '#(^|/)(__MACOSX/|\.DS_Store$|Thumbs\.db$)#';
+	public const MAX_DEPTH    = 32;
+	public const MAX_SEGMENT  = 255;
 
 	/**
 	 * Validate a package file.
@@ -75,6 +88,7 @@ final class PackageValidator {
 		$total   = 0;
 		$packed  = 0;
 		$entries = array();
+		$folded  = array();
 		for ( $i = 0; $i < $count; $i++ ) {
 			$stat = $zip->statIndex( $i );
 			if ( false === $stat ) {
@@ -105,6 +119,13 @@ final class PackageValidator {
 				$fail( $path_error, $name );
 				continue;
 			}
+			// SEC-028: names that differ only in case or normalisation would overwrite each other on many file systems.
+			$key = self::fold( $name );
+			if ( isset( $folded[ $key ] ) ) {
+				$fail( 'V3_collision', $name );
+				continue;
+			}
+			$folded[ $key ]   = true;
 			$entries[ $name ] = $size;
 		}
 		if ( $total > self::MAX_UNPACKED || ( $total > 52428800 && $total / max( 1, $packed ) > 50 ) ) {
@@ -181,8 +202,12 @@ final class PackageValidator {
 		if ( '' === $name || str_starts_with( $name, '/' ) || str_contains( $name, '\\' ) || str_contains( $name, "\0" ) || 1 === preg_match( '/^[a-z]:/i', $name ) ) {
 			return 'V3_path';
 		}
-		foreach ( explode( '/', $name ) as $segment ) {
-			if ( '..' === $segment || '.' === $segment || str_starts_with( $segment, '.' ) ) {
+		$segments = explode( '/', $name );
+		if ( count( $segments ) > self::MAX_DEPTH ) {
+			return 'V3_path';
+		}
+		foreach ( $segments as $segment ) {
+			if ( '..' === $segment || '.' === $segment || str_starts_with( $segment, '.' ) || strlen( $segment ) > self::MAX_SEGMENT ) {
 				return 'V3_path';
 			}
 		}
@@ -190,6 +215,21 @@ final class PackageValidator {
 			return null;
 		}
 		return 'V3_entry';
+	}
+
+	/**
+	 * Collision key of an entry name: NFC, then case-folded (SEC-028).
+	 * Invalid UTF-8 is compared byte-wise, lower-cased.
+	 *
+	 * @param string $name Entry name.
+	 * @return string
+	 */
+	private static function fold( string $name ): string {
+		if ( class_exists( \Normalizer::class ) ) {
+			$nfc  = \Normalizer::normalize( $name, \Normalizer::FORM_C );
+			$name = false === $nfc ? $name : $nfc;
+		}
+		return 1 === preg_match( '//u', $name ) ? mb_strtolower( $name, 'UTF-8' ) : strtolower( $name );
 	}
 
 	/**
@@ -247,6 +287,35 @@ final class PackageValidator {
 	}
 
 	/**
+	 * Readable hint for the package-level manifest rules of format and
+	 * version (IMP-004 foreign format, IMP-005 newer minor, major outside 1),
+	 * shown in the import detail. It only names what exists: the course
+	 * export of Course Captain and the schema versions this site imports.
+	 * Null for every other rule (the screen shows the rule code).
+	 *
+	 * @param string $rule    Rule (`V5_format`, `V5_major`, `V5_minor`, …).
+	 * @param string $version `schema_version` of the package (untrusted, may be empty).
+	 * @return string|null Plain text.
+	 */
+	public static function hint( string $rule, string $version ): ?string {
+		$lowest  = '1.0.0';
+		$highest = '1.' . self::SCHEMA_MINOR . '.x';
+		switch ( $rule ) {
+			case 'V5_format':
+				return __( 'This file is not a Course Captain package. Only packages created under "Import content > Course export" can be imported: export the course there on the source site and upload that file.', 'course-captain' );
+			case 'V5_major':
+			case 'V5_minor':
+				if ( 1 !== preg_match( '/^\d{1,5}\.\d{1,5}\.\d{1,5}$/', $version ) ) {
+					/* translators: 1: lowest schema version, 2: highest schema version such as 1.0.x */
+					return sprintf( __( 'The package has no valid schema version. This site imports schema versions %1$s to %2$s. Export the package again with a matching version and upload that file.', 'course-captain' ), $lowest, $highest );
+				}
+				/* translators: 1: schema version of the package, 2: lowest schema version, 3: highest schema version such as 1.0.x */
+				return sprintf( __( 'The package has schema version %1$s, but this site imports only schema versions %2$s to %3$s. Export the package again with a matching version and upload that file.', 'course-captain' ), $version, $lowest, $highest );
+		}
+		return null;
+	}
+
+	/**
 	 * Manifest rules.
 	 *
 	 * @param array<string, mixed>|null $manifest Manifest.
@@ -260,8 +329,11 @@ final class PackageValidator {
 		if ( 'cc-package' !== ( $manifest['format'] ?? '' ) ) {
 			$errors[] = 'V5_format';
 		}
-		if ( 1 !== preg_match( '/^1\.\d+\.\d+$/', (string) ( $manifest['schema_version'] ?? '' ) ) ) {
+		if ( 1 !== preg_match( '/^1\.(\d+)\.\d+$/', (string) ( $manifest['schema_version'] ?? '' ), $version ) ) {
 			$errors[] = 'V5_major';
+		} elseif ( (int) $version[1] > self::SCHEMA_MINOR ) {
+			// IMP-005: a newer minor version may use fields this plugin does not know yet ({@see self::hint()}).
+			$errors[] = 'V5_minor';
 		}
 		if ( 1 !== preg_match( '/^[a-z0-9][a-z0-9-]{1,40}-[0-9a-f]{12}$/', (string) ( $manifest['package_id'] ?? '' ) ) ) {
 			$errors[] = 'V5_package_id';
@@ -275,6 +347,13 @@ final class PackageValidator {
 		}
 		if ( 1 !== preg_match( '/^[a-z0-9][a-z0-9._-]{1,31}$/', (string) ( $manifest['source']['system'] ?? '' ) ) ) {
 			$errors[] = 'V5_source_system';
+		}
+		// D8: provenance of an own export (installation UUID) and the package-wide rights fallback (R0-10 §1.2).
+		if ( isset( $manifest['source']['exported_from_site'] ) && 1 !== preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', (string) $manifest['source']['exported_from_site'] ) ) {
+			$errors[] = 'V5_exported_from_site';
+		}
+		if ( array_key_exists( 'default_rights', $manifest ) && null !== $manifest['default_rights'] && ! Rights::valid_package_rights( $manifest['default_rights'] ) ) {
+			$errors[] = 'V5_default_rights';
 		}
 		return $errors;
 	}

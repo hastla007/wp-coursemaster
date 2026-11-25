@@ -309,7 +309,7 @@ final class RoleCaps {
 				'removed'         => $removed,
 				'confirmed_risks' => $confirmed,
 				'context'         => $context,
-			)
+			) + ( $actor->is_system() ? array( 'actor' => $actor->type ) : array() )
 		);
 	}
 }

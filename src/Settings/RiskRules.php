@@ -16,9 +16,13 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Maps a change of a tab (before → after) to the confirmations it needs.
- * RC-01…RC-18 are the dialogs of R0-30 §4.2; RC-19…RC-22 are the R
+ * RC-01…RC-18 are the dialogs of R0-30 §4.2; RC-19…RC-21 are the R
  * fields R0-31 added later without a dialog number (Δ-1 solutions after
- * submit, Δ-6 avatars, `consent_category = functional`, file delivery).
+ * submit, Δ-6 avatars, `consent_category = functional`). RC-22 (file
+ * delivery) is gone with `advanced.file_delivery` (SET-CC-P1, register v3).
+ * RC-23 = a retention period of `privacy.retention` gets shorter or is
+ * switched on (R0-27 §1.3 "R beim Verkleinern", PRIV-008, SET-CC-02); the
+ * dialog shows the preview of what the next run deletes.
  * Stricter changes never need a confirmation (PD-1). RC-02 (R+) is
  * confirmed by the typed site name instead of a token (E-89).
  */
@@ -29,7 +33,7 @@ final class RiskRules {
 	 *
 	 * @var list<string>
 	 */
-	public const CODES = array( 'RC-01', 'RC-03', 'RC-04', 'RC-05', 'RC-06', 'RC-07', 'RC-08', 'RC-09', 'RC-10', 'RC-12', 'RC-13', 'RC-14', 'RC-15', 'RC-16', 'RC-19', 'RC-20', 'RC-21', 'RC-22' );
+	public const CODES = array( 'RC-01', 'RC-03', 'RC-04', 'RC-05', 'RC-06', 'RC-07', 'RC-08', 'RC-09', 'RC-10', 'RC-12', 'RC-13', 'RC-14', 'RC-15', 'RC-16', 'RC-19', 'RC-20', 'RC-21', 'RC-23' );
 
 	/**
 	 * Confirmations needed for a change.
@@ -101,6 +105,9 @@ final class RiskRules {
 				if ( $changed( 'consent_category' ) && 'functional' === $after['consent_category'] ) {
 					$risks[] = 'RC-21';
 				}
+				if ( $changed( 'retention' ) && array() !== \CourseCaptain\Privacy\RetentionPolicy::shortened( (array) ( $before['retention'] ?? array() ), (array) $after['retention'] ) ) {
+					$risks[] = 'RC-23';
+				}
 				break;
 			case 'hardening':
 				// RC-14: switching the login limit on (R0-30) and `force`/`off` of an active limit (R0-27, R0-31 §1.3).
@@ -112,11 +119,6 @@ final class RiskRules {
 				}
 				if ( $changed( 'xmlrpc' ) && 'off' !== $after['xmlrpc'] && 'off' === ( $before['xmlrpc'] ?? 'off' ) ) {
 					$risks[] = 'RC-15';
-				}
-				break;
-			case 'advanced':
-				if ( $changed( 'file_delivery' ) && 'php' !== $after['file_delivery'] ) {
-					$risks[] = 'RC-22';
 				}
 				break;
 		}

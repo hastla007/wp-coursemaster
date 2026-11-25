@@ -672,6 +672,24 @@ final class NeutralFixture {
 	}
 
 	/**
+	 * Release the two imported items with unclear rights (Q-A3-010,
+	 * FC-A-07) as `licensed` overrides. Since the delivery lock (R0-10
+	 * §2.2, SET-CC-rechte-auslieferung) learners never get foreign
+	 * `unknown` content; the golden masters on exams, learning and reports
+	 * expect the complete course C-A and call this after `load()`. The
+	 * import golden masters (GM-123, GM-127) keep the imported status.
+	 *
+	 * @param array<string, mixed> $fx Loaded fixture.
+	 * @return void
+	 */
+	public static function release_rights( array $fx ): void {
+		$rights = \CourseCaptain\Import\Rights::current();
+		$admin  = Actor::user( (int) $fx['users']['admin'] );
+		$rights->override( $admin, 'question', self::question( 'A3-010' ), 'licensed', 'Fixture: rights released for delivery golden masters' );
+		$rights->override( $admin, 'flashcard', (int) self::object( 'flashcard', 'cc-fx-fc-a-07' ), 'licensed', 'Fixture: rights released for delivery golden masters' );
+	}
+
+	/**
 	 * C-C: module M-C1 without questions and the invalid draft rule ER-C
 	 * (blueprint 10 > pool 0, 600 s) for GM-144.
 	 *

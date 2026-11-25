@@ -216,6 +216,7 @@ Gilt für `exam`-Activities und bewertete Quizze (Modus `quiz`, E-68) und ihre P
 | VAL-096 | Regel | `feedback_visibility = always` bei bewertetem Versuch | H | „Während einer bewerteten Prüfung gibt es keine Lösungen. ‚Immer‘ wirkt hier wie ‚nach Abgabe‘.“ | quick_fix „Nach Abgabe“ |
 | VAL-097 | Regel | Prüfung enthält Fragen mit externen Medien (VAL-110) **und** `privacy.external_media_mode = click_to_load` (im Default `always_load` entfällt die Regel, E-45a) | W | „{n} Prüfungsfragen laden Medien von {provider}. Die Zustimmung kostet Lernende Prüfungszeit.“ | jump |
 | VAL-098 | Prüfung | Prüfung ist per Drip/Teilumfang nie startbar, weil ein Blueprint-Modul dauerhaft gesperrt ist (z. B. Teilumfang ohne Grant-Weg, Drip > maximale Zugangsdauer) | B | „Die Prüfung kann nie starten: Modul {module} wird erst nach {d} Tagen frei, der Zugang dauert aber nur {g} Tage.“ | jump (A-04 › Zugang) |
+| VAL-099 | Prüfung | Karteikarten (`flashcard`) werden nie gezogen (E-351, B-03); nach ihrem Ausschluss enthält ein Blueprint-Teil keine oder zu wenige bewertbare Fragen | W | „{n} Fragen im Pool von {part} sind Karteikarten und werden in Prüfungen nicht gezogen.“ (leerer Pool zusätzlich VAL-085) | jump |
 
 #### Medium und Rechte (VAL-100 … VAL-119)
 

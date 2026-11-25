@@ -24,6 +24,11 @@ defined( 'ABSPATH' ) || exit;
 final class SettingsRules {
 
 	/**
+	 * Minimum contrast of the accent colour against white (WCAG 1.4.3 AA, SET-CC-16).
+	 */
+	public const MIN_CONTRAST = 4.5;
+
+	/**
 	 * Reserved first path segments (F-02): WordPress rewrite bases and core paths.
 	 *
 	 * @var list<string>
@@ -35,7 +40,7 @@ final class SettingsRules {
 	 *
 	 * @param array<string, mixed> $field Field definition.
 	 * @param mixed                $value Raw value.
-	 * @return string `format`, `range`, `length`, `email`, `ip`, `choice` or `invalid`.
+	 * @return string `format`, `range`, `length`, `email`, `ip`, `host`, `choice` or `invalid`.
 	 */
 	public static function invalid_rule( array $field, $value ): string {
 		switch ( $field['type'] ) {
@@ -49,8 +54,14 @@ final class SettingsRules {
 				return 'format';
 			case 'email':
 				return 'email';
+			case 'url':
+				return 'url';
+			case 'color':
+				return 'color';
 			case 'ip_list':
 				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'ip';
+			case 'host_list':
+				return is_array( $value ) && count( $value ) > (int) ( $field['max'] ?? 50 ) ? 'count' : 'host';
 			case 'enum':
 			case 'set':
 			case 'bool':
@@ -60,6 +71,30 @@ final class SettingsRules {
 				return ! empty( $field['strict'] ) && is_array( $value ) && array() !== array_diff( array_keys( $value ), array_keys( (array) $field['fields'] ) ) ? 'required_mail' : 'invalid';
 		}
 		return 'invalid';
+	}
+
+	/**
+	 * First invalid part of an object value with its rule (SET-CC-P5): the
+	 * form shows the error at that part with its own limits instead of a
+	 * general "check the value".
+	 *
+	 * @param array<string, mixed> $field Object field definition.
+	 * @param mixed                $value Submitted value.
+	 * @return array{sub: string, rule: string}|null
+	 */
+	public static function invalid_part( array $field, $value ): ?array {
+		if ( 'object' !== $field['type'] || ! is_array( $value ) ) {
+			return null;
+		}
+		foreach ( (array) ( $field['fields'] ?? array() ) as $sub => $def ) {
+			if ( array_key_exists( $sub, $value ) && ! SettingsSchema::validate( (array) $def, $value[ $sub ] )['ok'] ) {
+				return array(
+					'sub'  => (string) $sub,
+					'rule' => self::invalid_rule( (array) $def, $value[ $sub ] ),
+				);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -97,6 +132,39 @@ final class SettingsRules {
 				}
 			}
 		}
+		if ( 'display' === $tab ) {
+			if ( $check( 'accessibility_page_id' ) && 0 !== $candidate['accessibility_page_id'] ) {
+				$rule = self::page_rule( $actor, (int) $candidate['accessibility_page_id'] );
+				if ( null !== $rule ) {
+					$errors['accessibility_page_id'] = $rule;
+				}
+			}
+			if ( $check( 'logo_id' ) && 0 !== $candidate['logo_id'] && ! wp_attachment_is_image( (int) $candidate['logo_id'] ) ) {
+				$errors['logo_id'] = 'logo_missing';
+			}
+			// SET-CC-16 (R0-27 SET-041): white button text on the accent colour needs 4.5:1; too light colours are rejected.
+			if ( $check( 'accent_color' ) && '' !== $candidate['accent_color'] && self::contrast( (string) $candidate['accent_color'], '#ffffff' ) < self::MIN_CONTRAST ) {
+				$errors['accent_color'] = 'contrast';
+			}
+		}
+		// SET-CC-13: review intervals never shrink from one stage to the next.
+		if ( 'learning' === $tab && $check( 'review_intervals' ) ) {
+			$intervals = (array) $candidate['review_intervals'];
+			if ( (int) $intervals['second'] < (int) $intervals['first'] || (int) $intervals['third'] < (int) $intervals['second'] ) {
+				$errors['review_intervals'] = 'interval_order';
+			}
+		}
+		// RR-4 (PSD-018): raw answers never outlive the exam attempts they belong to.
+		if ( 'privacy' === $tab && $check( 'retention' ) && self::retention_order_violation( (array) $candidate['retention'] ) ) {
+			$errors['retention'] = 'retention_order';
+		}
+		// SET-CC-08: a fixed certificate language must be installed (the switch would fail silently otherwise).
+		if ( 'certificates' === $tab && ( $check( 'language' ) || $check( 'fixed_locale' ) ) ) {
+			$locale = (string) $candidate['fixed_locale'];
+			if ( ( 'fixed' === $candidate['language'] || '' !== $locale ) && ! in_array( $locale, \CourseCaptain\Kernel\Locale::installed(), true ) ) {
+				$errors['fixed_locale'] = 'locale';
+			}
+		}
 		/**
 		 * Further semantic rules of a tab (`field => rule`).
 		 *
@@ -112,6 +180,35 @@ final class SettingsRules {
 			}
 		}
 		return $errors;
+	}
+
+	/**
+	 * RR-4 (R0-31 §2.3, PSD-018) sentence 1: raw answers may not be kept
+	 * longer than the exam attempts they belong to (`raw_answers_years_after_course_end`
+	 * ≤ `exam_attempts_years`; missing keys count with their default).
+	 *
+	 * @param array<string, mixed> $retention Candidate `privacy.retention`.
+	 * @return bool True when the rule is broken.
+	 */
+	public static function retention_order_violation( array $retention ): bool {
+		$keys = \CourseCaptain\Privacy\RetentionPolicy::KEYS;
+		$raw  = $retention['raw_answers_years_after_course_end'] ?? $keys['raw_answers_years_after_course_end']['default'];
+		$exam = $retention['exam_attempts_years'] ?? $keys['exam_attempts_years']['default'];
+		return is_int( $raw ) && is_int( $exam ) && $raw > $exam;
+	}
+
+	/**
+	 * RR-4 sentence 2: certificates deleted before the exam attempts they
+	 * rest on are allowed, the settings screen only shows a notice.
+	 *
+	 * @param array<string, mixed> $retention `privacy.retention` values.
+	 * @return bool
+	 */
+	public static function certificates_before_attempts( array $retention ): bool {
+		$keys = \CourseCaptain\Privacy\RetentionPolicy::KEYS;
+		$cert = $retention['certificates_years'] ?? $keys['certificates_years']['default'];
+		$exam = $retention['exam_attempts_years'] ?? $keys['exam_attempts_years']['default'];
+		return is_int( $cert ) && is_int( $exam ) && $cert < $exam;
 	}
 
 	/**
@@ -196,5 +293,36 @@ final class SettingsRules {
 			++$i;
 		}
 		return $slug;
+	}
+
+	/**
+	 * WCAG 2.x contrast ratio of two `#rrggbb` colours (1 … 21).
+	 *
+	 * @param string $a Colour A.
+	 * @param string $b Colour B.
+	 * @return float
+	 */
+	public static function contrast( string $a, string $b ): float {
+		$la = self::luminance( $a );
+		$lb = self::luminance( $b );
+		return ( max( $la, $lb ) + 0.05 ) / ( min( $la, $lb ) + 0.05 );
+	}
+
+	/**
+	 * Relative luminance of a `#rrggbb` colour.
+	 *
+	 * @param string $hex Colour.
+	 * @return float
+	 */
+	private static function luminance( string $hex ): float {
+		$hex = ltrim( $hex, '#' );
+		if ( 1 !== preg_match( '/^[0-9a-fA-F]{6}$/', $hex ) ) {
+			return 1.0;
+		}
+		$channel = static function ( string $part ): float {
+			$c = hexdec( $part ) / 255;
+			return $c <= 0.03928 ? $c / 12.92 : ( ( $c + 0.055 ) / 1.055 ) ** 2.4;
+		};
+		return 0.2126 * $channel( substr( $hex, 0, 2 ) ) + 0.7152 * $channel( substr( $hex, 2, 2 ) ) + 0.0722 * $channel( substr( $hex, 4, 2 ) );
 	}
 }

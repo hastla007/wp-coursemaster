@@ -8,7 +8,7 @@
 // - PRIV-018 (R1-18 h3): a new attempt with a buffered answer (plus a sessionStorage entry and a
 //   key of another plugin); logging out removes every `ccap_exam_*` entry and the marker cookie,
 //   the foreign key stays; the second account (U-L1) logging in on the same browser finds none.
-const { chromium } = require( 'playwright' );
+const { launch, phone, submitLogin } = require( './lib' );
 
 const BASE = process.env.CCAP_E2E_URL;
 const SETUP = JSON.parse( process.env.CCAP_E2E_SETUP || '{}' );
@@ -33,8 +33,8 @@ function assert( cond, message ) {
 }
 
 ( async () => {
-	const browser = await chromium.launch();
-	const context = await browser.newContext( { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } );
+	const browser = await launch();
+	const context = await browser.newContext( phone( browser ) );
 	const page = await context.newPage();
 	let nonce = '';
 	let session = '';
@@ -51,7 +51,7 @@ function assert( cond, message ) {
 			await page.goto( BASE + '/wp-login.php' );
 			await page.fill( '#user_login', 'cc_fx_ole' );
 			await page.fill( '#user_pass', process.env.CCAP_E2E_PASS );
-			await Promise.all( [ page.waitForNavigation(), page.click( '#wp-submit' ) ] );
+			await submitLogin( page );
 			nonce = await page.evaluate( async ( u ) => ( await fetch( u, { credentials: 'same-origin' } ) ).text(), BASE + '/wp-admin/admin-ajax.php?action=rest-nonce' );
 			assert( /^[0-9a-f]{10}$/.test( nonce ), 'REST nonce' );
 			await page.goto( area( 'kurs/' + SETUP.course_a_uid ) );
@@ -135,7 +135,7 @@ function assert( cond, message ) {
 			assert( ! ( await context.cookies() ).some( ( c ) => c.name === 'ccap_exam_purge' ), 'marker cookie removed' );
 			await page.fill( '#user_login', 'cc_fx_lea' );
 			await page.fill( '#user_pass', process.env.CCAP_E2E_PASS );
-			await Promise.all( [ page.waitForNavigation(), page.click( '#wp-submit' ) ] );
+			await submitLogin( page );
 			await page.goto( area( 'kurs/' + SETUP.course_a_uid ) );
 			assert( ( await exam() ) === 0, 'second account: no buffer of the first' );
 		} );

@@ -426,6 +426,27 @@ final class CompatibilityTest extends SchemaTestCase {
 	}
 
 	/**
+	 * E-392: the PHP extension intl is a system requirement; without it the
+	 * system status and the Site Health compatibility test warn.
+	 */
+	public function test_E_392_intl_requirement_check(): void {
+		self::assertSame( 'ok', $this->check( 'php_intl' )['status'] );
+		Compatibility::$stubs['class:Normalizer'] = false;
+		try {
+			$check = $this->check( 'php_intl' );
+			self::assertSame( 'warn', $check['status'] );
+			self::assertStringContainsString( 'intl', $check['label'] );
+			self::assertStringContainsString( 'certificate checksums', $check['hint'] );
+			$health = Compatibility::site_health();
+			self::assertContains( $health['status'], array( 'recommended', 'critical' ) );
+			self::assertStringContainsString( 'PHP extension intl is missing', (string) $health['description'] );
+		} finally {
+			unset( Compatibility::$stubs['class:Normalizer'] );
+		}
+		self::assertSame( 'ok', $this->check( 'php_intl' )['status'] );
+	}
+
+	/**
 	 * KOMP-072: Elementor layout data of a protected post is not handed out (LB-K-07 behaviour) (v).
 	 *
 	 * @group KOMP-072
@@ -537,6 +558,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 * @group KOMP-015
 	 * @group KOMP-045
 	 * @group GM-152
+	 * @group SEC-022
 	 */
 	public function test_KOMP_015_045_trusted_proxies(): void {
 		$_SERVER['REMOTE_ADDR']            = '10.1.2.3';
@@ -572,6 +594,7 @@ final class CompatibilityTest extends SchemaTestCase {
 	 *
 	 * @group R1-18
 	 * @group GM-152
+	 * @group SEC-022
 	 */
 	public function test_GM_152_ipv6_prefix_shares_the_limit(): void {
 		self::assertSame( ClientIp::rate_key_of( '2001:db8::1' ), ClientIp::rate_key_of( '2001:db8::2' ) );

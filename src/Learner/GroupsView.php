@@ -147,7 +147,7 @@ final class GroupsView {
 		}
 		$html .= self::members_table( $id, $uid, $members, $writable );
 		if ( $writable ) {
-			$html .= self::invite_form( $id, $uid );
+			$html .= self::invite_form( $id, $uid, GroupOwnerRoutes::budget( $id ) );
 			$html .= self::link_section( $id, $uid, $group, $flash );
 			$html .= self::rename_form( $id, $uid, $group['name'] );
 		}
@@ -231,7 +231,7 @@ final class GroupsView {
 	 * @return int
 	 * @throws CourseException 404 when unknown or not the actor's group.
 	 */
-	private static function group_id( Actor $actor, string $uid ): int {
+	public static function group_id( Actor $actor, string $uid ): int {
 		$db = Database::current();
 		$id = 1 === preg_match( '/^[0-9a-f-]{36}$/', $uid ) ? (int) $db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_group' ) . '` WHERE uid = %s AND owner_user_id = %d', $uid, $actor->user_id ) ) : 0;
 		if ( $id <= 0 || ! PolicyService::instance()->decide( $actor, PolicyService::MANAGE_GROUP, array( $id ) )->allowed ) {
@@ -327,17 +327,50 @@ final class GroupsView {
 	}
 
 	/**
-	 * Invitation by address.
+	 * Invitation by address, with the invitation budget (F3.7, UI-F1).
 	 *
-	 * @param int    $id  Group.
-	 * @param string $uid Group UID.
+	 * @param int                  $id     Group.
+	 * @param string               $uid    Group UID.
+	 * @param array<string, mixed> $budget {@see GroupOwnerRoutes::budget()}.
 	 * @return string
 	 */
-	private static function invite_form( int $id, string $uid ): string {
+	private static function invite_form( int $id, string $uid, array $budget ): string {
 		return '<section aria-labelledby="ccap-group-invite"><h2 id="ccap-group-invite">' . esc_html__( 'Invite by email', 'course-captain' ) . '</h2>'
+			. self::budget_note( $budget )
 			. '<form method="post" action="' . esc_url( self::url( $uid ) ) . '">' . wp_nonce_field( self::NONCE . ':' . $id, '_wpnonce', false, false ) . '<input type="hidden" name="ccap_op" value="invite">'
-			. '<p><label for="ccap-invite-emails">' . esc_html__( 'Email addresses', 'course-captain' ) . '</label><br><textarea id="ccap-invite-emails" name="emails" rows="4" cols="50" aria-describedby="ccap-invite-emails-hint" autocomplete="off"></textarea><br><span id="ccap-invite-emails-hint">' . esc_html__( 'One address per line or separated by commas, at most 200. Every invitation takes one place until it is accepted or expires. The address is only used for the invitation.', 'course-captain' ) . '</span></p>'
+			. '<p><label for="ccap-invite-emails">' . esc_html__( 'Email addresses', 'course-captain' ) . '</label><br><textarea id="ccap-invite-emails" name="emails" rows="4" cols="50" aria-describedby="ccap-invite-emails-hint ccap-invite-budget" autocomplete="off"></textarea><br><span id="ccap-invite-emails-hint">' . esc_html__( 'One address per line or separated by commas, at most 200. Every invitation takes one place until it is accepted or expires. The address is only used for the invitation.', 'course-captain' ) . '</span></p>'
 			. '<p><button type="submit" class="ccap-button">' . esc_html__( 'Send invitations', 'course-captain' ) . '</button></p></form></section>';
+	}
+
+	/**
+	 * Invitation budget as text: how many invitations can still be sent in
+	 * 24 hours, or when the next one can be sent (F3.7).
+	 *
+	 * @param array<string, mixed> $budget {@see GroupOwnerRoutes::budget()}.
+	 * @return string
+	 */
+	private static function budget_note( array $budget ): string {
+		$remaining = (int) $budget['remaining'];
+		if ( $remaining > 0 ) {
+			return '<p id="ccap-invite-budget">' . esc_html(
+				sprintf(
+					/* translators: 1: invitations that can still be sent, 2: invitations allowed per 24 hours */
+					_n( 'You can send %1$s more invitation in the next 24 hours (at most %2$s per day).', 'You can send %1$s more invitations in the next 24 hours (at most %2$s per day).', $remaining, 'course-captain' ),
+					number_format_i18n( $remaining ),
+					number_format_i18n( (int) $budget['limit'] )
+				)
+			) . '</p>';
+		}
+		$next = null === $budget['next_at'] ? time() : (int) strtotime( (string) $budget['next_at'] );
+		return '<p id="ccap-invite-budget" class="ccap-error" role="status">' . esc_html(
+			sprintf(
+				/* translators: 1: invitations allowed per 24 hours, 2: waiting time, e.g. "3 hours", 3: date and time */
+				__( 'The invitations for today are used up (at most %1$s per day). You can send the next invitation in %2$s, on %3$s.', 'course-captain' ),
+				number_format_i18n( (int) $budget['limit'] ),
+				human_time_diff( time(), max( time() + 60, $next ) ),
+				wp_date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $next )
+			)
+		) . '</p>';
 	}
 
 	/**
@@ -416,11 +449,27 @@ final class GroupsView {
 					number_format_i18n( (int) $data['invalid'] )
 				);
 			}
-			if ( (int) ( $data['limited'] ?? 0 ) > 0 ) {
+			if ( (int) ( $data['already_member'] ?? 0 ) > 0 ) {
 				$parts[] = sprintf(
 					/* translators: %s: number of addresses */
-					_n( '%s address was not invited because no place is free.', '%s addresses were not invited because no place is free.', (int) $data['limited'], 'course-captain' ),
-					number_format_i18n( (int) $data['limited'] )
+					_n( '%s address is already in the group.', '%s addresses are already in the group.', (int) $data['already_member'], 'course-captain' ),
+					number_format_i18n( (int) $data['already_member'] )
+				);
+			}
+			if ( (int) ( $data['budget'] ?? 0 ) > 0 ) {
+				$parts[] = sprintf(
+					/* translators: %s: number of addresses */
+					_n( '%s address was not invited because the invitations for today are used up.', '%s addresses were not invited because the invitations for today are used up.', (int) $data['budget'], 'course-captain' ),
+					number_format_i18n( (int) $data['budget'] )
+				);
+			}
+			// `limited` of GroupsScreen::invite() includes both counts above; here only "no free place".
+			$limited = max( 0, (int) ( $data['limited'] ?? 0 ) - (int) ( $data['already_member'] ?? 0 ) - (int) ( $data['budget'] ?? 0 ) );
+			if ( $limited > 0 ) {
+				$parts[] = sprintf(
+					/* translators: %s: number of addresses */
+					_n( '%s address was not invited because no place is free.', '%s addresses were not invited because no place is free.', $limited, 'course-captain' ),
+					number_format_i18n( $limited )
 				);
 			}
 			$error = (int) ( $data['invalid'] ?? 0 ) + (int) ( $data['limited'] ?? 0 ) > 0;

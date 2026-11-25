@@ -10,6 +10,9 @@ declare(strict_types=1);
 namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Activity\ActivityProgress;
+use CourseCaptain\Access\ContentGate;
+use CourseCaptain\Access\GrantService;
+use CourseCaptain\Access\GrantTransitions;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Certificate\CertificatePages;
 use CourseCaptain\Certificate\CertificateService;
@@ -516,6 +519,8 @@ final class CertificateTest extends SchemaTestCase {
 	 * @group CRT-013
 	 * @group CRT-014
 	 * @group CRT-028
+	 * @group REV-046
+	 * @group SEC-034
 	 */
 	public function test_CRT_013_014_028_revocation(): void {
 		$cert    = $this->exam_certificate( array( 'certifies_objectives' => array( 'obj-safety' ) ) );
@@ -563,6 +568,7 @@ final class CertificateTest extends SchemaTestCase {
 	 *
 	 * @group CRT-015
 	 * @group CRT-016
+	 * @group SEC-034
 	 */
 	public function test_CRT_015_016_verification_policy(): void {
 		$cert    = $this->exam_certificate( array( 'competency_validity_days' => 30 ) );
@@ -606,6 +612,7 @@ final class CertificateTest extends SchemaTestCase {
 	 * CRT-017 / SET-091: name opt-in per certificate, immediate, all revisions; policy `never`.
 	 *
 	 * @group CRT-017
+	 * @group SEC-034
 	 */
 	public function test_CRT_017_name_opt_in(): void {
 		$cert    = $this->exam_certificate();
@@ -772,6 +779,7 @@ final class CertificateTest extends SchemaTestCase {
 	 * cache headers; rate limit fail-closed bucket.
 	 *
 	 * @group CRT-029
+	 * @group SEC-034
 	 */
 	public function test_CRT_029_reference_and_rest(): void {
 		$cert    = $this->exam_certificate();
@@ -857,5 +865,387 @@ final class CertificateTest extends SchemaTestCase {
 		OutboxDispatcher::current()->dispatch();
 		self::assertSame( 'issued', self::certs( "certificate_uid = '" . $cert['uid'] . "'" )[0]['status'] );
 		self::assertSame( '1', (string) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'certificate_review_required'" ) );
+	}
+
+	/**
+	 * Progress row of the learner's course completion.
+	 *
+	 * @return int
+	 */
+	private function progress_id(): int {
+		$db = Database::current();
+		return (int) $db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_course_progress' ) . '` WHERE user_id = %d', $this->learner ) );
+	}
+
+	/**
+	 * Pretend that language packs are installed (locale switcher and `get_available_languages`).
+	 *
+	 * @param array $locales Locales besides en_US.
+	 * @phpstan-param list<string> $locales
+	 * @return callable Filter to remove again.
+	 */
+	private function install_locales( array $locales ): callable {
+		$filter   = static fn(): array => $locales;
+		add_filter( 'get_available_languages', $filter );
+		$property = new \ReflectionProperty( $GLOBALS['wp_locale_switcher'], 'available_languages' );
+		$property->setValue( $GLOBALS['wp_locale_switcher'], array_merge( array( 'en_US' ), $locales ) );
+		return $filter;
+	}
+
+	/**
+	 * SET-CC-08: default validity for evidence without an own validity; an
+	 * exam rule's own validity wins; changing the setting never touches issued
+	 * certificates (snapshot, hash); a correction keeps the issued date;
+	 * renewal notice lead time from the setting.
+	 *
+	 * @group SET-CC-08
+	 */
+	public function test_SET_CC_08_default_validity_and_notice(): void {
+		$this->settings(
+			array(
+				'auto_issue'            => true,
+				'default_validity_days' => 365,
+			)
+		);
+		$this->complete_course();
+		$rows = self::certs( "evidence_type = 'course_completion'" );
+		self::assertCount( 1, $rows );
+		$snapshot = json_decode( (string) $rows[0]['snapshot'], true );
+		$done     = (string) Database::current()->scalar( Database::current()->prepare( 'SELECT completed_at FROM `' . Database::current()->table( 'ccap_course_progress' ) . '` WHERE id = %d', $this->progress_id() ) );
+		self::assertSame( CertificateService::site_date_after( $done, 365 ), $snapshot['valid_until'], 'completion certificate gets the default validity' );
+		self::assertSame( array( 'language', 'paper' ), array_keys( $snapshot['layout'] ), 'canonical (sorted) keys' );
+
+		// Settings change: the issued certificate stays byte-identical.
+		$this->settings(
+			array(
+				'default_validity_days' => 30,
+				'paper_format'          => 'letter',
+			)
+		);
+		$again = self::certs( "evidence_type = 'course_completion'" );
+		self::assertSame( $rows[0]['snapshot'], $again[0]['snapshot'] );
+		self::assertSame( $rows[0]['snapshot_hash'], $again[0]['snapshot_hash'] );
+		self::assertTrue( CertificateSnapshot::intact( (string) $again[0]['snapshot'], (string) $again[0]['snapshot_hash'] ) );
+
+		// Correction with fresh evidence keeps the date of the issuance (no own validity).
+		$uid       = (string) $rows[0]['certificate_uid'];
+		$corrected = CertificateService::current()->correct( Actor::user( $this->manager ), $uid, 'refresh', array( 'refresh_evidence' => true ) );
+		self::assertNotEmpty( $corrected );
+		$latest = CertificateService::current()->latest( $uid );
+		self::assertSame( $snapshot['valid_until'], json_decode( (string) $latest['snapshot'], true )['valid_until'] );
+
+		// An exam rule with its own validity wins over the default.
+		$exam      = $this->exam_certificate( array( 'competency_validity_days' => 10 ) );
+		$evaluated = (string) Database::current()->scalar( Database::current()->prepare( 'SELECT evaluated_at FROM `' . Database::current()->table( 'ccap_exam_session' ) . '` WHERE id = %d', $exam['session'] ) );
+		self::assertSame( CertificateService::site_date_after( $evaluated, 10 ), json_decode( (string) $exam['row']['snapshot'], true )['valid_until'] );
+
+		// Renewal notice: from `expiry_notice_days` before the end.
+		$in_20 = CertificateService::site_today( 20 );
+		self::assertTrue( CertificateService::recertify_hint( $in_20 ), 'default 30 days' );
+		$this->settings( array( 'expiry_notice_days' => 10 ) );
+		self::assertFalse( CertificateService::recertify_hint( $in_20 ) );
+		self::assertTrue( CertificateService::recertify_hint( CertificateService::site_today( 5 ) ) );
+		self::assertFalse( CertificateService::recertify_hint( null ), 'unlimited certificates never show it' );
+
+		// Unlimited stays the default.
+		$this->settings( array( 'default_validity_days' => null ) );
+		self::assertNull( Settings::get( 'certificates.default_validity_days' ) );
+	}
+
+	/**
+	 * SET-CC-08: paper format and language are snapshotted at issuance;
+	 * certificates issued before keep A4 and the request language.
+	 *
+	 * @group SET-CC-08
+	 */
+	public function test_SET_CC_08_paper_and_language(): void {
+		$filter = $this->install_locales( array( 'de_DE' ) );
+		try {
+			// Fixed locale must be installed.
+			$admin = Actor::user( $this->admin );
+			$check = Settings::check(
+				$admin,
+				'certificates',
+				array(
+					'language'     => 'fixed',
+					'fixed_locale' => 'fr_FR',
+				),
+				array( 'language', 'fixed_locale' )
+			);
+			self::assertSame( 'locale', $check['errors']['fixed_locale'] ?? null );
+			$check = Settings::check( $admin, 'certificates', array( 'language' => 'fixed' ), array( 'language' ) );
+			self::assertSame( 'locale', $check['errors']['fixed_locale'] ?? null, 'fixed without a locale' );
+
+			$this->settings(
+				array(
+					'paper_format' => 'letter',
+					'language'     => 'fixed',
+					'fixed_locale' => 'de_DE',
+				)
+			);
+			$cert     = $this->exam_certificate();
+			$snapshot = json_decode( (string) $cert['row']['snapshot'], true );
+			self::assertSame(
+				array(
+					'language' => 'fixed',
+					'paper'    => 'letter',
+				),
+				$snapshot['layout']
+			);
+			self::assertSame( 'de_DE', $snapshot['locale']['ui'] );
+			self::assertSame( 'Leistungszertifikat', $snapshot['texts']['heading'], 'fixed texts in the certificate language' );
+			self::assertSame( 'en_US', determine_locale(), 'locale restored after issuing' );
+			$page = CertificatePages::certificate_page( Actor::user( $this->learner ), $cert['uid'] );
+			self::assertStringContainsString( '@page{size:letter', $page['html'] );
+			self::assertStringContainsString( 'Ausgestellt am', $page['html'], 'labels in the certificate language' );
+			self::assertStringContainsString( '>Print<', $page['html'], 'controls stay in the viewer language' );
+
+			// Learner mode: profile language of the learner.
+			$this->settings( array( 'language' => 'learner' ) );
+			update_user_meta( $this->learner, 'locale', 'de_DE' );
+			$progress = $this->progress_id();
+			if ( 0 === $progress ) {
+				$this->complete_course();
+				$progress = $this->progress_id();
+			}
+			$issued = CertificateService::current()->issue( Actor::user( $this->manager ), CertificateService::EVIDENCE_COURSE, $progress, 'support case' );
+			$row    = self::certs( "certificate_uid = '" . $issued['certificate_uid'] . "'" )[0];
+			$learn  = json_decode( (string) $row['snapshot'], true );
+			self::assertSame( 'de_DE', $learn['locale']['ui'] );
+			self::assertSame( 'Teilnahmezertifikat', $learn['texts']['heading'] );
+
+			// A certificate issued before the settings existed (no `layout`) renders as before: A4, request language.
+			unset( $snapshot['layout'] );
+			$snapshot['locale']['ui'] = 'en_US';
+			$old                      = CertificatePages::render( $snapshot, 'valid', 'https://example.org/v', (string) $cert['row']['snapshot_hash'] );
+			self::assertStringContainsString( 'Issued on', $old );
+			$snapshot['locale']['ui'] = 'de_DE';
+			self::assertStringContainsString( 'Issued on', CertificatePages::render( $snapshot, 'valid', 'https://example.org/v', (string) $cert['row']['snapshot_hash'] ), 'no switch without layout' );
+			$legacy = $snapshot;
+			unset( $legacy['snapshot_hash'] );
+			CertificateSnapshot::validate( $legacy );
+		} finally {
+			remove_filter( 'get_available_languages', $filter );
+			delete_user_meta( $this->learner, 'locale' );
+		}
+	}
+
+	/**
+	 * Learning history of the learner without volatile columns (R0-41 §3:
+	 * expected DB state "history unchanged").
+	 *
+	 * @return array<string, list<array<string, mixed>>>
+	 */
+	private function history(): array {
+		$db  = Database::current();
+		$out = array();
+		foreach ( array( 'ccap_exam_session', 'ccap_certificate', 'ccap_course_progress', 'ccap_activity_progress' ) as $table ) {
+			$rows = $db->rows( $db->prepare( 'SELECT * FROM `' . $db->table( $table ) . '` WHERE user_id = %d ORDER BY id', $this->learner ) );
+			foreach ( $rows as $i => $row ) {
+				unset( $rows[ $i ]['updated_at'], $rows[ $i ]['last_access_at'], $rows[ $i ]['row_version'] );
+			}
+			$out[ $table ] = $rows;
+		}
+		return $out;
+	}
+
+	/**
+	 * Count rows of a table under a condition.
+	 *
+	 * @param string $table Table without prefix.
+	 * @param string $where Condition.
+	 * @return int
+	 */
+	private static function count_rows( string $table, string $where = '1=1' ): int {
+		$db = Database::current();
+		return (int) $db->scalar( 'SELECT COUNT(*) FROM `' . $db->table( $table ) . "` WHERE {$where}" );
+	}
+
+	/**
+	 * CORE-06 (R1 part, konzept 35.3/35.5; R0-41 §3): refund of the only
+	 * source after course completion and certificate. The grant of this
+	 * source is revoked (`order_refunded`, grant event and `access.changed`),
+	 * the course is locked again; progress, exam attempt and the certificate
+	 * stay unchanged and the certificate still verifies as valid. No
+	 * certificate event, no certificate audit entry.
+	 *
+	 * @group CORE-06
+	 * @group GRANT-028
+	 * @group REV-046
+	 */
+	public function test_CORE_06_refund_after_certificate_keeps_history_and_status(): void {
+		$cert = $this->exam_certificate();
+		$this->complete_course();
+		self::assertCount( 1, self::certs(), 'completion adds no second certificate' );
+		$learner = Actor::user( $this->learner );
+		self::assertTrue( ContentGate::current()->lesson( $learner, $this->course, $this->lessons[0] )->allowed() );
+		$history = $this->history();
+		$token   = CertificateService::token( $cert['uid'], 1 );
+		$before  = CertificateService::current()->verify( $token );
+		$changed = self::count_rows( 'ccap_outbox_event', "event_type = 'access.changed'" );
+		$audit   = self::count_rows( 'ccap_audit_log', "action LIKE 'certificate%'" );
+
+		self::assertSame( GrantTransitions::REVOKED, GrantService::current()->transition( Actor::cron(), $this->grant, GrantTransitions::REVOKED, 'order_refunded' ) );
+		PolicyService::flush();
+		OutboxDispatcher::current()->dispatch();
+
+		// Access from this source is gone.
+		self::assertFalse( ContentGate::current()->lesson( $learner, $this->course, $this->lessons[0] )->allowed() );
+		self::assertSame( 1, self::count_rows( 'ccap_grant_event', 'grant_id = ' . $this->grant . " AND from_status = 'active' AND to_status = 'revoked' AND reason_code = 'order_refunded'" ) );
+		self::assertSame( $changed + 1, self::count_rows( 'ccap_outbox_event', "event_type = 'access.changed'" ) );
+		// History and certificate status unchanged.
+		self::assertSame( $history, $this->history() );
+		self::assertSame( $before, CertificateService::current()->verify( $token ) );
+		self::assertSame( 'valid', $before['status'] );
+		self::assertSame( array( $cert['uid'] ), array_column( CertificateService::current()->mine( $learner ), 'uid' ), 'the learner still sees the certificate' );
+		self::assertSame( 0, self::events( 'certificate.revoked' ) );
+		self::assertSame( $audit, self::count_rows( 'ccap_audit_log', "action LIKE 'certificate%'" ), 'a refund is no certificate action' );
+		// A late "paid" for the same source revision does not re-grant (CORE-07).
+		self::assertSame( 'ignored', GrantService::current()->transition( Actor::cron(), $this->grant, GrantTransitions::ACTIVE, 'order_paid' ) );
+		self::assertSame( 'revoked', (string) Database::current()->scalar( 'SELECT status FROM `' . Database::current()->table( 'ccap_grant' ) . '` WHERE id = ' . $this->grant ) );
+	}
+
+	/**
+	 * REV-046 (R0-23 RV-13, §5.4, §5.5): an issued certificate stays as it
+	 * is after a new course revision, a new template version, a change of
+	 * the profile name and the withdrawal of the course: status `issued`,
+	 * snapshot and template version unchanged, the verification stays
+	 * valid. A recertification issues a new `certificate_uid`; the old one
+	 * stays `issued`. The refund and the revocation (all revisions
+	 * `revoked`, no revival) are part of REV-046 in
+	 * `test_CORE_06_refund_after_certificate_keeps_history_and_status()` and
+	 * `test_CRT_013_014_028_revocation()`.
+	 *
+	 * @group REV-046
+	 */
+	public function test_REV_046_certificate_survives_course_and_template_changes(): void {
+		$cert      = $this->exam_certificate();
+		$service   = CertificateService::current();
+		$token     = CertificateService::token( $cert['uid'], 1 );
+		$before    = self::certs( "certificate_uid = '" . $cert['uid'] . "'" );
+		$publisher = CoursePublisher::current();
+		$admin     = Actor::user( $this->admin );
+		self::assertCount( 1, $before );
+		self::assertSame( 'valid', $service->verify( $token )['status'] );
+
+		// New course revision, new template version, new profile name, course withdrawn.
+		$revision = (int) $publisher->current_revision( $this->course )['id'];
+		$this->post( 'ccap_lesson', $this->module, 'Additional lesson' );
+		self::assertNotSame( $revision, $publisher->publish( $admin, $this->course, 'minor' ), 'a new course revision' );
+		$this->settings(
+			array(
+				'base_template' => array(
+					'issuer_name'     => 'Akademie Süd',
+					'footer_text'     => 'Neu',
+					'logo_id'         => 0,
+					'signature_label' => 'Vorstand',
+				),
+			)
+		);
+		self::assertSame( (int) $before[0]['template_version'] + 1, CertificateService::template()['version'] );
+		wp_update_user(
+			array(
+				'ID'           => $this->learner,
+				'display_name' => 'Jürgen Anders',
+			)
+		);
+		$publisher->archive( $admin, $this->course );
+		OutboxDispatcher::current()->dispatch();
+
+		$after = self::certs( "certificate_uid = '" . $cert['uid'] . "'" );
+		self::assertCount( 1, $after, 'no automatic correction' );
+		self::assertSame( 'issued', $after[0]['status'] );
+		self::assertSame( $before[0]['snapshot'], $after[0]['snapshot'], 'snapshot unchanged' );
+		self::assertSame( $before[0]['template_version'], $after[0]['template_version'], 'rendered with the old template version' );
+		self::assertSame( 'valid', $service->verify( $token )['status'] );
+		self::assertSame( 0, self::events( 'certificate.revoked' ) );
+		self::assertSame( 0, self::events( 'certificate.corrected' ) );
+
+		// Recertification after the course is offered again: new UID, the old certificate stays issued.
+		$publisher->publish( $admin, $this->course );
+		$second = $service->issue( Actor::user( $this->manager ), CertificateService::EVIDENCE_EXAM, $this->take_exam( $this->rule() ), 'recertification' );
+		$rows   = self::certs( 'id = ' . (int) $second['id'] );
+		self::assertNotSame( $cert['uid'], (string) $rows[0]['certificate_uid'] );
+		self::assertSame( 'issued', self::certs( "certificate_uid = '" . $cert['uid'] . "'" )[0]['status'] );
+		self::assertSame( 'valid', $service->verify( $token )['status'] );
+	}
+
+	/**
+	 * CORE-10 (Free part, R1-18; konzept 35.4/35.5, R0-39 FG-03/FG-04,
+	 * R0-11 ER-3; R0-41 §3): the Pro licence ends and the add-on is
+	 * deactivated. Free never reads licence state and sends no request, so
+	 * learning goes on (lesson, new exam attempt, course completion), the
+	 * stored history stays byte-identical and the certificate verifies as
+	 * before. The Pro part (frozen designer template, CERT-008/CRT-064)
+	 * belongs to R3-15.
+	 *
+	 * @group CORE-10
+	 * @group SA-001
+	 */
+	public function test_CORE_10_pro_licence_end_keeps_free_learning_history_and_verification(): void {
+		$cert    = $this->exam_certificate();
+		$learner = Actor::user( $this->learner );
+		ActivityProgress::current()->interact( $learner, $this->course, $this->lessons[0], 'confirm' );
+		OutboxDispatcher::current()->dispatch();
+		$token    = CertificateService::token( $cert['uid'], 1 );
+		$verified = CertificateService::current()->verify( $token );
+		self::assertSame( 'valid', $verified['status'] );
+		$history  = $this->history();
+		$requests = count( $GLOBALS['ccap_test_http_requests'] );
+		$audit    = self::count_rows( 'ccap_audit_log', "action IN ('certificate_corrected', 'certificate_revoked')" );
+
+		// What an add-on would leave behind at licence end (R0-39 §3: class E/A). Free must not look at it.
+		$reads   = 0;
+		$options = array( 'course_captain_pro_license', 'course_captain_pro_license_state', 'course_captain_pro_settings_general' );
+		$probe   = static function ( $value ) use ( &$reads ) {
+			++$reads;
+			return $value;
+		};
+		foreach ( $options as $option ) {
+			add_filter( 'pre_option_' . $option, $probe );
+		}
+		update_option(
+			'course_captain_pro_license',
+			array(
+				'status'     => 'expired',
+				'expires_at' => gmdate( 'c', time() - DAY_IN_SECONDS ),
+			),
+			false
+		);
+		$reads = 0;
+		do_action( 'deactivated_plugin', 'course-captain-pro/course-captain-pro.php', false ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core hook, simulates the add-on deactivation.
+		PolicyService::flush();
+
+		try {
+			// History and verification unchanged.
+			self::assertSame( $history, $this->history() );
+			self::assertSame( $verified, CertificateService::current()->verify( $token ) );
+			self::assertSame( array( $cert['uid'] ), array_column( CertificateService::current()->mine( $learner ), 'uid' ) );
+
+			// Free learning goes on: the next lesson, a new exam attempt, course completion.
+			self::assertTrue( ContentGate::current()->lesson( $learner, $this->course, $this->lessons[1] )->allowed() );
+			ActivityProgress::current()->interact( $learner, $this->course, $this->lessons[1], 'confirm' );
+			$second = $this->take_exam( $this->rule() );
+			OutboxDispatcher::current()->dispatch();
+			self::assertNotSame( $cert['session'], $second );
+			self::assertSame( 1, self::count_rows( 'ccap_exam_session', 'id = ' . $second . " AND passed = 1 AND status = 'evaluated'" ), 'new attempt evaluated' );
+			self::assertSame( 'completed', (string) Database::current()->scalar( 'SELECT status FROM `' . Database::current()->table( 'ccap_course_progress' ) . '` WHERE user_id = ' . $this->learner ) );
+			$after = $this->history();
+			self::assertCount( 1, $history['ccap_certificate'] );
+			self::assertSame( $history['ccap_certificate'][0], $after['ccap_certificate'][0], 'the issued certificate is untouched' );
+			self::assertCount( 2, $after['ccap_certificate'], 'Free keeps issuing base certificates (new evidence, CR-5)' );
+			self::assertSame( $history['ccap_exam_session'][0], $after['ccap_exam_session'][0], 'the earlier attempt is untouched' );
+			self::assertSame( $verified, CertificateService::current()->verify( $token ) );
+
+			// Free never asked for licence state and sent no request (FG-03, FG-04, LG).
+			self::assertSame( 0, $reads, 'no read of add-on licence options' );
+			self::assertSame( $requests, count( $GLOBALS['ccap_test_http_requests'] ) );
+			self::assertSame( $audit, self::count_rows( 'ccap_audit_log', "action IN ('certificate_corrected', 'certificate_revoked')" ), 'no correction or revocation' );
+		} finally {
+			foreach ( $options as $option ) {
+				remove_filter( 'pre_option_' . $option, $probe );
+			}
+			delete_option( 'course_captain_pro_license' );
+		}
 	}
 }

@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Learning;
 
 use CourseCaptain\Access\ContentGate;
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
@@ -58,6 +59,7 @@ final class Favorites {
 	 * @return void
 	 */
 	public function add( Actor $actor, int $course_id, int $question ): void {
+		\CourseCaptain\Settings\Modules::assert_course_feature( 'favorites', $course_id );
 		$this->assert_accessible( $actor, $course_id, $question );
 		$this->db->execute(
 			$this->db->prepare(
@@ -105,10 +107,13 @@ final class Favorites {
 		if ( ! in_array( $sort, self::SORTS, true ) || ( str_starts_with( $sort, 'assigned' ) && null === $collection ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Invalid sort.', 422 );
 		}
+		\CourseCaptain\Settings\Modules::assert_course_feature( 'favorites', $course_id );
 		if ( null !== $collection ) {
 			$this->owned( $actor, $collection, $course_id );
 		}
 		$questions = $this->course_questions( $course_id );
+		// R0-10 §2.2: withheld foreign questions are neither listed nor counted; the mark stays and returns with the release.
+		$questions = array() === $questions ? array() : RightsGate::current()->deliverable( $questions );
 		if ( array() === $questions ) {
 			return array();
 		}
@@ -258,8 +263,9 @@ final class Favorites {
 	 */
 	public function question_ids( Actor $actor, int $course_id, ?int $collection = null ): array {
 		$out = array();
+		// The list already left out withheld questions (rights read once).
 		foreach ( $this->list( $actor, $course_id, 'saved_desc', $collection ) as $item ) {
-			if ( $this->accessible( $actor, $course_id, $item['question_id'] ) ) {
+			if ( $this->in_reach( $actor, $course_id, $item['question_id'] ) ) {
 				$out[] = $item['question_id'];
 			}
 		}
@@ -267,7 +273,8 @@ final class Favorites {
 	}
 
 	/**
-	 * Whether a question is in an accessible module of the course.
+	 * Whether a question is in an accessible module of the course and not
+	 * withheld by the rights lock (R0-10 §2.2).
 	 *
 	 * @param Actor $actor     Learner.
 	 * @param int   $course_id Course.
@@ -275,6 +282,34 @@ final class Favorites {
 	 * @return bool
 	 */
 	public function accessible( Actor $actor, int $course_id, int $question ): bool {
+		return array( $question ) === $this->accessible_all( $actor, $course_id, array( $question ) );
+	}
+
+	/**
+	 * The questions that are accessible ({@see self::accessible()}), order
+	 * kept, duplicates removed; the rights are read in one batch.
+	 *
+	 * @param Actor $actor     Learner.
+	 * @param int   $course_id Course.
+	 * @param array $ids       Questions.
+	 * @phpstan-param list<int> $ids
+	 * @return list<int>
+	 */
+	public function accessible_all( Actor $actor, int $course_id, array $ids ): array {
+		$ids = array_values( array_unique( array_map( 'intval', $ids ) ) );
+		$ids = array() === $ids ? array() : RightsGate::current()->deliverable( $ids );
+		return array_values( array_filter( $ids, fn( int $id ): bool => $this->in_reach( $actor, $course_id, $id ) ) );
+	}
+
+	/**
+	 * Whether a question is in an accessible module of the course (without the rights lock).
+	 *
+	 * @param Actor $actor     Learner.
+	 * @param int   $course_id Course.
+	 * @param int   $question  Question.
+	 * @return bool
+	 */
+	private function in_reach( Actor $actor, int $course_id, int $question ): bool {
 		$gate = ContentGate::current();
 		foreach ( $this->modules_of( $course_id, $question ) as $module ) {
 			if ( $gate->question( $actor, $course_id, $module, $question )->allowed() ) {
@@ -291,11 +326,11 @@ final class Favorites {
 	 * @param int   $course_id Course.
 	 * @param int   $question  Question.
 	 * @return void
-	 * @throws CourseException 404 or the learning denial.
+	 * @throws CourseException 404 (also for a question withheld by the rights lock, as the delivery) or the learning denial.
 	 */
 	private function assert_accessible( Actor $actor, int $course_id, int $question ): void {
 		$modules = $this->modules_of( $course_id, $question );
-		if ( array() === $modules ) {
+		if ( array() === $modules || null !== RightsGate::current()->question( $question ) ) {
 			throw new CourseException( 'ccap_not_found', 'Unknown question.', 404 );
 		}
 		$gate = ContentGate::current();

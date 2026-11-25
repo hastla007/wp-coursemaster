@@ -95,7 +95,8 @@ final class ErrorTraining {
 	}
 
 	/**
-	 * Keep questions of the accessible scope.
+	 * Keep questions of the accessible scope; questions withheld by the
+	 * rights lock (R0-10 §2.2) are neither listed nor counted.
 	 *
 	 * @param Actor $actor     Learner.
 	 * @param int   $course_id Course.
@@ -104,6 +105,6 @@ final class ErrorTraining {
 	 * @return list<int>
 	 */
 	private function in_scope( Actor $actor, int $course_id, array $ids ): array {
-		return array_values( array_unique( array_filter( $ids, fn( int $id ): bool => $this->favorites->accessible( $actor, $course_id, $id ) ) ) );
+		return $this->favorites->accessible_all( $actor, $course_id, $ids );
 	}
 }

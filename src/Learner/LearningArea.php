@@ -149,6 +149,8 @@ final class LearningArea {
 			return;
 		}
 		ContentProtection::mark_uncacheable();
+		// SET-CC-10: CSP of the learning area per `privacy.csp_mode` (R0-17 §3.5, PSD-052).
+		\CourseCaptain\Security\Csp::start();
 		$claim = Invitation::token( isset( $_GET[ Invitation::PARAM ] ) ? sanitize_text_field( wp_unslash( $_GET[ Invitation::PARAM ] ) ) : null ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Token link, verified by the group service.
 		if ( null !== $claim ) {
 			ContentProtection::send_token_page_headers();
@@ -326,7 +328,7 @@ final class LearningArea {
 				$room                 = LearnerQueries::current()->course( $actor, $course );
 				$result['title']      = $room['title'];
 				$result['title_attr'] = Locale::content_attributes( CourseStructure::course_language( $course ) );
-				$result['body']       = ExamRoom::take_flash( $actor->user_id ) . self::course_status( $status ) . self::enrollment( $actor, $room ) . self::course_room( $room ) . self::practice( $room ) . ExamRoom::course_exams( $actor, $course );
+				$result['body']       = ExamRoom::take_flash( $actor->user_id ) . self::course_status( $status ) . self::enrollment( $actor, $room ) . self::course_room( $room ) . self::dimensions( $actor, $room ) . self::practice( $room ) . ExamRoom::course_exams( $actor, $course );
 			} elseif ( 1 === preg_match( '#^(?:exam|pruefung)/(\d+)$#', $path, $m ) ) {
 				$exam            = ExamRoom::render( $actor, (int) $m[1], $status );
 				$result['title'] = $exam['title'];
@@ -383,7 +385,97 @@ final class LearningArea {
 		ob_start();
 		wp_footer();
 		$foot = (string) ob_get_clean();
-		return '<!doctype html><html' . Locale::ui_attributes() . '><head><meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1">' . $own_title . '<style>' . self::css() . '</style>' . $head . '</head><body class="ccap-learning"><a class="ccap-skip" href="#ccap-main">' . esc_html__( 'Skip to content', 'course-captain' ) . '</a><header class="ccap-bar"><a class="ccap-home" href="' . esc_url( self::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a>' . ( GroupsView::has_groups( $actor ) ? ' <a class="ccap-groups-link" href="' . esc_url( GroupsView::url() ) . '">' . esc_html__( 'My groups', 'course-captain' ) . '</a>' : '' ) . '</header><main id="ccap-main" tabindex="-1"><h1' . $title_attr . '>' . esc_html( $title ) . '</h1>' . $body . '</main>' . $foot . '</body></html>';
+		return '<!doctype html><html' . Locale::ui_attributes() . '><head><meta charset="' . esc_attr( get_bloginfo( 'charset' ) ) . '"><meta name="viewport" content="width=device-width, initial-scale=1">' . $own_title . '<style>' . self::css() . self::brand_css() . '</style>' . $head . '</head><body class="ccap-learning ccap-width-' . esc_attr( self::container_width( $path ) ) . '"><a class="ccap-skip" href="#ccap-main">' . esc_html__( 'Skip to content', 'course-captain' ) . '</a><header class="ccap-bar">' . self::logo() . '<a class="ccap-home" href="' . esc_url( self::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a>' . ( GroupsView::has_groups( $actor ) ? ' <a class="ccap-groups-link" href="' . esc_url( GroupsView::url() ) . '">' . esc_html__( 'My groups', 'course-captain' ) . '</a>' : '' ) . '</header><main id="ccap-main" tabindex="-1"><h1' . $title_attr . '>' . esc_html( $title ) . '</h1>' . $body . '</main>' . self::footer() . $foot . '</body></html>';
+	}
+
+	/**
+	 * `display.container_width` of the page (SET-CC-P1): course pages use the
+	 * course value (overridable per course), all others the site value.
+	 *
+	 * @param string $path Learning area path.
+	 * @return string `theme`, `wide` or `full`.
+	 */
+	public static function container_width( string $path ): string {
+		try {
+			$course = 1 === preg_match( '#^(?:course|kurs)/([0-9a-f-]+)#', trim( $path, '/' ), $m ) ? LearnerQueries::current()->course_id( $m[1] ) : 0;
+			$width  = (string) ( $course > 0 ? EffectiveSettings::for_course( 'display.container_width', $course ) : Settings::get( 'display.container_width' ) );
+		} catch ( \Throwable $e ) {
+			unset( $e );
+			$width = 'theme';
+		}
+		return in_array( $width, array( 'theme', 'wide', 'full' ), true ) ? $width : 'theme';
+	}
+
+	/**
+	 * Label of a main button: the operator text of `display.button_labels`
+	 * (all languages) or the translated default (SET-CC-16).
+	 *
+	 * @param string $key      `enroll`, `complete`, `start_exam`, `submit_exam`.
+	 * @param string $fallback Translated default text.
+	 * @return string
+	 */
+	public static function button_label( string $key, string $fallback ): string {
+		$labels = (array) Settings::get( 'display.button_labels' );
+		$own    = trim( (string) ( $labels[ $key ] ?? '' ) );
+		return '' === $own ? $fallback : $own;
+	}
+
+	/**
+	 * Logo of the learning area (`display.logo_id`, SET-CC-16): the website
+	 * name is the alternative text.
+	 *
+	 * @return string
+	 */
+	public static function logo(): string {
+		$id = (int) Settings::get( 'display.logo_id' );
+		if ( $id <= 0 || ! wp_attachment_is_image( $id ) ) {
+			return '';
+		}
+		$alt = '' !== (string) Settings::get( 'general.learning_area_title' ) ? (string) Settings::get( 'general.learning_area_title' ) : wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES );
+		$img = wp_get_attachment_image(
+			$id,
+			'medium',
+			false,
+			array(
+				'class'   => 'ccap-logo',
+				'alt'     => $alt,
+				'loading' => 'eager',
+			)
+		);
+		return '' === $img ? '' : $img . ' ';
+	}
+
+	/**
+	 * Accent colour as CSS (`display.accent_color`, validated `#rrggbb` with
+	 * contrast ≥ 4.5:1 to white; SET-CC-16, R0-27 SET-041).
+	 *
+	 * @return string
+	 */
+	public static function brand_css(): string {
+		$accent = (string) Settings::get( 'display.accent_color' );
+		if ( 1 !== preg_match( '/^#[0-9a-f]{6}$/', $accent ) ) {
+			return '';
+		}
+		return 'body.ccap-learning{--ccap-accent:' . $accent . '}.ccap-learning .ccap-button{background:var(--ccap-accent);border-color:var(--ccap-accent);color:#fff}.ccap-learning progress{accent-color:var(--ccap-accent)}';
+	}
+
+	/**
+	 * Footer with the links to the legal texts (SET-CC-06) and the
+	 * accessibility statement (SET-CC-18); only links that are set.
+	 *
+	 * @return string
+	 */
+	public static function footer(): string {
+		$items = \CourseCaptain\Settings\LegalLinks::list_items();
+		$page  = (int) Settings::get( 'display.accessibility_page_id' );
+		$post  = $page > 0 ? get_post( $page ) : null;
+		if ( $post instanceof \WP_Post && 'publish' === $post->post_status ) {
+			$items .= '<li><a href="' . esc_url( (string) get_permalink( $post ) ) . '">' . esc_html__( 'Accessibility statement', 'course-captain' ) . '</a></li>';
+		}
+		if ( '' === $items ) {
+			return '';
+		}
+		return '<footer class="ccap-footer"><nav aria-label="' . esc_attr__( 'Legal information', 'course-captain' ) . '"><ul class="ccap-footer-links">' . $items . '</ul></nav></footer>';
 	}
 
 	/**
@@ -394,8 +486,11 @@ final class LearningArea {
 	 */
 	public static function my_learning( Actor $actor ): string {
 		$courses = LearnerQueries::current()->my_courses( $actor );
+		$catalog = self::page_url( 'general.catalog_page_id' );
+		// SET-CC-P1: `general.catalog_page_id` – link to the catalogue page when one is set.
+		$find = '' === $catalog ? '' : '<p><a href="' . esc_url( $catalog ) . '">' . esc_html__( 'Find courses in the catalogue', 'course-captain' ) . '</a></p>';
 		if ( array() === $courses ) {
-			return '<p>' . esc_html__( 'You are not enrolled in any course yet.', 'course-captain' ) . '</p>';
+			return '<p>' . esc_html__( 'You are not enrolled in any course yet.', 'course-captain' ) . '</p>' . $find;
 		}
 		$html = '<ul class="ccap-cards">';
 		foreach ( $courses as $course ) {
@@ -407,7 +502,21 @@ final class LearningArea {
 			}
 			$html .= '</li>';
 		}
-		return $html . '</ul>';
+		return $html . '</ul>' . $find;
+	}
+
+	/**
+	 * Permalink of a page setting (`general.catalog_page_id`,
+	 * `general.learner_home_page_id`): only a published page counts; a
+	 * missing page falls back to '' (the caller uses the learning area).
+	 *
+	 * @param string $key Register key.
+	 * @return string
+	 */
+	public static function page_url( string $key ): string {
+		$id   = (int) Settings::get( $key );
+		$page = $id > 0 ? get_post( $id ) : null;
+		return $page instanceof \WP_Post && 'page' === $page->post_type && 'publish' === $page->post_status ? (string) get_permalink( $page ) : '';
 	}
 
 	/**
@@ -459,6 +568,10 @@ final class LearningArea {
 			return '';
 		}
 		$html = '<section class="ccap-enroll" aria-labelledby="ccap-enroll-heading"><h2 id="ccap-enroll-heading">' . esc_html__( 'Access to this course', 'course-captain' ) . '</h2>';
+		if ( SelfEnrollment::closed( $course ) ) {
+			// UI-F2 / E-108: no enroll button while the enrollment is closed.
+			return $html . '<p class="ccap-enroll-closed">' . esc_html__( 'Enrollment for this course is closed. New learners cannot enroll at the moment; people who are already enrolled keep their access.', 'course-captain' ) . '</p></section>';
+		}
 		if ( ! $service->open( $course ) ) {
 			return $html . '<p>' . esc_html__( 'Access to this course is granted by the course administration. Please contact them if you want to take part.', 'course-captain' ) . '</p></section>';
 		}
@@ -473,7 +586,7 @@ final class LearningArea {
 				: __( 'You can enroll yourself for free and get access at once.', 'course-captain' )
 		) . '</p>';
 		$html .= '<form method="post" action="' . esc_url( self::url( 'kurs/' . self::course_uid( $course ) ) ) . '">' . wp_nonce_field( self::ENROLL_NONCE . ':' . $course, '_wpnonce', false, false ) . '<input type="hidden" name="ccap_do" value="enroll">';
-		$html .= '<button type="submit" class="ccap-button" aria-describedby="ccap-enroll-hint">' . esc_html__( 'Enroll for free', 'course-captain' ) . '</button></form>';
+		$html .= '<button type="submit" class="ccap-button" aria-describedby="ccap-enroll-hint">' . esc_html( self::button_label( 'enroll', __( 'Enroll for free', 'course-captain' ) ) ) . '</button></form>';
 		return $html . '</section>';
 	}
 
@@ -498,6 +611,21 @@ final class LearningArea {
 	}
 
 	/**
+	 * Three progress dimensions of the learner (Kap. 28, R0-08 §5): shown
+	 * once the learner has or had access to the course.
+	 *
+	 * @param Actor                $actor Learner.
+	 * @param array<string, mixed> $room  Course room.
+	 * @return string
+	 */
+	private static function dimensions( Actor $actor, array $room ): string {
+		if ( $actor->user_id <= 0 || 'not_granted' === (string) $room['access']['state'] ) {
+			return '';
+		}
+		return ProgressPanel::html( \CourseCaptain\Progress\ProgressDimensions::current()->own( $actor, (int) $room['course_id'] ), 'ccap-progress' );
+	}
+
+	/**
 	 * Entry to practice (smart trainer, mistakes, due reviews; R0-11 L-05).
 	 *
 	 * @param array<string, mixed> $room Course room.
@@ -511,8 +639,9 @@ final class LearningArea {
 		$html   = '<section class="ccap-practice" aria-labelledby="ccap-practice-heading"><h2 id="ccap-practice-heading">' . esc_html__( 'Practice', 'course-captain' ) . '</h2><ul>';
 		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course ) ) . '">' . esc_html__( 'Practice overview and learning stages', 'course-captain' ) . '</a></li>';
 		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'smart' ) ) . '">' . esc_html__( 'Smart practice', 'course-captain' ) . '</a></li>';
-		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'fehler' ) ) . '">' . esc_html__( 'Practise mistakes', 'course-captain' ) . '</a></li>';
+		$html  .= \CourseCaptain\Settings\Modules::course_feature( 'mistake_training', $course ) ? '<li><a href="' . esc_url( TrainerView::url( $course, 'fehler' ) ) . '">' . esc_html__( 'Practise mistakes', 'course-captain' ) . '</a></li>' : '';
 		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'faellig' ) ) . '">' . esc_html__( 'Due reviews', 'course-captain' ) . '</a></li>';
+		$html  .= '<li><a href="' . esc_url( TrainerView::url( $course, 'pruefungsfehler' ) ) . '">' . esc_html__( 'Practise exam mistakes', 'course-captain' ) . '</a></li>';
 		return $html . '</ul></section>';
 	}
 
@@ -559,6 +688,17 @@ final class LearningArea {
 	}
 
 	/**
+	 * `display.catalog_sort` → order of {@see LearnerQueries::catalog()}.
+	 *
+	 * @var array<string, string>
+	 */
+	private const CATALOG_SORT = array(
+		'manual' => 'menu_order',
+		'title'  => 'title',
+		'newest' => 'date',
+	);
+
+	/**
 	 * `course-captain/course-catalog`: published courses only.
 	 *
 	 * @param array<string, mixed> $attributes Attributes.
@@ -572,12 +712,40 @@ final class LearningArea {
 		$html       = '<ul class="ccap-catalog">';
 		$identity   = new ObjectIdentity( Database::current() );
 		$enrollment = SelfEnrollment::current();
-		foreach ( $queries->catalog( (int) ( $attributes['perPage'] ?? 12 ), (string) ( $attributes['orderBy'] ?? 'menu_order' ) ) as $course ) {
+		// SET-CC-P1: without an explicit block order the site setting `display.catalog_sort` decides.
+		$orderby   = (string) ( $attributes['orderBy'] ?? '' );
+		$orderby   = '' === $orderby ? self::CATALOG_SORT[ (string) Settings::get( 'display.catalog_sort' ) ] ?? 'menu_order' : $orderby;
+		$elements  = (array) Settings::get( 'display.card_elements' );
+		$structure = CourseStructure::current();
+		foreach ( $queries->catalog( (int) ( $attributes['perPage'] ?? 12 ), $orderby ) as $course ) {
 			if ( ! empty( $attributes['showOnlyEnrolled'] ) && ! isset( $enrolled[ (int) $course->ID ] ) ) {
 				continue;
 			}
-			$html .= '<li><a href="' . esc_url( (string) get_permalink( $course ) ) . '">' . esc_html( $course->post_title ) . '</a>';
-			if ( ( $attributes['showProgress'] ?? true ) && isset( $enrolled[ (int) $course->ID ] ) ) {
+			$html .= '<li>';
+			// `display.card_elements` (SET-CC-P1): cover, summary, lesson count, progress; empty = title only.
+			if ( in_array( 'cover', $elements, true ) && has_post_thumbnail( $course ) ) {
+				$html .= get_the_post_thumbnail(
+					$course,
+					'medium',
+					array(
+						'class' => 'ccap-card-cover',
+						'alt'   => '',
+					)
+				);
+			}
+			$html .= '<a href="' . esc_url( (string) get_permalink( $course ) ) . '">' . esc_html( $course->post_title ) . '</a>';
+			if ( in_array( 'summary', $elements, true ) && '' !== trim( $course->post_excerpt ) ) {
+				$html .= ' <span class="ccap-card-summary">' . esc_html( wp_strip_all_tags( $course->post_excerpt ) ) . '</span>';
+			}
+			if ( in_array( 'lesson_count', $elements, true ) ) {
+				$lessons = 0;
+				foreach ( $structure->lessons_of( array_map( static fn( array $m ): int => (int) $m['module_id'], $structure->modules( (int) $course->ID ) ) ) as $list ) {
+					$lessons += count( array_filter( $list, static fn( \WP_Post $lesson ): bool => 'publish' === $lesson->post_status ) );
+				}
+				/* translators: %s: number of lessons */
+				$html .= ' <span class="ccap-card-lessons">' . esc_html( sprintf( _n( '%s lesson', '%s lessons', $lessons, 'course-captain' ), number_format_i18n( $lessons ) ) ) . '</span>';
+			}
+			if ( in_array( 'progress', $elements, true ) && ( $attributes['showProgress'] ?? true ) && isset( $enrolled[ (int) $course->ID ] ) ) {
 				$html .= ' <span class="ccap-progress">' . esc_html( sprintf( /* translators: %s: percentage, e.g. "75 %" */ __( '%s completed', 'course-captain' ), Locale::percent( (int) $enrolled[ (int) $course->ID ]['progress']['completion_percent'] ) ) ) . '</span>';
 			}
 			$room   = self::url( 'kurs/' . $identity->ensure( $course ) );
@@ -604,7 +772,9 @@ final class LearningArea {
 			return '';
 		}
 		$label = '' !== (string) ( $attributes['label'] ?? '' ) ? (string) $attributes['label'] : __( 'Go to the learning area', 'course-captain' );
-		return '<a class="ccap-button" href="' . esc_url( self::url() ) . '">' . esc_html( $label ) . '</a>';
+		// SET-CC-P1: learners land on `general.learner_home_page_id` when set (fallback: the learning area).
+		$home = self::page_url( 'general.learner_home_page_id' );
+		return '<a class="ccap-button" href="' . esc_url( '' === $home ? self::url() : $home ) . '">' . esc_html( $label ) . '</a>';
 	}
 
 	/**
@@ -706,7 +876,7 @@ final class LearningArea {
 		return 'html{scroll-padding-block-start:6rem}body.ccap-learning{margin:0;font:1rem/1.5 system-ui,sans-serif;overflow-wrap:anywhere;background:#fff;color:#1d2327}'
 			. '.ccap-skip{position:absolute;inset-block-start:1rem;inset-inline-start:1rem;background:#fff;color:#1d2327;padding:.5rem;z-index:10}'
 			. '.ccap-skip:not(:focus){width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
-			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
+			. '.ccap-bar{padding:.75rem 1rem;border-block-end:1px solid #8c8f94}.ccap-logo{max-block-size:3rem;inline-size:auto;vertical-align:middle;margin-inline-end:.75rem}.ccap-footer{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box;border-block-start:1px solid #8c8f94}.ccap-footer-links{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:.5rem 1.5rem}#ccap-main{max-inline-size:60rem;margin-inline:auto;padding:1rem;box-sizing:border-box}'
 			. '.ccap-cards,.ccap-modules,.ccap-lessons,.ccap-qnav,.ccap-result-list{padding-inline-start:1.25rem}.ccap-card{margin-block-end:1rem}'
 			. '.ccap-button{display:inline-block;padding:.6rem 1rem;border:2px solid currentColor;border-radius:.25rem;text-decoration:none;min-block-size:44px;box-sizing:border-box;font:inherit;background:#fff;color:inherit;cursor:pointer}'
 			. ':focus-visible,a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #1d4ed8;outline-offset:2px}'
@@ -714,6 +884,8 @@ final class LearningArea {
 			. '.ccap-media-frame iframe{inline-size:100%;aspect-ratio:16/9;border:0}.ccap-external-media{border:1px solid #8c8f94;border-radius:.25rem;padding:.75rem 1rem;background:#f6f7f7}.ccap-external-media input[type=checkbox]{inline-size:1.5rem;block-size:1.5rem;vertical-align:middle}'
 			. '.screen-reader-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}'
 			. 'progress{max-inline-size:100%;vertical-align:middle}'
+			. '.ccap-width-wide #ccap-main,.ccap-width-wide .ccap-footer{max-inline-size:80rem}.ccap-width-full #ccap-main,.ccap-width-full .ccap-footer{max-inline-size:none}'
+			. '.ccap-breadcrumbs ol{list-style:none;padding:0;margin:0 0 .5rem;display:flex;flex-wrap:wrap;gap:.25rem}.ccap-breadcrumbs li+li::before{content:"›";margin-inline-end:.25rem}'
 			. '.ccap-question{margin-block:1.5rem}fieldset{border:1px solid #8c8f94;padding:.75rem 1rem;min-inline-size:0;margin:0}legend{font-weight:600;padding-inline:.25rem}'
 			. '.ccap-options{padding:0}.ccap-options li{list-style:none;margin-block:.5rem}.ccap-options input[type=radio],.ccap-options input[type=checkbox],.ccap-question input[type=checkbox]{inline-size:1.5rem;block-size:1.5rem;vertical-align:middle;margin-inline-end:.5rem}'
 			. 'input[type=text],select{font:inherit;min-block-size:44px;max-inline-size:100%;box-sizing:border-box;padding-inline:.5rem}'

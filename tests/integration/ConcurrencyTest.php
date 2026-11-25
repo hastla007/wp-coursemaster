@@ -183,6 +183,8 @@ final class ConcurrencyTest extends SchemaTestCase {
 	 * @group CON-001
 	 * @group CON-002
 	 * @group GM-096
+	 * @group SEAT-003
+	 * @group SEC-027
 	 */
 	public function test_CON_001_002_last_seat(): void {
 		$limit_round = RaceRunner::repeat( 2 );

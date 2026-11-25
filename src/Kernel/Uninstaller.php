@@ -21,8 +21,9 @@ defined( 'ABSPATH' ) || exit;
  *
  * Default: data stays. Only cron events, transients and rewrite rules are
  * removed. Data is deleted only on sites whose general settings enable
- * `delete_data_on_uninstall` (the setting can only be switched on with the
- * confirmation of E-89: site name, backup hint and audit entry).
+ * `delete_data_on_uninstall` (the setting can only be switched on with a
+ * typed confirmation word LÖSCHEN/LOESCHEN/DELETE, SET-CC-30, and an audit
+ * entry; it replaces the site name of E-89).
  */
 final class Uninstaller {
 

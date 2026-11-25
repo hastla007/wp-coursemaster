@@ -136,11 +136,16 @@ final class RiskDialog {
 					'text'   => __( 'Consent tools usually treat functional services as not requiring consent. External videos then load without asking learners.', 'course-captain' ),
 					'action' => __( 'Use “Functional”', 'course-captain' ),
 				);
-			case 'RC-22':
+			case 'RC-23':
+				$parts = array();
+				foreach ( \CourseCaptain\Privacy\RetentionPolicy::shortened( (array) ( $before['retention'] ?? array() ), (array) ( $after['retention'] ?? array() ) ) as $key ) {
+					$parts[] = SettingsFields::ui( 'privacy', 'retention.' . $key )['label'] . ': ' . RetentionPreview::count_text( RetentionPreview::entry( $key, (array) ( $after['retention'] ?? array() ) ) );
+				}
 				return array(
-					'title'  => __( 'Change file delivery?', 'course-captain' ),
-					'text'   => __( 'Protected files are then delivered by the web server; the access check stays with Course Captain. After a move or hosting change downloads can fail.', 'course-captain' ),
-					'action' => __( 'Change delivery', 'course-captain' ),
+					'title'  => __( 'Shorten retention periods?', 'course-captain' ),
+					/* translators: %s: list of retention periods with the number of items the next run deletes */
+					'text'   => sprintf( __( 'Shorter periods take effect with the next hourly run; deleted data cannot be restored. With the new values the next run deletes: %s. Have the periods checked legally before you confirm.', 'course-captain' ), implode( '; ', $parts ) ),
+					'action' => __( 'Shorten periods', 'course-captain' ),
 				);
 		}
 		/**

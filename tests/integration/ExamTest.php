@@ -497,9 +497,13 @@ final class ExamTest extends SchemaTestCase {
 
 	/**
 	 * GRANT-027 / E-113: answers refused after revocation; submission still evaluated.
+	 * REV-023 (R0-23 RV-02, P-6): the grant is revoked while the exam runs; the
+	 * next answer is refused (code `ccap_content_locked`, the learning lock of
+	 * the access check), the attempt stays open and is evaluated on submission.
 	 *
 	 * @group GRANT-027
 	 * @group GM-042
+	 * @group REV-023
 	 */
 	public function test_GRANT_027_revoked_during_exam(): void {
 		$sessions = ExamSessions::current();
@@ -699,6 +703,7 @@ final class ExamTest extends SchemaTestCase {
 	 * @group GM-036
 	 * @group GM-037
 	 * @group GM-054
+	 * @group SEC-011
 	 */
 	public function test_R120_offline_buffer_and_tabs(): void {
 		$sessions = ExamSessions::current();
@@ -809,6 +814,29 @@ final class ExamTest extends SchemaTestCase {
 		$this->assertRejected( fn() => $sessions->submit( $learner, $other ), 'ccap_exam_aborted' );
 		$this->assertRejected( fn() => $sessions->flag( $learner, $other, 1, true ), 'ccap_exam_aborted' );
 		self::assertSame( 'cancelled', $sessions->cancel( $learner, $other ), 'repeated abort is idempotent' );
+	}
+
+	/**
+	 * SET-CC-13: the start limit comes from `exams.starts_per_hour`
+	 * (default 40 = former constant); a lower value applies at once.
+	 *
+	 * @group SET-CC-13
+	 */
+	public function test_SET_CC_13_start_limit_from_setting(): void {
+		\CourseCaptain\Settings\Settings::save( Actor::cli(), 'exams', array( 'starts_per_hour' => 2 ), array( 'starts_per_hour' ), \CourseCaptain\Settings\Settings::rev( 'exams' ) );
+		$sessions = ExamSessions::current();
+		$learner  = Actor::user( $this->learner );
+		$sessions->set_now( time() );
+		$start = fn(): int => $sessions->start( $learner, $this->rule(), null, wp_generate_uuid4(), new Randomizer( '7' ) );
+		$start();
+		$start();
+		try {
+			$start();
+			self::fail( 'third start within the hour' );
+		} catch ( CourseException $e ) {
+			self::assertSame( 'ccap_rate_limited', $e->error_code );
+			self::assertSame( 'exam_start', $e->data['bucket'] );
+		}
 	}
 
 	/**

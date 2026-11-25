@@ -75,6 +75,7 @@ final class UninstallManifest {
 		'course_captain_cache_generation',
 		'course_captain_hardening_state',
 		'course_captain_retention_state',
+		'course_captain_audit_reseal',
 		'course_captain_rewrite_version',
 		'course_captain_installation_uuid',
 		'course_captain_site_identity',
@@ -86,6 +87,8 @@ final class UninstallManifest {
 		'course_captain_extensions_seen',
 		// Notifications (R1-21): mail state (template errors).
 		'course_captain_mail_state',
+		// Since when a raised log level is active (SET-CC-22, falls back after 7 days).
+		'course_captain_log_level_since',
 		// Base certificate template versions (R1-44, R0-29 CF-04).
 		'course_captain_certificate_templates',
 		'course_captain_setting_locks',
@@ -168,6 +171,8 @@ final class UninstallManifest {
 		'course_captain_notification_prefs',
 		// Self-service data export job (GM-175).
 		'course_captain_data_export',
+		// Hidden hint lines of the settings (SET-CC-01).
+		'course_captain_hints_dismissed',
 	);
 
 	/**
@@ -183,10 +188,14 @@ final class UninstallManifest {
 		'_ccap_completion_rule',
 		'_ccap_copied_from_uid',
 		'_ccap_current_revision_id',
+		// Enrollment closed (E-108, UI-F2).
+		'_ccap_enrollment',
 		'_ccap_language',
 		'_ccap_listing',
 		'_ccap_protected_course',
 		'_ccap_protected_origin',
+		// Rights information of a course (R0-10 §2.1, UI-F8).
+		'_ccap_rights',
 		'_ccap_seo_index',
 		'_ccap_settings',
 		'_ccap_settings_undo',

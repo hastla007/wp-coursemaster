@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Learning;
 
 use CourseCaptain\Access\ContentGate;
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
@@ -34,7 +35,8 @@ final class SmartTrainer {
 	public const RECENT_EXCLUDE        = 3;
 	public const SECURE_STREAK         = 3;
 	public const CONSOLIDATE_GAP       = 72000;
-	public const REVIEW_INTERVAL_DAYS  = array( 7, 21, 60 );
+	/** Defaults of `learning.review_intervals` (SET-CC-13); the effective values come from BusinessRules. */
+	public const REVIEW_INTERVAL_DAYS = array( 7, 21, 60 );
 
 	/**
 	 * Injected clock (tests); null = real time.
@@ -182,14 +184,15 @@ final class SmartTrainer {
 	}
 
 	/**
-	 * Review interval in days (`reviewInterval`): streak 4 → 7, 5 → 21, ≥ 6 → 60.
+	 * Review interval in days (`reviewInterval`): streak 4, 5 and ≥ 6 map to
+	 * `learning.review_intervals` (defaults 7, 21, 60; SET-CC-13).
 	 *
 	 * @param int $streak Streak after the answer.
 	 * @return int
 	 */
 	public static function review_interval( int $streak ): int {
 		$index = max( 0, min( 2, $streak - self::SECURE_STREAK - 1 ) );
-		return self::REVIEW_INTERVAL_DAYS[ $index ];
+		return \CourseCaptain\Settings\BusinessRules::review_intervals()[ $index ];
 	}
 
 	/**
@@ -240,6 +243,10 @@ final class SmartTrainer {
 	public function next( Actor $actor, int $course_id, string $mode = 'smart', array $options = array() ): ?array {
 		if ( ! in_array( $mode, self::MODES, true ) ) {
 			throw new CourseException( 'ccap_invalid_param', 'Unknown mode.', 422 );
+		}
+		// SET-CC-P1: favourites and mistake training follow their course switches.
+		if ( 'favorites' === $mode || 'wrong' === $mode ) {
+			\CourseCaptain\Settings\Modules::assert_course_feature( 'favorites' === $mode ? 'favorites' : 'mistake_training', $course_id );
 		}
 		// One gate for the whole operation: module decisions, drip/prerequisites and running exams are read once (R0-14 OP-03).
 		$gate       = ContentGate::current();
@@ -300,6 +307,62 @@ final class SmartTrainer {
 			),
 			'question'    => $delivery['question'],
 			'token'       => $delivery['token'],
+		);
+	}
+
+	/**
+	 * Own entries "Due" and "Practise exam mistakes" (R0-19 R-07 `mode`,
+	 * R0-11 L-08/L-10, UI-F3). Both narrow the smart trainer's candidates
+	 * (accessible scope, no flashcards, no questions of a running exam) and
+	 * pick the winner with the normal score:
+	 * - `due`: consolidated questions whose review is due ({@see self::due()});
+	 *   `next_due` names the next future review when nothing is due.
+	 * - `exam_mistakes`: wrongly answered questions of an own evaluated exam
+	 *   attempt of this course ({@see ErrorTraining::from_exam()}); without
+	 *   `exam_session` the latest evaluated attempt. Exam answers never change
+	 *   the learning state; practising them does (normal learning token).
+	 *
+	 * @param Actor                $actor     Learner.
+	 * @param int                  $course_id Course.
+	 * @param string               $mode      `due`|`exam_mistakes`.
+	 * @param array<string, mixed> $options   `exam_session` (ID) for `exam_mistakes`.
+	 * @return array{question: array<string, mixed>|null, mode: string, remaining: int, next_due: string|null, exam_session: int|null}
+	 * @throws CourseException 422 unknown mode, 404 foreign attempt or attempt of another course, 409 running attempt, access errors.
+	 */
+	public function entry( Actor $actor, int $course_id, string $mode, array $options = array() ): array {
+		$next_due = null;
+		$session  = null;
+		if ( 'due' === $mode ) {
+			$due      = $this->due( $actor, $course_id );
+			$ids      = $due['ids'];
+			$next_due = $due['next_due'];
+		} elseif ( 'exam_mistakes' === $mode ) {
+			\CourseCaptain\Settings\Modules::assert_course_feature( 'mistake_training', $course_id );
+			$session = self::positive_id( $options['exam_session'] ?? null );
+			if ( null === $session && null !== ( $options['exam_session'] ?? null ) && '' !== $options['exam_session'] ) {
+				throw new CourseException( 'ccap_invalid_param', 'exam_session', 422 );
+			}
+			$sessions = $this->db->table( 'ccap_exam_session' );
+			if ( null === $session ) {
+				$latest  = (int) $this->db->scalar( $this->db->prepare( "SELECT id FROM `{$sessions}` WHERE user_id = %d AND course_id = %d AND status = 'evaluated' ORDER BY id DESC LIMIT 1", $actor->user_id, $course_id ) );
+				$session = $latest > 0 ? $latest : null;
+			} elseif ( $course_id !== (int) $this->db->scalar( $this->db->prepare( "SELECT course_id FROM `{$sessions}` WHERE id = %d AND user_id = %d", $session, $actor->user_id ) ) ) {
+				throw new CourseException( 'ccap_not_found', 'Unknown attempt.', 404 );
+			}
+			$ids = null === $session ? array() : ErrorTraining::current()->from_exam( $actor, $session );
+		} else {
+			throw new CourseException( 'ccap_invalid_param', 'Unknown mode.', 422 );
+		}
+		$question = array() === $ids ? null : $this->next( $actor, $course_id, 'smart', array( 'only_ids' => $ids ) );
+		if ( array() === $ids && ! $this->any_module_accessible( $actor, $course_id ) ) {
+			CourseException::unless_allowed( $this->policy->decide( $actor, PolicyService::LEARN, array( $course_id ) ), 'No learning access.' );
+		}
+		return array(
+			'question'     => $question,
+			'mode'         => $mode,
+			'remaining'    => count( $ids ),
+			'next_due'     => $next_due,
+			'exam_session' => $session,
 		);
 	}
 
@@ -529,9 +592,11 @@ final class SmartTrainer {
 		// One query for all unlocked modules instead of one per module (R0-14 constancy rule).
 		$in     = implode( ',', array_map( 'intval', array_keys( $limits ) ) );
 		$by     = array();
+		$rights = RightsGate::current();
+		$cols   = $rights->columns();
 		$result = $this->db->rows(
 			$this->db->prepare(
-				"SELECT p.module_id, p.question_id, q.current_revision_id, q.uid, (r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s)) AS deliverable, COALESCE((SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'smart_category' ORDER BY t.id LIMIT 1), (SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'topic' ORDER BY t.id LIMIT 1), '') AS topic FROM `{$pool}` p JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.module_id IN ({$in}) AND q.status = 'published' AND r.question_type <> %s ORDER BY (p.sort_order IS NULL), p.sort_order, p.question_id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				"SELECT p.module_id, p.question_id, q.current_revision_id, q.uid{$cols}, (r.editorial_status = 'published' AND (r.valid_from IS NULL OR r.valid_from <= %s) AND (r.valid_to IS NULL OR r.valid_to >= %s)) AS deliverable, COALESCE((SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'smart_category' ORDER BY t.id LIMIT 1), (SELECT t.tag_key FROM `{$tag}` t WHERE t.revision_id = r.id AND t.tag_type = 'topic' ORDER BY t.id LIMIT 1), '') AS topic FROM `{$pool}` p JOIN `{$q}` q ON q.id = p.question_id JOIN `{$rev}` r ON r.id = q.current_revision_id WHERE p.module_id IN ({$in}) AND q.status = 'published' AND r.question_type <> %s ORDER BY (p.sort_order IS NULL), p.sort_order, p.question_id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
 				gmdate( 'Y-m-d', $this->db->time() ),
 				gmdate( 'Y-m-d', $this->db->time() ),
 				QuestionTypes::FLASHCARD
@@ -540,8 +605,11 @@ final class SmartTrainer {
 		foreach ( $result as $row ) {
 			$by[ (int) $row['module_id'] ][] = $row;
 		}
-		$seen = array();
-		$out  = array();
+		// R0-10 §2.2: withheld foreign questions are never drawn (rights read with the candidates).
+		$rights->absorb( $result, 'question_id' );
+		$withheld = array() === $result ? array() : $rights->questions( array_map( static fn( array $r ): int => (int) $r['question_id'], $result ) );
+		$seen     = array();
+		$out      = array();
 		foreach ( $limits as $module => $limit ) {
 			$rows = $by[ $module ] ?? array();
 			if ( null !== $limit ) {
@@ -550,7 +618,7 @@ final class SmartTrainer {
 			}
 			foreach ( $rows as $row ) {
 				$id = (int) $row['question_id'];
-				if ( isset( $seen[ $id ] ) || in_array( $id, $locked, true ) || ( null !== $topic && (string) $row['topic'] !== $topic ) ) {
+				if ( isset( $seen[ $id ] ) || isset( $withheld[ $id ] ) || in_array( $id, $locked, true ) || ( null !== $topic && (string) $row['topic'] !== $topic ) ) {
 					continue;
 				}
 				$seen[ $id ] = true;

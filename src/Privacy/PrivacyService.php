@@ -12,6 +12,7 @@ namespace CourseCaptain\Privacy;
 
 use CourseCaptain\Assignment\AssignmentService;
 use CourseCaptain\Certificate\CertificateService;
+use CourseCaptain\Event\AuditIdentity;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
@@ -25,13 +26,34 @@ defined( 'ABSPATH' ) || exit;
  * deleted, verification then `ccap_not_found`), manual/group grants, staff
  * assignments, locks, accommodations, notifications and assignment
  * submissions; seats are released (address and token emptied); owned
- * groups lose their owner (GM-102). Audit rows are kept (hash chain,
- * R0-13 §4.4); the erasure itself is audited without the person's ID.
+ * groups lose their owner (GM-102). Grants of purchase sources
+ * ({@see \CourseCaptain\Access\PurchaseSources::all()}) are pseudonymised instead of deleted
+ * (R0-09 §7, R0-31 RT-13): running ones end as `revoked`
+ * (`account_deleted`, grant event and outbox), then `user_id = NULL` and
+ * `subject_ref` = HMAC of the user ID with the site secret; the retention
+ * step RT-13 deletes them after `grant_history_deleted_accounts_years`.
+ * All other grants are deleted with their events (RT-14). Audit rows are kept (hash chain,
+ * R0-13 §4.4) but only carry pseudonyms; the eraser deletes the pseudonym
+ * mapping (D12, RT-23), so the chain stays verifiable and the entries can
+ * no longer be linked to the person. The erasure itself is audited without
+ * the person's ID.
  */
 final class PrivacyService {
 
 	public const EXPORTER = 'course-captain';
 	public const ERASER   = 'course-captain';
+
+	/**
+	 * Core purchase sources whose grant history is kept pseudonymised after
+	 * an erasure (R0-09 §7 "Kaufquellen (`woo_order`, `voucher`)"); other
+	 * sources (`manual`, `group_seat`, `workflow`, self-enrollment, …) are
+	 * deleted at once (RT-14). The erasure reads the registry
+	 * {@see \CourseCaptain\Access\PurchaseSources::all()}, where connectors
+	 * add their own purchase sources (filter `course_captain_purchase_sources`).
+	 *
+	 * @deprecated 0.1.0 Use \CourseCaptain\Access\PurchaseSources::all().
+	 */
+	public const PURCHASE_SOURCES = \CourseCaptain\Access\PurchaseSources::CORE;
 
 	/**
 	 * Classification of all own tables: personal (exported/erased), content, system.
@@ -84,6 +106,7 @@ final class PrivacyService {
 		'ccap_import_item_log'       => 'system',
 		'ccap_import_issue'          => 'system',
 		'ccap_audit_log'             => 'personal',
+		'ccap_audit_identity'        => 'personal',
 		'ccap_override'              => 'content',
 		'ccap_rate_limit'            => 'system',
 		'ccap_request_idempotency'   => 'personal',
@@ -92,6 +115,50 @@ final class PrivacyService {
 		'ccap_accommodation'         => 'personal',
 		'ccap_notification'          => 'personal',
 		'ccap_reset_journal'         => 'personal',
+	);
+
+	/**
+	 * PRIV-001 (R0-17 §7, T-42): registry of every column that names a
+	 * person (`user_id`, `*_user_id`, `*_email`, `actor_id`) with its eraser
+	 * rule and its export group (`''` = not exported: no own data of the
+	 * person, or only a reference to whoever acted). A schema scan in
+	 * `tests/unit/PersonalColumnScanTest.php` fails for a new column that is
+	 * missing here. Rules: `delete` (rows of the person are deleted),
+	 * `null` (the column is cleared by {@see self::erase_user()}, the row
+	 * stays), `pseudonymise` (purchase grants, RT-13), `detach` (seat or
+	 * group loses the person, the row stays), `audit_identity`
+	 * ({@see AuditIdentity::erase()}, D12), `service` (deleted by the
+	 * owning service: assignments, certificates).
+	 *
+	 * @var array<string, array{0: string, 1: string}>
+	 */
+	public const PERSON_COLUMNS = array(
+		'ccap_question.author_user_id'        => array( 'null', '' ),
+		'ccap_exam_session.user_id'           => array( 'delete', 'cc-exams' ),
+		'ccap_attempt.user_id'                => array( 'delete', 'cc-answers' ),
+		'ccap_question_progress.user_id'      => array( 'delete', 'cc-questions' ),
+		'ccap_activity_progress.user_id'      => array( 'delete', 'cc-activity' ),
+		'ccap_course_progress.user_id'        => array( 'delete', 'cc-progress' ),
+		'ccap_favorite.user_id'               => array( 'delete', 'cc-favorite' ),
+		'ccap_collection.user_id'             => array( 'delete', 'cc-collections' ),
+		'ccap_group.owner_user_id'            => array( 'detach', '' ),
+		'ccap_seat.user_id'                   => array( 'detach', 'cc-seats' ),
+		'ccap_seat.invite_email'              => array( 'detach', 'cc-invitations' ),
+		'ccap_grant.user_id'                  => array( 'pseudonymise', 'cc-grants' ),
+		'ccap_grant_event.actor_id'           => array( 'null', '' ),
+		'ccap_assignment_submission.user_id'  => array( 'service', 'cc-submissions' ),
+		'ccap_certificate.user_id'            => array( 'service', 'cc-certificates' ),
+		'ccap_audit_log.actor_user_id'        => array( 'audit_identity', '' ),
+		'ccap_audit_log.subject_user_id'      => array( 'audit_identity', '' ),
+		'ccap_audit_identity.user_id'         => array( 'audit_identity', '' ),
+		'ccap_override.user_id'               => array( 'null', '' ),
+		'ccap_request_idempotency.user_id'    => array( 'delete', '' ),
+		'ccap_course_staff.user_id'           => array( 'delete', '' ),
+		'ccap_learner_lock.user_id'           => array( 'delete', '' ),
+		'ccap_accommodation.user_id'          => array( 'delete', '' ),
+		'ccap_notification.recipient_user_id' => array( 'delete', 'cc-notifications' ),
+		'ccap_reset_journal.user_id'          => array( 'delete', '' ),
+		'ccap_reset_journal.actor_user_id'    => array( 'null', '' ),
 	);
 
 	/**
@@ -139,6 +206,9 @@ final class PrivacyService {
 			}
 		);
 		add_action( 'delete_user', array( self::class, 'on_delete_user' ) );
+		// Second pass after the account row is gone (CON-014): rows a parallel request wrote
+		// between the first pass and the deletion are erased too.
+		add_action( 'deleted_user', array( self::class, 'on_deleted_user' ) );
 		add_action( 'admin_init', array( self::class, 'policy_text' ) );
 	}
 
@@ -239,6 +309,19 @@ final class PrivacyService {
 	}
 
 	/**
+	 * Second pass after the account row is gone (R0-09 R-12, ID-014): a join
+	 * that committed between the first pass and the deletion of the account
+	 * row leaves no seat or grant behind. Idempotent; without such rows it
+	 * changes nothing and writes no audit entry.
+	 *
+	 * @param mixed $user_id User.
+	 * @return void
+	 */
+	public static function on_deleted_user( $user_id ): void {
+		self::erase_user( (int) $user_id );
+	}
+
+	/**
 	 * Remove all personal rows of a user.
 	 *
 	 * @param int $user_id User.
@@ -249,10 +332,12 @@ final class PrivacyService {
 			return 0;
 		}
 		$db     = Database::current();
-		$count  = 0;
+		$count  = self::end_purchase_grants( $db, $user_id );
 		$count += $db->transaction(
 			static function ( Database $db ) use ( $user_id ): int {
-				$n   = 0;
+				$n = 0;
+				// RT-13: purchase grants keep their history pseudonymised (before the grants of the user are deleted).
+				$n  += self::pseudonymise_grants( $db, $user_id );
 				$del = static function ( string $table, string $column ) use ( $db, $user_id, &$n ): void {
 					$n += $db->execute( $db->prepare( 'DELETE FROM `' . $db->table( $table ) . "` WHERE `{$column}` = %d", $user_id ) );
 				};
@@ -271,6 +356,15 @@ final class PrivacyService {
 				$n += CertificateService::erase( $db, $user_id );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_seat' ) . "` SET status = IF(status = 'active', 'removed', status), removed_at = COALESCE(removed_at, %s), user_id = NULL, invite_email = NULL, claim_token_hash = NULL WHERE user_id = %d", $db->now(), $user_id ) );
 				$n += $db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_group' ) . '` SET owner_user_id = 0 WHERE owner_user_id = %d', $user_id ) );
+				// PRIV-001/PRIV-003: references to the person as author or actor are cleared, the rows stay.
+				foreach ( self::PERSON_COLUMNS as $key => $rule ) {
+					if ( 'null' === $rule[0] && 'ccap_grant_event.actor_id' !== $key ) {
+						$ref = explode( '.', $key, 2 );
+						$n  += $db->execute( $db->prepare( 'UPDATE `' . $db->table( $ref[0] ) . "` SET `{$ref[1]}` = NULL WHERE `{$ref[1]}` = %d", $user_id ) );
+					}
+				}
+				// D12/RT-23: the audit pseudonym loses its link to the person; the hash chain stays valid.
+				$n += AuditIdentity::erase( $db, $user_id );
 				return $n;
 			}
 		);
@@ -295,6 +389,84 @@ final class PrivacyService {
 			do_action( 'course_captain_policy_changed' );
 		}
 		return $count;
+	}
+
+	/**
+	 * Pseudonym of a deleted account in the grant history (`ccap_grant.subject_ref`,
+	 * R0-09 §7: HMAC-SHA-256 with the site secret, not a plain hash of the ID).
+	 *
+	 * @param int $user_id User.
+	 * @return string 64 hex characters.
+	 */
+	public static function grant_subject_ref( int $user_id ): string {
+		return hash_hmac( 'sha256', 'course-captain-grant-subject|' . $user_id, \CourseCaptain\Access\ProtectedStorage::secret() );
+	}
+
+	/**
+	 * R0-09 §7: running grants of purchase sources end as `revoked`
+	 * (`account_deleted`) through the grant service (event, outbox, cache).
+	 *
+	 * @param Database $db      Database.
+	 * @param int      $user_id User.
+	 * @return int Ended grants.
+	 */
+	private static function end_purchase_grants( Database $db, int $user_id ): int {
+		$sources = \CourseCaptain\Access\PurchaseSources::sql_list();
+		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_grant' ) . "` WHERE user_id = %d AND source_type IN ({$sources}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended') ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Validated registry list ([a-z0-9_]).
+		$count   = 0;
+		foreach ( $ids as $id ) {
+			try {
+				$count += 'revoked' === \CourseCaptain\Access\GrantService::current()->transition( Actor::cron(), $id, 'revoked', 'account_deleted' ) ? 1 : 0;
+			} catch ( \Throwable $e ) {
+				// The pseudonymisation below still ends the grant; the erasure never waits (RR-8).
+				unset( $e );
+			}
+		}
+		return $count;
+	}
+
+	/**
+	 * RT-13 / R0-09 §7: grants of purchase sources lose the user ID
+	 * (`user_id = NULL`, `subject_ref` = {@see self::grant_subject_ref()});
+	 * a grant still running ends as `revoked` (`account_deleted`). Ended
+	 * grants keep their state (`ccap_grant_event` is append-only and an
+	 * ended grant has no further transition, R0-09 §2). The retention period
+	 * starts with the erasure (`updated_at`). The person's ID also leaves
+	 * the events (`actor_id`) and `granted_by` of all grants. Nothing of
+	 * this enters the audit chain (D12).
+	 *
+	 * @param Database $db      Database.
+	 * @param int      $user_id User.
+	 * @return int Pseudonymised grants.
+	 */
+	private static function pseudonymise_grants( Database $db, int $user_id ): int {
+		$grants  = $db->table( 'ccap_grant' );
+		$sources = \CourseCaptain\Access\PurchaseSources::sql_list();
+		$ids     = array_map( 'intval', array_column( $db->rows( $db->prepare( "SELECT id FROM `{$grants}` WHERE user_id = %d AND source_type IN ({$sources}) ORDER BY id", $user_id ) ), 'id' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Validated registry list ([a-z0-9_]).
+		$now     = $db->now();
+		if ( array() !== $ids ) {
+			$in = implode( ',', $ids );
+			foreach ( $db->rows( "SELECT id, status FROM `{$grants}` WHERE id IN ({$in}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended')" ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				$db->insert(
+					'ccap_grant_event',
+					array(
+						'grant_id'    => (int) $row['id'],
+						'event_type'  => 'status_changed',
+						'from_status' => (string) $row['status'],
+						'to_status'   => 'revoked',
+						'reason_code' => 'account_deleted',
+						'actor_type'  => 'system',
+						'occurred_at' => $now,
+						'created_at'  => $now,
+					)
+				);
+			}
+			$db->execute( "UPDATE `{$grants}` SET revocation_reason = 'account_deleted', status = 'revoked' WHERE id IN ({$in}) AND status IN ('pending_claim', 'pending_confirmation', 'active', 'suspended')" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list, no values.
+			$db->execute( $db->prepare( "UPDATE `{$grants}` SET user_id = NULL, subject_ref = %s, granted_by = IF(granted_by = %d, NULL, granted_by), row_version = row_version + 1, updated_at = %s WHERE id IN ({$in})", self::grant_subject_ref( $user_id ), $user_id, $now ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+		}
+		$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_grant_event' ) . '` SET actor_id = NULL WHERE actor_id = %d', $user_id ) );
+		$db->execute( $db->prepare( "UPDATE `{$grants}` SET granted_by = NULL WHERE granted_by = %d", $user_id ) );
+		return count( $ids );
 	}
 
 	/**
@@ -360,19 +532,19 @@ final class PrivacyService {
 	}
 
 	/**
-	 * Policy text (GM-176): the periods come from the retention service, no links.
+	 * Policy text (GM-176): the periods come from `privacy.retention` (SET-CC-02), no links.
 	 *
 	 * @return string
 	 */
 	public static function policy_html(): string {
-		$years = static fn( int $days ): int => (int) round( $days / 365.25 );
-		$text  = sprintf(
+		$p    = RetentionPolicy::effective();
+		$text = sprintf(
 			/* translators: 1: years learning answers are kept, 2: years exam attempts and certificates are kept, 3: years of the audit log, 4: days of the notification log */
 			__( 'Course Captain stores learning progress, answers, exam attempts, certificates, course access and group memberships of logged-in learners. Learning answers are kept for %1$d years after the end of a course, exam attempts and certificates for %2$d years, ended access records for %2$d years, the audit log for %3$d years and the notification log for %4$d days. Personal data can be exported and erased with the WordPress privacy tools; logged-in learners can request an export or erasure themselves.', 'course-captain' ),
-			$years( RetentionService::ANSWERS_DAYS ),
-			$years( RetentionService::CERTIFICATES_DAYS ),
-			RetentionService::AUDIT_YEARS,
-			RetentionService::NOTIFICATION_LOG_DAYS
+			(int) $p['raw_answers_years_after_course_end'],
+			(int) $p['certificates_years'],
+			(int) $p['audit_log_years'],
+			(int) $p['notification_log_days']
 		);
 		return '<p>' . esc_html( $text ) . '</p>';
 	}

@@ -67,9 +67,42 @@ Im Register vorhanden, aber **noch ohne Wirkung**: `display.*`, `learning.course
 
 > **Stand:** Verwaltungsoberfläche für Zugänge und Gruppen geplant (R1-35, Support-Dialoge R1-38); Annahmeseite für Einladungslinks geplant (R1-28). Die Einladungsmail wird bereits versendet.
 
+### Prüfmarkierung „Quelle liefert nicht mehr“ (H-29a)
+
+Betrifft nur Zugänge aus externen Zugangsquellen (Konnektoren). Course Captain entzieht dabei **nie automatisch** einen Zugang (ACCESS-09, Dienst `Ops\SourceReview`).
+
+**Wann die Markierung entsteht:** Beim Abgleich einer Quelle (`Access\GrantReconciler`) liefert die Quelle für eine Referenz keine Daten mehr (deaktiviert, nicht erreichbar oder gelöscht). Was dann passiert, legt die Einstellung `enrollment.source_disabled_policy` fest (Tab *Einschreibung*, Feld „Wenn eine Zugangsquelle wegfällt“; das Feld erscheint nur, wenn eine Erweiterung externe Zugangsquellen meldet, Filter `course_captain_external_access_sources`):
+
+- `keep` – „Zugang behalten“ (Standard): Es ändert sich nichts, es entsteht keine Markierung.
+- `keep_and_flag` – „Behalten und zur Prüfung markieren“: Jeder noch offene Zugang dieser Quellreferenz (`pending_claim`, `pending_confirmation`, `active`, `suspended`) erhält einmalig die Markierung `meta.source_review` (Zeitpunkt, Grund `source_unavailable`). Endgültige und bereits markierte Zugänge bleiben unberührt.
+
+In beiden Fällen bleiben Status, Gültigkeit und Zugriff unverändert; es entsteht kein Zugangsereignis und kein Outbox-Eintrag.
+
+**Wo die Markierung angezeigt wird:** Im **Systemstatus** (Course Captain › Systemstatus, Recht `ccap_view_system_status`) als Prüfung **H-29a**, ebenso in `wp course-captain status`. Gibt es markierte offene Zugänge, steht die Prüfung auf *Warnung* mit der Anzahl („… Zugänge stammen aus einer Quelle, die nicht mehr liefert; die Zugänge wurden behalten.“) und den ersten 20 Kennungen `grant:<uid>`. Sonst steht sie auf *OK*.
+
+**Was Sie tun:**
+
+1. Prüfen Sie die Quelle.
+2. Entziehen Sie Zugänge nur dort manuell, wo sie nicht mehr berechtigt sind: unter **Lernende** mit *Zugang beenden* (Begründung und Bestätigung Pflicht; Audit `grant.revoked_manually`). Beendete Zugänge zählen in H-29a nicht mehr mit.
+3. Liefert die Quelle wieder, entfernt der nächste Abgleich die Markierung von selbst, unabhängig von der aktuellen Einstellung.
+
+Einen Knopf, mit dem Sie die Markierung von Hand bestätigen oder verwerfen, gibt es nicht.
+
+**Protokoll** (Audit log, Bereich `access`; je Zugang ein Eintrag mit Quelltyp, Quellreferenz und aktueller Einstellung; Auslöser ist der Konnektor der Quelle):
+
+| Ereignis | Anzeige | Wann |
+|---|---|---|
+| `grant.source_flagged` | „Zugang behalten und zur Prüfung markiert: Die Quelle liefert nicht mehr“ | Markierung gesetzt |
+| `grant.source_review_cleared` | „Prüfmarkierung entfernt: Die Quelle liefert wieder“ | Markierung entfernt |
+
 ## 4. Lernsperre
 
-Datenmodell und Rechte (`ccap_lock_learners`) sind vorhanden; eine gesperrte Person erhält `ccap_account_locked`. Der Schreibweg (setzen/aufheben mit Begründung) ist geplant (R1-38).
+Unter **Lernende › Detail** setzt oder hebt eine Person mit `ccap_lock_learners` (Support, Kursmanager, Admin) die Lernsperre auf (R0-13 K-12, Dienst `Policy\LearnerLock`):
+
+- **Setzen:** Grund-Code (`abuse`, `account_compromised`, `legal_hold`, `other`; bei `other` Freitext Pflicht), optional Enddatum, optional „überall abmelden“ (beendet alle Sitzungen des Kontos). Audit `learner_locked`, bei Abmeldung zusätzlich `sessions_terminated`.
+- **Aufheben:** Begründung Pflicht; Audit `learner_unlocked`.
+- Nie gegen sich selbst und nie gegen Konten mit mehr Rechten (M-24). Pro Konto höchstens eine aktive Sperre.
+- Zugänge, Plätze, Ergebnisse und Zertifikate bleiben unverändert; die Person erhält **keine Mail** und beim nächsten Aufruf `ccap_account_locked`. Aufgehobene Sperren werden nach 30 Tagen gelöscht (RT-22).
 
 ## 5. Benachrichtigungen und Mailvorlagen
 
@@ -107,9 +140,9 @@ Regeln:
 
 ## 7. Import und Export
 
-Paketformat mit Manifest, Prüfsummen und Validierung (keine Pfade außerhalb, keine gefährlichen Dateitypen, ZIP-Bomben-Schutz), Trockenlauf mit Aktionen *create/update/unchanged/conflict/archive/error*, Freigabe, Import, Aktivierung und Rollback als neuer Import aus der Paketkopie (Pflichtbegründung). Lokal geänderte Objekte werden nicht überschrieben (`conflict`). Export enthält Kurse, Module, Lektionen und Poolfragen ohne Lernendendaten.
+Paketformat mit Manifest, Prüfsummen und Validierung (keine Pfade außerhalb, keine gefährlichen Dateitypen, ZIP-Bomben-Schutz), Trockenlauf mit Aktionen *create/update/unchanged/conflict/archive/error*, Freigabe, Import, Aktivierung und Rollback als neuer Import aus der Paketkopie (Pflichtbegründung). Lokal geänderte Objekte werden nicht überschrieben (`conflict`). Export (Import content › Kurs-Export) enthält Kurse, Module, veröffentlichte Lektionen, Poolfragen, die Mediendateien von Lektionen und Fragen (mit Prüfsumme, Zugriffsklasse und Rechteangaben) sowie die Prüfungsregeln mit Blueprints und eingefrorenen festen Prüfungsbögen, nie Lernendendaten. Fremde oder wegen unklarer, eingeschränkter oder abgelaufener Rechte zurückgehaltene Inhalte und Medien bleiben ohne ausdrückliche Bestätigung draußen; Dateitypen, die das Paketformat nicht erlaubt (z. B. `.txt`, `.docx`), immer. Das Paket listet alles Weggelassene im Manifest (`export.excluded[]`). Pakete über 200 MB oder 20 000 Dateien lehnt der Export ab. Ein Reimport gleicht nur über die Herkunftszuordnung ab, nicht über die UID (E-382). Paketformat: R0-10 §1 (Schema 1.1 für Prüfungsextras und Medienrollen, sonst 1.0).
 
-> **Stand:** Dienste vorhanden, **keine Oberfläche und keine REST-Route** (geplant R1-28/R1-36); Medien, Blueprints und Karteikarten im Paket sowie Großimporte geplant (R1-41).
+> **Stand:** Import und Export laufen über die Admin-Oberfläche (admin-post, keine REST-Route). Medien, Blueprints und Karteikarten werden importiert; der Export enthält jetzt auch Medien und Blueprints (E-382).
 
 ## 8. Website-Zustand und Protokoll
 

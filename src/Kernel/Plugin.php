@@ -204,6 +204,7 @@ final class Plugin {
 		add_action( CronHooks::OUTBOX_DISPATCH, array( self::class, 'run_outbox_dispatch' ) );
 		\CourseCaptain\Ops\MigrateCommand::register();
 		\CourseCaptain\Ops\OpsCommand::register();
+		\CourseCaptain\Settings\SettingsCommand::register();
 		\CourseCaptain\Ops\IdentityCommand::register();
 		MetaCaps::register();
 		add_action( 'init', array( PostTypes::class, 'register' ), 5 );
@@ -230,6 +231,8 @@ final class Plugin {
 		\CourseCaptain\Admin\RoleSettings::register();
 		\CourseCaptain\Admin\TestMail::register();
 		\CourseCaptain\Admin\SettingsBackup::register();
+		\CourseCaptain\Admin\MailTextsScreen::register();
+		\CourseCaptain\Admin\SettingLocksScreen::register();
 		\CourseCaptain\Privacy\PrivacySettings::register();
 		\CourseCaptain\Privacy\SelfService::register();
 		\CourseCaptain\Course\FaqService::register();
@@ -244,6 +247,7 @@ final class Plugin {
 		\CourseCaptain\Certificate\CertificateAdmin::register();
 		\CourseCaptain\Privacy\PrivacyService::register();
 		\CourseCaptain\Ops\HealthChecks::register();
+		\CourseCaptain\Ops\Log::register();
 		\CourseCaptain\Ops\AuditScreen::register();
 		\CourseCaptain\Ops\OpsScreen::register();
 		\CourseCaptain\Ops\Monitor::register();
@@ -366,6 +370,8 @@ final class Plugin {
 			return;
 		}
 		$this->migrations->maybe_run_in_admin();
+		\CourseCaptain\Settings\Settings::maybe_migrate();
+		InstallationUuid::ensure();
 		\CourseCaptain\Admin\MigrationNotice::maybe_add( $this->migrations );
 		if ( self::schema_ready() ) {
 			\CourseCaptain\Course\StarterContent::maybe_run( 'admin' );

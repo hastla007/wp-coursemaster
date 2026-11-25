@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Admin;
 
 use CourseCaptain\Settings\SettingsRules;
+use CourseCaptain\Settings\SettingsSchema;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -146,12 +147,55 @@ final class SettingsForm {
 				$result = self::decode_lines( is_string( $posted ) ? $posted : '', (int) ( $def['max'] ?? 50 ) );
 				$error  = $result['error'];
 				return $result['value'];
+			case 'hosts':
+				$result = self::decode_hosts( is_string( $posted ) ? $posted : '', (int) ( $def['max'] ?? 50 ) );
+				$error  = $result['error'];
+				return $result['value'];
 			case 'percent':
 				$result = self::decode_percent( is_string( $posted ) ? $posted : '', $current );
 				$error  = $result['error'];
 				return $result['value'];
 		}
 		return is_string( $posted ) ? $posted : '';
+	}
+
+	/**
+	 * One host name per line with the line number of the first error (SET-CC-13).
+	 *
+	 * @param string $text Text.
+	 * @param int    $max  Max entries.
+	 * @return array{value: list<string>, error: array{rule: string, params: array<string, mixed>}|null}
+	 */
+	private static function decode_hosts( string $text, int $max ): array {
+		$error = null;
+		$hosts = array();
+		$split = preg_split( '/\r\n|\r|\n/', $text );
+		foreach ( false === $split ? array() : $split as $i => $line ) {
+			$line = strtolower( trim( $line ) );
+			if ( '' === $line ) {
+				continue;
+			}
+			$hosts[] = $line;
+			if ( null === $error && ! SettingsSchema::is_host( $line ) ) {
+				$error = array(
+					'rule'   => 'host',
+					'params' => array(
+						'line'  => $i + 1,
+						'value' => $line,
+					),
+				);
+			}
+		}
+		if ( null === $error && count( $hosts ) > $max ) {
+			$error = array(
+				'rule'   => 'count',
+				'params' => array( 'count' => count( $hosts ) ),
+			);
+		}
+		return array(
+			'value' => $hosts,
+			'error' => $error,
+		);
 	}
 
 	/**
@@ -272,24 +316,83 @@ final class SettingsForm {
 	/**
 	 * Turn service errors (`field => rule`) into field errors with parameters.
 	 *
+	 * An object field (e.g. `hardening.login_limits`) whose value fails as a
+	 * whole gets the rule of its first invalid part and `params.sub`, so the
+	 * message names the real limits and only that part is marked (SET-CC-P5).
+	 *
 	 * @param array<string, string> $errors Errors.
 	 * @param array<string, mixed>  $input  Input.
+	 * @param string                $tab    Tab (for the parts of object fields).
 	 * @return array<string, array{rule: string, params: array<string, mixed>}>
 	 */
-	public static function with_params( array $errors, array $input ): array {
-		$out = array();
+	public static function with_params( array $errors, array $input, string $tab = '' ): array {
+		$schema = '' === $tab ? array() : ( SettingsSchema::fields()[ $tab ] ?? array() );
+		$out    = array();
 		foreach ( $errors as $field => $rule ) {
-			$value         = $input[ $field ] ?? '';
+			$value  = $input[ $field ] ?? '';
+			$params = array();
+			if ( 'invalid' === $rule && isset( $schema[ $field ] ) ) {
+				$part = SettingsRules::invalid_part( $schema[ $field ], $value );
+				if ( null !== $part ) {
+					$rule          = $part['rule'];
+					$params['sub'] = $part['sub'];
+					$value         = is_array( $value ) ? ( $value[ $part['sub'] ] ?? '' ) : '';
+				}
+			}
+			// E-245: the reason error belongs to the first period above its default.
+			if ( 'retention_reason' === $rule && 'privacy' === $tab && is_array( $value ) ) {
+				$extended = \CourseCaptain\Privacy\RetentionPolicy::extended( (array) ( \CourseCaptain\Settings\Settings::values( 'privacy' )['retention'] ?? array() ), $value );
+				if ( array() !== $extended ) {
+					$params['sub'] = $extended[0];
+					$value         = $value[ $extended[0] ];
+				}
+			}
+			// RR-4: the order error belongs to the raw answers.
+			if ( 'retention_order' === $rule && 'privacy' === $tab && is_array( $value ) ) {
+				$params['sub'] = 'raw_answers_years_after_course_end';
+				$value         = $value['raw_answers_years_after_course_end'] ?? '';
+			}
 			$value         = is_scalar( $value ) ? (string) $value : '';
 			$out[ $field ] = array(
 				'rule'   => $rule,
 				'params' => array(
 					'value'      => $value,
 					'suggestion' => in_array( $rule, array( 'format', 'reserved', 'collision' ), true ) ? SettingsRules::slug_suggestion( $value . ( 'format' === $rule ? '' : '-1' ) ) : '',
-				),
+				) + $params,
 			);
 		}
 		return $out;
+	}
+
+	/**
+	 * Error of a rendered key: an error with `params.sub` belongs only to that part.
+	 *
+	 * @param array<string, array{rule: string, params: array<string, mixed>}> $errors Errors by field.
+	 * @param string                                                           $key    Rendered key.
+	 * @return array{rule: string, params: array<string, mixed>}|null
+	 */
+	public static function error_for( array $errors, string $key ): ?array {
+		list( $f, $sub ) = array_pad( explode( '.', $key, 2 ), 2, '' );
+		$error           = $errors[ $f ] ?? null;
+		if ( null === $error ) {
+			return null;
+		}
+		$part = (string) ( $error['params']['sub'] ?? '' );
+		return '' === $part || '' === $sub || $part === $sub ? $error : null;
+	}
+
+	/**
+	 * Rendered key an error summary links to (the invalid part, else the first key).
+	 *
+	 * @param string                                                 $field Field.
+	 * @param array{rule: string, params: array<string, mixed>}|null $error Error.
+	 * @param array                                                  $keys  Rendered keys.
+	 * @phpstan-param list<string> $keys
+	 * @return string
+	 */
+	public static function error_key( string $field, ?array $error, array $keys ): string {
+		$part = (string) ( $error['params']['sub'] ?? '' );
+		return '' !== $part && in_array( $field . '.' . $part, $keys, true ) ? $field . '.' . $part : self::first_key( $field, $keys );
 	}
 
 	/**
@@ -307,7 +410,7 @@ final class SettingsForm {
 		}
 		$items = '';
 		foreach ( $errors as $field => $error ) {
-			$key    = self::first_key( $field, $keys );
+			$key    = self::error_key( $field, $error, $keys );
 			$label  = SettingsFields::ui( $tab, $key )['label'];
 			$items .= '<li><a href="#' . esc_attr( self::id( $tab, $key ) ) . '">' . esc_html( $label ) . '</a></li>';
 		}
@@ -353,16 +456,21 @@ final class SettingsForm {
 		list( $f, $sub ) = array_pad( explode( '.', $key, 2 ), 2, '' );
 		$root            = isset( $opts['root'] ) ? (string) $opts['root'] : '';
 		$name            = ( '' === $root ? 'ccap' : $root . '[ccap]' ) . '[' . $f . ']' . ( '' === $sub ? '' : '[' . $sub . ']' );
-		$describe        = array( $id . '-help', $id . '-meta' );
+		$describe        = isset( $opts['status'] ) ? array( $id . '-help', $id . '-meta', $id . '-status' ) : array( $id . '-help', $id . '-meta' );
 		$help            = $ui['help'] . ( isset( $opts['extra_help'] ) ? ' ' . (string) $opts['extra_help'] : '' );
 		$disabled        = ! empty( $opts['disabled_reason'] );
 		if ( $disabled ) {
 			$help .= ' ' . (string) $opts['disabled_reason'];
 		}
 		$err_html = '';
+		// "Legal review" marking (SET-CC-06): the operator decides with their legal advice whether and how the value is required.
+		if ( ! empty( $def['legal_review'] ) ) {
+			$describe[] = $id . '-legal';
+			$err_html  .= '<p id="' . esc_attr( $id . '-legal' ) . '" class="description ccap-legal-review"><strong>' . esc_html__( 'Legal review:', 'course-captain' ) . '</strong> ' . esc_html__( 'Whether this is required for your website and what it must contain is your decision. Course Captain does not check it.', 'course-captain' ) . '</p>';
+		}
 		if ( null !== $error ) {
 			$describe[] = $id . '-error';
-			$err_html   = '<p id="' . esc_attr( $id . '-error' ) . '" class="ccap-field-error"><strong>' . esc_html( SettingsFields::message( $ui['label'], $error['rule'], $def, $error['params'] ) ) . '</strong></p>';
+			$err_html  .= '<p id="' . esc_attr( $id . '-error' ) . '" class="ccap-field-error"><strong>' . esc_html( SettingsFields::message( $ui['label'], $error['rule'], $def, $error['params'] ) ) . '</strong></p>';
 		}
 		if ( ! empty( $opts['warning'] ) ) {
 			$describe[] = $id . '-warning';
@@ -371,7 +479,7 @@ final class SettingsForm {
 		$aria    = ' aria-describedby="' . esc_attr( implode( ' ', $describe ) ) . '"' . ( null !== $error ? ' aria-invalid="true"' : '' ) . ( $disabled ? ' aria-disabled="true"' : '' ) . ( ! empty( $opts['readonly'] ) ? ' disabled' : '' ) . ( isset( $opts['form'] ) ? ' form="' . esc_attr( (string) $opts['form'] ) . '"' : '' );
 		$control = self::control( $ui, $def, $id, $name, $key, $value, $aria, '' === $root ? 'ccap_mode' : $root . '[ccap_mode]' );
 		$group   = in_array( $ui['element'], array( 'radio', 'tristate', 'nullable_number', 'set', 'bools', 'xmlrpc' ), true );
-		$status  = isset( $opts['status'] ) ? ' <span class="ccap-field-status">' . esc_html( (string) $opts['status'] ) . '</span>' : '';
+		$status  = isset( $opts['status'] ) ? ' <span id="' . esc_attr( $id . '-status' ) . '" class="ccap-field-status">' . esc_html( (string) $opts['status'] ) . '</span>' : '';
 		$label   = $group
 			? '<legend id="' . esc_attr( $id ) . '-legend" class="ccap-field-label">' . esc_html( $ui['label'] ) . '</legend>'
 			: '<label for="' . esc_attr( $id ) . '" class="ccap-field-label">' . esc_html( $ui['label'] ) . '</label>';
@@ -444,6 +552,9 @@ final class SettingsForm {
 			return array() === $labels ? __( 'none', 'course-captain' ) : implode( ', ', $labels );
 		}
 		if ( '' === $value ) {
+			if ( 'url' === $ui['element'] && '' !== $ui['none'] ) {
+				return (string) $ui['none'];
+			}
 			return __( 'empty', 'course-captain' );
 		}
 		if ( is_scalar( $value ) && isset( $ui['options'][ (string) $value ] ) ) {
@@ -521,7 +632,10 @@ final class SettingsForm {
 			case 'textarea':
 				return '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" rows="4" class="large-text"' . $aria . '>' . esc_textarea( is_scalar( $value ) ? (string) $value : '' ) . '</textarea>';
 			case 'lines':
+			case 'hosts':
 				return '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" rows="4" class="large-text code"' . $aria . '>' . esc_textarea( is_array( $value ) ? implode( "\n", array_map( 'strval', $value ) ) : ( is_scalar( $value ) ? (string) $value : '' ) ) . '</textarea>';
+			case 'url':
+				return '<input type="url" inputmode="url" autocomplete="off" spellcheck="false" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( is_scalar( $value ) ? (string) $value : '' ) . '" class="large-text code"' . $aria . '>';
 			case 'email':
 				return '<input type="email" autocomplete="off" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( is_scalar( $value ) ? (string) $value : '' ) . '" class="regular-text"' . $aria . '>';
 			case 'page':

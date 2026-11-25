@@ -12,6 +12,7 @@ namespace CourseCaptain\Learner;
 use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Access\ContentProtection;
 use CourseCaptain\Access\ProtectedFiles;
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Activity\ActivityProgress;
 use CourseCaptain\Activity\ActivityRegistry;
 use CourseCaptain\Activity\ActivityService;
@@ -68,6 +69,7 @@ final class LessonView {
 				(string) $room['title']
 			)
 		) . '</a></p>';
+		$back   = self::breadcrumbs( $room, $found, $course_id, $lang ) . $back;
 		$gate   = ContentGate::current()->lesson( $actor, $course_id, $lesson_id );
 		$lesson = get_post( $lesson_id );
 		if ( ! $lesson instanceof \WP_Post ) {
@@ -80,6 +82,18 @@ final class LessonView {
 				'title'      => $lesson->post_title,
 				'title_attr' => $lang,
 				'body'       => $back . '<p class="ccap-locked" role="alert">' . esc_html( LearningArea::lock_label( (string) $gate->reason, null === $unlock ? null : (string) $unlock ) ) . '</p>',
+			);
+		}
+
+		// R0-10 §2.2: a foreign lesson with unclear or restricted rights stays listed, its content is not shown.
+		$rights   = RightsGate::current();
+		$withheld = $rights->post( $lesson_id );
+		if ( null !== $withheld ) {
+			return array(
+				'status'     => 200,
+				'title'      => $lesson->post_title,
+				'title_attr' => $lang,
+				'body'       => $back . '<p class="ccap-withheld" role="status">' . esc_html( RightsGate::exempt( $actor->user_id, $course_id ) ? RightsGate::notice( $withheld ) : __( 'This content is not available at the moment.', 'course-captain' ) ) . '</p>' . self::navigation( $room, $lesson_id, $lang ),
 			);
 		}
 
@@ -97,10 +111,19 @@ final class LessonView {
 			'params' => array(),
 		) : ActivityRegistry::normalize_rule( $provider, $definition['rule'] );
 		$state      = (array) ActivityProgress::current()->state( $actor->user_id, $lesson_id );
+		$media      = self::withheld_media( $rights, $actor, $course_id, $type, $definition['settings'] );
 
-		$html  = $back . self::status_message( $status );
-		$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang ) . ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : self::activity( $type, $definition['settings'], $course_id ) ) . '</article>';
-		$html .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'] );
+		$html = $back . self::status_message( $status );
+		if ( ! \CourseCaptain\Settings\Modules::activity_enabled( $type ) ) {
+			// SET-CC-24: the module is switched off; the lesson text stays readable, the activity is hidden.
+			$html .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang, $rights, $course_id ) . '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Activity', 'course-captain' ) . '</h2><p>' . esc_html__( 'This activity is not available on this website at the moment. Your previous work is kept.', 'course-captain' ) . '</p></section></article>';
+		} else {
+			$activity = null !== $media && 'video' === $type
+				? '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Video', 'course-captain' ) . '</h2><p class="ccap-withheld">' . esc_html( $media ) . '</p></section>'
+				: ( 'assignment' === $type ? AssignmentView::section( $actor, $course_id, $lesson_id, $lang ) : ( 'quiz' === $type ? QuizView::section( $actor, $course_id, $lesson_id, $lang, $status ) : self::activity( $type, $definition['settings'], $course_id ) ) );
+			$html    .= '<article class="ccap-lesson">' . self::content( $actor, $lesson, $lang, $rights, $course_id ) . $activity . '</article>';
+			$html    .= self::completion( $actor, $course_id, $lesson_id, $type, $rule, $state, $definition['settings'], $media );
+		}
 		$html .= self::navigation( $room, $lesson_id, $lang );
 		return array(
 			'status'     => 200,
@@ -157,11 +180,23 @@ final class LessonView {
 					if ( 'assignment' !== $type ) {
 						return $result( 'ccap_invalid_param' );
 					}
+					if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::ASSIGNMENTS ) ) {
+						return $result( 'ccap_module_disabled' );
+					}
 					return $result( AssignmentView::handle( $actor, $course_id, $lesson_id, (string) $post['ccap_do'], $post, $files ) );
+				case 'quiz_answer':
+				case 'quiz_reveal':
+				case 'quiz_restart':
+					// UI-F8 (h5 L-3): quiz lessons answered without JavaScript.
+					return $result( QuizView::handle( $actor, $course_id, $lesson_id, (string) $post['ccap_do'], $post ) );
 				case 'download':
 					$uid = (string) ( $definition['settings']['media_uid'] ?? '' );
 					if ( 'file' !== $type || 1 !== preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
 						return $result( 'ccap_invalid_param' );
+					}
+					if ( null !== RightsGate::current()->post( $lesson_id ) || ( null !== RightsGate::current()->medium_uid( $uid ) && ! RightsGate::exempt( $actor->user_id, $course_id ) ) ) {
+						// R0-10 §2.2: a withheld file is neither delivered nor counted as downloaded.
+						return $result( 'ccap_not_found' );
 					}
 					$progress->interact( $actor, $course_id, $lesson_id, 'download' );
 					return $result( 'downloaded', ProtectedFiles::url( $uid ) );
@@ -196,14 +231,40 @@ final class LessonView {
 	}
 
 	/**
-	 * Lesson text through `the_content` (content filters, `ContentProtection`).
+	 * Breadcrumb navigation My learning › course › module › lesson
+	 * (`display.breadcrumbs`, per course overridable; SET-CC-P1).
 	 *
-	 * @param Actor    $actor  Learner.
-	 * @param \WP_Post $lesson Lesson.
-	 * @param string   $lang   Content language attributes.
+	 * @param array<string, mixed> $room      Course room.
+	 * @param array<string, mixed> $found     Module and lesson of the room.
+	 * @param int                  $course_id Course.
+	 * @param string               $lang      Content language attributes.
 	 * @return string
 	 */
-	private static function content( Actor $actor, \WP_Post $lesson, string $lang ): string {
+	private static function breadcrumbs( array $room, array $found, int $course_id, string $lang ): string {
+		if ( true !== \CourseCaptain\Settings\EffectiveSettings::for_course( 'display.breadcrumbs', $course_id ) ) {
+			return '';
+		}
+		return '<nav class="ccap-breadcrumbs" aria-label="' . esc_attr__( 'Breadcrumb', 'course-captain' ) . '"><ol>'
+			. '<li><a href="' . esc_url( LearningArea::url() ) . '">' . esc_html__( 'My learning', 'course-captain' ) . '</a></li>'
+			. '<li><a href="' . esc_url( LearningArea::url( 'kurs/' . LearningArea::course_uid( $course_id ) ) ) . '"' . $lang . '>' . esc_html( (string) $room['title'] ) . '</a></li>'
+			. '<li' . $lang . '>' . esc_html( (string) ( $found['module']['title'] ?? '' ) ) . '</li>'
+			. '<li aria-current="page"' . $lang . '>' . esc_html( (string) ( $found['lesson']['title'] ?? '' ) ) . '</li></ol></nav>';
+	}
+
+	/**
+	 * Lesson text through `the_content` (content filters, `ContentProtection`).
+	 *
+	 * Embedded media whose rights withhold them (R0-10 §2.2) are replaced by
+	 * the placeholder ({@see WithheldInlineMedia}).
+	 *
+	 * @param Actor      $actor     Learner.
+	 * @param \WP_Post   $lesson    Lesson.
+	 * @param string     $lang      Content language attributes.
+	 * @param RightsGate $rights    Rights gate of the request.
+	 * @param int        $course_id Course.
+	 * @return string
+	 */
+	private static function content( Actor $actor, \WP_Post $lesson, string $lang, RightsGate $rights, int $course_id ): string {
 		if ( ContentProtection::is_locked( (int) $lesson->ID, $actor->user_id ) ) {
 			return ContentProtection::notice();
 		}
@@ -215,11 +276,37 @@ final class LessonView {
 		$post     = $lesson; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restored below; filters read the current post.
 		setup_postdata( $lesson );
 		$html = (string) apply_filters( 'the_content', $lesson->post_content ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core filter.
+		$html = WithheldInlineMedia::filter( $html, array( $rights, 'medium_uid' ), RightsGate::exempt( $actor->user_id, $course_id ) );
 		$post = $previous; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restore.
 		if ( $previous instanceof \WP_Post ) {
 			setup_postdata( $previous );
 		}
 		return '<div class="ccap-lesson-content"' . $lang . '>' . $html . '</div>';
+	}
+
+	/**
+	 * Text in place of the protected medium of a video or file lesson when
+	 * the medium is withheld (R0-10 §2.2): the neutral placeholder "Media
+	 * not available" for learners (no error, no path), the reason for
+	 * editors of the course. Null when the medium may be shown.
+	 *
+	 * @param RightsGate           $rights    Rights gate of the request.
+	 * @param Actor                $actor     Viewer.
+	 * @param int                  $course_id Course.
+	 * @param string               $type      Activity type.
+	 * @param array<string, mixed> $settings  Activity settings.
+	 * @return string|null
+	 */
+	private static function withheld_media( RightsGate $rights, Actor $actor, int $course_id, string $type, array $settings ): ?string {
+		$uid = (string) ( $settings['media_uid'] ?? '' );
+		if ( ! ( 'file' === $type || ( 'video' === $type && 'media' === ( $settings['provider'] ?? '' ) ) ) || '' === $uid ) {
+			return null;
+		}
+		$reason = $rights->medium_uid( $uid );
+		if ( null === $reason ) {
+			return null;
+		}
+		return RightsGate::exempt( $actor->user_id, $course_id ) ? RightsGate::notice( $reason ) : RightsGate::placeholder();
 	}
 
 	/**
@@ -239,7 +326,6 @@ final class LessonView {
 				return '';
 			case 'exam':
 				return '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Exam', 'course-captain' ) . '</h2><p><a href="' . esc_url( LearningArea::url( 'kurs/' . LearningArea::course_uid( $course_id ) ) . '#ccap-exams-heading' ) . '">' . esc_html__( 'Start the exam on the course page.', 'course-captain' ) . '</a></p></section>';
-			case 'quiz':
 			case 'flashcard':
 				return '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Practice', 'course-captain' ) . '</h2><p>' . esc_html__( 'This practice activity cannot be used on this page yet.', 'course-captain' ) . '</p></section>';
 			default:
@@ -258,6 +344,39 @@ final class LessonView {
 	 * @return string
 	 */
 	private static function video( array $settings ): string {
+		$html       = self::player( $settings );
+		$transcript = self::transcript( $settings );
+		return '' !== $transcript && str_ends_with( $html, '</section>' ) ? substr( $html, 0, -10 ) . $transcript . '</section>' : $html;
+	}
+
+	/**
+	 * Transcript below the player (SET-CC-18, A11Y-090): text in a
+	 * disclosure, a link, or both. Shown in every external media mode,
+	 * because it loads nothing from the video service.
+	 *
+	 * @param array<string, mixed> $settings Video settings.
+	 * @return string
+	 */
+	private static function transcript( array $settings ): string {
+		$text = trim( (string) ( $settings['transcript'] ?? '' ) );
+		$url  = (string) ( $settings['transcript_url'] ?? '' );
+		$html = '';
+		if ( '' !== $text ) {
+			$html .= '<details class="ccap-transcript"><summary>' . esc_html__( 'Transcript', 'course-captain' ) . '</summary>' . wpautop( esc_html( $text ) ) . '</details>';
+		}
+		if ( '' !== $url && \CourseCaptain\Activity\SettingsSchema::is_https_url( $url ) ) {
+			$html .= '<p><a href="' . esc_url( $url ) . '">' . esc_html__( 'Open the transcript', 'course-captain' ) . '</a></p>';
+		}
+		return $html;
+	}
+
+	/**
+	 * Player part of a video lesson.
+	 *
+	 * @param array<string, mixed> $settings Video settings.
+	 * @return string
+	 */
+	private static function player( array $settings ): string {
 		$html = '<section class="ccap-activity" aria-labelledby="ccap-activity-heading"><h2 id="ccap-activity-heading">' . esc_html__( 'Video', 'course-captain' ) . '</h2>';
 		$uid  = (string) ( $settings['media_uid'] ?? '' );
 		if ( 'media' === ( $settings['provider'] ?? '' ) && 1 === preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
@@ -442,15 +561,18 @@ final class LessonView {
 	 * @param array<string, mixed> $rule      Normalized rule.
 	 * @param array<string, mixed> $state     Stored progress row.
 	 * @param array<string, mixed> $settings  Settings.
+	 * @param string|null          $withheld  Text in place of a withheld file (no download button).
 	 * @return string
 	 */
-	private static function completion( Actor $actor, int $course_id, int $lesson_id, string $type, array $rule, array $state, array $settings ): string {
+	private static function completion( Actor $actor, int $course_id, int $lesson_id, string $type, array $rule, array $state, array $settings, ?string $withheld = null ): string {
 		$done  = 'completed' === ( $state['status'] ?? '' );
 		$html  = '<section class="ccap-completion" aria-labelledby="ccap-completion-heading"><h2 id="ccap-completion-heading">' . esc_html__( 'Your progress', 'course-captain' ) . '</h2>';
 		$html .= '<p class="ccap-lesson-state">' . esc_html( $done ? __( 'Status: completed', 'course-captain' ) : __( 'Status: not completed yet', 'course-captain' ) ) . '</p>';
 		$form  = '<form method="post" action="' . esc_url( LearningArea::lesson_url( LearningArea::course_uid( $course_id ), $lesson_id ) ) . '">' . wp_nonce_field( self::NONCE . ':' . $lesson_id, '_wpnonce', false, false );
 		$uid   = (string) ( $settings['media_uid'] ?? '' );
-		if ( 'file' === $type && 1 === preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
+		if ( 'file' === $type && null !== $withheld ) {
+			$html .= '<p class="ccap-withheld">' . esc_html( $withheld ) . '</p>';
+		} elseif ( 'file' === $type && 1 === preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
 			$html .= $form . '<p><button type="submit" class="ccap-button" name="ccap_do" value="download">' . esc_html__( 'Download the file', 'course-captain' ) . '</button></p></form>';
 		}
 		if ( $done ) {
@@ -458,7 +580,7 @@ final class LessonView {
 		}
 		switch ( (string) $rule['type'] ) {
 			case 'manual_confirm':
-				$html .= $form . '<p><button type="submit" class="ccap-button" name="ccap_do" value="complete">' . esc_html__( 'Mark as completed', 'course-captain' ) . '</button></p></form>';
+				$html .= $form . '<p><button type="submit" class="ccap-button" name="ccap_do" value="complete">' . esc_html( LearningArea::button_label( 'complete', __( 'Mark as completed', 'course-captain' ) ) ) . '</button></p></form>';
 				break;
 			case 'view':
 				$min     = max( 0, (int) ( $rule['params']['min_seconds'] ?? 0 ) );
@@ -481,8 +603,18 @@ final class LessonView {
 			case 'position_ratio':
 				$html .= '<p>' . esc_html__( 'This step is completed when you have watched the video.', 'course-captain' ) . '</p>';
 				break;
+			case 'attempted':
+				$html .= '<p>' . esc_html__( 'This step is completed when you have answered every question of the quiz.', 'course-captain' ) . '</p>';
+				break;
+			case 'all_correct_once':
+				$html .= '<p>' . esc_html__( 'This step is completed when you have answered every question of the quiz correctly once.', 'course-captain' ) . '</p>';
+				break;
 			case 'passed':
 			case 'evaluated':
+				if ( 'quiz' === $type ) {
+					$html .= '<p>' . esc_html__( 'This step is completed when you pass the quiz.', 'course-captain' ) . '</p>';
+					break;
+				}
 				$html .= '<p>' . esc_html( 'exam' === $type ? __( 'This step is completed with the exam.', 'course-captain' ) : __( 'This step is completed when your assignment has been graded.', 'course-captain' ) ) . '</p>';
 				break;
 			default:
@@ -547,6 +679,13 @@ final class LessonView {
 		);
 		if ( isset( $messages[ $status ] ) ) {
 			return '<p class="ccap-status" role="status">' . esc_html( $messages[ $status ] ) . '</p>';
+		}
+		$quiz = QuizView::message( $status );
+		if ( null !== $quiz ) {
+			if ( '' === $quiz['text'] ) {
+				return '';
+			}
+			return $quiz['ok'] ? '<p class="ccap-status" role="status">' . esc_html( $quiz['text'] ) . '</p>' : '<p class="ccap-error" role="alert">' . esc_html( $quiz['text'] ) . '</p>';
 		}
 		$assignment = AssignmentView::message( $status );
 		if ( null !== $assignment ) {

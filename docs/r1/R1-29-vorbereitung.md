@@ -107,7 +107,7 @@ Weitere Läufe: Profil `autor` (16 s; 2 Konten, Setup abgeschlossen, kein Kurs) 
 | AG-3 | Rekrutierung (E-161, E-163): 6 Autoren, 5 + 4 Lernende, 5 Gruppenverwaltung, 5 Admins, 1 A11Y-Fachperson; externe Moderation für Barrierefreiheitssitzungen (E-164); Personen dürfen die CC-Oberfläche nicht kennen | R0-26 §2.1 |
 | AG-4 | Staging nach R0-14 §3 inkl. nginx-Site, Sprachpaket de_DE, https, Fremdhost-Video, Testgeräte nach R0-26 §3.2 | `preflight-checkliste.md` A |
 | AG-5 | Einwilligungstext und Datenschutzbewertung der Hilfstechnik-Angaben (R0-17, Art. 9 DSGVO); Speicherort und Löschtermin der Aufzeichnungen | R0-26 §4.1, E-167 |
-| AG-6 | Typmix und Aufgabenkonfiguration der Referenzkurse bestätigen (`content/rk-v1.php`, Drehbücher); Soll-Punkte AU-T13 bestätigen; Frage zu B-03 (Karteikarten im Prüfungspool) entscheiden | OP-26-4, AG-12 |
+| AG-6 | Typmix und Aufgabenkonfiguration der Referenzkurse bestätigen (`content/rk-v1.php`, Drehbücher); Soll-Punkte AU-T13 bestätigen; Frage zu B-03 (Karteikarten im Prüfungspool) entscheiden | OP-26-4, AG-12 **B-03 entschieden 24.11.2026: Karteikarten nie in Prüfungen/bewerteten Quizzen (E-351).** |
 | AG-7 | Praxis-Benchmark UX-090 und Pilot; Sitzungsdauer Autor bestätigen (OP-26-1); Schwellen S-06 … S-10 einfrieren | R0-26 §4.2 Schritt 3, E-166 |
 | AG-8 | SUS-Fassung (deutsch, unverändert) festlegen | R0-26 §2.3 Nr. 6 |
 | AG-9 | Expertendurchläufe A11Y-102/103 (AT-01 … AT-09) | R0-26 §4.2 Schritt 4 |
@@ -162,6 +162,6 @@ Weitere Läufe: Profil `autor` (16 s; 2 Konten, Setup abgeschlossen, kein Kurs) 
 
 - Lektionsansicht im Lernbereich und Links aus dem Kursraum (B-01) – als Folgeaufgabe vorgeschlagen.
 - `tools/release/artifact-test.sh` lud Plugin-Klassen aus dem Repository statt aus dem ZIP (B-07) – erledigt 17.11.2026: gemeinsame Isolierung `tools/qa/wp-cli-autoload-isolation.php` plus Prüfung der Klassenherkunft im Artefakttest.
-- Karteikarten in Prüfungspools (B-03) – Produktentscheidung (AG-6).
+- Karteikarten in Prüfungspools (B-03) – Produktentscheidung (AG-6). **Entschieden 24.11.2026 (E-351).**
 
 Review durch zweite Person vor Merge (AG-05).

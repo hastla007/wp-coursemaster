@@ -780,11 +780,22 @@ final class ImportService {
 			if ( null === $rule && 'flashcards' === $entity ) {
 				$rule = self::card_error( $record );
 			}
+			// D8: course, module and lesson `rights` follow `common.rights` (R0-10 §1.5).
+			if ( null === $rule && in_array( $entity, array( 'courses', 'modules', 'lessons' ), true ) && array_key_exists( 'rights', $record ) && ! Rights::valid_package_rights( $record['rights'] ) ) {
+				$rule = 'schema';
+			}
 			if ( null === $rule && 'media' === $entity ) {
 				$rule = ImportMedia::record_error( $record, $context['files'], $context['rejected'] );
 			}
 			if ( null === $rule && 'blueprints' === $entity ) {
 				$rule = ImportBlueprints::record_error( $record );
+			}
+			if ( null === $rule && 'blueprints' === $entity && $this->variant_has_card( $record, $state, $map ) ) {
+				// D2 (B-03): flashcards are never part of a fixed exam variant.
+				$rule = 'variant_flashcard';
+			}
+			if ( null === $rule && 'questions' === $entity && QuestionTypes::FLASHCARD === ( $record['revision']['question_type'] ?? '' ) ) {
+				$state['cards'][ $source ] = true;
 			}
 			if ( null === $rule ) {
 				foreach ( self::references( $entity, $record ) as $ref_type => $refs ) {
@@ -817,17 +828,47 @@ final class ImportService {
 			} else {
 				$action = '1' === (string) $known['locally_modified'] ? 'conflict' : 'update';
 			}
-			$emit(
-				array(
-					'entity'    => $entity,
-					'source_id' => $source,
-					'action'    => $action,
-					'rule'      => $rule,
-					'file'      => $file,
-					'record'    => in_array( $action, array( 'create', 'update' ), true ) ? $record : null,
-				)
+			$out = array(
+				'entity'    => $entity,
+				'source_id' => $source,
+				'action'    => $action,
+				'rule'      => $rule,
+				'file'      => $file,
+				'record'    => in_array( $action, array( 'create', 'update' ), true ) ? $record : null,
 			);
+			if ( 'unchanged' === $action && in_array( $entity, array( 'courses', 'modules' ), true ) && ! array_key_exists( 'rights', $record ) ) {
+				// Rights come from the manifest's `default_rights`, which is not part of the record hash.
+				$out['defaults'] = true;
+			}
+			$emit( $out );
 		}
+	}
+
+	/**
+	 * Whether a fixed variant of a blueprint record holds a flashcard (D2):
+	 * a question record of this package with the type `flashcard`, a
+	 * source ID of the `flashcards` entity, or an already imported question
+	 * whose current revision is a flashcard.
+	 *
+	 * @param array<string, mixed>                       $record Blueprint record.
+	 * @param array<string, mixed>                       $state  Scan state.
+	 * @param array<string, array<string, array<mixed>>> $map    Source map of the system.
+	 * @return bool
+	 */
+	private function variant_has_card( array $record, array $state, array $map ): bool {
+		$known = array();
+		foreach ( (array) ( $record['fixed_variants'] ?? array() ) as $variant ) {
+			foreach ( (array) ( is_array( $variant ) ? ( $variant['questions'] ?? array() ) : array() ) as $question ) {
+				$question = (string) $question;
+				if ( isset( $state['cards'][ $question ] ) || isset( $state['seen']['flashcard'][ $question ] ) || isset( $map['flashcard'][ $question ] ) ) {
+					return true;
+				}
+				if ( ! isset( $state['seen']['question'][ $question ] ) && isset( $map['question'][ $question ]['object_id'] ) ) {
+					$known[] = (int) $map['question'][ $question ]['object_id'];
+				}
+			}
+		}
+		return array() !== $known && array() !== QuestionRepository::current()->flashcards( $known );
 	}
 
 	/**
@@ -849,11 +890,11 @@ final class ImportService {
 	 * during activation so that learners see nothing before (R0-38 §5.1).
 	 *
 	 * @internal Runner use inside its chunk transaction.
-	 * @param Actor                                                                                $actor   Importer.
-	 * @param int                                                                                  $batch   Batch.
-	 * @param string                                                                               $system  Source system.
-	 * @param string                                                                               $package Package ID.
-	 * @param array{entity: string, source_id: string, action: string, record?: array<mixed>|null} $item    Spool item.
+	 * @param Actor                                                                                                 $actor   Importer.
+	 * @param int                                                                                                   $batch   Batch.
+	 * @param string                                                                                                $system  Source system.
+	 * @param string                                                                                                $package Package ID.
+	 * @param array{entity: string, source_id: string, action: string, record?: array<mixed>|null, defaults?: bool} $item Spool item.
 	 * @return array{object: int|null, revision: int|null, draft: bool, payload: array<string, mixed>|null}
 	 * @throws CourseException On write errors.
 	 */
@@ -878,6 +919,12 @@ final class ImportService {
 			} else {
 				$object = $this->write_object( $actor, $system, $type, $record, $object );
 			}
+			if ( in_array( $type, self::POST_TYPES, true ) ) {
+				$this->write_post_rights( $object, $record, $package, 'lesson' !== $type );
+			}
+			if ( 'media' === $type ) {
+				\CourseCaptain\Access\RightsGate::changed( ( new Relations( $this->db ) )->courses_of_media( $object ) );
+			}
 			if ( in_array( $type, self::QUESTION_TYPES, true ) ) {
 				$revision = $this->saved[ $object ] ?? (int) $this->db->scalar( $this->db->prepare( 'SELECT current_revision_id FROM `' . $this->db->table( 'ccap_question' ) . '` WHERE id = %d', $object ) );
 				$this->write_rights( $revision, $record, $package );
@@ -886,6 +933,9 @@ final class ImportService {
 				}
 			}
 			$this->map( $system, $type, $source, $object, (string) ( $record['hash'] ?? '' ), $package, $batch );
+		} elseif ( 'unchanged' === $item['action'] && null !== $object && ! empty( $item['defaults'] ) && in_array( $type, array( 'course', 'module' ), true ) ) {
+			// An unchanged course/module without own `rights` follows a changed `default_rights` of the manifest; locally saved rights stay (Rights::import_meta).
+			$this->write_post_rights( $object, array(), $package );
 		}
 		return array(
 			'object'   => $object,
@@ -1279,6 +1329,32 @@ final class ImportService {
 				$revision
 			)
 		);
+		// The rights live on the revision row: drop its K1 copy and renew the course generations (R0-21 §3.7).
+		wp_cache_delete( \CourseCaptain\Cache\CacheStore::key( 'k1', 'shared', 'qrev:' . $revision, array() ), \CourseCaptain\Cache\CacheStore::GROUP );
+		$question = (int) $this->db->scalar( $this->db->prepare( 'SELECT question_id FROM `' . $this->db->table( 'ccap_question_revision' ) . '` WHERE id = %d', $revision ) );
+		\CourseCaptain\Access\RightsGate::changed( \CourseCaptain\Access\RightsGate::courses_of_questions( array( $question ) ) );
+	}
+
+	/**
+	 * Store the rights of an imported course, module or lesson (R0-10 §2.1
+	 * post meta `_ccap_rights`): the record's `rights`, else for courses
+	 * and modules the package's `default_rights` (R0-10 §1.2), else none.
+	 * Foreign `own` becomes `licensed` with the publisher as owner (E-62);
+	 * locally saved rights stay.
+	 *
+	 * @param int                  $post_id Course, module or lesson.
+	 * @param array<string, mixed> $record  Record.
+	 * @param string               $package Package ID.
+	 * @param bool                 $defaults Fall back to `default_rights`.
+	 * @return void
+	 */
+	private function write_post_rights( int $post_id, array $record, string $package, bool $defaults = true ): void {
+		$rights = is_array( $record['rights'] ?? null ) ? $record['rights'] : null;
+		if ( null === $rights && $defaults ) {
+			$default = $this->package_manifest( $package )['default_rights'] ?? null;
+			$rights  = Rights::valid_package_rights( $default ) ? (array) $default : null;
+		}
+		Rights::import_meta( $post_id, null === $rights ? null : $this->resolve_rights( $rights, $package ) );
 	}
 
 	/**
@@ -1327,10 +1403,7 @@ final class ImportService {
 	 * @return bool
 	 */
 	private function own_package( string $package ): bool {
-		$manifest = $this->package_manifest( $package );
-		$site     = (string) get_option( 'course_captain_installation_uuid', '' );
-		$from     = (string) ( $manifest['source']['exported_from_site'] ?? '' );
-		return 'local' === ( $manifest['source']['system'] ?? '' ) || ( '' !== $site && $site === $from );
+		return Rights::own_manifest( $this->package_manifest( $package ) );
 	}
 
 	/**

@@ -558,20 +558,59 @@ final class A11yI18nTest extends SchemaTestCase {
 		wp_set_current_user( $this->admin );
 		$screens = array(
 			'groups'       => GroupsScreen::html( array(), $this->admin ),
+			// SET-CC-26 / UI-F2: enrollment state and report download on the course view.
+			'learners'     => \CourseCaptain\Admin\LearnersScreen::html( array( 'course' => $this->course ), $this->admin ),
 			'certificates' => CertificatesScreen::html( array(), $this->admin ),
 			'template'     => CertificatesScreen::html( array( 'tab' => 'template' ), $this->admin ),
 			'audit'        => AuditScreen::html( array() ),
+			'audit-set'    => AuditScreen::html( array( 'area' => 'settings' ) ),
+			'locks'        => \CourseCaptain\Admin\SettingLocksScreen::html( array(), $this->admin ),
+			'backup'       => \CourseCaptain\Admin\SettingsBackup::html( array(), $this->admin ),
 			'panel'        => CourseSettingsPanel::html( $this->course ),
 			'catalog'      => LearningArea::render_catalog( array() ),
 			'link'         => LearningArea::render_link( array() ),
+			// UI-F8: import page with link/folder forms, course export and rights & release.
+			'import'       => \CourseCaptain\Admin\ImportScreen::html( array(), $this->admin ),
+			'export'       => \CourseCaptain\Admin\ImportScreen::html( array( 'area' => 'export' ), $this->admin ),
+			'rights'       => \CourseCaptain\Admin\ImportScreen::html(
+				array(
+					'area'   => 'rights',
+					'course' => $this->course,
+				),
+				$this->admin
+			),
 		);
 		foreach ( SettingsScreen::tabs_for( $this->admin ) as $tab ) {
 			$screens[ 'settings-' . $tab ] = SettingsScreen::html( array( 'tab' => $tab ), $this->admin );
 		}
 		$screens['roles'] = RoleSettings::html( array(), $this->admin );
+		// SET-CC-04: mail text overview, editor and reset confirmation.
+		$screens['mail-texts']       = \CourseCaptain\Admin\MailTextsScreen::html( array(), $this->admin );
+		$screens['mail-text-editor'] = \CourseCaptain\Admin\MailTextsScreen::html(
+			array(
+				'type'   => 'access_granted',
+				'locale' => 'en_US',
+			),
+			$this->admin
+		);
 		foreach ( SetupState::STEPS as $step ) {
 			$screens[ 'setup-' . $step ] = SetupWizard::html( array( 'step' => $step ), $this->admin );
 		}
+		// SET-CC-07: country profile comparison (table with apply controls) on the settings tab and in setup step 1.
+		$screens['settings-country-profile'] = SettingsScreen::html(
+			array(
+				'tab'          => 'general',
+				'ccap_profile' => 'DE',
+			),
+			$this->admin
+		);
+		$screens['setup-country-profile']    = SetupWizard::html(
+			array(
+				'step'         => 'purpose_language',
+				'ccap_profile' => 'EU',
+			),
+			$this->admin
+		);
 		foreach ( array( '', 'jobs', 'integrations', 'diagnostics' ) as $area ) {
 			$screens[ 'ops-' . $area ] = OpsScreen::html( array( 'area' => $area ) );
 		}

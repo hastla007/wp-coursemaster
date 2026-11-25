@@ -55,6 +55,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 		$dir = get_temp_dir() . 'ccap-fx-' . wp_generate_password( 6, false );
 		wp_mkdir_p( $dir );
 		$this->fx = NeutralFixture::load( $dir );
+		NeutralFixture::release_rights( $this->fx );
 		do_action( 'rest_api_init' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals -- Core hook under test.
 	}
 
@@ -273,6 +274,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	 * leaves U-L1 allowed; it can only restrict (E-84).
 	 *
 	 * @group GM-093
+	 * @group SEC-037
 	 */
 	public function test_GM_093_can_access_filter(): void {
 		$course = $this->fx['courses']['C-A'];
@@ -303,7 +305,7 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 		$GLOBALS['ccap_gm093_free'] = $this->fx['users']['free'];
 		self::assertFalse( $decide( $this->fx['users']['free'] )->allowed );
 		$db = Database::current();
-		self::assertSame( '1', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'access_filter_ignored' AND subject_user_id = %d", $this->fx['users']['free'] ) ) );
+		self::assertSame( '1', (string) $db->scalar( $db->prepare( 'SELECT COUNT(*) FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'access_filter_ignored' AND subject_ref = %s", \CourseCaptain\Event\AuditIdentity::ref_of( $db, $this->fx['users']['free'] ) ) ) );
 		add_filter( 'course_captain_can_access', static fn( $allowed, $user ) => (int) $user === (int) $GLOBALS['ccap_gm093_free'] ? $allowed : false, 30, 2 );
 		$locked = $decide( $this->fx['users']['lea'] );
 		self::assertFalse( $locked->allowed );
@@ -366,8 +368,12 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 
 	/**
 	 * GM-147: health for guests – 200, overall status only, no plugin version, `no-store`.
+	 * SUP-023: `?key=` is ignored (overall status only).
 	 *
 	 * @group GM-147
+	 * @group RBAC-094
+	 * @group SUP-023
+	 * @group SEC-035
 	 */
 	public function test_GM_147_health_without_version(): void {
 		self::healthy( time() );
@@ -386,8 +392,13 @@ final class GoldenMasterGapsTest extends SchemaTestCase {
 	/**
 	 * GM-148: monitor – anonymous overall status, single checks with the header
 	 * key or for #22, cron standstill (clock + 3 h 1 min without a run) → 503.
+	 * SUP-023: without key overall status only, with `X-CC-Monitor-Key` details.
+	 * SUP-022: cron run older than 3 h → `fail` and 503.
 	 *
 	 * @group GM-148
+	 * @group SUP-022
+	 * @group SUP-023
+	 * @group SEC-035
 	 */
 	public function test_GM_148_monitor_and_cron_stall(): void {
 		$t0 = time();

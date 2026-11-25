@@ -1,12 +1,12 @@
 // R1-18 live E2E smoke against a running site (started by tools/qa/e2e/live-smoke.sh).
 // R0-11 Flow 2. CCAP_E2E_LEARNER picks the account (default U-L1 `cc_fx_lea`), CCAP_E2E_DEVICE=mobile
-// runs it in phone emulation (Pixel 7: 412 px, touch, mobile UA; every page without horizontal
+// runs it in phone emulation (lib.js phone(): 390 px, touch, mobile UA; every page without horizontal
 // scrolling) – live-flows.sh uses `cc_e2e_mia` for that. Learner: login → My learning → course room C-A → lesson L-A-01
 // completed → learning question answered → exam ER-A started, answered, reloaded,
 // submitted → certificate issued (outbox), opened by the learner → verified as guest.
 // The fixture's correct answer is always option "Antwort A" (multi: A, B[, C]) in the
 // source (R0-05 §2.3); delivery shuffles, so options are chosen by their text.
-const { chromium, devices } = require( 'playwright' );
+const { launch, phone, submitLogin } = require( './lib' );
 const { execSync } = require( 'child_process' );
 const crypto = require( 'crypto' );
 
@@ -58,8 +58,8 @@ async function api( page, nonce, method, path, body ) {
 }
 
 ( async () => {
-	const browser = await chromium.launch();
-	const learner = await browser.newContext( MOBILE ? devices[ 'Pixel 7' ] : {} );
+	const browser = await launch();
+	const learner = await browser.newContext( MOBILE ? phone( browser ) : {} );
 	const page = await learner.newPage();
 	const overflow = [];
 	// Phone: no page of the flow may scroll sideways (R1-16, A11Y-050).
@@ -79,7 +79,7 @@ async function api( page, nonce, method, path, body ) {
 			await page.goto( BASE + '/wp-login.php' );
 			await page.fill( '#user_login', LEARNER );
 			await page.fill( '#user_pass', process.env.CCAP_E2E_PASS );
-			await Promise.all( [ page.waitForNavigation(), page.click( '#wp-submit' ) ] );
+			await submitLogin( page );
 			nonce = await page.evaluate( async ( u ) => ( await fetch( u, { credentials: 'same-origin' } ) ).text(), BASE + '/wp-admin/admin-ajax.php?action=rest-nonce' );
 			assert( /^[0-9a-f]{10}$/.test( nonce ), 'REST nonce for the logged-in learner' );
 		} );

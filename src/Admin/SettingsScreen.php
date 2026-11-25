@@ -11,11 +11,13 @@ declare(strict_types=1);
 namespace CourseCaptain\Admin;
 
 use CourseCaptain\Course\CourseException;
+use CourseCaptain\Notification\OutboundMode;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Security\Hardening;
 use CourseCaptain\Settings\RiskConfirm;
 use CourseCaptain\Settings\RiskRules;
 use CourseCaptain\Settings\Settings;
+use CourseCaptain\Settings\SettingsHints;
 use CourseCaptain\Settings\SettingsSchema;
 
 defined( 'ABSPATH' ) || exit;
@@ -34,6 +36,7 @@ final class SettingsScreen {
 	public const ACTION      = 'ccap_settings_save';
 	public const RESET       = 'ccap_settings_reset';
 	public const UNDO        = 'ccap_settings_undo';
+	public const HINT        = 'ccap_settings_hint_dismiss';
 	public const MENU_CAP    = 'ccap_menu_settings';
 	public const FORM_PREFIX = 'ccap_settings_form_';
 	public const FORM_TTL    = 600;
@@ -48,9 +51,7 @@ final class SettingsScreen {
 			'admin_menu',
 			static function (): void {
 				$hook = add_submenu_page( EditorScreens::MENU, __( 'Settings', 'course-captain' ), _x( 'Settings', 'admin menu', 'course-captain' ), self::MENU_CAP, self::SLUG, array( self::class, 'render' ) );
-				if ( is_string( $hook ) ) {
-					add_action( 'admin_print_scripts-' . $hook, array( self::class, 'enqueue' ) );
-				}
+				AdminUi::settings_assets( $hook );
 			},
 			19
 		);
@@ -58,6 +59,8 @@ final class SettingsScreen {
 		add_action( 'admin_post_' . self::ACTION, array( self::class, 'handle_save' ) );
 		add_action( 'admin_post_' . self::RESET, array( self::class, 'handle_reset' ) );
 		add_action( 'admin_post_' . self::UNDO, array( self::class, 'handle_undo' ) );
+		add_action( 'admin_post_' . self::HINT, array( self::class, 'handle_hint' ) );
+		CountryProfilePanel::register();
 	}
 
 	/**
@@ -160,6 +163,76 @@ final class SettingsScreen {
 	}
 
 	/**
+	 * Admin-post: hide a hint line for the current person (SET-CC-01).
+	 *
+	 * @return void
+	 */
+	public static function handle_hint(): void {
+		self::redirect( self::process_hint( wp_unslash( $_POST ), get_current_user_id() ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in process_hint().
+	}
+
+	/**
+	 * Testable core of hiding a hint line: nonce per person and line, the
+	 * tab must be open to the person; only the own user option changes.
+	 *
+	 * @param array<string, mixed> $post    Unslashed POST.
+	 * @param int                  $user_id User.
+	 * @return array{tab: string, result: string, count: int}
+	 */
+	public static function process_hint( array $post, int $user_id ): array {
+		$tab = isset( $post['tab'] ) ? sanitize_key( (string) $post['tab'] ) : '';
+		$id  = isset( $post['hint'] ) ? sanitize_key( (string) $post['hint'] ) : '';
+		$out = array(
+			'tab'    => $tab,
+			'result' => 'ccap_forbidden',
+			'count'  => 0,
+		);
+		if ( ! self::tab_allowed( $tab, $user_id ) ) {
+			return $out;
+		}
+		if ( false === wp_verify_nonce( (string) ( $post['_wpnonce'] ?? '' ), self::HINT . '_' . $id ) ) {
+			$out['result'] = 'ccap_invalid_nonce';
+			return $out;
+		}
+		$hint = SettingsHints::all()[ $id ] ?? null;
+		if ( null === $hint || $tab !== $hint['tab'] ) {
+			$out['result'] = 'unchanged';
+			return $out;
+		}
+		SettingsHints::dismiss( $user_id, $id );
+		$out['result'] = 'hint_hidden';
+		return $out;
+	}
+
+	/**
+	 * Hint lines at the end of a tab (SET-CC-01, E-346 S1): grey text, no
+	 * field; each with its own small form to hide it (works without JS).
+	 *
+	 * @param string $tab     Tab.
+	 * @param int    $user_id User.
+	 * @return string
+	 */
+	public static function hints( string $tab, int $user_id ): string {
+		$hints = SettingsHints::for_tab( $tab, $user_id );
+		if ( array() === $hints ) {
+			return '';
+		}
+		$html = '<aside class="ccap-hints" aria-label="' . esc_attr__( 'Notes about further functions', 'course-captain' ) . '"><ul class="ccap-hint-list">';
+		foreach ( $hints as $hint ) {
+			$html .= '<li class="ccap-hint description"><strong>' . esc_html( $hint['title'] ) . '</strong> ' . esc_html( $hint['text'] );
+			if ( '' !== $hint['link'] ) {
+				/* translators: %s: title of the hint line */
+				$html .= ' <a href="' . esc_url( $hint['link'] ) . '">' . esc_html__( 'Learn more', 'course-captain' ) . '<span class="screen-reader-text"> ' . esc_html( sprintf( __( 'about %s', 'course-captain' ), $hint['title'] ) ) . '</span></a>';
+			}
+			$html .= ' <form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ccap-inline-form"><input type="hidden" name="action" value="' . esc_attr( self::HINT ) . '"><input type="hidden" name="tab" value="' . esc_attr( $tab ) . '"><input type="hidden" name="hint" value="' . esc_attr( $hint['id'] ) . '">'
+				. wp_nonce_field( self::HINT . '_' . $hint['id'], '_wpnonce', true, false )
+				/* translators: %s: title of the hint line */
+				. '<button type="submit" class="button-link">' . esc_html__( 'Hide', 'course-captain' ) . '<span class="screen-reader-text"> ' . esc_html( sprintf( __( 'note: %s', 'course-captain' ), $hint['title'] ) ) . '</span></button></form></li>';
+		}
+		return $html . '</ul></aside>';
+	}
+
+	/**
 	 * Testable core of saving (S-1…S-8, T-4…T-8).
 	 *
 	 * @param array<string, mixed> $post    Unslashed POST.
@@ -206,8 +279,11 @@ final class SettingsScreen {
 			$input   = $decoded['input'];
 			$fields  = $decoded['fields'];
 			$rev     = (int) ( $post['_rev'] ?? -1 );
-			if ( 'general' === $tab && isset( $post[ Settings::CONFIRM_SITE_FIELD ] ) ) {
-				$input[ Settings::CONFIRM_SITE_FIELD ] = sanitize_text_field( (string) $post[ Settings::CONFIRM_SITE_FIELD ] );
+			if ( 'general' === $tab && isset( $post[ Settings::CONFIRM_WORD_FIELD ] ) ) {
+				$input[ Settings::CONFIRM_WORD_FIELD ] = sanitize_text_field( (string) $post[ Settings::CONFIRM_WORD_FIELD ] );
+			}
+			if ( 'privacy' === $tab && isset( $post[ Settings::RETENTION_REASON_FIELD ] ) ) {
+				$input[ Settings::RETENTION_REASON_FIELD ] = sanitize_textarea_field( (string) $post[ Settings::RETENTION_REASON_FIELD ] );
 			}
 			if ( array() !== $decoded['errors'] ) {
 				self::keep_form( $user_id, $tab, $input, $decoded['errors'] );
@@ -222,7 +298,7 @@ final class SettingsScreen {
 			return $out;
 		}
 		if ( array() !== $check['errors'] ) {
-			self::keep_form( $user_id, $tab, $input, SettingsForm::with_params( $check['errors'], $input ) );
+			self::keep_form( $user_id, $tab, $input, SettingsForm::with_params( $check['errors'], $input, $tab ) );
 			$out['result'] = 'invalid';
 			return $out;
 		}
@@ -334,9 +410,10 @@ final class SettingsScreen {
 			return $out;
 		}
 		try {
-			$out['result'] = Settings::undo( Actor::user( $user_id ), $tab ) ? 'undone' : 'undo_expired';
+			$out['result'] = Settings::undo( Actor::user( $user_id ), $tab, $post ) ? 'undone' : 'undo_expired';
 		} catch ( CourseException $e ) {
-			$out['result'] = $e->error_code;
+			// E-245: the undo restores longer retention periods and needs a reason.
+			$out['result'] = 'ccap_validation_failed' === $e->error_code && 'retention_reason' === ( $e->data['fields']['retention'] ?? '' ) ? 'undo_reason' : $e->error_code;
 		}
 		return $out;
 	}
@@ -358,14 +435,15 @@ final class SettingsScreen {
 		$result = isset( $request['ccap_result'] ) ? sanitize_key( (string) $request['ccap_result'] ) : '';
 		$html   = '<div class="wrap ccap-settings"><h1>' . esc_html__( 'Settings', 'course-captain' ) . '</h1>';
 		if ( user_can( $user_id, Settings::CAP ) ) {
-			$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SetupWizard::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Open the setup assistant', 'course-captain' ) . '</a> · <a href="' . esc_url( admin_url( 'admin.php?page=' . SettingsBackup::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Back up settings', 'course-captain' ) . '</a></p>';
+			$html .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=' . SetupWizard::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Open the setup assistant', 'course-captain' ) . '</a> · <a href="' . esc_url( admin_url( 'admin.php?page=' . SettingsBackup::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Back up settings', 'course-captain' ) . '</a> · <a href="' . esc_url( admin_url( 'admin.php?page=' . SettingLocksScreen::SLUG ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Locks and course overrides', 'course-captain' ) . '</a></p>';
 		}
 		$html .= self::nav( $tabs, $tab );
 		if ( 'confirm' === $result ) {
 			return $html . self::confirm_page( $tab, $user_id ) . '</div>';
 		}
 		if ( 'roles' === $tab ) {
-			return $html . (string) apply_filters( 'course_captain_settings_roles_html', '', $request, $user_id ) . '</div>';
+			$result = isset( $request['ccap_result'] ) ? sanitize_key( (string) $request['ccap_result'] ) : '';
+			return $html . ( 'hint_hidden' === $result ? self::message( $tab, $result, 0, null ) : '' ) . (string) apply_filters( 'course_captain_settings_roles_html', '', $request, $user_id ) . self::hints( $tab, $user_id ) . '</div>';
 		}
 		if ( 'reset_confirm' === $result ) {
 			return $html . self::reset_page( $tab, $user_id ) . '</div>';
@@ -374,15 +452,57 @@ final class SettingsScreen {
 		$html  .= self::message( $tab, $result, absint( $request['ccap_count'] ?? 0 ), $form );
 		$html  .= self::tab_form( $tab, $user_id, $form );
 		$status = '';
+		if ( 'general' === $tab ) {
+			// SET-CC-07: suggestions of the country profile with before/after; nothing is applied silently.
+			$html .= CountryProfilePanel::html( 'settings', $request, $user_id );
+		}
 		if ( 'certificates' === $tab ) {
 			// The base template is edited on the certificates screen (A-11), not a second form here.
 			$html .= '<h3>' . esc_html__( 'Base template', 'course-captain' ) . '</h3><p><a href="' . esc_url( admin_url( 'admin.php?page=course-captain-certificates' ) ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Edit the base template under Certificates', 'course-captain' ) . '</a></p>';
 		}
 		if ( 'emails' === $tab ) {
+			$html  .= '<h3>' . esc_html__( 'Mail texts', 'course-captain' ) . '</h3><p>' . esc_html__( 'Subject and text of every message, per language, with preview, test mail and export.', 'course-captain' ) . ' <a href="' . esc_url( MailTextsScreen::url() ) . '" data-ccap-leave="' . esc_attr( self::leave_text() ) . '">' . esc_html__( 'Edit mail texts', 'course-captain' ) . '</a></p>';
+			$html  .= self::outbound_status();
 			$html  .= '<h3>' . esc_html__( 'Test mail', 'course-captain' ) . '</h3>' . TestMail::form( $user_id, 'settings' );
 			$status = TestMail::message( isset( $request['ccap_test_mail'] ) ? sanitize_key( (string) $request['ccap_test_mail'] ) : '' );
 		}
-		return $html . '<div role="status" aria-live="polite" id="ccap-status">' . esc_html( $status ) . '</div></div>';
+		return $html . self::hints( $tab, $user_id ) . '<div role="status" aria-live="polite" id="ccap-status">' . esc_html( $status ) . '</div></div>';
+	}
+
+	/**
+	 * Read-only test mode of outgoing mails (SET-CC-23, R0-27 §3.6): the
+	 * constants in wp-config.php stay the only source.
+	 *
+	 * @return string
+	 */
+	public static function outbound_status(): string {
+		$mode     = OutboundMode::current();
+		$constant = defined( 'COURSE_CAPTAIN_OUTBOUND' );
+		switch ( $mode['mode'] ) {
+			case OutboundMode::ON:
+				$text = __( 'On: mails go to the real recipients.', 'course-captain' );
+				break;
+			case OutboundMode::CATCH:
+				/* translators: %s: catch address */
+				$text = sprintf( __( 'Test mode: every mail goes only to %s, with “[catch]” in front of the subject. Learners receive nothing.', 'course-captain' ), $mode['catch_address'] );
+				break;
+			default:
+				$text = 'invalid_catch_address' === $mode['warning']
+					? __( 'Off: the catch address is not a valid email address, so no mails are sent at all.', 'course-captain' )
+					: __( 'Off: no mails are sent at all.', 'course-captain' );
+		}
+		$source = $constant
+			/* translators: %s: value of the constant */
+			? sprintf( __( 'Set in wp-config.php: COURSE_CAPTAIN_OUTBOUND = %s', 'course-captain' ), (string) constant( 'COURSE_CAPTAIN_OUTBOUND' ) )
+			/* translators: %s: environment type */
+			: sprintf( __( 'Automatic for the environment type “%s”: on only in production, otherwise test mode.', 'course-captain' ), wp_get_environment_type() );
+		$rows  = '<tr><th scope="row">' . esc_html__( 'Outgoing mails', 'course-captain' ) . '</th><td>' . esc_html( $text ) . '</td></tr>';
+		$rows .= '<tr><th scope="row">' . esc_html__( 'Source', 'course-captain' ) . '</th><td>' . esc_html( $source ) . '</td></tr>';
+		$rows .= '<tr><th scope="row">' . esc_html__( 'Catch address', 'course-captain' ) . '</th><td>' . esc_html( defined( 'COURSE_CAPTAIN_MAIL_CATCH_ADDRESS' ) ? (string) constant( 'COURSE_CAPTAIN_MAIL_CATCH_ADDRESS' ) : __( 'not set – the administration address of the website is used', 'course-captain' ) ) . '</td></tr>';
+		if ( OutboundMode::is_held() ) {
+			$rows .= '<tr><th scope="row">' . esc_html__( 'Hold mode', 'course-captain' ) . '</th><td>' . esc_html__( 'Active: the website seems to have moved or been restored. Mails are held until you confirm the website under System status.', 'course-captain' ) . '</td></tr>';
+		}
+		return '<h3>' . esc_html__( 'Test mode', 'course-captain' ) . '</h3><table class="widefat striped ccap-outbound" id="ccap-outbound-mode"><caption>' . esc_html__( 'Read only: change it with the constants COURSE_CAPTAIN_OUTBOUND (on, catch, off) and COURSE_CAPTAIN_MAIL_CATCH_ADDRESS in wp-config.php.', 'course-captain' ) . '</caption><tbody>' . $rows . '</tbody></table>';
 	}
 
 	/**
@@ -448,6 +568,14 @@ final class SettingsScreen {
 				break;
 			case 'undone':
 				$text = __( 'Reset undone.', 'course-captain' );
+				break;
+			case 'hint_hidden':
+				$text = __( 'The note is hidden for you.', 'course-captain' );
+				$type = 'info';
+				break;
+			case 'undo_reason':
+				$text = __( 'Undoing the reset restores retention periods longer than their default. Enter a reason next to the undo button.', 'course-captain' );
+				$type = 'error';
 				break;
 			case 'undo_expired':
 				$text = __( 'There is nothing to undo any more.', 'course-captain' );
@@ -545,10 +673,26 @@ final class SettingsScreen {
 					$rows .= self::static_row( $tab, $key, SettingsFields::ui( $tab, $key )['options']['smarttrainer.v1'] );
 					continue;
 				}
-				$rows .= '<input type="hidden" name="_fields[]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, $errors[ $f ] ?? null, $opts );
-				if ( 'general' === $tab && 'delete_data_on_uninstall' === $key && true !== $values[ $f ] ) {
-					$rows .= self::site_name_field( $tab, isset( $errors[ $f ] ) );
+				// SET-CC-02: every retention period carries the marker "Legal review needed"; the filter notice is field-near.
+				if ( 'privacy' === $tab && str_starts_with( $key, 'retention.' ) ) {
+					$sub            = substr( $key, 10 );
+					$opts['status'] = RetentionPreview::status();
+					$filter_note    = RetentionPreview::filter_warning( $sub );
+					if ( '' !== $filter_note ) {
+						$opts['warning'] = $filter_note;
+					}
+					if ( 'static' === SettingsFields::ui( $tab, $key )['element'] ) {
+						$rows .= self::static_row( $tab, $key, RetentionPreview::value_text( $sub, null ), $opts['status'] );
+						continue;
+					}
 				}
+				$rows .= '<input type="hidden" name="_fields[]" value="' . esc_attr( $key ) . '">' . SettingsForm::field( $tab, $key, $value, SettingsForm::error_for( $errors, $key ), $opts );
+				if ( 'general' === $tab && 'delete_data_on_uninstall' === $key && true !== $values[ $f ] ) {
+					$rows .= self::confirm_word_field( $tab, isset( $errors[ $f ] ) );
+				}
+			}
+			if ( '' !== $rows && 'privacy' === $tab && str_starts_with( (string) ( $section[1][0] ?? '' ), 'retention.' ) ) {
+				$rows = RetentionPreview::intro() . $rows . ( $read_only ? '' : self::retention_reason_field( $tab, $input, isset( $errors['retention']['rule'] ) && 'retention_reason' === $errors['retention']['rule'] ) ) . RetentionPreview::table();
 			}
 			if ( '' !== $rows ) {
 				$html .= '<h3>' . esc_html( $section[0] ) . '</h3>' . $rows;
@@ -584,6 +728,7 @@ final class SettingsScreen {
 		if ( $until > 0 ) {
 			$html .= ' <form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" class="ccap-inline-form"><input type="hidden" name="action" value="' . esc_attr( self::UNDO ) . '"><input type="hidden" name="tab" value="' . esc_attr( $tab ) . '">'
 				. wp_nonce_field( 'ccap_settings_undo_' . $tab, '_wpnonce', true, false )
+				. self::undo_reason_field( $tab )
 				/* translators: %s: date until which undo is possible */
 				. '<button type="submit" class="button">' . esc_html( sprintf( __( 'Undo the reset (possible until %s)', 'course-captain' ), (string) wp_date( (string) get_option( 'date_format' ), $until ) ) ) . '</button></form>';
 		}
@@ -729,7 +874,8 @@ final class SettingsScreen {
 		if ( ( 'feedback.visibility' === $ui['depends'] && 'never' === $dep )
 			|| ( 'max_attempts' === $ui['depends'] && null === $dep )
 			|| ( 'external_media_mode' === $ui['depends'] && 'click_to_load' !== $dep )
-			|| ( 'login_limit' === $ui['depends'] && 'off' === $dep ) ) {
+			|| ( 'login_limit' === $ui['depends'] && 'off' === $dep )
+			|| ( 'language' === $ui['depends'] && 'fixed' !== $dep ) ) {
 			return __( 'Currently without effect because of the setting it depends on; the stored value is kept.', 'course-captain' );
 		}
 		return '';
@@ -738,29 +884,69 @@ final class SettingsScreen {
 	/**
 	 * Read-only row (single registered strategy, ADM-095).
 	 *
-	 * @param string $tab  Tab.
-	 * @param string $key  Key.
-	 * @param string $text Text.
+	 * @param string $tab    Tab.
+	 * @param string $key    Key.
+	 * @param string $text   Text.
+	 * @param string $status Status marker (e.g. "Legal review needed").
 	 * @return string
 	 */
-	private static function static_row( string $tab, string $key, string $text ): string {
-		$ui = SettingsFields::ui( $tab, $key );
-		return '<div class="ccap-field"><p class="ccap-field-label"><strong>' . esc_html( $ui['label'] ) . '</strong></p><p>' . esc_html( $text ) . '</p><p class="description">' . esc_html( $ui['help'] ) . '</p></div>';
+	private static function static_row( string $tab, string $key, string $text, string $status = '' ): string {
+		$ui   = SettingsFields::ui( $tab, $key );
+		$id   = SettingsForm::id( $tab, $key );
+		$meta = '';
+		if ( '' !== $status ) {
+			/* translators: 1: default value, 2: scope */
+			$meta = '<p id="' . esc_attr( $id . '-meta' ) . '" class="description ccap-field-meta">' . esc_html( sprintf( __( 'Default: %1$s · Applies: %2$s', 'course-captain' ), $text, SettingsFields::scope_label( (string) $ui['scope'] ) ) ) . '</p>';
+		}
+		return '<div class="ccap-field"><p class="ccap-field-label"><strong>' . esc_html( $ui['label'] ) . '</strong></p><p>' . esc_html( $text ) . ( '' === $status ? '' : ' <span id="' . esc_attr( $id . '-status' ) . '" class="ccap-field-status">' . esc_html( $status ) . '</span>' ) . '</p><p id="' . esc_attr( $id . '-help' ) . '" class="description">' . esc_html( $ui['help'] ) . '</p>' . $meta . '</div>';
 	}
 
 	/**
-	 * E-89 site-name confirmation input.
+	 * E-245 reason for retention periods above their default (checked on
+	 * the server, stored in the audit entry of the save).
+	 *
+	 * @param string               $tab     Tab.
+	 * @param array<string, mixed> $input   Kept input after an error.
+	 * @param bool                 $invalid Invalid.
+	 * @return string
+	 */
+	private static function retention_reason_field( string $tab, array $input, bool $invalid ): string {
+		$id = SettingsForm::id( $tab, 'retention-reason' );
+		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html__( 'Reason for longer periods', 'course-captain' ) . '</label>'
+			. '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::RETENTION_REASON_FIELD ) . '" rows="2" class="large-text" maxlength="' . esc_attr( (string) Settings::RETENTION_REASON_MAX ) . '" aria-describedby="' . esc_attr( $id ) . '-help"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '>' . esc_textarea( (string) ( $input[ Settings::RETENTION_REASON_FIELD ] ?? '' ) ) . '</textarea>'
+			. '<p id="' . esc_attr( $id ) . '-help" class="description">' . esc_html__( 'Required when you set a period longer than its suggested default. The reason is stored in the change log with the new values (at most 500 characters).', 'course-captain' ) . '</p></div>';
+	}
+
+	/**
+	 * E-245 reason in the undo form when the undo restores retention
+	 * periods above their default ({@see Settings::undo_extended()}).
+	 *
+	 * @param string $tab Tab.
+	 * @return string Empty when no reason is needed.
+	 */
+	private static function undo_reason_field( string $tab ): string {
+		$keys = Settings::undo_extended( $tab );
+		if ( array() === $keys ) {
+			return '';
+		}
+		$id     = SettingsForm::id( $tab, 'undo-retention-reason' );
+		$labels = array_map( static fn( string $key ): string => SettingsFields::ui( 'privacy', 'retention.' . $key )['label'], $keys );
+		return '<label for="' . esc_attr( $id ) . '">' . esc_html__( 'Reason for longer periods', 'course-captain' ) . '</label> '
+			. '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::RETENTION_REASON_FIELD ) . '" rows="2" class="large-text" required maxlength="' . esc_attr( (string) Settings::RETENTION_REASON_MAX ) . '" aria-describedby="' . esc_attr( $id ) . '-help"></textarea>'
+			/* translators: %s: list of retention periods */
+			. '<span id="' . esc_attr( $id ) . '-help" class="description">' . esc_html( sprintf( __( 'Longer than the suggested default: %s. A reason is required; it is stored in the change log.', 'course-captain' ), implode( ', ', $labels ) ) ) . '</span> ';
+	}
+
+	/**
+	 * SET-CC-30 confirmation input (typed word, checked on the server).
 	 *
 	 * @param string $tab     Tab.
 	 * @param bool   $invalid Invalid.
 	 * @return string
 	 */
-	private static function site_name_field( string $tab, bool $invalid ): string {
-		$id   = SettingsForm::id( $tab, 'confirm-site-name' );
-		$name = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
-		/* translators: %s: website name */
-		$label = sprintf( __( 'To switch it on, type the name of the website: %s', 'course-captain' ), $name );
-		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label> <input type="text" id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::CONFIRM_SITE_FIELD ) . '" autocomplete="off" class="regular-text"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '></div>';
+	private static function confirm_word_field( string $tab, bool $invalid ): string {
+		$id = SettingsForm::id( $tab, 'confirm-delete' );
+		return '<div class="ccap-field"><label for="' . esc_attr( $id ) . '">' . esc_html( sprintf( /* translators: 1: German confirmation word, 2: English confirmation word (both typed literally) */ __( 'To switch it on, type %1$s or %2$s:', 'course-captain' ), 'LÖSCHEN', 'DELETE' ) ) . '</label> <input type="text" id="' . esc_attr( $id ) . '" name="' . esc_attr( Settings::CONFIRM_WORD_FIELD ) . '" autocomplete="off" spellcheck="false" class="regular-text" aria-describedby="' . esc_attr( SettingsForm::id( $tab, 'delete_data_on_uninstall' ) ) . '-help"' . ( $invalid ? ' aria-invalid="true"' : '' ) . '></div>';
 	}
 
 	/**
@@ -787,11 +973,11 @@ final class SettingsScreen {
 			'reset_account'    => __( 'Lost password per account', 'course-captain' ),
 			'registration_ip'  => __( 'Registrations per address', 'course-captain' ),
 		);
-		foreach ( Hardening::LIMITS as $key => $limit ) {
+		foreach ( Hardening::limits() as $key => $limit ) {
 			/* translators: 1: number of attempts, 2: minutes */
 			$rows .= '<tr><th scope="row">' . esc_html( $labels[ $key ] ?? $key ) . '</th><td>' . esc_html( sprintf( __( '%1$d in %2$d min', 'course-captain' ), $limit[0], intdiv( $limit[1], 60 ) ) ) . '</td></tr>';
 		}
-		$html .= '<table class="widefat striped ccap-limits"><caption>' . esc_html__( 'Effective limits (changeable by filter only)', 'course-captain' ) . '</caption><tbody>' . $rows . '</tbody></table>';
+		$html .= '<table class="widefat striped ccap-limits"><caption>' . esc_html__( 'Effective limits (the filter course_captain_hardening_limits overrides the values above)', 'course-captain' ) . '</caption><tbody>' . $rows . '</tbody></table>';
 		$html .= '<h3>' . esc_html__( 'Emergency', 'course-captain' ) . '</h3><p>' . esc_html__( 'If you lock yourself out: add define( \'COURSE_CAPTAIN_HARDENING\', \'off\' ); to wp-config.php or run wp course-captain hardening disable.', 'course-captain' ) . '</p>';
 		return $html;
 	}
@@ -857,7 +1043,7 @@ final class SettingsScreen {
 	 * @return void
 	 */
 	private static function keep_form( int $user_id, string $tab, array $input, array $errors, bool $conflict = false ): void {
-		unset( $input[ Settings::CONFIRM_SITE_FIELD ] );
+		unset( $input[ Settings::CONFIRM_WORD_FIELD ] );
 		set_transient(
 			self::FORM_PREFIX . $user_id,
 			array(

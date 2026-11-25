@@ -200,7 +200,7 @@ final class GoldenMasterG3Test extends SchemaTestCase {
 
 		$db    = Database::current();
 		$audit = (array) $db->row( $db->prepare( 'SELECT * FROM `' . $db->table( 'ccap_audit_log' ) . "` WHERE action = 'grant.source_created' AND object_id = %s", (string) $id ) );
-		self::assertSame( (string) $user, (string) $audit['subject_user_id'], 'learner' );
+		self::assertSame( (string) $user, (string) \CourseCaptain\Event\AuditIdentity::user_of( $db, $audit['subject_ref'] ), 'learner' );
 		self::assertSame( 'connector', $audit['actor_type'], 'source' );
 		self::assertNotEmpty( $audit['created_at'], 'time' );
 		$context = (array) json_decode( (string) $audit['context'], true );

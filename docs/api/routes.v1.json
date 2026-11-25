@@ -106,6 +106,14 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/enrollment",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/exam-sessions",
         "methods": [
             "POST"
@@ -163,6 +171,14 @@
     },
     {
         "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/practice",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/courses/(?P<course>[0-9a-f-]+)/progress",
         "methods": [
             "GET"
         ],
@@ -434,6 +450,65 @@
         "public": false
     },
     {
+        "route": "/course-captain/v1/me/groups",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/groups/(?P<uid>[0-9a-f-]{36})",
+        "methods": [
+            "PUT"
+        ],
+        "args": {
+            "name": {
+                "type": "string",
+                "required": true
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/groups/(?P<uid>[0-9a-f-]{36})/invite",
+        "methods": [
+            "POST"
+        ],
+        "args": {
+            "bind_to_address": {
+                "type": "boolean",
+                "required": false
+            },
+            "emails": {
+                "type": "array",
+                "required": true
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/groups/(?P<uid>[0-9a-f-]{36})/members/(?P<member>\\d+)",
+        "methods": [
+            "DELETE"
+        ],
+        "args": {
+            "reason": {
+                "type": "string",
+                "required": false
+            }
+        },
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/me/groups/(?P<uid>[0-9a-f-]{36})/token",
+        "methods": [
+            "POST"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
         "route": "/course-captain/v1/me/privacy-requests",
         "methods": [
             "POST"
@@ -451,6 +526,14 @@
     },
     {
         "route": "/course-captain/v1/reports/courses/(?P<course>[0-9a-f-]+)",
+        "methods": [
+            "GET"
+        ],
+        "args": [],
+        "public": false
+    },
+    {
+        "route": "/course-captain/v1/reports/courses/(?P<course>[0-9a-f-]+)/learners/(?P<user>\\d+)/progress",
         "methods": [
             "GET"
         ],

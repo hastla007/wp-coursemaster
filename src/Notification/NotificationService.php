@@ -54,7 +54,7 @@ final class NotificationService {
 	public const PER_RECIPIENT_24H   = 10;
 	public const TEST_MAILS_PER_HOUR = 5;
 	public const INVITE_RESENDS      = 3;
-	public const HELD_DAYS           = 30;
+	public const HELD_DAYS           = 30; // Default of `privacy.retention.held_mail_days` (SET-CC-02).
 	public const FAILED_CRITICAL     = 10;
 	public const STATE_OPTION        = 'course_captain_mail_state';
 	private const BACKOFF            = array( 300, 1800, 7200, 43200 );
@@ -301,6 +301,9 @@ final class NotificationService {
 				++$stats[ $key ];
 			}
 		}
+		if ( array_sum( $stats ) > 0 ) {
+			\CourseCaptain\Ops\Log::write( 'debug', 'notification.run', $stats );
+		}
 		if ( $stats['sent'] > 0 ) {
 			// Irreversible outbound effect: a later restore of an older DB is detected (R1-23, R0-17 §5.5).
 			\CourseCaptain\Kernel\SiteIdentity::bump_epoch();
@@ -402,6 +405,14 @@ final class NotificationService {
 		try {
 			$mail = $this->render( $type, $locale, $user, (array) $ctx['vars'], $this->builtin_fallback( $row ) );
 		} catch ( TemplateError $e ) {
+			\CourseCaptain\Ops\Log::write(
+				'error',
+				'notification.template_error',
+				array(
+					'type'   => $type,
+					'locale' => $locale,
+				)
+			);
 			update_option(
 				self::STATE_OPTION,
 				array(
@@ -536,6 +547,16 @@ final class NotificationService {
 	 */
 	private function transport_failure( array $row, string $owner, string $error_class ): string {
 		$attempts = (int) $row['attempts'] + 1;
+		\CourseCaptain\Ops\Log::write(
+			$attempts >= self::MAX_ATTEMPTS ? 'warning' : 'info',
+			'notification.transport_failed',
+			array(
+				'id'       => (int) $row['id'],
+				'type'     => (string) $row['type'],
+				'attempts' => $attempts,
+				'error'    => $error_class,
+			)
+		);
 		if ( $attempts >= self::MAX_ATTEMPTS ) {
 			return $this->finish(
 				$row,
@@ -809,6 +830,50 @@ final class NotificationService {
 	}
 
 	/**
+	 * Invitation budget of a group for display and pre-checks (R0-11 F3.7,
+	 * INV-D §6.4; UI-F1): the same limit as {@see self::group_invite_budget()},
+	 * max(20, 2 × seats) per 24 h. Counted are the invitation mails of the
+	 * last 24 h that are queued, being sent or sent, plus invitations whose
+	 * mail is not queued yet (outbox not processed). `next_at` (UTC) names
+	 * when the next invitation can be sent if the budget is used up.
+	 *
+	 * @param int $group_id Group.
+	 * @return array{limit: int, used: int, remaining: int, next_at: string|null}
+	 */
+	public function group_invite_status( int $group_id ): array {
+		$seats = $this->db->table( 'ccap_seat' );
+		$notes = $this->db->table( 'ccap_notification' );
+		$since = $this->db->now( -DAY_IN_SECONDS );
+		$limit = max( 20, 2 * (int) $this->db->scalar( $this->db->prepare( 'SELECT seats FROM `' . $this->db->table( 'ccap_group' ) . '` WHERE id = %d', $group_id ) ) );
+		$times = array_map(
+			'strval',
+			$this->db->wpdb()->get_col(
+				$this->db->prepare(
+					"SELECT n.created_at FROM `{$notes}` n JOIN `{$seats}` s ON n.recipient_ref = CONCAT('seat:', s.id) WHERE s.group_id = %d AND n.type = 'seat_invitation' AND n.status IN ('queued', 'retry_wait', 'sending', 'sent', 'caught') AND n.created_at > %s
+					UNION ALL
+					SELECT s.invited_at FROM `{$seats}` s WHERE s.group_id = %d AND s.invited_at > %s AND NOT EXISTS (SELECT 1 FROM `{$notes}` n WHERE n.type = 'seat_invitation' AND n.recipient_ref = CONCAT('seat:', s.id))",
+					$group_id,
+					$since,
+					$group_id,
+					$since
+				)
+			)
+		);
+		sort( $times );
+		$used = count( $times );
+		$next = null;
+		if ( $used >= $limit ) {
+			$next = gmdate( 'Y-m-d H:i:s', (int) strtotime( $times[ $used - $limit ] . ' UTC' ) + DAY_IN_SECONDS );
+		}
+		return array(
+			'limit'     => $limit,
+			'used'      => $used,
+			'remaining' => max( 0, $limit - $used ),
+			'next_at'   => $next,
+		);
+	}
+
+	/**
 	 * Invitations per group: max(20, 2 × seats) per 24 h (§3.8, fail-closed).
 	 *
 	 * @param int $seat_id Seat.
@@ -943,6 +1008,87 @@ final class NotificationService {
 	}
 
 	/**
+	 * Test mail of one mail text to the admin's own profile address
+	 * (SET-CC-04, R0-27 §3.10): rendered with sample data in the chosen
+	 * language, subject prefixed with “[Test]”. Same budget as the test
+	 * mail (5 per admin and hour, fail-closed) and the same outbound rules:
+	 * hold mode and `off` send nothing, `catch` redirects to the catch
+	 * address. The row is a `test_mail` row (metadata only).
+	 *
+	 * @param Actor      $actor  Admin.
+	 * @param string     $type   Mail type.
+	 * @param string     $locale Locale of the text.
+	 * @param array|null $draft  Unsaved text `{subject, body_html, body_text}` or null for the stored/built-in text.
+	 * @phpstan-param array{subject: string, body_html: string, body_text: string}|null $draft
+	 * @return array{status: string, error_class: string}
+	 * @throws CourseException `ccap_forbidden`, `ccap_invalid_param`, `ccap_rate_limited`.
+	 */
+	public function send_template_test( Actor $actor, string $type, string $locale, ?array $draft = null ): array {
+		self::assert_admin( $actor );
+		if ( ! NotificationTypes::exists( $type ) || ! in_array( $locale, MailTemplates::locales(), true ) ) {
+			throw new CourseException( 'ccap_invalid_param', 'Unknown mail type or locale.', 422 );
+		}
+		$table = $this->db->table( 'ccap_notification' );
+		$used  = (int) $this->db->scalar( $this->db->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE type = 'test_mail' AND recipient_user_id = %d AND created_at > %s", $actor->user_id, $this->db->now( -HOUR_IN_SECONDS ) ) );
+		if ( $used >= self::TEST_MAILS_PER_HOUR ) {
+			throw new CourseException( 'ccap_rate_limited', 'At most five test messages per hour.', 429 );
+		}
+		$id    = (int) $this->insert( 'test_mail', '', '', $actor->user_id, null, $this->db->uuid(), $locale );
+		$owner = substr( str_replace( '-', '', $this->db->uuid() ), 0, 32 );
+		$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET status = 'sending', lock_owner = %s, locked_until = %s WHERE id = %d AND status = 'queued'", $owner, $this->db->now( self::LEASE_SECONDS ), $id ) );
+		$row  = (array) $this->db->row( $this->db->prepare( "SELECT * FROM `{$table}` WHERE id = %d", $id ) );
+		$mode = OutboundMode::current();
+		$out  = static fn( string $status, string $error = '' ): array => array(
+			'status'      => $status,
+			'error_class' => $error,
+		);
+		if ( OutboundMode::is_held() || OutboundMode::OFF === $mode['mode'] ) {
+			// Never queued for a later release: a held template test would arrive out of context.
+			$this->finish( $row, $owner, 'suppressed', array( 'reason_code' => OutboundMode::is_held() ? 'held' : 'outbound_off' ) );
+			return $out( 'suppressed' );
+		}
+		$user = get_userdata( $actor->user_id );
+		if ( ! $user instanceof \WP_User || false === is_email( (string) $user->user_email ) ) {
+			$this->finish( $row, $owner, 'failed', array( 'last_error_class' => 'invalid_recipient' ) );
+			return $out( 'failed', 'invalid_recipient' );
+		}
+		try {
+			$mail = MailTemplates::preview( $actor, $type, $locale, $draft );
+		} catch ( TemplateError $e ) {
+			$this->finish( $row, $owner, 'failed', array( 'last_error_class' => 'template_error' ) );
+			return $out( 'failed', 'template_error' );
+		}
+		/* translators: %s: subject of the mail */
+		$mail['subject'] = sprintf( __( '[Test] %s', 'course-captain' ), $mail['subject'] );
+		$result          = $this->deliver( (string) $user->user_email, $mail, 'test_mail', $actor->user_id, 'user:' . $actor->user_id, $mode );
+		if ( true !== $result ) {
+			$this->finish(
+				$row,
+				$owner,
+				'failed',
+				array(
+					'attempts'         => 1,
+					'last_error_class' => $result,
+				)
+			);
+			return $out( 'failed', $result );
+		}
+		$status = OutboundMode::CATCH === $mode['mode'] ? 'caught' : 'sent';
+		$this->finish(
+			$row,
+			$owner,
+			$status,
+			array(
+				'attempts'        => 1,
+				'sent_at'         => $this->db->now(),
+				'locale_resolved' => substr( $mail['locale'], 0, 20 ),
+				'template_rev'    => $mail['template_rev'],
+			)
+		);
+		return $out( $status );
+	}
+
+	/**
 	 * Release held mails (hold mode confirmed "same site").
 	 *
 	 * @param Actor       $actor  Admin.
@@ -977,8 +1123,25 @@ final class NotificationService {
 	 * @return array<string, int>
 	 */
 	public function hourly(): array {
-		$discarded = $this->db->execute( $this->db->prepare( 'UPDATE `' . $this->db->table( 'ccap_notification' ) . "` SET status = 'discarded', reason_code = 'held_expired' WHERE status = 'held' AND created_at < %s", $this->db->now( -self::HELD_DAYS * DAY_IN_SECONDS ) ) );
+		$discarded = self::expire_held( $this->db, \CourseCaptain\Privacy\RetentionPolicy::int( 'held_mail_days' ) );
 		return array( 'discarded' => $discarded ) + $this->process_queue();
+	}
+
+	/**
+	 * RT-31: held mails older than `$days` become `discarded` (`held_expired`).
+	 *
+	 * @param Database $db   Database.
+	 * @param int      $days Period (`privacy.retention.held_mail_days`).
+	 * @param bool     $dry  Only count (retention preview).
+	 * @return int Rows.
+	 */
+	public static function expire_held( Database $db, int $days, bool $dry = false ): int {
+		$table = $db->table( 'ccap_notification' );
+		$cut   = $db->now( -$days * DAY_IN_SECONDS );
+		if ( $dry ) {
+			return (int) $db->scalar( $db->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE status = 'held' AND created_at < %s", $cut ) );
+		}
+		return $db->execute( $db->prepare( "UPDATE `{$table}` SET status = 'discarded', reason_code = 'held_expired' WHERE status = 'held' AND created_at < %s", $cut ) );
 	}
 
 	/**

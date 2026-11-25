@@ -59,7 +59,7 @@ phpcs 0 Fehler · PHPStan 0 · Unit **104** · Integration **306** · Multisite 
 | A-5 | Widerruf der Browserwahl im Konto (MC-4), JS-Platzhalter (MC-7/8) | Lernenden-Oberfläche R1-16/R1-19; Server liefert `consent()` |
 | A-6 | Mailvorlagen-Editor (F-65, F-66, RC-18) | R1-21 (Vorlagenspeicher vorhanden), UI nicht gebaut |
 | A-7 | Secrets (SH-1…SH-5, PSD-029…033) | keine `secret`-Felder im Free-Register; Integrationsgeheimnisse mit R1-23/R1-39 |
-| A-8 | Multisite: automatische Löschung entfernt das Konto nur von der Site und löscht die CC-Daten der Site | netzweites Löschen bleibt dem Netzwerk-Admin; **Klärung** |
+| A-8 | Multisite: automatische Löschung entfernt das Konto nur von der Site und löscht die CC-Daten der Site | netzweites Löschen bleibt dem Netzwerk-Admin; **Klärung** **Entschieden 24.11.2026: nur auf der Site, beibehalten (E-367).** |
 | A-10 | Basisvorlage im Tab „Zertifikate“ | kein zweites Formular: Link auf den Zertifikats-Screen A-11 (R1-35, `CertificatesScreen`) |
 | A-9 | Rollen-Sollzustand in `course_captain_settings_roles` | Wirkung und Manifest genügen; keine zweite Kopie (Drift wäre sonst möglich) |
 

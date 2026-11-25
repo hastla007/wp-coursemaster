@@ -720,37 +720,32 @@ final class AssignmentService {
 	}
 
 	/**
-	 * RT-45: chains whose course ended more than `$days` ago (course end =
-	 * later of the newest active grant end and the last activity, E-244)
-	 * are deleted with their files. Versions waiting for grading stay.
+	 * RT-45: chains whose course ended before the cutoff (course end =
+	 * later of the end of the last grant and the last activity in the
+	 * course, E-244, {@see \CourseCaptain\Privacy\CourseEnd}) are deleted
+	 * with their files. Versions waiting for grading stay.
 	 *
 	 * @param Database $db  Database.
 	 * @param string   $cut UTC cutoff (`Y-m-d H:i:s`).
-	 * @return int Deleted versions.
+	 * @param bool     $dry Only count (retention preview, SET-CC-02).
+	 * @return int Deleted (or due) versions.
 	 */
-	public static function expire_retention( Database $db, string $cut ): int {
-		$subs     = $db->table( 'ccap_assignment_submission' );
-		$grants   = $db->table( 'ccap_grant' );
-		$progress = $db->table( 'ccap_course_progress' );
-		$pairs    = $db->rows(
-			$db->prepare(
-				"SELECT s.user_id, s.course_id FROM `{$subs}` s GROUP BY s.user_id, s.course_id HAVING MAX(s.updated_at) < %s AND SUM(s.status = 'submitted') = 0",
-				$cut
+	public static function expire_retention( Database $db, string $cut, bool $dry = false ): int {
+		$subs   = $db->table( 'ccap_assignment_submission' );
+		$ids    = array_map(
+			'intval',
+			array_column(
+				$db->rows(
+					'SELECT s.id FROM `' . $subs . '` s WHERE ' . \CourseCaptain\Privacy\CourseEnd::ended_before( $db, 's.user_id', 's.course_id', $cut )
+					. " AND NOT EXISTS (SELECT 1 FROM `{$subs}` o WHERE o.user_id = s.user_id AND o.course_id = s.course_id AND o.status = 'submitted') ORDER BY s.id" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Prepared course-end condition.
+				),
+				'id'
 			)
 		);
-		$ids      = array();
-		foreach ( $pairs as $pair ) {
-			$user   = (int) $pair['user_id'];
-			$course = (int) $pair['course_id'];
-			$open   = $db->scalar( $db->prepare( "SELECT 1 FROM `{$grants}` WHERE user_id = %d AND course_id = %d AND status = 'active' AND (valid_until IS NULL OR valid_until >= %s) LIMIT 1", $user, $course, $cut ) );
-			$recent = $db->scalar( $db->prepare( "SELECT 1 FROM `{$progress}` WHERE user_id = %d AND course_id = %d AND last_activity_at >= %s LIMIT 1", $user, $course, $cut ) );
-			if ( null !== $open || null !== $recent ) {
-				continue;
-			}
-			$ids = array_merge( $ids, array_map( 'intval', array_column( $db->rows( $db->prepare( "SELECT id FROM `{$subs}` WHERE user_id = %d AND course_id = %d", $user, $course ) ), 'id' ) ) );
-		}
 		$before = count( $ids );
-		self::delete_submissions( $db, $ids );
+		if ( ! $dry ) {
+			self::delete_submissions( $db, $ids );
+		}
 		return $before;
 	}
 

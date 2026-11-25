@@ -121,13 +121,13 @@ PHP 8.5, WP 7.1, lokale MariaDB: Unit **130** (2 übersprungen) · Integration *
 | B-1 Golden Master Lernkern | alle GM-IDs mit Test; GM-077 R2 (E-05). **Technisch erfüllt** |
 | B-5 Kurs ohne Import (GM-137) | mit Test (Struktur-Fingerabdruck ohne IDs). **Technisch erfüllt** |
 | C-2 Grants/Seats/Gate | 24 von 24 mit Test. **Technisch erfüllt** |
-| C-3 Import/Medien | alle mit Test; GM-118/125/128/136 teilweise (kein Medien-/Blueprint-Import, Lastprofil skaliert). **Teilweise** |
+| C-3 Import/Medien | alle mit Test; GM-118/125/128 vollständig seit Medien-/Blueprint-Import (`R1-18-gm-nachtrag-h1.md`), GM-136 im Vollvolumen gelaufen (`R1-18-gate-c-nachweise.md` §1.3) und skaliert in der Suite; Stand 24.11.2026 (R0-41 §5). **Technisch erfüllt** |
 | C-7 API-Verträge | 11 von 11 mit Test (GM-150/152/154 teilweise). **Technisch erfüllt** |
 | C-8 Betrieb | alle mit Test außer GM-180 (Abweichung freigegeben, E-334) und GM-160 (R3). **Technisch erfüllt** |
 | B-4 Referenz-E2E | Flows 1–3 live in Chromium Desktop, Flow 2 zusätzlich mobil (Emulation), Referenzkurs mit Aufgabe, automatisierter Benchmark und A11Y-Prüfung: `tools/qa/e2e/live-flows.sh`, siehe `R1-18-gm-nachtrag-h5.md`. Offen: Firefox/WebKit, Fragen-/Prüfungseditor (Flow 1 nutzt dafür Dienste), UX-090. **Teilweise** |
 | C-6, C-10, C-11, C-13…C-16 | unverändert wie §6 (manuelle Läufe, Browser-Matrix, Usability R1-29, Freigaben) |
 
-Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Medien-/Blueprint-Import oder dessen Freigabe als Teilumfang (GM-118/125/128), den manuellen Gate-Teilen und AG-05/AG-07.
+Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), den manuellen Gate-Teilen und AG-05/AG-07 (der Medien-/Blueprint-Import für GM-118/125/128 ist mit `R1-18-gm-nachtrag-h1.md` erledigt).
 
 ### 9.3 Klärungen für den Auftraggeber / R1-GATE (aus den Nachträgen)
 
@@ -135,14 +135,14 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Medien-/Blueprin
 |---|---|
 | g1 A-1 | GM-068: Backfill nur im Migrationswerkzeug, nicht im Core. **Entschieden: so lassen (E-335)** |
 | g2 A-2 | Monitor-Name/Header. **Erledigt: R0-13 an R0-19 angeglichen (E-336)** |
-| g2 A-5 | Abmelden leert den Prüfungspuffer (localStorage) nicht aktiv (PRIV-018); Puffer enthält keine Lösungen |
+| g2 A-5 | Abmelden leert den Prüfungspuffer (localStorage) nicht aktiv (PRIV-018); Puffer enthält keine Lösungen. **Entschieden: leeren (E-392); umgesetzt in h3 (`ExamBufferPurge`)** |
 | g2 A-6 | Deutsche Übersetzungen. **Erledigt** (113 Texte, 23.11.2026) |
 | g3 H-2 | `ccap_access_exists`/`ccap_user_required`. **Erledigt: in R0-19 §3 aufgenommen (E-336)** |
-| g3 H-3/H-4/H-5 | `backup-check` deckt nur Teile von R0-16 §1.4 ab; Einladungsseite ist minimal (REST R-31/R-32 fehlen) |
-| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); **R0-05 §2.6 angeglichen (E-336)**. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`) |
-| g5 A-1…A-3 | GM-190 Gäste 401 (R-38); Routennamen des Datenexports selbst gewählt (R0-19 nennt nur Codes); Löschung nach Bestätigung nur mit Opt-in E-43 |
+| g3 H-3/H-4/H-5 | `backup-check` deckt nur Teile von R0-16 §1.4 ab; Einladungsseite ist minimal (REST R-31/R-32 fehlen). **Entschieden (E-392): Rest `backup-check` als Folgeaufgabe; Einladungsseite mit der Besitzer-Oberfläche (inzwischen vorhanden, R-31/R-32 in `LearnerRoutes`)** |
+| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); **R0-05 §2.6 angeglichen (E-336)**. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`). **Entschieden: bei Aktivierung setzen (E-392); umgesetzt (`InstallationUuid`, Slice `gate-klaerungen`)** |
+| g5 A-1…A-3 | GM-190 Gäste 401 (R-38); Routennamen des Datenexports selbst gewählt (R0-19 nennt nur Codes); Löschung nach Bestätigung nur mit Opt-in E-43. **Entschieden: so lassen (E-392)** |
 | g6 | Karteikarten zählen als Fragen. **Entschieden (E-337)** |
-| Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen |
+| Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen. **Entschieden: `intl` als Systemvoraussetzung dokumentieren (E-392); umgesetzt (readme, Installationsanleitung, Prüfung `php_intl`)** |
 
 
 ## Anhang · GM-Matrix (`php tools/qa/gm-coverage.php --matrix`) – Stand 23.11.2026
@@ -266,17 +266,17 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Medien-/Blueprin
 | GM-115 | Test | `GoldenMasterG3Test.php::test_GM_115_http_self_test` |
 | GM-116 | Test | `CompatibilityTest.php::test_KOMP_03x_page_cache_signals` |
 | GM-117 | Test | `GoldenMasterG3Test.php::test_GM_117_read_only_restore_check` |
-| GM-118 | Test (teilweise) | `GoldenMasterTest.php::test_GM_118` – Path and state machine on PKG-v2; PKG-v1 carries 71 questions incl. draft Q-A3-011 and 13 flashcards, but no media and blueprints (no media/blueprint import). |
+| GM-118 | Test | `GoldenMasterMediaTest.php::test_GM_118_package_path_and_counts` (PKG-v1 mit Medien und Blueprints, Zählungen = Manifest; Start, Laufschritt und Lauf ohne Freigabe 409), `GoldenMasterTest.php::test_GM_118` (Pfad auf PKG-v2) |
 | GM-119 | Test | `GoldenMasterTest.php::test_GM_119` |
 | GM-120 | Test | `GoldenMasterTest.php::test_pkg_v2` |
 | GM-121 | Test | `ImportTest.php::test_import_lifecycle` |
 | GM-122 | Test | `ImportTest.php::test_validation` |
 | GM-123 | Test | `GoldenMasterImportTest.php::test_GM_123_rights_override` |
 | GM-124 | Test | `ImportBatchTest.php::test_BIG_037_resume_prechecks` |
-| GM-125 | Test (teilweise) | `ImportBatchTest.php::test_BIG_020_chunked_commit_and_idempotent_reimport` – Chunked steps; no media step (no media import). |
+| GM-125 | Test | `GoldenMasterMediaTest.php::test_GM_125_steps_equal_whole_and_media_by_bytes` (Teilschritte = am Stück, Medien nach Bytes), `ImportBatchTest.php::test_BIG_020_chunked_commit_and_idempotent_reimport` |
 | GM-126 | Test | `ImportBatchTest.php::test_BIG_030_cancel_and_discard` |
 | GM-127 | Test | `GoldenMasterImportTest.php::test_GM_127_bulk_release` |
-| GM-128 | Test (teilweise) | `GoldenMasterTest.php::test_GM_128_bad_media` – Upload validator with MED-BAD-1…6; no media import, no legacy quarantine. |
+| GM-128 | Test | `GoldenMasterMediaTest.php::test_GM_128_media_types_and_quarantine` (Import und Altbestand-Quarantäne, je ein Protokolleintrag), `GoldenMasterTest.php::test_GM_128_bad_media` (Upload-Prüfer) |
 | GM-129 | Test | `GoldenMasterImportTest.php::test_GM_129_upload_limit_and_drop_folder` |
 | GM-130 | Test | `GoldenMasterImportTest.php::test_GM_130_link_import` |
 | GM-131 | Test | `PrivacyOpsTest.php::test_retention` |
@@ -284,7 +284,7 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), Medien-/Blueprin
 | GM-133 | Test | `ImportTest.php::test_export` |
 | GM-134 | Test | `ImportBatchTest.php::test_cli_run_status_and_report` |
 | GM-135 | Test | `SchemaValidatorTest.php::manifest` |
-| GM-136 | Test (teilweise) | `ImportBatchTest.php::test_BIG_023_crash_resume_and_lease`, `ImportBatchTest.php::test_BIG_035_object_isolation_and_threshold` – Scaled to 5 000/1 500 questions (R1-41). |
+| GM-136 | Test | `ImportBatchTest.php::test_GM_136_defects_abort_at_half_and_resume` (skaliert 600/3, Bericht und JSON-Export mit genau 3 Einträgen, keine Dubletten), `ImportBatchTest.php::test_GM_136_pkg_large_full_volume` (20 000/3, Lastlauf mit `CCAP_GM136_FULL=1`, grün am 23.11.2026, `R1-18-gate-c-nachweise.md` §1.3), `test_BIG_023_crash_resume_and_lease`, `test_BIG_035_object_isolation_and_threshold` |
 | GM-137 | Test | `GoldenMasterImportTest.php::test_GM_137_hand_built_course` |
 | GM-138 | Test | `PrivacyOpsTest.php::test_GM_138_139_audit_view` |
 | GM-139 | Test | `PrivacyOpsTest.php::test_GM_138_139_audit_view` |

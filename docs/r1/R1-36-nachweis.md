@@ -49,7 +49,7 @@ Ergänzend aus R1-32/R1-34: ADM-072/075/077/079 (Formularebene), PSD-004/006/008
 | Nr. | Thema | Entscheidung |
 |---|---|---|
 | A-1 | WP-CLI `settings get|set|export|import|reset`, CLI-Export `0600` außerhalb des Webroots (PSD-007, PSD-033, PSD-063, SET-021) | CLI-Befehle mit R1-28; Dienste (`Settings`, `SettingsTransfer`) sind dafür vorbereitet |
-| A-2 | Import des Rollen-Tabs und der Mailvorlagen (Opt-in) | nicht im Exportformat; Rollen-Import mit Hochrisiko-Bestätigung **Klärung** |
+| A-2 | Import des Rollen-Tabs und der Mailvorlagen (Opt-in) | nicht im Exportformat; Rollen-Import mit Hochrisiko-Bestätigung **Klärung** **Entschieden 24.11.2026: Opt-in-Export, Import mit RC-07 beibehalten (E-365).** |
 | A-3 | Seiten-IDs als `{id, slug, title}` im Export (§2.5) | Export enthält die ID; Import übernimmt sie nur, wenn die Seite die Seitenregeln besteht (F-10…F-12), sonst Fehler im Bericht |
 | A-4 | Retention-Hinweis im Dateikopf (EX-4), PSD-060 Fristverkürzung | `privacy.retention` fehlt im Register (R1-17) |
 | A-5 | Playwright/Screenreader (SET-022, PSD-005) | Struktur per PHPUnit; Browserläufe mit R1-19/R1-29 |

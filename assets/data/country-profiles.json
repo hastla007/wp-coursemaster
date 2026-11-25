@@ -1,0 +1,69 @@
+{
+	"format": "course-captain-country-profiles",
+	"format_version": 1,
+	"comment": "SET-CC-07: suggestions for existing settings only. Nothing is applied without the operator. legal=true marks values that need a legal review (shown as unreviewed while reviewed=false). null = no suggestion; with open = waits for an owner decision (E4 EU external videos, E7 age limit). Override with the filter course_captain_country_profiles.",
+	"profiles": {
+		"DE": {
+			"wp.WPLANG": { "value": "de_DE" },
+			"wp.timezone_string": { "value": "Europe/Berlin" },
+			"wp.date_format": { "value": "j. F Y" },
+			"wp.time_format": { "value": "H:i" },
+			"wp.start_of_week": { "value": 1 },
+			"privacy.external_media_mode": { "value": "click_to_load", "legal": true },
+			"privacy.show_avatars": { "value": false, "legal": true },
+			"privacy.backup_max_age_days": { "value": 90, "legal": true },
+			"advanced.report_pseudonymize": { "value": true, "legal": true },
+			"certificates.holder_name_policy": { "value": "learner_opt_in", "legal": true },
+			"open.age_limit": { "value": null, "legal": true, "open": "E7" }
+		},
+		"AT": {
+			"wp.WPLANG": { "value": "de_AT" },
+			"wp.timezone_string": { "value": "Europe/Vienna" },
+			"wp.date_format": { "value": "j. F Y" },
+			"wp.time_format": { "value": "H:i" },
+			"wp.start_of_week": { "value": 1 },
+			"privacy.external_media_mode": { "value": "click_to_load", "legal": true },
+			"privacy.show_avatars": { "value": false, "legal": true },
+			"privacy.backup_max_age_days": { "value": 90, "legal": true },
+			"advanced.report_pseudonymize": { "value": true, "legal": true },
+			"certificates.holder_name_policy": { "value": "learner_opt_in", "legal": true },
+			"open.age_limit": { "value": null, "legal": true, "open": "E7" }
+		},
+		"CH": {
+			"wp.WPLANG": { "value": "de_CH" },
+			"wp.timezone_string": { "value": "Europe/Zurich" },
+			"wp.date_format": { "value": "j. F Y" },
+			"wp.time_format": { "value": "H:i" },
+			"wp.start_of_week": { "value": 1 },
+			"privacy.external_media_mode": { "value": "click_to_load", "legal": true },
+			"privacy.show_avatars": { "value": false, "legal": true },
+			"privacy.backup_max_age_days": { "value": 90, "legal": true },
+			"advanced.report_pseudonymize": { "value": true, "legal": true },
+			"certificates.holder_name_policy": { "value": "learner_opt_in", "legal": true },
+			"open.age_limit": { "value": null, "legal": true, "open": "E7" }
+		},
+		"EU": {
+			"wp.WPLANG": { "value": null },
+			"wp.timezone_string": { "value": null },
+			"wp.date_format": { "value": "Y-m-d" },
+			"wp.time_format": { "value": "H:i" },
+			"wp.start_of_week": { "value": 1 },
+			"privacy.external_media_mode": { "value": null, "legal": true, "open": "E4" },
+			"privacy.show_avatars": { "value": false, "legal": true },
+			"privacy.backup_max_age_days": { "value": 90, "legal": true },
+			"advanced.report_pseudonymize": { "value": true, "legal": true },
+			"certificates.holder_name_policy": { "value": "learner_opt_in", "legal": true },
+			"open.age_limit": { "value": null, "legal": true, "open": "E7" }
+		},
+		"OTHER": {
+			"wp.WPLANG": { "value": null },
+			"wp.timezone_string": { "value": null },
+			"wp.date_format": { "value": null },
+			"wp.time_format": { "value": null },
+			"wp.start_of_week": { "value": null },
+			"privacy.external_media_mode": { "value": null, "legal": true },
+			"privacy.show_avatars": { "value": null, "legal": true },
+			"open.age_limit": { "value": null, "legal": true, "open": "E7" }
+		}
+	}
+}

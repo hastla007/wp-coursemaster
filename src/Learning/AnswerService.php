@@ -362,7 +362,8 @@ final class AnswerService {
 
 	/**
 	 * GM-010 (finding F-3): answers of a lesson quiz feed the quiz progress
-	 * (`answered`, `correct`, `total` over the published inline questions);
+	 * (`answered`, `correct`, `total` over the published inline questions or
+	 * the learner's draw of the module pool, UI-F5);
 	 * the completion rule of the quiz provider then completes the lesson
 	 * (monotonic, R0-08 §5.1) and the course progress recalculates.
 	 *
@@ -375,28 +376,55 @@ final class AnswerService {
 		if ( 'quiz' !== \CourseCaptain\Activity\ActivityService::definition( $lesson_id )['type'] ) {
 			return;
 		}
-		$ids = $this->presenter->inline_questions( $lesson_id );
+		$ids = $this->presenter->quiz_questions( $lesson_id, $user );
 		if ( array() === $ids ) {
 			return;
 		}
-		$list = implode( ',', array_map( 'intval', $ids ) );
-		$row  = (array) $this->db->row(
-			$this->db->prepare(
-				'SELECT COUNT(DISTINCT question_id) AS answered, COUNT(DISTINCT CASE WHEN is_correct = 1 THEN question_id END) AS correct FROM `' . $this->db->table( 'ccap_attempt' ) . "` WHERE user_id = %d AND context = 'lesson' AND context_ref = %s AND question_id IN ({$list})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
-				$user,
-				'lesson:' . $lesson_id
-			)
-		);
+		$answers = $this->quiz_answers( $user, $lesson_id, $ids );
 		\CourseCaptain\Activity\ActivityProgress::current()->record_evidence(
 			$user,
 			$course,
 			$lesson_id,
 			array(
-				'answered' => (int) ( $row['answered'] ?? 0 ),
-				'correct'  => (int) ( $row['correct'] ?? 0 ),
+				'answered' => count( $answers ),
+				'correct'  => count( array_filter( $answers ) ),
 				'total'    => count( $ids ),
 			)
 		);
+	}
+
+	/**
+	 * Answers of the current quiz attempt per question (GM-010, UI-F5): a
+	 * question is answered once it has an attempt in the lesson context;
+	 * `true` when one of its answers was correct. A quiz from the module
+	 * pool counts the answers since its current draw only.
+	 *
+	 * @param int        $user      Learner.
+	 * @param int        $lesson_id Quiz lesson.
+	 * @param array<int> $ids       Questions of the quiz for this learner.
+	 * @return array<int, bool> Question => answered correctly at least once.
+	 */
+	public function quiz_answers( int $user, int $lesson_id, array $ids ): array {
+		$ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
+		if ( $user <= 0 || array() === $ids ) {
+			return array();
+		}
+		$draw  = \CourseCaptain\Question\QuizPool::is_pool( $lesson_id ) ? \CourseCaptain\Question\QuizPool::current()->current_draw( $user, $lesson_id ) : null;
+		$since = null === $draw || '' === $draw['drawn_at'] ? '1970-01-01 00:00:00' : $draw['drawn_at'];
+		$list  = implode( ',', $ids );
+		$rows  = $this->db->rows(
+			$this->db->prepare(
+				'SELECT question_id, MAX(CASE WHEN is_correct = 1 THEN 1 ELSE 0 END) AS ok FROM `' . $this->db->table( 'ccap_attempt' ) . "` WHERE user_id = %d AND context = 'lesson' AND context_ref = %s AND created_at >= %s AND question_id IN ({$list}) GROUP BY question_id", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Integer list.
+				$user,
+				'lesson:' . $lesson_id,
+				$since
+			)
+		);
+		$out   = array();
+		foreach ( $rows as $row ) {
+			$out[ (int) $row['question_id'] ] = '1' === (string) $row['ok'];
+		}
+		return $out;
 	}
 
 	/**

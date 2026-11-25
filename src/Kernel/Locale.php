@@ -188,7 +188,9 @@ final class Locale {
 	 * @return string
 	 */
 	public static function ui_tag(): string {
-		return str_replace( '_', '-', self::resolve( determine_locale() ) );
+		// WordPress variants such as `de_DE_formal` are not BCP 47 subtags: the language stays `de-DE`.
+		$locale = (string) preg_replace( '/_(formal|informal)$/', '', self::resolve( determine_locale() ) );
+		return str_replace( '_', '-', $locale );
 	}
 
 	/**
@@ -277,6 +279,16 @@ final class Locale {
 				restore_previous_locale();
 			}
 		}
+	}
+
+	/**
+	 * Locales WordPress can switch to: `en_US` plus the installed language
+	 * packs (the list of the locale switcher; SET-CC-08 certificate language).
+	 *
+	 * @return list<string>
+	 */
+	public static function installed(): array {
+		return array_values( array_unique( array_merge( array( 'en_US' ), array_map( 'strval', get_available_languages() ) ) ) );
 	}
 
 	/**

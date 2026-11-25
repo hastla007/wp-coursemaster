@@ -32,8 +32,8 @@ phpcs 0 · PHPStan L8 0 · Unit **85** · Integration **129 / 1 341** · Multisi
 
 | Nr. | Thema | Entscheidung |
 |---|---|---|
-| A-1 | GM-178 erwartet LB-Klemmung (`500 → 90`) | R0-27 S-5 (verbindlich für R1-31) verlangt Ablehnung „alles oder nichts“ mit feldnahem Fehler; umgesetzt nach R0-27. Klärung im R1-Gate dokumentiert |
-| A-2 | GM-180 `default_access` (`logged_in`/`entitled_only`) | kein Schlüssel im Register R0-27 §1.3; Zugang über Grants/`free`-Regeln (R1-13/R1-14). Klärung im R1-Gate |
+| A-1 | GM-178 erwartet LB-Klemmung (`500 → 90`) | R0-27 S-5 (verbindlich für R1-31) verlangt Ablehnung „alles oder nichts“ mit feldnahem Fehler; umgesetzt nach R0-27. Klärung im R1-Gate dokumentiert **Entschieden 24.11.2026: Ablehnung beibehalten (E-362).** |
+| A-2 | GM-180 `default_access` (`logged_in`/`entitled_only`) | kein Schlüssel im Register R0-27 §1.3; Zugang über Grants/`free`-Regeln (R1-13/R1-14). Klärung im R1-Gate **Entschieden 24.11.2026: erledigt über `enrollment.default_access_days` im Tab Einschreibung (E-364).** |
 | A-3 | Admin-Oberfläche (`admin-post.php?action=ccap_settings_save`, Nonce je Tab, Formular-Transient, Risiko-Bestätigungstoken S-7) | R1-32 (Setup/Tabs) auf diesem Dienst |
 | A-4 | Rollen-Tab, Mailvorlagen, `privacy.retention`-Unterschlüssel, Zertifikatsvorlage, Hardening-Zeitstempel | R1-34, R1-21, R1-17, R1-44, R1-45 |
 | A-5 | Import (Diff-Vorschau, Tab-Auswahl, Rate-Limit), WP-CLI `settings get|set|export|import|reset` | R1-36 bzw. R1-28 |

@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Access;
 
+use CourseCaptain\Ops\SourceReview;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Storage\Database;
 use CourseCaptain\Storage\NamedLock;
@@ -19,7 +20,9 @@ defined( 'ABSPATH' ) || exit;
  * Under the source lock `grant-source:<type>:<reference>`: stale source
  * revisions are ignored (`source_seq`), `revoked → active` never happens
  * automatically (E-29), manual decisions are only overridden by
- * revocation (GrantService), revocation only touches this source.
+ * revocation (GrantService), revocation only touches this source. A
+ * source without snapshot changes no grant; with the operator policy
+ * `keep_and_flag` its open grants are marked for review (ACCESS-09).
  */
 final class GrantReconciler {
 
@@ -51,23 +54,28 @@ final class GrantReconciler {
 	 * @return array{created: int, changed: int, ignored: int, stale: bool, no_change: bool}
 	 */
 	public function reconcile( GrantSourceAdapter $adapter, SourceStatusMapper $mapper, string $reference, ?string $source_event_id = null ): array {
-		$result   = array(
+		$result = array(
 			'created'   => 0,
 			'changed'   => 0,
 			'ignored'   => 0,
 			'stale'     => false,
 			'no_change' => false,
 		);
-		$type     = $adapter->source_type();
-		$actor    = Actor::connector( $type );
-		$snapshot = $adapter->snapshot( $reference );
-		if ( null === $snapshot ) {
-			$result['no_change'] = true;
-			return $result;
-		}
+		$type   = $adapter->source_type();
+		$actor  = Actor::connector( $type );
+		// R0-09 R-04: read the source only under the grant-source lock, so a slow
+		// callback cannot apply an older snapshot after a parallel refund.
 		$lock = NamedLock::for_key( $this->db, 'grant-source:' . $type . ':' . $reference );
 		$lock->acquire( 10 );
 		try {
+			$snapshot = $adapter->snapshot( $reference );
+			if ( null === $snapshot ) {
+				// ACCESS-09: never a revocation; the operator policy may mark the grants for review.
+				SourceReview::source_missing( $this->db, $actor, $type, $reference );
+				$result['no_change'] = true;
+				return $result;
+			}
+			SourceReview::source_back( $this->db, $actor, $type, $reference );
 			$revision = (int) ( $snapshot['revision'] ?? 0 );
 			$table    = $this->db->table( 'ccap_grant' );
 			$seen     = $this->db->scalar( $this->db->prepare( "SELECT MAX(source_seq) FROM `{$table}` WHERE source_type = %s AND source_id = %s", $type, $reference ) );

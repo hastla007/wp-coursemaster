@@ -19,16 +19,18 @@ defined( 'ABSPATH' ) || exit;
 /**
  * At-least-once per subscriber: claim with a 60 s lease, deliver in event
  * order, backoff 1 min … 24 h, dead-letter after 8 attempts; permanent
- * errors go straight to `failed`. Delivered events are kept 90 days, open
- * deliveries at most 30 days (`dead`, class `retention`).
+ * errors go straight to `failed`. Delivered events are kept
+ * `privacy.retention.inbox_days` (default 90, shared with the inbox, E-215),
+ * open deliveries at most `privacy.retention.outbox_event_days` (default 30;
+ * `dead`, class `retention`).
  */
 final class OutboxDispatcher {
 
 	public const LEASE_SECONDS  = 60;
 	public const BATCH          = 100;
 	public const MAX_ATTEMPTS   = 8;
-	public const DELIVERED_DAYS = 90;
-	public const OPEN_DAYS      = 30;
+	public const DELIVERED_DAYS = 90; // Default of `privacy.retention.inbox_days` (SET-CC-02).
+	public const OPEN_DAYS      = 30; // Default of `privacy.retention.outbox_event_days` (SET-CC-02).
 	private const BACKOFF       = array( 60, 300, 900, 3600, 21600, 86400, 86400, 86400 );
 
 	/**
@@ -141,30 +143,47 @@ final class OutboxDispatcher {
 	}
 
 	/**
-	 * Retention (E-116/E-215/E-258): open deliveries older than 30 days
-	 * become `dead` (`retention`); fully delivered events older than 90 days
-	 * are deleted together with their deliveries.
+	 * Retention (E-116/E-215/E-258): open deliveries older than
+	 * `outbox_event_days` become `dead` (`retention`); fully delivered events
+	 * older than `inbox_days` are deleted together with their deliveries.
 	 *
 	 * @return array{dead: int, purged: int}
 	 */
 	public function purge(): array {
-		$deliveries = $this->db->table( 'ccap_outbox_delivery' );
-		$events     = $this->db->table( 'ccap_outbox_event' );
-		$dead       = $this->db->execute(
-			$this->db->prepare(
-				"UPDATE `{$deliveries}` SET status = 'dead', last_error_class = 'retention', locked_until = NULL, lock_owner = NULL WHERE status IN ('pending', 'dispatching', 'failed') AND created_at < %s",
-				$this->db->now( -self::OPEN_DAYS * DAY_IN_SECONDS )
-			)
-		);
-		$purged     = $this->db->execute(
-			$this->db->prepare(
-				"DELETE e FROM `{$events}` e WHERE e.created_at < %s AND NOT EXISTS (SELECT 1 FROM `{$deliveries}` d WHERE d.event_uuid = e.event_uuid AND d.status NOT IN ('delivered', 'skipped', 'dead'))",
-				$this->db->now( -self::DELIVERED_DAYS * DAY_IN_SECONDS )
-			)
-		);
+		$sql = $this->purge_sql( \CourseCaptain\Privacy\RetentionPolicy::int( 'outbox_event_days' ), \CourseCaptain\Privacy\RetentionPolicy::int( 'inbox_days' ) );
 		return array(
-			'dead'   => $dead,
-			'purged' => $purged,
+			'dead'   => $this->db->execute( 'UPDATE `' . $this->db->table( 'ccap_outbox_delivery' ) . "` SET status = 'dead', last_error_class = 'retention', locked_until = NULL, lock_owner = NULL WHERE " . $sql['dead'] ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared in purge_sql().
+			'purged' => $this->db->execute( 'DELETE e FROM `' . $this->db->table( 'ccap_outbox_event' ) . '` e WHERE ' . $sql['purged'] ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared in purge_sql().
+		);
+	}
+
+	/**
+	 * Read-only count of {@see self::purge()} for given periods (retention preview).
+	 *
+	 * @param int $open_days      Open deliveries (`outbox_event_days`).
+	 * @param int $delivered_days Delivered events (`inbox_days`).
+	 * @return array{dead: int, purged: int}
+	 */
+	public function due( int $open_days, int $delivered_days ): array {
+		$sql = $this->purge_sql( $open_days, $delivered_days );
+		return array(
+			'dead'   => (int) $this->db->scalar( 'SELECT COUNT(*) FROM `' . $this->db->table( 'ccap_outbox_delivery' ) . '` WHERE ' . $sql['dead'] ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared in purge_sql().
+			'purged' => (int) $this->db->scalar( 'SELECT COUNT(*) FROM `' . $this->db->table( 'ccap_outbox_event' ) . '` e WHERE ' . $sql['purged'] ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Prepared in purge_sql().
+		);
+	}
+
+	/**
+	 * Prepared conditions of the purge.
+	 *
+	 * @param int $open_days      Open deliveries.
+	 * @param int $delivered_days Delivered events.
+	 * @return array{dead: string, purged: string}
+	 */
+	private function purge_sql( int $open_days, int $delivered_days ): array {
+		$deliveries = $this->db->table( 'ccap_outbox_delivery' );
+		return array(
+			'dead'   => $this->db->prepare( "status IN ('pending', 'dispatching', 'failed') AND created_at < %s", $this->db->now( -$open_days * DAY_IN_SECONDS ) ),
+			'purged' => $this->db->prepare( "e.created_at < %s AND NOT EXISTS (SELECT 1 FROM `{$deliveries}` d WHERE d.event_uuid = e.event_uuid AND d.status NOT IN ('delivered', 'skipped', 'dead'))", $this->db->now( -$delivered_days * DAY_IN_SECONDS ) ),
 		);
 	}
 

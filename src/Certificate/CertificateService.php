@@ -14,6 +14,7 @@ use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Event\AuditLog;
 use CourseCaptain\Event\Outbox;
+use CourseCaptain\Kernel\Locale;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
@@ -108,6 +109,10 @@ final class CertificateService {
 	 * @return void
 	 */
 	public static function handle_event( array $envelope ): void {
+		// SET-CC-24: no automatic issuance while the module is off (events are acknowledged, nothing is deleted).
+		if ( ! \CourseCaptain\Settings\Modules::enabled( \CourseCaptain\Settings\Modules::CERTIFICATES ) ) {
+			return;
+		}
 		$service = self::current();
 		$type    = (string) ( $envelope['event_type'] ?? '' );
 		$payload = (array) ( $envelope['payload'] ?? array() );
@@ -261,8 +266,9 @@ final class CertificateService {
 					if ( null === $evidence || ! $evidence['eligible'] ) {
 						throw new CourseException( 'ccap_validation_failed', 'The evidence no longer qualifies; revoke instead.', 422 );
 					}
-					$snapshot['evidence']    = self::evidence_snapshot( $evidence );
-					$snapshot['valid_until'] = $evidence['valid_until'];
+					$snapshot['evidence'] = self::evidence_snapshot( $evidence );
+					// Without an own validity the date of the issuance stays (SET-CC-08 default validity is a snapshot).
+					$snapshot['valid_until'] = $evidence['valid_until'] ?? $snapshot['valid_until'];
 				}
 				$snapshot['revision_no']   = $revision;
 				$snapshot['revision_kind'] = 'correction';
@@ -723,10 +729,14 @@ final class CertificateService {
 	 *
 	 * @param Database $db     Database.
 	 * @param string   $cutoff UTC datetime.
-	 * @return int Rows deleted.
+	 * @param bool     $dry    Only count all due rows (retention preview, SET-CC-02).
+	 * @return int Rows deleted (or due).
 	 */
-	public static function expire_retention( Database $db, string $cutoff ): int {
+	public static function expire_retention( Database $db, string $cutoff, bool $dry = false ): int {
 		$table = $db->table( 'ccap_certificate' );
+		if ( $dry ) {
+			return (int) $db->scalar( $db->prepare( "SELECT COUNT(*) FROM `{$table}` c JOIN ( SELECT certificate_uid FROM `{$table}` GROUP BY certificate_uid HAVING MAX(issued_at) < %s ) d ON d.certificate_uid = c.certificate_uid", $cutoff ) );
+		}
 		$uids  = $db->wpdb()->get_col( $db->prepare( "SELECT certificate_uid FROM `{$table}` GROUP BY certificate_uid HAVING MAX(issued_at) < %s LIMIT 500", $cutoff ) );
 		$count = 0;
 		foreach ( $uids as $uid ) {
@@ -809,17 +819,49 @@ final class CertificateService {
 			return (string) $row['status'];
 		}
 		$until = json_decode( (string) $row['snapshot'], true )['valid_until'] ?? null;
-		return null !== $until && (string) $until < gmdate( 'Y-m-d' ) ? 'expired' : 'valid';
+		return null !== $until && (string) $until < self::site_today() ? 'expired' : 'valid';
 	}
 
 	/**
-	 * Recertification hint from 30 days before expiry (CF-14).
+	 * Recertification hint from `certificates.expiry_notice_days` (default
+	 * {@see self::RECERTIFY_DAYS}) days before expiry (CF-14, SET-CC-08).
 	 *
 	 * @param mixed $valid_until Date or null.
 	 * @return bool
 	 */
 	public static function recertify_hint( $valid_until ): bool {
-		return is_string( $valid_until ) && $valid_until <= gmdate( 'Y-m-d', time() + self::RECERTIFY_DAYS * DAY_IN_SECONDS );
+		return is_string( $valid_until ) && $valid_until <= self::site_today( max( 1, (int) Settings::get( 'certificates.expiry_notice_days' ) ) );
+	}
+
+	/**
+	 * Evidence with the default validity of new certificates
+	 * (`certificates.default_validity_days`, SET-CC-08) when it has no own
+	 * validity; an exam rule's own validity always wins.
+	 *
+	 * @param array<string, mixed> $evidence Evidence.
+	 * @return array<string, mixed>
+	 */
+	private static function with_default_validity( array $evidence ): array {
+		$days = Settings::get( 'certificates.default_validity_days' );
+		if ( null === $evidence['valid_until'] && null !== $days && null !== $evidence['evaluated_at'] ) {
+			$evidence['valid_until'] = self::site_date_after( (string) $evidence['evaluated_at'], max( 1, (int) $days ) );
+		}
+		return $evidence;
+	}
+
+	/**
+	 * Locale of a new certificate (`certificates.language`, SET-CC-08):
+	 * website language, the learner's profile language or the fixed locale;
+	 * a locale that is not installed falls back to the website language.
+	 *
+	 * @param int $user_id Learner.
+	 * @return string
+	 */
+	public static function issue_locale( int $user_id ): string {
+		$mode      = (string) Settings::get( 'certificates.language' );
+		$installed = Locale::installed();
+		$wanted    = 'learner' === $mode ? (string) get_user_locale( $user_id ) : ( 'fixed' === $mode ? (string) Settings::get( 'certificates.fixed_locale' ) : '' );
+		return '' !== $wanted && in_array( $wanted, $installed, true ) ? $wanted : (string) get_locale();
 	}
 
 	/**
@@ -849,6 +891,7 @@ final class CertificateService {
 			return $existing;
 		}
 		$template = self::template( (int) $evidence['course_id'] );
+		$evidence = self::with_default_validity( $evidence );
 		try {
 			return $this->db->transaction(
 				function ( Database $db ) use ( $evidence, $actor, $reason, $type, $evidence_id, $template ): array {
@@ -996,7 +1039,7 @@ final class CertificateService {
 				'rule_uid'           => isset( $snapshot['rule']['uid'] ) ? (string) $snapshot['rule']['uid'] : null,
 				'rule_version'       => isset( $snapshot['rule']['version'] ) ? (string) $snapshot['rule']['version'] : null,
 				'objectives'         => array_values( array_map( 'strval', (array) ( $snapshot['competency']['certifies_objectives'] ?? array() ) ) ),
-				'valid_until'        => null === $days || null === $evaluated ? null : gmdate( 'Y-m-d', (int) strtotime( $evaluated . ' UTC' ) + DAY_IN_SECONDS * max( 1, (int) $days ) ),
+				'valid_until'        => null === $days || null === $evaluated ? null : self::site_date_after( $evaluated, max( 1, (int) $days ) ),
 				'eligible'           => 'evaluated' === $row['status'] && '1' === (string) $row['passed'] && ! empty( $snapshot['evidence_eligible'] ) && empty( $snapshot['reduced'] ) && empty( $snapshot['practice'] ) && null !== $revision && null !== $evaluated,
 			);
 		}
@@ -1088,6 +1131,21 @@ final class CertificateService {
 			$issuer['signature_label'] = (string) $definition['signature_label'];
 		}
 		$title = (string) get_post_field( 'post_title', $course_id, 'raw' );
+		// SET-CC-08: fixed texts in the certificate language; the result is part of the snapshot.
+		$locale   = self::issue_locale( (int) $evidence['user_id'] );
+		$switched = determine_locale() !== $locale && switch_to_locale( $locale );
+		try {
+			$texts = array(
+				'heading' => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'Certificate of achievement', 'course-captain' ) : __( 'Certificate of completion', 'course-captain' ),
+				'body'    => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'has passed the assessment of the course', 'course-captain' ) : __( 'has successfully completed the course', 'course-captain' ),
+				'footer'  => (string) $definition['footer_text'],
+			);
+			$ui    = (string) determine_locale();
+		} finally {
+			if ( $switched ) {
+				restore_previous_locale();
+			}
+		}
 		return array(
 			'format_version'  => CertificateSnapshot::FORMAT_VERSION,
 			'certificate_uid' => $uid,
@@ -1102,7 +1160,11 @@ final class CertificateService {
 			),
 			'locale'          => array(
 				'content' => CourseStructure::course_language( $course_id ),
-				'ui'      => (string) get_locale(),
+				'ui'      => $ui,
+			),
+			'layout'          => array(
+				'paper'    => (string) Settings::get( 'certificates.paper_format' ),
+				'language' => (string) Settings::get( 'certificates.language' ),
 			),
 			'issued_at'       => gmdate( 'Y-m-d\TH:i:s\Z', $this->db->time() ),
 			'issued_by'       => self::issued_by( $actor ),
@@ -1124,11 +1186,7 @@ final class CertificateService {
 			'valid_until'     => $evidence['valid_until'],
 			'fields'          => array(),
 			'assets'          => array(),
-			'texts'           => array(
-				'heading' => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'Certificate of achievement', 'course-captain' ) : __( 'Certificate of completion', 'course-captain' ),
-				'body'    => self::EVIDENCE_EXAM === $evidence['type'] ? __( 'has passed the assessment of the course', 'course-captain' ) : __( 'has successfully completed the course', 'course-captain' ),
-				'footer'  => (string) $definition['footer_text'],
-			),
+			'texts'           => $texts,
 			'verify'          => array( 'path_at_issue' => CertificatePages::verify_path() ),
 		);
 	}
@@ -1297,5 +1355,31 @@ final class CertificateService {
 	 */
 	public static function site_date( string $datetime ): string {
 		return '' === $datetime ? '' : (string) wp_date( 'Y-m-d', (int) strtotime( $datetime . ' UTC' ) );
+	}
+
+	/**
+	 * Last valid day of a certificate (SET-CC-P2): the site date of the
+	 * evaluation plus whole calendar days, so that "issued on" and "valid
+	 * until" count from the same local date, also across midnight, year end
+	 * and daylight saving changes.
+	 *
+	 * @param string $datetime UTC datetime of the evaluation.
+	 * @param int    $days     Validity in days.
+	 * @return string Y-m-d in the site time zone.
+	 */
+	public static function site_date_after( string $datetime, int $days ): string {
+		$local = ( new \DateTimeImmutable( '@' . (int) strtotime( $datetime . ' UTC' ) ) )->setTimezone( wp_timezone() );
+		return $local->setTime( 12, 0 )->modify( '+' . $days . ' days' )->format( 'Y-m-d' );
+	}
+
+	/**
+	 * Today (plus days) in the site time zone, the date certificate validity is compared with.
+	 *
+	 * @param int      $plus_days Days to add.
+	 * @param int|null $now       Unix time (tests), default now.
+	 * @return string Y-m-d.
+	 */
+	public static function site_today( int $plus_days = 0, ?int $now = null ): string {
+		return ( new \DateTimeImmutable( '@' . ( $now ?? time() ) ) )->setTimezone( wp_timezone() )->setTime( 12, 0 )->modify( '+' . $plus_days . ' days' )->format( 'Y-m-d' );
 	}
 }

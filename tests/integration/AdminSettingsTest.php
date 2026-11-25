@@ -441,10 +441,18 @@ final class AdminSettingsTest extends SchemaTestCase {
 
 		self::assertSame( 'invalid', SettingsScreen::process_save( $this->post( 'general', array( 'delete_data_on_uninstall' => '1' ) ), $this->admin )['result'] );
 		self::assertFalse( Settings::get( 'general.delete_data_on_uninstall' ) );
+		// SET-CC-30: the site name no longer confirms; the typed word does (any letter case).
 		$name = trim( wp_specialchars_decode( (string) get_bloginfo( 'name' ), ENT_QUOTES ) );
-		$ok   = SettingsScreen::process_save( $this->post( 'general', array( 'delete_data_on_uninstall' => '1' ), array( Settings::CONFIRM_SITE_FIELD => $name ) ), $this->admin );
+		self::assertSame( 'invalid', SettingsScreen::process_save( $this->post( 'general', array( 'delete_data_on_uninstall' => '1' ), array( Settings::CONFIRM_WORD_FIELD => $name ) ), $this->admin )['result'] );
+		$html = SettingsScreen::html( array( 'tab' => 'general' ), $this->admin );
+		self::assertStringContainsString( 'To switch it on, type LÖSCHEN or DELETE:', $html );
+		self::assertStringContainsString( 'name="' . Settings::CONFIRM_WORD_FIELD . '"', $html );
+		$ok = SettingsScreen::process_save( $this->post( 'general', array( 'delete_data_on_uninstall' => '1' ), array( Settings::CONFIRM_WORD_FIELD => 'Delete' ) ), $this->admin );
 		self::assertSame( 'saved', $ok['result'] );
 		self::assertTrue( Settings::get( 'general.delete_data_on_uninstall' ) );
+		self::assertStringNotContainsString( 'name="' . Settings::CONFIRM_WORD_FIELD . '"', SettingsScreen::html( array( 'tab' => 'general' ), $this->admin ), 'switching off needs no word' );
+		self::assertSame( 'saved', SettingsScreen::process_save( $this->post( 'general', array( 'delete_data_on_uninstall' => '0' ) ), $this->admin )['result'] );
+		self::assertFalse( Settings::get( 'general.delete_data_on_uninstall' ) );
 	}
 
 	/**

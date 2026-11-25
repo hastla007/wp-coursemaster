@@ -5,16 +5,15 @@
 // $CCAP_E2E_OUT/benchmark.md and benchmark.json.
 // The numbers come from `php -S` on a development container, not from a production stack;
 // they are a baseline for comparison between runs, not a check of the R0-14 limits.
-const { chromium } = require( 'playwright' );
 const fs = require( 'fs' );
 const path = require( 'path' );
-const { OUT, area, login, api, percentile } = require( './lib' );
+const { launch, OUT, area, login, api, percentile } = require( './lib' );
 
 const COURSE = JSON.parse( fs.readFileSync( path.join( OUT, 'reference-course.json' ), 'utf8' ) );
 const SAMPLES = parseInt( process.env.CCAP_E2E_SAMPLES || '20', 10 );
 
 ( async () => {
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const page = await ( await browser.newContext() ).newPage();
 	const samples = {};
 	const add = ( k, ms ) => ( samples[ k ] = samples[ k ] || [] ).push( ms );

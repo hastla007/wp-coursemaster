@@ -1,0 +1,23 @@
+msgid ""
+msgstr ""
+"Language: de_DE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Please log in."
+msgstr "Bitte melde dich an."
+
+msgid "You know this question well. It comes back on %s."
+msgstr "Du kannst diese Frage gut. Sie kommt am %s wieder."
+
+msgid "Enter a reason."
+msgstr "Bitte geben Sie einen Grund ein."
+
+msgid "This content is not available to you."
+msgstr ""
+"Dieser Inhalt steht "
+"Ihnen nicht zur Verfügung."
+
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d Datei in deinem Entwurf"
+msgstr[1] "%d Dateien in Ihrem Entwurf"

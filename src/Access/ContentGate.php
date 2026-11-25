@@ -30,6 +30,10 @@ defined( 'ABSPATH' ) || exit;
  *    per module, fixed variants and files of the course;
  * 3. drip: module unlocks *d* days after the access start (max of the
  *    rules; start = earliest active grant, else registration) → `drip`;
+ *    a module without an own rule follows the drip plan
+ *    `enrollment.default_drip_days` (site-wide, SET-CC-25):
+ *    module at position *n* (0-based) unlocks *n × days* after the start
+ *    (rule ref `drip:default`); empty = no plan;
  * 4. prerequisites (`completed_module`, `completed_activity`,
  *    `passed_exam`) → `prerequisite` with `requires`;
  * 5. a running exam locks its questions in learning mode → `exam_running`.
@@ -367,24 +371,69 @@ final class ContentGate {
 	}
 
 	/**
-	 * Drip lock of a module (max days of the rules).
+	 * Drip lock of a module (max days of the rules, else the drip plan).
 	 *
 	 * @param int $user      Learner.
 	 * @param int $course_id Course.
 	 * @param int $module_id Module.
-	 * @return array{id: int, unlock_at: string}|null
+	 * @return array{id: string, unlock_at: string}|null `id` = rule ID or `default`.
 	 */
 	private function drip( int $user, int $course_id, int $module_id ): ?array {
 		$links = $this->course_modules( $course_id );
 		$row   = isset( $links[ $module_id ] ) ? $links[ $module_id ]['drip'] : $this->db->row( $this->db->prepare( 'SELECT id, limit_value FROM `' . $this->db->table( 'ccap_access_rule' ) . "` WHERE course_id = %d AND module_id = %d AND access_type = 'drip' ORDER BY limit_value DESC, id LIMIT 1", $course_id, $module_id ) );
-		if ( null === $row ) {
+		$days  = null === $row ? $this->default_drip_days( $course_id, $module_id ) : max( 0, (int) $row['limit_value'] );
+		if ( null === $days ) {
 			return null;
 		}
-		$unlock = $this->access_start( $user, $course_id ) + 86400 * max( 0, (int) $row['limit_value'] );
+		$unlock = $this->access_start( $user, $course_id ) + 86400 * $days;
+		// RV-14 for the drip plan: a module the learner already started stays open.
+		if ( null === $row && $unlock > self::now() && $this->module_started( $user, $course_id, $module_id ) ) {
+			return null;
+		}
 		return $unlock > self::now() ? array(
-			'id'        => (int) $row['id'],
+			'id'        => null === $row ? 'default' : (string) (int) $row['id'],
 			'unlock_at' => self::sql( $unlock ),
 		) : null;
+	}
+
+	/**
+	 * Whether the learner has activity progress in a module of the course.
+	 *
+	 * @param int $user      Learner.
+	 * @param int $course_id Course.
+	 * @param int $module_id Module.
+	 * @return bool
+	 */
+	private function module_started( int $user, int $course_id, int $module_id ): bool {
+		$lessons = $this->lessons( $module_id );
+		if ( $user <= 0 || array() === $lessons ) {
+			return false;
+		}
+		return null !== $this->db->scalar( $this->db->prepare( 'SELECT 1 FROM `' . $this->db->table( 'ccap_activity_progress' ) . '` WHERE user_id = %d AND course_id = %d AND activity_id IN (' . implode( ',', array_map( 'intval', $lessons ) ) . ') LIMIT 1', $user, $course_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Integer list.
+	}
+
+	/**
+	 * Days of the drip plan for a module without an own rule (SET-CC-25):
+	 * position in the course × `enrollment.default_drip_days`, null without plan.
+	 * Memoized per course for the operation.
+	 *
+	 * @param int $course_id Course.
+	 * @param int $module_id Module.
+	 * @return int|null
+	 */
+	private function default_drip_days( int $course_id, int $module_id ): ?int {
+		$key = 'plan|' . $course_id;
+		if ( ! array_key_exists( $key, $this->memo ) ) {
+			// Site-wide value (no per-course lookup: the gate stays within its query budget, R0-14 OP-03/OP-05).
+			$value              = \CourseCaptain\Settings\EffectiveSettings::resolve( 'enrollment.default_drip_days' )['value'];
+			$this->memo[ $key ] = is_int( $value ) && $value > 0 ? $value : null;
+		}
+		$plan = $this->memo[ $key ];
+		if ( null === $plan ) {
+			return null;
+		}
+		$position = array_search( $module_id, array_keys( $this->course_modules( $course_id ) ), true );
+		return false === $position ? null : (int) $position * (int) $plan;
 	}
 
 	/**
@@ -611,6 +660,30 @@ final class ContentGate {
 					$user,
 					$this->db->now( -\CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
 				)
+			)
+		);
+	}
+
+	/**
+	 * Whether a medium belongs to a question of the learner's running exam
+	 * (E-375, MED-004): the frozen revision of the attempt snapshot
+	 * references the medium; same running condition as
+	 * {@see self::running_exam_questions()}.
+	 *
+	 * @param int $user     Learner.
+	 * @param int $media_id Medium.
+	 * @return bool
+	 */
+	public function running_exam_media( int $user, int $media_id ): bool {
+		if ( $user <= 0 || $media_id <= 0 ) {
+			return false;
+		}
+		return null !== $this->db->scalar(
+			$this->db->prepare(
+				'SELECT 1 FROM `' . $this->db->table( 'ccap_content_media' ) . '` cm JOIN `' . $this->db->table( 'ccap_exam_session_question' ) . '` sq ON sq.revision_id = cm.object_id JOIN `' . $this->db->table( 'ccap_exam_session' ) . "` s ON s.id = sq.session_id WHERE cm.object_type = 'question_revision' AND cm.media_id = %d AND s.user_id = %d AND s.status = 'in_progress' AND (s.deadline_at IS NOT NULL OR s.started_at > %s) LIMIT 1",
+				$media_id,
+				$user,
+				$this->db->now( -\CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
 			)
 		);
 	}

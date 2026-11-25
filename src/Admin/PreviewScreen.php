@@ -9,10 +9,12 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Admin;
 
+use CourseCaptain\Access\RightsGate;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Kernel\Locale;
+use CourseCaptain\Learner\WithheldInlineMedia;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
@@ -26,7 +28,9 @@ defined( 'ABSPATH' ) || exit;
  * and lessons in order, lesson text through `the_content`, the activity
  * of each lesson in words, the deliverable questions of each module pool
  * without solution data (A11Y-022 form shape, inputs disabled) and the
- * exams. Nothing is written: no progress, no attempts, no tokens.
+ * exams. Embedded media of the lesson text whose rights withhold them
+ * get the same placeholder as in the learner view ({@see self::learner_text()}).
+ * Nothing is written: no progress, no attempts, no tokens.
  * Allowed for whoever may edit the course (`edit_post`).
  */
 final class PreviewScreen {
@@ -120,6 +124,7 @@ final class PreviewScreen {
 		$html .= '<div class="notice notice-info inline"><p>' . esc_html__( 'This is the current draft as learners will see it after publishing. Nothing you do here is saved: no progress, no attempts. Answer fields are switched off.', 'course-captain' ) . '</p><p><a href="' . esc_url( (string) get_edit_post_link( $course_id, 'raw' ) ) . '">' . esc_html__( 'Back to the course editor', 'course-captain' ) . '</a></p></div>';
 		$html .= '<div class="ccap-preview-description"' . $lang . '>' . self::content( $course ) . '</div>';
 		$repo  = QuestionRepository::current();
+		$gate  = RightsGate::current();
 		$nav   = '<nav aria-label="' . esc_attr__( 'Course contents', 'course-captain' ) . '"><ol>';
 		$body  = '';
 		foreach ( CourseStructure::current()->modules( $course_id ) as $m => $link ) {
@@ -136,18 +141,28 @@ final class PreviewScreen {
 			}
 			foreach ( $lessons as $lesson ) {
 				$definition = ActivityService::definition( (int) $lesson->ID );
-				$body      .= '<article class="ccap-pv-lesson"><h3>' . esc_html( $lesson->post_title ) . ' <span class="description">(' . esc_html( self::activity_label( $definition['type'] ) ) . ( 'publish' === $lesson->post_status ? '' : ', ' . esc_html__( 'not published', 'course-captain' ) ) . ')</span></h3><div' . $lang . '>' . self::content( $lesson ) . '</div></article>';
+				$body      .= '<article class="ccap-pv-lesson"><h3>' . esc_html( $lesson->post_title ) . ' <span class="description">(' . esc_html( self::activity_label( $definition['type'] ) ) . ( 'publish' === $lesson->post_status ? '' : ', ' . esc_html__( 'not published', 'course-captain' ) ) . ')</span></h3>' . self::withheld_lesson( $gate, (int) $lesson->ID, $definition['settings'] ) . '<div' . $lang . '>' . self::learner_text( self::content( $lesson ), array( $gate, 'medium_uid' ) ) . '</div></article>';
 			}
-			$pool = $repo->pool( (int) $module->ID );
+			// The editorial side sees withheld questions as a notice (R0-10 §2.2); learners never get them.
+			$pool     = $repo->pool( (int) $module->ID, true );
+			$withheld = array() === $pool ? array() : $gate->questions( $pool );
 			if ( array() !== $pool ) {
-				$body .= '<details><summary>' . esc_html( sprintf( /* translators: %d: number of questions */ _n( '%d question for practice and exams', '%d questions for practice and exams', count( $pool ), 'course-captain' ), count( $pool ) ) ) . '</summary>';
-				$ids   = array();
+				$shown = count( $pool ) - count( $withheld );
+				$body .= '<details><summary>' . esc_html( sprintf( /* translators: %d: number of questions */ _n( '%d question for practice and exams', '%d questions for practice and exams', $shown, 'course-captain' ), $shown ) ) . '</summary>';
+				if ( array() !== $withheld ) {
+					$body .= '<p class="ccap-pv-withheld"><strong>' . esc_html( sprintf( /* translators: %d: number of questions */ _n( '%d imported question is not shown to learners because of its rights.', '%d imported questions are not shown to learners because of their rights.', count( $withheld ), 'course-captain' ), count( $withheld ) ) ) . '</strong></p>';
+				}
+				$ids = array();
 				foreach ( array_slice( $pool, 0, self::MAX_QUESTIONS ) as $question ) {
 					$ids[ $question ] = (int) Database::current()->scalar( Database::current()->prepare( 'SELECT current_revision_id FROM `' . Database::current()->table( 'ccap_question' ) . '` WHERE id = %d', $question ) );
 				}
 				$revisions = $repo->revisions( array_values( $ids ) );
 				$n         = 0;
 				foreach ( $ids as $question => $revision ) {
+					if ( isset( $withheld[ $question ] ) ) {
+						$body .= '<p class="ccap-pv-withheld">' . esc_html( sprintf( /* translators: 1: question number, 2: reason why the question is not shown to learners */ __( 'Question %1$d: %2$s', 'course-captain' ), ++$n, RightsGate::notice( $withheld[ $question ] ) ) ) . '</p>';
+						continue;
+					}
 					if ( isset( $revisions[ $revision ] ) && array() === QuestionTypes::validate( $revisions[ $revision ] ) ) {
 						$payload = QuestionTypes::deliver( $revisions[ $revision ], new Randomizer( 'preview' ), 'preview:' . $question )['payload'];
 						$body   .= self::question_html( $payload, ++$n, 'ccap-pv-q' . $question, $lang );
@@ -162,6 +177,41 @@ final class PreviewScreen {
 		}
 		$html .= $nav . '</ol></nav>' . ( '' === $body ? '<p>' . esc_html__( 'The course has no modules yet.', 'course-captain' ) . '</p>' : $body );
 		return $html . self::exams( $course_id ) . '</div>';
+	}
+
+	/**
+	 * Notice for a lesson that learners do not get (R0-10 §2.2): the lesson
+	 * itself is withheld (its `_ccap_rights`), or a medium of the lesson
+	 * (activity file or video, linked media) is replaced by the placeholder.
+	 *
+	 * @param RightsGate           $gate      Rights gate.
+	 * @param int                  $lesson_id Lesson.
+	 * @param array<string, mixed> $settings  Activity settings.
+	 * @return string
+	 */
+	private static function withheld_lesson( RightsGate $gate, int $lesson_id, array $settings ): string {
+		$reason = $gate->post( $lesson_id );
+		if ( null !== $reason ) {
+			return '<p class="ccap-pv-withheld"><strong>' . esc_html( RightsGate::notice( $reason ) ) . '</strong></p>';
+		}
+		$db  = Database::current();
+		$ids = array_map( 'intval', $db->wpdb()->get_col( $db->prepare( 'SELECT media_id FROM `' . $db->table( 'ccap_content_media' ) . "` WHERE object_type = 'lesson' AND object_id = %d", $lesson_id ) ) );
+		$uid = (string) ( $settings['media_uid'] ?? '' );
+		if ( 1 === preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
+			$ids[] = (int) $db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_media' ) . '` WHERE uid = %s', $uid ) );
+		}
+		$media = array() === $ids ? array() : $gate->media( $ids );
+		if ( array() === $media ) {
+			return '';
+		}
+		return '<p class="ccap-pv-withheld"><strong>' . esc_html(
+			sprintf(
+				/* translators: 1: placeholder text such as "Media not available", 2: reason why the medium is not shown to learners */
+				__( 'Learners see "%1$s" in place of a medium of this lesson. %2$s', 'course-captain' ),
+				RightsGate::placeholder(),
+				RightsGate::notice( (string) reset( $media ) )
+			)
+		) . '</strong></p>';
 	}
 
 	/**
@@ -185,6 +235,21 @@ final class PreviewScreen {
 			$html .= '<li>' . esc_html( ExamsScreen::summary( $rule ) ) . ( 'draft' === $rule['status'] ? ' <span class="description">(' . esc_html__( 'draft, not visible to learners yet', 'course-captain' ) . ')</span>' : '' ) . '</li>';
 		}
 		return $html . '</ul></section>';
+	}
+
+	/**
+	 * Lesson text exactly as learners get it: embeds and links of withheld
+	 * media (R0-10 §2.2) become the neutral placeholder "Media not
+	 * available" ({@see WithheldInlineMedia}, learner mode, also for the
+	 * editor viewing the preview). The reason stands in the notice above
+	 * the lesson ({@see self::withheld_lesson()}).
+	 *
+	 * @param string                    $html   Rendered lesson text.
+	 * @param callable(string): ?string $reason Media UID → reason or null ({@see RightsGate::medium_uid()}).
+	 * @return string
+	 */
+	public static function learner_text( string $html, callable $reason ): string {
+		return WithheldInlineMedia::filter( $html, $reason, false );
 	}
 
 	/**

@@ -7,74 +7,14 @@
 // repository and is not downloaded here; without it the built-in DOM checks run: lang, title,
 // one h1 and no skipped heading level, accessible names of form controls/links/buttons,
 // alt texts, unique IDs, a main landmark, skip link first (learning area), no horizontal scrolling
-// at 320 px (A11Y-050) and a visible focus outline on every tab stop of the learning area.
-const { chromium } = require( 'playwright' );
+// at 320 px (A11Y-050) and a visible focus outline on every tab stop of the learning area; the
+// other pages (certificate, verification, editor boxes, groups) at 390 px (UI-F7).
 const fs = require( 'fs' );
 const path = require( 'path' );
-const { BASE, OUT, area, assert, login, api } = require( './lib' );
+const { launch, contextOptions, where, shot, PHONE_WIDTH, BASE, OUT, area, assert, login, api } = require( './lib' );
 
 const COURSE = JSON.parse( fs.readFileSync( path.join( OUT, 'reference-course.json' ), 'utf8' ) );
-const AXE = process.env.AXE_PATH && fs.existsSync( process.env.AXE_PATH ) ? process.env.AXE_PATH : null;
-
-// Built-in checks inside `scope` (CSS selector, default the whole document).
-function domChecks( scope ) {
-	const root = scope ? document.querySelector( scope ) : document;
-	const problems = [];
-	if ( ! root ) {
-		return [ 'scope not found: ' + scope ];
-	}
-	const name = ( el ) => {
-		const labelled = ( el.getAttribute( 'aria-labelledby' ) || '' ).split( /\s+/ ).filter( Boolean ).map( ( id ) => ( document.getElementById( id ) || {} ).textContent || '' ).join( ' ' );
-		const labels = el.labels ? [ ...el.labels ].map( ( l ) => l.textContent ).join( ' ' ) : '';
-		const img = [ ...el.querySelectorAll( 'img[alt]' ) ].map( ( i ) => i.alt ).join( ' ' );
-		return ( el.getAttribute( 'aria-label' ) || labelled || labels || el.getAttribute( 'title' ) || ( [ 'INPUT', 'SELECT', 'TEXTAREA' ].includes( el.tagName ) ? '' : el.textContent ) || img || ( 'submit' === el.type || 'button' === el.type ? el.value : '' ) || '' ).trim();
-	};
-	const visible = ( el ) => !! ( el.offsetWidth || el.offsetHeight || el.getClientRects().length ) && 'hidden' !== getComputedStyle( el ).visibility;
-	if ( ! scope ) {
-		if ( ! document.documentElement.lang ) {
-			problems.push( 'html without lang' );
-		}
-		if ( ! document.title.trim() ) {
-			problems.push( 'empty title' );
-		}
-		if ( ! document.querySelector( 'main, [role=main]' ) ) {
-			problems.push( 'no main landmark' );
-		}
-		const h1 = [ ...document.querySelectorAll( 'h1' ) ].filter( visible ).length;
-		if ( 1 !== h1 ) {
-			problems.push( h1 + ' visible h1' );
-		}
-	}
-	let last = scope ? 1 : 0;
-	for ( const h of root.querySelectorAll( 'h1, h2, h3, h4, h5, h6' ) ) {
-		if ( ! visible( h ) ) {
-			continue;
-		}
-		const level = parseInt( h.tagName.slice( 1 ), 10 );
-		if ( last && level > last + 1 ) {
-			problems.push( 'heading level skipped: ' + h.tagName + ' "' + h.textContent.trim().slice( 0, 40 ) + '"' );
-		}
-		last = level;
-	}
-	for ( const el of root.querySelectorAll( 'input:not([type=hidden]), select, textarea, button, a[href]' ) ) {
-		if ( visible( el ) && ! name( el ) ) {
-			problems.push( 'no accessible name: ' + el.outerHTML.slice( 0, 100 ) );
-		}
-	}
-	for ( const img of root.querySelectorAll( 'img:not([alt])' ) ) {
-		problems.push( 'img without alt: ' + img.outerHTML.slice( 0, 80 ) );
-	}
-	const ids = {};
-	for ( const el of root.querySelectorAll( '[id]' ) ) {
-		ids[ el.id ] = ( ids[ el.id ] || 0 ) + 1;
-	}
-	for ( const [ id, n ] of Object.entries( ids ) ) {
-		if ( n > 1 ) {
-			problems.push( 'duplicate id "' + id + '" (' + n + ')' );
-		}
-	}
-	return problems;
-}
+const { AXE, domChecks, runAxe } = require( './a11y-checks' );
 
 async function check( page, label, url, opts ) {
 	const o = opts || {};
@@ -84,6 +24,7 @@ async function check( page, label, url, opts ) {
 	if ( o.ready ) {
 		await o.ready( page );
 	}
+	await shot( page, label );
 	const problems = await page.evaluate( domChecks, o.scope || null );
 	if ( o.learner ) {
 		// The WordPress toolbar of logged-in users brings its own "Skip to toolbar" link first;
@@ -113,30 +54,38 @@ async function check( page, label, url, opts ) {
 			}
 			await page.keyboard.press( 'Tab' );
 		}
+		const size = page.viewportSize();
 		await page.setViewportSize( { width: 320, height: 640 } );
 		const px = await page.evaluate( () => document.documentElement.scrollWidth - document.documentElement.clientWidth );
 		if ( px > 0 ) {
 			problems.push( 'horizontal scrolling at 320 px: ' + px );
 		}
-		await page.setViewportSize( { width: 1280, height: 900 } );
+		await page.setViewportSize( size );
 	}
-	let axe = null;
-	if ( AXE ) {
-		await page.addScriptTag( { path: AXE } );
-		axe = await page.evaluate( async ( scope ) => {
-			const res = await window.axe.run( scope ? { include: [ scope ] } : document, { runOnly: { type: 'tag', values: [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa' ] }, resultTypes: [ 'violations' ] } );
-			return res.violations.map( ( v ) => 'axe ' + v.id + ' (' + v.nodes.length + '): ' + v.nodes.map( ( n ) => n.target.join( ' ' ) ).slice( 0, 3 ).join( ', ' ) );
-		}, o.scope || null );
-		problems.push( ...axe );
+	if ( ! o.learner ) {
+		// UI-F7: admin and other pages reflow at a phone width too (WCAG 1.4.10); on a phone the
+		// page is already 390 px wide. Found: the groups tables scrolled the whole page.
+		const size = page.viewportSize();
+		if ( size.width > PHONE_WIDTH ) {
+			await page.setViewportSize( { width: PHONE_WIDTH, height: 844 } );
+		}
+		const px = await page.evaluate( () => document.documentElement.scrollWidth - document.documentElement.clientWidth );
+		if ( px > 0 ) {
+			problems.push( 'horizontal scrolling at ' + PHONE_WIDTH + ' px: ' + px );
+		}
+		if ( size.width > PHONE_WIDTH ) {
+			await page.setViewportSize( size );
+		}
 	}
+	problems.push( ...( await runAxe( page, o.scope || null ) ) );
 	return { page: label, problems: [ ...new Set( problems ) ] };
 }
 
 ( async () => {
-	const browser = await chromium.launch();
+	const browser = await launch();
 	const report = [];
 	try {
-		const member = await browser.newContext( { viewport: { width: 1280, height: 900 } } );
+		const member = await browser.newContext( contextOptions( browser, { viewport: { width: 1280, height: 900 } } ) );
 		const mp = await member.newPage();
 		const n = await login( mp, 'cc_e2e_ina' );
 		const uid = COURSE.course_uid;
@@ -150,12 +99,12 @@ async function check( page, label, url, opts ) {
 		assert( cert, 'certificate of the reference course for the A11Y check' );
 		report.push( await check( mp, 'L-15 certificate', cert.view_url ) );
 		const verify = await mp.locator( '.ccap-verify a' ).getAttribute( 'href' );
-		const guest = await browser.newContext();
+		const guest = await browser.newContext( contextOptions( browser ) );
 		const gp = await guest.newPage();
 		report.push( await check( gp, 'L-16 verification (guest)', verify ) );
 		await guest.close();
 
-		const author = await browser.newContext( { viewport: { width: 1400, height: 1000 } } );
+		const author = await browser.newContext( contextOptions( browser, { viewport: { width: 1400, height: 1000 } } ) );
 		const ap = await author.newPage();
 		await login( ap, 'cc_e2e_author' );
 		const metaBoxes = async ( p ) => {
@@ -175,7 +124,7 @@ async function check( page, label, url, opts ) {
 		await browser.close();
 	}
 	const failed = report.filter( ( r ) => r.problems.length );
-	console.log( 'a11y (' + ( AXE ? 'axe-core + DOM checks' : 'DOM checks, axe-core not available' ) + '):' );
+	console.log( 'a11y [' + where() + '] (' + ( AXE ? 'axe-core + DOM checks' : 'DOM checks, axe-core not available' ) + '):' );
 	for ( const r of report ) {
 		console.log( ( r.problems.length ? 'FAIL ' : 'ok   ' ) + r.page + ( r.problems.length ? ': ' + r.problems.join( ' | ' ) : '' ) );
 	}

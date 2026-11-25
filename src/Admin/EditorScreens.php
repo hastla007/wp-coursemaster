@@ -30,6 +30,13 @@ final class EditorScreens {
 	public const MENU = 'course-captain';
 
 	/**
+	 * A course save of this request is running (nested `save_post` from publishing).
+	 *
+	 * @var bool
+	 */
+	private static bool $saving = false;
+
+	/**
 	 * Hooks.
 	 *
 	 * @return void
@@ -44,6 +51,7 @@ final class EditorScreens {
 		add_action( 'admin_notices', array( self::class, 'flash' ), 5 );
 		add_action( 'enqueue_block_editor_assets', array( self::class, 'editor_notices' ) );
 		add_action( 'wp_ajax_ccap_editor_flash', array( self::class, 'ajax_flash' ) );
+		\CourseCaptain\Publish\DecorativeImages::register();
 	}
 
 	/**
@@ -139,7 +147,41 @@ final class EditorScreens {
 		echo '<label><input type="radio" name="ccap_change_class" value="minor" checked> ' . esc_html__( 'Content change', 'course-captain' ) . '</label></fieldset>';
 		echo '<p><label for="ccap-publish-notes">' . esc_html__( 'Note for learners (optional)', 'course-captain' ) . '</label><textarea id="ccap-publish-notes" name="ccap_publish_notes" rows="3" class="widefat"></textarea></p>';
 		echo self::validation_panel( (int) $post->ID ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
-		echo '<p><label><input type="checkbox" name="ccap_publish_revision" value="1"> ' . esc_html__( 'Publish a new revision when saving', 'course-captain' ) . '</label></p>';
+		// UI-F6: the value names the revision this form was rendered for. The block editor
+		// saves the meta boxes again without reloading them; a box still ticked from an
+		// earlier save then no longer matches and does not publish once more.
+		echo '<p><label><input type="checkbox" name="ccap_publish_revision" value="' . esc_attr( self::publish_base( null === $current ? 0 : (int) $current['revision_no'] ) ) . '"> ' . esc_html__( 'Publish a new revision when saving', 'course-captain' ) . '</label></p>';
+	}
+
+	/**
+	 * Value of the "publish" box: the published revision the form was rendered for.
+	 *
+	 * @param int $revision_no Published revision number (0 = none).
+	 * @return string
+	 */
+	private static function publish_base( int $revision_no ): string {
+		return 'base:' . $revision_no;
+	}
+
+	/**
+	 * Whether a posted "publish" box still belongs to the current state:
+	 * `1` (forms without a base, e.g. scripts) or `base:<n>` with the
+	 * current published revision number.
+	 *
+	 * @param string $posted    Posted value.
+	 * @param int    $course_id Course.
+	 * @return bool
+	 */
+	private static function publish_requested( string $posted, int $course_id ): bool {
+		if ( '1' === $posted ) {
+			return true;
+		}
+		if ( 1 !== preg_match( '/^base:(\d{1,9})$/', $posted, $m ) ) {
+			return false;
+		}
+		$current   = CoursePublisher::current()->current_revision( $course_id );
+		$published = null === $current ? 0 : (int) $current['revision_no'];
+		return $published === (int) $m[1];
 	}
 
 	/**
@@ -197,6 +239,14 @@ final class EditorScreens {
 	 * @return string
 	 */
 	private static function jump_link( array $issue ): string {
+		if ( 'rights' === ( $issue['target']['page'] ?? '' ) ) {
+			// R0-22 VAL-100…105: "Rights & release" of the course, only with the release right.
+			$course = (int) ( $issue['target']['course'] ?? 0 );
+			if ( $course > 0 && current_user_can( RightsArea::CAP ) && current_user_can( 'edit_post', $course ) ) {
+				return ' <a href="' . esc_url( RightsArea::url( $course ) ) . '" class="ccap-validation-jump">' . esc_html__( 'Check rights', 'course-captain' ) . '</a>';
+			}
+			return ' <span class="description">' . esc_html__( 'Please inform the course administration.', 'course-captain' ) . '</span>';
+		}
 		$object = (array) ( $issue['object'] ?? array() );
 		$id     = (int) ( $object['id'] ?? 0 );
 		if ( $id <= 0 || ! in_array( (string) ( $object['type'] ?? '' ), array( 'module', 'lesson', 'activity' ), true ) || ! current_user_can( 'edit_post', $id ) ) {
@@ -241,7 +291,8 @@ final class EditorScreens {
 			echo '<option value="' . esc_attr( $type ) . '"' . selected( $definition['type'], $type, false ) . '>' . esc_html( $type ) . '</option>';
 		}
 		echo '</select></p>';
-		echo '<p><label for="ccap-activity-settings">' . esc_html__( 'Settings (JSON)', 'course-captain' ) . '</label><textarea id="ccap-activity-settings" name="ccap_activity_settings" rows="4" class="widefat code">' . esc_textarea( (string) wp_json_encode( (object) $definition['settings'], JSON_PRETTY_PRINT ) ) . '</textarea></p>';
+		echo '<p><label for="ccap-activity-settings">' . esc_html__( 'Settings (JSON)', 'course-captain' ) . '</label><textarea id="ccap-activity-settings" name="ccap_activity_settings" rows="4" class="widefat code">' . esc_textarea( (string) wp_json_encode( (object) array_diff_key( $definition['settings'], array_flip( LessonMediaFields::KEYS ) ), JSON_PRETTY_PRINT ) ) . '</textarea></p>';
+		echo LessonMediaFields::html( $definition['type'], $definition['settings'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped while building.
 		echo '<p><label for="ccap-activity-rule">' . esc_html__( 'Completion rule', 'course-captain' ) . '</label><br><input id="ccap-activity-rule" type="text" name="ccap_activity_rule" value="' . esc_attr( (string) ( $definition['rule']['type'] ?? '' ) ) . '" class="regular-text"><br><span class="description">' . esc_html__( 'Leave empty for the default rule of the type.', 'course-captain' ) . '</span></p>';
 		echo '<p class="description">' . esc_html__( 'The order of lessons in a module follows the "Order" field in the page attributes. Use "Preview" to see the lesson as a learner.', 'course-captain' ) . '</p>';
 	}
@@ -254,6 +305,10 @@ final class EditorScreens {
 	 * @return void
 	 */
 	public static function save_course( int $post_id, \WP_Post $post ): void {
+		if ( self::$saving ) {
+			// Publishing a draft updates the post status, which runs this hook again (UI-F6).
+			return;
+		}
 		if ( ! isset( $_POST['ccap_structure_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( (string) $_POST['ccap_structure_nonce'] ) ), 'ccap_course_structure_' . $post_id ) || wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
 			return;
 		}
@@ -294,10 +349,35 @@ final class EditorScreens {
 		if ( $add > 0 ) {
 			$items[] = array( 'module_id' => $add );
 		}
+		self::$saving = true;
+		try {
+			self::save_course_steps( $actor, $post_id, $items, $post );
+		} finally {
+			self::$saving = false;
+		}
+	}
+
+	/**
+	 * Structure and optional publish of one course save.
+	 *
+	 * @param Actor    $actor   Author.
+	 * @param int      $post_id Course.
+	 * @param array    $items   Module rows.
+	 * @phpstan-param list<array<string, mixed>> $items
+	 * @param \WP_Post $post    Post.
+	 * @return void
+	 */
+	private static function save_course_steps( Actor $actor, int $post_id, array $items, \WP_Post $post ): void {
 		self::attempt(
 			static function () use ( $actor, $post_id, $items, $post ): void {
 				AuthoringService::current()->update_structure( $actor, $post_id, $items );
-				if ( ! empty( $_POST['ccap_publish_revision'] ) && 'auto-draft' !== $post->post_status ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+				$publish = isset( $_POST['ccap_publish_revision'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['ccap_publish_revision'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
+				if ( '' !== $publish && ! self::publish_requested( $publish, $post_id ) ) {
+					// UI-F6: the box was ticked for a revision that has been published since.
+					set_transient( 'ccap_editor_error_' . get_current_user_id(), __( 'Not published again: this revision was already published by an earlier save. Tick "Publish a new revision when saving" again to publish another revision.', 'course-captain' ), 600 );
+					$publish = '';
+				}
+				if ( '' !== $publish && 'auto-draft' !== $post->post_status ) {
 					$class = isset( $_POST['ccap_change_class'] ) ? sanitize_key( wp_unslash( (string) $_POST['ccap_change_class'] ) ) : 'minor'; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
 					$notes = isset( $_POST['ccap_publish_notes'] ) ? sanitize_textarea_field( wp_unslash( (string) $_POST['ccap_publish_notes'] ) ) : null; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
 					$ack   = array_values( array_map( 'sanitize_text_field', (array) wp_unslash( $_POST['ccap_ack'] ?? array() ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above.
@@ -335,6 +415,7 @@ final class EditorScreens {
 				if ( ! is_array( $settings ) ) {
 					throw new CourseException( 'ccap_validation_failed', 'settings_json', 422 );
 				}
+				$settings = LessonMediaFields::merge( $type, $settings, wp_unslash( $_POST ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce checked above; fields sanitized in merge().
 				AuthoringService::current()->define_activity( Actor::user( get_current_user_id() ), $post_id, $type, $settings, '' === $rule ? array() : array( 'type' => $rule ) );
 			}
 		);
@@ -420,7 +501,8 @@ final class EditorScreens {
 	 * Block editor of courses, modules and lessons: classic admin notices are
 	 * hidden there and the meta boxes are saved in the background, so the save
 	 * messages are shown as editor notices (on load and after each meta box
-	 * save, `assets/js/editor-notices.js`).
+	 * save, `assets/js/editor-notices.js`); plus the layout rules of the
+	 * plugin's meta boxes (`AdminUi::EDITOR_CSS`).
 	 *
 	 * @return void
 	 */
@@ -430,6 +512,9 @@ final class EditorScreens {
 			return;
 		}
 		wp_enqueue_script( 'ccap-editor-notices', plugins_url( 'assets/js/editor-notices.js', COURSE_CAPTAIN_FILE ), array( 'wp-data', 'wp-notices' ), COURSE_CAPTAIN_VERSION, true );
+		wp_register_style( 'ccap-editor-boxes', false, array(), COURSE_CAPTAIN_VERSION );
+		wp_enqueue_style( 'ccap-editor-boxes' );
+		wp_add_inline_style( 'ccap-editor-boxes', AdminUi::EDITOR_CSS );
 		wp_localize_script(
 			'ccap-editor-notices',
 			'ccapEditorNotices',
@@ -437,6 +522,7 @@ final class EditorScreens {
 				'url'     => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'ccap_editor_flash' ),
 				'message' => self::page_view() ? self::pull_flash() : '',
+				'postId'  => isset( $GLOBALS['post'] ) && $GLOBALS['post'] instanceof \WP_Post ? (int) $GLOBALS['post']->ID : 0,
 			)
 		);
 	}
@@ -448,7 +534,45 @@ final class EditorScreens {
 	 */
 	public static function ajax_flash(): void {
 		check_ajax_referer( 'ccap_editor_flash' );
-		wp_send_json_success( array( 'message' => self::pull_flash() ) );
+		$post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
+		wp_send_json_success(
+			array(
+				'message' => self::pull_flash(),
+				'boxes'   => self::fresh_boxes( $post_id ),
+			)
+		);
+	}
+
+	/**
+	 * UI-F6: the meta boxes of a post rendered from the stored state, so the
+	 * block editor can replace the panels after a background save (module
+	 * list, structure version, published revision, validation, the
+	 * "publish" box unticked). Only for posts the viewer may edit.
+	 *
+	 * @param int $post_id Course or lesson.
+	 * @return array<string, string> Meta box ID → inner HTML.
+	 */
+	public static function fresh_boxes( int $post_id ): array {
+		$post = $post_id > 0 ? get_post( $post_id ) : null;
+		if ( ! $post instanceof \WP_Post || ! current_user_can( 'edit_post', $post_id ) ) {
+			return array();
+		}
+		$boxes = array();
+		if ( Relations::COURSE_TYPE === $post->post_type ) {
+			$boxes = array(
+				'ccap-course-structure' => array( self::class, 'render_structure' ),
+				'ccap-course-publish'   => array( self::class, 'render_publish' ),
+			);
+		} elseif ( Relations::LESSON_TYPE === $post->post_type ) {
+			$boxes = array( 'ccap-lesson-activity' => array( self::class, 'render_activity' ) );
+		}
+		$out = array();
+		foreach ( $boxes as $id => $render ) {
+			ob_start();
+			$render( $post );
+			$out[ $id ] = (string) ob_get_clean();
+		}
+		return $out;
 	}
 
 	/**

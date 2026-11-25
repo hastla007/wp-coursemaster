@@ -79,7 +79,8 @@ final class GoldenMasterMediaTest extends SchemaTestCase {
 	}
 
 	/**
-	 * GM-118 on PKG-v1: validated → start without approval refused →
+	 * GM-118 on PKG-v1: validated → run step and approval before the dry run
+	 * refused → start, run step and run without approval refused →
 	 * approved → published; the imported objects equal the manifest counts
 	 * (2 courses, 5 question modules + 3 lesson modules, 71 questions incl.
 	 * 1 draft, 4 media files, 2 rule sets, 4 fixed variants, 13 flashcards,
@@ -94,6 +95,15 @@ final class GoldenMasterMediaTest extends SchemaTestCase {
 		$file    = NeutralFixture::package( 1, $this->dir . '/pkg-v1-gm118.zip', $system );
 		$batch   = $service->upload( $admin, $file );
 		self::assertSame( 'validated', $service->validate( $admin, $batch )['status'] );
+		foreach ( array( fn() => ImportRunner::current()->step( $admin, $batch, 0.0 ), fn() => $service->approve( $admin, $batch ) ) as $call ) {
+			try {
+				$call();
+				self::fail( 'run step or approval before the dry run' );
+			} catch ( CourseException $e ) {
+				self::assertSame( array( 409, 'ccap_import_state' ), array( $e->status, $e->error_code ) );
+			}
+		}
+		self::assertSame( 0, (int) Database::current()->scalar( Database::current()->prepare( 'SELECT COUNT(*) FROM `' . Database::current()->table( 'ccap_import_item_log' ) . '` WHERE batch_id = %d', $batch ) ), 'nothing written' );
 		$manifest = self::manifest( $file );
 		self::assertSame(
 			array(
@@ -117,9 +127,12 @@ final class GoldenMasterMediaTest extends SchemaTestCase {
 		}
 		self::assertSame( self::sorted( $manifest['counts'] ), self::sorted( $created ), 'dry run: every record is a create' );
 
-		// No run without approval (R0-10 §3.4: runStep only from approved/importing).
+		// No run without approval (R0-10 §3.4: runStep only from approved/importing),
+		// neither the start, nor a single run step, nor the synchronous run.
 		foreach ( array(
 			fn() => ImportRunner::current()->start( $admin, $batch, false ),
+			fn() => ImportRunner::current()->step( $admin, $batch, 0.0 ),
+			fn() => ImportRunner::current()->step( $admin, $batch, null ),
 			fn() => $service->run( $admin, $batch ),
 		) as $call ) {
 			try {
@@ -305,6 +318,7 @@ final class GoldenMasterMediaTest extends SchemaTestCase {
 	 * entry.
 	 *
 	 * @group GM-128
+	 * @group RBAC-076
 	 */
 	public function test_GM_128_media_types_and_quarantine(): void {
 		$system  = 'cc-fx-gm-128';
