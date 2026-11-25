@@ -225,6 +225,13 @@ final class GroupService {
 				$seat = $target['seat'];
 				return $this->db->transaction(
 					function ( Database $db ) use ( $actor, $token, $group, $seat, $group_id ): int {
+						// R0-09 R-12 / ID-014: the account is checked inside the transaction. The share lock
+						// keeps a parallel account deletion waiting until this join has committed; the
+						// deletion's second pass (`deleted_user`) then removes the seat and its grants.
+						$users = $db->wpdb()->users;
+						if ( null === $db->scalar( $db->prepare( "SELECT ID FROM `{$users}` WHERE ID = %d LOCK IN SHARE MODE", $actor->user_id ) ) ) {
+							throw new CourseException( 'ccap_forbidden', 'The account no longer exists.', 403 );
+						}
 						$now = $db->now();
 						if ( null !== $seat ) {
 							$rows = $db->execute(
