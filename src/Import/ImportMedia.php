@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Import;
 
 use CourseCaptain\Access\ProtectedStorage;
+use CourseCaptain\Activity\MediaLibrary;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Storage\Database;
 
@@ -290,13 +291,18 @@ final class ImportMedia {
 	}
 
 	/**
-	 * Stored role of a package role.
+	 * Stored role of a package role. Schema 1.0 roles are mapped; since
+	 * schema 1.1 a stored role of {@see MediaLibrary::ROLES} (e.g. `poster`)
+	 * is taken over as it is (course export, E-382).
 	 *
-	 * @param string $role       primary|inline|attachment|caption.
+	 * @param string $role       primary|inline|attachment|caption, or a stored role (1.1).
 	 * @param string $media_type Media type.
 	 * @return string
 	 */
 	public static function role( string $role, string $media_type ): string {
+		if ( ! isset( self::ROLE_MAP[ $role ] ) && in_array( $role, MediaLibrary::ROLES, true ) ) {
+			return $role;
+		}
 		if ( 'caption' === $role || 'captions' === $media_type ) {
 			return 'subtitle';
 		}

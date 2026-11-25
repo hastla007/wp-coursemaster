@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Access\ProtectedStorage;
+use CourseCaptain\Activity\MediaLibrary;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
@@ -716,18 +717,20 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 	}
 
 	/**
-	 * IMP-030: round trip. A hand-built course is exported (P1), the site
-	 * is emptied of it (course, module and lesson deleted), P1 is
-	 * imported, and the imported course is exported again (P2): both
-	 * packages have the same `content_sha256`; P2 imported again plans
-	 * `unchanged` only.
-	 *
-	 * Question to the lead: R0-10 §6.1 says a re-import of an own export
-	 * on the source site "aktualisiert dieselben Objekte"; the scan maps
-	 * only through `ccap_source_map`, so hand-built objects (no map row)
-	 * would be created again. The test therefore empties the site first.
+	 * IMP-030 (E-382): round trip with media and exam blueprints. A
+	 * hand-built course is exported (P1): lesson and question media
+	 * (protected image, poster, subtitles, a licensed image with rights
+	 * metadata), an exam rule with module draw, passing part, form mode,
+	 * a setting override and a frozen fixed variant. A medium with
+	 * `restricted` rights and a plain-text file are left out and listed in
+	 * `export.excluded[]`. The site is emptied of the course (course,
+	 * module and lesson deleted; E-382: no UID matching, the import
+	 * creates new objects), P1 is imported, and the imported course is
+	 * exported again (P2): both packages have the same records and the
+	 * same `content_sha256`; P2 imported again plans `unchanged` only.
 	 *
 	 * @group IMP-030
+	 * @group E-382
 	 */
 	public function test_IMP_030_round_trip(): void {
 		$admin  = Actor::user( $this->admin );
@@ -749,7 +752,7 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 		$repo   = QuestionRepository::current();
 		$qids   = array();
 		foreach ( array( 'Erste Rundreise-Frage', 'Zweite Rundreise-Frage' ) as $text ) {
-			$id = $repo->create(
+			$id     = $repo->create(
 				$admin,
 				array(
 					'question_type' => QuestionTypes::SINGLE,
@@ -767,20 +770,203 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 					),
 				)
 			);
-			$repo->publish( $admin, $id );
-			$repo->add_to_pool( $admin, $module, $id );
 			$qids[] = $id;
 		}
 
+		// Media: image, poster and subtitles of the lesson, a licensed image of the first question.
+		$db       = Database::current();
+		$library  = MediaLibrary::current();
+		$files    = NeutralFixture::media_files();
+		$medium   = function ( string $name, string $mime, string $data, string $title ) use ( $admin, $library ): int {
+			$upload = wp_upload_bits( $name, null, $data );
+			self::assertEmpty( $upload['error'], (string) $upload['error'] );
+			$id = (int) wp_insert_attachment(
+				array(
+					'post_title'     => $title,
+					'post_mime_type' => $mime,
+					'post_status'    => 'inherit',
+				),
+				$upload['file']
+			);
+			return $library->register_attachment( $admin, $id );
+		};
+		$suffix   = strtolower( wp_generate_password( 6, false, false ) );
+		$image    = $medium( 'rt-bild-' . $suffix . '.png', 'image/png', $files['a1-003.png'], 'Rundreise Bild' );
+		$poster   = $medium( 'rt-poster-' . $suffix . '.png', 'image/png', $files['a1-003.png'], 'Rundreise Vorschaubild' );
+		$captions = $medium( 'rt-untertitel-' . $suffix . '.vtt', 'text/vtt', $files['alpha-04.vtt'], 'Rundreise Untertitel' );
+		$licensed = $medium( 'rt-foto-' . $suffix . '.pdf', 'application/pdf', $files['fixture.pdf'], 'Rundreise Blatt' );
+		$blocked  = $medium( 'rt-gesperrt-' . $suffix . '.png', 'image/png', $files['a1-003.png'] . 'x', 'Gesperrt' );
+		$text     = $medium( 'rt-notiz-' . $suffix . '.txt', 'text/plain', "Notiz\n", 'Notiz' );
+		$media    = $db->table( 'ccap_media' );
+		$db->execute( $db->prepare( "UPDATE `{$media}` SET alt_text = %s WHERE id = %d", 'Farbfläche mit Beschriftung', $image ) );
+		$db->execute(
+			$db->prepare(
+				"UPDATE `{$media}` SET rights_status = 'licensed', rights_owner = %s, license_reference = %s WHERE id = %d",
+				'Bildarchiv Beispiel',
+				(string) wp_json_encode(
+					array(
+						'license'     => 'CC-BY-4.0',
+						'attribution' => 'Bild: Bildarchiv Beispiel',
+					)
+				),
+				$licensed
+			)
+		);
+		$db->execute( $db->prepare( "UPDATE `{$media}` SET rights_status = 'restricted' WHERE id = %d", $blocked ) );
+		$library->attach( $admin, $image, 'lesson', $lesson, 'image', 1 );
+		$library->attach( $admin, $poster, 'lesson', $lesson, 'poster', 2 );
+		$library->attach( $admin, $captions, 'lesson', $lesson, 'subtitle', 3 );
+		$library->attach( $admin, $blocked, 'lesson', $lesson, 'image', 4 );
+		$library->attach( $admin, $text, 'lesson', $lesson, 'attachment', 5 );
+		$revision = (int) $db->scalar( $db->prepare( 'SELECT current_revision_id FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $qids[0] ) );
+		$library->attach( $admin, $licensed, 'question_revision', $revision, 'download', 1 );
+		foreach ( $qids as $id ) {
+			$repo->publish( $admin, $id );
+			$repo->add_to_pool( $admin, $module, $id );
+		}
+		self::assertSame( $revision, (int) $db->scalar( $db->prepare( 'SELECT current_revision_id FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $qids[0] ) ), 'publishing keeps the revision with its media' );
+
+		// Exam rule with a module draw (2 points per question), a labelled part, form mode, an override and a frozen variant.
+		$rules = ExamRules::current();
+		$rule  = $rules->create(
+			$admin,
+			$course,
+			'Rundreise 1',
+			array(
+				'min_ratio' => array(
+					'num' => 1,
+					'den' => 2,
+				),
+				'parts'     => array(
+					array(
+						'key'       => 'T1',
+						'label'     => 'Teil eins',
+						'section'   => $module,
+						'min_ratio' => array(
+							'num' => 1,
+							'den' => 2,
+						),
+					),
+				),
+			),
+			null,
+			array( 'overrides' => array( 'exams.max_attempts' => 3 ) )
+		);
+		$rules->set_blueprint( $admin, $rule, $module, 2, 2 );
+		$rules->set_form_mode( $admin, $rule, 'variants' );
+		$rules->publish( $admin, $rule );
+		$rules->create_variant( $admin, $course, 1, array( $qids[1], $qids[0] ) );
+
 		$first = PackageExporter::collect( $admin, array( $course ) );
-		self::assertSame( array(), $first['export']['excluded'] );
-		self::assertSame( array( 1, 1, 1, 2 ), array( count( $first['records']['courses'] ), count( $first['records']['modules'] ), count( $first['records']['lessons'] ), count( $first['records']['questions'] ) ) );
-		$p1 = PackageExporter::write( $first['records'], 'site-rt', 'Rundreise', $this->dir . '/p1.zip', PackageExporter::RECORDS_PER_FILE, array(), true, $first['export'] );
-		self::assertTrue( PackageValidator::validate( $p1 )['ok'] );
+		$ids   = static fn( array $records ): array => array_column( $records, 'source_id' );
+		$uid   = static fn( int $id ): string => (string) $db->scalar( $db->prepare( "SELECT uid FROM `{$media}` WHERE id = %d", $id ) );
+		self::assertEqualsCanonicalizing(
+			array(
+				array(
+					'entity'    => 'media',
+					'source_id' => $uid( $blocked ),
+					'reason'    => 'restricted',
+				),
+				array(
+					'entity'    => 'media',
+					'source_id' => $uid( $text ),
+					'reason'    => 'unsupported_type',
+				),
+			),
+			array_values( array_filter( $first['export']['excluded'], static fn( array $e ): bool => 'media' === $e['entity'] ) )
+		);
+		self::assertCount( 2, $first['export']['excluded'] );
+		self::assertSame( array( 1, 1, 1, 2, 4, 1 ), array( count( $first['records']['courses'] ), count( $first['records']['modules'] ), count( $first['records']['lessons'] ), count( $first['records']['questions'] ), count( $first['records']['media'] ), count( $first['records']['blueprints'] ) ) );
+		self::assertSame( array( $uid( $image ), $uid( $poster ), $uid( $captions ), $uid( $licensed ) ), $ids( $first['records']['media'] ) );
+		self::assertSame(
+			array(
+				array(
+					'media' => $uid( $image ),
+					'role'  => 'primary',
+					'sort'  => 1,
+				),
+				array(
+					'media' => $uid( $poster ),
+					'role'  => 'poster',
+					'sort'  => 2,
+				),
+				array(
+					'media' => $uid( $captions ),
+					'role'  => 'caption',
+					'sort'  => 3,
+				),
+			),
+			$first['records']['lessons'][0]['media'],
+			'left-out media drop their links'
+		);
+		$by_id = array_column( $first['records']['media'], null, 'source_id' );
+		self::assertSame( 'captions', $by_id[ $uid( $captions ) ]['media_type'] );
+		self::assertSame( 'document', $by_id[ $uid( $licensed ) ]['media_type'] );
+		self::assertSame( 'protected', $by_id[ $uid( $image ) ]['access'] );
+		self::assertSame( 'Farbfläche mit Beschriftung', $by_id[ $uid( $image ) ]['alt_text'] );
+		self::assertTrue( $by_id[ $uid( $poster ) ]['decorative'], 'an image without alternative text is exported as decorative' );
+		self::assertSame(
+			array(
+				'status'      => 'licensed',
+				'owner'       => 'Bildarchiv Beispiel',
+				'license'     => 'CC-BY-4.0',
+				'attribution' => 'Bild: Bildarchiv Beispiel',
+			),
+			$by_id[ $uid( $licensed ) ]['rights']
+		);
+		self::assertSame( hash( 'sha256', $files['fixture.pdf'] ), $by_id[ $uid( $licensed ) ]['sha256'] );
+		self::assertSame( strlen( $files['fixture.pdf'] ), $by_id[ $uid( $licensed ) ]['size'] );
+		self::assertSame(
+			array(
+				array(
+					'media' => $uid( $licensed ),
+					'role'  => 'primary',
+					'sort'  => 1,
+				),
+			),
+			$first['records']['questions'][0]['media']
+		);
+		$blueprint = $first['records']['blueprints'][0];
+		self::assertSame( $first['records']['courses'][0]['source_id'], $blueprint['course'] );
+		self::assertSame( 'published', $blueprint['status'] );
+		self::assertSame(
+			array(
+				array(
+					'module' => $first['records']['modules'][0]['source_id'],
+					'count'  => 2,
+					'points' => 2,
+				),
+			),
+			$blueprint['draws']
+		);
+		self::assertSame( 'Teil eins', $blueprint['passing_rule']['parts'][0]['label'] );
+		self::assertSame(
+			array(
+				'purpose'   => 'evidence',
+				'form_mode' => 'variants',
+				'overrides' => array( 'exams.max_attempts' => 3 ),
+			),
+			$blueprint['settings']
+		);
+		self::assertSame(
+			array(
+				array(
+					'key'       => '1',
+					'questions' => array( $first['records']['questions'][1]['source_id'], $first['records']['questions'][0]['source_id'] ),
+				),
+			),
+			$blueprint['fixed_variants']
+		);
+		self::assertSame( 1, PackageExporter::schema_minor( $first['records'] ), 'poster role and blueprint extras need schema 1.1' );
+		$p1    = PackageExporter::write( $first['records'], 'site-rt', 'Rundreise', $this->dir . '/p1.zip', PackageExporter::RECORDS_PER_FILE, $first['media'], true, $first['export'], $first['warnings'] );
+		$check = PackageValidator::validate( $p1 );
+		self::assertTrue( $check['ok'], (string) wp_json_encode( $check['errors'] ) );
+		self::assertSame( '1.1.0', $check['manifest']['schema_version'] );
+		self::assertSame( array(), $check['manifest']['report']['warnings'] );
+		self::assertSame( 4, count( array_filter( $check['manifest']['files'], static fn( array $f ): bool => str_starts_with( $f['path'], 'media/' ) ) ), 'four media files in the archive' );
 
 		// Empty the site of the course (stands in for the empty target site;
-		// the hand-built questions stay as orphans, the import creates its own).
-		$db = Database::current();
+		// the hand-built questions, media and exam rule stay as orphans, the import creates its own).
 		$db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_course_module' ) . '` WHERE course_id = %d', $course ) );
 		$guard = has_filter( 'pre_delete_post', array( DeletionGuard::class, 'filter' ) );
 		if ( false !== $guard ) {
@@ -795,24 +981,42 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 				add_filter( 'pre_delete_post', array( DeletionGuard::class, 'filter' ), (int) $guard, 2 );
 			}
 		}
-		self::assertCount( 2, $qids );
 
 		$service = ImportService::current();
 		$batch   = $service->upload( $admin, $p1 );
-		$service->validate( $admin, $batch );
+		self::assertSame( 'validated', $service->validate( $admin, $batch )['status'] );
 		$plan = $service->preview( $admin, $batch )['plan'];
-		foreach ( array( 'courses', 'modules', 'lessons', 'questions' ) as $entity ) {
+		foreach ( array( 'courses', 'modules', 'lessons', 'questions', 'media', 'blueprints' ) as $entity ) {
 			self::assertSame( array( 'create' ), array_keys( $plan[ $entity ] ), $entity );
 		}
 		$service->approve( $admin, $batch );
 		$service->run( $admin, $batch );
+		self::assertSame( 'published', $service->get( $batch )['status'] );
 		$imported = self::object( 'course', (string) $first['records']['courses'][0]['source_id'], 'site-rt' );
 		self::assertGreaterThan( 0, $imported );
 		self::assertNotSame( $course, $imported );
+		$new_lesson = self::object( 'lesson', (string) $first['records']['lessons'][0]['source_id'], 'site-rt' );
+		self::assertNotSame( $lesson, $new_lesson, 'no UID matching: a new lesson' );
+		self::assertSame(
+			array( 'image', 'poster', 'subtitle' ),
+			array_column( $library->media_of( 'lesson', $new_lesson ), 'role' ),
+			'lesson media with their stored roles'
+		);
+		$new_rule = self::object( 'blueprint', (string) $blueprint['source_id'], 'site-rt' );
+		$stored   = (array) $rules->get( $new_rule );
+		self::assertSame( 'published', $stored['status'] );
+		self::assertSame( $imported, (int) $stored['course_id'] );
+		self::assertSame( 'variants', ExamRules::form_mode( $stored ) );
+		self::assertSame( 3, $stored['settings_stored']['overrides']['exams.max_attempts'] );
+		self::assertSame( array( 'points' => 2 ), json_decode( (string) $stored['blueprints'][0]['rules'], true ) );
+		$variants = $rules->variants( $imported, false );
+		self::assertCount( 1, $variants );
+		self::assertSame( 'published', $variants[0]['status'] );
+		self::assertSame( array( self::object( 'question', (string) $first['records']['questions'][1]['source_id'], 'site-rt' ), self::object( 'question', (string) $first['records']['questions'][0]['source_id'], 'site-rt' ) ), $variants[0]['questions'] );
 
 		$second = PackageExporter::collect( $admin, array( $imported ) );
-		self::assertSame( array(), $second['export']['excluded'], 'own export: not foreign' );
-		$p2       = PackageExporter::write( $second['records'], 'site-rt', 'Rundreise', $this->dir . '/p2.zip', PackageExporter::RECORDS_PER_FILE, array(), true, $second['export'] );
+		self::assertSame( array(), $second['export']['excluded'], 'own export: not foreign; left-out media were never imported' );
+		$p2       = PackageExporter::write( $second['records'], 'site-rt', 'Rundreise', $this->dir . '/p2.zip', PackageExporter::RECORDS_PER_FILE, $second['media'], true, $second['export'], $second['warnings'] );
 		$manifest = static function ( string $file ): array {
 			$zip = new \ZipArchive();
 			$zip->open( $file, \ZipArchive::RDONLY );
@@ -823,12 +1027,44 @@ final class ImportCatalogGaps2Test extends SchemaTestCase {
 		self::assertSame( (string) wp_json_encode( $first['records'] ), (string) wp_json_encode( $second['records'] ), 'same records after the round trip' );
 		self::assertSame( $manifest( $p1 )['content_sha256'], $manifest( $p2 )['content_sha256'] );
 		self::assertSame( $manifest( $p1 )['package_id'], $manifest( $p2 )['package_id'] );
+		self::assertSame( $manifest( $p1 )['files'], $manifest( $p2 )['files'] );
 
 		$again = $service->upload( $admin, $p2 );
 		$service->validate( $admin, $again );
 		$plan = $service->preview( $admin, $again )['plan'];
-		foreach ( array( 'courses', 'modules', 'lessons', 'questions' ) as $entity ) {
+		foreach ( array( 'courses', 'modules', 'lessons', 'questions', 'media', 'blueprints' ) as $entity ) {
 			self::assertSame( array( 'unchanged' ), array_keys( $plan[ $entity ] ), $entity );
 		}
+	}
+
+	/**
+	 * IMP-030 (E-382): without schema 1.1 fields the export stays at
+	 * schema 1.0 (importable on older sites), and a package that would
+	 * exceed the import limits is refused with `ccap_export_too_large`.
+	 *
+	 * @group IMP-030
+	 * @group E-382
+	 */
+	public function test_IMP_030_schema_minor_and_limits(): void {
+		$records = self::records( 1 );
+		self::assertSame( 0, PackageExporter::schema_minor( $records ) );
+		$file = $this->package( $records, 'minor' );
+		self::assertSame( '1.0.0', PackageValidator::validate( $file )['manifest']['schema_version'] );
+		$records['lessons'][0]['media'] = array(
+			array(
+				'media' => 'M-1',
+				'role'  => 'poster',
+				'sort'  => 1,
+			),
+		);
+		self::assertSame( 1, PackageExporter::schema_minor( $records ) );
+		self::assertSame( 1, PackageValidator::SCHEMA_MINOR );
+		self::assertSame( 'poster', ImportMedia::role( 'poster', 'image' ), 'schema 1.1: stored roles are taken over' );
+		self::assertSame( 'image', ImportMedia::role( 'primary', 'image' ), 'schema 1.0 roles keep their mapping' );
+		$this->assertRejected(
+			fn() => PackageExporter::write( self::records( 1 ), self::SYSTEM, 'Zu groß', $this->dir . '/big.zip', 1, array_fill_keys( array_map( static fn( int $i ): string => 'media/x/' . $i . '.vtt', range( 1, PackageValidator::MAX_ENTRIES ) ), "WEBVTT\n" ) ),
+			'ccap_export_too_large'
+		);
+		self::assertFileDoesNotExist( $this->dir . '/big.zip' );
 	}
 }

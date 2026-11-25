@@ -11124,11 +11124,14 @@ msgstr "Gib die Datensätze je Datei als ganze Zahl von 1 bis 5000 ein."
 msgid "The package could not be written. Check the protected folders under System status."
 msgstr "Das Paket konnte nicht geschrieben werden. Prüfe die geschützten Ordner unter Systemstatus."
 
+msgid "The package would be larger than an import allows (200 MB, 20,000 files). Export fewer courses at once."
+msgstr "Das Paket wäre größer, als ein Import erlaubt (200 MB, 20.000 Dateien). Exportiere weniger Kurse auf einmal."
+
 msgid "Export a course as a package"
 msgstr "Kurs als Paket exportieren"
 
-msgid "The package (ZIP file in the Course Captain package format) contains the course, its modules, published lessons and the questions of the module pools. Learner data, access, results and settings are never part of it. You can import it on another site under Import content."
-msgstr "Das Paket (ZIP-Datei im Course-Captain-Paketformat) enthält den Kurs, seine Module, veröffentlichte Lektionen und die Fragen der Modulpools. Daten von Lernenden, Zugänge, Ergebnisse und Einstellungen sind nie enthalten. Du kannst es auf einer anderen Website unter „Inhalte importieren“ einspielen."
+msgid "The package (ZIP file in the Course Captain package format) contains the course, its modules, published lessons, the questions of the module pools, the media files of lessons and questions with their rights details, and the exam rules with their blueprints and frozen fixed variants. Learner data, access, results and settings are never part of it. You can import it on another site under Import content."
+msgstr "Das Paket (ZIP-Datei im Course-Captain-Paketformat) enthält den Kurs, seine Module, veröffentlichte Lektionen, die Fragen der Modulpools, die Mediendateien der Lektionen und Fragen mit ihren Rechteangaben sowie die Prüfungsregeln mit ihren Blueprints und eingefrorenen festen Prüfungsbögen. Daten von Lernenden, Zugänge, Ergebnisse und Einstellungen sind nie enthalten. Du kannst es auf einer anderen Website unter „Inhalte importieren“ einspielen."
 
 msgid "There is no course you may export."
 msgstr "Es gibt keinen Kurs, den du exportieren darfst."
@@ -12900,8 +12903,8 @@ msgstr "Um fremde Inhalte einzuschließen, setze zusätzlich das Häkchen, dass 
 msgid "Foreign content"
 msgstr "Fremde Inhalte"
 
-msgid "Lessons and questions from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. The package lists what was left out."
-msgstr "Lektionen und Fragen aus anderen Quellen sowie Inhalte, die Lernende wegen unklarer, eingeschränkter oder abgelaufener Rechte nicht sehen, werden weggelassen. Das Paket listet, was weggelassen wurde."
+msgid "Lessons, questions and media from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. Media files of a type the package format does not allow are always left out. The package lists what was left out."
+msgstr "Lektionen, Fragen und Medien aus anderen Quellen sowie Inhalte, die Lernende wegen unklarer, eingeschränkter oder abgelaufener Rechte nicht sehen, werden weggelassen. Mediendateien eines Typs, den das Paketformat nicht erlaubt, werden immer weggelassen. Das Paket listet, was weggelassen wurde."
 
 msgid "Include foreign content"
 msgstr "Fremde Inhalte einschließen"

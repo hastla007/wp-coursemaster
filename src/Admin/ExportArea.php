@@ -107,7 +107,7 @@ final class ExportArea {
 		try {
 			$package         = PackageExporter::collect( $actor, $courses, $include );
 			$records         = $package['records'];
-			$out['file']     = PackageExporter::write( $records, $system, $title, null, '' === $per_file ? PackageExporter::RECORDS_PER_FILE : (int) $per_file, array(), true, $package['export'] );
+			$out['file']     = PackageExporter::write( $records, $system, $title, null, '' === $per_file ? PackageExporter::RECORDS_PER_FILE : (int) $per_file, $package['media'], true, $package['export'], $package['warnings'] );
 			$out['counts']   = array_map( 'count', $records );
 			$out['excluded'] = count( $package['export']['excluded'] );
 		} catch ( CourseException $e ) {
@@ -171,11 +171,12 @@ final class ExportArea {
 				'ccap_invalid_param'          => __( 'Enter the records per file as a whole number from 1 to 5000.', 'course-captain' ),
 				'ccap_export_confirm_foreign' => __( 'To include foreign content, also tick the confirmation that you may pass it on.', 'course-captain' ),
 				'ccap_storage_unavailable'    => __( 'The package could not be written. Check the protected folders under System status.', 'course-captain' ),
+				'ccap_export_too_large'       => __( 'The package would be larger than an import allows (200 MB, 20,000 files). Export fewer courses at once.', 'course-captain' ),
 			),
 			__( 'Done.', 'course-captain' )
 		);
 		$html   .= '<h2>' . esc_html__( 'Export a course as a package', 'course-captain' ) . '</h2>';
-		$html   .= '<p>' . esc_html__( 'The package (ZIP file in the Course Captain package format) contains the course, its modules, published lessons and the questions of the module pools. Learner data, access, results and settings are never part of it. You can import it on another site under Import content.', 'course-captain' ) . '</p>';
+		$html   .= '<p>' . esc_html__( 'The package (ZIP file in the Course Captain package format) contains the course, its modules, published lessons, the questions of the module pools, the media files of lessons and questions with their rights details, and the exam rules with their blueprints and frozen fixed variants. Learner data, access, results and settings are never part of it. You can import it on another site under Import content.', 'course-captain' ) . '</p>';
 		$courses = AdminUi::courses( $user_id );
 		if ( array() === $courses ) {
 			return $html . '<p>' . esc_html__( 'There is no course you may export.', 'course-captain' ) . '</p>';
@@ -190,7 +191,7 @@ final class ExportArea {
 		$fields .= '<p><label for="ccap-exp-system">' . esc_html__( 'Source name', 'course-captain' ) . '</label><br><input id="ccap-exp-system" type="text" class="regular-text" name="system" value="' . esc_attr( self::default_system() ) . '" aria-describedby="ccap-exp-system-help"><br><span id="ccap-exp-system-help" class="description">' . esc_html__( 'Identifies where the content comes from. Keep it the same for later exports of the same courses, so that a new import updates the content instead of copying it (lowercase letters, digits and hyphens).', 'course-captain' ) . '</span></p>';
 		$fields .= '<p><label for="ccap-exp-per-file">' . esc_html__( 'Records per data file', 'course-captain' ) . '</label><br><input id="ccap-exp-per-file" type="number" min="1" max="' . (int) PackageExporter::RECORDS_PER_FILE . '" step="1" name="per_file" value="' . (int) PackageExporter::RECORDS_PER_FILE . '" aria-describedby="ccap-exp-per-file-help"><br><span id="ccap-exp-per-file-help" class="description">' . esc_html__( 'Large courses are split into several data files; 5000 is the most the format allows.', 'course-captain' ) . '</span></p></fieldset>';
 		$fields .= '<fieldset aria-describedby="ccap-exp-foreign-help"><legend><strong>' . esc_html__( 'Foreign content', 'course-captain' ) . '</strong></legend>'
-			. '<p id="ccap-exp-foreign-help" class="description">' . esc_html__( 'Lessons and questions from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. The package lists what was left out.', 'course-captain' ) . '</p>'
+			. '<p id="ccap-exp-foreign-help" class="description">' . esc_html__( 'Lessons, questions and media from other sources, and content that learners do not see because its rights are unclear, restricted or expired, are left out. Media files of a type the package format does not allow are always left out. The package lists what was left out.', 'course-captain' ) . '</p>'
 			. '<p><label><input type="checkbox" name="include_foreign" value="1"> ' . esc_html__( 'Include foreign content', 'course-captain' ) . '</label></p>'
 			. '<p><label><input type="checkbox" name="confirm_foreign" value="1"> ' . esc_html__( 'I confirm that I may pass this content on. The export is recorded in the change log.', 'course-captain' ) . '</label></p></fieldset>';
 		return $html . AdminUi::form( self::ACTION, 'export', 0, $fields, __( 'Export and download', 'course-captain' ), '1' );
