@@ -847,7 +847,9 @@ final class ProcessCatalogGapsTest extends SchemaTestCase {
 			}
 			$db = Database::current();
 			if ( $overdue ) {
-				$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_session' ) . '` SET deadline_at = %s WHERE id = %d', gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ), $session ) );
+				// Answers given in time, deadline (plus tolerance) passed since.
+				$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_session_question' ) . '` SET answered_at = %s WHERE session_id = %d', gmdate( 'Y-m-d H:i:s', time() - 2 * HOUR_IN_SECONDS ), $session ) );
+				$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_exam_session' ) . '` SET started_at = %s, deadline_at = %s WHERE id = %d', gmdate( 'Y-m-d H:i:s', time() - 3 * HOUR_IN_SECONDS ), gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ), $session ) );
 			}
 			$jobs = array();
 			$n    = RaceRunner::n( 20 );
@@ -1230,12 +1232,14 @@ final class ProcessCatalogGapsTest extends SchemaTestCase {
 		self::assertSame(
 			'ccap_db_busy',
 			self::code(
-				fn() => $db->transaction(
-					static function () use ( &$attempts ): void {
-						++$attempts;
-						throw new StorageException( 'Deadlock found when trying to get lock', 1213 );
-					}
-				)
+				static function () use ( $db, &$attempts ): void {
+					$db->transaction(
+						static function () use ( &$attempts ): void {
+							++$attempts;
+							throw new StorageException( 'Deadlock found when trying to get lock', 1213 );
+						}
+					);
+				}
 			)
 		);
 		self::assertSame( Database::DEADLOCK_RETRIES, $attempts );
@@ -1246,13 +1250,15 @@ final class ProcessCatalogGapsTest extends SchemaTestCase {
 		self::assertSame(
 			'ccap_db_busy',
 			self::code(
-				fn() => $db->transaction(
-					static function ( Database $d ) use ( &$attempts ): void {
-						++$attempts;
-						\CourseCaptain\Storage\RateLimiter::hit( $d, 'nfr011-wait', 1, 3600, 100, 1800000000 );
-						throw new StorageException( 'Lock wait timeout exceeded; try restarting transaction', 1205 );
-					}
-				)
+				static function () use ( $db, &$attempts ): void {
+					$db->transaction(
+						static function ( Database $d ) use ( &$attempts ): void {
+							++$attempts;
+							\CourseCaptain\Storage\RateLimiter::hit( $d, 'nfr011-wait', 1, 3600, 100, 1800000000 );
+							throw new StorageException( 'Lock wait timeout exceeded; try restarting transaction', 1205 );
+						}
+					);
+				}
 			)
 		);
 		self::assertSame( 1, $attempts, '1205 is not retried' );
