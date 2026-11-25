@@ -145,6 +145,10 @@ final class ProtectedFiles {
 			$size    = (int) filesize( $path );
 			$headers = self::headers( $file['name'], $file['mime'], $size, true );
 		} else {
+			if ( null !== $course_id && ! in_array( $course_id, ( new Relations( $this->db ) )->courses_of_media( (int) $media['id'] ), true ) ) {
+				// MED-003: a course context only counts for a course that uses the file (no IDOR via another course).
+				throw new CourseException( 'ccap_forbidden', 'No access to this file.', 403 );
+			}
 			$this->authorize( $actor, $uid, (int) $media['id'], $course_id );
 			$this->assert_rights( $actor, (int) $media['id'], $course_id );
 			$path = (string) get_attached_file( (int) $media['attachment_id'], true );
@@ -182,22 +186,30 @@ final class ProtectedFiles {
 	}
 
 	/**
-	 * Stream a file (1 MB blocks, aborts with the connection).
+	 * Stream a file (1 MB blocks, aborts with the connection). Output of
+	 * other plugins in open buffers is discarded first (T105, MED-015);
+	 * a buffer that cannot be removed stops the loop instead of spinning.
 	 *
-	 * @param Actor       $actor Requesting user.
-	 * @param string      $uid   Media UID.
-	 * @param string|null $range `Range` header.
+	 * @param Actor       $actor        Requesting user.
+	 * @param string      $uid          Media UID.
+	 * @param string|null $range        `Range` header.
+	 * @param int         $keep_buffers Buffer levels to keep (0 = discard all; tests capture the body below).
 	 * @return void
 	 */
-	public function serve( Actor $actor, string $uid, ?string $range ): void {
+	public function serve( Actor $actor, string $uid, ?string $range, int $keep_buffers = 0 ): void {
 		$response = $this->prepare( $actor, $uid, $range );
-		while ( ob_get_level() > 0 ) {
-			ob_end_clean();
+		while ( ob_get_level() > max( 0, $keep_buffers ) ) {
+			$status = ob_get_status();
+			if ( 0 === ( (int) ( $status['flags'] ?? 0 ) & PHP_OUTPUT_HANDLER_REMOVABLE ) || ! ob_end_clean() ) {
+				break;
+			}
 		}
 		nocache_headers();
 		status_header( $response['status'] );
-		foreach ( $response['headers'] as $name => $value ) {
-			header( $name . ': ' . $value );
+		if ( ! headers_sent() ) {
+			foreach ( $response['headers'] as $name => $value ) {
+				header( $name . ': ' . $value );
+			}
 		}
 		if ( 0 === $response['length'] ) {
 			return;

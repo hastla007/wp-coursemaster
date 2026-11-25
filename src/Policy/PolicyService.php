@@ -852,7 +852,8 @@ final class PolicyService {
 
 	/**
 	 * M-20: protected file via an editable course or learning access to a
-	 * published referencing course (exam-only media: R1-14).
+	 * published referencing course or to one of its modules that references
+	 * the medium (E-27; exam-only media: R1-14).
 	 *
 	 * @param int    $user User.
 	 * @param string $uid  Media UID.
@@ -879,6 +880,13 @@ final class PolicyService {
 			$learn   = $this->learn( $user, $course, 0, 'download' );
 			if ( $learn->allowed ) {
 				return $learn;
+			}
+			// E-27: a module grant covers the media of that module (R0-10 §4.3).
+			foreach ( $this->relations->modules_of_media( (int) $media['id'], $course ) as $module ) {
+				$module_learn = $this->learn( $user, $course, $module, 'download' );
+				if ( $module_learn->allowed ) {
+					return $module_learn;
+				}
 			}
 			$denial = $denial ?? $learn;
 		}
