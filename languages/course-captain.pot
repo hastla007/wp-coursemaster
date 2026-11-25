@@ -26,7 +26,7 @@ msgstr ""
 #: src/Ops/StorageSelfTest.php:200
 #: src/Privacy/PrivacyService.php:192
 #: src/Privacy/PrivacyService.php:202
-#: src/Privacy/PrivacyService.php:515
+#: src/Privacy/PrivacyService.php:528
 msgid "Course Captain"
 msgstr ""
 
@@ -12432,12 +12432,12 @@ msgstr ""
 msgid "Direct access to the protected folders is blocked."
 msgstr ""
 
-#: src/Privacy/PrivacyService.php:289
+#: src/Privacy/PrivacyService.php:292
 msgid "Course Captain keeps the audit log (tamper protection) and course content."
 msgstr ""
 
 #. translators: 1: years learning answers are kept, 2: years exam attempts and certificates are kept, 3: years of the audit log, 4: days of the notification log
-#: src/Privacy/PrivacyService.php:527
+#: src/Privacy/PrivacyService.php:540
 #, php-format
 msgid "Course Captain stores learning progress, answers, exam attempts, certificates, course access and group memberships of logged-in learners. Learning answers are kept for %1$d years after the end of a course, exam attempts and certificates for %2$d years, ended access records for %2$d years, the audit log for %3$d years and the notification log for %4$d days. Personal data can be exported and erased with the WordPress privacy tools; logged-in learners can request an export or erasure themselves."
 msgstr ""
@@ -13419,7 +13419,7 @@ msgstr[1] ""
 msgid "%1$s: adds %2$s; removes %3$s"
 msgstr ""
 
-#: src/Storage/Database.php:461
+#: src/Storage/Database.php:480
 msgid "Invalid identifier."
 msgstr ""
 

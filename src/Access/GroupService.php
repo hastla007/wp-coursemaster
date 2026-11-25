@@ -225,6 +225,9 @@ final class GroupService {
 				$seat = $target['seat'];
 				return $this->db->transaction(
 					function ( Database $db ) use ( $actor, $token, $group, $seat, $group_id ): int {
+						// R-1 parent row (CON-001/CON-006): serialises the claims of one group in the DB, so
+						// the recount below sees every older committed seat even when GET_LOCK is unavailable.
+						$db->scalar( $db->prepare( 'SELECT id FROM `' . $db->table( 'ccap_group' ) . '` WHERE id = %d FOR UPDATE', $group_id ) );
 						$now = $db->now();
 						if ( null !== $seat ) {
 							$rows = $db->execute(
