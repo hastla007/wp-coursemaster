@@ -283,6 +283,35 @@ final class PackageValidator {
 	}
 
 	/**
+	 * Readable hint for the package-level manifest rules of format and
+	 * version (IMP-004 foreign format, IMP-005 newer minor, major outside 1),
+	 * shown in the import detail. It only names what exists: the course
+	 * export of Course Captain and the schema versions this site imports.
+	 * Null for every other rule (the screen shows the rule code).
+	 *
+	 * @param string $rule    Rule (`V5_format`, `V5_major`, `V5_minor`, …).
+	 * @param string $version `schema_version` of the package (untrusted, may be empty).
+	 * @return string|null Plain text.
+	 */
+	public static function hint( string $rule, string $version ): ?string {
+		$lowest  = '1.0.0';
+		$highest = '1.' . self::SCHEMA_MINOR . '.x';
+		switch ( $rule ) {
+			case 'V5_format':
+				return __( 'This file is not a Course Captain package. Only packages created under "Import content > Course export" can be imported: export the course there on the source site and upload that file.', 'course-captain' );
+			case 'V5_major':
+			case 'V5_minor':
+				if ( 1 !== preg_match( '/^\d{1,5}\.\d{1,5}\.\d{1,5}$/', $version ) ) {
+					/* translators: 1: lowest schema version, 2: highest schema version such as 1.0.x */
+					return sprintf( __( 'The package has no valid schema version. This site imports schema versions %1$s to %2$s. Export the package again with a matching version and upload that file.', 'course-captain' ), $lowest, $highest );
+				}
+				/* translators: 1: schema version of the package, 2: lowest schema version, 3: highest schema version such as 1.0.x */
+				return sprintf( __( 'The package has schema version %1$s, but this site imports only schema versions %2$s to %3$s. Export the package again with a matching version and upload that file.', 'course-captain' ), $version, $lowest, $highest );
+		}
+		return null;
+	}
+
+	/**
 	 * Manifest rules.
 	 *
 	 * @param array<string, mixed>|null $manifest Manifest.
@@ -299,7 +328,7 @@ final class PackageValidator {
 		if ( 1 !== preg_match( '/^1\.(\d+)\.\d+$/', (string) ( $manifest['schema_version'] ?? '' ), $version ) ) {
 			$errors[] = 'V5_major';
 		} elseif ( (int) $version[1] > self::SCHEMA_MINOR ) {
-			// IMP-005: a newer minor version may use fields this plugin does not know yet (update the plugin).
+			// IMP-005: a newer minor version may use fields this plugin does not know yet ({@see self::hint()}).
 			$errors[] = 'V5_minor';
 		}
 		if ( 1 !== preg_match( '/^[a-z0-9][a-z0-9-]{1,40}-[0-9a-f]{12}$/', (string) ( $manifest['package_id'] ?? '' ) ) ) {

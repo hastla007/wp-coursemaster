@@ -11,6 +11,7 @@ declare(strict_types=1);
 namespace CourseCaptain\Tests\Integration;
 
 use CourseCaptain\Access\ProtectedFiles;
+use CourseCaptain\Admin\PreviewScreen;
 use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CoursePublisher;
 use CourseCaptain\Course\CourseStructure;
@@ -238,6 +239,20 @@ final class RightsLessonImagesTest extends SchemaTestCase {
 		self::assertStringContainsString( 'Not shown to learners: imported content marked as "must not be shown".', html_entity_decode( $author['body'], ENT_QUOTES ) );
 		self::assertStringNotContainsString( $bad, $author['body'] );
 		self::assertStringContainsString( $own, $author['body'] );
+
+		// Preview as learner (owner decision 25.11.2026): the lesson text exactly as learners
+		// see it, the reason only in the notice above the lesson.
+		$preview = PreviewScreen::html( $this->course, $this->admin );
+		self::assertStringContainsString( 'Lesson text before.', $preview );
+		self::assertStringContainsString( 'Chart caption', $preview );
+		self::assertSame( 1, substr_count( $preview, '<span class="ccap-withheld ccap-withheld-media">Media not available</span>' ), 'the withheld image becomes the learner placeholder' );
+		self::assertStringContainsString( '<span class="ccap-withheld-link">Download the foreign sheet</span>', $preview, 'the link text stays, the link goes' );
+		self::assertStringNotContainsString( $bad, $preview, 'no UID of the withheld image' );
+		self::assertStringNotContainsString( $gone, $preview, 'no link to the withheld file' );
+		self::assertStringNotContainsString( 'Foreign chart', $preview );
+		self::assertStringContainsString( $own, $preview, 'own media stay (E-18)' );
+		self::assertStringContainsString( 'Learners see &quot;Media not available&quot; in place of a medium of this lesson.', $preview, 'the editor notice stays' );
+		self::assertSame( array(), A11yDom::fragment_problems( $preview ) );
 
 		// Releasing the image (licence) brings it back for learners at the next request.
 		$db = Database::current();

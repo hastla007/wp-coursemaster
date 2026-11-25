@@ -13,6 +13,7 @@ use CourseCaptain\Course\CourseException;
 use CourseCaptain\Import\ImportReport;
 use CourseCaptain\Import\ImportService;
 use CourseCaptain\Import\ImportSources;
+use CourseCaptain\Import\PackageValidator;
 use CourseCaptain\Import\RightsReleaseForm;
 use CourseCaptain\Learner\LearnerRoutes;
 use CourseCaptain\Policy\Actor;
@@ -412,7 +413,10 @@ final class ImportScreen {
 		if ( 'failed' === $status && is_array( $errors ) && array() !== $errors ) {
 			$html .= '<h3>' . esc_html__( 'Errors in the package', 'course-captain' ) . '</h3><ul>';
 			foreach ( array_slice( $errors, 0, 50 ) as $error ) {
-				$html .= '<li>' . esc_html( (string) ( $error['rule'] ?? '' ) . ( '' !== (string) ( $error['path'] ?? '' ) ? ': ' . (string) $error['path'] : '' ) ) . '</li>';
+				$rule  = (string) ( $error['rule'] ?? '' );
+				$hint  = PackageValidator::hint( $rule, (string) ( $row['schema_version'] ?? '' ) );
+				$code  = $rule . ( '' !== (string) ( $error['path'] ?? '' ) ? ': ' . (string) $error['path'] : '' );
+				$html .= '<li>' . esc_html( null === $hint ? $code : sprintf( /* translators: 1: readable hint, 2: rule code */ __( '%1$s (rule: %2$s)', 'course-captain' ), $hint, $code ) ) . '</li>';
 			}
 			$html .= '</ul>';
 		}

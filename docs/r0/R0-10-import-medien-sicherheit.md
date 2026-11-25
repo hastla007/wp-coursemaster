@@ -189,7 +189,7 @@ Die Schemas liegen in **einer** Quelle im Repository; das Plugin enthält eine K
 | Ebene | Regel |
 |---|---|
 | `schema_version` MAJOR | Der Importer akzeptiert nur Major 1 (LB `Package::validate`, `:299`). Major 2 braucht einen eigenen Leser und einen Konverter 1→2 |
-| MINOR | nur additiv: neue optionale Felder, neue Entitätsdateien. Ein Importer der Version 1.n liest jedes Paket 1.m mit m ≤ n. Ist m > n, bricht die Validierung ab und meldet „Plugin aktualisieren“. Ein unbekanntes Feld ist ein Fehler (`additionalProperties: false`, wie LB) |
+| MINOR | nur additiv: neue optionale Felder, neue Entitätsdateien. Ein Importer der Version 1.n liest jedes Paket 1.m mit m ≤ n. Ist m > n, bricht die Validierung ab (`V5_minor`) und nennt die Schema-Version des Pakets und den Bereich, den die Website importiert (z. B. „1.0.0 bis 1.0.x“), mit dem Hinweis, das Paket mit passender Version erneut zu exportieren (Inhaberentscheidung 25.11.2026: kein Verweis auf ein Plugin-Update). Ein unbekanntes Feld ist ein Fehler (`additionalProperties: false`, wie LB) |
 | PATCH | nur Korrekturen an Beschreibung oder Mustern, ohne Bedeutungsänderung |
 | Werkzeugversion | `generator.version`, unabhängig von `schema_version` |
 | Pluginseitig | `format_version` in `ccap_course_revision` und `schema_version` in `ccap_import_batch` (R0-06 §4.1/§4.7). Core-, DB-, Paket- und REST-Version werden getrennt geführt (Konzept 22.2) |
@@ -204,7 +204,7 @@ Die Schemas liegen in **einer** Quelle im Repository; das Plugin enthält eine K
 | Rechte | flache Felder `rights_owner`, `license_reference`, `rights_status` (5 Werte) | Objekt `rights` mit `own` und Lizenz-URL |
 | Dateien | eine JSON-Datei je Entität | geteilte Dateien je Entität |
 | Typen | feste Fragetypen inkl. `chart_task` | Provider-Key und `requires` |
-| Import im Core | – | **nur** `cc-package`. Erkennt der Importer ein LB-Manifest (`package_id` `^boatingschool-`), meldet er „Fremdformat, bitte Migrationswerkzeug verwenden“ (IMP-004). Ein Migrationswerkzeug LB→`cc-package` wäre ein separates Werkzeug außerhalb des WordPress.org-ZIPs und ist **nicht** Teil von R1 |
+| Import im Core | – | **nur** `cc-package`. Erkennt der Importer ein LB-Manifest (`package_id` `^boatingschool-`), meldet er `V5_format` mit dem Hinweis, dass nur Pakete aus „Inhalte importieren > Kursexport“ importiert werden können (IMP-004; Inhaberentscheidung 25.11.2026: kein Verweis auf ein Migrationswerkzeug, das es nicht gibt). Ein Migrationswerkzeug LB→`cc-package` wäre ein separates Werkzeug außerhalb des WordPress.org-ZIPs und ist **nicht** Teil von R1 |
 
 ---
 
@@ -487,8 +487,8 @@ Fixtures ausschließlich synthetisch und neutral (E-02, Konzept 26.3). LB-Tests 
 | IMP-001 | gültiges Minimalpaket (1 Kurs, 1 Modul, 1 Lektion, 3 Fragen, 1 Bild) | `validated`, Dry-run `create` je Entität | `content-flow-test.php:45` | R1-15 |
 | IMP-002 | ZIP ohne `manifest.json` / leeres ZIP / kein ZIP | `failed`, klare Meldung, nichts entpackt | `admin-test.php:965` | R1-15 |
 | IMP-003 | Manifest mit `format` ≠ `cc-package` oder `schema_version 2.0.0` | abgelehnt, „nicht unterstützt“ | `Package.php:298` | R1-15 |
-| IMP-004 | LB-Paket (`boatingschool-…`) | abgelehnt mit Hinweis „Migrationswerkzeug“ (E-03) | – | R1-15 |
-| IMP-005 | Minor höher als Plugin (1.9 gegen 1.0) | abgelehnt, „Plugin aktualisieren“ | – | R1-15 |
+| IMP-004 | LB-Paket (`boatingschool-…`) | abgelehnt (`V5_format`) mit Hinweis auf den Kursexport von Course Captain (E-03; kein Migrationswerkzeug genannt) | – | R1-15 |
+| IMP-005 | Minor höher als Plugin (1.9 gegen 1.0) | abgelehnt (`V5_minor`), Hinweis nennt Paketversion und importierbaren Bereich, „mit passender Version erneut exportieren“ | – | R1-15 |
 | IMP-006 | ZIP-Bombe: Datei 1 GB mit Verhältnis > 200 | vor dem Entpacken abgelehnt | `security-test.php:142` | R1-15 |
 | IMP-007 | gefälschte Größenangabe im Zentralverzeichnis | Abbruch durch Byte-Zähler beim Entpacken, Zielordner entfernt | – (neu) | R1-15 |
 | IMP-008 | > 20 000 Einträge / ZIP > 200 MB / entpackt > 800 MB | abgelehnt | `Package.php:92-147` | R1-15 |

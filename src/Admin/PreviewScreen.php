@@ -14,6 +14,7 @@ use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Kernel\Locale;
+use CourseCaptain\Learner\WithheldInlineMedia;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Question\QuestionRepository;
 use CourseCaptain\Question\QuestionTypes;
@@ -27,7 +28,9 @@ defined( 'ABSPATH' ) || exit;
  * and lessons in order, lesson text through `the_content`, the activity
  * of each lesson in words, the deliverable questions of each module pool
  * without solution data (A11Y-022 form shape, inputs disabled) and the
- * exams. Nothing is written: no progress, no attempts, no tokens.
+ * exams. Embedded media of the lesson text whose rights withhold them
+ * get the same placeholder as in the learner view ({@see self::learner_text()}).
+ * Nothing is written: no progress, no attempts, no tokens.
  * Allowed for whoever may edit the course (`edit_post`).
  */
 final class PreviewScreen {
@@ -138,7 +141,7 @@ final class PreviewScreen {
 			}
 			foreach ( $lessons as $lesson ) {
 				$definition = ActivityService::definition( (int) $lesson->ID );
-				$body      .= '<article class="ccap-pv-lesson"><h3>' . esc_html( $lesson->post_title ) . ' <span class="description">(' . esc_html( self::activity_label( $definition['type'] ) ) . ( 'publish' === $lesson->post_status ? '' : ', ' . esc_html__( 'not published', 'course-captain' ) ) . ')</span></h3>' . self::withheld_lesson( $gate, (int) $lesson->ID, $definition['settings'] ) . '<div' . $lang . '>' . self::content( $lesson ) . '</div></article>';
+				$body      .= '<article class="ccap-pv-lesson"><h3>' . esc_html( $lesson->post_title ) . ' <span class="description">(' . esc_html( self::activity_label( $definition['type'] ) ) . ( 'publish' === $lesson->post_status ? '' : ', ' . esc_html__( 'not published', 'course-captain' ) ) . ')</span></h3>' . self::withheld_lesson( $gate, (int) $lesson->ID, $definition['settings'] ) . '<div' . $lang . '>' . self::learner_text( self::content( $lesson ), array( $gate, 'medium_uid' ) ) . '</div></article>';
 			}
 			// The editorial side sees withheld questions as a notice (R0-10 §2.2); learners never get them.
 			$pool     = $repo->pool( (int) $module->ID, true );
@@ -232,6 +235,21 @@ final class PreviewScreen {
 			$html .= '<li>' . esc_html( ExamsScreen::summary( $rule ) ) . ( 'draft' === $rule['status'] ? ' <span class="description">(' . esc_html__( 'draft, not visible to learners yet', 'course-captain' ) . ')</span>' : '' ) . '</li>';
 		}
 		return $html . '</ul></section>';
+	}
+
+	/**
+	 * Lesson text exactly as learners get it: embeds and links of withheld
+	 * media (R0-10 §2.2) become the neutral placeholder "Media not
+	 * available" ({@see WithheldInlineMedia}, learner mode, also for the
+	 * editor viewing the preview). The reason stands in the notice above
+	 * the lesson ({@see self::withheld_lesson()}).
+	 *
+	 * @param string                    $html   Rendered lesson text.
+	 * @param callable(string): ?string $reason Media UID → reason or null ({@see RightsGate::medium_uid()}).
+	 * @return string
+	 */
+	public static function learner_text( string $html, callable $reason ): string {
+		return WithheldInlineMedia::filter( $html, $reason, false );
 	}
 
 	/**

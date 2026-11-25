@@ -81,7 +81,7 @@ msgstr ""
 
 #: src/Admin/AccessRulesPanel.php:163
 #: src/Admin/ExamsScreen.php:506
-#: src/Admin/ImportScreen.php:296
+#: src/Admin/ImportScreen.php:297
 #: src/Admin/LearnersScreen.php:423
 #: src/Admin/QuestionsScreen.php:491
 msgid "Please confirm the action (tick the confirmation box)."
@@ -402,7 +402,7 @@ msgstr ""
 #: src/Admin/GroupsScreen.php:422
 #: src/Admin/GroupsScreen.php:434
 #: src/Admin/GroupsScreen.php:463
-#: src/Admin/ImportScreen.php:327
+#: src/Admin/ImportScreen.php:328
 #: src/Admin/LearnersScreen.php:517
 #: src/Admin/LearnersScreen.php:625
 #: src/Admin/QuestionsScreen.php:566
@@ -542,7 +542,7 @@ msgstr ""
 #: src/Admin/CertificatesScreen.php:271
 #: src/Admin/CertificatesScreen.php:313
 #: src/Admin/GroupsScreen.php:464
-#: src/Admin/ImportScreen.php:493
+#: src/Admin/ImportScreen.php:497
 #: src/Admin/RightsArea.php:306
 msgid "Reason (required)"
 msgstr ""
@@ -1101,7 +1101,7 @@ msgstr ""
 
 #. translators: %d: number of questions
 #: src/Admin/EditorScreens.php:85
-#: src/Admin/ImportScreen.php:512
+#: src/Admin/ImportScreen.php:516
 #: src/Admin/QuestionsScreen.php:576
 #: src/Admin/SettingsFields.php:112
 #: src/Course/PostTypes.php:73
@@ -1174,10 +1174,10 @@ msgid "Published revision: %d"
 msgstr ""
 
 #: src/Admin/EditorScreens.php:143
-#: src/Admin/PreviewScreen.php:48
-#: src/Admin/PreviewScreen.php:81
-#: src/Admin/PreviewScreen.php:94
-#: src/Admin/PreviewScreen.php:117
+#: src/Admin/PreviewScreen.php:51
+#: src/Admin/PreviewScreen.php:84
+#: src/Admin/PreviewScreen.php:97
+#: src/Admin/PreviewScreen.php:120
 msgid "Preview as learner"
 msgstr ""
 
@@ -1303,8 +1303,8 @@ msgstr ""
 
 #: src/Admin/ExamsScreen.php:97
 #: src/Admin/ExamsScreen.php:531
-#: src/Admin/ImportScreen.php:517
-#: src/Admin/PreviewScreen.php:226
+#: src/Admin/ImportScreen.php:521
+#: src/Admin/PreviewScreen.php:229
 #: src/Admin/SettingsFields.php:48
 #: src/Learner/ExamRoom.php:517
 msgid "Exams"
@@ -1489,7 +1489,7 @@ msgstr ""
 
 #. translators: %s: status
 #: src/Admin/ExamsScreen.php:582
-#: src/Admin/ImportScreen.php:407
+#: src/Admin/ImportScreen.php:408
 #: src/Admin/QuestionsScreen.php:817
 #, php-format
 msgid "Status: %s"
@@ -1569,7 +1569,7 @@ msgid "Published questions in the module"
 msgstr ""
 
 #: src/Admin/ExamsScreen.php:631
-#: src/Admin/PreviewScreen.php:175
+#: src/Admin/PreviewScreen.php:178
 msgid "The course has no modules yet."
 msgstr ""
 
@@ -1837,7 +1837,7 @@ msgstr ""
 
 #. translators: %d: question number
 #: src/Admin/ExamsScreen.php:892
-#: src/Admin/PreviewScreen.php:286
+#: src/Admin/PreviewScreen.php:304
 #: src/Admin/RightsArea.php:323
 #, php-format
 msgid "Question %d"
@@ -1869,7 +1869,7 @@ msgid "The package could not be written. Check the protected folders under Syste
 msgstr ""
 
 #: src/Admin/ExportArea.php:175
-#: src/Admin/ImportScreen.php:311
+#: src/Admin/ImportScreen.php:312
 msgid "Done."
 msgstr ""
 
@@ -1888,7 +1888,7 @@ msgstr ""
 #: src/Admin/ExportArea.php:183
 #: src/Admin/GroupsScreen.php:424
 #: src/Admin/GroupsScreen.php:520
-#: src/Admin/ImportScreen.php:511
+#: src/Admin/ImportScreen.php:515
 #: src/Admin/SettingsFields.php:108
 #: src/Admin/SetupWizard.php:460
 #: src/Course/PostTypes.php:57
@@ -2466,243 +2466,249 @@ msgstr ""
 msgid "The site identity could not be confirmed."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:57
-#: src/Admin/ImportScreen.php:259
+#: src/Admin/ImportScreen.php:58
+#: src/Admin/ImportScreen.php:260
 #: src/Admin/RoleSettings.php:74
 msgid "Import content"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:57
+#: src/Admin/ImportScreen.php:58
 msgctxt "admin menu"
 msgid "Import content"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:76
+#: src/Admin/ImportScreen.php:77
 msgid "Packages"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:79
+#: src/Admin/ImportScreen.php:80
 msgid "Course export"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:82
+#: src/Admin/ImportScreen.php:83
 msgid "Rights & release"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:262
+#: src/Admin/ImportScreen.php:263
 msgid "You are not allowed to import packages."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:266
+#: src/Admin/ImportScreen.php:267
 msgid "Import content: areas"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:286
+#: src/Admin/ImportScreen.php:287
 msgid "Test run finished. Nothing has been imported yet: check the result below, then approve or discard."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:287
+#: src/Admin/ImportScreen.php:288
 msgid "Imported. The new content is in place; courses from the package start as drafts unless they were published before."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:288
+#: src/Admin/ImportScreen.php:289
 msgid "Approved. Someone who may publish courses must now start the import."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:289
+#: src/Admin/ImportScreen.php:290
 msgid "The file is not a valid course package. The errors are listed below."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:290
+#: src/Admin/ImportScreen.php:291
 msgid "The test run found too many errors. Nothing was imported. Download the report for details."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:291
+#: src/Admin/ImportScreen.php:292
 msgid "Choose a package file (ZIP) first."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:292
+#: src/Admin/ImportScreen.php:293
 msgid "The file is larger than this site allows for uploads. Ask the administrator or use the command line import."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:293
+#: src/Admin/ImportScreen.php:294
 msgid "The file is not a ZIP package."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:294
+#: src/Admin/ImportScreen.php:295
 msgid "This step is not possible in the current state of the import. Reload the page."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:295
+#: src/Admin/ImportScreen.php:296
 msgid "Another import is running. Try again in a few minutes."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:297
+#: src/Admin/ImportScreen.php:298
 msgid "The package could not be stored. Check the protected folders under System status."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:298
+#: src/Admin/ImportScreen.php:299
 msgid "Enter a complete https address (port 443, no user name or password in the address)."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:299
+#: src/Admin/ImportScreen.php:300
 msgid "This address is not allowed: packages can only be loaded from public servers, not from this network or local addresses."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:300
+#: src/Admin/ImportScreen.php:301
 msgid "The address forwards too often. Use the final address of the package."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:301
+#: src/Admin/ImportScreen.php:302
 msgid "The downloaded file does not match the expected checksum. Nothing was imported."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:302
+#: src/Admin/ImportScreen.php:303
 msgid "The package could not be downloaded. Check the address and try again later."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:303
+#: src/Admin/ImportScreen.php:304
 msgid "The package is larger than the package limit. Use the server folder or the command line import."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:309
+#: src/Admin/ImportScreen.php:310
 msgid "The import did not finish. The batch page shows the state; you can resume or discard it."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:311
+#: src/Admin/ImportScreen.php:312
 msgid "Not done: a reason is required."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:322
+#: src/Admin/ImportScreen.php:323
 msgid "Course package (ZIP file)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:323
+#: src/Admin/ImportScreen.php:324
 msgid "The package is checked and a test run shows what would change. Nothing is imported before you approve."
 msgstr ""
 
 #. translators: %s: size
-#: src/Admin/ImportScreen.php:323
+#: src/Admin/ImportScreen.php:324
 #, php-format
 msgid "Largest file this site accepts: %s."
 msgstr ""
 
 #. translators: %s: size
-#: src/Admin/ImportScreen.php:324
-#: src/Admin/ImportScreen.php:354
-#: src/Admin/ImportScreen.php:387
+#: src/Admin/ImportScreen.php:325
+#: src/Admin/ImportScreen.php:355
+#: src/Admin/ImportScreen.php:388
 msgid "Partial package: keep content that is missing in the package (do not archive it)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:325
+#: src/Admin/ImportScreen.php:326
 msgid "Import a package"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:325
+#: src/Admin/ImportScreen.php:326
 msgid "Upload and test"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:327
+#: src/Admin/ImportScreen.php:328
 msgid "Imports"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:327
+#: src/Admin/ImportScreen.php:328
 #: src/Admin/SettingsBackup.php:187
 msgid "Import"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:327
+#: src/Admin/ImportScreen.php:328
 msgid "Started (UTC)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:327
+#: src/Admin/ImportScreen.php:328
 #: src/Ops/AuditScreen.php:132
 #: src/Ops/AuditScreen.php:154
 msgid "By"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:329
+#: src/Admin/ImportScreen.php:330
 msgid "No imports yet. A course package is a ZIP file with a manifest and data files in the Course Captain package format."
 msgstr ""
 
 #. translators: 1: import number, 2: package
-#: src/Admin/ImportScreen.php:340
-#: src/Admin/ImportScreen.php:406
+#: src/Admin/ImportScreen.php:341
+#: src/Admin/ImportScreen.php:407
 #, php-format
 msgid "Import %1$d (%2$s)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:351
+#: src/Admin/ImportScreen.php:352
 msgid "Address of the package (https)"
 msgstr ""
 
 #. translators: %s: size
-#: src/Admin/ImportScreen.php:352
+#: src/Admin/ImportScreen.php:353
 #, php-format
 msgid "Only https addresses on public servers; at most 3 forwardings; largest package: %s. The file is checked and test-run like an upload."
 msgstr ""
 
 #. translators: %s: size
-#: src/Admin/ImportScreen.php:353
+#: src/Admin/ImportScreen.php:354
 msgid "Expected SHA-256 checksum (optional)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:355
+#: src/Admin/ImportScreen.php:356
 msgid "Import from a link"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:355
+#: src/Admin/ImportScreen.php:356
 msgid "Download and test"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:364
+#: src/Admin/ImportScreen.php:365
 msgid "Import from the server folder"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:368
+#: src/Admin/ImportScreen.php:369
 msgid "The server folder for packages is not available. Check the protected folders under System status."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:379
+#: src/Admin/ImportScreen.php:380
 msgid "For large packages: copy the ZIP file by SFTP into the protected import folder of this site (shown under System status). A package that passes the check is removed from the folder."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:381
+#: src/Admin/ImportScreen.php:382
 msgid "There are no packages in the server folder."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:383
+#: src/Admin/ImportScreen.php:384
 msgid "Package in the server folder"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:388
+#: src/Admin/ImportScreen.php:389
 msgid "Take over and test"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:400
+#: src/Admin/ImportScreen.php:401
 msgid "Back to the imports"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:402
+#: src/Admin/ImportScreen.php:403
 msgid "This import does not exist."
 msgstr ""
 
 #. translators: 1: earlier import, 2: reason
-#: src/Admin/ImportScreen.php:409
+#: src/Admin/ImportScreen.php:410
 #, php-format
 msgid "Rollback to import %1$d. Reason: %2$s"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:413
+#: src/Admin/ImportScreen.php:414
 msgid "Errors in the package"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:422
+#. translators: 1: readable hint, 2: rule code
+#: src/Admin/ImportScreen.php:419
+#, php-format
+msgid "%1$s (rule: %2$s)"
+msgstr ""
+
+#: src/Admin/ImportScreen.php:426
 #: src/Admin/MailTextsScreen.php:429
 msgid "new"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:423
+#: src/Admin/ImportScreen.php:427
 #: src/Admin/MailTextsScreen.php:430
 #: src/Ops/AuditView.php:399
 #: src/Ops/AuditView.php:423
@@ -2710,101 +2716,101 @@ msgstr ""
 msgid "changed"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:424
+#: src/Admin/ImportScreen.php:428
 #: src/Admin/MailTextsScreen.php:431
 msgid "unchanged"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:425
+#: src/Admin/ImportScreen.php:429
 #: src/Admin/QuestionsScreen.php:979
 msgid "archived"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:426
+#: src/Admin/ImportScreen.php:430
 msgid "conflict"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:427
+#: src/Admin/ImportScreen.php:431
 msgid "error"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:429
+#: src/Admin/ImportScreen.php:433
 msgid "Result of the test run (what the import would do)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:429
+#: src/Admin/ImportScreen.php:433
 msgid "Content"
 msgstr ""
 
 #. translators: 1: errors, 2: records
-#: src/Admin/ImportScreen.php:444
+#: src/Admin/ImportScreen.php:448
 #, php-format
 msgid "%1$d of %2$d entries have errors and would be skipped."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:450
+#: src/Admin/ImportScreen.php:454
 msgid "Most frequent problems"
 msgstr ""
 
 #. translators: 1: rule, 2: count
-#: src/Admin/ImportScreen.php:452
+#: src/Admin/ImportScreen.php:456
 #, php-format
 msgid "%1$s: %2$d times"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:459
+#: src/Admin/ImportScreen.php:463
 msgid "Error report:"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:459
+#: src/Admin/ImportScreen.php:463
 msgid "Download as CSV (spreadsheet)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:459
+#: src/Admin/ImportScreen.php:463
 msgid "Download as JSON"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:473
+#: src/Admin/ImportScreen.php:477
 msgid "Next step"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:474
+#: src/Admin/ImportScreen.php:478
 msgid "Confirm: discard this import (nothing of it stays)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:474
+#: src/Admin/ImportScreen.php:478
 msgid "Discard"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:477
+#: src/Admin/ImportScreen.php:481
 msgid "Partial package"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:477
+#: src/Admin/ImportScreen.php:481
 msgid "Start test run"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:480
+#: src/Admin/ImportScreen.php:484
 msgid "Approving confirms that you checked the test run and may use the content (rights). The import then runs at once."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:480
+#: src/Admin/ImportScreen.php:484
 msgid "Approve and import"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:480
+#: src/Admin/ImportScreen.php:484
 msgid "Approve"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:482
+#: src/Admin/ImportScreen.php:486
 msgid "Import now"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:482
+#: src/Admin/ImportScreen.php:486
 msgid "Someone who may publish courses must start the import."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:489
+#: src/Admin/ImportScreen.php:493
 #: src/Admin/LearnersScreen.php:580
 #: src/Admin/LearnersScreen.php:663
 #: src/Admin/LearnersScreen.php:710
@@ -2813,93 +2819,93 @@ msgstr ""
 msgid "Reason (required, recorded)"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:490
+#: src/Admin/ImportScreen.php:494
 msgid "A rollback imports the kept copy of this package again as a new import, with its own test run and approval."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:491
+#: src/Admin/ImportScreen.php:495
 msgid "Roll back to this import"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:493
+#: src/Admin/ImportScreen.php:497
 msgid "Release unclear rights"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:493
+#: src/Admin/ImportScreen.php:497
 msgid "Show what would be released"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:498
+#: src/Admin/ImportScreen.php:502
 msgid "The import is running in the background. Reload the page to see the progress."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:500
+#: src/Admin/ImportScreen.php:504
 msgid "No further step is possible."
 msgstr ""
 
-#: src/Admin/ImportScreen.php:513
+#: src/Admin/ImportScreen.php:517
 #: src/Course/PostTypes.php:80
 #: src/Learner/LessonView.php:665
 msgid "Lessons"
 msgstr ""
 
 #. translators: %d: number of questions
-#: src/Admin/ImportScreen.php:514
+#: src/Admin/ImportScreen.php:518
 #: src/Admin/QuestionsScreen.php:576
 #: src/Learner/ExamRoom.php:131
 msgid "Questions"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:515
+#: src/Admin/ImportScreen.php:519
 msgid "Flashcards"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:516
+#: src/Admin/ImportScreen.php:520
 msgid "Media"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:530
+#: src/Admin/ImportScreen.php:534
 msgid "uploaded, not checked"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:531
+#: src/Admin/ImportScreen.php:535
 msgid "checked, test run missing"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:532
+#: src/Admin/ImportScreen.php:536
 msgid "failed"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:533
+#: src/Admin/ImportScreen.php:537
 msgid "test run done, waiting for approval"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:534
+#: src/Admin/ImportScreen.php:538
 msgid "approved, waiting for import"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:535
+#: src/Admin/ImportScreen.php:539
 msgid "importing"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:536
+#: src/Admin/ImportScreen.php:540
 msgid "activating"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:537
+#: src/Admin/ImportScreen.php:541
 #: src/Admin/RightsArea.php:307
 msgid "imported"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:538
+#: src/Admin/ImportScreen.php:542
 msgid "replaced by a newer import"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:539
+#: src/Admin/ImportScreen.php:543
 msgid "discarded"
 msgstr ""
 
-#: src/Admin/ImportScreen.php:540
+#: src/Admin/ImportScreen.php:544
 msgid "stopped"
 msgstr ""
 
@@ -3737,53 +3743,53 @@ msgstr ""
 msgid "Error"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:117
+#: src/Admin/PreviewScreen.php:120
 #: src/Admin/RightsArea.php:182
 msgid "This course does not exist or you may not edit it."
 msgstr ""
 
 #. translators: %s: course title
-#: src/Admin/PreviewScreen.php:120
+#: src/Admin/PreviewScreen.php:123
 #, php-format
 msgid "Preview as learner: %s"
 msgstr ""
 
 #. translators: %s: course title
-#: src/Admin/PreviewScreen.php:121
+#: src/Admin/PreviewScreen.php:124
 msgid "This is the current draft as learners will see it after publishing. Nothing you do here is saved: no progress, no attempts. Answer fields are switched off."
 msgstr ""
 
 #. translators: %s: course title
-#: src/Admin/PreviewScreen.php:121
+#: src/Admin/PreviewScreen.php:124
 msgid "Back to the course editor"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:125
+#: src/Admin/PreviewScreen.php:128
 #: src/Learner/LearningArea.php:659
 msgid "Course contents"
 msgstr ""
 
 #. translators: 1: module number, 2: module title
-#: src/Admin/PreviewScreen.php:134
+#: src/Admin/PreviewScreen.php:137
 #, php-format
 msgid "Module %1$d: %2$s"
 msgstr ""
 
 #. translators: 1: module number, 2: module title
-#: src/Admin/PreviewScreen.php:134
+#: src/Admin/PreviewScreen.php:137
 msgid "optional"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:137
+#: src/Admin/PreviewScreen.php:140
 msgid "This module has no lessons."
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:141
+#: src/Admin/PreviewScreen.php:144
 msgid "not published"
 msgstr ""
 
 #. translators: %d: number of questions
-#: src/Admin/PreviewScreen.php:148
+#: src/Admin/PreviewScreen.php:151
 #, php-format
 msgid "%d question for practice and exams"
 msgid_plural "%d questions for practice and exams"
@@ -3791,7 +3797,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %d: number of questions
-#: src/Admin/PreviewScreen.php:150
+#: src/Admin/PreviewScreen.php:153
 #, php-format
 msgid "%d imported question is not shown to learners because of its rights."
 msgid_plural "%d imported questions are not shown to learners because of their rights."
@@ -3799,85 +3805,85 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: 1: question number, 2: reason why the question is not shown to learners
-#: src/Admin/PreviewScreen.php:160
+#: src/Admin/PreviewScreen.php:163
 #, php-format
 msgid "Question %1$d: %2$s"
 msgstr ""
 
 #. translators: %d: number of shown questions
-#: src/Admin/PreviewScreen.php:169
+#: src/Admin/PreviewScreen.php:172
 #, php-format
 msgid "Only the first %d questions are shown."
 msgstr ""
 
 #. translators: 1: placeholder text such as "Media not available", 2: reason why the medium is not shown to learners
-#: src/Admin/PreviewScreen.php:207
+#: src/Admin/PreviewScreen.php:210
 #, php-format
 msgid "Learners see \"%1$s\" in place of a medium of this lesson. %2$s"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:232
+#: src/Admin/PreviewScreen.php:235
 msgid "draft, not visible to learners yet"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:258
-#: src/Admin/PreviewScreen.php:259
+#: src/Admin/PreviewScreen.php:276
+#: src/Admin/PreviewScreen.php:277
 msgid "text lesson"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:260
+#: src/Admin/PreviewScreen.php:278
 msgid "video"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:261
+#: src/Admin/PreviewScreen.php:279
 msgid "file download"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:262
+#: src/Admin/PreviewScreen.php:280
 msgid "practice"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:263
+#: src/Admin/PreviewScreen.php:281
 msgid "flashcards"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:264
+#: src/Admin/PreviewScreen.php:282
 #: src/Admin/SettingLocksScreen.php:350
 msgid "exam"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:265
+#: src/Admin/PreviewScreen.php:283
 msgid "assignment"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:282
-#: src/Admin/PreviewScreen.php:283
+#: src/Admin/PreviewScreen.php:300
+#: src/Admin/PreviewScreen.php:301
 msgid "one answer"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:284
+#: src/Admin/PreviewScreen.php:302
 msgid "several answers"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:300
-#: src/Admin/PreviewScreen.php:327
+#: src/Admin/PreviewScreen.php:318
+#: src/Admin/PreviewScreen.php:345
 #: src/Learner/AssignmentView.php:346
 #: src/Learner/QuestionForm.php:103
 msgid "Your answer"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:306
+#: src/Admin/PreviewScreen.php:324
 #: src/Learner/QuestionForm.php:115
 msgid "— choose —"
 msgstr ""
 
 #. translators: %s: blank label
-#: src/Admin/PreviewScreen.php:323
+#: src/Admin/PreviewScreen.php:341
 #, php-format
 msgid "Blank %s"
 msgstr ""
 
-#: src/Admin/PreviewScreen.php:330
+#: src/Admin/PreviewScreen.php:348
 msgid "Learners turn the card and rate themselves."
 msgstr ""
 
@@ -8875,6 +8881,22 @@ msgstr ""
 #: src/Import/ImportRunner.php:1044
 #, php-format
 msgid "Import %s"
+msgstr ""
+
+#: src/Import/PackageValidator.php:301
+msgid "This file is not a Course Captain package. Only packages created under \"Import content > Course export\" can be imported: export the course there on the source site and upload that file."
+msgstr ""
+
+#. translators: 1: lowest schema version, 2: highest schema version such as 1.0.x
+#: src/Import/PackageValidator.php:306
+#, php-format
+msgid "The package has no valid schema version. This site imports schema versions %1$s to %2$s. Export the package again with a matching version and upload that file."
+msgstr ""
+
+#. translators: 1: schema version of the package, 2: lowest schema version, 3: highest schema version such as 1.0.x
+#: src/Import/PackageValidator.php:309
+#, php-format
+msgid "The package has schema version %1$s, but this site imports only schema versions %2$s to %3$s. Export the package again with a matching version and upload that file."
 msgstr ""
 
 #: src/Import/RightsReleaseForm.php:56

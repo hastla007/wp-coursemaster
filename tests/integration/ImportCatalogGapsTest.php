@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Admin\ImportScreen;
 use CourseCaptain\Import\ImportService;
 use CourseCaptain\Import\PackageValidator;
 use CourseCaptain\Kernel\Plugin;
@@ -212,7 +213,7 @@ final class ImportCatalogGapsTest extends SchemaTestCase {
 		self::assertSame( array( 'V5_minor' ), self::rules( $set( 'schema_version', '1.9.0' ) ), 'IMP-005: newer minor than the plugin' );
 		self::assertSame( array(), self::rules( $set( 'schema_version', '1.0.7' ) ), 'patch versions are accepted' );
 
-		// LB package: no `format`, LB package ID (E-03: only the migration tool reads it).
+		// LB package: no `format`, LB package ID (E-03: the core never reads it; hint see test_IMP_004_005_hints_in_import_detail).
 		$lb = $this->pack(
 			$this->entries,
 			array(),
@@ -224,6 +225,40 @@ final class ImportCatalogGapsTest extends SchemaTestCase {
 		);
 		self::assertContains( 'V5_format', self::rules( $lb ) );
 		self::assertSame( 'failed', $this->service_validate( $lb )['status'] );
+	}
+
+	/**
+	 * IMP-004/IMP-005 in the import detail: readable hints that only name
+	 * what exists (course export, real schema versions), the rule code in
+	 * brackets; no migration tool, no plugin update.
+	 *
+	 * @group IMP-004
+	 * @group IMP-005
+	 */
+	public function test_IMP_004_005_hints_in_import_detail(): void {
+		$set     = fn( string $key, $value ): string => $this->pack(
+			$this->entries,
+			array(),
+			static function ( array $m ) use ( $key, $value ): array {
+				$m[ $key ] = $value;
+				return $m;
+			}
+		);
+		$service = ImportService::current();
+		$admin   = Actor::user( $this->admin );
+		$highest = '1.' . PackageValidator::SCHEMA_MINOR . '.x';
+
+		$newer = $service->upload( $admin, $set( 'schema_version', '1.9.0' ) );
+		self::assertSame( 'failed', $service->validate( $admin, $newer )['status'] );
+		$page = ImportScreen::html( array( 'batch' => $newer ), $this->admin );
+		self::assertStringContainsString( 'The package has schema version 1.9.0, but this site imports only schema versions 1.0.0 to ' . $highest . '. Export the package again with a matching version and upload that file. (rule: V5_minor)', $page );
+
+		$foreign = $service->upload( $admin, $set( 'format', 'other' ) );
+		self::assertSame( 'failed', $service->validate( $admin, $foreign )['status'] );
+		$page = html_entity_decode( ImportScreen::html( array( 'batch' => $foreign ), $this->admin ), ENT_QUOTES );
+		self::assertStringContainsString( 'This file is not a Course Captain package. Only packages created under "Import content > Course export" can be imported', $page );
+		self::assertStringContainsString( '(rule: V5_format)', $page );
+		self::assertDoesNotMatchRegularExpression( '/migration tool|update the plugin/i', $page );
 	}
 
 	/**
