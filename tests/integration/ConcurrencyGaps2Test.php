@@ -355,6 +355,7 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 		// File => [count, rule]. `pk`: every locking read has `id = %d` (or `ID = %d`) equality.
 		$reviewed = array(
 			'src/Access/TrialLimits.php'             => array( 1, 'review: migration of legacy rules, course + module equality (no interactive path)' ),
+			'src/Access/GrantService.php'            => array( 1, 'review: parent row wp_users by PK, share lock against a parallel account deletion (R-12, CON-014)' ),
 			'src/Assignment/AssignmentService.php'   => array( 2, 'review: row by PK; latest submission by user + activity (prefix of user_activity_no, ORDER BY … LIMIT 1)' ),
 			'src/Certificate/CertificateService.php' => array( 3, 'review: revisions by certificate_uid (prefix of cert_rev), evidence (prefix of evidence_rev)' ),
 			'src/Course/CoursePublisher.php'         => array( 1, 'review: revisions by course_id (prefix of course_rev), course publish lock M5 held' ),
@@ -582,6 +583,9 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 	 */
 	public function test_CON_014_account_deletion_parallel_to_join_and_grant(): void {
 		require_once ABSPATH . 'wp-admin/includes/user.php';
+		if ( is_multisite() ) {
+			require_once ABSPATH . 'wp-admin/includes/ms.php';
+		}
 		$admin   = $this->admin;
 		$course  = $this->course;
 		$service = GroupService::current();
@@ -615,7 +619,8 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 					},
 				'delete' => static function () use ( $user ): bool {
 					usleep( 400000 );
-					return wp_delete_user( $user );
+					// Account deletion: on multisite the network deletion (wp_delete_user only leaves the site).
+					return is_multisite() ? wpmu_delete_user( $user ) : wp_delete_user( $user );
 				},
 			);
 			$results = RaceRunner::run( 'CON-014-' . $scenario, $jobs );
@@ -885,6 +890,9 @@ final class ConcurrencyGaps2Test extends SchemaTestCase {
 		$own = new \wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
 		$own->set_prefix( $GLOBALS['wpdb']->base_prefix );
 		$own->suppress_errors( true );
+		if ( is_multisite() ) {
+			$own->set_blog_id( get_current_blog_id() );
+		}
 		$db    = new Database( $own );
 		$key   = 'con045-' . wp_generate_password( 6, false );
 		$lock  = NamedLock::for_key( $db, $key );

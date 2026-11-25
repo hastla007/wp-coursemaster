@@ -206,6 +206,9 @@ final class PrivacyService {
 			}
 		);
 		add_action( 'delete_user', array( self::class, 'on_delete_user' ) );
+		// Second pass after the account row is gone (CON-014): rows a parallel request wrote
+		// between the first pass and the deletion are erased too.
+		add_action( 'deleted_user', array( self::class, 'on_deleted_user' ) );
 		add_action( 'admin_init', array( self::class, 'policy_text' ) );
 	}
 
@@ -302,6 +305,16 @@ final class PrivacyService {
 		if ( $user instanceof \WP_User ) {
 			self::erase_invitations( (string) $user->user_email );
 		}
+		self::erase_user( (int) $user_id );
+	}
+
+	/**
+	 * Account row deleted: erase again what a parallel request wrote meanwhile (R-12, CON-014).
+	 *
+	 * @param mixed $user_id User.
+	 * @return void
+	 */
+	public static function on_deleted_user( $user_id ): void {
 		self::erase_user( (int) $user_id );
 	}
 

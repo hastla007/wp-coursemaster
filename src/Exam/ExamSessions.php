@@ -21,6 +21,7 @@ use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Question\Randomizer;
 use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
+use CourseCaptain\Storage\Lease;
 use CourseCaptain\Storage\NamedLock;
 use CourseCaptain\Storage\RateLimiter;
 
@@ -38,6 +39,7 @@ final class ExamSessions {
 	public const EVALUATOR_VERSION = '1.0.0';
 	public const UNLIMITED_LOCK    = 86400;
 	private const START_LOCK_WAIT  = 10;
+	private const START_LEASE_TTL  = 30;
 	/** Default of `exams.starts_per_hour` (SET-CC-13); the effective value comes from BusinessRules. */
 	public const START_LIMIT_HOUR = 40;
 
@@ -97,9 +99,19 @@ final class ExamSessions {
 			throw new CourseException( 'ccap_exam_not_startable', 'rule_unavailable', 422 );
 		}
 
-		$lock = NamedLock::for_key( $this->db, 'exam_start:' . $actor->user_id );
-		if ( NamedLock::BUSY === $lock->acquire( self::START_LOCK_WAIT ) ) {
+		$lock  = NamedLock::for_key( $this->db, 'exam_start:' . $actor->user_id );
+		$state = $lock->acquire( self::START_LOCK_WAIT );
+		if ( NamedLock::BUSY === $state ) {
 			throw new CourseException( 'ccap_exam_start_busy', 'Start in progress.', 409 );
+		}
+		// Without GET_LOCK (R0-21 §2.5, CON-006) a short lease row keeps one start per learner;
+		// a parallel start gets the same 409 instead of a second running attempt.
+		$lease = null;
+		if ( NamedLock::UNAVAILABLE === $state ) {
+			$lease = Lease::acquire( $this->db, 'exam_start:' . $actor->user_id, self::START_LEASE_TTL, false );
+			if ( null === $lease ) {
+				throw new CourseException( 'ccap_exam_start_busy', 'Start in progress.', 409 );
+			}
 		}
 		try {
 			$form_key = null === $variant_id ? 'random:' . $rule_id : 'variant:' . $variant_id;
@@ -137,6 +149,7 @@ final class ExamSessions {
 			return $this->create_session( $actor, $rule, $variant_id, $form_key, $request_key, $randomizer, $plan );
 		} finally {
 			$lock->release();
+			$lease?->release();
 		}
 	}
 
