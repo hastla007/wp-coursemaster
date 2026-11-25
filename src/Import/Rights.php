@@ -629,7 +629,7 @@ final class Rights {
 	 * @return bool
 	 */
 	public static function own_manifest( array $manifest ): bool {
-		$site = (string) get_option( 'course_captain_installation_uuid', '' );
+		$site = (string) get_option( \CourseCaptain\Kernel\InstallationUuid::OPTION, '' );
 		$from = (string) ( $manifest['source']['exported_from_site'] ?? '' );
 		return 'local' === ( $manifest['source']['system'] ?? '' ) || ( '' !== $site && $site === $from );
 	}

@@ -15,7 +15,6 @@ use CourseCaptain\Activity\ActivityService;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
 use CourseCaptain\Course\ObjectIdentity;
-use CourseCaptain\Ops\RestoreCheck;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Question\QuestionRepository;
@@ -338,13 +337,7 @@ final class PackageExporter {
 	 * @return string
 	 */
 	public static function installation_uuid(): string {
-		$uuid = get_option( RestoreCheck::INSTALLATION_UUID );
-		if ( is_string( $uuid ) && 1 === preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $uuid ) ) {
-			return $uuid;
-		}
-		$uuid = strtolower( wp_generate_uuid4() );
-		update_option( RestoreCheck::INSTALLATION_UUID, $uuid, false );
-		return $uuid;
+		return \CourseCaptain\Kernel\InstallationUuid::get();
 	}
 
 	/**

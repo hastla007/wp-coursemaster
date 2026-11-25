@@ -546,6 +546,7 @@ final class Compatibility {
 			self::permalink_check(),
 			self::polylang_check(),
 			self::elementor_check(),
+			self::intl_check(),
 		);
 	}
 
@@ -715,6 +716,21 @@ final class Compatibility {
 			return self::check( 'element_cache', 'fail', __( 'Elementor "Element Caching" is active.', 'course-captain' ), $hint );
 		}
 		return self::check( 'element_cache', 'warn', __( 'Elementor "Element Caching" may be active by default.', 'course-captain' ), $hint );
+	}
+
+	/**
+	 * System requirement `intl` (E-392): Unicode normalisation (NFC) of
+	 * certificate, import and answer hashes uses `Normalizer`. Without it the
+	 * plugin runs, but the same text can give different hashes on servers
+	 * with and without the extension.
+	 *
+	 * @return array{id: string, status: string, label: string, hint: string, ids: list<string>}
+	 */
+	private static function intl_check(): array {
+		if ( self::has_class( 'Normalizer' ) ) {
+			return self::check( 'php_intl', 'ok', __( 'The PHP extension intl is available.', 'course-captain' ), '' );
+		}
+		return self::check( 'php_intl', 'warn', __( 'The PHP extension intl is missing. It is a system requirement of Course Captain.', 'course-captain' ), __( 'Without intl, texts are not normalised: certificate checksums and import fingerprints can differ from those of other servers. Ask your host to enable the PHP extension intl.', 'course-captain' ) );
 	}
 
 	/**

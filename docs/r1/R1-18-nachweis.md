@@ -135,14 +135,14 @@ Damit hängt R1-GATE technisch nur noch an: Referenzlauf (§7), den manuellen Ga
 |---|---|
 | g1 A-1 | GM-068: Backfill nur im Migrationswerkzeug, nicht im Core. **Entschieden: so lassen (E-335)** |
 | g2 A-2 | Monitor-Name/Header. **Erledigt: R0-13 an R0-19 angeglichen (E-336)** |
-| g2 A-5 | Abmelden leert den Prüfungspuffer (localStorage) nicht aktiv (PRIV-018); Puffer enthält keine Lösungen |
+| g2 A-5 | Abmelden leert den Prüfungspuffer (localStorage) nicht aktiv (PRIV-018); Puffer enthält keine Lösungen. **Entschieden: leeren (E-392); umgesetzt in h3 (`ExamBufferPurge`)** |
 | g2 A-6 | Deutsche Übersetzungen. **Erledigt** (113 Texte, 23.11.2026) |
 | g3 H-2 | `ccap_access_exists`/`ccap_user_required`. **Erledigt: in R0-19 §3 aufgenommen (E-336)** |
-| g3 H-3/H-4/H-5 | `backup-check` deckt nur Teile von R0-16 §1.4 ab; Einladungsseite ist minimal (REST R-31/R-32 fehlen) |
-| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); **R0-05 §2.6 angeglichen (E-336)**. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`) |
-| g5 A-1…A-3 | GM-190 Gäste 401 (R-38); Routennamen des Datenexports selbst gewählt (R0-19 nennt nur Codes); Löschung nach Bestätigung nur mit Opt-in E-43 |
+| g3 H-3/H-4/H-5 | `backup-check` deckt nur Teile von R0-16 §1.4 ab; Einladungsseite ist minimal (REST R-31/R-32 fehlen). **Entschieden (E-392): Rest `backup-check` als Folgeaufgabe; Einladungsseite mit der Besitzer-Oberfläche (inzwischen vorhanden, R-31/R-32 in `LearnerRoutes`)** |
+| g4 §2 | `package_id` bleibt inhaltsbasiert (R0-10 §1.2); **R0-05 §2.6 angeglichen (E-336)**. Option `course_captain_installation_uuid` wird nirgends gesetzt, daher gilt jedes Paket außer `local` als fremd (`own` → `licensed`). **Entschieden: bei Aktivierung setzen (E-392); umgesetzt (`InstallationUuid`, Slice `gate-klaerungen`)** |
+| g5 A-1…A-3 | GM-190 Gäste 401 (R-38); Routennamen des Datenexports selbst gewählt (R0-19 nennt nur Codes); Löschung nach Bestätigung nur mit Opt-in E-43. **Entschieden: so lassen (E-392)** |
 | g6 | Karteikarten zählen als Fragen. **Entschieden (E-337)** |
-| Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen |
+| Umgebung | Zertifikats-/Import-Hashes hängen davon ab, ob `intl`/`Normalizer` vorhanden ist (Unicode-Normalisierung); auf Zielsystemen ohne `intl` können Hashes abweichen. **Entschieden: `intl` als Systemvoraussetzung dokumentieren (E-392); umgesetzt (readme, Installationsanleitung, Prüfung `php_intl`)** |
 
 
 ## Anhang · GM-Matrix (`php tools/qa/gm-coverage.php --matrix`) – Stand 23.11.2026

@@ -43,16 +43,17 @@ final class PerformanceTest extends SchemaTestCase {
 	 * Ceilings (own queries per request, measured cold: policy memo and
 	 * non-persistent object cache empty, as a new request without persistent
 	 * object cache, R0-14 §1.1). Values equal to the R0-14 budget are the
-	 * budget; OP-04 and OP-06 are above their budget and need a decision
-	 * (docs/r1/R1-22-nachtrag-h9.md, "Freigabe nötig"). Lowering them is
-	 * welcome; raising them needs a reason in docs/r1/R1-22-nachweis.md.
+	 * budget; OP-04 and OP-06 are above their budget as an approved deviation
+	 * (E-388: the current values are the regression limit; list in
+	 * docs/r1/R1-22-nachweis.md §4 A-5). Lowering them is welcome; raising
+	 * them needs a new decision.
 	 */
 	private const CEILING = array(
 		'OP-01' => 15, // Budget 15; measured 9 (23.11.2026; 16.11.: 21).
 		'OP-03' => 10, // Budget 10; measured 10 (16.11.: 23).
-		'OP-04' => 16, // Budget 8 – needs a decision (idempotency 2, rate limit 1, attempt + answer rows, progress 3 writes/reads); measured 16 cold (16.11.: 26–28 with warm caches).
+		'OP-04' => 16, // Budget 8 – deviation E-388 (idempotency 2, rate limit 1, attempt + answer rows, progress 3 writes/reads); measured 16 cold (16.11.: 26–28 with warm caches).
 		'OP-05' => 15, // Budget 15; measured 15 (16.11.: 22–23).
-		'OP-06' => 8,  // Budget 6 – needs a decision: 6 with the revision in the object cache, +2 cold (revision for the immediate evaluation); 16.11.: 12 with warm caches.
+		'OP-06' => 8,  // Budget 6 – deviation E-388: 6 with the revision in the object cache, +2 cold (revision for the immediate evaluation); 16.11.: 12 with warm caches.
 		'OP-07' => 10, // Budget 20; measured 8–9.
 	);
 
@@ -349,7 +350,7 @@ final class PerformanceTest extends SchemaTestCase {
 		self::cold();
 		$answer = self::measure( static fn() => AnswerService::current()->answer( Actor::user( $learner ), (string) $next['token'], array( 'A' ), wp_generate_uuid4() ) );
 		self::report( 'OP-04', $answer );
-		self::assertLessThanOrEqual( self::CEILING['OP-04'], $answer['own'], 'OP-04 ceiling (budget 8 needs a decision)' );
+		self::assertLessThanOrEqual( self::CEILING['OP-04'], $answer['own'], 'OP-04 regression limit (budget 8, deviation E-388)' );
 		$writes = count( array_filter( $answer['sql'], static fn( string $sql ): bool => 1 === preg_match( '/^\s*(INSERT|UPDATE|DELETE|REPLACE)\b/i', $sql ) ) );
 		self::assertLessThanOrEqual( 7, $writes, 'OP-04 writes: idempotency 2, rate limit 1, progress row 2, attempt 2' );
 	}

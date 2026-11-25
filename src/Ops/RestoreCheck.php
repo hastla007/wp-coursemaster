@@ -57,7 +57,7 @@ final class RestoreCheck {
 	public const MAX_ITEMS = 20;
 
 	private const SECRET_PATTERN   = '/^[a-z0-9]{24}$/';
-	public const INSTALLATION_UUID = 'course_captain_installation_uuid';
+	public const INSTALLATION_UUID = \CourseCaptain\Kernel\InstallationUuid::OPTION;
 
 	private const UUID_PATTERN = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/';
 

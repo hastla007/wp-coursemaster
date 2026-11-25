@@ -12929,3 +12929,12 @@ msgstr "Das Paket hat keine gültige Schemaversion. Diese Website importiert die
 #, php-format
 msgid "The package has schema version %1$s, but this site imports only schema versions %2$s to %3$s. Export the package again with a matching version and upload that file."
 msgstr "Das Paket hat die Schemaversion %1$s, diese Website importiert aber nur die Schemaversionen %2$s bis %3$s. Exportieren Sie das Paket erneut mit einer passenden Version und laden Sie diese Datei hoch."
+
+msgid "The PHP extension intl is available."
+msgstr "Die PHP-Erweiterung intl ist verfügbar."
+
+msgid "The PHP extension intl is missing. It is a system requirement of Course Captain."
+msgstr "Die PHP-Erweiterung intl fehlt. Sie ist eine Systemvoraussetzung von Course Captain."
+
+msgid "Without intl, texts are not normalised: certificate checksums and import fingerprints can differ from those of other servers. Ask your host to enable the PHP extension intl."
+msgstr "Ohne intl werden Texte nicht normalisiert: Prüfsummen von Zertifikaten und Fingerabdrücke von Importen können von denen anderer Server abweichen. Bitten Sie Ihren Hoster, die PHP-Erweiterung intl zu aktivieren."
