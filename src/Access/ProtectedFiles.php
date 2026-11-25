@@ -11,6 +11,7 @@ namespace CourseCaptain\Access;
 
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Policy\Decision;
 use CourseCaptain\Policy\PolicyService;
 use CourseCaptain\Policy\Relations;
 use CourseCaptain\Storage\Database;
@@ -29,6 +30,16 @@ defined( 'ABSPATH' ) || exit;
  * ranges → whole file. Assignment files (`source_system = assignment`,
  * R1-46) are authorized by `AssignmentFiles::resolve()` and always served
  * as download with `sandbox`.
+ *
+ * Owner decisions of 25.11.2026: a guest's browser request is redirected
+ * to the login with the file URL as return address, REST/JSON requests
+ * keep `401 ccap_auth_required` (E-373, MED-001); a file whose every
+ * module is still drip-locked for the learner stays locked, a course
+ * grant does not bypass drip (E-374); media of a question in the
+ * learner's running exam attempt (snapshot revision) are delivered to
+ * that learner, everyone else needs normal course access (E-375,
+ * MED-004); the experimental filter `course_captain_protected_file_sendfile`
+ * may hand the body to the web server (E-377, MED-016).
  */
 final class ProtectedFiles {
 
@@ -117,10 +128,42 @@ final class ProtectedFiles {
 		try {
 			self::current()->serve( Actor::user( get_current_user_id() ), $uid, $range );
 		} catch ( CourseException $e ) {
-			status_header( 401 === $e->status ? 401 : ( 404 === $e->status ? 404 : 403 ) );
 			nocache_headers();
+			$login = self::login_redirect( $e->status, $uid, self::wants_json() );
+			if ( null !== $login ) {
+				wp_safe_redirect( $login, 302 );
+				exit;
+			}
+			status_header( 401 === $e->status ? 401 : ( 404 === $e->status ? 404 : 403 ) );
 		}
 		exit;
+	}
+
+	/**
+	 * Login redirect for a guest's browser request (E-373, MED-001): only
+	 * for 401 and a non-JSON request; the return address is the checked
+	 * file URL (media UID only, never a path).
+	 *
+	 * @param int    $status HTTP status of the denial.
+	 * @param string $uid    Media UID.
+	 * @param bool   $json   REST/API or JSON request.
+	 * @return string|null Login URL, null = answer with the status.
+	 */
+	public static function login_redirect( int $status, string $uid, bool $json ): ?string {
+		if ( 401 !== $status || $json || 1 !== preg_match( '/^[0-9a-f-]{36}$/', $uid ) ) {
+			return null;
+		}
+		return wp_login_url( self::url( $uid ) );
+	}
+
+	/**
+	 * Whether the current request is a REST, AJAX or JSON request
+	 * (`Accept`/`Content-Type: application/json`).
+	 *
+	 * @return bool
+	 */
+	public static function wants_json(): bool {
+		return ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || wp_doing_ajax() || wp_is_json_request();
 	}
 
 	/**
@@ -130,7 +173,7 @@ final class ProtectedFiles {
 	 * @param string      $uid       Media UID.
 	 * @param string|null $range     `Range` header.
 	 * @param int|null    $course_id Course context (partial access).
-	 * @return array{path: string, status: int, headers: array<string, string>, offset: int, length: int, media_id: int}
+	 * @return array{path: string, status: int, headers: array<string, string>, offset: int, length: int, media_id: int, media: array<string, mixed>}
 	 * @throws CourseException 404/401/403.
 	 */
 	public function prepare( Actor $actor, string $uid, ?string $range = null, ?int $course_id = null ): array {
@@ -182,7 +225,77 @@ final class ProtectedFiles {
 			'offset'   => $offset,
 			'length'   => $length,
 			'media_id' => (int) $media['id'],
+			'media'    => $media,
 		);
+	}
+
+	/**
+	 * Final response: the prepared one, or, when the filter
+	 * `course_captain_protected_file_sendfile` returns headers (E-377,
+	 * MED-016), status 200 with the content headers plus those headers and
+	 * no PHP body (`stream = false`; the web server answers ranges and the
+	 * length). The filter runs only after the rights check, so a denied request
+	 * never gets a sendfile header.
+	 *
+	 * @param Actor       $actor Requesting user.
+	 * @param string      $uid   Media UID.
+	 * @param string|null $range `Range` header.
+	 * @return array{path: string, status: int, headers: array<string, string>, offset: int, length: int, media_id: int, media: array<string, mixed>, stream: bool}
+	 * @throws CourseException 404/401/403.
+	 */
+	public function response( Actor $actor, string $uid, ?string $range = null ): array {
+		$response = $this->prepare( $actor, $uid, $range );
+		/**
+		 * Hand the file body to the web server (experimental, E-377).
+		 *
+		 * Return a header array such as `['X-Accel-Redirect' => '/protected/…']`
+		 * (nginx `internal` location) or `['X-Sendfile' => $path]`; `null` or an
+		 * empty array keeps the PHP streaming. Content headers of Course
+		 * Captain cannot be replaced.
+		 *
+		 * @since 1.0.0
+		 * @param array<string, string>|null $headers Sendfile headers (default null).
+		 * @param string                     $path    Absolute file path (checked, inside the protected folder).
+		 * @param array<string, mixed>       $media   Media row (`ccap_media`).
+		 */
+		$sendfile = self::sendfile_headers( apply_filters( 'course_captain_protected_file_sendfile', null, $response['path'], $response['media'] ), $response['headers'] );
+		if ( array() === $sendfile ) {
+			return $response + array( 'stream' => true );
+		}
+		$headers = $response['headers'];
+		unset( $headers['Content-Length'], $headers['Content-Range'] );
+		$response['status']  = 200;
+		$response['headers'] = $headers + $sendfile;
+		$response['offset']  = 0;
+		$response['length']  = 0;
+		return $response + array( 'stream' => false );
+	}
+
+	/**
+	 * Valid headers of the sendfile filter: token names, single-line
+	 * string values; names of the content headers are dropped.
+	 *
+	 * @param mixed                 $value   Filter result.
+	 * @param array<string, string> $content Content headers.
+	 * @return array<string, string>
+	 */
+	private static function sendfile_headers( $value, array $content ): array {
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+		$taken = array_map( 'strtolower', array_keys( $content ) );
+		$out   = array();
+		foreach ( $value as $name => $header ) {
+			if ( ! is_string( $name ) || 1 !== preg_match( '/^[A-Za-z0-9-]{1,64}$/', $name ) || ! is_scalar( $header ) ) {
+				continue;
+			}
+			$header = (string) $header;
+			if ( '' === $header || 1 === preg_match( '/[\r\n\0]/', $header ) || in_array( strtolower( $name ), $taken, true ) ) {
+				continue;
+			}
+			$out[ $name ] = $header;
+		}
+		return $out;
 	}
 
 	/**
@@ -197,7 +310,7 @@ final class ProtectedFiles {
 	 * @return void
 	 */
 	public function serve( Actor $actor, string $uid, ?string $range, int $keep_buffers = 0 ): void {
-		$response = $this->prepare( $actor, $uid, $range );
+		$response = $this->response( $actor, $uid, $range );
 		while ( ob_get_level() > max( 0, $keep_buffers ) ) {
 			$status = ob_get_status();
 			if ( 0 === ( (int) ( $status['flags'] ?? 0 ) & PHP_OUTPUT_HANDLER_REMOVABLE ) || ! ob_end_clean() ) {
@@ -211,7 +324,7 @@ final class ProtectedFiles {
 				header( $name . ': ' . $value );
 			}
 		}
-		if ( 0 === $response['length'] ) {
+		if ( ! $response['stream'] || 0 === $response['length'] ) {
 			return;
 		}
 		$handle = fopen( $response['path'], 'rb' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen -- Streaming.
@@ -375,7 +488,9 @@ final class ProtectedFiles {
 	}
 
 	/**
-	 * Rights: policy M-17, else partial access via the gate.
+	 * Rights: editors always; the owner of a running exam attempt with the
+	 * medium (E-375); else policy M-17 plus drip (E-374), else partial
+	 * access via the gate.
 	 *
 	 * @param Actor    $actor     User.
 	 * @param string   $uid       UID.
@@ -386,15 +501,80 @@ final class ProtectedFiles {
 	 */
 	private function authorize( Actor $actor, string $uid, int $media_id, ?int $course_id ): void {
 		$decision = $this->policy->decide( $actor, PolicyService::DOWNLOAD_FILE, array( $uid ) );
-		if ( $decision->allowed ) {
+		$courses  = null === $course_id ? ( new Relations( $this->db ) )->courses_of_media( $media_id ) : array( $course_id );
+		if ( $decision->allowed && $this->edits_any( $actor, $courses ) ) {
 			return;
 		}
-		$courses = null === $course_id ? ( new Relations( $this->db ) )->courses_of_media( $media_id ) : array( $course_id );
+		// E-375: running attempts keep working (also after the grant ended); never over a lock, login or the access filter.
+		$overridable = $decision->allowed || ( ! in_array( $decision->code, array( Decision::AUTH_REQUIRED, Decision::ACCOUNT_LOCKED ), true ) && 'filtered' !== $decision->reason );
+		if ( $overridable && $this->gate->running_exam_media( $actor->user_id, $media_id ) ) {
+			return;
+		}
+		if ( $decision->allowed ) {
+			$this->assert_drip( $actor, $media_id, $courses );
+			return;
+		}
 		foreach ( $courses as $course ) {
 			if ( $this->gate->file( $actor, (int) $course, $media_id )->allowed() ) {
 				return;
 			}
 		}
 		CourseException::unless_allowed( $decision, 'No access to this file.' );
+	}
+
+	/**
+	 * Whether the user may edit one of the courses (editorial side: no drip).
+	 *
+	 * @param Actor $actor   User.
+	 * @param array $courses Courses.
+	 * @phpstan-param list<int> $courses
+	 * @return bool
+	 */
+	private function edits_any( Actor $actor, array $courses ): bool {
+		foreach ( $courses as $course ) {
+			if ( $this->policy->decide( $actor, PolicyService::EDIT_COURSE, array( (int) $course ) )->allowed ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Drip (E-374, R0-10 §4.3): a file used by the course itself (no
+	 * module) is open with course access; otherwise at least one module
+	 * that uses the file must pass the module gate (scope `download`). When
+	 * every accessible module is drip-locked the drip lock is thrown
+	 * (`ccap_content_locked`, reason `drip`); a course grant does not
+	 * bypass it. Prerequisites do not lock files.
+	 *
+	 * @param Actor $actor    Learner.
+	 * @param int   $media_id Medium.
+	 * @param array $courses  Courses using the medium.
+	 * @phpstan-param list<int> $courses
+	 * @return void
+	 * @throws CourseException Drip lock.
+	 */
+	private function assert_drip( Actor $actor, int $media_id, array $courses ): void {
+		$relations = new Relations( $this->db );
+		$drip      = null;
+		foreach ( $courses as $course ) {
+			$course = (int) $course;
+			if ( in_array( $media_id, $this->gate->course_files( $course ), true ) && $this->policy->decide( $actor, PolicyService::LEARN, array( $course ), array( 'scope' => 'download' ) )->allowed ) {
+				return;
+			}
+			foreach ( $relations->modules_of_media( $media_id, $course ) as $module ) {
+				$gate = $this->gate->module( $actor, $course, $module, 'download', null );
+				if ( 'drip' === $gate->reason ) {
+					$drip = $drip ?? $gate;
+					continue;
+				}
+				if ( $gate->allowed() || 'prerequisite' === $gate->reason ) {
+					return;
+				}
+			}
+		}
+		if ( null !== $drip ) {
+			$drip->assert();
+		}
 	}
 }

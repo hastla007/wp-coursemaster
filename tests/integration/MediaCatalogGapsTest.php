@@ -1,7 +1,7 @@
 <?php
 /**
- * R0-10 §6 catalogue gaps for protected media: MED-001…MED-003,
- * MED-015, MED-017 (R1-14).
+ * R0-10 §6 catalogue gaps for protected media: MED-001…MED-004,
+ * MED-015…MED-017 (R1-14) and the owner decisions E-373…E-375, E-377.
  *
  * @package CourseCaptain
  */
@@ -10,14 +10,19 @@ declare(strict_types=1);
 
 namespace CourseCaptain\Tests\Integration;
 
+use CourseCaptain\Access\ContentGate;
 use CourseCaptain\Access\ProtectedFiles;
 use CourseCaptain\Access\ProtectedStorage;
 use CourseCaptain\Activity\MediaLibrary;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Course\CourseStructure;
+use CourseCaptain\Exam\ExamRules;
+use CourseCaptain\Exam\ExamSessions;
 use CourseCaptain\Kernel\Plugin;
 use CourseCaptain\Policy\Actor;
 use CourseCaptain\Policy\PolicyService;
+use CourseCaptain\Question\QuestionRepository;
+use CourseCaptain\Question\QuestionTypes;
 use CourseCaptain\Storage\Database;
 
 /**
@@ -67,6 +72,16 @@ final class MediaCatalogGapsTest extends SchemaTestCase {
 			CourseStructure::current()->assign_module( $admin, $this->ids[ $course ], $this->ids[ $module ] );
 		}
 		$this->ids['L2'] = $this->post( 'ccap_lesson', $this->ids['M2'] );
+	}
+
+	/**
+	 * Reset clock, filters and request globals.
+	 */
+	public function tear_down(): void {
+		ContentGate::set_now( null );
+		remove_all_filters( 'course_captain_protected_file_sendfile' );
+		unset( $_SERVER['HTTP_ACCEPT'] );
+		parent::tear_down();
 	}
 
 	/**
@@ -195,10 +210,13 @@ final class MediaCatalogGapsTest extends SchemaTestCase {
 	}
 
 	/**
-	 * MED-001: protected file without login: 401 (auth required) without
-	 * content or path; the endpoint maps the 401; an unknown UID stays 404.
+	 * MED-001 / E-373: protected file without login: 401 (auth required)
+	 * without content or path; the endpoint sends a browser request to the
+	 * login with the file URL as return address, REST/JSON requests keep
+	 * the 401; an unknown UID stays 404.
 	 *
 	 * @group MED-001
+	 * @group E-373
 	 */
 	public function test_MED_001_without_login(): void {
 		$file  = $this->protected_pdf( 'course', $this->ids['A'] );
@@ -225,6 +243,24 @@ final class MediaCatalogGapsTest extends SchemaTestCase {
 
 		// The file itself was not touched (still only in the protected folder).
 		self::assertTrue( ProtectedStorage::is_protected_path( $file['path'] ) );
+
+		// E-373: browser → login with return URL (only the media UID), JSON/REST → 401, other denials never redirect.
+		$login = (string) ProtectedFiles::login_redirect( 401, $file['uid'], false );
+		self::assertSame( wp_login_url( ProtectedFiles::url( $file['uid'] ) ), $login );
+		self::assertStringContainsString( 'redirect_to=' . rawurlencode( ProtectedFiles::url( $file['uid'] ) ), $login );
+		self::assertStringNotContainsString( ProtectedStorage::secret(), $login );
+		self::assertStringNotContainsString( basename( $file['path'] ), $login );
+		self::assertSame( 1, substr_count( $login, $file['uid'] ), 'UID only inside the return URL' );
+		self::assertNull( ProtectedFiles::login_redirect( 401, $file['uid'], true ), 'REST/JSON keeps 401' );
+		self::assertNull( ProtectedFiles::login_redirect( 403, $file['uid'], false ) );
+		self::assertNull( ProtectedFiles::login_redirect( 404, $file['uid'], false ) );
+		self::assertNull( ProtectedFiles::login_redirect( 401, '../' . basename( $file['path'] ), false ) );
+		if ( ! defined( 'REST_REQUEST' ) && ! wp_doing_ajax() ) {
+			$_SERVER['HTTP_ACCEPT'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
+			self::assertFalse( ProtectedFiles::wants_json(), 'browser request' );
+		}
+		$_SERVER['HTTP_ACCEPT'] = 'application/json';
+		self::assertTrue( ProtectedFiles::wants_json(), 'Accept: application/json' );
 	}
 
 	/**
@@ -393,5 +429,253 @@ final class MediaCatalogGapsTest extends SchemaTestCase {
 		foreach ( $public as $path ) {
 			self::assertFileExists( $path, 'moved back: ' . basename( $path ) );
 		}
+	}
+
+	/**
+	 * Drip rule for a module of course A.
+	 *
+	 * @param int $module Module.
+	 * @param int $days   Days after the access start.
+	 * @return void
+	 */
+	private function drip( int $module, int $days ): void {
+		Database::current()->insert(
+			'ccap_access_rule',
+			array(
+				'course_id'   => $this->ids['A'],
+				'module_id'   => $module,
+				'scope'       => 'view',
+				'access_type' => 'drip',
+				'limit_value' => $days,
+			)
+		);
+		PolicyService::flush();
+	}
+
+	/**
+	 * E-374: drip applies to protected files. A file whose every module is
+	 * drip-locked stays locked (`ccap_content_locked`, reason `drip`), also
+	 * with a course grant; one open module, a course-level link or the
+	 * editorial side opens it; after the unlock date it is delivered.
+	 *
+	 * @group E-374
+	 */
+	public function test_E_374_drip_locks_protected_files(): void {
+		$this->drip( $this->ids['M2'], 5 );
+		$lesson_file = $this->protected_pdf( 'lesson', $this->ids['L2'] );
+		$module_file = $this->protected_pdf( 'module', $this->ids['M2'] );
+		$shared      = $this->protected_pdf( 'module', $this->ids['M2'] );
+		MediaLibrary::current()->attach( Actor::user( $this->admin ), $shared['media'], 'module', $this->ids['M1'], 'download' );
+		$course_file = $this->protected_pdf( 'course', $this->ids['A'] );
+		$full        = Actor::user( $this->learner( $this->ids['A'] ) );
+		$module      = Actor::user( $this->learner( $this->ids['A'], $this->ids['M2'] ) );
+		foreach ( array(
+			'course grant' => $full,
+			'module grant' => $module,
+		) as $label => $actor ) {
+			foreach ( array( $lesson_file, $module_file ) as $file ) {
+				$e = $this->rejected( fn() => ProtectedFiles::current()->prepare( $actor, $file['uid'] ), 'ccap_content_locked', 403 );
+				self::assertSame( 'drip', $e->getMessage(), $label );
+				self::assertStringNotContainsString( basename( $file['path'] ), $e->getMessage() . wp_json_encode( $e->data ), $label . ': no file name' );
+			}
+		}
+		$files = ProtectedFiles::current();
+		self::assertSame( 200, $files->prepare( $full, $shared['uid'] )['status'], 'M1 without drip opens the shared file' );
+		self::assertSame( 200, $files->prepare( $full, $course_file['uid'] )['status'], 'course files belong to no module' );
+		self::assertSame( 200, $files->prepare( Actor::user( $this->admin ), $lesson_file['uid'] )['status'], 'editors are not drip-locked' );
+		$this->rejected( fn() => $files->prepare( $module, $shared['uid'] ), 'ccap_content_locked', 403 );
+		$this->rejected( fn() => $files->prepare( Actor::user( $this->learner( null ) ), $lesson_file['uid'] ), 'ccap_content_locked', 403 );
+
+		// After the unlock date the files are delivered.
+		ContentGate::set_now( time() + 6 * DAY_IN_SECONDS );
+		PolicyService::flush();
+		foreach ( array( $full, $module ) as $actor ) {
+			self::assertSame( array( 200, 200, 200 ), array( ProtectedFiles::current()->prepare( $actor, $lesson_file['uid'] )['status'], ProtectedFiles::current()->prepare( $actor, $module_file['uid'] )['status'], ProtectedFiles::current()->prepare( $actor, $shared['uid'] )['status'] ) );
+		}
+	}
+
+	/**
+	 * Published single-choice question in the pool of a module.
+	 *
+	 * @param int $module Module.
+	 * @return int Question ID.
+	 */
+	private function pool_question( int $module ): int {
+		$admin = Actor::user( $this->admin );
+		$q     = QuestionRepository::current()->create(
+			$admin,
+			array(
+				'question_type' => QuestionTypes::SINGLE,
+				'question_text' => 'Frage ' . wp_generate_password( 6, false ),
+				'answers'       => array(
+					array(
+						'key'     => 'A',
+						'text'    => 'a',
+						'correct' => true,
+					),
+					array(
+						'key'  => 'B',
+						'text' => 'b',
+					),
+				),
+			)
+		);
+		QuestionRepository::current()->publish( $admin, $q );
+		Database::current()->insert(
+			'ccap_module_question',
+			array(
+				'module_id'   => $module,
+				'question_id' => $q,
+				'sort_order'  => 1,
+			)
+		);
+		return $q;
+	}
+
+	/**
+	 * Protected PDF linked to the current revision of a question.
+	 *
+	 * @param int $question Question.
+	 * @return array{uid: string, media: int, attachment: int, path: string}
+	 */
+	private function question_pdf( int $question ): array {
+		$db   = Database::current();
+		$file = $this->protected_pdf( 'course', $this->ids['B'] );
+		$db->execute( $db->prepare( 'DELETE FROM `' . $db->table( 'ccap_content_media' ) . "` WHERE media_id = %d AND object_type = 'course'", $file['media'] ) );
+		$db->insert(
+			'ccap_content_media',
+			array(
+				'object_type' => 'question_revision',
+				'object_id'   => (int) $db->scalar( $db->prepare( 'SELECT current_revision_id FROM `' . $db->table( 'ccap_question' ) . '` WHERE id = %d', $question ) ),
+				'media_id'    => $file['media'],
+				'role'        => 'attachment',
+				'sort_order'  => 0,
+			)
+		);
+		PolicyService::flush();
+		return $file;
+	}
+
+	/**
+	 * MED-004 / E-375: media of exam questions. The learner with a running
+	 * attempt containing the question (snapshot revision) gets the medium,
+	 * even after the grant ended; a foreign learner without access gets
+	 * 403; learners with course access keep the practice-mode access;
+	 * after submit the attempt no longer opens anything (the result view
+	 * shows no question content); a medium of a question outside the
+	 * attempt is not opened by the attempt.
+	 *
+	 * @group MED-004
+	 * @group E-375
+	 */
+	public function test_MED_004_exam_question_media_only_for_running_attempt(): void {
+		$question = $this->pool_question( $this->ids['M1'] );
+		$other    = $this->pool_question( $this->ids['M2'] );
+		$file     = $this->question_pdf( $question );
+		$outside  = $this->question_pdf( $other );
+		$admin    = Actor::user( $this->admin );
+		$rule     = ExamRules::current()->create(
+			$admin,
+			$this->ids['A'],
+			'v1',
+			array(
+				'min_ratio' => array(
+					'num' => 1,
+					'den' => 2,
+				),
+			),
+			600
+		);
+		ExamRules::current()->set_blueprint( $admin, $rule, $this->ids['M1'], 1 );
+		ExamRules::current()->publish( $admin, $rule );
+		$owner_id = $this->learner( $this->ids['A'], 0, gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ) );
+		$owner    = Actor::user( $owner_id );
+		$session  = ExamSessions::current()->start( $owner, $rule, null, wp_generate_uuid4() );
+		$foreign  = Actor::user( $this->learner( null ) );
+		$practice = Actor::user( $this->learner( $this->ids['A'] ) );
+		$files    = ProtectedFiles::current();
+
+		self::assertSame( 200, $files->prepare( $owner, $file['uid'] )['status'], 'own running attempt' );
+		$e = $this->rejected( fn() => $files->prepare( $foreign, $file['uid'] ), 'ccap_content_locked', 403 );
+		self::assertStringNotContainsString( basename( $file['path'] ), $e->getMessage() . wp_json_encode( $e->data ) );
+		self::assertSame( 200, $files->prepare( $practice, $file['uid'] )['status'], 'practice mode: normal course access' );
+
+		// The grant ends during the attempt: the running attempt keeps working, only for its question.
+		$db = Database::current();
+		$db->execute( $db->prepare( 'UPDATE `' . $db->table( 'ccap_grant' ) . '` SET valid_until = %s WHERE user_id = %d', gmdate( 'Y-m-d H:i:s', time() - 60 ), $owner_id ) );
+		PolicyService::flush();
+		self::assertSame( 200, ProtectedFiles::current()->prepare( $owner, $file['uid'] )['status'], 'running attempt keeps working' );
+		$this->rejected( fn() => ProtectedFiles::current()->prepare( $owner, $outside['uid'] ), 'ccap_content_locked', 403 );
+
+		// After submit: no attempt access any more.
+		ExamSessions::current()->submit( $owner, $session );
+		PolicyService::flush();
+		$this->rejected( fn() => ProtectedFiles::current()->prepare( $owner, $file['uid'] ), 'ccap_content_locked', 403 );
+		self::assertSame( 200, ProtectedFiles::current()->prepare( $practice, $file['uid'] )['status'] );
+	}
+
+	/**
+	 * MED-016 / E-377: the filter `course_captain_protected_file_sendfile`
+	 * gets null, the absolute path and the media row; returned headers are
+	 * sent with the content headers and PHP sends no body (200, no length
+	 * or range); invalid headers and content headers from the filter are
+	 * dropped; without rights the filter never runs; default streams.
+	 *
+	 * @group MED-016
+	 * @group E-377
+	 */
+	public function test_MED_016_sendfile_filter(): void {
+		$file  = $this->protected_pdf( 'course', $this->ids['A'] );
+		$full  = Actor::user( $this->learner( $this->ids['A'] ) );
+		$calls = array();
+
+		$default = ProtectedFiles::current()->response( $full, $file['uid'] );
+		self::assertTrue( $default['stream'], 'default: PHP streaming' );
+		self::assertSame( hash_file( 'sha256', $file['path'] ), hash( 'sha256', $this->served( $full, $file['uid'] ) ) );
+
+		add_filter(
+			'course_captain_protected_file_sendfile',
+			function ( $headers, $path, $media ) use ( &$calls ) {
+				$calls[] = array( $headers, $path, $media['uid'] ?? null );
+				return array(
+					'X-Accel-Redirect' => '/protected/' . basename( (string) $path ),
+					'Content-Type'     => 'text/html',
+					'X-Evil'           => "a\r\nSet-Cookie: x=1",
+					'Bad Name'         => 'x',
+				);
+			},
+			10,
+			3
+		);
+		foreach ( array( null, 'bytes=0-9' ) as $range ) {
+			$response = ProtectedFiles::current()->response( $full, $file['uid'], $range );
+			self::assertFalse( $response['stream'] );
+			self::assertSame( 200, $response['status'] );
+			self::assertSame( '/protected/' . basename( $file['path'] ), $response['headers']['X-Accel-Redirect'] );
+			self::assertSame( 'application/pdf', $response['headers']['Content-Type'], 'content headers stay' );
+			self::assertSame( 'nosniff', $response['headers']['X-Content-Type-Options'] );
+			self::assertStringContainsString( 'no-store', $response['headers']['Cache-Control'] );
+			self::assertStringContainsString( 'inline;', $response['headers']['Content-Disposition'] );
+			self::assertArrayNotHasKey( 'Content-Length', $response['headers'] );
+			self::assertArrayNotHasKey( 'Content-Range', $response['headers'] );
+			self::assertArrayNotHasKey( 'X-Evil', $response['headers'] );
+			self::assertArrayNotHasKey( 'Bad Name', $response['headers'] );
+		}
+		self::assertSame( array( null, $file['path'], $file['uid'] ), $calls[0] );
+		self::assertSame( '', $this->served( $full, $file['uid'] ), 'PHP sends no body' );
+
+		// Without rights the filter is never asked.
+		$before = count( $calls );
+		$this->rejected( fn() => ProtectedFiles::current()->response( Actor::user( $this->learner( null ) ), $file['uid'] ), 'ccap_content_locked', 403 );
+		$this->rejected( fn() => ProtectedFiles::current()->response( Actor::user( 0 ), $file['uid'] ), 'ccap_auth_required', 401 );
+		self::assertCount( $before, $calls );
+
+		// Only invalid headers → PHP streaming.
+		remove_all_filters( 'course_captain_protected_file_sendfile' );
+		add_filter( 'course_captain_protected_file_sendfile', static fn() => array( 'X-Sendfile' => "x\ny" ) );
+		self::assertTrue( ProtectedFiles::current()->response( $full, $file['uid'] )['stream'] );
+		remove_all_filters( 'course_captain_protected_file_sendfile' );
+		add_filter( 'course_captain_protected_file_sendfile', static fn( $headers, $path ) => array( 'X-Sendfile' => $path ), 10, 2 );
+		self::assertSame( $file['path'], ProtectedFiles::current()->response( $full, $file['uid'] )['headers']['X-Sendfile'] );
 	}
 }

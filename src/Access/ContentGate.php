@@ -665,6 +665,30 @@ final class ContentGate {
 	}
 
 	/**
+	 * Whether a medium belongs to a question of the learner's running exam
+	 * (E-375, MED-004): the frozen revision of the attempt snapshot
+	 * references the medium; same running condition as
+	 * {@see self::running_exam_questions()}.
+	 *
+	 * @param int $user     Learner.
+	 * @param int $media_id Medium.
+	 * @return bool
+	 */
+	public function running_exam_media( int $user, int $media_id ): bool {
+		if ( $user <= 0 || $media_id <= 0 ) {
+			return false;
+		}
+		return null !== $this->db->scalar(
+			$this->db->prepare(
+				'SELECT 1 FROM `' . $this->db->table( 'ccap_content_media' ) . '` cm JOIN `' . $this->db->table( 'ccap_exam_session_question' ) . '` sq ON sq.revision_id = cm.object_id JOIN `' . $this->db->table( 'ccap_exam_session' ) . "` s ON s.id = sq.session_id WHERE cm.object_type = 'question_revision' AND cm.media_id = %d AND s.user_id = %d AND s.status = 'in_progress' AND (s.deadline_at IS NOT NULL OR s.started_at > %s) LIMIT 1",
+				$media_id,
+				$user,
+				$this->db->now( -\CourseCaptain\Exam\ExamSessions::UNLIMITED_LOCK )
+			)
+		);
+	}
+
+	/**
 	 * Now.
 	 *
 	 * @return int
