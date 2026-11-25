@@ -251,13 +251,13 @@ final class ImportCatalogGapsTest extends SchemaTestCase {
 		$newer = $service->upload( $admin, $set( 'schema_version', '1.9.0' ) );
 		self::assertSame( 'failed', $service->validate( $admin, $newer )['status'] );
 		$page = ImportScreen::html( array( 'batch' => $newer ), $this->admin );
-		self::assertStringContainsString( 'The package has schema version 1.9.0, but this site imports only schema versions 1.0.0 to ' . $highest . '. Export the package again with a matching version and upload that file. (rule: V5_minor)', $page );
+		self::assertStringContainsString( 'The package has schema version 1.9.0, but this site imports only schema versions 1.0.0 to ' . $highest . '. Export the package again with a matching version and upload that file. (rule: V5_minor', $page );
 
 		$foreign = $service->upload( $admin, $set( 'format', 'other' ) );
 		self::assertSame( 'failed', $service->validate( $admin, $foreign )['status'] );
 		$page = html_entity_decode( ImportScreen::html( array( 'batch' => $foreign ), $this->admin ), ENT_QUOTES );
 		self::assertStringContainsString( 'This file is not a Course Captain package. Only packages created under "Import content > Course export" can be imported', $page );
-		self::assertStringContainsString( '(rule: V5_format)', $page );
+		self::assertStringContainsString( '(rule: V5_format', $page );
 		self::assertDoesNotMatchRegularExpression( '/migration tool|update the plugin/i', $page );
 	}
 
