@@ -950,3 +950,22 @@ Antworten der Inhaberin auf die offenen Klärungen aus den Nachweisen R1-xx, SET
 | E-366 | Setup-Assistent Schritt 7: leere Abschlussprüfung anlegen? | **Beibehalten:** keine leere Prüfung; Kursentwurf mit Modul und Lektion, Prüfungsregel-Entwurf über den Prüfungseditor | Inhaberin 24.11.2026 (D17) | R1-32 A-9; R0-30 Schritt 7, ADM-034 |
 | E-367 | Multisite: automatische Löschung von Konten | **Beibehalten:** automatische Löschung entfernt das Konto nur von der Site und löscht deren Course-Captain-Daten; netzweites Löschen bleibt dem Netzwerk-Admin | Inhaberin 24.11.2026 (D18) | R1-34 A-8; R0-25 |
 | E-368 | Ist R1 freigegeben, darf R2 beginnen? | **Nein:** R1 ist noch nicht freigegeben; keine R2-Arbeit | Inhaberin 24.11.2026 (D19) | R1-GATE; R2-01…R2-05 |
+
+## Inhaber-Entscheidungen 25.11.2026
+
+| ID | Frage | Entscheidung | Herkunft | betrifft |
+|---|---|---|---|---|
+| E-369 | Netzwerkweite Nutzer-Metadaten `ccap_notice_state`, `ccap_certificate_name_public` (MS-R-05) | **Beide pro Website** speichern (User-Option je Site) mit Migration der bestehenden Werte | Inhaberin 25.11.2026 | MS-R-05, MS-008 |
+| E-370 | Datenschutz-Löschung ohne Kontolöschung: Fragenautor leeren? | **Ja:** `ccap_question.author_user_id` wird geleert, die Frage bleibt (bestätigt PRIV-003-Umsetzung) | Inhaberin 25.11.2026 | PRIV-001/003 |
+| E-371 | Zugangsende inklusiv oder exklusiv (GRANT-014) | **Inklusiv:** Zugang gilt bis einschließlich `valid_until` (`now <= valid_until`); Code wird angepasst | Inhaberin 25.11.2026 | GRANT-014, R0-09, R0-07 B-6 |
+| E-372 | Begründung bei Korrekturaktionen (SUP-007) | **Pflicht, mindestens 10 Zeichen** für alle Korrekturaktionen, im Audit gespeichert | Inhaberin 25.11.2026 | SUP-007 |
+| E-373 | Nicht angemeldet bei geschützter Datei (MED-001) | **Weiterleitung zur Anmeldung** mit Rücksprung bei Browser-Aufruf; REST/API weiter `401` | Inhaberin 25.11.2026 | MED-001, R0-10 §4 |
+| E-374 | Drip für geschützte Dateien (E-27) | **Ja:** Dateien eines per Drip gesperrten Moduls bleiben gesperrt | Inhaberin 25.11.2026 | E-27, R0-10 §4.3 |
+| E-375 | Medien in Prüfungsfragen (MED-004) | **Nur der laufende Versuch:** in Prüfungen nur die Person mit laufendem Versuch; im Übungsmodus normaler Kurszugang | Inhaberin 25.11.2026 | MED-004, R1-20 |
+| E-376 | Lösungsmedien (MED-005) | **Jetzt bauen:** Medienrolle `solution`, Auslieferung erst nach Freigabe der Rückmeldung | Inhaberin 25.11.2026 | MED-005 |
+| E-377 | Serverseitige Dateiauslieferung (MED-016) | **Nur Filter** `course_captain_protected_file_sendfile` ohne Einstellung; Standard PHP-Auslieferung | Inhaberin 25.11.2026 | MED-016, R0-19 |
+| E-378 | HTML-Filter-Warnung im Trockenlauf (IMP-016) | **Ja:** Trockenlauf listet je Objekt, was der Filter entfernen würde | Inhaberin 25.11.2026 | IMP-016, R0-10 §3.2 V6 |
+| E-379 | Aktivierung Fragen + Kursrevision (IMP-024) | **Eine Transaktion je Kurs** wie R0-10 §3.4 (ersetzt die getrennte Phase aus E-50) | Inhaberin 25.11.2026 | IMP-024, E-50 |
+| E-380 | Rollback während laufendem Import (IMP-027) | **Ablehnen**, solange ein anderer Import läuft | Inhaberin 25.11.2026 | IMP-027 |
+| E-381 | Konflikt: Paketfassung übernehmen (IMP-028) | **Ja:** Wahl je Objekt und global bei der Freigabe, Audit je Übernahme; Standard bleibt „lokal gewinnt“ | Inhaberin 25.11.2026 | IMP-028, E-63 |
+| E-382 | Export-Umfang (IMP-030) | **Medien und Prüfungsvorlagen exportieren** (R0-10 §6.1); kein Abgleich per UID beim Reimport | Inhaberin 25.11.2026 | IMP-030, R0-10 §6.1 |
