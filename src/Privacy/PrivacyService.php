@@ -206,6 +206,7 @@ final class PrivacyService {
 			}
 		);
 		add_action( 'delete_user', array( self::class, 'on_delete_user' ) );
+		add_action( 'deleted_user', array( self::class, 'on_deleted_user' ) );
 		add_action( 'admin_init', array( self::class, 'policy_text' ) );
 	}
 
@@ -302,6 +303,19 @@ final class PrivacyService {
 		if ( $user instanceof \WP_User ) {
 			self::erase_invitations( (string) $user->user_email );
 		}
+		self::erase_user( (int) $user_id );
+	}
+
+	/**
+	 * Second pass after the account row is gone (R0-09 R-12, ID-014): a join
+	 * that committed between the first pass and the deletion of the account
+	 * row leaves no seat or grant behind. Idempotent; without such rows it
+	 * changes nothing and writes no audit entry.
+	 *
+	 * @param mixed $user_id User.
+	 * @return void
+	 */
+	public static function on_deleted_user( $user_id ): void {
 		self::erase_user( (int) $user_id );
 	}
 
