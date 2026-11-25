@@ -140,9 +140,9 @@ Regeln:
 
 ## 7. Import und Export
 
-Paketformat mit Manifest, Prüfsummen und Validierung (keine Pfade außerhalb, keine gefährlichen Dateitypen, ZIP-Bomben-Schutz), Trockenlauf mit Aktionen *create/update/unchanged/conflict/archive/error*, Freigabe, Import, Aktivierung und Rollback als neuer Import aus der Paketkopie (Pflichtbegründung). Lokal geänderte Objekte werden nicht überschrieben (`conflict`). Export enthält Kurse, Module, Lektionen und Poolfragen ohne Lernendendaten.
+Paketformat mit Manifest, Prüfsummen und Validierung (keine Pfade außerhalb, keine gefährlichen Dateitypen, ZIP-Bomben-Schutz), Trockenlauf mit Aktionen *create/update/unchanged/conflict/archive/error*, Freigabe, Import, Aktivierung und Rollback als neuer Import aus der Paketkopie (Pflichtbegründung). Lokal geänderte Objekte werden nicht überschrieben (`conflict`). Export (Import content › Kurs-Export) enthält Kurse, Module, veröffentlichte Lektionen, Poolfragen, die Mediendateien von Lektionen und Fragen (mit Prüfsumme, Zugriffsklasse und Rechteangaben) sowie die Prüfungsregeln mit Blueprints und eingefrorenen festen Prüfungsbögen, nie Lernendendaten. Fremde oder wegen unklarer, eingeschränkter oder abgelaufener Rechte zurückgehaltene Inhalte und Medien bleiben ohne ausdrückliche Bestätigung draußen; Dateitypen, die das Paketformat nicht erlaubt (z. B. `.txt`, `.docx`), immer. Das Paket listet alles Weggelassene im Manifest (`export.excluded[]`). Pakete über 200 MB oder 20 000 Dateien lehnt der Export ab. Ein Reimport gleicht nur über die Herkunftszuordnung ab, nicht über die UID (E-382). Paketformat: R0-10 §1 (Schema 1.1 für Prüfungsextras und Medienrollen, sonst 1.0).
 
-> **Stand:** Dienste vorhanden, **keine Oberfläche und keine REST-Route** (geplant R1-28/R1-36); Medien, Blueprints und Karteikarten im Paket sowie Großimporte geplant (R1-41).
+> **Stand:** Import und Export laufen über die Admin-Oberfläche (admin-post, keine REST-Route). Medien, Blueprints und Karteikarten werden importiert; der Export enthält jetzt auch Medien und Blueprints (E-382).
 
 ## 8. Website-Zustand und Protokoll
 

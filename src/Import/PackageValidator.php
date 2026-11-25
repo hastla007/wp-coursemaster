@@ -31,8 +31,12 @@ final class PackageValidator {
 
 	/**
 	 * Highest supported minor version of `schema_version` 1.x (R0-10 §1.2, IMP-005).
+	 * 1.1 (E-382): optional blueprint fields of the course export (form mode,
+	 * setting overrides, points per draw, part labels, empty-part policy,
+	 * blueprints of fixed variants only) and stored media roles
+	 * ({@see PackageExporter::schema_minor()}).
 	 */
-	public const SCHEMA_MINOR = 0;
+	public const SCHEMA_MINOR = 1;
 
 	public const MAX_ENTRIES  = 20000;
 	public const MAX_ZIP      = 209715200;

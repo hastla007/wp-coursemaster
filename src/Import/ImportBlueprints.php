@@ -12,6 +12,7 @@ namespace CourseCaptain\Import;
 use CourseCaptain\Course\CourseException;
 use CourseCaptain\Exam\ExamRules;
 use CourseCaptain\Policy\Actor;
+use CourseCaptain\Settings\EffectiveSettings;
 use CourseCaptain\Storage\Database;
 
 defined( 'ABSPATH' ) || exit;
@@ -27,6 +28,14 @@ defined( 'ABSPATH' ) || exit;
  * `draws[] {module, count}`, `fixed_variants[] {key, questions[]}`,
  * optional `settings {purpose}`. There is no default pass mark
  * (INV-C-132): a record without `min_ratio` is an object error.
+ *
+ * Schema 1.1 (course export, E-382) adds optional fields: `draws[].points`
+ * (1–100, default 1), `passing_rule.parts[].label`,
+ * `passing_rule.empty_part_policy` (`pass`/`fail`), `settings.form_mode`
+ * (`random`/`variants`, UI-F8) and `settings.overrides` (register key →
+ * value of the exam rule scope, R0-28); `draws` may be empty when the
+ * record has fixed variants. Overrides of a setting the target site has
+ * locked are dropped on import (the lock applies anyway, E-225).
  *
  * A published rule never changes (R0-08): a changed record creates a new
  * rule version; a draft that was never activated is replaced. Commit
@@ -75,17 +84,27 @@ final class ImportBlueprints {
 		if ( null !== $limit && ( ! is_int( $limit ) || $limit < 1 || $limit > 86400 ) ) {
 			return 'schema';
 		}
-		$settings = (array) ( $record['settings'] ?? array() );
-		if ( array() !== array_diff( array_keys( $settings ), array( 'purpose' ) ) || ( isset( $settings['purpose'] ) && ! in_array( $settings['purpose'], self::PURPOSES, true ) ) ) {
+		$settings = is_array( $record['settings'] ?? array() ) ? (array) ( $record['settings'] ?? array() ) : null;
+		if ( null === $settings || array() !== array_diff( array_keys( $settings ), array( 'purpose', 'form_mode', 'overrides' ) ) || ( isset( $settings['purpose'] ) && ! in_array( $settings['purpose'], self::PURPOSES, true ) ) ) {
+			return 'schema';
+		}
+		if ( isset( $settings['form_mode'] ) && ! in_array( $settings['form_mode'], ExamRules::FORM_MODES, true ) ) {
+			return 'schema';
+		}
+		if ( isset( $settings['overrides'] ) && null === self::overrides( $settings['overrides'] ) ) {
 			return 'schema';
 		}
 		$draws = $record['draws'] ?? null;
-		if ( ! is_array( $draws ) || array() === $draws ) {
+		// Schema 1.1: a blueprint of fixed variants only may have no draws.
+		if ( ! is_array( $draws ) || ( array() === $draws && array() === (array) ( $record['fixed_variants'] ?? array() ) ) ) {
 			return 'schema';
 		}
 		foreach ( $draws as $draw ) {
 			// Draws by tag are part of the format but not of the exam engine (module blueprints only).
 			if ( ! is_array( $draw ) || isset( $draw['tag'] ) || '' === (string) ( $draw['module'] ?? '' ) || ! is_int( $draw['count'] ?? null ) || $draw['count'] < 1 ) {
+				return 'schema';
+			}
+			if ( isset( $draw['points'] ) && ( ! is_int( $draw['points'] ) || $draw['points'] < 1 || $draw['points'] > 100 ) ) {
 				return 'schema';
 			}
 		}
@@ -199,14 +218,21 @@ final class ImportBlueprints {
 			// A changed record is a new version; the label stays readable (R0-08: published rules never change).
 			$version .= '-' . substr( str_replace( 'sha256:', '', (string) $record['hash'] ), 0, 8 );
 		}
-		$settings = isset( $record['settings']['purpose'] ) ? array( 'purpose' => (string) $record['settings']['purpose'] ) : array();
-		$passing  = self::passing( (array) $record['passing_rule'], $module );
+		$settings  = isset( $record['settings']['purpose'] ) ? array( 'purpose' => (string) $record['settings']['purpose'] ) : array();
+		$overrides = array_diff_key( (array) self::overrides( $record['settings']['overrides'] ?? array() ), EffectiveSettings::locks() );
+		if ( array() !== $overrides ) {
+			$settings['overrides'] = $overrides;
+		}
+		$passing = self::passing( (array) $record['passing_rule'], $module );
 		if ( null === $passing ) {
 			throw new CourseException( 'ccap_import_failed', 'Invalid passing rule.', 422 );
 		}
 		$rule = $rules->create( $actor, $course, $version, $passing, isset( $record['time_limit_s'] ) ? (int) $record['time_limit_s'] : null, $settings );
 		foreach ( (array) $record['draws'] as $draw ) {
-			$rules->set_blueprint( $actor, $rule, $module( (string) $draw['module'] ), (int) $draw['count'] );
+			$rules->set_blueprint( $actor, $rule, $module( (string) $draw['module'] ), (int) $draw['count'], (int) ( $draw['points'] ?? 1 ) );
+		}
+		if ( isset( $record['settings']['form_mode'] ) ) {
+			$rules->set_form_mode( $actor, $rule, (string) $record['settings']['form_mode'] );
 		}
 		$this->db->execute( $this->db->prepare( "UPDATE `{$table}` SET source_system = %s, source_id = %s, source_hash = %s, package_id = %s, imported_at = %s WHERE id = %d", $system, (string) $record['source_id'], (string) ( $record['hash'] ?? '' ), $package, $this->db->now(), $rule ) );
 		return array(
@@ -306,8 +332,36 @@ final class ImportBlueprints {
 	}
 
 	/**
-	 * Stored passing rule of a package passing rule: `min_ratio {num, den}`
-	 * and parts with one module (`section`) or a module group (`sections`).
+	 * Setting overrides of a record (schema 1.1, R0-28): register keys of
+	 * the exam rule scope with valid values, sorted by key; null when the
+	 * value is not an object of such overrides.
+	 *
+	 * @param mixed $overrides `settings.overrides` of a record.
+	 * @return array<string, mixed>|null
+	 */
+	public static function overrides( $overrides ): ?array {
+		if ( ! is_array( $overrides ) ) {
+			return null;
+		}
+		$out = array();
+		foreach ( $overrides as $key => $value ) {
+			if ( ! is_string( $key ) || ! array_key_exists( $key, ExamRules::REGISTER_MAP ) ) {
+				return null;
+			}
+			$check = EffectiveSettings::validate_override( $key, $value, 'exam_rule' );
+			if ( ! $check['ok'] ) {
+				return null;
+			}
+			$out[ $key ] = $check['value'];
+		}
+		ksort( $out );
+		return $out;
+	}
+
+	/**
+	 * Stored passing rule of a package passing rule: `min_ratio {num, den}`,
+	 * the optional `empty_part_policy` and parts with one module (`section`)
+	 * or a module group (`sections`) and an optional `label` (schema 1.1).
 	 *
 	 * @param array<string, mixed>  $rule   Package passing rule.
 	 * @param callable(string): int $module Module ID of a source ID.
@@ -323,6 +377,9 @@ final class ImportBlueprints {
 				'den' => $rule['min_ratio']['den'],
 			),
 		);
+		if ( isset( $rule['empty_part_policy'] ) ) {
+			$out['empty_part_policy'] = $rule['empty_part_policy'];
+		}
 		if ( ! isset( $rule['parts'] ) ) {
 			return $out;
 		}
@@ -343,7 +400,10 @@ final class ImportBlueprints {
 				'num' => $part['min_correct'],
 				'den' => $part['of'],
 			);
-			$out['parts'][]     = $entry;
+			if ( isset( $part['label'] ) ) {
+				$entry['label'] = $part['label'];
+			}
+			$out['parts'][] = $entry;
 		}
 		return $out;
 	}

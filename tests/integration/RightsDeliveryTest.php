@@ -854,13 +854,14 @@ final class RightsDeliveryTest extends SchemaTestCase {
 		self::assertSame( $package['export'], $check['manifest']['export'] );
 		self::assertSame( (string) wp_json_encode( $package ), (string) wp_json_encode( PackageExporter::collect( $admin, array( $this->course ) ) ), 'deterministic' );
 
-		// Opt-in: everything is exported, nothing listed.
+		// Opt-in: everything is exported except what the package cannot carry (E-382): the
+		// medium of the image-required question has no file, so it and the question stay out.
 		$all = PackageExporter::collect( $admin, array( $this->course ), true );
-		self::assertCount( 7, $all['records']['questions'] );
+		self::assertCount( 6, $all['records']['questions'] );
 		self::assertSame( array( 'Own lesson', 'Foreign lesson' ), array_column( $all['records']['lessons'], 'title' ) );
-		self::assertSame( array(), $all['export']['excluded'] );
+		self::assertSame( array( 'media:file_missing', 'questions:media_excluded' ), array_map( static fn( array $e ): string => $e['entity'] . ':' . $e['reason'], $all['export']['excluded'] ) );
 		self::assertTrue( $all['export']['included_foreign'] );
-		self::assertSame( 6, $all['foreign'] );
+		self::assertSame( 5, $all['foreign'], 'the left-out question and medium are not counted' );
 
 		// Admin area: opt-in without confirmation is refused; with it the export is audited.
 		$form = function ( array $data ): array {
@@ -884,11 +885,11 @@ final class RightsDeliveryTest extends SchemaTestCase {
 		self::assertSame( 0, $this->audit_count( 'course_export_foreign_included' ) );
 		$opted = ExportArea::process( $form( array( 'include_foreign' => '1', 'confirm_foreign' => '1' ) ), $this->admin ); // phpcs:ignore WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound -- Short test input.
 		self::assertSame( 'ok', $opted['result'] );
-		self::assertSame( 0, $opted['excluded'] );
+		self::assertSame( 2, $opted['excluded'], 'medium without file and its image-required question' );
 		wp_delete_file( $opted['file'] );
 		self::assertSame( 1, $this->audit_count( 'course_export_foreign_included' ) );
 		$context = (array) json_decode( (string) $db->scalar( $db->prepare( 'SELECT context FROM `' . $db->table( 'ccap_audit_log' ) . '` WHERE action = %s', 'course_export_foreign_included' ) ), true );
-		self::assertSame( 6, $context['foreign'] );
+		self::assertSame( 5, $context['foreign'] );
 
 		$page = ExportArea::html( array(), $this->admin );
 		self::assertStringContainsString( 'name="include_foreign"', $page );
